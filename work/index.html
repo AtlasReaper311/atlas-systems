@@ -1,1 +1,309 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#0a0a0f"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"><style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}:root{--bg:#0a0a0f;--bg-1:#111118;--border:rgba(255,255,255,0.08);--text:#e8e8e0;--text-dim:#888880;--accent:#f5a623;--mono:"IBM Plex Mono",monospace;--serif:"DM Serif Display",serif;--nav-h:56px}body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;min-height:100vh}nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(10,10,15,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem,5vw,3rem);z-index:100}.nav-wordmark{font-weight:500;font-size:13px;letter-spacing:.12em;color:var(--text);text-decoration:none;text-transform:uppercase}.nav-wordmark span{color:var(--accent)}.nav-links{display:flex;list-style:none}.nav-links a{display:block;padding:.35rem 1rem;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color .15s}.nav-links a:hover,.nav-links a.active{color:var(--text)}main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);padding-top:calc(var(--nav-h) + 5rem)}.page-heading{font-family:var(--serif);font-size:clamp(2rem,5vw,3.5rem);line-height:1.1;margin-bottom:1.5rem}.note{font-size:13px;color:var(--text-dim);line-height:1.8;max-width:480px}.note a{color:var(--accent);text-decoration:none}body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}</style><title>Work — Atlas Systems</title></head><body><nav><a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a><ul class="nav-links"><li><a href="/work/" class="nav-link">Work</a></li><li><a href="/writing/" class="nav-link">Writing</a></li><li><a href="/lab/" class="nav-link">Lab</a></li><li><a href="/about/" class="nav-link">About</a></li></ul></nav><main><h1 class="page-heading">Work</h1><p class="note">In active development. <a href="/">← Return home</a></p></main><script>document.querySelectorAll('.nav-link').forEach(a=>{if(window.location.pathname.startsWith(a.getAttribute('href')))a.classList.add('active')});</script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Work — Atlas Systems project portfolio.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Work — Atlas Systems</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;--border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);--text:#e8e8e0;--text-dim:#888880;--text-faint:#3a3a44;--accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);--mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px}
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
+    nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(10,10,15,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem,5vw,3rem);z-index:100}
+    .nav-wordmark{font-family:var(--mono);font-weight:500;font-size:13px;letter-spacing:0.12em;color:var(--text);text-decoration:none;text-transform:uppercase}
+    .nav-wordmark span{color:var(--accent)}
+    .nav-links{display:flex;list-style:none}
+    .nav-links a{display:block;padding:0.35rem 1rem;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color 0.15s;position:relative}
+    .nav-links a::after{content:'';position:absolute;bottom:-1px;left:50%;right:50%;height:1px;background:var(--accent);transition:left 0.2s,right 0.2s}
+    .nav-links a:hover{color:var(--text)}
+    .nav-links a:hover::after,.nav-links a.active::after{left:1rem;right:1rem}
+    .nav-links a.active{color:var(--text)}
+    main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);position:relative;z-index:1}
+    .page-header{padding-top:calc(var(--nav-h) + 5rem);padding-bottom:4rem;border-bottom:1px solid var(--border)}
+    .section-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem}
+    .section-label::before{content:'';display:inline-block;width:24px;height:1px;background:var(--accent)}
+    .page-heading{font-family:var(--serif);font-size:clamp(2.2rem,5vw,3.8rem);line-height:1.05;color:var(--text);margin-bottom:1.25rem;opacity:0;transform:translateY(10px);animation:fadeUp 0.5s 0.1s ease forwards}
+    .page-sub{font-size:13px;color:var(--text-dim);max-width:520px;line-height:1.8;opacity:0;transform:translateY(10px);animation:fadeUp 0.5s 0.22s ease forwards}
+    @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+    .filter-bar{display:flex;gap:0.5rem;flex-wrap:wrap;padding:2rem 0;border-bottom:1px solid var(--border)}
+    .filter-btn{font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;padding:0.35rem 0.9rem;border:1px solid var(--border);background:none;color:var(--text-dim);cursor:pointer;transition:all 0.15s}
+    .filter-btn:hover{border-color:var(--border-hi);color:var(--text)}
+    .filter-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+    .projects{padding:3rem 0}
+    .project-entry{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);margin-bottom:1px;opacity:0;transform:translateY(12px);transition:opacity 0.4s ease,transform 0.4s ease,border-color 0.2s}
+    .project-entry.visible{opacity:1;transform:translateY(0)}
+    .project-entry:hover{border-color:var(--border-hi)}
+    .project-entry.hidden{display:none}
+    .project-media{background:var(--bg-1);border-right:1px solid var(--border);min-height:320px;display:flex;flex-direction:column;position:relative;overflow:hidden}
+    .project-media-placeholder{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;padding:2rem;color:var(--text-faint)}
+    .placeholder-icon{width:48px;height:48px;border:1px solid var(--text-faint);display:flex;align-items:center;justify-content:center}
+    .placeholder-icon svg{width:20px;height:20px;stroke:var(--text-faint);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .placeholder-label{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;text-align:center}
+    .project-media img{width:100%;height:100%;object-fit:cover;display:block}
+    .audio-strip{border-top:1px solid var(--border);padding:1rem 1.25rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center}
+    .audio-label{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-right:0.25rem}
+    .audio-btn{font-family:var(--mono);font-size:11px;letter-spacing:0.08em;padding:0.25rem 0.75rem;border:1px solid var(--border);background:none;color:var(--text-dim);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:0.4rem}
+    .audio-btn:hover{border-color:var(--accent);color:var(--accent)}
+    .audio-btn.playing{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+    .audio-btn svg{width:10px;height:10px;fill:currentColor}
+    .project-info{padding:2rem 2.5rem;display:flex;flex-direction:column}
+    .project-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+    .project-index{font-size:11px;color:var(--text-faint);letter-spacing:0.1em}
+    .project-tags{display:flex;gap:0.4rem;flex-wrap:wrap}
+    .tag{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:0.2rem 0.5rem;border:1px solid var(--border);color:var(--text-dim)}
+    .tag.highlight{border-color:rgba(245,166,35,0.4);color:rgba(245,166,35,0.8)}
+    .project-title{font-family:var(--serif);font-size:clamp(1.6rem,3vw,2.2rem);line-height:1.1;color:var(--text);margin-bottom:0.5rem}
+    .project-role{font-size:12px;color:var(--accent);letter-spacing:0.06em;margin-bottom:1.5rem}
+    .project-desc{font-size:13px;color:var(--text-dim);line-height:1.8;margin-bottom:2rem;flex:1}
+    .spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:2rem}
+    .spec-cell{background:var(--bg);padding:0.75rem 1rem}
+    .spec-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.25rem}
+    .spec-value{font-size:12px;color:var(--text)}
+    .tech-stack{display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:2rem}
+    .tech-pill{font-size:11px;padding:0.25rem 0.6rem;background:var(--bg-1);border:1px solid var(--border);color:var(--text-dim);letter-spacing:0.04em}
+    .achievements{display:flex;flex-direction:column;gap:0.5rem;margin-bottom:2rem}
+    .achievement{display:flex;gap:0.75rem;align-items:flex-start;font-size:12px;color:var(--text-dim);line-height:1.6}
+    .achievement::before{content:'→';color:var(--accent);flex-shrink:0;margin-top:0.05rem}
+    .project-links{display:flex;gap:0.75rem;margin-top:auto;padding-top:1.5rem;border-top:1px solid var(--border)}
+    .proj-link{font-family:var(--mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;padding:0.4rem 1rem;border:1px solid var(--border);color:var(--text-dim);transition:all 0.15s;display:flex;align-items:center;gap:0.4rem}
+    .proj-link:hover{border-color:var(--border-hi);color:var(--text)}
+    .proj-link svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .proj-link.primary{background:var(--accent);border-color:var(--accent);color:#0a0a0f}
+    .proj-link.primary:hover{background:#f7b84a;border-color:#f7b84a}
+    .system-diagram{flex:1;padding:1.5rem;display:flex;flex-direction:column;gap:0.5rem;justify-content:center}
+    .diagram-row{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap}
+    .diagram-node{font-size:10px;letter-spacing:0.06em;padding:0.4rem 0.75rem;border:1px solid var(--border);color:var(--text-dim);white-space:nowrap;flex-shrink:0}
+    .diagram-node.accent{border-color:rgba(245,166,35,0.5);color:var(--accent)}
+    .diagram-node.dim{border-color:var(--text-faint);color:var(--text-faint);font-size:9px}
+    .diagram-arrow{font-size:10px;color:var(--text-faint);flex-shrink:0}
+    .diagram-group{border:1px solid var(--border);padding:0.75rem 1rem}
+    .diagram-group-label{font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.5rem}
+    .diagram-nodes-row{display:flex;gap:0.4rem;flex-wrap:wrap}
+    .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
+    .mobile-nav-inner{display:flex;align-items:stretch;height:100%}
+    .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.15s}
+    .mobile-nav-item:hover,.mobile-nav-item.active{color:var(--accent)}
+    .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    @media(max-width:780px){.project-entry{grid-template-columns:1fr}.project-media{border-right:none;border-bottom:1px solid var(--border);min-height:220px}.project-info{padding:1.5rem}.spec-grid{grid-template-columns:1fr}.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}}
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
+    <ul class="nav-links">
+      <li><a href="/work/" class="nav-link">Work</a></li>
+      <li><a href="/writing/" class="nav-link">Writing</a></li>
+      <li><a href="/lab/" class="nav-link">Lab</a></li>
+      <li><a href="/about/" class="nav-link">About</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <header class="page-header">
+      <div class="section-label">Work</div>
+      <h1 class="page-heading">Selected projects.</h1>
+      <p class="page-sub">Systems built to spec, documented in full. Each project is an exercise in architecture decisions, not just implementation.</p>
+    </header>
+
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="audio">Audio Systems</button>
+      <button class="filter-btn" data-filter="ai">AI / LLMs</button>
+      <button class="filter-btn" data-filter="devops">DevOps</button>
+      <button class="filter-btn" data-filter="gamedev">Game Dev</button>
+    </div>
+
+    <div class="projects">
+
+      <!-- P-01: Project Velocity -->
+      <article class="project-entry" data-tags="audio gamedev">
+        <div class="project-media">
+          <div class="project-media-placeholder">
+            <div class="placeholder-icon">
+              <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </div>
+            <span class="placeholder-label">Screenshots / node graphs<br>drop here</span>
+          </div>
+          <div class="audio-strip">
+            <span class="audio-label">Intensity:</span>
+            <button class="audio-btn" onclick="toggleAudio(this,'int1')">
+              <svg viewBox="0 0 10 10"><polygon points="2,1 9,5 2,9"/></svg>Int1 — Energy Floor
+            </button>
+            <button class="audio-btn" onclick="toggleAudio(this,'int2')">
+              <svg viewBox="0 0 10 10"><polygon points="2,1 9,5 2,9"/></svg>Int2 — Escalation
+            </button>
+            <button class="audio-btn" onclick="toggleAudio(this,'int3')">
+              <svg viewBox="0 0 10 10"><polygon points="2,1 9,5 2,9"/></svg>Int3 — Finale
+            </button>
+          </div>
+        </div>
+        <div class="project-info">
+          <div class="project-meta">
+            <span class="project-index">P-01</span>
+            <div class="project-tags">
+              <span class="tag highlight">Audio Systems</span>
+              <span class="tag">Game Dev</span>
+              <span class="tag">Unreal Engine 5</span>
+            </div>
+          </div>
+          <h2 class="project-title">Project Velocity</h2>
+          <div class="project-role">Lead Audio Systems Designer & Music Producer</div>
+          <p class="project-desc">A logic-driven dynamic audio engine for a competitive parkour multiplayer game. Engineered a 15-stem interactive music system that mirrors player performance in real time — escalating from a minimal atmospheric floor to a dense triumphant climax while maintaining surgical clarity for competitive gameplay cues.</p>
+          <div class="spec-grid">
+            <div class="spec-cell"><div class="spec-label">Timeline</div><div class="spec-value">14 weeks / ~600hrs</div></div>
+            <div class="spec-cell"><div class="spec-label">Grade</div><div class="spec-value">100% — Grade A</div></div>
+            <div class="spec-cell"><div class="spec-label">Architecture</div><div class="spec-value">15-stem / 3 intensity layers</div></div>
+            <div class="spec-cell"><div class="spec-label">BPM Grid</div><div class="spec-value">140 BPM locked</div></div>
+          </div>
+          <div class="tech-stack">
+            <span class="tech-pill">Unreal Engine 5</span>
+            <span class="tech-pill">MetaSounds</span>
+            <span class="tech-pill">Blueprints</span>
+            <span class="tech-pill">FL Studio 24</span>
+            <span class="tech-pill">REAPER v7</span>
+            <span class="tech-pill">Vital (Wavetable)</span>
+          </div>
+          <div class="achievements">
+            <div class="achievement">15-stem dynamic music system split across 3 match intensities and 5 discrete instrument busses</div>
+            <div class="achievement">Real-time sidechain ducking — music stems duck dynamically when parkour SFX or commentator lines trigger</div>
+            <div class="achievement">Hierarchical submix tree with spectral carving — Data Bus hard high-passed at 200Hz to preserve low-end headroom</div>
+            <div class="achievement">Global Music Manager Blueprint locks all transitions to 140 BPM grid — zero rhythmic stutter on intensity escalation</div>
+            <div class="achievement">Fully modular pipeline — new arenas and themes hot-swap into established mix framework without breaking thresholds</div>
+          </div>
+          <div class="project-links">
+            <a href="#" class="proj-link primary">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Case Study
+            </a>
+            <a href="https://github.com/AtlasReaper311" class="proj-link" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>GitHub
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- P-02: Local LLM System -->
+      <article class="project-entry" data-tags="ai devops">
+        <div class="project-media">
+          <div class="system-diagram">
+            <div class="diagram-row">
+              <div class="diagram-node accent">Windows 11</div>
+              <div class="diagram-arrow">→</div>
+              <div class="diagram-node accent">WSL2 / Ubuntu</div>
+              <div class="diagram-arrow">→</div>
+              <div class="diagram-node accent">Docker</div>
+            </div>
+            <div class="diagram-row" style="margin-left:1rem;margin-top:0.25rem;">
+              <div class="diagram-arrow">↓</div>
+            </div>
+            <div class="diagram-row">
+              <div class="diagram-node accent">Ollama :11434</div>
+              <div class="diagram-arrow">→</div>
+              <div class="diagram-node accent">Open WebUI :8080</div>
+            </div>
+            <div class="diagram-row" style="margin-top:1rem;">
+              <div class="diagram-group" style="flex:1">
+                <div class="diagram-group-label">Models on L:\ NVMe</div>
+                <div class="diagram-nodes-row">
+                  <div class="diagram-node dim">llama3.2:3b</div>
+                  <div class="diagram-node dim">llama3.1:8b</div>
+                  <div class="diagram-node dim">mistral:7b</div>
+                  <div class="diagram-node dim">deepseek-coder:16b</div>
+                  <div class="diagram-node dim">qwen2.5:32b</div>
+                </div>
+              </div>
+            </div>
+            <div class="diagram-row" style="margin-top:0.75rem;">
+              <div class="diagram-group" style="flex:1">
+                <div class="diagram-group-label">10 Specialised Workbots (RAG-grounded)</div>
+                <div class="diagram-nodes-row">
+                  <div class="diagram-node dim">Archivist</div>
+                  <div class="diagram-node dim">Architect-Bot</div>
+                  <div class="diagram-node dim">Academic Index</div>
+                  <div class="diagram-node dim">Senior Architect</div>
+                  <div class="diagram-node dim">+6 more</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="audio-strip">
+            <span class="placeholder-label" style="font-size:11px;color:var(--text-faint);letter-spacing:0.08em;">Boot terminal screenshot — drop here</span>
+          </div>
+        </div>
+        <div class="project-info">
+          <div class="project-meta">
+            <span class="project-index">P-02</span>
+            <div class="project-tags">
+              <span class="tag highlight">AI / Local LLMs</span>
+              <span class="tag">RAG</span>
+              <span class="tag">DevOps</span>
+            </div>
+          </div>
+          <h2 class="project-title">Atlas Local<br>AI System</h2>
+          <div class="project-role">Architect & Systems Engineer</div>
+          <p class="project-desc">A fully self-hosted private AI infrastructure — zero cloud dependency, zero data egress. Five LLMs served via Ollama on local hardware, wrapped in Docker, accessed through Open WebUI with ten specialised workbots backed by RAG knowledge bases. Everything lives on a dedicated NVMe drive: portable, rebuildable in under 30 minutes.</p>
+          <div class="spec-grid">
+            <div class="spec-cell"><div class="spec-label">GPU</div><div class="spec-value">RTX 5070 — 12GB VRAM</div></div>
+            <div class="spec-cell"><div class="spec-label">RAM</div><div class="spec-value">64GB DDR5</div></div>
+            <div class="spec-cell"><div class="spec-label">Models</div><div class="spec-value">5 LLMs / 3b–32b params</div></div>
+            <div class="spec-cell"><div class="spec-label">Workbots</div><div class="spec-value">10 specialised agents</div></div>
+          </div>
+          <div class="tech-stack">
+            <span class="tech-pill">Ollama</span>
+            <span class="tech-pill">Docker</span>
+            <span class="tech-pill">WSL2</span>
+            <span class="tech-pill">Ubuntu</span>
+            <span class="tech-pill">Open WebUI</span>
+            <span class="tech-pill">RAG Pipelines</span>
+            <span class="tech-pill">Windows Batch</span>
+          </div>
+          <div class="achievements">
+            <div class="achievement">Full data sovereignty — conversations, documents, and RAG knowledge bases never leave local hardware</div>
+            <div class="achievement">Custom ATLAS_BOOTSTRAP.bat auto-starts full stack on boot — Docker, Ollama, Open WebUI with live health checks</div>
+            <div class="achievement">RAG knowledge bases built from chunked university lecture PDFs — Academic Vector Index grounded in real course material</div>
+            <div class="achievement">Hardware portable — entire system on L:\ NVMe, rebuildable on new hardware in under 30 minutes</div>
+            <div class="achievement">Model selection matched to task profile: 3b for speed, 32b for deep reasoning and RAG retrieval</div>
+          </div>
+          <div class="project-links">
+            <a href="#" class="proj-link primary">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Case Study
+            </a>
+            <a href="https://github.com/AtlasReaper311" class="proj-link" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>GitHub
+            </a>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </main>
+
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-inner">
+      <a href="/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
+      <a href="/work/" class="mobile-nav-item active"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Work</a>
+      <a href="/lab/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>Lab</a>
+      <a href="/about/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg>About</a>
+    </div>
+  </nav>
+
+  <script>
+    document.querySelectorAll('.nav-link').forEach(a=>{if(window.location.pathname.startsWith(a.getAttribute('href')))a.classList.add('active')});
+    const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target)}})},{threshold:0.08});
+    document.querySelectorAll('.project-entry').forEach(el=>observer.observe(el));
+    document.querySelectorAll('.filter-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const filter=btn.dataset.filter;document.querySelectorAll('.project-entry').forEach(entry=>{const tags=entry.dataset.tags||'';if(filter==='all'||tags.includes(filter)){entry.classList.remove('hidden')}else{entry.classList.add('hidden')}})})});
+    let currentAudio=null,currentBtn=null;
+    function toggleAudio(btn,trackId){
+      const tracks={int1:'/assets/audio/velocity-int1.mp3',int2:'/assets/audio/velocity-int2.mp3',int3:'/assets/audio/velocity-int3.mp3'};
+      if(currentBtn&&currentBtn!==btn){currentBtn.classList.remove('playing');currentBtn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9');if(currentAudio){currentAudio.pause();currentAudio=null}}
+      if(btn.classList.contains('playing')){btn.classList.remove('playing');btn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9');if(currentAudio){currentAudio.pause();currentAudio=null}currentBtn=null}
+      else{btn.classList.add('playing');btn.querySelector('svg polygon').setAttribute('points','2,2 8,2 8,8 2,8');currentAudio=new Audio(tracks[trackId]);currentAudio.play().catch(()=>{btn.classList.remove('playing');btn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9')});currentAudio.onended=()=>{btn.classList.remove('playing');btn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9');currentBtn=null};currentBtn=btn}
+    }
+  </script>
+</body>
+</html>
