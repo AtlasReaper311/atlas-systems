@@ -11,7 +11,13 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    :root{--bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;--border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);--text:#e8e8e0;--text-dim:#888880;--text-faint:#3a3a44;--accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);--mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px}
+    :root{
+      --bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;
+      --border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);
+      --text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;
+      --accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);
+      --mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px
+    }
     html{scroll-behavior:smooth}
     body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
     body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
@@ -41,24 +47,27 @@
     .project-entry:hover{border-color:var(--border-hi)}
     .project-entry.hidden{display:none}
     .project-media{background:var(--bg-1);border-right:1px solid var(--border);min-height:320px;display:flex;flex-direction:column;position:relative;overflow:hidden}
-    .project-media-placeholder{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;padding:2rem;color:var(--text-faint)}
-    .placeholder-icon{width:48px;height:48px;border:1px solid var(--text-faint);display:flex;align-items:center;justify-content:center}
-    .placeholder-icon svg{width:20px;height:20px;stroke:var(--text-faint);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-    .placeholder-label{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;text-align:center}
     .project-media img{width:100%;height:100%;object-fit:cover;display:block}
-    .audio-strip{border-top:1px solid var(--border);padding:1rem 1.25rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center}
+    .media-stack{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    .media-stack img{flex:1;width:100%;object-fit:cover;display:block;min-height:0}
+    .media-stack img+img{border-top:1px solid var(--border)}
+    .audio-strip{border-top:1px solid var(--border);padding:1rem 1.25rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;flex-shrink:0}
     .audio-label{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-right:0.25rem}
     .audio-btn{font-family:var(--mono);font-size:11px;letter-spacing:0.08em;padding:0.25rem 0.75rem;border:1px solid var(--border);background:none;color:var(--text-dim);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:0.4rem}
     .audio-btn:hover{border-color:var(--accent);color:var(--accent)}
     .audio-btn.playing{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
     .audio-btn svg{width:10px;height:10px;fill:currentColor}
+    .project-media-placeholder{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;padding:2rem;color:var(--text-faint)}
+    .placeholder-icon{width:48px;height:48px;border:1px solid var(--text-faint);display:flex;align-items:center;justify-content:center}
+    .placeholder-icon svg{width:20px;height:20px;stroke:var(--text-faint);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .placeholder-label{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;text-align:center}
     .project-info{padding:2rem 2.5rem;display:flex;flex-direction:column}
     .project-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
     .project-index{font-size:11px;color:var(--text-faint);letter-spacing:0.1em}
     .project-tags{display:flex;gap:0.4rem;flex-wrap:wrap}
     .tag{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:0.2rem 0.5rem;border:1px solid var(--border);color:var(--text-dim)}
     .tag.highlight{border-color:rgba(245,166,35,0.4);color:rgba(245,166,35,0.8)}
-    .project-title{font-family:var(--serif);font-size:clamp(1.6rem,3vw,2.2rem);line-height:1.1;color:var(--text);margin-bottom:0.5rem}
+    .project-title{font-family:var(--serif);font-size:clamp(1.5rem,2.8vw,2.1rem);line-height:1.1;color:var(--text);margin-bottom:0.5rem}
     .project-role{font-size:12px;color:var(--accent);letter-spacing:0.06em;margin-bottom:1.5rem}
     .project-desc{font-size:13px;color:var(--text-dim);line-height:1.8;margin-bottom:2rem;flex:1}
     .spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:2rem}
@@ -76,15 +85,17 @@
     .proj-link svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
     .proj-link.primary{background:var(--accent);border-color:var(--accent);color:#0a0a0f}
     .proj-link.primary:hover{background:#f7b84a;border-color:#f7b84a}
-    .system-diagram{flex:1;padding:1.5rem;display:flex;flex-direction:column;gap:0.5rem;justify-content:center}
+    /* diagram */
+    .system-diagram{flex:1;padding:1.5rem;display:flex;flex-direction:column;gap:0.6rem;justify-content:center}
     .diagram-row{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap}
     .diagram-node{font-size:10px;letter-spacing:0.06em;padding:0.4rem 0.75rem;border:1px solid var(--border);color:var(--text-dim);white-space:nowrap;flex-shrink:0}
     .diagram-node.accent{border-color:rgba(245,166,35,0.5);color:var(--accent)}
-    .diagram-node.dim{border-color:var(--text-faint);color:var(--text-faint);font-size:9px}
-    .diagram-arrow{font-size:10px;color:var(--text-faint);flex-shrink:0}
+    .diagram-node.dim{border-color:rgba(255,255,255,0.12);color:#777770;font-size:9px}
+    .diagram-arrow{font-size:13px;color:var(--accent);flex-shrink:0;font-weight:500}
     .diagram-group{border:1px solid var(--border);padding:0.75rem 1rem}
     .diagram-group-label{font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.5rem}
     .diagram-nodes-row{display:flex;gap:0.4rem;flex-wrap:wrap}
+    /* mobile nav */
     .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
     .mobile-nav-inner{display:flex;align-items:stretch;height:100%}
     .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.15s}
@@ -121,7 +132,7 @@
 
     <div class="projects">
 
-      <!-- P-01: Project Velocity -->
+      <!-- P-01: SlamPunk -->
       <article class="project-entry" data-tags="audio gamedev">
         <div class="project-media">
           <div class="project-media-placeholder">
@@ -152,9 +163,9 @@
               <span class="tag">Unreal Engine 5</span>
             </div>
           </div>
-          <h2 class="project-title">Project Velocity</h2>
+          <h2 class="project-title">SlamPunk — Dynamic Mix Engine</h2>
           <div class="project-role">Lead Audio Systems Designer & Music Producer</div>
-          <p class="project-desc">A logic-driven dynamic audio engine for a competitive parkour multiplayer game. Engineered a 15-stem interactive music system that mirrors player performance in real time — escalating from a minimal atmospheric floor to a dense triumphant climax while maintaining surgical clarity for competitive gameplay cues.</p>
+          <p class="project-desc">A logic-driven dynamic audio engine for SlamPunk — a competitive future-sport game blending tag and basketball. Engineered a 15-stem interactive music system that mirrors player performance in real time, escalating from a minimal atmospheric floor to a dense triumphant climax while maintaining surgical clarity for competitive gameplay cues.</p>
           <div class="spec-grid">
             <div class="spec-cell"><div class="spec-label">Timeline</div><div class="spec-value">14 weeks / ~600hrs</div></div>
             <div class="spec-cell"><div class="spec-label">Grade</div><div class="spec-value">100% — Grade A</div></div>
@@ -187,52 +198,15 @@
         </div>
       </article>
 
-      <!-- P-02: Local LLM System -->
+      <!-- P-02: Ramone -->
       <article class="project-entry" data-tags="ai devops">
         <div class="project-media">
-          <div class="system-diagram">
-            <div class="diagram-row">
-              <div class="diagram-node accent">Windows 11</div>
-              <div class="diagram-arrow">→</div>
-              <div class="diagram-node accent">WSL2 / Ubuntu</div>
-              <div class="diagram-arrow">→</div>
-              <div class="diagram-node accent">Docker</div>
-            </div>
-            <div class="diagram-row" style="margin-left:1rem;margin-top:0.25rem;">
-              <div class="diagram-arrow">↓</div>
-            </div>
-            <div class="diagram-row">
-              <div class="diagram-node accent">Ollama :11434</div>
-              <div class="diagram-arrow">→</div>
-              <div class="diagram-node accent">Open WebUI :8080</div>
-            </div>
-            <div class="diagram-row" style="margin-top:1rem;">
-              <div class="diagram-group" style="flex:1">
-                <div class="diagram-group-label">Models on L:\ NVMe</div>
-                <div class="diagram-nodes-row">
-                  <div class="diagram-node dim">llama3.2:3b</div>
-                  <div class="diagram-node dim">llama3.1:8b</div>
-                  <div class="diagram-node dim">mistral:7b</div>
-                  <div class="diagram-node dim">deepseek-coder:16b</div>
-                  <div class="diagram-node dim">qwen2.5:32b</div>
-                </div>
-              </div>
-            </div>
-            <div class="diagram-row" style="margin-top:0.75rem;">
-              <div class="diagram-group" style="flex:1">
-                <div class="diagram-group-label">10 Specialised Workbots (RAG-grounded)</div>
-                <div class="diagram-nodes-row">
-                  <div class="diagram-node dim">Archivist</div>
-                  <div class="diagram-node dim">Architect-Bot</div>
-                  <div class="diagram-node dim">Academic Index</div>
-                  <div class="diagram-node dim">Senior Architect</div>
-                  <div class="diagram-node dim">+6 more</div>
-                </div>
-              </div>
-            </div>
+          <div class="media-stack">
+            <img src="/assets/img/atlas-boot.png" alt="ATLAS boot sequence — SPECULAR-CORE initialising WSL2 and Docker">
+            <img src="/assets/img/atlas-ready.png" alt="ATLAS node active — Ubuntu subsystem online, Docker engine ready">
           </div>
           <div class="audio-strip">
-            <span class="placeholder-label" style="font-size:11px;color:var(--text-faint);letter-spacing:0.08em;">Boot terminal screenshot — drop here</span>
+            <span class="placeholder-label" style="font-size:11px;color:var(--text-faint);letter-spacing:0.08em;">Open WebUI screenshot — drop here</span>
           </div>
         </div>
         <div class="project-info">
@@ -244,7 +218,7 @@
               <span class="tag">DevOps</span>
             </div>
           </div>
-          <h2 class="project-title">Atlas Local<br>AI System</h2>
+          <h2 class="project-title">Ramone — Local AI System</h2>
           <div class="project-role">Architect & Systems Engineer</div>
           <p class="project-desc">A fully self-hosted private AI infrastructure — zero cloud dependency, zero data egress. Five LLMs served via Ollama on local hardware, wrapped in Docker, accessed through Open WebUI with ten specialised workbots backed by RAG knowledge bases. Everything lives on a dedicated NVMe drive: portable, rebuildable in under 30 minutes.</p>
           <div class="spec-grid">
