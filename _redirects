@@ -1,0 +1,7 @@
+# Cloudflare Pages _redirects
+# Clean URL routing — no trailing slashes needed
+
+/work    /work/    301
+/writing /writing/ 301
+/lab     /lab/     301
+/about   /about/   301
