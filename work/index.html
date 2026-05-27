@@ -49,8 +49,14 @@
     .project-media{background:var(--bg-1);border-right:1px solid var(--border);min-height:320px;display:flex;flex-direction:column;position:relative;overflow:hidden}
     .project-media img{width:100%;height:100%;object-fit:cover;display:block}
     .media-stack{flex:1;display:flex;flex-direction:column;overflow:hidden}
-    .media-stack img{flex:1;width:100%;object-fit:cover;display:block;min-height:0}
+    .media-stack img{flex:1;width:100%;object-fit:contain;object-position:top left;display:block;min-height:0;background:var(--bg);cursor:zoom-in;transition:opacity 0.15s}
+    .media-stack img:hover{opacity:0.85}
     .media-stack img+img{border-top:1px solid var(--border)}
+    .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:999;align-items:center;justify-content:center;cursor:zoom-out}
+    .lightbox.open{display:flex}
+    .lightbox img{max-width:90vw;max-height:90vh;object-fit:contain;border:1px solid var(--border)}
+    .lightbox-close{position:absolute;top:1.5rem;right:1.5rem;font-family:var(--mono);font-size:12px;color:var(--text-dim);background:none;border:1px solid var(--border);padding:0.35rem 0.75rem;cursor:pointer;letter-spacing:0.08em;text-transform:uppercase}
+    .lightbox-close:hover{color:var(--text);border-color:var(--border-hi)}
     .audio-strip{border-top:1px solid var(--border);padding:1rem 1.25rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;flex-shrink:0}
     .audio-label{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-right:0.25rem}
     .audio-btn{font-family:var(--mono);font-size:11px;letter-spacing:0.08em;padding:0.25rem 0.75rem;border:1px solid var(--border);background:none;color:var(--text-dim);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:0.4rem}
@@ -202,8 +208,8 @@
       <article class="project-entry" data-tags="ai devops">
         <div class="project-media">
           <div class="media-stack">
-            <img src="/assets/img/atlas-boot.png" alt="ATLAS boot sequence — SPECULAR-CORE initialising WSL2 and Docker">
-            <img src="/assets/img/atlas-ready.png" alt="ATLAS node active — Ubuntu subsystem online, Docker engine ready">
+            <img src="/assets/img/atlas-boot.png" alt="ATLAS boot sequence — SPECULAR-CORE initialising WSL2 and Docker" onclick="openLightbox(this.src)">
+            <img src="/assets/img/atlas-ready.png" alt="ATLAS node active — Ubuntu subsystem online, Docker engine ready" onclick="openLightbox(this.src)">
           </div>
           <div class="audio-strip">
             <span class="placeholder-label" style="font-size:11px;color:var(--text-faint);letter-spacing:0.08em;">Open WebUI screenshot — drop here</span>
@@ -257,6 +263,11 @@
     </div>
   </main>
 
+  <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <button class="lightbox-close" onclick="closeLightbox()">close ✕</button>
+    <img id="lightbox-img" src="" alt="">
+  </div>
+
   <nav class="mobile-nav" aria-label="Mobile navigation">
     <div class="mobile-nav-inner">
       <a href="/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
@@ -271,9 +282,13 @@
     const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target)}})},{threshold:0.08});
     document.querySelectorAll('.project-entry').forEach(el=>observer.observe(el));
     document.querySelectorAll('.filter-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const filter=btn.dataset.filter;document.querySelectorAll('.project-entry').forEach(entry=>{const tags=entry.dataset.tags||'';if(filter==='all'||tags.includes(filter)){entry.classList.remove('hidden')}else{entry.classList.add('hidden')}})})});
+    function openLightbox(src){document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').classList.add('open');document.body.style.overflow='hidden'}
+    function closeLightbox(){document.getElementById('lightbox').classList.remove('open');document.body.style.overflow=''}
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox()});
     let currentAudio=null,currentBtn=null;
     function toggleAudio(btn,trackId){
-      const tracks={int1:'/assets/audio/velocity-int1.mp3',int2:'/assets/audio/velocity-int2.mp3',int3:'/assets/audio/velocity-int3.mp3'};
+      // int1 and int3 were swapped on export — corrected here
+      const tracks={int1:'/assets/audio/velocity-int3.mp3',int2:'/assets/audio/velocity-int2.mp3',int3:'/assets/audio/velocity-int1.mp3'};
       if(currentBtn&&currentBtn!==btn){currentBtn.classList.remove('playing');currentBtn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9');if(currentAudio){currentAudio.pause();currentAudio=null}}
       if(btn.classList.contains('playing')){btn.classList.remove('playing');btn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9');if(currentAudio){currentAudio.pause();currentAudio=null}currentBtn=null}
       else{btn.classList.add('playing');btn.querySelector('svg polygon').setAttribute('points','2,2 8,2 8,8 2,8');currentAudio=new Audio(tracks[trackId]);currentAudio.play().catch(()=>{btn.classList.remove('playing');btn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9')});currentAudio.onended=()=>{btn.classList.remove('playing');btn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9');currentBtn=null};currentBtn=btn}
