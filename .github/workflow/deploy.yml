@@ -3,8 +3,6 @@ name: Deploy to Cloudflare Pages
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
 
 jobs:
   deploy:
@@ -15,20 +13,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Inject build metadata into index.html at deploy time
-      # This populates the "live signal" strip on the homepage
       - name: Inject build metadata
         run: |
-          COMMIT_SHA="${{ github.sha }}"
+          COMMIT_SHA="${GITHUB_SHA}"
           BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-
           sed -i "s|<meta name=\"theme-color\"|<meta name=\"build-commit\" content=\"${COMMIT_SHA}\">\n  <meta name=\"build-time\" content=\"${BUILD_TIME}\">\n  <meta name=\"theme-color\"|" index.html
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: atlas-systems
-          directory: .
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: pages deploy . --project-name=atlas-systems
