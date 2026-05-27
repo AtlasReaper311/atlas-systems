@@ -22,8 +22,6 @@
     html{scroll-behavior:smooth}
     body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
     body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
-
-    /* NAV */
     nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(10,10,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem,5vw,3rem);z-index:100}
     .nav-wordmark{font-family:var(--mono);font-weight:500;font-size:13px;letter-spacing:0.12em;color:var(--text);text-decoration:none;text-transform:uppercase}
     .nav-wordmark span{color:var(--accent)}
@@ -33,11 +31,7 @@
     .nav-links a:hover{color:var(--text)}
     .nav-links a:hover::after,.nav-links a.active::after{left:1rem;right:1rem}
     .nav-links a.active{color:var(--text)}
-
-    /* LAYOUT */
     main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);position:relative;z-index:1}
-
-    /* ARTICLE HEADER */
     .article-header{padding-top:calc(var(--nav-h) + 5rem);padding-bottom:4rem;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr 2fr;gap:3rem}
     .header-meta{display:flex;flex-direction:column;gap:1rem}
     .back-link{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s;margin-bottom:0.5rem}
@@ -49,31 +43,22 @@
     .header-tags{display:flex;flex-direction:column;gap:0.4rem;margin-top:0.5rem}
     .tag{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:0.2rem 0.5rem;border:1px solid var(--border);color:var(--text-dim);display:inline-block}
     .tag.highlight{border-color:rgba(245,166,35,0.4);color:rgba(245,166,35,0.8)}
-    .header-content{}
     .section-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem}
     .section-label::before{content:'';display:inline-block;width:24px;height:1px;background:var(--accent)}
     .article-title{font-family:var(--serif);font-size:clamp(2rem,4vw,3.2rem);line-height:1.05;color:var(--text);margin-bottom:0.75rem}
     .article-subtitle{font-size:12px;color:var(--accent);letter-spacing:0.06em;margin-bottom:1.5rem}
     .article-lede{font-size:14px;color:var(--text-dim);line-height:1.9;max-width:560px}
-
-    /* SPEC STRIP */
     .spec-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin:3rem 0}
     .spec-cell{background:var(--bg);padding:1rem 1.25rem}
     .spec-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.3rem}
     .spec-value{font-size:12px;color:var(--text)}
-
-    /* ARTICLE BODY */
     .article-body{display:grid;grid-template-columns:200px 1fr;gap:4rem;padding:4rem 0}
-
-    /* TOC */
     .toc{position:sticky;top:calc(var(--nav-h) + 2rem);align-self:start;height:fit-content}
     .toc-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-faint);margin-bottom:1rem}
     .toc-list{list-style:none;display:flex;flex-direction:column;gap:0.1rem}
     .toc-item a{font-size:11px;color:var(--text-faint);text-decoration:none;display:block;padding:0.35rem 0.75rem;border-left:1px solid var(--border);transition:all 0.15s;line-height:1.4}
     .toc-item a:hover{color:var(--text-dim);border-left-color:var(--border-hi)}
     .toc-item a.active{color:var(--accent);border-left-color:var(--accent)}
-
-    /* PROSE */
     .prose{max-width:var(--content-w)}
     .prose h2{font-family:var(--serif);font-size:1.8rem;line-height:1.1;color:var(--text);margin:3rem 0 1.25rem;padding-top:1rem}
     .prose h2:first-child{margin-top:0}
@@ -88,8 +73,6 @@
     .prose ul{margin:1rem 0 1.25rem 0;display:flex;flex-direction:column;gap:0.5rem}
     .prose ul li{font-size:13px;color:var(--text-dim);line-height:1.7;display:flex;gap:0.75rem;align-items:flex-start}
     .prose ul li::before{content:'→';color:var(--accent);flex-shrink:0;margin-top:0.1rem}
-
-    /* CALLOUT BOXES */
     .callout{border:1px solid var(--border);border-left:2px solid var(--accent);background:var(--bg-1);padding:1.25rem 1.5rem;margin:1.5rem 0}
     .callout-label{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem}
     .callout p{margin-bottom:0;font-size:12px}
@@ -98,42 +81,29 @@
     .callout.success{border-left-color:#4ade80}
     .callout.success .callout-label{color:#4ade80}
     .callout.warning{border-left-color:var(--accent)}
-
-    /* PHASE MARKER */
     .phase-marker{display:flex;align-items:center;gap:1rem;margin:2.5rem 0 1.5rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border)}
     .phase-num{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap}
     .phase-title{font-size:13px;font-weight:500;color:var(--text)}
-
-    /* MODEL TABLE */
     .model-table{width:100%;border-collapse:collapse;margin:1.5rem 0;font-size:12px}
     .model-table th{text-align:left;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);padding:0.6rem 1rem;border-bottom:1px solid var(--border);font-weight:400}
     .model-table td{padding:0.75rem 1rem;border-bottom:1px solid var(--border);color:var(--text-dim);vertical-align:top}
     .model-table td:first-child{color:var(--text);font-weight:500}
     .model-table tr:last-child td{border-bottom:none}
-
-    /* SECTION DIVIDER */
     .section-break{height:1px;background:var(--border);margin:3rem 0}
-
-    /* OUTCOMES */
     .outcomes-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin:1.5rem 0}
     .outcome-cell{background:var(--bg);padding:1.25rem 1.5rem}
     .outcome-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.4rem}
     .outcome-value{font-size:13px;color:var(--text)}
-
-    /* FOOTER NAV */
     .article-footer{padding:3rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
     .footer-back{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s}
     .footer-back:hover{color:var(--accent)}
     .footer-back svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
     .footer-next{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);display:flex;align-items:center;gap:0.4rem}
-
-    /* MOBILE */
     .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
     .mobile-nav-inner{display:flex;align-items:stretch;height:100%}
     .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.15s}
     .mobile-nav-item:hover,.mobile-nav-item.active{color:var(--accent)}
     .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-
     @media(max-width:900px){.article-body{grid-template-columns:1fr}.toc{display:none}.article-header{grid-template-columns:1fr}}
     @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}.outcomes-grid{grid-template-columns:1fr}}
   </style>
@@ -171,7 +141,7 @@
         <div class="section-label">Case Study</div>
         <h1 class="article-title">Building a Private AI Infrastructure From Scratch</h1>
         <div class="article-subtitle">Ramone — Local AI System</div>
-        <p class="article-lede">How I designed and built a fully self-hosted AI system running five LLMs locally on consumer hardware — zero cloud dependency, zero data egress. This is the full engineering record: every architectural decision, every structural bottleneck, and how each one was resolved.</p>
+        <p class="article-lede">A full engineering record of designing and building a self-hosted AI system running five LLMs on local hardware, with zero cloud dependency. This covers every architectural decision, every structural bottleneck encountered during development, and the reasoning behind each resolution.</p>
       </div>
     </header>
 
@@ -185,8 +155,6 @@
     </div>
 
     <div class="article-body">
-
-      <!-- TOC -->
       <aside class="toc">
         <div class="toc-label">Contents</div>
         <ul class="toc-list">
@@ -204,21 +172,20 @@
         </ul>
       </aside>
 
-      <!-- PROSE -->
       <article class="prose">
 
         <section id="overview">
           <h2>Overview</h2>
-          <p>Most people using AI are routing their data — therapy notes, academic writing, personal correspondence — through external servers they don't control. Every query leaves their machine. Every document uploaded to a cloud assistant becomes someone else's training data.</p>
-          <p>Ramone is the answer to that problem. A fully self-hosted private AI infrastructure built on consumer hardware, serving five large language models locally with zero cloud dependency. Conversations, documents, and RAG knowledge bases never leave the machine. The system runs on a dedicated NVMe drive, making it hardware-portable and rebuildable in under 30 minutes.</p>
-          <p>This case study documents the full engineering process — not just the final architecture, but the structural bottlenecks encountered along the way and the reasoning behind every resolution.</p>
+          <p>Most people using AI are routing their data through external servers they do not control. Every query leaves their machine; every document uploaded to a cloud assistant becomes part of someone else's infrastructure. For use cases involving personal writing, academic notes, or anything sensitive, that is a meaningful problem.</p>
+          <p>Ramone is the answer to that problem. A fully self-hosted AI infrastructure built on consumer hardware, serving five large language models locally with no cloud dependency. Conversations, documents, and RAG knowledge bases stay on the machine. The system runs on a dedicated NVMe drive, making it hardware-portable and rebuildable in under 30 minutes.</p>
+          <p>This case study documents the full engineering process, including the structural bottlenecks encountered during development and the reasoning behind every resolution. The problems were as instructive as the solutions.</p>
         </section>
 
         <div class="section-break"></div>
 
         <section id="architecture">
           <h2>System Architecture</h2>
-          <p>The final stack is a layered execution environment built entirely within the Linux subsystem on Windows 11:</p>
+          <p>The final stack is a layered execution environment built entirely within the Linux subsystem on Windows 11.</p>
 
           <div class="callout success">
             <div class="callout-label">Final Architecture</div>
@@ -226,14 +193,14 @@
           </div>
 
           <h3>Why WSL2 as the foundation</h3>
-          <p>WSL2 runs a real Ubuntu kernel inside Windows at near-native speed via a lightweight Hyper-V hypervisor. The alternative — a full Linux VM — would have introduced disk I/O latency and management overhead. WSL2 gives direct access to GPU hardware via CUDA passthrough, which is non-negotiable for LLM inference on an RTX 5070.</p>
-          <p>The Ubuntu filesystem lives on the dedicated L:\ NVMe at <code>L:\wsl\Ubuntu\ext4.vhdx</code>, completely isolated from the system drive. Models are stored at <code>L:\Ollama\</code>, surviving any OS reinstall.</p>
+          <p>WSL2 runs a real Ubuntu kernel inside Windows at near-native speed via a lightweight Hyper-V hypervisor. A full Linux VM would have introduced disk I/O latency and management overhead; WSL2 gives direct access to GPU hardware via CUDA passthrough, which is non-negotiable for LLM inference on an RTX 5070.</p>
+          <p>The Ubuntu filesystem lives on the dedicated L:\ NVMe at <code>L:\wsl\Ubuntu\ext4.vhdx</code>, completely isolated from the system drive. Models are stored at <code>L:\Ollama\</code> and survive any OS reinstall.</p>
 
           <h3>Ollama as the inference engine</h3>
-          <p>Ollama handles downloading, managing, and serving large language models. It exposes an API on port 11434 that other applications communicate with, and it handles GPU offloading automatically — pushing as many model layers as possible onto the RTX 5070's 12GB VRAM and spilling overflow into the 64GB DDR5 system RAM, enabling models well above VRAM capacity.</p>
+          <p>Ollama handles downloading, managing, and serving large language models. It exposes an API on port 11434 that other applications communicate with, and manages GPU offloading automatically; pushing as many model layers as possible onto the RTX 5070's 12GB VRAM and spilling overflow into the 64GB DDR5 system RAM. This enables models well above VRAM capacity without paging to disk.</p>
 
           <h3>Docker and Open WebUI</h3>
-          <p>Open WebUI runs as a Docker container and provides a full-featured web interface accessible at <code>localhost:8080</code>. It connects to Ollama on port 11434 and handles the workbot system, RAG knowledge bases, conversation history, and model switching. Docker ensures the interface runs consistently regardless of other system state.</p>
+          <p>Open WebUI runs as a Docker container, providing a full-featured web interface at <code>localhost:8080</code>. It connects to Ollama on port 11434 and handles the workbot system, RAG knowledge bases, conversation history, and model switching. Docker ensures the interface runs consistently regardless of other system state.</p>
         </section>
 
         <div class="section-break"></div>
@@ -244,14 +211,14 @@
             <span class="phase-title">The Ghost Network & Orphaned Configuration</span>
           </div>
 
-          <p>The first structural problem emerged immediately after initial setup. Open WebUI's network pipeline was cleanly established inside Docker, but it was configured to communicate via <code>host.docker.internal</code> — a Windows environment loopback interface. It was knocking on the door of the Windows host network looking for Ollama, but Ollama wasn't installed as a Windows background service. It was hitting empty space.</p>
+          <p>The first structural problem appeared immediately after initial setup. Open WebUI's network pipeline was established inside Docker, but it was configured to communicate via <code>host.docker.internal</code> (a Windows environment loopback interface). It was looking for Ollama on the Windows host network, but Ollama was not installed as a Windows background service. Every request was hitting empty space.</p>
 
           <div class="callout error">
             <div class="callout-label">The Problem</div>
-            <p>Open WebUI could not reach the Ollama engine. The container was communicating via <code>host.docker.internal</code> — the Windows loopback — while Ollama was either absent from Windows entirely or not running as a service.</p>
+            <p>Open WebUI could not reach the Ollama engine. The container was communicating via the Windows loopback while Ollama was either absent from Windows entirely or not running as a service.</p>
           </div>
 
-          <p>The pivot was a fundamental execution paradigm shift: everything should run natively inside the Linux layer. Running Ollama as a native Ubuntu process alongside Docker — rather than as a Windows service — would keep operations unified within the WSL2 subsystem, eliminate the cross-OS network boundary, and optimise GPU access by keeping inference on the Linux side where CUDA performance is better.</p>
+          <p>The resolution required a fundamental shift in execution paradigm. Running everything natively inside the Linux layer (Ollama as a native Ubuntu process alongside Docker, rather than as a Windows service) would unify operations within the WSL2 subsystem, eliminate the cross-OS network boundary, and improve GPU access by keeping inference on the Linux side where CUDA performance is better.</p>
 
           <div class="callout success">
             <div class="callout-label">Resolution</div>
@@ -267,23 +234,23 @@
             <span class="phase-title">The Subsystem Dependency Bottleneck</span>
           </div>
 
-          <p>Running the native Linux installation sequence inside WSL2 immediately threw an extraction failure:</p>
+          <p>Running the native Linux installation sequence inside WSL2 threw an extraction failure immediately:</p>
 
           <pre><code>$ curl -fsSL https://ollama.com/install.sh | sh
 
 ERROR: This version requires zstd for extraction.
 Please install zstd and try again.</code></pre>
 
-          <p>The fresh Ubuntu WSL image lacked <strong>zstd</strong> — a high-ratio compression utility required to unpack Ollama's binary payload. This is a common gap in minimal Ubuntu installations, particularly WSL images which strip optional packages to reduce size.</p>
+          <p>The fresh Ubuntu WSL image was missing <strong>zstd</strong>, a high-ratio compression utility required to unpack Ollama's binary payload. This is a common gap in minimal Ubuntu installations; WSL images strip optional packages to reduce size, and zstd is not included by default.</p>
 
           <div class="callout success">
             <div class="callout-label">Resolution</div>
-            <p>Update the APT repository index and install the missing dependency before retrying installation:</p>
+            <p>Update the APT repository index and install the missing dependency before retrying:</p>
           </div>
 
           <pre><code>sudo apt-get update && sudo apt-get install -y zstd</code></pre>
 
-          <p>The lesson here is standard practice for Linux environment setup: always resolve dependency trees before running third-party install scripts on minimal images.</p>
+          <p>The broader lesson is standard practice for Linux environment setup: always resolve dependency trees before running third-party install scripts on minimal images.</p>
         </section>
 
         <div class="section-break"></div>
@@ -294,27 +261,27 @@ Please install zstd and try again.</code></pre>
             <span class="phase-title">The Cross-OS Permission & Case-Sensitivity Conflict</span>
           </div>
 
-          <p>This was the most technically complex phase — a collision between Windows file system behaviour and Unix environment expectations that manifested in two distinct failures.</p>
+          <p>This was the most technically complex phase; a collision between Windows file system behaviour and Unix environment expectations that produced two distinct failures.</p>
 
           <h3>The DrvFs terminal freeze</h3>
-          <p>To preserve system drive space, model assets were relocated to the secondary L:\ NVMe at <code>/mnt/l/Ollama</code>. Standard practice for changing file ownership in Linux is <code>sudo chown</code> and <code>sudo chmod</code>. Running these commands directly inside the mounted Windows directory caused a complete terminal lockup.</p>
+          <p>To preserve system drive space, model assets were relocated to the secondary L:\ NVMe at <code>/mnt/l/Ollama</code>. Running standard Unix permission commands (<code>sudo chown</code> and <code>sudo chmod</code>) directly inside the mounted Windows directory caused a complete terminal lockup.</p>
 
           <div class="callout error">
             <div class="callout-label">Root Cause</div>
-            <p>The default WSL mount driver — <strong>DrvFs</strong> — handles Windows NTFS allocations. NTFS does not support native Unix security flags. Forcing a Unix ownership command onto a filesystem that explicitly rejects it caused a systemic freeze at the hypervisor layer, stripping the user environment variables and dropping the <code>atlas@SPECULAR-CORE</code> terminal prompt entirely.</p>
+            <p>The default WSL mount driver (DrvFs) handles Windows NTFS allocations. NTFS does not support native Unix security flags. Forcing a Unix ownership command onto a filesystem that explicitly rejects it caused a systemic freeze at the hypervisor layer, stripping user environment variables and dropping the <code>atlas@SPECULAR-CORE</code> prompt entirely.</p>
           </div>
 
-          <p>Recovery required a manual hypervisor reset: <code>wsl --shutdown</code> from PowerShell, then restarting the subsystem. The fix is to never run Unix permission commands on DrvFs-mounted Windows paths — permission management for files on Windows drives must be handled through Windows ACLs, not Unix flags.</p>
+          <p>Recovery required a manual hypervisor reset (<code>wsl --shutdown</code> from PowerShell, then restarting the subsystem). The fix is to never run Unix permission commands on DrvFs-mounted Windows paths; permission management for files on Windows drives must go through Windows ACLs, not Unix flags.</p>
 
           <h3>The case-sensitivity trap</h3>
-          <p>Even after the permission issue was resolved and Ollama was successfully serving, it reported <code>total blobs: 0</code> — no models detected despite the files being physically present on the L:\ drive.</p>
+          <p>After resolving the permission issue and successfully starting Ollama, it reported <code>total blobs: 0</code> despite the model files being physically present on the L:\ drive.</p>
 
           <div class="callout error">
             <div class="callout-label">Root Cause</div>
-            <p>Linux paths are strictly case-sensitive. The model files were stored inside <code>L:\Ollama\Models</code> (capital M), but Ollama's directory indexing expects the lowercase path <code>models/blobs</code> and <code>models/manifests</code> with a mandatory nested hierarchy. The flat folder structure with the wrong case was invisible to the engine.</p>
+            <p>Linux paths are strictly case-sensitive. The model files were stored inside <code>L:\Ollama\Models</code> (capital M), but Ollama's directory indexing expects the lowercase path <code>models/blobs</code> and <code>models/manifests</code>, with a mandatory nested hierarchy. The flat folder structure with the wrong case was invisible to the engine.</p>
           </div>
 
-          <p>The resolution was a clean rebuild of the directory structure on the L:\ drive — separating local data assets from raw model caches, and rebuilding the correct nested hierarchy before re-pulling models via the network.</p>
+          <p>The resolution was a clean rebuild of the directory structure on the L:\ drive; separating local data assets from raw model caches, and rebuilding the correct nested hierarchy before re-pulling models via the network.</p>
         </section>
 
         <div class="section-break"></div>
@@ -325,7 +292,7 @@ Please install zstd and try again.</code></pre>
             <span class="phase-title">The Systemd vs. Direct Execution Pivot</span>
           </div>
 
-          <p>The native Ollama installer creates a system service managed by <code>systemctl</code>, designed to run Ollama as a background daemon on boot. Attempting to use this service resulted in repeated crashes:</p>
+          <p>The native Ollama installer creates a system service managed by <code>systemctl</code>, designed to run Ollama as a background daemon on boot. Attempting to use this service produced repeated crashes:</p>
 
           <pre><code>● ollama.service - Ollama Service
    Loaded: loaded (/etc/systemd/system/ollama.service)
@@ -335,22 +302,22 @@ Please install zstd and try again.</code></pre>
 
           <div class="callout error">
             <div class="callout-label">Root Cause</div>
-            <p>The installer creates an isolated system user account named <code>ollama</code>. This low-privilege system user lacked the security clearance to traverse the Windows drive mount boundary at <code>/mnt/l/</code>, causing the daemon to crash on every boot attempt.</p>
+            <p>The installer creates an isolated system user account named <code>ollama</code>. This low-privilege account lacked the clearance to traverse the Windows drive mount boundary at <code>/mnt/l/</code>, causing the daemon to crash on every boot attempt.</p>
           </div>
 
-          <p>The resolution was to bypass the system service entirely. The automatic background service was disabled, the <code>OLLAMA_MODELS</code> environment variable was injected permanently into <code>~/.bashrc</code> to point at the correct L:\ path, and Ollama was configured to run directly inside the personal user context rather than under the restricted system account.</p>
+          <p>The resolution was to bypass the system service entirely. The automatic background service was disabled, the <code>OLLAMA_MODELS</code> environment variable was injected permanently into <code>~/.bashrc</code> to point at the correct L:\ path, and Ollama was configured to run directly under the personal user context rather than the restricted system account.</p>
 
           <pre><code># Added to ~/.bashrc
 export OLLAMA_MODELS="/mnt/l/Ollama/models"</code></pre>
 
-          <p>Running under the personal user context gives full access to the mounted NVMe path without the permission boundary that killed the system service approach.</p>
+          <p>Running under the personal user context gives full access to the mounted NVMe path without the permission boundary that caused the system service to fail.</p>
         </section>
 
         <div class="section-break"></div>
 
         <section id="models">
           <h2>Model Selection</h2>
-          <p>Five models were selected to cover the full range of task profiles — from fast lightweight queries to deep reasoning and large-corpus RAG retrieval. The selection was driven by a specific hardware constraint: the RTX 5070 has 12GB VRAM, with 64GB DDR5 available for overflow via CPU offloading.</p>
+          <p>Five models were selected to cover the full range of task profiles, from fast lightweight queries to deep reasoning and large-corpus RAG retrieval. Selection was driven by a specific hardware constraint: the RTX 5070 has 12GB VRAM, with 64GB DDR5 available for overflow via CPU offloading.</p>
 
           <table class="model-table">
             <thead>
@@ -370,17 +337,17 @@ export OLLAMA_MODELS="/mnt/l/Ollama/models"</code></pre>
             </tbody>
           </table>
 
-          <p>The <strong>qwen2.5:32b</strong> model pushes beyond VRAM capacity and spills into system RAM — this is intentional. The 64GB DDR5 buffer means even 32B parameter models run without paging to disk, keeping inference latency acceptable for complex reasoning tasks.</p>
+          <p>The <strong>qwen2.5:32b</strong> model intentionally exceeds VRAM capacity and spills into system RAM. The 64GB DDR5 buffer means even 32B parameter models run without paging to disk, keeping inference latency acceptable for complex reasoning tasks where the larger context window justifies the trade-off.</p>
         </section>
 
         <div class="section-break"></div>
 
         <section id="rag">
           <h2>RAG Pipeline Architecture</h2>
-          <p>Retrieval Augmented Generation grounds model responses in real source documents rather than relying purely on training data. Several workbots use RAG to answer questions about specific corpora — university lecture notes, personal writing style, CV content.</p>
+          <p>Retrieval Augmented Generation grounds model responses in real source documents rather than relying purely on training data. Several workbots use RAG to answer questions about specific corpora (university lecture notes, personal writing style, CV content).</p>
 
           <h3>Knowledge base construction</h3>
-          <p>University lecture PDFs were processed into chunked markdown files and uploaded to Open WebUI as named knowledge collections. The chunking strategy matters — chunks too large lose retrieval precision, chunks too small lose context. A middle-ground of roughly 500 tokens per chunk with 50-token overlap was used.</p>
+          <p>University lecture PDFs were processed into chunked markdown files and uploaded to Open WebUI as named knowledge collections. Chunking strategy matters significantly; chunks that are too large lose retrieval precision, while chunks that are too small lose context. A middle-ground of roughly 500 tokens per chunk with 50-token overlap was used.</p>
 
           <h3>The four knowledge collections</h3>
           <ul>
@@ -390,17 +357,17 @@ export OLLAMA_MODELS="/mnt/l/Ollama/models"</code></pre>
             <li><strong>Writing Style</strong> — email samples and essays used to train the writing style mimicry system</li>
           </ul>
 
-          <p>The Archivist workbot uses <strong>qwen2.5:32b</strong> specifically for RAG retrieval — the larger context window and reasoning capability produces significantly more coherent synthesis across large document corpora than the smaller models.</p>
+          <p>The Archivist workbot uses <strong>qwen2.5:32b</strong> specifically for RAG retrieval. The larger context window and reasoning capability produces noticeably more coherent synthesis across large document corpora compared to the smaller models.</p>
         </section>
 
         <div class="section-break"></div>
 
         <section id="workbots">
           <h2>Workbot Engineering</h2>
-          <p>Ten specialised AI assistants were built inside Open WebUI, each locked into a specific role via a carefully engineered system prompt. The design principle: each bot should be the best possible tool for exactly one job, rather than a general assistant that does everything poorly.</p>
+          <p>Ten specialised AI assistants were built inside Open WebUI, each locked into a specific role via a carefully engineered system prompt. The design principle was that each bot should be the best possible tool for exactly one job, rather than a general assistant trying to cover everything.</p>
 
           <ul>
-            <li><strong>Therapy/Journal</strong> — emotional support and personal reflection with hard stops against technical topics</li>
+            <li><strong>Therapy/Journal</strong> — emotional support and personal reflection, with hard stops against technical topics</li>
             <li><strong>The Scrubber</strong> — high-speed data cleaning, classification, and structured output engine</li>
             <li><strong>The Archivist</strong> — deep RAG analysis across large document corpora using qwen2.5:32b</li>
             <li><strong>Professional Correspondent</strong> — mimics personal writing style via RAG-grounded CV and email samples</li>
@@ -409,30 +376,30 @@ export OLLAMA_MODELS="/mnt/l/Ollama/models"</code></pre>
             <li><strong>Narrative Forger V1 & V2</strong> — high-volume lore and item description generation for game development pipelines</li>
             <li><strong>Senior Architect</strong> — high-level system design and codebase architecture for complex multi-file projects</li>
             <li><strong>Reasoning Brain</strong> — general-purpose deep reasoning using the largest available model</li>
-            <li><strong>API Tester</strong> — minimal connection verification and endpoint testing bot</li>
+            <li><strong>API Tester</strong> — minimal connection verification and endpoint testing</li>
           </ul>
 
-          <p>The hard stops in the Therapy/Journal bot are deliberate — a system prompt that explicitly prevents it from switching into technical mode, ensuring the emotional context of that conversation space is never contaminated by task-switching.</p>
+          <p>The hard stops in the Therapy/Journal bot are deliberate. A system prompt that explicitly prevents task-switching ensures the emotional context of that conversation space is never contaminated by technical work; the separation is the feature.</p>
         </section>
 
         <div class="section-break"></div>
 
         <section id="boot">
           <h2>Boot Automation</h2>
-          <p>Starting the full stack manually on every boot — WSL2, Docker, Open WebUI container, Ollama service — would be four separate operations requiring a terminal. <strong>ATLAS_BOOTSTRAP.bat</strong> reduces this to zero manual steps.</p>
+          <p>Starting the full stack manually on every boot (WSL2, Docker, Open WebUI container, Ollama service) would require four separate operations in a terminal. <strong>ATLAS_BOOTSTRAP.bat</strong> reduces this to zero manual steps.</p>
 
           <h3>What the bootstrap script does</h3>
           <ul>
             <li>Waits for the L:\ NVMe drive to mount before attempting any operations</li>
             <li>Starts the Docker engine inside Ubuntu via WSL2</li>
             <li>Launches the Open WebUI container if not already running</li>
-            <li>Starts the Ollama service under the correct user context</li>
+            <li>Starts Ollama under the correct user context</li>
             <li>Polls <code>localhost:11434</code> until Ollama confirms it is live</li>
             <li>Plays a completion sound on successful startup</li>
             <li>Opens a styled Ubuntu terminal with the ATLAS boot banner</li>
           </ul>
 
-          <p>The script lives on the L:\ NVMe and runs automatically via the Windows shell startup folder. The styled terminal output — colour-coded status messages, ASCII logo, live progress indicators — provides immediate visual confirmation that every service layer is healthy before use.</p>
+          <p>The script lives on the L:\ NVMe and runs automatically via the Windows shell startup folder. The styled terminal output (colour-coded status messages, ASCII logo, live progress indicators) provides immediate visual confirmation that every service layer is healthy before use.</p>
 
           <div class="callout warning">
             <div class="callout-label">Design Decision</div>
@@ -452,8 +419,8 @@ export OLLAMA_MODELS="/mnt/l/Ollama/models"</code></pre>
             <div class="outcome-cell"><div class="outcome-label">Workbots deployed</div><div class="outcome-value">10 specialised agents across reasoning, writing, code, and research</div></div>
           </div>
 
-          <p>The most significant outcome is architectural: the system demonstrates that a production-grade private AI infrastructure is achievable on consumer hardware with careful engineering decisions. The bottlenecks encountered — DrvFs permission boundaries, case-sensitivity conflicts, systemd privilege restrictions — are exactly the kind of cross-OS friction that appears in real infrastructure work. Each one required diagnosis, root cause analysis, and a deliberate resolution rather than a workaround.</p>
-          <p>The <code>--network=host</code> flag that finally unified the stack is a good example of the final principle: when virtualized network routing introduces unnecessary complexity, remove the abstraction layer entirely and let the processes talk directly.</p>
+          <p>The most significant outcome is architectural. The system demonstrates that a production-grade private AI infrastructure is achievable on consumer hardware, provided the engineering decisions are deliberate. The bottlenecks encountered (DrvFs permission boundaries, case-sensitivity conflicts, systemd privilege restrictions) are exactly the kind of cross-OS friction that appears in real infrastructure work; each one required diagnosis, root cause analysis, and a deliberate resolution.</p>
+          <p>The <code>--network=host</code> flag that unified the final stack is a good illustration of the core principle: when virtualised network routing introduces unnecessary complexity, removing the abstraction layer entirely and letting processes communicate directly is usually the correct answer.</p>
         </section>
 
       </article>
@@ -464,7 +431,7 @@ export OLLAMA_MODELS="/mnt/l/Ollama/models"</code></pre>
         <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         Back to Writing
       </a>
-      <span class="footer-next">W-02 — SlamPunk Dynamic Mix Engine // Coming soon</span>
+      <span class="footer-next"><a href="/writing/slampunk-dynamic-mix-engine/" class="footer-next" style="color:var(--text-dim);text-decoration:none;">W-02 — SlamPunk Dynamic Mix Engine →</a></span>
     </div>
 
   </main>
@@ -480,8 +447,6 @@ export OLLAMA_MODELS="/mnt/l/Ollama/models"</code></pre>
 
   <script>
     document.querySelectorAll('.nav-link').forEach(a=>{if(window.location.pathname.startsWith(a.getAttribute('href')))a.classList.add('active')});
-
-    // TOC active state on scroll
     const sections=document.querySelectorAll('section[id]');
     const tocLinks=document.querySelectorAll('.toc-item a');
     const observer=new IntersectionObserver(entries=>{

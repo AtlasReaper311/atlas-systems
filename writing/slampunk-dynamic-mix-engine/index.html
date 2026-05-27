@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Engineering a 15-Stem Dynamic Audio Engine for Competitive Play — SlamPunk case study by Atlas Reaper.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>SlamPunk — Dynamic Mix Engine // Atlas Systems</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;
+      --border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);
+      --text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;
+      --accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);
+      --mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px;
+      --content-w:720px
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
+    nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(10,10,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem,5vw,3rem);z-index:100}
+    .nav-wordmark{font-family:var(--mono);font-weight:500;font-size:13px;letter-spacing:0.12em;color:var(--text);text-decoration:none;text-transform:uppercase}
+    .nav-wordmark span{color:var(--accent)}
+    .nav-links{display:flex;list-style:none}
+    .nav-links a{display:block;padding:0.35rem 1rem;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color 0.15s;position:relative}
+    .nav-links a::after{content:'';position:absolute;bottom:-1px;left:50%;right:50%;height:1px;background:var(--accent);transition:left 0.2s,right 0.2s}
+    .nav-links a:hover{color:var(--text)}
+    .nav-links a:hover::after,.nav-links a.active::after{left:1rem;right:1rem}
+    .nav-links a.active{color:var(--text)}
+    main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);position:relative;z-index:1}
+    .article-header{padding-top:calc(var(--nav-h) + 5rem);padding-bottom:4rem;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr 2fr;gap:3rem}
+    .header-meta{display:flex;flex-direction:column;gap:1rem}
+    .back-link{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s;margin-bottom:0.5rem}
+    .back-link:hover{color:var(--accent)}
+    .back-link svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .article-index{font-size:11px;color:var(--text-faint);letter-spacing:0.1em}
+    .article-date{font-size:11px;color:var(--text-dim)}
+    .article-read-time{font-size:11px;color:var(--text-faint)}
+    .header-tags{display:flex;flex-direction:column;gap:0.4rem;margin-top:0.5rem}
+    .tag{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:0.2rem 0.5rem;border:1px solid var(--border);color:var(--text-dim);display:inline-block}
+    .tag.highlight{border-color:rgba(245,166,35,0.4);color:rgba(245,166,35,0.8)}
+    .section-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem}
+    .section-label::before{content:'';display:inline-block;width:24px;height:1px;background:var(--accent)}
+    .article-title{font-family:var(--serif);font-size:clamp(2rem,4vw,3.2rem);line-height:1.05;color:var(--text);margin-bottom:0.75rem}
+    .article-subtitle{font-size:12px;color:var(--accent);letter-spacing:0.06em;margin-bottom:1.5rem}
+    .article-lede{font-size:14px;color:var(--text-dim);line-height:1.9;max-width:560px}
+    .spec-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin:3rem 0}
+    .spec-cell{background:var(--bg);padding:1rem 1.25rem}
+    .spec-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.3rem}
+    .spec-value{font-size:12px;color:var(--text)}
+    .article-body{display:grid;grid-template-columns:200px 1fr;gap:4rem;padding:4rem 0}
+    .toc{position:sticky;top:calc(var(--nav-h) + 2rem);align-self:start;height:fit-content}
+    .toc-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-faint);margin-bottom:1rem}
+    .toc-list{list-style:none;display:flex;flex-direction:column;gap:0.1rem}
+    .toc-item a{font-size:11px;color:var(--text-faint);text-decoration:none;display:block;padding:0.35rem 0.75rem;border-left:1px solid var(--border);transition:all 0.15s;line-height:1.4}
+    .toc-item a:hover{color:var(--text-dim);border-left-color:var(--border-hi)}
+    .toc-item a.active{color:var(--accent);border-left-color:var(--accent)}
+    .prose{max-width:var(--content-w)}
+    .prose h2{font-family:var(--serif);font-size:1.8rem;line-height:1.1;color:var(--text);margin:3rem 0 1.25rem;padding-top:1rem}
+    .prose h2:first-child{margin-top:0}
+    .prose h3{font-size:13px;font-weight:500;color:var(--text);letter-spacing:0.06em;text-transform:uppercase;margin:2rem 0 0.75rem;display:flex;align-items:center;gap:0.6rem}
+    .prose h3::before{content:'';display:inline-block;width:16px;height:1px;background:var(--accent);flex-shrink:0}
+    .prose p{font-size:13px;color:var(--text-dim);line-height:1.9;margin-bottom:1.25rem}
+    .prose p:last-child{margin-bottom:0}
+    .prose strong{color:var(--text);font-weight:500}
+    .prose code{font-family:var(--mono);font-size:12px;background:var(--bg-1);border:1px solid var(--border);padding:0.15rem 0.4rem;color:var(--accent)}
+    .prose pre{background:var(--bg-1);border:1px solid var(--border);border-left:2px solid var(--accent);padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto}
+    .prose pre code{background:none;border:none;padding:0;font-size:12px;color:var(--text-dim);line-height:1.7}
+    .prose ul{margin:1rem 0 1.25rem 0;display:flex;flex-direction:column;gap:0.5rem}
+    .prose ul li{font-size:13px;color:var(--text-dim);line-height:1.7;display:flex;gap:0.75rem;align-items:flex-start}
+    .prose ul li::before{content:'→';color:var(--accent);flex-shrink:0;margin-top:0.1rem}
+    .callout{border:1px solid var(--border);border-left:2px solid var(--accent);background:var(--bg-1);padding:1.25rem 1.5rem;margin:1.5rem 0}
+    .callout-label{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem}
+    .callout p{margin-bottom:0;font-size:12px}
+    .callout.error{border-left-color:#e24b4a}
+    .callout.error .callout-label{color:#e24b4a}
+    .callout.success{border-left-color:#4ade80}
+    .callout.success .callout-label{color:#4ade80}
+    .callout.warning{border-left-color:var(--accent)}
+    .phase-marker{display:flex;align-items:center;gap:1rem;margin:2.5rem 0 1.5rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border)}
+    .phase-num{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap}
+    .phase-title{font-size:13px;font-weight:500;color:var(--text)}
+    .spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin:1.5rem 0}
+    .spec-cell-sm{background:var(--bg);padding:0.75rem 1rem}
+    .spec-label-sm{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.25rem}
+    .spec-value-sm{font-size:12px;color:var(--text)}
+    .section-break{height:1px;background:var(--border);margin:3rem 0}
+    .outcomes-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin:1.5rem 0}
+    .outcome-cell{background:var(--bg);padding:1.25rem 1.5rem}
+    .outcome-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.4rem}
+    .outcome-value{font-size:13px;color:var(--text)}
+    .intensity-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin:1.5rem 0}
+    .intensity-cell{background:var(--bg);padding:1rem 1.25rem}
+    .intensity-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem}
+    .intensity-desc{font-size:12px;color:var(--text-dim);line-height:1.6}
+    .article-footer{padding:3rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+    .footer-back{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s}
+    .footer-back:hover{color:var(--accent)}
+    .footer-back svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .footer-next{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint)}
+    .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
+    .mobile-nav-inner{display:flex;align-items:stretch;height:100%}
+    .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.15s}
+    .mobile-nav-item:hover,.mobile-nav-item.active{color:var(--accent)}
+    .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    @media(max-width:900px){.article-body{grid-template-columns:1fr}.toc{display:none}.article-header{grid-template-columns:1fr}}
+    @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}.outcomes-grid{grid-template-columns:1fr}.intensity-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
+    <ul class="nav-links">
+      <li><a href="/work/" class="nav-link">Work</a></li>
+      <li><a href="/writing/" class="nav-link">Writing</a></li>
+      <li><a href="/lab/" class="nav-link">Lab</a></li>
+      <li><a href="/about/" class="nav-link">About</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <header class="article-header">
+      <div class="header-meta">
+        <a href="/writing/" class="back-link">
+          <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Writing
+        </a>
+        <span class="article-index">W-02</span>
+        <span class="article-date">30 April 2026</span>
+        <span class="article-read-time">~15 min read</span>
+        <div class="header-tags">
+          <span class="tag highlight">Audio Systems</span>
+          <span class="tag">Game Dev</span>
+          <span class="tag">Unreal Engine 5</span>
+          <span class="tag">MetaSounds</span>
+          <span class="tag">FL Studio</span>
+        </div>
+      </div>
+      <div class="header-content">
+        <div class="section-label">Case Study</div>
+        <h1 class="article-title">Engineering a 15-Stem Dynamic Audio Engine for Competitive Play</h1>
+        <div class="article-subtitle">SlamPunk — Dynamic Mix Engine</div>
+        <p class="article-lede">A full technical breakdown of the audio architecture built for SlamPunk — a competitive future-sport game. This covers the complete production pipeline: aesthetic development, 15-stem composition and export, MetaSound graph construction, Blueprint integration, and the reactive submix hierarchy that keeps competitive gameplay cues clear at peak musical intensity.</p>
+      </div>
+    </header>
+
+    <div class="spec-strip">
+      <div class="spec-cell"><div class="spec-label">Timeline</div><div class="spec-value">14 weeks / ~600hrs</div></div>
+      <div class="spec-cell"><div class="spec-label">Grade</div><div class="spec-value">100% — Grade A</div></div>
+      <div class="spec-cell"><div class="spec-label">BPM</div><div class="spec-value">140 BPM locked</div></div>
+      <div class="spec-cell"><div class="spec-label">Architecture</div><div class="spec-value">15 stems / 3 intensities</div></div>
+      <div class="spec-cell"><div class="spec-label">Levels</div><div class="spec-value">3 full arena themes</div></div>
+      <div class="spec-cell"><div class="spec-label">SFX assets</div><div class="spec-value">50% self-produced</div></div>
+    </div>
+
+    <div class="article-body">
+      <aside class="toc">
+        <div class="toc-label">Contents</div>
+        <ul class="toc-list">
+          <li class="toc-item"><a href="#overview">Overview</a></li>
+          <li class="toc-item"><a href="#pillars">Design Pillars</a></li>
+          <li class="toc-item"><a href="#pivot">Aesthetic Pivot</a></li>
+          <li class="toc-item"><a href="#composition">Composition & Synthesis</a></li>
+          <li class="toc-item"><a href="#stems">15-Stem Architecture</a></li>
+          <li class="toc-item"><a href="#sfx">Sound Effects Pipeline</a></li>
+          <li class="toc-item"><a href="#metasound">MetaSound Integration</a></li>
+          <li class="toc-item"><a href="#blueprint">Blueprint Logic</a></li>
+          <li class="toc-item"><a href="#submix">Submix Hierarchy</a></li>
+          <li class="toc-item"><a href="#outcomes">Outcomes</a></li>
+        </ul>
+      </aside>
+
+      <article class="prose">
+
+        <section id="overview">
+          <h2>Overview</h2>
+          <p>SlamPunk is a fast-paced competitive couch-sports game combining parkour, tag, and basketball in a futuristic arena environment. As Lead Audio Systems Designer and Music Producer, the primary challenge was building an audio system that functioned as a reactive participant in the match rather than a static background layer.</p>
+          <p>The core problem with most competitive game audio is that static loops cause auditory fatigue, and the music frequently masks the gameplay cues players need to make decisions. The solution was a modular 15-stem dynamic music engine that scales arrangement complexity in real time based on live match variables, paired with a submix hierarchy that surgically clears frequency space for competitive feedback events.</p>
+          <p>This document covers the full production process across all three phases (preproduction, full production, and postproduction) totalling approximately 600 hours of work and resulting in a 28-page Audio Design Document submitted alongside the project.</p>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="pillars">
+          <h2>Design Pillars</h2>
+          <p>Two core design pillars governed every decision made throughout the project. They were not abstract goals; they were active filters applied to every technical and creative choice.</p>
+
+          <div class="callout">
+            <div class="callout-label">Pillar 1 — Forward Momentum</div>
+            <p>The audio must drive persistent forward momentum. The soundtrack is engineered to dynamically increase in intensity as the match progresses, evolving alongside the kinetic movement of the gameplay. Standard 16-bar loops are mathematically manipulated into a continuous escalating journey that snaps back seamlessly to its beginning before transitioning into a more built-up version as the match progresses.</p>
+          </div>
+
+          <div class="callout">
+            <div class="callout-label">Pillar 2 — Fierce Competition</div>
+            <p>Every player action must have immediate auditory consequence. Movement, scoring events, and critical interactions must cut through the music instantly. To ensure this, scoring mechanics and movement cues aggressively duck competing musical and ambient frequencies, ensuring every hit feels deliberate and impactful.</p>
+          </div>
+
+          <p>These pillars created a productive constraint: the music needed to be as energetic as possible, while simultaneously being engineered to get out of its own way the moment the gameplay demanded it.</p>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="pivot">
+          <h2>Aesthetic Pivot</h2>
+          <p>Production started with a dark, industrial Cyberpunk aesthetic in REAPER — five prototype tracks built around aggressive wavetable synthesis and deep sub-frequency kicks. Early playtests flagged the tone as too oppressive for a couch-sports party environment. The industrial direction was contradicting the game's visual identity and the team's brief.</p>
+
+          <div class="phase-marker">
+            <span class="phase-num">Week 2–3</span>
+            <span class="phase-title">Software and Aesthetic Migration</span>
+          </div>
+
+          <p>Two decisions were made simultaneously. First, production migrated from REAPER to FL Studio; the piano roll and sequencing workflow in FL Studio allowed for faster iteration on melodic material, which was now the priority. Second, the aesthetic pivoted to a Synth-Funk and Electro-Swing hybrid based on client feedback that the game should feel "fun and silly" while maintaining competitive intensity.</p>
+
+          <p>The reference points that shaped the final direction were: <strong>Knockout City</strong> and <strong>SpeedRunners</strong> for the tightly syncopated drum breaks and brass stabs that create a funk aesthetic; <strong>Ghostrunner</strong> for droning synth textures in the outdoor level; and <strong>Paradise Killer</strong> for the vaporwave-inspired airy textures used in the City in the Sky level.</p>
+
+          <div class="callout success">
+            <div class="callout-label">Result</div>
+            <p>A Synth-Funk / Electro-Swing hybrid with a locked 140 BPM grid across the entire soundtrack. Every arena theme shares the same underlying rhythmic pulse, making transitions between gameplay states feel seamless and intentional.</p>
+          </div>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="composition">
+          <h2>Composition & Synthesis</h2>
+
+          <h3>The 140 BPM Foundation</h3>
+          <p>Locking the entire project to a rigid 140 BPM grid was a deliberate engineering decision as much as a musical one. All subsequent MetaSound implementation depends on stems being sample-accurate at loop boundaries; any tempo inconsistency would cause rhythmic drift between layers during intensity transitions. Establishing this grid in week four and never deviating from it eliminated an entire category of integration problems later in production.</p>
+          <p>The rhythmic heartbeat of each track was built from CYMATICS percussion samples programmed into syncopated drum breaks. These patterns were engineered to be sharp and punchy to sit clearly above the melodic layers without cluttering the mid-range where the gameplay SFX live.</p>
+
+          <h3>VITAL for synthesis</h3>
+          <p>VITAL served as the primary synthesiser for bass, arpeggios, atmospheric drones, and lead textures. Its strength for this project was procedural filter automation; LFO modulation applied directly within the instrument engine kept digital textures shifting continuously, preventing the 16-bar loops from sounding static across extended play sessions. For Intensity 3 specifically, macro controls were pushed into grit and saturation within the synth itself rather than relying on downstream processing, giving the lead sounds enough character to cut through a fully dense mix.</p>
+          <p>Crucially, VITAL patches were edited between intensity levels. For the transition from Int1 to Int2, LFO rates were increased and filter cutoffs opened, making the same patches feel physically faster and more urgent without changing the underlying notes. This gave the escalation a procedural quality rather than simply adding more instruments.</p>
+
+          <h3>FLEX for organic grounding</h3>
+          <p>FLEX was used to integrate real-world instrument samples into arrangements that would otherwise feel entirely synthetic. Sharp brass stabs and trumpet leads reinforced the funk aesthetic in the Runners Theme; deep sampled basslines anchored the harmonic foundation of specific arena tracks. The result was a hybrid sound that maintained musical richness without losing the synthetic, mechanical drive the game required.</p>
+
+          <h3>Arrangement per intensity level</h3>
+          <div class="intensity-grid">
+            <div class="intensity-cell">
+              <div class="intensity-label">Int1 — Energy Floor</div>
+              <div class="intensity-desc">Sparse harmonic arrangement. Airy pads and a subtle Data arpeggio establish 140 BPM drive while leaving maximum spectral headroom for SFX clarity.</div>
+            </div>
+            <div class="intensity-cell">
+              <div class="intensity-label">Int2 — Escalation</div>
+              <div class="intensity-desc">Increased rhythmic complexity. A filtered streak lead (teaser of the full melody) signals rising match tension. Fruity Chorus and Delay added to expand stereo image.</div>
+            </div>
+            <div class="intensity-cell">
+              <div class="intensity-label">Int3 — Finale</div>
+              <div class="intensity-desc">Maximum vertical stack. Rhythm subdivisions shift from 1/8 to 1/16. Full unfiltered Topline lead introduced. A second Fruity Limiter added as hard peak limiter.</div>
+            </div>
+          </div>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="stems">
+          <h2>15-Stem Architecture & Export</h2>
+          <p>The 15-stem architecture is the structural backbone of the entire audio system. Each arena track is split into five instrument groups (Bass, Data, Harmony, Rhythm, Topline) across three intensity levels, producing 15 individually mixed stems per theme. These stems are what MetaSound interpolates between in real time during gameplay.</p>
+
+          <h3>Mixing process</h3>
+          <p>Each intensity level was mixed as its own session within FL Studio, with constant reference back to the master prototype loop to ensure balance was maintained across the full progression. The key constraint was surgical frequency slotting: every instrument group needed to occupy a defined spectral space so that when all 15 stems eventually played together at Intensity 3, the mix remained coherent without masking. The Data Bus, for example, was high-passed at 200Hz in Int1 to preserve low-end headroom for bass and kick transients.</p>
+
+          <h3>Export pipeline</h3>
+          <p>Stems were batch-exported using FL Studio's Split Mixer Tracks function, processed sequentially (all five Int1 groups first, then Int2, then Int3) to maintain control over the mix progression at each stage. The export used Wrap Remainder tail configuration to ensure reverb and delay tails looped seamlessly within MetaSounds; 512-point sinc resampling guaranteed that procedural LFOs and complex synthesis remained artifact-free once integrated into Unreal Engine.</p>
+
+          <div class="callout warning">
+            <div class="callout-label">Design Decision</div>
+            <p>The sequential export order (Int1 complete before Int2 begins) was deliberate; each intensity was balanced against the previous one rather than in isolation. This ensured the escalation felt proportional rather than producing jarring volume jumps at transition points.</p>
+          </div>
+
+          <h3>Strict naming convention</h3>
+          <p>Every stem followed an identical naming pattern: <code>Theme_Int[n]_BUS_[GROUP].wav</code>. This wasn't aesthetic; MetaSound construction depends on being able to identify instrument groups and intensity levels at a glance across 45 files per theme. A single naming inconsistency would break the Wave Player mapping and cause silent stems in-game.</p>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="sfx">
+          <h2>Sound Effects Pipeline</h2>
+          <p>A hybrid approach was taken for the SFX library: 50% sourced from Freesound and Pixabay, 50% self-produced through foley recording and synthesis. The sourced assets provided high-fidelity foundations; the self-produced recordings added a physical texture that purely synthetic assets lack.</p>
+
+          <h3>Tag.wav — the hybrid foley process</h3>
+          <p>The Tag mechanic is one of the highest-priority competitive cues in the game; it needed to be unmissable at any music intensity. The asset was built by layering a sourced explosion kick (sub-frequency foundation) with a self-recorded clap (high-frequency snap).</p>
+          <p>The layering process in REAPER was built around precise transient alignment rather than fade-based blending. Both signals were aligned at the sample level so the sub-frequency energy and the high-frequency snap reached the listener's ear at the exact same millisecond. This produced a cohesive single hit rather than two separate sounds playing simultaneously.</p>
+          <p>Processing on the clap: High Pass filter at 300Hz (2 oct) to remove boxy low-end rumble; High Shelf at 4000Hz (2 oct) to accentuate snap; transient controller with attack at 30% and sustain at -19% to keep the tail tight. Processing on the kick: Low Pass filter at 150Hz (2 oct) to isolate pure sub-frequency energy. Both signals routed to a BUS TAG with a 4dB boost at 200Hz for body, ReaVerbate (wet at -8dB to preserve transient clarity), and ReaComp at -19dB threshold, 5:1 ratio, 30ms release to glue the two elements into a single punchy hit.</p>
+
+          <h3>Procedural environmental sound</h3>
+          <p>Static loops for environmental assets were replaced with procedural MetaSound graphs to prevent auditory fatigue across extended matches. The wind texture used two LFO nodes (Sine waves at 0.03 and 0.05 Hz) to modulate pitch shift and volume, creating a naturally shifting texture that felt reactive rather than looping. Crowd emitters used a custom Blueprint (<code>BP_Crowd_Emitter</code>) with randomised start time (0.0–28.0s), randomised delay (0.0–4.0s), and pitch multiplier variation (0.92–1.08) on each instance to prevent all crowd actors from synchronising on level load.</p>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="metasound">
+          <h2>MetaSound Integration</h2>
+          <p>The transition from static Spawn Sound 2D loops to MetaSound graphs in week 11 was the most significant technical shift in the project. The static approach introduced auditory fatigue and inconsistency between Unreal's internal mixing and the FL Studio reference; MetaSounds provided the DSP environment needed to implement precise real-time mixing and mastering.</p>
+
+          <h3>Wave Player mapping</h3>
+          <p>All 15 stems were imported into the Unreal Content Browser, organised by theme and intensity level using the strict naming convention established at export. Inside the MetaSound graph, each stem was mapped to an individual Wave Player node, categorised by instrument group and intensity. This manual mapping established the organisational foundation before any crossfade logic was added; every stem was verified as correctly assigned and looping cleanly before the interpolation layer was built on top.</p>
+
+          <h3>Solving rhythmic drift</h3>
+          <p>A critical problem with multi-stem playback is timing drift between layers as they loop independently. The solution was a <strong>Trigger Any (2)</strong> node that consolidated the initial On Play trigger and the On Finished loop trigger from the master Rhythm (drums) stem. Every other instrument group's start time was tethered to this single rhythmic pulse, ensuring all 15 stems remained locked to the same grid regardless of how many times the sequence looped or intensity transitions occurred.</p>
+
+          <div class="callout success">
+            <div class="callout-label">Why This Matters</div>
+            <p>Without sample-accurate sync, even a few milliseconds of drift per loop cycle accumulates into audible phase misalignment within minutes of gameplay. The Trigger Any approach eliminated this entirely by using the drum stem as the single authoritative clock source for all other layers.</p>
+          </div>
+
+          <h3>Internal DSP chain</h3>
+          <p>Within the graph, stems were routed into five individual Mixer nodes (one per instrument group) before reaching the final output. This provided modular control over every layer independently; the Data arpeggios in Int3 could be boosted for rhythmic drive while the atmospheric Harmony pads from Int1 were pulled back, preserving the frequency slotting established in FL Studio within the game engine itself. The final output passed through a master Mixer, Compressor, and Limiter chain to prevent digital clipping at Intensity 3's maximum density while maintaining loudness within professional delivery standards.</p>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="blueprint">
+          <h2>Blueprint Logic</h2>
+
+          <h3>Level Music Matrix</h3>
+          <p>To avoid hard-coding music into every arena level, a Map variable called <strong>Level Music Matrix</strong> was built as a centralised database mapping String level names (such as <code>CityLevel</code> or <code>OutdoorLevel</code>) to their corresponding MetaSound assets. New arenas could be integrated globally by updating a single matrix entry rather than modifying individual level Blueprints; when City in the Sky was added late in production, the music implementation took minutes rather than hours.</p>
+
+          <h3>Initialisation logic</h3>
+          <p>A Custom Event triggered at match start queries the matrix using <code>Get Current Level Name</code>, then implements a 5.5-second delay to account for level loading and the pre-match countdown before triggering the MetaSound via <code>Spawn Sound 2D</code>. The return value of the Spawn Sound 2D node was promoted to an <strong>Active Music</strong> variable; this persistent reference is what allows the Blueprint to send real-time parameters to the MetaSound graph as match variables change, without requiring inefficient re-initialisation of the audio assets.</p>
+
+          <h3>Score-driven intensity updates</h3>
+          <p>A real-time update loop fires at the conclusion of every round. The logic casts to the Scoring GameState, retrieves both player scores, and uses a MAX node to identify the highest current score. A mathematical formula converts this integer into the required intensity level (1, 2, or 3), which is passed to the <strong>Set Integer Parameter</strong> node targeting the Intensity input on the Active Music reference. An <strong>Execute Trigger Parameter</strong> titled Update then fires, forcing the MetaSound to re-evaluate its internal crossfades and transition to the correct intensity layer.</p>
+
+          <h3>Intensity interpolation</h3>
+          <p>To prevent jarring volume snaps between intensity layers, <strong>InterpTo</strong> nodes within the MetaSound graph convert the incoming intensity integer into a floating-point value. This allows stem gains to crossfade smoothly over a 2-second interpolation window rather than snapping; melodic and percussive layers swell into place, which maintains immersion during transitions and prevents the music from distracting the player at critical scoring moments.</p>
+
+          <h3>Character-specific SFX logic</h3>
+          <p>Jump vocalisations used a logic gate within the player Blueprint to check the Player State Index via a Get Player State node and Branch. Based on the character's identity index, the system fires a Play Sound 2D node for either <code>Female_Jump</code> or <code>Male_Jump</code>; auditory feedback is consistent with the visual character model, reinforcing the personalised competitive feel for both players.</p>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="submix">
+          <h2>Reactive Submix Hierarchy</h2>
+          <p>The flat audio output approach used in early production was impossible to manage once the 15-stem architecture was running; the simultaneous stems caused immediate frequency masking. The solution was a three-branch submix hierarchy: <strong>Submix_Music</strong>, <strong>Submix_SFX</strong>, and <strong>Submix_Environment</strong>. Every audio asset in the project was manually assigned to one of these three branches.</p>
+
+          <h3>Priority system</h3>
+          <p>The hierarchy established a clear auditory priority: SFX at the top as the master control signal, Music as the medium-priority target for dynamic ducking, Environment as the low-priority target for both ducking and EQ treatment. This meant the system was not just balancing volumes; it was dynamically clearing frequency space for the most important information in real time.</p>
+
+          <h3>FX_MusicDucking</h3>
+          <p>A compressor on <code>Submix_Music</code> keyed to <code>Submix_SFX</code> as the sidechain source. Configuration: threshold -30.0 dB, ratio 4.0, attack 1.0ms, release 200.0ms. The 1ms attack ensures an immediate response when a high-priority SFX fires; the 200ms release allows the arrangement to swell back naturally once the trigger clears. A firm but musical dip rather than a heavy-handed cut.</p>
+
+          <h3>FX_EnvDucking and EQ_Environment</h3>
+          <p>The environment submix used a more aggressive ducking configuration (ratio 6.0, threshold -25.0 dB, release 80ms) since atmospheric sounds like crowd noise and fireworks are lower priority than music and should clear faster. Both <code>FX_EnvDucking</code> and <code>EQ_Environment</code> were stacked on the environment submix chain, with the ducking compressor first in the index to prioritise immediate suppression of ambient noise during scoring events, followed by the EQ to roll off low-mid frequencies.</p>
+          <p><code>EQ_Environment</code> applied a single band with a cutoff at 120.0 Hz, bandwidth of 2.0 octaves, and a gain reduction of -8.0 dB. This rolled off the low-mid frequencies that caused muddiness in the final mix when environmental attenuation interacted with the music's bass content, seating the atmosphere under the soundtrack without removing the sense of physical presence.</p>
+
+          <h3>Sound Class infrastructure</h3>
+          <p>A Master Sound Class Mix with dedicated classes for Music, SFX, and Environment provided global gain staging across the entire project. Beyond enabling independent volume sliders in the game settings menu, this was a technical safeguard: manually calibrated master output multipliers for each category prevented digital clipping during Intensity 3 climaxes where the full 15-stem arrangement and scoring SFX peaked simultaneously.</p>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="outcomes">
+          <h2>Outcomes</h2>
+
+          <div class="outcomes-grid">
+            <div class="outcome-cell"><div class="outcome-label">Grade</div><div class="outcome-value">100% — Grade A for technical implementation and critical reflection</div></div>
+            <div class="outcome-cell"><div class="outcome-label">Scalability</div><div class="outcome-value">New arenas hot-swap into the mix framework via the Level Music Matrix with no Blueprint modifications</div></div>
+            <div class="outcome-cell"><div class="outcome-label">Competitive clarity</div><div class="outcome-value">SFX audible and distinct at all three intensity levels; sidechain ducking maintains headroom dynamically</div></div>
+            <div class="outcome-cell"><div class="outcome-label">Zero drift</div><div class="outcome-value">Trigger Any (2) sync node eliminates rhythmic drift across all 15 stems regardless of loop count or intensity shift</div></div>
+          </div>
+
+          <p>The most significant outcome of the project is the relationship between the three layers of the system. The 15-stem architecture in FL Studio, the MetaSound interpolation logic in Unreal, and the submix hierarchy are not independent components; each one was designed with the constraints of the other two in mind. Frequency slotting decisions made during the FL Studio mixing phase determined what was possible in the submix EQ stage. The strict naming convention established at export determined how efficiently the MetaSound graph could be built. The Active Music variable referencing approach in Blueprint determined how cleanly intensity updates could fire without re-initialising assets.</p>
+          <p>The system demonstrates that dynamic audio for competitive games is fundamentally an architecture problem before it is a creative one. The music only works because the pipeline it runs through was engineered to the same standard as the music itself.</p>
+        </section>
+
+      </article>
+    </div>
+
+    <div class="article-footer">
+      <a href="/writing/" class="footer-back">
+        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Back to Writing
+      </a>
+      <span class="footer-next">W-01 — Ramone Local AI System // Available now</span>
+    </div>
+
+  </main>
+
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-inner">
+      <a href="/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
+      <a href="/work/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Work</a>
+      <a href="/writing/" class="mobile-nav-item active"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Writing</a>
+      <a href="/about/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg>About</a>
+    </div>
+  </nav>
+
+  <script>
+    document.querySelectorAll('.nav-link').forEach(a=>{if(window.location.pathname.startsWith(a.getAttribute('href')))a.classList.add('active')});
+    const sections=document.querySelectorAll('section[id]');
+    const tocLinks=document.querySelectorAll('.toc-item a');
+    const observer=new IntersectionObserver(entries=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          tocLinks.forEach(l=>l.classList.remove('active'));
+          const active=document.querySelector('.toc-item a[href="#'+e.target.id+'"]');
+          if(active)active.classList.add('active');
+        }
+      });
+    },{rootMargin:'-20% 0px -70% 0px'});
+    sections.forEach(s=>observer.observe(s));
+  </script>
+  <script src="/js/transitions.js"></script>
+</body>
+</html>
