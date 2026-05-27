@@ -154,10 +154,10 @@
       <article class="project-entry" data-tags="audio gamedev">
         <div class="project-media">
           <div class="gallery" id="slampunk-gallery" onclick="openLightbox(getCurrentGalleryImg('slampunk-gallery'))">
-            <img class="gallery-img active" src="/assets/img/slampunk-graph.png" alt="Full MetaSound graph overview">
-            <img class="gallery-img" src="/assets/img/slampunk-intensity.png" alt="Intensity ramping logic — Trigger Compare to InterpTo chain">
-            <img class="gallery-img" src="/assets/img/slampunk-stems.png" alt="Wave Players feeding into Stereo Mixer — stem architecture">
-            <img class="gallery-img" src="/assets/img/slampunk-blueprint.png" alt="Blueprint — score to intensity calculation">
+            <img class="gallery-img active" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909415/slampunk-graph_tizmj4.png" alt="Full MetaSound graph overview">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909415/slampunk-intensity_dsgffa.png" alt="Intensity ramping logic — Trigger Compare to InterpTo chain">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909415/slampunk-stems_ynzegz.png" alt="Wave Players feeding into Stereo Mixer — stem architecture">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909415/slampunk-blueprint_qouohp.png" alt="Blueprint — score to intensity calculation">
             <div class="gallery-nav" onclick="event.stopPropagation()">
               <div class="gallery-arrows">
                 <button class="gallery-arrow" onclick="galleryPrev('slampunk-gallery')">← prev</button>
@@ -233,8 +233,8 @@
       <article class="project-entry" data-tags="ai devops">
         <div class="project-media">
           <div class="media-stack">
-            <img src="/assets/img/atlas-boot.png" alt="ATLAS boot sequence — SPECULAR-CORE initialising WSL2 and Docker" onclick="openLightbox(this.src)">
-            <img src="/assets/img/atlas-ready.png" alt="ATLAS node active — Ubuntu subsystem online, Docker engine ready" onclick="openLightbox(this.src)">
+            <img src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909877/atlas-boot_xqryln.png" alt="ATLAS boot sequence — SPECULAR-CORE initialising WSL2 and Docker" onclick="openLightbox(this.src)">
+            <img src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909877/atlas-ready_tkjiix.png" alt="ATLAS node active — Ubuntu subsystem online, Docker engine ready" onclick="openLightbox(this.src)">
           </div>
           <div class="audio-strip">
             <span class="placeholder-label" style="font-size:11px;color:var(--text-faint);letter-spacing:0.08em;">Open WebUI screenshot — drop here</span>
@@ -317,7 +317,7 @@
     let currentAudio=null,currentBtn=null;
     function toggleAudio(btn,trackId){
       // int1 and int3 were swapped on export — corrected here
-      const tracks={int1:'/assets/audio/velocity-int1.mp3',int2:'/assets/audio/velocity-int2.mp3',int3:'/assets/audio/velocity-int3.mp3'};
+      const tracks={int1:'https://res.cloudinary.com/dqebqmyf7/video/upload/v1779909513/velocity-int1_drn4qe.mp3',int2:'https://res.cloudinary.com/dqebqmyf7/video/upload/v1779909514/velocity-int2_l6v33z.mp3',int3:'https://res.cloudinary.com/dqebqmyf7/video/upload/v1779909514/velocity-int3_ksql9q.mp3'};
       if(currentBtn&&currentBtn!==btn){currentBtn.classList.remove('playing');currentBtn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9');if(currentAudio){currentAudio.pause();currentAudio=null}}
       if(btn.classList.contains('playing')){btn.classList.remove('playing');btn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9');if(currentAudio){currentAudio.pause();currentAudio=null}currentBtn=null}
       else{btn.classList.add('playing');btn.querySelector('svg polygon').setAttribute('points','2,2 8,2 8,8 2,8');currentAudio=new Audio(tracks[trackId]);currentAudio.play().catch(()=>{btn.classList.remove('playing');btn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9')});currentAudio.onended=()=>{btn.classList.remove('playing');btn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9');currentBtn=null};currentBtn=btn}
