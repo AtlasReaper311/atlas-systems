@@ -67,6 +67,18 @@
     .placeholder-icon{width:48px;height:48px;border:1px solid var(--text-faint);display:flex;align-items:center;justify-content:center}
     .placeholder-icon svg{width:20px;height:20px;stroke:var(--text-faint);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
     .placeholder-label{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;text-align:center}
+    .gallery{flex:1;position:relative;overflow:hidden;background:var(--bg);min-height:0}
+    .gallery-img{width:100%;height:100%;object-fit:contain;object-position:center;display:none;position:absolute;inset:0;cursor:zoom-in;transition:opacity 0.15s}
+    .gallery-img.active{display:block}
+    .gallery-img:hover{opacity:0.85}
+    .gallery-nav{position:absolute;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0.75rem;background:rgba(10,10,15,0.85);z-index:2}
+    .gallery-arrows{display:flex;gap:0.4rem}
+    .gallery-arrow{font-family:var(--mono);font-size:11px;padding:0.25rem 0.6rem;border:1px solid var(--border);background:none;color:var(--text-dim);cursor:pointer;transition:all 0.15s;letter-spacing:0.06em}
+    .gallery-arrow:hover{border-color:var(--accent);color:var(--accent)}
+    .gallery-counter{font-size:10px;color:var(--text-faint);letter-spacing:0.1em}
+    .gallery-dots{display:flex;gap:0.35rem;align-items:center}
+    .gallery-dot{width:4px;height:4px;border-radius:50%;background:var(--text-faint);cursor:pointer;transition:background 0.15s;border:none;padding:0}
+    .gallery-dot.active{background:var(--accent)}
     .project-info{padding:2rem 2.5rem;display:flex;flex-direction:column}
     .project-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
     .project-index{font-size:11px;color:var(--text-faint);letter-spacing:0.1em}
@@ -141,11 +153,24 @@
       <!-- P-01: SlamPunk -->
       <article class="project-entry" data-tags="audio gamedev">
         <div class="project-media">
-          <div class="project-media-placeholder">
-            <div class="placeholder-icon">
-              <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          <div class="gallery" id="slampunk-gallery" onclick="openLightbox(getCurrentGalleryImg('slampunk-gallery'))">
+            <img class="gallery-img active" src="/assets/img/slampunk-graph.png" alt="Full MetaSound graph overview">
+            <img class="gallery-img" src="/assets/img/slampunk-intensity.png" alt="Intensity ramping logic — Trigger Compare to InterpTo chain">
+            <img class="gallery-img" src="/assets/img/slampunk-stems.png" alt="Wave Players feeding into Stereo Mixer — stem architecture">
+            <img class="gallery-img" src="/assets/img/slampunk-blueprint.png" alt="Blueprint — score to intensity calculation">
+            <div class="gallery-nav" onclick="event.stopPropagation()">
+              <div class="gallery-arrows">
+                <button class="gallery-arrow" onclick="galleryPrev('slampunk-gallery')">← prev</button>
+                <button class="gallery-arrow" onclick="galleryNext('slampunk-gallery')">next →</button>
+              </div>
+              <div class="gallery-dots" id="slampunk-gallery-dots">
+                <button class="gallery-dot active" onclick="galleryGoto('slampunk-gallery',0)"></button>
+                <button class="gallery-dot" onclick="galleryGoto('slampunk-gallery',1)"></button>
+                <button class="gallery-dot" onclick="galleryGoto('slampunk-gallery',2)"></button>
+                <button class="gallery-dot" onclick="galleryGoto('slampunk-gallery',3)"></button>
+              </div>
+              <span class="gallery-counter" id="slampunk-gallery-counter">1 / 4</span>
             </div>
-            <span class="placeholder-label">Screenshots / node graphs<br>drop here</span>
           </div>
           <div class="audio-strip">
             <span class="audio-label">Intensity:</span>
@@ -282,13 +307,17 @@
     const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target)}})},{threshold:0.08});
     document.querySelectorAll('.project-entry').forEach(el=>observer.observe(el));
     document.querySelectorAll('.filter-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const filter=btn.dataset.filter;document.querySelectorAll('.project-entry').forEach(entry=>{const tags=entry.dataset.tags||'';if(filter==='all'||tags.includes(filter)){entry.classList.remove('hidden')}else{entry.classList.add('hidden')}})})});
+    function getCurrentGalleryImg(id){const imgs=document.querySelectorAll('#'+id+' .gallery-img.active');return imgs.length?imgs[0].src:''}
+    function galleryGoto(id,idx){const gallery=document.getElementById(id);const imgs=gallery.querySelectorAll('.gallery-img');const dots=document.querySelectorAll('#'+id+'-dots .gallery-dot');const counter=document.getElementById(id+'-counter');imgs.forEach(i=>i.classList.remove('active'));dots.forEach(d=>d.classList.remove('active'));imgs[idx].classList.add('active');dots[idx].classList.add('active');counter.textContent=(idx+1)+' / '+imgs.length}
+    function galleryNext(id){const gallery=document.getElementById(id);const imgs=gallery.querySelectorAll('.gallery-img');let cur=0;imgs.forEach((img,i)=>{if(img.classList.contains('active'))cur=i});galleryGoto(id,(cur+1)%imgs.length)}
+    function galleryPrev(id){const gallery=document.getElementById(id);const imgs=gallery.querySelectorAll('.gallery-img');let cur=0;imgs.forEach((img,i)=>{if(img.classList.contains('active'))cur=i});galleryGoto(id,(cur-1+imgs.length)%imgs.length)}
     function openLightbox(src){document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').classList.add('open');document.body.style.overflow='hidden'}
     function closeLightbox(){document.getElementById('lightbox').classList.remove('open');document.body.style.overflow=''}
     document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox()});
     let currentAudio=null,currentBtn=null;
     function toggleAudio(btn,trackId){
       // int1 and int3 were swapped on export — corrected here
-      const tracks={int1:'/assets/audio/velocity-int3.mp3',int2:'/assets/audio/velocity-int2.mp3',int3:'/assets/audio/velocity-int1.mp3'};
+      const tracks={int1:'/assets/audio/velocity-int1.mp3',int2:'/assets/audio/velocity-int2.mp3',int3:'/assets/audio/velocity-int3.mp3'};
       if(currentBtn&&currentBtn!==btn){currentBtn.classList.remove('playing');currentBtn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9');if(currentAudio){currentAudio.pause();currentAudio=null}}
       if(btn.classList.contains('playing')){btn.classList.remove('playing');btn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9');if(currentAudio){currentAudio.pause();currentAudio=null}currentBtn=null}
       else{btn.classList.add('playing');btn.querySelector('svg polygon').setAttribute('points','2,2 8,2 8,8 2,8');currentAudio=new Audio(tracks[trackId]);currentAudio.play().catch(()=>{btn.classList.remove('playing');btn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9')});currentAudio.onended=()=>{btn.classList.remove('playing');btn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9');currentBtn=null};currentBtn=btn}
