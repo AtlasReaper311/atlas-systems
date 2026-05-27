@@ -57,6 +57,11 @@
     .lightbox img{max-width:90vw;max-height:90vh;object-fit:contain;border:1px solid var(--border)}
     .lightbox-close{position:absolute;top:1.5rem;right:1.5rem;font-family:var(--mono);font-size:12px;color:var(--text-dim);background:none;border:1px solid var(--border);padding:0.35rem 0.75rem;cursor:pointer;letter-spacing:0.08em;text-transform:uppercase}
     .lightbox-close:hover{color:var(--text);border-color:var(--border-hi)}
+    .lightbox-arrow{position:absolute;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:1.5rem;color:var(--text-dim);background:none;border:1px solid var(--border);padding:0.5rem 0.9rem;cursor:pointer;transition:all 0.15s;z-index:2}
+    .lightbox-arrow:hover{color:var(--accent);border-color:var(--accent)}
+    #lightbox-prev{left:1.5rem}
+    #lightbox-next{right:5rem}
+    .lightbox-arrow.hidden{display:none}
     .audio-strip{border-top:1px solid var(--border);padding:1rem 1.25rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;flex-shrink:0}
     .audio-label{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-right:0.25rem}
     .audio-btn{font-family:var(--mono);font-size:11px;letter-spacing:0.08em;padding:0.25rem 0.75rem;border:1px solid var(--border);background:none;color:var(--text-dim);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:0.4rem}
@@ -153,7 +158,7 @@
       <!-- P-01: SlamPunk -->
       <article class="project-entry" data-tags="audio gamedev">
         <div class="project-media">
-          <div class="gallery" id="slampunk-gallery" onclick="openLightbox(getCurrentGalleryImg('slampunk-gallery'))">
+          <div class="gallery" id="slampunk-gallery" onclick="openLightbox(getCurrentGalleryImg('slampunk-gallery'),'slampunk-gallery')">
             <img class="gallery-img active" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909415/slampunk-graph_tizmj4.png" alt="Full MetaSound graph overview">
             <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909415/slampunk-intensity_dsgffa.png" alt="Intensity ramping logic — Trigger Compare to InterpTo chain">
             <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909415/slampunk-stems_ynzegz.png" alt="Wave Players feeding into Stereo Mixer — stem architecture">
@@ -232,9 +237,26 @@
       <!-- P-02: Ramone -->
       <article class="project-entry" data-tags="ai devops">
         <div class="project-media">
-          <div class="media-stack">
-            <img src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909877/atlas-boot_xqryln.png" alt="ATLAS boot sequence — SPECULAR-CORE initialising WSL2 and Docker" onclick="openLightbox(this.src)">
-            <img src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909877/atlas-ready_tkjiix.png" alt="ATLAS node active — Ubuntu subsystem online, Docker engine ready" onclick="openLightbox(this.src)">
+          <div class="gallery" id="ramone-gallery" onclick="openLightbox(getCurrentGalleryImg('ramone-gallery'),'ramone-gallery')">
+            <img class="gallery-img active" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909877/atlas-boot_xqryln.png" alt="ATLAS boot sequence">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909877/atlas-ready_tkjiix.png" alt="ATLAS node active">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779910913/atlas-ui_kisjbx.png" alt="Open WebUI interface">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779910913/atlas-bots_twwu98.png" alt="11 specialised workbots">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779910912/atlas-rag_dkyz9w.png" alt="RAG knowledge collections">
+            <div class="gallery-nav" onclick="event.stopPropagation()">
+              <div class="gallery-arrows">
+                <button class="gallery-arrow" onclick="galleryPrev('ramone-gallery')">← prev</button>
+                <button class="gallery-arrow" onclick="galleryNext('ramone-gallery')">next →</button>
+              </div>
+              <div class="gallery-dots" id="ramone-gallery-dots">
+                <button class="gallery-dot active" onclick="galleryGoto('ramone-gallery',0)"></button>
+                <button class="gallery-dot" onclick="galleryGoto('ramone-gallery',1)"></button>
+                <button class="gallery-dot" onclick="galleryGoto('ramone-gallery',2)"></button>
+                <button class="gallery-dot" onclick="galleryGoto('ramone-gallery',3)"></button>
+                <button class="gallery-dot" onclick="galleryGoto('ramone-gallery',4)"></button>
+              </div>
+              <span class="gallery-counter" id="ramone-gallery-counter">1 / 5</span>
+            </div>
           </div>
           <div class="audio-strip">
             <span class="placeholder-label" style="font-size:11px;color:var(--text-faint);letter-spacing:0.08em;">Open WebUI screenshot — drop here</span>
@@ -290,7 +312,9 @@
 
   <div class="lightbox" id="lightbox" onclick="closeLightbox()">
     <button class="lightbox-close" onclick="closeLightbox()">close ✕</button>
-    <img id="lightbox-img" src="" alt="">
+    <button class="lightbox-arrow" id="lightbox-prev" onclick="event.stopPropagation();lightboxNav(-1)">←</button>
+    <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()">
+    <button class="lightbox-arrow" id="lightbox-next" onclick="event.stopPropagation();lightboxNav(1)">→</button>
   </div>
 
   <nav class="mobile-nav" aria-label="Mobile navigation">
@@ -307,11 +331,13 @@
     const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target)}})},{threshold:0.08});
     document.querySelectorAll('.project-entry').forEach(el=>observer.observe(el));
     document.querySelectorAll('.filter-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const filter=btn.dataset.filter;document.querySelectorAll('.project-entry').forEach(entry=>{const tags=entry.dataset.tags||'';if(filter==='all'||tags.includes(filter)){entry.classList.remove('hidden')}else{entry.classList.add('hidden')}})})});
+    let lightboxGalleryId=null;
     function getCurrentGalleryImg(id){const imgs=document.querySelectorAll('#'+id+' .gallery-img.active');return imgs.length?imgs[0].src:''}
+    function lightboxNav(dir){if(!lightboxGalleryId)return;const gallery=document.getElementById(lightboxGalleryId);const imgs=gallery.querySelectorAll('.gallery-img');let cur=0;imgs.forEach((img,i)=>{if(img.classList.contains('active'))cur=i});const next=(cur+dir+imgs.length)%imgs.length;galleryGoto(lightboxGalleryId,next);document.getElementById('lightbox-img').src=imgs[next].src;document.getElementById('lightbox-prev').classList.toggle('hidden',imgs.length<=1);document.getElementById('lightbox-next').classList.toggle('hidden',imgs.length<=1)}
     function galleryGoto(id,idx){const gallery=document.getElementById(id);const imgs=gallery.querySelectorAll('.gallery-img');const dots=document.querySelectorAll('#'+id+'-dots .gallery-dot');const counter=document.getElementById(id+'-counter');imgs.forEach(i=>i.classList.remove('active'));dots.forEach(d=>d.classList.remove('active'));imgs[idx].classList.add('active');dots[idx].classList.add('active');counter.textContent=(idx+1)+' / '+imgs.length}
     function galleryNext(id){const gallery=document.getElementById(id);const imgs=gallery.querySelectorAll('.gallery-img');let cur=0;imgs.forEach((img,i)=>{if(img.classList.contains('active'))cur=i});galleryGoto(id,(cur+1)%imgs.length)}
     function galleryPrev(id){const gallery=document.getElementById(id);const imgs=gallery.querySelectorAll('.gallery-img');let cur=0;imgs.forEach((img,i)=>{if(img.classList.contains('active'))cur=i});galleryGoto(id,(cur-1+imgs.length)%imgs.length)}
-    function openLightbox(src){document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').classList.add('open');document.body.style.overflow='hidden'}
+    function openLightbox(src,galleryId){lightboxGalleryId=galleryId||null;document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').classList.add('open');document.body.style.overflow='hidden';const hasGallery=!!galleryId;document.getElementById('lightbox-prev').classList.toggle('hidden',!hasGallery);document.getElementById('lightbox-next').classList.toggle('hidden',!hasGallery)}
     function closeLightbox(){document.getElementById('lightbox').classList.remove('open');document.body.style.overflow=''}
     document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox()});
     let currentAudio=null,currentBtn=null;
