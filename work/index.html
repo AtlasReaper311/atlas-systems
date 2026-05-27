@@ -349,5 +349,6 @@
       else{btn.classList.add('playing');btn.querySelector('svg polygon').setAttribute('points','2,2 8,2 8,8 2,8');currentAudio=new Audio(tracks[trackId]);currentAudio.play().catch(()=>{btn.classList.remove('playing');btn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9')});currentAudio.onended=()=>{btn.classList.remove('playing');btn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9');currentBtn=null};currentBtn=btn}
     }
   </script>
+  <script src="/js/transitions.js"></script>
 </body>
 </html>
