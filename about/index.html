@@ -1,1 +1,236 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#0a0a0f"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"><style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}:root{--bg:#0a0a0f;--bg-1:#111118;--border:rgba(255,255,255,0.08);--text:#e8e8e0;--text-dim:#888880;--accent:#f5a623;--mono:"IBM Plex Mono",monospace;--serif:"DM Serif Display",serif;--nav-h:56px}body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;min-height:100vh}nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(10,10,15,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem,5vw,3rem);z-index:100}.nav-wordmark{font-weight:500;font-size:13px;letter-spacing:.12em;color:var(--text);text-decoration:none;text-transform:uppercase}.nav-wordmark span{color:var(--accent)}.nav-links{display:flex;list-style:none}.nav-links a{display:block;padding:.35rem 1rem;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color .15s}.nav-links a:hover,.nav-links a.active{color:var(--text)}main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);padding-top:calc(var(--nav-h) + 5rem)}.page-heading{font-family:var(--serif);font-size:clamp(2rem,5vw,3.5rem);line-height:1.1;margin-bottom:1.5rem}.note{font-size:13px;color:var(--text-dim);line-height:1.8;max-width:480px}.note a{color:var(--accent);text-decoration:none}body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}</style><title>About — Atlas Systems</title></head><body><nav><a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a><ul class="nav-links"><li><a href="/work/" class="nav-link">Work</a></li><li><a href="/writing/" class="nav-link">Writing</a></li><li><a href="/lab/" class="nav-link">Lab</a></li><li><a href="/about/" class="nav-link">About</a></li></ul></nav><main><h1 class="page-heading">About</h1><p class="note">In active development. <a href="/">← Return home</a></p></main><script>document.querySelectorAll('.nav-link').forEach(a=>{if(window.location.pathname.startsWith(a.getAttribute('href')))a.classList.add('active')});</script><script src="/js/transitions.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="About — Atlas Systems. Atlas Reaper, audio systems engineer and AI infrastructure builder.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>About — Atlas Systems</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;--border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);--text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;--accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);--mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px}
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
+    nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(10,10,15,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem,5vw,3rem);z-index:100}
+    .nav-wordmark{font-family:var(--mono);font-weight:500;font-size:13px;letter-spacing:0.12em;color:var(--text);text-decoration:none;text-transform:uppercase}
+    .nav-wordmark span{color:var(--accent)}
+    .nav-links{display:flex;list-style:none}
+    .nav-links a{display:block;padding:0.35rem 1rem;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color 0.15s;position:relative}
+    .nav-links a::after{content:'';position:absolute;bottom:-1px;left:50%;right:50%;height:1px;background:var(--accent);transition:left 0.2s,right 0.2s}
+    .nav-links a:hover{color:var(--text)}
+    .nav-links a:hover::after,.nav-links a.active::after{left:1rem;right:1rem}
+    .nav-links a.active{color:var(--text)}
+    main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);position:relative;z-index:1}
+
+    /* page header */
+    .page-header{padding-top:calc(var(--nav-h) + 5rem);padding-bottom:4rem;border-bottom:1px solid var(--border)}
+    .section-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem}
+    .section-label::before{content:'';display:inline-block;width:24px;height:1px;background:var(--accent)}
+    .page-heading{font-family:var(--serif);font-size:clamp(2.2rem,5vw,3.8rem);line-height:1.05;color:var(--text);margin-bottom:1.25rem;opacity:0;transform:translateY(10px);animation:fadeUp 0.5s 0.1s ease forwards}
+    @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+
+    /* about layout */
+    .about-grid{display:grid;grid-template-columns:280px 1fr;gap:4rem;padding:4rem 0;border-bottom:1px solid var(--border)}
+
+    /* left column */
+    .about-sidebar{}
+    .profile-img{width:100%;aspect-ratio:1;object-fit:cover;object-position:center top;display:block;border:1px solid var(--border);margin-bottom:2rem;filter:grayscale(20%)}
+    .sidebar-name{font-family:var(--serif);font-size:1.4rem;color:var(--text);margin-bottom:0.25rem}
+    .sidebar-role{font-size:11px;color:var(--accent);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:2rem}
+    .sidebar-links{display:flex;flex-direction:column;gap:0;border:1px solid var(--border)}
+    .sidebar-link{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1rem;font-size:12px;color:var(--text-dim);text-decoration:none;border-bottom:1px solid var(--border);transition:all 0.15s;letter-spacing:0.04em}
+    .sidebar-link:last-child{border-bottom:none}
+    .sidebar-link:hover{color:var(--text);background:var(--bg-1)}
+    .sidebar-link:hover .link-arrow{color:var(--accent)}
+    .link-label{display:flex;align-items:center;gap:0.6rem}
+    .link-label svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:0.6}
+    .link-arrow{font-size:10px;color:var(--text-faint);transition:color 0.15s}
+    .sidebar-section-label{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);padding:0.6rem 1rem;background:var(--bg-2);border-bottom:1px solid var(--border)}
+
+    /* right column */
+    .about-content{}
+    .bio{display:flex;flex-direction:column;gap:1.5rem;margin-bottom:3rem}
+    .bio p{font-size:13px;color:var(--text-dim);line-height:1.9}
+    .bio p strong{color:var(--text);font-weight:500}
+
+    /* domains */
+    .domains-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:3rem}
+    .domain-cell{background:var(--bg);padding:1.5rem}
+    .domain-label{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.75rem}
+    .domain-items{display:flex;flex-direction:column;gap:0.4rem}
+    .domain-item{font-size:12px;color:var(--text-dim)}
+
+    /* status strip */
+    .status-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--border);border:1px solid var(--border)}
+    .status-cell{background:var(--bg);padding:1rem 1.25rem}
+    .status-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.3rem}
+    .status-value{font-size:12px;color:var(--text)}
+    .status-dot-green{display:inline-block;width:6px;height:6px;border-radius:50%;background:#4ade80;margin-right:0.4rem;vertical-align:middle}
+
+    /* mobile nav */
+    .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
+    .mobile-nav-inner{display:flex;align-items:stretch;height:100%}
+    .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.15s}
+    .mobile-nav-item:hover,.mobile-nav-item.active{color:var(--accent)}
+    .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+    @media(max-width:780px){.about-grid{grid-template-columns:1fr}.profile-img{max-width:200px}.domains-grid{grid-template-columns:1fr}}
+    @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}}
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
+    <ul class="nav-links">
+      <li><a href="/work/" class="nav-link">Work</a></li>
+      <li><a href="/writing/" class="nav-link">Writing</a></li>
+      <li><a href="/lab/" class="nav-link">Lab</a></li>
+      <li><a href="/about/" class="nav-link">About</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <header class="page-header">
+      <div class="section-label">About</div>
+      <h1 class="page-heading">Atlas Reaper.</h1>
+    </header>
+
+    <div class="about-grid">
+
+      <!-- sidebar -->
+      <aside class="about-sidebar">
+        <img class="profile-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779927020/atlas-profile_j7lybj.jpg" alt="Atlas Reaper">
+        <div class="sidebar-name">Atlas Reaper</div>
+        <div class="sidebar-role">Audio Systems / AI Infrastructure</div>
+
+        <div class="sidebar-links">
+          <div class="sidebar-section-label">Links</div>
+          <a href="https://git.atlas-systems.uk" class="sidebar-link" target="_blank" rel="noopener">
+            <span class="link-label">
+              <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+              GitHub
+            </span>
+            <span class="link-arrow">↗</span>
+          </a>
+          <a href="https://linkedin.atlas-systems.uk" class="sidebar-link" target="_blank" rel="noopener">
+            <span class="link-label">
+              <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+              LinkedIn
+            </span>
+            <span class="link-arrow">↗</span>
+          </a>
+          <a href="https://reel.atlas-systems.uk" class="sidebar-link" target="_blank" rel="noopener">
+            <span class="link-label">
+              <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+              Reel
+            </span>
+            <span class="link-arrow">↗</span>
+          </a>
+          <a href="https://cv.atlas-systems.uk" class="sidebar-link" target="_blank" rel="noopener">
+            <span class="link-label">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              CV
+            </span>
+            <span class="link-arrow">↗</span>
+          </a>
+          <div class="sidebar-section-label">Contact</div>
+          <a href="mailto:atlas@atlas-systems.uk" class="sidebar-link">
+            <span class="link-label">
+              <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              atlas@atlas-systems.uk
+            </span>
+            <span class="link-arrow">↗</span>
+          </a>
+        </div>
+      </aside>
+
+      <!-- main content -->
+      <div class="about-content">
+        <div class="bio">
+          <p>I grew up in Scotland making classical music from the age of 13; self-taught and obsessive about it in the way most kids aren't. By 15 that had shifted into something heavier and more experimental, and by 17 I was working with a collective across LA and Chicago producing trap metal and experimental music that genuinely went places.</p>
+          <p>At 19 I went to Glasgow to study Aeronautical Engineering. COVID hit almost immediately and somewhere in that period of everything stopping, I realised I was studying the wrong thing. I left, worked full time for a while, kept making music, and started paying attention to what actually held my interest; which turned out to be systems. How things are built, how they connect, how they scale.</p>
+          <p>That led me to game design at Abertay University with a focus on audio systems, which clicked immediately. It sits at the intersection of everything I'd been doing without realising it: technical precision, creative problem solving, and building modular systems that behave predictably under pressure. From there I got into AI infrastructure, local LLMs, RAG pipelines, and the DevOps layer that ties it all together.</p>
+          <p>I'm currently in my final year, a recipient of the <strong>Saltire Scholarship</strong>, and building Atlas Systems as a live record of all of it — the projects, the decisions, and everything in between.</p>
+        </div>
+
+        <div class="section-label">Domains</div>
+        <div class="domains-grid">
+          <div class="domain-cell">
+            <div class="domain-label">Audio Systems</div>
+            <div class="domain-items">
+              <span class="domain-item">Unreal Engine 5</span>
+              <span class="domain-item">MetaSounds</span>
+              <span class="domain-item">Dynamic mix engines</span>
+              <span class="domain-item">FL Studio / REAPER</span>
+              <span class="domain-item">Wavetable synthesis</span>
+              <span class="domain-item">Stem architecture</span>
+            </div>
+          </div>
+          <div class="domain-cell">
+            <div class="domain-label">AI Infrastructure</div>
+            <div class="domain-items">
+              <span class="domain-item">Local LLMs (Ollama)</span>
+              <span class="domain-item">RAG pipelines</span>
+              <span class="domain-item">Open WebUI</span>
+              <span class="domain-item">Docker</span>
+              <span class="domain-item">WSL2 / Ubuntu</span>
+              <span class="domain-item">Workbot engineering</span>
+            </div>
+          </div>
+          <div class="domain-cell">
+            <div class="domain-label">Infrastructure</div>
+            <div class="domain-items">
+              <span class="domain-item">Cloudflare Pages</span>
+              <span class="domain-item">GitHub Actions</span>
+              <span class="domain-item">Python / JavaScript</span>
+              <span class="domain-item">C++</span>
+              <span class="domain-item">Static site architecture</span>
+              <span class="domain-item">AWS (in progress)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-label">Status</div>
+        <div class="status-strip">
+          <div class="status-cell">
+            <div class="status-label">Currently</div>
+            <div class="status-value"><span class="status-dot-green"></span>Final year</div>
+          </div>
+          <div class="status-cell">
+            <div class="status-label">University</div>
+            <div class="status-value">Abertay University</div>
+          </div>
+          <div class="status-cell">
+            <div class="status-label">Scholarship</div>
+            <div class="status-value">Saltire Scholar</div>
+          </div>
+          <div class="status-cell">
+            <div class="status-label">Building</div>
+            <div class="status-value">Pillar 2 — GitHub</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-inner">
+      <a href="/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
+      <a href="/work/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Work</a>
+      <a href="/writing/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Writing</a>
+      <a href="/about/" class="mobile-nav-item active"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg>About</a>
+    </div>
+  </nav>
+
+  <script>
+    document.querySelectorAll('.nav-link').forEach(a=>{if(window.location.pathname.startsWith(a.getAttribute('href')))a.classList.add('active')});
+  </script>
+  <script src="/js/transitions.js"></script>
+</body>
+</html>
