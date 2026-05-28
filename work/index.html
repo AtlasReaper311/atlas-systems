@@ -11,13 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    :root{
-      --bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;
-      --border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);
-      --text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;
-      --accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);
-      --mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px
-    }
+    :root{--bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;--border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);--text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;--accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);--mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px}
     html{scroll-behavior:smooth}
     body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
     body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
@@ -47,11 +41,6 @@
     .project-entry:hover{border-color:var(--border-hi)}
     .project-entry.hidden{display:none}
     .project-media{background:var(--bg-1);border-right:1px solid var(--border);min-height:320px;display:flex;flex-direction:column;position:relative;overflow:hidden}
-    .project-media img{width:100%;height:100%;object-fit:cover;display:block}
-    .media-stack{flex:1;display:flex;flex-direction:column;overflow:hidden}
-    .media-stack img{flex:1;width:100%;object-fit:contain;object-position:top left;display:block;min-height:0;background:var(--bg);cursor:zoom-in;transition:opacity 0.15s}
-    .media-stack img:hover{opacity:0.85}
-    .media-stack img+img{border-top:1px solid var(--border)}
     .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:999;align-items:center;justify-content:center;cursor:zoom-out}
     .lightbox.open{display:flex}
     .lightbox img{max-width:90vw;max-height:90vh;object-fit:contain;border:1px solid var(--border)}
@@ -68,10 +57,6 @@
     .audio-btn:hover{border-color:var(--accent);color:var(--accent)}
     .audio-btn.playing{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
     .audio-btn svg{width:10px;height:10px;fill:currentColor}
-    .project-media-placeholder{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;padding:2rem;color:var(--text-faint)}
-    .placeholder-icon{width:48px;height:48px;border:1px solid var(--text-faint);display:flex;align-items:center;justify-content:center}
-    .placeholder-icon svg{width:20px;height:20px;stroke:var(--text-faint);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-    .placeholder-label{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;text-align:center}
     .gallery{flex:1;position:relative;overflow:hidden;background:#0a0a0f;min-height:280px}
     .gallery-img{width:100%;height:100%;object-fit:contain;object-position:center;position:absolute;inset:0;cursor:zoom-in;opacity:0;pointer-events:none;transition:opacity 0.2s}
     .gallery-img.active{opacity:1;pointer-events:auto}
@@ -108,7 +93,6 @@
     .proj-link svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
     .proj-link.primary{background:var(--accent);border-color:var(--accent);color:#0a0a0f}
     .proj-link.primary:hover{background:#f7b84a;border-color:#f7b84a}
-    /* diagram */
     .system-diagram{flex:1;padding:1.5rem;display:flex;flex-direction:column;gap:0.6rem;justify-content:center}
     .diagram-row{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap}
     .diagram-node{font-size:10px;letter-spacing:0.06em;padding:0.4rem 0.75rem;border:1px solid var(--border);color:var(--text-dim);white-space:nowrap;flex-shrink:0}
@@ -118,7 +102,6 @@
     .diagram-group{border:1px solid var(--border);padding:0.75rem 1rem}
     .diagram-group-label{font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.5rem}
     .diagram-nodes-row{display:flex;gap:0.4rem;flex-wrap:wrap}
-    /* mobile nav */
     .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
     .mobile-nav-inner{display:flex;align-items:stretch;height:100%}
     .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.15s}
@@ -148,6 +131,7 @@
     <div class="filter-bar">
       <button class="filter-btn active" data-filter="all">All</button>
       <button class="filter-btn" data-filter="audio">Audio Systems</button>
+      <button class="filter-btn" data-filter="generative">Generative</button>
       <button class="filter-btn" data-filter="ai">AI / LLMs</button>
       <button class="filter-btn" data-filter="devops">DevOps</button>
       <button class="filter-btn" data-filter="gamedev">Game Dev</button>
@@ -160,9 +144,9 @@
         <div class="project-media">
           <div class="gallery" id="slampunk-gallery" onclick="openLightbox(getCurrentGalleryImg('slampunk-gallery'),'slampunk-gallery')">
             <img class="gallery-img active" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909415/slampunk-graph_tizmj4.png" alt="Full MetaSound graph overview">
-            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909415/slampunk-intensity_dsgffa.png" alt="Intensity ramping logic — Trigger Compare to InterpTo chain">
-            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909415/slampunk-stems_ynzegz.png" alt="Wave Players feeding into Stereo Mixer — stem architecture">
-            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909415/slampunk-blueprint_qouohp.png" alt="Blueprint — score to intensity calculation">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909415/slampunk-intensity_dsgffa.png" alt="Intensity ramping logic">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909415/slampunk-stems_ynzegz.png" alt="Wave Players into Stereo Mixer">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909415/slampunk-blueprint_qouohp.png" alt="Blueprint — score to intensity">
             <div class="gallery-nav" onclick="event.stopPropagation()">
               <div class="gallery-arrows">
                 <button class="gallery-arrow" onclick="galleryPrev('slampunk-gallery')">← prev</button>
@@ -179,15 +163,9 @@
           </div>
           <div class="audio-strip">
             <span class="audio-label">Intensity:</span>
-            <button class="audio-btn" onclick="toggleAudio(this,'int1')">
-              <svg viewBox="0 0 10 10"><polygon points="2,1 9,5 2,9"/></svg>Int1 — Energy Floor
-            </button>
-            <button class="audio-btn" onclick="toggleAudio(this,'int2')">
-              <svg viewBox="0 0 10 10"><polygon points="2,1 9,5 2,9"/></svg>Int2 — Escalation
-            </button>
-            <button class="audio-btn" onclick="toggleAudio(this,'int3')">
-              <svg viewBox="0 0 10 10"><polygon points="2,1 9,5 2,9"/></svg>Int3 — Finale
-            </button>
+            <button class="audio-btn" onclick="toggleAudio(this,'int1')"><svg viewBox="0 0 10 10"><polygon points="2,1 9,5 2,9"/></svg>Int1 — Energy Floor</button>
+            <button class="audio-btn" onclick="toggleAudio(this,'int2')"><svg viewBox="0 0 10 10"><polygon points="2,1 9,5 2,9"/></svg>Int2 — Escalation</button>
+            <button class="audio-btn" onclick="toggleAudio(this,'int3')"><svg viewBox="0 0 10 10"><polygon points="2,1 9,5 2,9"/></svg>Int3 — Finale</button>
           </div>
         </div>
         <div class="project-info">
@@ -258,9 +236,6 @@
               <span class="gallery-counter" id="ramone-gallery-counter">1 / 5</span>
             </div>
           </div>
-          <div class="audio-strip">
-            <span class="placeholder-label" style="font-size:11px;color:var(--text-faint);letter-spacing:0.08em;">Open WebUI screenshot — drop here</span>
-          </div>
         </div>
         <div class="project-info">
           <div class="project-meta">
@@ -307,6 +282,81 @@
         </div>
       </article>
 
+      <!-- P-03: SONIN -->
+      <article class="project-entry" data-tags="audio generative">
+        <div class="project-media">
+          <div class="gallery" id="sonin-gallery" onclick="openLightbox(getCurrentGalleryImg('sonin-gallery'),'sonin-gallery')">
+            <img class="gallery-img active" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779970550/atlas-sonin_my4ymh.png" alt="SONIN — full system running">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779970549/atlas-overview_xwvtta.png" alt="Full patch overview">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779970549/atlas-granular_xio0ez.png" alt="Granular engine">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779970549/atlas-gen_engine_py0cz9.png" alt="Generative engine">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779970549/atlas-visual_khc9fj.jpg" alt="Jitter visual output">
+            <div class="gallery-nav" onclick="event.stopPropagation()">
+              <div class="gallery-arrows">
+                <button class="gallery-arrow" onclick="galleryPrev('sonin-gallery')">← prev</button>
+                <button class="gallery-arrow" onclick="galleryNext('sonin-gallery')">next →</button>
+              </div>
+              <div class="gallery-dots" id="sonin-gallery-dots">
+                <button class="gallery-dot active" onclick="galleryGoto('sonin-gallery',0)"></button>
+                <button class="gallery-dot" onclick="galleryGoto('sonin-gallery',1)"></button>
+                <button class="gallery-dot" onclick="galleryGoto('sonin-gallery',2)"></button>
+                <button class="gallery-dot" onclick="galleryGoto('sonin-gallery',3)"></button>
+                <button class="gallery-dot" onclick="galleryGoto('sonin-gallery',4)"></button>
+              </div>
+              <span class="gallery-counter" id="sonin-gallery-counter">1 / 5</span>
+            </div>
+          </div>
+          <div class="audio-strip">
+            <span class="audio-label">Walkthrough:</span>
+            <a href="https://youtu.be/O5f1tB5bdyE" class="audio-btn" target="_blank" rel="noopener">
+              <svg viewBox="0 0 10 10"><polygon points="2,1 9,5 2,9"/></svg>Watch on YouTube
+            </a>
+          </div>
+        </div>
+        <div class="project-info">
+          <div class="project-meta">
+            <span class="project-index">P-03</span>
+            <div class="project-tags">
+              <span class="tag highlight">Generative Audio</span>
+              <span class="tag">Max/MSP</span>
+              <span class="tag">DSP</span>
+            </div>
+          </div>
+          <h2 class="project-title">SONIN — Generative Audio-Visual System</h2>
+          <div class="project-role">Designer & DSP Engineer</div>
+          <p class="project-desc">An autonomous digital instrument built in Max/MSP that composes its own evolving music and visuals in real time by continuously listening and reacting to the sounds it creates. A dual-engine architecture (melodic and granular) connected by an internal audio feedback loop; the system analyses its own output and routes that data back into its own generative parameters.</p>
+          <div class="spec-grid">
+            <div class="spec-cell"><div class="spec-label">Timeline</div><div class="spec-value">Sept – Dec 2025</div></div>
+            <div class="spec-cell"><div class="spec-label">Grade</div><div class="spec-value">100%</div></div>
+            <div class="spec-cell"><div class="spec-label">Architecture</div><div class="spec-value">Dual-engine + feedback loop</div></div>
+            <div class="spec-cell"><div class="spec-label">Visual</div><div class="spec-value">GPU pipeline via Jitter</div></div>
+          </div>
+          <div class="tech-stack">
+            <span class="tech-pill">Max/MSP</span>
+            <span class="tech-pill">Jitter</span>
+            <span class="tech-pill">poly~</span>
+            <span class="tech-pill">pfft~</span>
+            <span class="tech-pill">pattrstorage</span>
+            <span class="tech-pill">jit.gl.slab</span>
+          </div>
+          <div class="achievements">
+            <div class="achievement">Scale-constrained melodic engine using coll lookup tables — infinite variation that never leaves the key</div>
+            <div class="achievement">Granular engine with dynamic micro-fade voice management — runs at maximum density without DSP artifacts</div>
+            <div class="achievement">Internal RMS and spectral brightness feedback loop creates genuine cause-and-effect between engines</div>
+            <div class="achievement">Non-linear logarithmic scaling prevents feedback runaway — system settles into stable evolving states</div>
+            <div class="achievement">Full GPU visual pipeline via jit.gl.* — pixel math offloaded to graphics card, audio thread unaffected</div>
+          </div>
+          <div class="project-links">
+            <a href="/writing/sonin-generative-system/" class="proj-link primary">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Case Study
+            </a>
+            <a href="https://youtu.be/O5f1tB5bdyE" class="proj-link" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>Walkthrough
+            </a>
+          </div>
+        </div>
+      </article>
+
     </div>
   </main>
 
@@ -342,7 +392,6 @@
     document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox()});
     let currentAudio=null,currentBtn=null;
     function toggleAudio(btn,trackId){
-      // int1 and int3 were swapped on export — corrected here
       const tracks={int1:'https://res.cloudinary.com/dqebqmyf7/video/upload/v1779909513/velocity-int1_drn4qe.mp3',int2:'https://res.cloudinary.com/dqebqmyf7/video/upload/v1779909514/velocity-int2_l6v33z.mp3',int3:'https://res.cloudinary.com/dqebqmyf7/video/upload/v1779909514/velocity-int3_ksql9q.mp3'};
       if(currentBtn&&currentBtn!==btn){currentBtn.classList.remove('playing');currentBtn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9');if(currentAudio){currentAudio.pause();currentAudio=null}}
       if(btn.classList.contains('playing')){btn.classList.remove('playing');btn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9');if(currentAudio){currentAudio.pause();currentAudio=null}currentBtn=null}
