@@ -389,7 +389,61 @@
     function galleryNext(id){const gallery=document.getElementById(id);const imgs=gallery.querySelectorAll('.gallery-img');let cur=0;imgs.forEach((img,i)=>{if(img.classList.contains('active'))cur=i});galleryGoto(id,(cur+1)%imgs.length)}
     function galleryPrev(id){const gallery=document.getElementById(id);const imgs=gallery.querySelectorAll('.gallery-img');let cur=0;imgs.forEach((img,i)=>{if(img.classList.contains('active'))cur=i});galleryGoto(id,(cur-1+imgs.length)%imgs.length)}
     function openLightbox(src,galleryId){lightboxGalleryId=galleryId||null;const lb=document.getElementById('lightbox');const img=document.getElementById('lightbox-img');img.src=src;img.classList.remove('zoomed');document.documentElement.appendChild(lb);lb.classList.add('open');document.body.style.overflow='hidden';const hasGallery=!!galleryId;document.getElementById('lightbox-prev').classList.toggle('hidden',!hasGallery);document.getElementById('lightbox-next').classList.toggle('hidden',!hasGallery)}
-    function toggleZoom(img){img.classList.toggle('zoomed')}
+    function toggleZoom(img){
+      if(img.classList.contains('zoomed')){
+        img.classList.remove('zoomed');
+        img.style.transform='';
+        img.style.cursor='zoom-in';
+        img._dragging=false;
+      } else {
+        img.classList.add('zoomed');
+        img.style.transformOrigin='center center';
+        img.style.transform='scale(2)';
+        img.style.cursor='grab';
+        img._tx=0;img._ty=0;
+      }
+    }
+    (function(){
+      let drag=false,startX=0,startY=0,tx=0,ty=0,target=null;
+      document.addEventListener('mousedown',function(e){
+        const img=document.getElementById('lightbox-img');
+        if(e.target===img&&img.classList.contains('zoomed')){
+          drag=true;target=img;
+          startX=e.clientX-img._tx;startY=e.clientY-img._ty;
+          img.style.cursor='grabbing';
+          e.preventDefault();
+        }
+      });
+      document.addEventListener('mousemove',function(e){
+        if(!drag||!target)return;
+        target._tx=e.clientX-startX;
+        target._ty=e.clientY-startY;
+        target.style.transform='scale(2) translate('+target._tx/2+'px,'+target._ty/2+'px)';
+        e.preventDefault();
+      });
+      document.addEventListener('mouseup',function(){
+        if(drag&&target)target.style.cursor='grab';
+        drag=false;target=null;
+      });
+      // Touch support
+      document.addEventListener('touchstart',function(e){
+        const img=document.getElementById('lightbox-img');
+        if(e.target===img&&img.classList.contains('zoomed')&&e.touches.length===1){
+          drag=true;target=img;
+          startX=e.touches[0].clientX-img._tx;
+          startY=e.touches[0].clientY-img._ty;
+          e.preventDefault();
+        }
+      },{passive:false});
+      document.addEventListener('touchmove',function(e){
+        if(!drag||!target)return;
+        target._tx=e.touches[0].clientX-startX;
+        target._ty=e.touches[0].clientY-startY;
+        target.style.transform='scale(2) translate('+target._tx/2+'px,'+target._ty/2+'px)';
+        e.preventDefault();
+      },{passive:false});
+      document.addEventListener('touchend',function(){drag=false;target=null;});
+    })();
     function closeLightbox(){const lb=document.getElementById('lightbox');lb.classList.remove('open');document.getElementById('lightbox-img').classList.remove('zoomed');document.body.style.overflow='';document.body.appendChild(lb)}
     document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox()});
     let currentAudio=null,currentBtn=null;
