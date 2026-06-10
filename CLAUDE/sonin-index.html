@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Building SONIN — A Dual-Engine Generative Audio-Visual System in Max/MSP. Case study by Atlas Reaper.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>SONIN — Generative Audio-Visual System // Atlas Systems</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;
+      --border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);
+      --text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;
+      --accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);
+      --mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px;
+      --content-w:720px
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
+    nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(10,10,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem,5vw,3rem);z-index:100}
+    .nav-wordmark{font-family:var(--mono);font-weight:500;font-size:13px;letter-spacing:0.12em;color:var(--text);text-decoration:none;text-transform:uppercase}
+    .nav-wordmark span{color:var(--accent)}
+    .nav-links{display:flex;list-style:none}
+    .nav-links a{display:block;padding:0.35rem 1rem;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color 0.15s;position:relative}
+    .nav-links a::after{content:'';position:absolute;bottom:-1px;left:50%;right:50%;height:1px;background:var(--accent);transition:left 0.2s,right 0.2s}
+    .nav-links a:hover{color:var(--text)}
+    .nav-links a:hover::after,.nav-links a.active::after{left:1rem;right:1rem}
+    .nav-links a.active{color:var(--text)}
+    main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);position:relative;z-index:1}
+    .article-header{padding-top:calc(var(--nav-h) + 5rem);padding-bottom:4rem;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr 2fr;gap:3rem}
+    .header-meta{display:flex;flex-direction:column;gap:1rem}
+    .back-link{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s;margin-bottom:0.5rem}
+    .back-link:hover{color:var(--accent)}
+    .back-link svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .article-index{font-size:11px;color:var(--text-faint);letter-spacing:0.1em}
+    .article-date{font-size:11px;color:var(--text-dim)}
+    .article-read-time{font-size:11px;color:var(--text-faint)}
+    .header-tags{display:flex;flex-direction:column;gap:0.4rem;margin-top:0.5rem}
+    .tag{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:0.2rem 0.5rem;border:1px solid var(--border);color:var(--text-dim);display:inline-block}
+    .tag.highlight{border-color:rgba(245,166,35,0.4);color:rgba(245,166,35,0.8)}
+    .section-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem}
+    .section-label::before{content:'';display:inline-block;width:24px;height:1px;background:var(--accent)}
+    .article-title{font-family:var(--serif);font-size:clamp(2rem,4vw,3.2rem);line-height:1.05;color:var(--text);margin-bottom:0.75rem}
+    .article-subtitle{font-size:12px;color:var(--accent);letter-spacing:0.06em;margin-bottom:1.5rem}
+    .article-lede{font-size:14px;color:var(--text-dim);line-height:1.9;max-width:560px}
+    .spec-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin:3rem 0}
+    .spec-cell{background:var(--bg);padding:1rem 1.25rem}
+    .spec-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.3rem}
+    .spec-value{font-size:12px;color:var(--text)}
+    .article-body{display:grid;grid-template-columns:200px 1fr;gap:4rem;padding:4rem 0}
+    .toc{position:sticky;top:calc(var(--nav-h) + 2rem);align-self:start;height:fit-content}
+    .toc-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-faint);margin-bottom:1rem}
+    .toc-list{list-style:none;display:flex;flex-direction:column;gap:0.1rem}
+    .toc-item a{font-size:11px;color:var(--text-faint);text-decoration:none;display:block;padding:0.35rem 0.75rem;border-left:1px solid var(--border);transition:all 0.15s;line-height:1.4}
+    .toc-item a:hover{color:var(--text-dim);border-left-color:var(--border-hi)}
+    .toc-item a.active{color:var(--accent);border-left-color:var(--accent)}
+    .prose{max-width:var(--content-w)}
+    .prose h2{font-family:var(--serif);font-size:1.8rem;line-height:1.1;color:var(--text);margin:3rem 0 1.25rem;padding-top:1rem}
+    .prose h2:first-child{margin-top:0}
+    .prose h3{font-size:13px;font-weight:500;color:var(--text);letter-spacing:0.06em;text-transform:uppercase;margin:2rem 0 0.75rem;display:flex;align-items:center;gap:0.6rem}
+    .prose h3::before{content:'';display:inline-block;width:16px;height:1px;background:var(--accent);flex-shrink:0}
+    .prose p{font-size:13px;color:var(--text-dim);line-height:1.9;margin-bottom:1.25rem}
+    .prose p:last-child{margin-bottom:0}
+    .prose strong{color:var(--text);font-weight:500}
+    .prose code{font-family:var(--mono);font-size:12px;background:var(--bg-1);border:1px solid var(--border);padding:0.15rem 0.4rem;color:var(--accent)}
+    .prose ul{margin:1rem 0 1.25rem 0;display:flex;flex-direction:column;gap:0.5rem}
+    .prose ul li{font-size:13px;color:var(--text-dim);line-height:1.7;display:flex;gap:0.75rem;align-items:flex-start}
+    .prose ul li::before{content:'→';color:var(--accent);flex-shrink:0;margin-top:0.1rem}
+    .callout{border:1px solid var(--border);border-left:2px solid var(--accent);background:var(--bg-1);padding:1.25rem 1.5rem;margin:1.5rem 0}
+    .callout-label{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem}
+    .callout p{margin-bottom:0;font-size:12px}
+    .callout.error{border-left-color:#e24b4a}
+    .callout.error .callout-label{color:#e24b4a}
+    .callout.success{border-left-color:#4ade80}
+    .callout.success .callout-label{color:#4ade80}
+    .phase-marker{display:flex;align-items:center;gap:1rem;margin:2.5rem 0 1.5rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border)}
+    .phase-num{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap}
+    .phase-title{font-size:13px;font-weight:500;color:var(--text)}
+    .section-break{height:1px;background:var(--border);margin:3rem 0}
+    .outcomes-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin:1.5rem 0}
+    .outcome-cell{background:var(--bg);padding:1.25rem 1.5rem}
+    .outcome-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.4rem}
+    .outcome-value{font-size:13px;color:var(--text)}
+    .engine-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin:1.5rem 0}
+    .engine-cell{background:var(--bg);padding:1.25rem 1.5rem}
+    .engine-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:0.75rem}
+    .engine-items{display:flex;flex-direction:column;gap:0.35rem}
+    .engine-item{font-size:12px;color:var(--text-dim)}
+    .video-embed{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border:1px solid var(--border);margin:1.5rem 0}
+    .video-embed iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}
+    .video-label{font-size:11px;color:var(--text-faint);letter-spacing:0.08em;margin-bottom:0.5rem;text-transform:uppercase}
+    .article-footer{padding:3rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+    .footer-back{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s}
+    .footer-back:hover{color:var(--accent)}
+    .footer-back svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .footer-next{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint)}
+    .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
+    .mobile-nav-inner{display:flex;align-items:stretch;height:100%}
+    .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.15s}
+    .mobile-nav-item:hover,.mobile-nav-item.active{color:var(--accent)}
+    .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    @media(max-width:900px){.article-body{grid-template-columns:1fr}.toc{display:none}.article-header{grid-template-columns:1fr}}
+    @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}.outcomes-grid{grid-template-columns:1fr}.engine-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
+    <ul class="nav-links">
+      <li><a href="/work/" class="nav-link">Work</a></li>
+      <li><a href="/writing/" class="nav-link">Writing</a></li>
+      <li><a href="/lab/" class="nav-link">Lab</a></li>
+      <li><a href="/about/" class="nav-link">About</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <header class="article-header">
+      <div class="header-meta">
+        <a href="/writing/" class="back-link">
+          <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Writing
+        </a>
+        <span class="article-index">W-01</span>
+        <span class="article-date">31 March 2026</span>
+        <span class="article-read-time">~14 min read</span>
+        <div class="header-tags">
+          <span class="tag highlight">Generative Audio</span>
+          <span class="tag">Max/MSP</span>
+          <span class="tag">DSP</span>
+          <span class="tag">Jitter</span>
+        </div>
+      </div>
+      <div class="header-content">
+        <div class="section-label">Case Study</div>
+        <h1 class="article-title">Building an Autonomous Generative Audio-Visual System</h1>
+        <div class="article-subtitle">SONIN — Dual-Engine Generative System</div>
+        <p class="article-lede">A full technical breakdown of SONIN — an autonomous digital instrument built in Max/MSP that composes its own evolving music and visuals in real time by continuously listening and reacting to the sounds it creates. This covers the dual-engine architecture, the three engineering problems that nearly broke it, and the DSP solutions that made it stable.</p>
+      </div>
+    </header>
+
+    <div class="spec-strip">
+      <div class="spec-cell"><div class="spec-label">Timeline</div><div class="spec-value">Sept – Dec 2025</div></div>
+      <div class="spec-cell"><div class="spec-label">Grade</div><div class="spec-value">100%</div></div>
+      <div class="spec-cell"><div class="spec-label">Platform</div><div class="spec-value">Max/MSP + Jitter</div></div>
+      <div class="spec-cell"><div class="spec-label">Engines</div><div class="spec-value">Melodic + Granular</div></div>
+      <div class="spec-cell"><div class="spec-label">Architecture</div><div class="spec-value">Feedback loop system</div></div>
+      <div class="spec-cell"><div class="spec-label">Output</div><div class="spec-value">Audio + real-time visuals</div></div>
+    </div>
+
+    <div class="article-body">
+      <aside class="toc">
+        <div class="toc-label">Contents</div>
+        <ul class="toc-list">
+          <li class="toc-item"><a href="#overview">Overview</a></li>
+          <li class="toc-item"><a href="#architecture">System Architecture</a></li>
+          <li class="toc-item"><a href="#melodic">Melodic Engine</a></li>
+          <li class="toc-item"><a href="#granular">Granular Engine</a></li>
+          <li class="toc-item"><a href="#feedback">Feedback Loop</a></li>
+          <li class="toc-item"><a href="#phase1">Phase I — Clock Drift</a></li>
+          <li class="toc-item"><a href="#phase2">Phase II — Click of Death</a></li>
+          <li class="toc-item"><a href="#phase3">Phase III — Death Spiral</a></li>
+          <li class="toc-item"><a href="#visual">Visual Engine</a></li>
+          <li class="toc-item"><a href="#ui">Interface Design</a></li>
+          <li class="toc-item"><a href="#outcomes">Outcomes</a></li>
+        </ul>
+      </aside>
+
+      <article class="prose">
+
+        <section id="overview">
+          <h2>Overview</h2>
+          <p>Most generative music systems fall into one of two failure modes: they either produce unpredictable noise with no musical coherence, or they produce something so constrained it sounds like a sequencer on shuffle. SONIN was built to solve both problems simultaneously.</p>
+          <p>The central principle is controlled randomness. The system uses probability logic, scale constraints, and an internal audio feedback loop to ensure that its output remains structurally and tonally intentional without requiring constant human intervention. It listens to what it has just made, analyses it, and uses that analysis to decide what to make next.</p>
+          <p>Built in Max/MSP across September to December 2025, SONIN was submitted as a university project and received 100% for technical complexity and design maturity. It is also a system I intend to continue developing; the architecture is modular enough that the engines can be extended considerably.</p>
+
+          <div class="video-label">Full system walkthrough</div>
+          <div class="video-embed">
+            <iframe src="https://www.youtube.com/embed/O5f1tB5bdyE" title="SONIN — Full System Walkthrough" allowfullscreen></iframe>
+          </div>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="architecture">
+          <h2>System Architecture</h2>
+          <p>SONIN operates on a dual-engine architecture where two distinct sound generation systems run in parallel, interact through a shared feedback network, and are controlled via a unified UI layer. The four components are the Melodic Engine, the Granular Engine, the Audio Analysis and Feedback Network, and the Visual Engine.</p>
+
+          <div class="engine-grid">
+            <div class="engine-cell">
+              <div class="engine-label">Melodic Engine</div>
+              <div class="engine-items">
+                <span class="engine-item">Scale-constrained pitch generation</span>
+                <span class="engine-item">Probability-weighted rhythm gates</span>
+                <span class="engine-item">Dynamic tempo via feedback data</span>
+                <span class="engine-item">coll lookup tables for scale mapping</span>
+              </div>
+            </div>
+            <div class="engine-cell">
+              <div class="engine-label">Granular Engine</div>
+              <div class="engine-items">
+                <span class="engine-item">poly~ voice management</span>
+                <span class="engine-item">Hann windowing for grain envelopes</span>
+                <span class="engine-item">Decoupled pitch and duration</span>
+                <span class="engine-item">Dynamic micro-fade on voice steal</span>
+              </div>
+            </div>
+            <div class="engine-cell">
+              <div class="engine-label">Feedback Network</div>
+              <div class="engine-items">
+                <span class="engine-item">RMS amplitude extraction</span>
+                <span class="engine-item">Spectral brightness analysis</span>
+                <span class="engine-item">Non-linear logarithmic scaling</span>
+                <span class="engine-item">slide~ dampening on control paths</span>
+              </div>
+            </div>
+            <div class="engine-cell">
+              <div class="engine-label">Visual Engine</div>
+              <div class="engine-items">
+                <span class="engine-item">GPU pipeline via jit.gl.*</span>
+                <span class="engine-item">Audio-reactive mesh and colour</span>
+                <span class="engine-item">Shader processing via jit.gl.slab</span>
+                <span class="engine-item">CPU/GPU separation for DSP stability</span>
+              </div>
+            </div>
+          </div>
+
+          <p>The system's intelligence comes from the feedback network that connects all four components. Rather than operating as isolated modules, each engine's output becomes another engine's input. The signal flows in a loop: the granular engine generates texture, the analysis network reads that texture, the melodic engine reacts to the analysis, and the combined output feeds back into the analysis network again.</p>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="melodic">
+          <h2>The Melodic Engine</h2>
+          <p>The melodic engine is responsible for the system's structural musicality. Rather than sequencing hard-coded notes, it uses a probability-driven logic gate to generate rhythmic and melodic data in real time.</p>
+
+          <h3>Scale-constrained pitch generation</h3>
+          <p>Raw random integer generation (<code>random 127</code>) produces atonal chaos with no musical coherence. To resolve this, raw integers are routed through modulo arithmetic and cross-referenced against a <code>coll</code> object storing specific MIDI arrays (Dorian, pentatonic, or custom scales depending on the preset). The result is infinite melodic variation that never leaves the key. Changing the scale stored in the <code>coll</code> object instantly shifts the entire tonal character of the system without touching any other parameter.</p>
+
+          <h3>Emergent register shifts</h3>
+          <p>By modulating the range of the <code>random</code> object based on the real-time audio analysis data, the melody naturally shifts registers as the system's overall density increases. When the granular engine swells and raises the master RMS, the melodic engine begins generating pitch values in a higher octave range, producing an emergent behaviour that sounds intentional without being explicitly programmed.</p>
+
+          <h3>Rhythmic density</h3>
+          <p>Note density is controlled using <code>decide</code> and probability-weighted random objects acting as logic gates; each incoming clock pulse has a defined probability of triggering a note or resting. This probability is itself a parameter driven by the feedback network, meaning the rhythmic density of the melody responds to what the system is currently producing texturally.</p>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="granular">
+          <h2>The Granular Engine</h2>
+          <p>The granular engine acts as the textural counterweight to the melodic engine. Where the melodic engine produces structured, pitch-defined output, the granular engine produces evolving atmospheric density through micro-manipulation of audio buffers.</p>
+
+          <h3>Voice management with poly~</h3>
+          <p>Granular synthesis requires triggering dozens of overlapping audio snippets per second. Managing this polyphony efficiently is critical; without careful voice allocation the CPU overhead becomes unmanageable and audio quality degrades. Each grain's lifecycle is encapsulated within a <code>poly~</code> object, which handles voice stealing and CPU allocation. The grain size, pitch, and position within the source buffer are all independently randomisable parameters, giving the engine its characteristic evolving texture.</p>
+
+          <h3>Windowing and envelope management</h3>
+          <p>Without proper windowing, every grain trigger produces an audible click as the audio cuts in and out abruptly. Each grain's read pointer (a <code>phasor~</code>) is multiplied by an amplitude envelope reading a secondary <code>buffer~</code> containing a Hann window shape. This ensures every grain fades in and out smoothly regardless of where in the source buffer the read pointer starts.</p>
+
+          <h3>Decoupling pitch and duration</h3>
+          <p>Standard sample playback links speed and pitch: playing a sample twice as fast halves its duration and raises pitch by an octave. In a granular context this hard-linked relationship severely limits textural possibilities. To decouple them, the frequency of the <code>phasor~</code> driving grain generation (duration) is separated from the step-size of the buffer read pointer (pitch). A desired pitch shift calculates a rate multiplier for the read pointer while keeping the grain envelope frequency static, requiring precise <code>expr</code> math to maintain phase alignment and prevent artifacts.</p>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="feedback">
+          <h2>The Feedback Loop</h2>
+          <p>The feedback network is what makes SONIN feel like a living system rather than a static playback device. The system listens to its own output and routes that analysis back into its own generative parameters.</p>
+
+          <p>Two values are extracted from the master output bus in real time. <strong>RMS amplitude</strong> tracks the overall energy of the system using <code>average~</code>. <strong>Spectral brightness</strong> is derived using <code>zerox~</code> for zero-crossing rate analysis (a computationally cheap proxy for brightness) or <code>pfft~</code> for full spectral centroid analysis when CPU budget allows.</p>
+
+          <p>Audio-rate signals are converted to control-rate floats using <code>snapshot~</code>, then pushed through <code>scale</code> and <code>zmap</code> objects to map them to usable parameter ranges. <code>clip</code> objects are applied strictly at every stage to prevent the feedback loop from pushing the system into mathematically invalid states. The scaled values then feed directly into the melodic engine's tempo, density, and pitch range parameters.</p>
+
+          <div class="callout">
+            <div class="callout-label">Why this matters</div>
+            <p>Without the feedback loop, SONIN is two independent synthesisers running in parallel. With it, the system has genuine cause-and-effect relationships between its components. A swell in the granular texture increases the RMS, which increases melodic note density, which adds more harmonic content to the output, which further modifies the spectral analysis, which shifts the melodic register. The system composes itself.</p>
+          </div>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="phase1">
+          <div class="phase-marker">
+            <span class="phase-num">Phase I</span>
+            <span class="phase-title">Clock Drift and the Stutter Effect</span>
+          </div>
+
+          <p>The first serious problem appeared when dynamic tempo modulation was introduced. Driving the interval of a <code>metro</code> object from a continuous control signal caused the system to lose its musical grid, producing erratic MIDI clustering and skipped notes.</p>
+
+          <div class="callout error">
+            <div class="callout-label">Root Cause</div>
+            <p>When a <code>metro</code> object's interval updates mid-tick, the new value fires immediately rather than waiting for the current cycle to complete. A command to fire at 100ms arriving while the clock is 150ms into a 200ms cycle triggers an instant, unquantised pulse. Applied continuously across a dynamic control signal, this destroys rhythmic coherence entirely.</p>
+          </div>
+
+          <p>The solution was to decouple the raw control data from the clock entirely. A quantised update system was implemented using a master pulse and <code>snapshot~</code> / sample-and-hold (<code>sah~</code>) logic. Rather than feeding continuous data directly into the clock speed, the generative data is buffered and held. The system only reads and applies the new tempo or density value at the precise moment a musical bar or subdivision ends. This preserved structural integrity while still allowing for extreme tempo manipulation driven by the audio analysis data.</p>
+
+          <div class="callout success">
+            <div class="callout-label">Resolution</div>
+            <p>Sample-and-hold matrix on the control path. New tempo values are only applied at quantised musical boundaries, not on continuous data updates. The clock stays coherent; the system stays musical.</p>
+          </div>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="phase2">
+          <div class="phase-marker">
+            <span class="phase-num">Phase II</span>
+            <span class="phase-title">Voice Stealing and the Click of Death</span>
+          </div>
+
+          <p>High grain-density events produced persistent high-frequency audio clicks. The problem and the obvious fix were in direct conflict with each other.</p>
+
+          <div class="callout error">
+            <div class="callout-label">Root Cause</div>
+            <p>When all allocated voices in the <code>poly~</code> object are occupied and a new grain triggers, the system executes voice stealing; abruptly cutting off the oldest grain. Because this truncation occurs mid-waveform rather than at a zero-crossing or envelope boundary, it produces a sharp transient. Disabling voice stealing (<code>@steal 0</code>) eliminated the clicks but caused new grain triggers to be silently ignored, producing audible dropouts at high density.</p>
+          </div>
+
+          <p>Neither the default behaviour nor the obvious alternative was acceptable. The solution required re-engineering the voice architecture entirely. A secondary micro-fade logic using <code>line~</code> was implemented to intercept the control signal when the active voice count approached maximum capacity. Rather than allowing the system to steal a voice abruptly, the oldest active grains are forced into an accelerated 5ms fade-out envelope before the voice is reallocated. At 5ms the fade is imperceptible to the listener but long enough to bring the waveform smoothly to zero, masking the transient entirely.</p>
+
+          <div class="callout success">
+            <div class="callout-label">Resolution</div>
+            <p>Dynamic envelope management on voice reallocation. 5ms forced fade-out on the oldest grain before voice stealing occurs. The engine operates at maximum density without DSP artifacts.</p>
+          </div>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="phase3">
+          <div class="phase-marker">
+            <span class="phase-num">Phase III</span>
+            <span class="phase-title">The Feedback Death Spiral</span>
+          </div>
+
+          <p>Bridging the two engines via the audio-reactive feedback loop caused the system to either collapse into silence or exponentially scale into maximum density within seconds of starting. This was the most fundamental problem in the project because it threatened the entire architectural premise.</p>
+
+          <div class="callout error">
+            <div class="callout-label">Root Cause</div>
+            <p>Linear 1:1 mapping in a positive feedback loop is inherently unstable. High granular density raises the master RMS; a linearly mapped RMS raises melodic note density; higher note density raises the RMS further. The system enters a runaway state. The inverse is equally destructive: a quiet moment lowers the RMS, which lowers density, which lowers the RMS further, driving the system to silence. There is no stable equilibrium.</p>
+          </div>
+
+          <p>Two specific interventions were required to solve this.</p>
+
+          <h3>Data dampening</h3>
+          <p><code>slide</code> and <code>rampsmooth~</code> objects were introduced into the control signal path, acting as low-pass filters for the data rather than the audio. This forces the system's reaction time to behave like a physical mass: a sudden spike in audio energy takes several seconds to slowly push the sequencer parameters upward, and vice versa. The system can still respond to sustained changes in its audio output, but transient spikes in either direction no longer destabilise the whole system.</p>
+
+          <h3>Exponential bounding</h3>
+          <p>Linear <code>scale</code> objects were replaced with logarithmic mapping curves. As the system gets louder, it requires exponentially more audio energy to push the parameters higher. This creates a natural mathematical ceiling; the system can approach maximum density but the feedback loop loses leverage as it gets closer to it, preventing the runaway state entirely.</p>
+
+          <div class="callout success">
+            <div class="callout-label">Resolution</div>
+            <p>Non-linear scaling combined with data dampening. The feedback loop now has stable equilibrium points at multiple density levels. The system settles into evolving states rather than collapsing or exploding.</p>
+          </div>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="visual">
+          <h2>The Visual Engine</h2>
+          <p>The visual patch translates the same RMS and spectral analysis data controlling the audio engines into real-time visual feedback via Jitter. Audio-reactive parameters (mesh scale, colour saturation, noise distortion amount) are driven directly from the control-rate values already present in the system; no separate analysis is required.</p>
+
+          <h3>CPU vs GPU processing</h3>
+          <p>Early iterations used standard <code>jit.matrix</code> objects for visual processing, which runs on the CPU. Because Max/MSP's audio thread demands CPU priority, complex visual processing at this stage caused audio dropouts; the visual and audio pipelines were competing for the same resource.</p>
+          <p>The fix was migrating the entire visual pipeline to the GPU using <code>jit.gl.*</code> objects (<code>jit.gl.slab</code> for shader processing, <code>jit.gl.pix</code> for pixel-level operations). All pixel math runs on the graphics card, freeing the CPU to handle the audio thread without interruption. The audio-visual synchronisation remains tight because both systems read from the same control-rate data; the only change is where the visual computation happens.</p>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="ui">
+          <h2>Interface Design</h2>
+          <p>A system this complex is useless if the interface makes it impenetrable in performance. The UI was designed to emulate physical hardware; dark, high-contrast, built for live use rather than deep editing sessions.</p>
+
+          <h3>Macro controls</h3>
+          <p>Rather than exposing every DSP variable directly, the UI uses carefully scaled macro controls that adjust multiple parameters simultaneously under the hood. The Mood system, for example, maps a single dial to grain size, pitch randomisation range, and melodic clock speed in tandem. The performer shapes the character of the system without needing to understand the individual parameters driving it.</p>
+
+          <h3>Constrained randomisation</h3>
+          <p>A "Surprise Me" function recalculates the system's baseline parameters within predefined safe ranges. Purely random mapping to all variables produces silence or feedback; the randomisation logic uses <code>random</code> combined with <code>scale</code> nodes to generate new values only within ranges that are guaranteed to produce stable, musical output. It gives the system a new starting point instantly without destabilising the audio engine.</p>
+
+          <h3>State interpolation</h3>
+          <p>Max's <code>pattrstorage</code> system is used to save and recall UI states. Interpolating between two presets over a set duration (5 seconds by default) forces the <code>poly~</code> and sequencing logic to transition smoothly from a dense texture to a sparse melody rather than snapping between them, creating structural shifts that feel composed rather than switched.</p>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="outcomes">
+          <h2>Outcomes</h2>
+
+          <div class="outcomes-grid">
+            <div class="outcome-cell"><div class="outcome-label">Grade</div><div class="outcome-value">100% for technical complexity and design maturity</div></div>
+            <div class="outcome-cell"><div class="outcome-label">Stability</div><div class="outcome-value">Runs indefinitely without collapse, silence, or runaway feedback</div></div>
+            <div class="outcome-cell"><div class="outcome-label">Musical coherence</div><div class="outcome-value">Scale-constrained output remains tonally intentional across all density states</div></div>
+            <div class="outcome-cell"><div class="outcome-label">Future development</div><div class="outcome-value">Modular architecture supports engine extension; granular and melodic engines are independently expandable</div></div>
+          </div>
+
+          <p>The three engineering problems SONIN encountered (clock drift, voice stealing artifacts, feedback instability) are not unique to this project. They are fundamental challenges in any system that uses real-time feedback to drive generative behaviour. The solutions (sample-and-hold quantisation, dynamic micro-fade envelope management, non-linear logarithmic bounding) are transferable patterns that apply directly to any autonomous generative system.</p>
+          <p>The more interesting outcome is what the project confirmed about the design principle itself. Generative audio does not have to mean unpredictable noise. Applying strict mathematical constraints, careful feedback dampening, and proper DSP problem-solving produces a system that composes with genuine musical coherence; one that sounds like it is making decisions rather than producing random output.</p>
+        </section>
+
+      </article>
+    </div>
+
+    <div class="article-footer">
+  <a href="/writing/" class="footer-back">
+    <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Back to Writing
+  </a>
+  <a href="/writing/slampunk-dynamic-mix-engine/" class="footer-back">
+    W-02 — SlamPunk Dynamic Mix Engine →
+  </a>
+</div>
+
+  </main>
+
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-inner">
+      <a href="/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
+      <a href="/work/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Work</a>
+      <a href="/writing/" class="mobile-nav-item active"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Writing</a>
+      <a href="/about/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg>About</a>
+    </div>
+  </nav>
+
+  <script>
+    document.querySelectorAll('.nav-link').forEach(a=>{if(window.location.pathname.startsWith(a.getAttribute('href')))a.classList.add('active')});
+    const sections=document.querySelectorAll('section[id]');
+    const tocLinks=document.querySelectorAll('.toc-item a');
+    const observer=new IntersectionObserver(entries=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          tocLinks.forEach(l=>l.classList.remove('active'));
+          const active=document.querySelector('.toc-item a[href="#'+e.target.id+'"]');
+          if(active)active.classList.add('active');
+        }
+      });
+    },{rootMargin:'-20% 0px -70% 0px'});
+    sections.forEach(s=>observer.observe(s));
+  </script>
+  <script src="/js/transitions.js"></script>
+</body>
+</html>
