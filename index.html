@@ -408,6 +408,52 @@
 
     .signal-value.mono { font-family: var(--mono); }
 
+    /* ── GITHUB PULSE ───────────────────────────── */
+    .pulse-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 3rem;
+      margin-top: 2.5rem;
+    }
+    @media (max-width: 720px) {
+      .pulse-grid { grid-template-columns: 1fr; gap: 2rem; }
+    }
+
+    .pulse-lang { margin-bottom: 0.9rem; }
+    .pulse-lang-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-bottom: 0.35rem;
+    }
+    .pulse-lang-track { height: 4px; background: var(--bg-2); }
+    .pulse-lang-bar {
+      height: 4px;
+      background: var(--accent);
+      width: 0;
+      transition: width 0.6s ease;
+    }
+
+    .pulse-commits { list-style: none; }
+    .pulse-commit {
+      display: flex;
+      gap: 0.75rem;
+      align-items: baseline;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .pulse-commit:last-child { border-bottom: none; }
+    .pulse-commit-sha  { color: var(--accent); flex-shrink: 0; }
+    .pulse-commit-repo { color: var(--text-faint); flex-shrink: 0; }
+    .pulse-commit-msg  {
+      color: var(--text-dim);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     /* ── FOOTER ─────────────────────────────────── */
     footer {
       padding: 2rem 0;
@@ -742,6 +788,37 @@
       </div>
     </section>
 
+    <!-- GITHUB PULSE: populated live by /js/pulse.js, stays hidden if the API is unreachable -->
+    <section class="section reveal" id="pulse" hidden>
+      <div class="section-label">GitHub pulse</div>
+
+      <div class="signal-bar">
+        <div class="signal-cell">
+          <div class="signal-label">Public repos</div>
+          <div class="signal-value mono" data-pulse="repos">&mdash;</div>
+        </div>
+        <div class="signal-cell">
+          <div class="signal-label">Commits &middot; 90 days</div>
+          <div class="signal-value mono" data-pulse="commits90">&mdash;</div>
+        </div>
+        <div class="signal-cell">
+          <div class="signal-label">Top language</div>
+          <div class="signal-value mono" data-pulse="top-language">&mdash;</div>
+        </div>
+      </div>
+
+      <div class="pulse-grid">
+        <div>
+          <div class="signal-label">Languages</div>
+          <div data-pulse="languages"></div>
+        </div>
+        <div>
+          <div class="signal-label">Recent commits</div>
+          <ul class="pulse-commits" data-pulse="recent-commits"></ul>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <!-- FOOTER -->
@@ -819,36 +896,10 @@
     // ── Year in footer ───────────────────────────────
     document.getElementById('footer-year').textContent = new Date().getFullYear();
 
-    // ── Deploy signal (Cloudflare exposes these as env vars baked at build time)
-    // Replace these with actual values injected during CI or via a /api/status endpoint
-    const BUILD_TIME = document.currentScript
-      ? null
-      : null;
-
-    (function() {
-      const deployEl  = document.getElementById('last-deploy');
-      const commitEl  = document.getElementById('commit-hash');
-
-      // These values are injected by the build pipeline.
-      // In Cloudflare Pages, use a build hook or wrangler.toml to expose:
-      // CF_PAGES_COMMIT_SHA, CF_PAGES_BRANCH
-      // For now we read them from meta tags if present, else show placeholders.
-      const commitMeta = document.querySelector('meta[name="build-commit"]');
-      const timeMeta   = document.querySelector('meta[name="build-time"]');
-
-      if (commitMeta) {
-        commitEl.textContent = commitMeta.content.slice(0, 7);
-      } else {
-        commitEl.textContent = 'dev';
-      }
-
-      if (timeMeta) {
-        const d = new Date(timeMeta.content);
-        deployEl.textContent = d.toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
-      } else {
-        deployEl.textContent = new Date().toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
-      }
-    })();
+    // ── Live signal ──────────────────────────────────
+    // The deploy and commit cells are populated by /js/pulse.js with
+    // real data from api.atlas-systems.uk/pulse. They stay as em dashes
+    // if the API is unreachable; honest placeholders beat fake values.
 
     // ── Scroll reveal ────────────────────────────────
     const revealEls = document.querySelectorAll('.reveal');
@@ -869,6 +920,7 @@
       if (path.startsWith(a.getAttribute('href'))) a.classList.add('active');
     });
   </script>
+  <script src="/js/pulse.js" defer></script>
  <script src="/js/transitions.js"></script>
 </body>
 </html>
