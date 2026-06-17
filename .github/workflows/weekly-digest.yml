@@ -64,6 +64,7 @@ jobs:
           FOLLOWERS=$(echo "$USER_DATA" | jq -r '.followers')
           PUBLIC_REPOS=$(echo "$USER_DATA" | jq -r '.public_repos')
           TOTAL_STARS=$(echo "$REPOS_DATA" | jq '[.[].stargazers_count] | add // 0')
+
           SITE_PULSE=$(curl -s "https://api.atlas-systems.uk/site-pulse")
           SITE_VISITS=$(echo "$SITE_PULSE" | jq -r '.totalVisits // 0')
           TOP_PAGE=$(echo "$SITE_PULSE" | jq -r '.topPages[0].path // "—"')
@@ -82,11 +83,13 @@ jobs:
             --arg stars "$TOTAL_STARS" \
             --arg public_repos "$PUBLIC_REPOS" \
             --arg followers "$FOLLOWERS" \
+            --arg site_visits "$SITE_VISITS" \
+            --arg top_page "$TOP_PAGE" \
             '{
               username: "atlas-notify",
               embeds: [{
                 title: "Weekly Digest",
-                description: "Activity across all public repos — past 7 days, plus all-time totals.",
+                description: "Activity across all public repos — past 7 days, plus all-time totals. Site stats are a 24h snapshot taken at digest time, not a rolling weekly total.",
                 color: 16098851,
                 fields: [
                   {name: "Commits (7d)", value: $commits, inline: true},
@@ -98,6 +101,8 @@ jobs:
                   {name: "Total stars (all-time)", value: $stars, inline: true},
                   {name: "Public repos (all-time)", value: $public_repos, inline: true},
                   {name: "Followers", value: $followers, inline: true},
+                  {name: "Site visits (24h)", value: $site_visits, inline: true},
+                  {name: "Top page", value: $top_page, inline: true},
                   {name: "Active repos this week", value: $repos, inline: false},
                   {name: "Latest commit", value: ("\u201c" + $latest_commit + "\u201d"), inline: false}
                 ],
