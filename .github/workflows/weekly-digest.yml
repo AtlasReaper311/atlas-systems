@@ -10,13 +10,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build and post weekly digest
+        env:
+          GH_AUTH: "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"
         run: |
           USERNAME="AtlasReaper311"
           SINCE=$(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ)
 
-          EVENTS=$(curl -s "https://api.github.com/users/$USERNAME/events/public?per_page=100")
-          USER_DATA=$(curl -s "https://api.github.com/users/$USERNAME")
-          REPOS_DATA=$(curl -s "https://api.github.com/users/$USERNAME/repos?per_page=100")
+          EVENTS=$(curl -s -H "$GH_AUTH" "https://api.github.com/users/$USERNAME/events/public?per_page=100")
+          echo "$EVENTS" | jq empty 2>/dev/null || EVENTS='[]'
+
+          USER_DATA=$(curl -s -H "$GH_AUTH" "https://api.github.com/users/$USERNAME")
+          echo "$USER_DATA" | jq empty 2>/dev/null || USER_DATA='{}'
+
+          REPOS_DATA=$(curl -s -H "$GH_AUTH" "https://api.github.com/users/$USERNAME/repos?per_page=100")
+          echo "$REPOS_DATA" | jq empty 2>/dev/null || REPOS_DATA='[]'
 
           COMMIT_COUNT=$(echo "$EVENTS" | jq --arg since "$SINCE" '
             [.[] | select(.type=="PushEvent" and .created_at>=$since) | .payload.distinct_size] | add // 0
@@ -61,11 +68,12 @@ jobs:
             | if $e then ($e.payload.commits[-1].message // "—") | split("\n")[0] else "—" end
           ')
 
-          FOLLOWERS=$(echo "$USER_DATA" | jq -r '.followers')
-          PUBLIC_REPOS=$(echo "$USER_DATA" | jq -r '.public_repos')
+          FOLLOWERS=$(echo "$USER_DATA" | jq -r '.followers // 0')
+          PUBLIC_REPOS=$(echo "$USER_DATA" | jq -r '.public_repos // 0')
           TOTAL_STARS=$(echo "$REPOS_DATA" | jq '[.[].stargazers_count] | add // 0')
 
           SITE_PULSE=$(curl -s "https://api.atlas-systems.uk/site-pulse")
+          echo "$SITE_PULSE" | jq empty 2>/dev/null || SITE_PULSE='{}'
           SITE_VISITS=$(echo "$SITE_PULSE" | jq -r '.totalVisits // 0')
           TOP_PAGE=$(echo "$SITE_PULSE" | jq -r '.topPages[0].path // "—"')
 
