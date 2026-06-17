@@ -1,0 +1,98 @@
+name: Weekly Digest
+
+on:
+  schedule:
+    - cron: '0 18 * * 0'   # every Sunday, 18:00 UTC
+  workflow_dispatch:
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build and post weekly digest
+        run: |
+          USERNAME="AtlasReaper311"
+          SINCE=$(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ)
+
+          EVENTS=$(curl -s "https://api.github.com/users/$USERNAME/events/public?per_page=100")
+
+          COMMIT_COUNT=$(echo "$EVENTS" | jq --arg since "$SINCE" '
+            [.[] | select(.type=="PushEvent" and .created_at>=$since) | .payload.distinct_size] | add // 0
+          ')
+
+          REPO_LIST=$(echo "$EVENTS" | jq -r --arg since "$SINCE" '
+            [.[] | select(.type=="PushEvent" and .created_at>=$since) | .repo.name] | unique | join(", ")
+          ')
+          [ -z "$REPO_LIST" ] && REPO_LIST="none this week"
+
+          MOST_ACTIVE_REPO=$(echo "$EVENTS" | jq -r --arg since "$SINCE" '
+            [.[] | select(.type=="PushEvent" and .created_at>=$since) | .repo.name]
+            | group_by(.) | map({repo: .[0], count: length}) | sort_by(-.count) | .[0].repo // "none"
+          ')
+
+          BUSIEST_DAY=$(echo "$EVENTS" | jq -r --arg since "$SINCE" '
+            [.[] | select(.type=="PushEvent" and .created_at>=$since)
+                  | (.created_at | strptime("%Y-%m-%dT%H:%M:%SZ") | mktime | strftime("%A"))]
+            | group_by(.) | map({day: .[0], count: length}) | sort_by(-.count) | .[0].day // "—"
+          ')
+
+          PR_OPENED=$(echo "$EVENTS" | jq '
+            [.[] | select(.type=="PullRequestEvent" and .created_at>='\""$SINCE"\"' and .payload.action=="opened")] | length
+          ')
+
+          PR_MERGED=$(echo "$EVENTS" | jq '
+            [.[] | select(.type=="PullRequestEvent" and .created_at>='\""$SINCE"\"' and .payload.action=="closed" and .payload.pull_request.merged==true)] | length
+          ')
+
+          ISSUES_OPENED=$(echo "$EVENTS" | jq '
+            [.[] | select(.type=="IssuesEvent" and .created_at>='\""$SINCE"\"' and .payload.action=="opened")] | length
+          ')
+
+          ISSUES_CLOSED=$(echo "$EVENTS" | jq '
+            [.[] | select(.type=="IssuesEvent" and .created_at>='\""$SINCE"\"' and .payload.action=="closed")] | length
+          ')
+
+          NEW_REPOS=$(echo "$EVENTS" | jq -r --arg since "$SINCE" '
+            [.[] | select(.type=="CreateEvent" and .created_at>=$since and .payload.ref_type=="repository") | .repo.name] | join(", ")
+          ')
+          [ -z "$NEW_REPOS" ] && NEW_REPOS="none"
+
+          LATEST_COMMIT_MSG=$(echo "$EVENTS" | jq -r --arg since "$SINCE" '
+            ([.[] | select(.type=="PushEvent" and .created_at>=$since)] | sort_by(.created_at) | last) as $e
+            | if $e then ($e.payload.commits[-1].message // "—") | split("\n")[0] else "—" end
+          ')
+
+          PAYLOAD=$(jq -n \
+            --arg commits "$COMMIT_COUNT" \
+            --arg most_active "$MOST_ACTIVE_REPO" \
+            --arg repos "$REPO_LIST" \
+            --arg pr_opened "$PR_OPENED" \
+            --arg pr_merged "$PR_MERGED" \
+            --arg issues_opened "$ISSUES_OPENED" \
+            --arg issues_closed "$ISSUES_CLOSED" \
+            --arg new_repos "$NEW_REPOS" \
+            --arg busiest_day "$BUSIEST_DAY" \
+            --arg latest_commit "$LATEST_COMMIT_MSG" \
+            '{
+              username: "atlas-notify",
+              embeds: [{
+                title: "Weekly Digest",
+                description: "Activity across all public repos — past 7 days.",
+                color: 16098851,
+                fields: [
+                  {name: "Commits", value: $commits, inline: true},
+                  {name: "Most active repo", value: $most_active, inline: true},
+                  {name: "Busiest day", value: $busiest_day, inline: true},
+                  {name: "Pull requests", value: ($pr_opened + " opened · " + $pr_merged + " merged"), inline: true},
+                  {name: "Issues", value: ($issues_opened + " opened · " + $issues_closed + " closed"), inline: true},
+                  {name: "New repos", value: $new_repos, inline: true},
+                  {name: "Active repos this week", value: $repos, inline: false},
+                  {name: "Latest commit", value: ("\u201c" + $latest_commit + "\u201d"), inline: false}
+                ],
+                footer: {text: "Atlas Systems — Pipeline"}
+              }]
+            }')
+
+          curl -X POST "${{ secrets.DISCORD_DIGEST_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD"
