@@ -1,0 +1,28 @@
+name: Deploy Notify
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Discord
+        run: |
+          curl -X POST "${{ secrets.DISCORD_DEPLOY_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "username": "atlas-notify",
+              "embeds": [{
+                "title": "Deploy Log",
+                "description": "Push to main triggered a Cloudflare Pages deploy.",
+                "color": 16098851,
+                "fields": [
+                  {"name": "Status", "value": "🟢 deploy triggered", "inline": true},
+                  {"name": "Commit", "value": "${{ github.sha }}", "inline": true},
+                  {"name": "Actor", "value": "${{ github.actor }}", "inline": true}
+                ],
+                "footer": {"text": "Atlas Systems — Pipeline"}
+              }]
+            }'
