@@ -25,9 +25,25 @@ jobs:
           REPOS_DATA=$(curl -s -H "$GH_AUTH" "https://api.github.com/users/$USERNAME/repos?per_page=100")
           echo "$REPOS_DATA" | jq empty 2>/dev/null || REPOS_DATA='[]'
 
-          COMMIT_COUNT=$(echo "$EVENTS" | jq --arg since "$SINCE" '
-            [.[] | select(.type=="PushEvent" and .created_at>=$since) | .payload.distinct_size] | add // 0
-          ')
+          # --- Commits (7d): ground truth, not the events feed ---
+          # GitHub's events feed marks a push's commits as "non-distinct"
+          # (distinct_size: 0) when it judges them already visible from a
+          # recent prior push to the same branch — exactly what a day of
+          # rapid small commits looks like. Querying each repo's real
+          # Commits endpoint directly, filtered to this account's own
+          # authored commits (so a CI bot's auto-commits, like the
+          # coverage badge updater, never get counted as yours), gives
+          # the real number regardless of push frequency. Capped at 100
+          # commits per repo per week via per_page; fine for a personal
+          # account's actual volume, a known limit if that ever changes.
+          REPO_NAMES=$(echo "$REPOS_DATA" | jq -r '.[] | select(.fork == false) | .name')
+          COMMIT_COUNT=0
+          while IFS= read -r repo; do
+            [ -z "$repo" ] && continue
+            RESP=$(curl -s -H "$GH_AUTH" "https://api.github.com/repos/$USERNAME/$repo/commits?since=$SINCE&author=$USERNAME&per_page=100")
+            COUNT=$(echo "$RESP" | jq 'if type=="array" then length else 0 end' 2>/dev/null || echo 0)
+            COMMIT_COUNT=$((COMMIT_COUNT + COUNT))
+          done <<< "$REPO_NAMES"
 
           REPO_LIST=$(echo "$EVENTS" | jq -r --arg since "$SINCE" '
             [.[] | select(.type=="PushEvent" and .created_at>=$since) | .repo.name] | unique | join(", ")
@@ -58,8 +74,15 @@ jobs:
             [.[] | select(.type=="IssuesEvent" and .created_at>='\""$SINCE"\"' and .payload.action=="closed")] | length
           ')
 
-          NEW_REPOS=$(echo "$EVENTS" | jq -r --arg since "$SINCE" '
-            [.[] | select(.type=="CreateEvent" and .created_at>=$since and .payload.ref_type=="repository") | .repo.name] | join(", ")
+          # --- New repos (7d): ground truth via created_at, not CreateEvent ---
+          # The events feed caps at the 100 most recent events; a day with
+          # heavy push volume across many repos can scroll a morning's
+          # CreateEvent clean off the list by evening. Every repo object
+          # already carries a real created_at timestamp — filtering that
+          # directly has no window to fall out of. Forks excluded, same
+          # convention as github-pulse.
+          NEW_REPOS=$(echo "$REPOS_DATA" | jq -r --arg since "$SINCE" '
+            [.[] | select(.fork == false and .created_at >= $since) | .name] | join(", ")
           ')
           [ -z "$NEW_REPOS" ] && NEW_REPOS="none"
 
