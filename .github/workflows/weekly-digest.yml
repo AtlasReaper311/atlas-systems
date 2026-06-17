@@ -15,6 +15,8 @@ jobs:
           SINCE=$(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ)
 
           EVENTS=$(curl -s "https://api.github.com/users/$USERNAME/events/public?per_page=100")
+          USER_DATA=$(curl -s "https://api.github.com/users/$USERNAME")
+          REPOS_DATA=$(curl -s "https://api.github.com/users/$USERNAME/repos?per_page=100")
 
           COMMIT_COUNT=$(echo "$EVENTS" | jq --arg since "$SINCE" '
             [.[] | select(.type=="PushEvent" and .created_at>=$since) | .payload.distinct_size] | add // 0
@@ -39,15 +41,12 @@ jobs:
           PR_OPENED=$(echo "$EVENTS" | jq '
             [.[] | select(.type=="PullRequestEvent" and .created_at>='\""$SINCE"\"' and .payload.action=="opened")] | length
           ')
-
           PR_MERGED=$(echo "$EVENTS" | jq '
             [.[] | select(.type=="PullRequestEvent" and .created_at>='\""$SINCE"\"' and .payload.action=="closed" and .payload.pull_request.merged==true)] | length
           ')
-
           ISSUES_OPENED=$(echo "$EVENTS" | jq '
             [.[] | select(.type=="IssuesEvent" and .created_at>='\""$SINCE"\"' and .payload.action=="opened")] | length
           ')
-
           ISSUES_CLOSED=$(echo "$EVENTS" | jq '
             [.[] | select(.type=="IssuesEvent" and .created_at>='\""$SINCE"\"' and .payload.action=="closed")] | length
           ')
@@ -62,6 +61,10 @@ jobs:
             | if $e then ($e.payload.commits[-1].message // "—") | split("\n")[0] else "—" end
           ')
 
+          FOLLOWERS=$(echo "$USER_DATA" | jq -r '.followers')
+          PUBLIC_REPOS=$(echo "$USER_DATA" | jq -r '.public_repos')
+          TOTAL_STARS=$(echo "$REPOS_DATA" | jq '[.[].stargazers_count] | add // 0')
+
           PAYLOAD=$(jq -n \
             --arg commits "$COMMIT_COUNT" \
             --arg most_active "$MOST_ACTIVE_REPO" \
@@ -73,19 +76,25 @@ jobs:
             --arg new_repos "$NEW_REPOS" \
             --arg busiest_day "$BUSIEST_DAY" \
             --arg latest_commit "$LATEST_COMMIT_MSG" \
+            --arg stars "$TOTAL_STARS" \
+            --arg public_repos "$PUBLIC_REPOS" \
+            --arg followers "$FOLLOWERS" \
             '{
               username: "atlas-notify",
               embeds: [{
                 title: "Weekly Digest",
-                description: "Activity across all public repos — past 7 days.",
+                description: "Activity across all public repos — past 7 days, plus all-time totals.",
                 color: 16098851,
                 fields: [
-                  {name: "Commits", value: $commits, inline: true},
+                  {name: "Commits (7d)", value: $commits, inline: true},
                   {name: "Most active repo", value: $most_active, inline: true},
                   {name: "Busiest day", value: $busiest_day, inline: true},
-                  {name: "Pull requests", value: ($pr_opened + " opened · " + $pr_merged + " merged"), inline: true},
-                  {name: "Issues", value: ($issues_opened + " opened · " + $issues_closed + " closed"), inline: true},
-                  {name: "New repos", value: $new_repos, inline: true},
+                  {name: "Pull requests (7d)", value: ($pr_opened + " opened · " + $pr_merged + " merged"), inline: true},
+                  {name: "Issues (7d)", value: ($issues_opened + " opened · " + $issues_closed + " closed"), inline: true},
+                  {name: "New repos (7d)", value: $new_repos, inline: true},
+                  {name: "Total stars (all-time)", value: $stars, inline: true},
+                  {name: "Public repos (all-time)", value: $public_repos, inline: true},
+                  {name: "Followers", value: $followers, inline: true},
                   {name: "Active repos this week", value: $repos, inline: false},
                   {name: "Latest commit", value: ("\u201c" + $latest_commit + "\u201d"), inline: false}
                 ],
