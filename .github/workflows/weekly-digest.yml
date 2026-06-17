@@ -64,6 +64,9 @@ jobs:
           FOLLOWERS=$(echo "$USER_DATA" | jq -r '.followers')
           PUBLIC_REPOS=$(echo "$USER_DATA" | jq -r '.public_repos')
           TOTAL_STARS=$(echo "$REPOS_DATA" | jq '[.[].stargazers_count] | add // 0')
+          SITE_PULSE=$(curl -s "https://api.atlas-systems.uk/site-pulse")
+          SITE_VISITS=$(echo "$SITE_PULSE" | jq -r '.totalVisits // 0')
+          TOP_PAGE=$(echo "$SITE_PULSE" | jq -r '.topPages[0].path // "—"')
 
           PAYLOAD=$(jq -n \
             --arg commits "$COMMIT_COUNT" \
