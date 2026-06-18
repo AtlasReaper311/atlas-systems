@@ -101,23 +101,27 @@
     .nav-links a.active { color: var(--text); }
     .nav-links a.active::after { left: 1rem; right: 1rem; }
 
-    .nav-status {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 11px;
-      color: var(--text-dim);
-      text-decoration: none;
-      transition: color 0.15s;
-    }
-    .nav-status:hover { color: var(--text); }
-    .status-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: #4ade80;
-      box-shadow: 0 0 0 3px rgba(74,222,128,0.15);
-      animation: pulse 2.5s ease-in-out infinite;
-    }
+	.nav-status {
+	  	display: flex;
+	 	align-items: center;
+	  	gap: 0.5rem;
+	  	font-size: 11px;
+	 	color: var(--text-dim);
+	  	text-decoration: none;
+	  	position: relative;
+	  	padding-bottom: 2px;
+	}
+	.nav-status::after {
+		content: '';
+		position: absolute;
+		bottom: -1px; left: 50%; right: 50%;
+		height: 1px;
+		background: var(--accent);
+		transition: left 0.2s, right 0.2s;
+	}
+.nav-status:hover { color: var(--text); }
+.nav-status:hover::after { left: 0; right: 0; }
+	  
     @keyframes pulse {
       0%, 100% { box-shadow: 0 0 0 3px rgba(74,222,128,0.15); }
       50%       { box-shadow: 0 0 0 6px rgba(74,222,128,0.05); }
@@ -857,6 +861,7 @@
     </div>
   </nav>
 
+	
   <script>
     // ── Terminal typewriter ──────────────────────────
     (function() {
@@ -893,6 +898,32 @@
         cursor.style.opacity = '1';
       }
 
+		// ── Live status dot ──────────────────────────────
+(async function checkSystemStatus() {
+  const dot = document.querySelector('.status-dot');
+  const label = document.getElementById('nav-build-status');
+  const endpoints = [
+    "https://api.atlas-systems.uk/notify/health",
+    "https://api.atlas-systems.uk/pulse",
+    "https://api.atlas-systems.uk/site-pulse/health",
+  ];
+  try {
+    const results = await Promise.all(
+      endpoints.map((url) => fetch(url, { cache: "no-store" }).then((r) => r.ok).catch(() => false))
+    );
+    const allOk = results.every(Boolean);
+    if (!allOk) {
+      dot.style.background = '#e24b4a';
+      dot.style.boxShadow = '0 0 0 3px rgba(226,75,74,0.15)';
+      dot.style.animation = 'none';
+      label.textContent = 'degraded';
+    }
+    // allOk: leave the markup's default green/"systems nominal" exactly as-is
+  } catch {
+    // a failure here is about the check itself, not proof anything's
+    // actually down; staying on the default state is the safer call
+  }
+})();
       run();
     })();
 
