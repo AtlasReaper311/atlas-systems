@@ -10,19 +10,28 @@ jobs:
     steps:
       - name: Notify Discord
         run: |
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          COMMIT_URL="https://github.com/${{ github.repository }}/commit/${{ github.sha }}"
+
+          PAYLOAD=$(jq -n \
+            --arg short_sha "$SHORT_SHA" \
+            --arg commit_url "$COMMIT_URL" \
+            --arg actor "${{ github.actor }}" \
+            '{
+              username: "atlas-notify",
+              embeds: [{
+                title: "Deploy Log",
+                description: "Push to main triggered a Cloudflare Pages deploy.",
+                color: 16098851,
+                fields: [
+                  {name: "Status", value: "🟢 deploy triggered", inline: true},
+                  {name: "Commit", value: ("[" + $short_sha + "](" + $commit_url + ")"), inline: true},
+                  {name: "Actor", value: $actor, inline: true}
+                ],
+                footer: {text: "Atlas Systems — Pipeline"}
+              }]
+            }')
+
           curl -X POST "${{ secrets.DISCORD_DEPLOY_WEBHOOK }}" \
             -H "Content-Type: application/json" \
-            -d '{
-              "username": "atlas-notify",
-              "embeds": [{
-                "title": "Deploy Log",
-                "description": "Push to main triggered a Cloudflare Pages deploy.",
-                "color": 16098851,
-                "fields": [
-                  {"name": "Status", "value": "🟢 deploy triggered", "inline": true},
-                  {"name": "Commit", "value": "${{ github.sha }}", "inline": true},
-                  {"name": "Actor", "value": "${{ github.actor }}", "inline": true}
-                ],
-                "footer": {"text": "Atlas Systems — Pipeline"}
-              }]
-            }'
+            -d "$PAYLOAD"
