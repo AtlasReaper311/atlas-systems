@@ -18,7 +18,7 @@ jobs:
             --arg commit_url "$COMMIT_URL" \
             --arg actor "${{ github.actor }}" \
             '{
-              username: "atlas-notify",
+              username: "deploy-log",
               embeds: [{
                 title: "Deploy Log",
                 description: "Push to main triggered a Cloudflare Pages deploy.",
