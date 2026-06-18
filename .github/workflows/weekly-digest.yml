@@ -95,11 +95,15 @@ jobs:
           PUBLIC_REPOS=$(echo "$USER_DATA" | jq -r '.public_repos // 0')
           TOTAL_STARS=$(echo "$REPOS_DATA" | jq '[.[].stargazers_count] | add // 0')
 
-          SITE_PULSE=$(curl -s "https://api.atlas-systems.uk/site-pulse")
-          echo "$SITE_PULSE" | jq empty 2>/dev/null || SITE_PULSE='{}'
-          SITE_VISITS=$(echo "$SITE_PULSE" | jq -r '.totalVisits // 0')
-          TOP_PAGE=$(echo "$SITE_PULSE" | jq -r '.topPages[0].path // "—"')
+          SITE_PULSE_NOW=$(curl -s "https://api.atlas-systems.uk/site-pulse")
+          echo "$SITE_PULSE_NOW" | jq empty 2>/dev/null || SITE_PULSE_NOW='{}'
+          TOP_PAGE=$(echo "$SITE_PULSE_NOW" | jq -r '.topPages[0].path // "—"')
 
+          SITE_PULSE_WEEKLY=$(curl -s "https://api.atlas-systems.uk/site-pulse/weekly")
+          echo "$SITE_PULSE_WEEKLY" | jq empty 2>/dev/null || SITE_PULSE_WEEKLY='{}'
+          SITE_VISITS=$(echo "$SITE_PULSE_WEEKLY" | jq -r '.totalVisits // 0')
+          DAYS_COLLECTED=$(echo "$SITE_PULSE_WEEKLY" | jq -r '.daysCollected // 0')
+          
           PAYLOAD=$(jq -n \
             --arg commits "$COMMIT_COUNT" \
             --arg most_active "$MOST_ACTIVE_REPO" \
@@ -116,6 +120,7 @@ jobs:
             --arg followers "$FOLLOWERS" \
             --arg site_visits "$SITE_VISITS" \
             --arg top_page "$TOP_PAGE" \
+            --arg days_collected "$DAYS_COLLECTED" \
             '{
               username: "atlas-notify",
               embeds: [{
@@ -132,7 +137,7 @@ jobs:
                   {name: "Total stars (all-time)", value: $stars, inline: true},
                   {name: "Public repos (all-time)", value: $public_repos, inline: true},
                   {name: "Followers", value: $followers, inline: true},
-                  {name: "Site visits (24h)", value: $site_visits, inline: true},
+                  {"name": ("Site visits (" + $days_collected + "d)"), "value": $site_visits, "inline": true}
                   {name: "Top page", value: $top_page, inline: true},
                   {name: "Active repos this week", value: $repos, inline: false},
                   {name: "Latest commit", value: ("\u201c" + $latest_commit + "\u201d"), inline: false}
