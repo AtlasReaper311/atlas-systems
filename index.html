@@ -778,6 +778,7 @@
     <section class="section reveal">
       <div class="section-label">Live signal</div>
 
+      <div class="stack-group-title">Frontend</div>
       <div class="signal-bar">
         <div class="signal-cell">
           <div class="signal-label">Environment</div>
@@ -797,13 +798,15 @@
         </div>
         <div class="signal-cell">
           <div class="signal-label">Build</div>
-          <div class="signal-value mono" id="build-status" style="color:#4ade80">passing</div>
+          <div class="signal-value mono" id="build-status">—</div>
         </div>
       </div>
 
+      <div class="stack-group-title" style="margin-top: 2.5rem;">Backend</div>
+      <div class="signal-bar" id="backendGrid"></div>
+
       <div class="stack-group-title" style="margin-top: 2.5rem;">From GitHub</div>
 
-      <!-- populated live by /js/pulse.js, stays hidden if the API is unreachable -->
       <div id="pulse" class="reveal" hidden>
         <div class="signal-bar">
           <div class="signal-cell">
@@ -906,6 +909,66 @@
         cursor.style.opacity = '1';
       }
 
+		// ── Live signal: frontend deploy info from deploy-watch ──────
+    (async function loadDeployInfo() {
+      const lastDeployEl = document.getElementById('last-deploy');
+      const commitEl = document.getElementById('commit-hash');
+      const buildEl = document.getElementById('build-status');
+      try {
+        const res = await fetch('https://api.atlas-systems.uk/deploy-watch/latest', { cache: 'no-store' });
+        const data = await res.json();
+        if (!data.commitSha) return; // leave the em dashes, honest about not knowing yet
+
+        const when = data.endedOn || data.createdOn;
+        lastDeployEl.textContent = when
+          ? new Date(when).toISOString().slice(0, 16).replace('T', ' ') + ' UTC'
+          : '—';
+
+        commitEl.innerHTML = data.commitUrl
+          ? `<a href="${data.commitUrl}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">${data.commitSha}</a>`
+          : data.commitSha;
+
+        if (data.status === 'success') {
+          buildEl.textContent = 'passing'; buildEl.style.color = '#4ade80';
+        } else if (data.status === 'failure') {
+          buildEl.textContent = 'failing'; buildEl.style.color = '#e24b4a';
+        } else {
+          buildEl.textContent = data.status || '—'; buildEl.style.color = 'var(--accent)';
+        }
+      } catch {
+        // a failed check here means the check failed, not that anything is actually down
+      }
+    })();
+
+    // ── Live signal: backend health ───────────────────────────────
+    (function loadBackendHealth() {
+      const services = [
+        { name: 'atlas-notify', url: 'https://api.atlas-systems.uk/notify/health' },
+        { name: 'github-pulse', url: 'https://api.atlas-systems.uk/pulse' },
+        { name: 'site-pulse', url: 'https://api.atlas-systems.uk/site-pulse/health' },
+        { name: 'deploy-watch', url: 'https://api.atlas-systems.uk/deploy-watch/health' },
+      ];
+      const grid = document.getElementById('backendGrid');
+      grid.innerHTML = services.map((s, i) => `
+        <div class="signal-cell">
+          <div class="signal-label">${s.name}</div>
+          <div class="signal-value mono" id="backend-${i}" style="color:var(--text-dim)">checking…</div>
+        </div>
+      `).join('');
+
+      services.forEach(async (s, i) => {
+        const el = document.getElementById('backend-' + i);
+        try {
+          const res = await fetch(s.url, { cache: 'no-store' });
+          el.textContent = res.ok ? 'operational' : 'unreachable';
+          el.style.color = res.ok ? '#4ade80' : '#e24b4a';
+        } catch {
+          el.textContent = 'unreachable';
+          el.style.color = '#e24b4a';
+        }
+      });
+    })();
+		
 		// ── Live status dot ──────────────────────────────
 (async function checkSystemStatus() {
   const dot = document.querySelector('.status-dot');
