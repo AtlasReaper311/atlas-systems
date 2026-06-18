@@ -122,7 +122,7 @@ jobs:
             --arg top_page "$TOP_PAGE" \
             --arg days_collected "$DAYS_COLLECTED" \
             '{
-              username: "atlas-notify",
+              username: "weekly-digest",
               embeds: [{
                 title: "Weekly Digest",
                 description: "Activity across all public repos — past 7 days, plus all-time totals. Site stats are a 24h snapshot taken at digest time, not a rolling weekly total.",
