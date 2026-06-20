@@ -1,0 +1,14 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    uses: AtlasReaper311/atlas-infra/.github/workflows/validate-static.yml@main
+    with:
+      project_name: atlas-systems
+      site_label: atlas-systems.uk
+      inject_build_meta: true
+    secrets: inherit
