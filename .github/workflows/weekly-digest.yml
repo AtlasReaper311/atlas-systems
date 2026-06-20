@@ -11,48 +11,94 @@ jobs:
     steps:
       - name: Build and post weekly digest
         env:
-          GH_AUTH: "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"
+          # --- Why a PAT, not GITHUB_TOKEN ---
+          # GITHUB_TOKEN is scoped to this repo only. When calling the
+          # Commits API on OTHER repos with ?author=USERNAME, GitHub
+          # needs to resolve the login to a git author email — a
+          # lookup that silently fails with a repo-scoped token,
+          # returning an empty array instead of an error. A fine-grained
+          # PAT with contents:read on all repos fixes this and also
+          # surfaces private repos (like atlas-scheduler) in the new
+          # repos count. The PAT needs: Contents (read) on All
+          # repositories under the AtlasReaper311 account.
+          GH_AUTH: "Authorization: Bearer ${{ secrets.GH_DIGEST_PAT }}"
         run: |
+          set -uo pipefail
+
           USERNAME="AtlasReaper311"
           SINCE=$(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ)
+          SINCE_DATE=$(date -u -d '7 days ago' +%Y-%m-%d)
 
-          EVENTS=$(curl -s -H "$GH_AUTH" "https://api.github.com/users/$USERNAME/events/public?per_page=100")
-          echo "$EVENTS" | jq empty 2>/dev/null || EVENTS='[]'
-
-          USER_DATA=$(curl -s -H "$GH_AUTH" "https://api.github.com/users/$USERNAME")
+          # --- Fetch base data ---
+          # /user/repos (not /users/USERNAME/repos) returns ALL repos
+          # the token can see, including private ones. Requires a PAT.
+          USER_DATA=$(curl -sf -H "$GH_AUTH" "https://api.github.com/users/$USERNAME" || echo '{}')
           echo "$USER_DATA" | jq empty 2>/dev/null || USER_DATA='{}'
 
-          REPOS_DATA=$(curl -s -H "$GH_AUTH" "https://api.github.com/users/$USERNAME/repos?per_page=100")
+          REPOS_DATA=$(curl -sf -H "$GH_AUTH" "https://api.github.com/user/repos?per_page=100&affiliation=owner" || echo '[]')
           echo "$REPOS_DATA" | jq empty 2>/dev/null || REPOS_DATA='[]'
 
-          # --- Commits (7d): ground truth, not the events feed ---
-          # GitHub's events feed marks a push's commits as "non-distinct"
-          # (distinct_size: 0) when it judges them already visible from a
-          # recent prior push to the same branch — exactly what a day of
-          # rapid small commits looks like. Querying each repo's real
-          # Commits endpoint directly, filtered to this account's own
-          # authored commits (so a CI bot's auto-commits, like the
-          # coverage badge updater, never get counted as yours), gives
-          # the real number regardless of push frequency. Capped at 100
-          # commits per repo per week via per_page; fine for a personal
-          # account's actual volume, a known limit if that ever changes.
+          REPO_COUNT=$(echo "$REPOS_DATA" | jq 'if type=="array" then length else 0 end')
+          echo "::debug::Found $REPO_COUNT repos to scan"
+
+          # --- Commits (7d): ground truth from the Commits API ---
+          # GitHub's events feed marks rapid pushes as "non-distinct",
+          # undercounting commits. Querying each repo's Commits endpoint
+          # directly, filtered to this account's own authored commits,
+          # gives the real number. CI bot commits (badge updaters etc.)
+          # are excluded by the author filter.
           REPO_NAMES=$(echo "$REPOS_DATA" | jq -r '.[] | select(.fork == false) | .name')
           COMMIT_COUNT=0
+          LATEST_COMMIT_MSG="—"
+          LATEST_COMMIT_DATE="0000-00-00T00:00:00Z"
+          ACTIVE_REPOS=""
+
           while IFS= read -r repo; do
             [ -z "$repo" ] && continue
-            RESP=$(curl -s -H "$GH_AUTH" "https://api.github.com/repos/$USERNAME/$repo/commits?since=$SINCE&author=$USERNAME&per_page=100")
+
+            RESP=$(curl -sf -H "$GH_AUTH" \
+              "https://api.github.com/repos/$USERNAME/$repo/commits?since=$SINCE&author=$USERNAME&per_page=100" \
+              || echo '[]')
+
+            # Guard against error objects (rate limit, not found, etc.)
             COUNT=$(echo "$RESP" | jq 'if type=="array" then length else 0 end' 2>/dev/null || echo 0)
-            COMMIT_COUNT=$((COMMIT_COUNT + COUNT))
+
+            if [ "$COUNT" -gt 0 ] 2>/dev/null; then
+              COMMIT_COUNT=$((COMMIT_COUNT + COUNT))
+
+              # Track active repos
+              if [ -n "$ACTIVE_REPOS" ]; then
+                ACTIVE_REPOS="$ACTIVE_REPOS, $USERNAME/$repo"
+              else
+                ACTIVE_REPOS="$USERNAME/$repo"
+              fi
+
+              # Track latest commit across all repos
+              NEWEST_DATE=$(echo "$RESP" | jq -r '.[0].commit.author.date // ""')
+              NEWEST_MSG=$(echo "$RESP" | jq -r '.[0].commit.message // ""' | head -1)
+              if [ -n "$NEWEST_DATE" ] && [[ "$NEWEST_DATE" > "$LATEST_COMMIT_DATE" ]]; then
+                LATEST_COMMIT_DATE="$NEWEST_DATE"
+                LATEST_COMMIT_MSG="$NEWEST_MSG"
+              fi
+            fi
+
+            echo "::debug::$repo: $COUNT commits"
           done <<< "$REPO_NAMES"
 
-          REPO_LIST=$(echo "$EVENTS" | jq -r --arg since "$SINCE" '
-            [.[] | select(.type=="PushEvent" and .created_at>=$since) | .repo.name] | unique | join(", ")
-          ')
-          [ -z "$REPO_LIST" ] && REPO_LIST="none this week"
+          [ -z "$ACTIVE_REPOS" ] && ACTIVE_REPOS="none this week"
 
-          MOST_ACTIVE_REPO=$(echo "$EVENTS" | jq -r --arg since "$SINCE" '
-            [.[] | select(.type=="PushEvent" and .created_at>=$since) | .repo.name]
-            | group_by(.) | map({repo: .[0], count: length}) | sort_by(-.count) | .[0].repo // "none"
+          # --- Most active repo and busiest day ---
+          # Derived from the same commits data would require storing
+          # per-repo counts. Using the events feed here is acceptable
+          # because these are display-only fields, not totals — a miss
+          # just means "none" rather than a wrong number.
+          EVENTS=$(curl -sf -H "$GH_AUTH" \
+            "https://api.github.com/users/$USERNAME/events?per_page=100" || echo '[]')
+          echo "$EVENTS" | jq empty 2>/dev/null || EVENTS='[]'
+
+          MOST_ACTIVE_REPO=$(echo "$REPOS_DATA" | jq -r --arg since "$SINCE" '
+            [.[] | select(.fork == false and .pushed_at >= $since)]
+            | sort_by(.pushed_at) | reverse | .[0].full_name // "none"
           ')
 
           BUSIEST_DAY=$(echo "$EVENTS" | jq -r --arg since "$SINCE" '
@@ -61,53 +107,75 @@ jobs:
             | group_by(.) | map({day: .[0], count: length}) | sort_by(-.count) | .[0].day // "—"
           ')
 
-          PR_OPENED=$(echo "$EVENTS" | jq '
-            [.[] | select(.type=="PullRequestEvent" and .created_at>='\""$SINCE"\"' and .payload.action=="opened")] | length
+          # --- PRs and Issues (7d) ---
+          # Events feed is fine here — PRs and issues generate fewer
+          # events than pushes, so the 100-event window rarely clips them.
+          PR_OPENED=$(echo "$EVENTS" | jq --arg since "$SINCE" '
+            [.[] | select(.type=="PullRequestEvent" and .created_at>=$since and .payload.action=="opened")] | length
           ')
-          PR_MERGED=$(echo "$EVENTS" | jq '
-            [.[] | select(.type=="PullRequestEvent" and .created_at>='\""$SINCE"\"' and .payload.action=="closed" and .payload.pull_request.merged==true)] | length
+          PR_MERGED=$(echo "$EVENTS" | jq --arg since "$SINCE" '
+            [.[] | select(.type=="PullRequestEvent" and .created_at>=$since and .payload.action=="closed" and .payload.pull_request.merged==true)] | length
           ')
-          ISSUES_OPENED=$(echo "$EVENTS" | jq '
-            [.[] | select(.type=="IssuesEvent" and .created_at>='\""$SINCE"\"' and .payload.action=="opened")] | length
+          ISSUES_OPENED=$(echo "$EVENTS" | jq --arg since "$SINCE" '
+            [.[] | select(.type=="IssuesEvent" and .created_at>=$since and .payload.action=="opened")] | length
           ')
-          ISSUES_CLOSED=$(echo "$EVENTS" | jq '
-            [.[] | select(.type=="IssuesEvent" and .created_at>='\""$SINCE"\"' and .payload.action=="closed")] | length
+          ISSUES_CLOSED=$(echo "$EVENTS" | jq --arg since "$SINCE" '
+            [.[] | select(.type=="IssuesEvent" and .created_at>=$since and .payload.action=="closed")] | length
           ')
 
-          # --- New repos (7d): ground truth via created_at, not CreateEvent ---
-          # The events feed caps at the 100 most recent events; a day with
-          # heavy push volume across many repos can scroll a morning's
-          # CreateEvent clean off the list by evening. Every repo object
-          # already carries a real created_at timestamp — filtering that
-          # directly has no window to fall out of. Forks excluded, same
-          # convention as github-pulse.
+          # --- New repos (7d): ground truth via created_at ---
+          # The events feed caps at 100 events and can scroll a
+          # CreateEvent off the list. Every repo object carries a
+          # created_at timestamp — filtering that directly is reliable.
+          # Uses REPOS_DATA which now includes private repos via PAT.
           NEW_REPOS=$(echo "$REPOS_DATA" | jq -r --arg since "$SINCE" '
             [.[] | select(.fork == false and .created_at >= $since) | .name] | join(", ")
           ')
           [ -z "$NEW_REPOS" ] && NEW_REPOS="none"
 
-          LATEST_COMMIT_MSG=$(echo "$EVENTS" | jq -r --arg since "$SINCE" '
-            ([.[] | select(.type=="PushEvent" and .created_at>=$since)] | sort_by(.created_at) | last) as $e
-            | if $e then ($e.payload.commits[-1].message // "—") | split("\n")[0] else "—" end
-          ')
-
+          # --- All-time stats ---
           FOLLOWERS=$(echo "$USER_DATA" | jq -r '.followers // 0')
           PUBLIC_REPOS=$(echo "$USER_DATA" | jq -r '.public_repos // 0')
           TOTAL_STARS=$(echo "$REPOS_DATA" | jq '[.[].stargazers_count] | add // 0')
 
-          SITE_PULSE_NOW=$(curl -s "https://api.atlas-systems.uk/site-pulse")
+          # --- Site stats ---
+          # site-pulse /weekly aggregates daily snapshots stored by the
+          # Worker's cron trigger. Falls back to the live 24h endpoint
+          # if /weekly returns 0 days (cron hasn't run yet).
+          SITE_PULSE_NOW=$(curl -sf "https://api.atlas-systems.uk/site-pulse" || echo '{}')
           echo "$SITE_PULSE_NOW" | jq empty 2>/dev/null || SITE_PULSE_NOW='{}'
-          TOP_PAGE=$(echo "$SITE_PULSE_NOW" | jq -r '.topPages[0].path // "—"')
 
-          SITE_PULSE_WEEKLY=$(curl -s "https://api.atlas-systems.uk/site-pulse/weekly")
+          TOP_PAGE_RAW=$(echo "$SITE_PULSE_NOW" | jq -r '.topPages[0].path // "—"')
+          if [ "$TOP_PAGE_RAW" = "/" ]; then
+            TOP_PAGE="/ (homepage)"
+          elif [ "$TOP_PAGE_RAW" = "—" ]; then
+            TOP_PAGE="—"
+          else
+            TOP_PAGE="$TOP_PAGE_RAW"
+          fi
+
+          SITE_PULSE_WEEKLY=$(curl -sf "https://api.atlas-systems.uk/site-pulse/weekly" || echo '{}')
           echo "$SITE_PULSE_WEEKLY" | jq empty 2>/dev/null || SITE_PULSE_WEEKLY='{}'
           SITE_VISITS=$(echo "$SITE_PULSE_WEEKLY" | jq -r '.totalVisits // 0')
           DAYS_COLLECTED=$(echo "$SITE_PULSE_WEEKLY" | jq -r '.daysCollected // 0')
-          
+
+          # Fall back to live 24h data if no daily snapshots exist yet
+          if [ "$DAYS_COLLECTED" = "0" ] || [ "$DAYS_COLLECTED" = "null" ]; then
+            SITE_VISITS=$(echo "$SITE_PULSE_NOW" | jq -r '.totalVisits // 0')
+            SITE_LABEL="Site visits (24h)"
+          else
+            SITE_LABEL="Site visits (${DAYS_COLLECTED}d)"
+          fi
+
+          echo "::debug::Commits: $COMMIT_COUNT | Active repos: $ACTIVE_REPOS"
+          echo "::debug::Site visits: $SITE_VISITS over $DAYS_COLLECTED days"
+          echo "::debug::Latest commit: $LATEST_COMMIT_MSG"
+
+          # --- Build Discord embed ---
           PAYLOAD=$(jq -n \
             --arg commits "$COMMIT_COUNT" \
             --arg most_active "$MOST_ACTIVE_REPO" \
-            --arg repos "$REPO_LIST" \
+            --arg repos "$ACTIVE_REPOS" \
             --arg pr_opened "$PR_OPENED" \
             --arg pr_merged "$PR_MERGED" \
             --arg issues_opened "$ISSUES_OPENED" \
@@ -119,13 +187,13 @@ jobs:
             --arg public_repos "$PUBLIC_REPOS" \
             --arg followers "$FOLLOWERS" \
             --arg site_visits "$SITE_VISITS" \
+            --arg site_label "$SITE_LABEL" \
             --arg top_page "$TOP_PAGE" \
-            --arg days_collected "$DAYS_COLLECTED" \
             '{
               username: "weekly-digest",
               embeds: [{
                 title: "Weekly Digest",
-                description: "Activity across all public repos — past 7 days, plus all-time totals. Site stats are a 24h snapshot taken at digest time, not a rolling weekly total.",
+                description: "Activity across all repos (public + private) — past 7 days, plus all-time totals.",
                 color: 16098851,
                 fields: [
                   {name: "Commits (7d)", value: $commits, inline: true},
@@ -137,7 +205,7 @@ jobs:
                   {name: "Total stars (all-time)", value: $stars, inline: true},
                   {name: "Public repos (all-time)", value: $public_repos, inline: true},
                   {name: "Followers", value: $followers, inline: true},
-                  {"name": ("Site visits (" + $days_collected + "d)"), "value": $site_visits, "inline": true}
+                  {name: $site_label, value: $site_visits, inline: true},
                   {name: "Top page", value: $top_page, inline: true},
                   {name: "Active repos this week", value: $repos, inline: false},
                   {name: "Latest commit", value: ("\u201c" + $latest_commit + "\u201d"), inline: false}
@@ -146,6 +214,19 @@ jobs:
               }]
             }')
 
-          curl -X POST "${{ secrets.DISCORD_DIGEST_WEBHOOK }}" \
+          if [ -z "$PAYLOAD" ]; then
+            echo "::error::jq failed to build payload — aborting"
+            exit 1
+          fi
+
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST "${{ secrets.DISCORD_DIGEST_WEBHOOK }}" \
             -H "Content-Type: application/json" \
-            -d "$PAYLOAD"
+            -d "$PAYLOAD")
+
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+            echo "::notice::Digest posted to Discord (HTTP $HTTP_CODE)"
+          else
+            echo "::error::Discord webhook returned HTTP $HTTP_CODE"
+            exit 1
+          fi
