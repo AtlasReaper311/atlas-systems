@@ -599,13 +599,13 @@
     // ── PIPELINE STATUS GRID ───────────────────────────────────────────────
 const PGRID_REPOS = [
   'github-pulse',
-  'deploy-watch',
   'atlas-systems',
-  'atlas-notify',
-  'atlas-vault',
-  'status',
   'atlas-doc-viewer',
-  'atlas-scheduler',
+  'atlas-notify',
+  'site-pulse',
+  'deploy-watch',
+  'status',
+  'atlas-vault',
 ];
 const PGRID_RECENT_MS = 5 * 60 * 1000; // "recent change" = heartbeat on
 
@@ -723,7 +723,8 @@ function pgridRender(events) {
 
     const summary = document.createElement('div');
     summary.className = 'pgrid-summary';
-    summary.textContent = latest ? pgridSummary(latest) : '—';
+    const summaryEv = status || latest;
+    summary.textContent = summaryEv ? pgridSummary(summaryEv) : '—';
     tile.appendChild(summary);
 
     const pulse = document.createElement('div');
