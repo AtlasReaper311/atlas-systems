@@ -8,7 +8,7 @@
   <title>Work — Atlas Systems</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=DM+Serif+Display:ital@0;1&amp;display=swap" rel="stylesheet">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{--bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;--border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);--text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;--accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);--mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px}
@@ -112,7 +112,7 @@
   </style>
 </head>
 <body>
-  <nav>
+  <nav aria-label="Primary navigation">
     <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
     <ul class="nav-links">
       <li><a href="/work/" class="nav-link">Work</a></li>
@@ -130,12 +130,12 @@
     </header>
 
     <div class="filter-bar">
-      <button class="filter-btn active" data-filter="all">All</button>
-      <button class="filter-btn" data-filter="audio">Audio Systems</button>
-      <button class="filter-btn" data-filter="generative">Generative</button>
-      <button class="filter-btn" data-filter="ai">AI / LLMs</button>
-      <button class="filter-btn" data-filter="devops">DevOps</button>
-      <button class="filter-btn" data-filter="gamedev">Game Dev</button>
+      <button type="button" class="filter-btn active" data-filter="all">All</button>
+      <button type="button" class="filter-btn" data-filter="audio">Audio Systems</button>
+      <button type="button" class="filter-btn" data-filter="generative">Generative</button>
+      <button type="button" class="filter-btn" data-filter="ai">AI / LLMs</button>
+      <button type="button" class="filter-btn" data-filter="devops">DevOps</button>
+      <button type="button" class="filter-btn" data-filter="gamedev">Game Dev</button>
     </div>
 
     <div class="projects">
@@ -151,15 +151,15 @@
             <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779910912/atlas-rag_dkyz9w.png" alt="RAG knowledge collections">
             <div class="gallery-nav" onclick="event.stopPropagation()">
               <div class="gallery-arrows">
-                <button class="gallery-arrow" onclick="galleryPrev('ramone-gallery')">← prev</button>
-                <button class="gallery-arrow" onclick="galleryNext('ramone-gallery')">next →</button>
+                <button type="button" class="gallery-arrow" onclick="galleryPrev('ramone-gallery')">← prev</button>
+                <button type="button" class="gallery-arrow" onclick="galleryNext('ramone-gallery')">next →</button>
               </div>
               <div class="gallery-dots" id="ramone-gallery-dots">
-                <button class="gallery-dot active" onclick="galleryGoto('ramone-gallery',0)"></button>
-                <button class="gallery-dot" onclick="galleryGoto('ramone-gallery',1)"></button>
-                <button class="gallery-dot" onclick="galleryGoto('ramone-gallery',2)"></button>
-                <button class="gallery-dot" onclick="galleryGoto('ramone-gallery',3)"></button>
-                <button class="gallery-dot" onclick="galleryGoto('ramone-gallery',4)"></button>
+                <button type="button" class="gallery-dot active" onclick="galleryGoto('ramone-gallery',0)" aria-label="View image 1"></button>
+                <button type="button" class="gallery-dot" onclick="galleryGoto('ramone-gallery',1)" aria-label="View image 2"></button>
+                <button type="button" class="gallery-dot" onclick="galleryGoto('ramone-gallery',2)" aria-label="View image 3"></button>
+                <button type="button" class="gallery-dot" onclick="galleryGoto('ramone-gallery',3)" aria-label="View image 4"></button>
+                <button type="button" class="gallery-dot" onclick="galleryGoto('ramone-gallery',4)" aria-label="View image 5"></button>
               </div>
               <span class="gallery-counter" id="ramone-gallery-counter">1 / 5</span>
             </div>
@@ -175,7 +175,7 @@
             </div>
           </div>
           <h2 class="project-title">Ramone — Local AI System</h2>
-          <div class="project-role">Architect & Systems Engineer</div>
+          <div class="project-role">Architect &amp; Systems Engineer</div>
           <p class="project-desc">A fully self-hosted private AI infrastructure — zero cloud dependency, zero data egress. Five LLMs served via Ollama on local hardware, wrapped in Docker, accessed through Open WebUI with ten specialised workbots backed by RAG knowledge bases. Everything lives on a dedicated NVMe drive: portable, rebuildable in under 30 minutes.</p>
           <div class="spec-grid">
             <div class="spec-cell"><div class="spec-label">GPU</div><div class="spec-value">RTX 5070 — 12GB VRAM</div></div>
@@ -220,23 +220,23 @@
             <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909415/slampunk-blueprint_qouohp.png" alt="Blueprint — score to intensity">
             <div class="gallery-nav" onclick="event.stopPropagation()">
               <div class="gallery-arrows">
-                <button class="gallery-arrow" onclick="galleryPrev('slampunk-gallery')">← prev</button>
-                <button class="gallery-arrow" onclick="galleryNext('slampunk-gallery')">next →</button>
+                <button type="button" class="gallery-arrow" onclick="galleryPrev('slampunk-gallery')">← prev</button>
+                <button type="button" class="gallery-arrow" onclick="galleryNext('slampunk-gallery')">next →</button>
               </div>
               <div class="gallery-dots" id="slampunk-gallery-dots">
-                <button class="gallery-dot active" onclick="galleryGoto('slampunk-gallery',0)"></button>
-                <button class="gallery-dot" onclick="galleryGoto('slampunk-gallery',1)"></button>
-                <button class="gallery-dot" onclick="galleryGoto('slampunk-gallery',2)"></button>
-                <button class="gallery-dot" onclick="galleryGoto('slampunk-gallery',3)"></button>
+                <button type="button" class="gallery-dot active" onclick="galleryGoto('slampunk-gallery',0)" aria-label="View image 1"></button>
+                <button type="button" class="gallery-dot" onclick="galleryGoto('slampunk-gallery',1)" aria-label="View image 2"></button>
+                <button type="button" class="gallery-dot" onclick="galleryGoto('slampunk-gallery',2)" aria-label="View image 3"></button>
+                <button type="button" class="gallery-dot" onclick="galleryGoto('slampunk-gallery',3)" aria-label="View image 4"></button>
               </div>
               <span class="gallery-counter" id="slampunk-gallery-counter">1 / 4</span>
             </div>
           </div>
           <div class="audio-strip">
             <span class="audio-label">Intensity:</span>
-            <button class="audio-btn" onclick="toggleAudio(this,'int1')"><svg viewBox="0 0 10 10"><polygon points="2,1 9,5 2,9"/></svg>Int1 — Energy Floor</button>
-            <button class="audio-btn" onclick="toggleAudio(this,'int2')"><svg viewBox="0 0 10 10"><polygon points="2,1 9,5 2,9"/></svg>Int2 — Escalation</button>
-            <button class="audio-btn" onclick="toggleAudio(this,'int3')"><svg viewBox="0 0 10 10"><polygon points="2,1 9,5 2,9"/></svg>Int3 — Finale</button>
+            <button type="button" class="audio-btn" onclick="toggleAudio(this,'int1')"><svg viewBox="0 0 10 10"><polygon points="2,1 9,5 2,9"/></svg>Int1 — Energy Floor</button>
+            <button type="button" class="audio-btn" onclick="toggleAudio(this,'int2')"><svg viewBox="0 0 10 10"><polygon points="2,1 9,5 2,9"/></svg>Int2 — Escalation</button>
+            <button type="button" class="audio-btn" onclick="toggleAudio(this,'int3')"><svg viewBox="0 0 10 10"><polygon points="2,1 9,5 2,9"/></svg>Int3 — Finale</button>
           </div>
         </div>
         <div class="project-info">
@@ -249,7 +249,7 @@
             </div>
           </div>
           <h2 class="project-title">SlamPunk — Dynamic Mix Engine</h2>
-          <div class="project-role">Lead Audio Systems Designer & Music Producer</div>
+          <div class="project-role">Lead Audio Systems Designer &amp; Music Producer</div>
           <p class="project-desc">A logic-driven dynamic audio engine for SlamPunk — a competitive future-sport game blending tag and basketball. Engineered a 15-stem interactive music system that mirrors player performance in real time, escalating from a minimal atmospheric floor to a dense triumphant climax while maintaining surgical clarity for competitive gameplay cues.</p>
           <div class="spec-grid">
             <div class="spec-cell"><div class="spec-label">Timeline</div><div class="spec-value">14 weeks / ~600hrs</div></div>
@@ -294,15 +294,15 @@
             <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779970549/atlas-visual_khc9fj.jpg" alt="Jitter visual output">
             <div class="gallery-nav" onclick="event.stopPropagation()">
               <div class="gallery-arrows">
-                <button class="gallery-arrow" onclick="galleryPrev('sonin-gallery')">← prev</button>
-                <button class="gallery-arrow" onclick="galleryNext('sonin-gallery')">next →</button>
+                <button type="button" class="gallery-arrow" onclick="galleryPrev('sonin-gallery')">← prev</button>
+                <button type="button" class="gallery-arrow" onclick="galleryNext('sonin-gallery')">next →</button>
               </div>
               <div class="gallery-dots" id="sonin-gallery-dots">
-                <button class="gallery-dot active" onclick="galleryGoto('sonin-gallery',0)"></button>
-                <button class="gallery-dot" onclick="galleryGoto('sonin-gallery',1)"></button>
-                <button class="gallery-dot" onclick="galleryGoto('sonin-gallery',2)"></button>
-                <button class="gallery-dot" onclick="galleryGoto('sonin-gallery',3)"></button>
-                <button class="gallery-dot" onclick="galleryGoto('sonin-gallery',4)"></button>
+                <button type="button" class="gallery-dot active" onclick="galleryGoto('sonin-gallery',0)" aria-label="View image 1"></button>
+                <button type="button" class="gallery-dot" onclick="galleryGoto('sonin-gallery',1)" aria-label="View image 2"></button>
+                <button type="button" class="gallery-dot" onclick="galleryGoto('sonin-gallery',2)" aria-label="View image 3"></button>
+                <button type="button" class="gallery-dot" onclick="galleryGoto('sonin-gallery',3)" aria-label="View image 4"></button>
+                <button type="button" class="gallery-dot" onclick="galleryGoto('sonin-gallery',4)" aria-label="View image 5"></button>
               </div>
               <span class="gallery-counter" id="sonin-gallery-counter">1 / 5</span>
             </div>
@@ -324,7 +324,7 @@
             </div>
           </div>
           <h2 class="project-title">SONIN — Generative Audio-Visual System</h2>
-          <div class="project-role">Designer & DSP Engineer</div>
+          <div class="project-role">Designer &amp; DSP Engineer</div>
           <p class="project-desc">An autonomous digital instrument built in Max/MSP that composes its own evolving music and visuals in real time by continuously listening and reacting to the sounds it creates. A dual-engine architecture (melodic and granular) connected by an internal audio feedback loop; the system analyses its own output and routes that data back into its own generative parameters.</p>
           <div class="spec-grid">
             <div class="spec-cell"><div class="spec-label">Timeline</div><div class="spec-value">Sept – Dec 2025</div></div>
@@ -359,15 +359,15 @@
       </article>
 
       <!-- WORK_CARDS_INSERT_POINT -->
-       
+
     </div>
   </main>
 
   <div class="lightbox" id="lightbox" onclick="closeLightbox()">
-    <button class="lightbox-close" onclick="closeLightbox()">close ✕</button>
-    <button class="lightbox-arrow" id="lightbox-prev" onclick="event.stopPropagation();lightboxNav(-1)">←</button>
+    <button type="button" class="lightbox-close" onclick="closeLightbox()">close ✕</button>
+    <button type="button" class="lightbox-arrow" id="lightbox-prev" onclick="event.stopPropagation();lightboxNav(-1)">←</button>
     <img id="lightbox-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" onclick="event.stopPropagation();toggleZoom(this)">
-    <button class="lightbox-arrow" id="lightbox-next" onclick="event.stopPropagation();lightboxNav(1)">→</button>
+    <button type="button" class="lightbox-arrow" id="lightbox-next" onclick="event.stopPropagation();lightboxNav(1)">→</button>
   </div>
 
   <nav class="mobile-nav" aria-label="Mobile navigation">
@@ -409,7 +409,7 @@
       let drag=false,startX=0,startY=0,tx=0,ty=0,target=null;
       document.addEventListener('mousedown',function(e){
         const img=document.getElementById('lightbox-img');
-        if(e.target===img&&img.classList.contains('zoomed')){
+        if(e.target===img&amp;&amp;img.classList.contains('zoomed')){
           drag=true;target=img;
           startX=e.clientX-img._tx;startY=e.clientY-img._ty;
           img.style.cursor='grabbing';
@@ -424,13 +424,13 @@
         e.preventDefault();
       });
       document.addEventListener('mouseup',function(){
-        if(drag&&target)target.style.cursor='grab';
+        if(drag&amp;&amp;target)target.style.cursor='grab';
         drag=false;target=null;
       });
       // Touch support
       document.addEventListener('touchstart',function(e){
         const img=document.getElementById('lightbox-img');
-        if(e.target===img&&img.classList.contains('zoomed')&&e.touches.length===1){
+        if(e.target===img&amp;&amp;img.classList.contains('zoomed')&amp;&amp;e.touches.length===1){
           drag=true;target=img;
           startX=e.touches[0].clientX-img._tx;
           startY=e.touches[0].clientY-img._ty;
@@ -451,7 +451,7 @@
     let currentAudio=null,currentBtn=null;
     function toggleAudio(btn,trackId){
       const tracks={int1:'https://res.cloudinary.com/dqebqmyf7/video/upload/v1779909513/velocity-int1_drn4qe.mp3',int2:'https://res.cloudinary.com/dqebqmyf7/video/upload/v1779909514/velocity-int2_l6v33z.mp3',int3:'https://res.cloudinary.com/dqebqmyf7/video/upload/v1779909514/velocity-int3_ksql9q.mp3'};
-      if(currentBtn&&currentBtn!==btn){currentBtn.classList.remove('playing');currentBtn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9');if(currentAudio){currentAudio.pause();currentAudio=null}}
+      if(currentBtn&amp;&amp;currentBtn!==btn){currentBtn.classList.remove('playing');currentBtn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9');if(currentAudio){currentAudio.pause();currentAudio=null}}
       if(btn.classList.contains('playing')){btn.classList.remove('playing');btn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9');if(currentAudio){currentAudio.pause();currentAudio=null}currentBtn=null}
       else{btn.classList.add('playing');btn.querySelector('svg polygon').setAttribute('points','2,2 8,2 8,8 2,8');currentAudio=new Audio(tracks[trackId]);currentAudio.play().catch(()=>{btn.classList.remove('playing');btn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9')});currentAudio.onended=()=>{btn.classList.remove('playing');btn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9');currentBtn=null};currentBtn=btn}
     }

@@ -8,7 +8,7 @@
   <title>SlamPunk — Dynamic Mix Engine // Atlas Systems</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=DM+Serif+Display:ital@0;1&amp;display=swap" rel="stylesheet">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -112,7 +112,7 @@
   </style>
 </head>
 <body>
-  <nav>
+  <nav aria-label="Primary navigation">
     <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
     <ul class="nav-links">
       <li><a href="/work/" class="nav-link">Work</a></li>
@@ -164,7 +164,7 @@
           <li class="toc-item"><a href="#overview">Overview</a></li>
           <li class="toc-item"><a href="#pillars">Design Pillars</a></li>
           <li class="toc-item"><a href="#pivot">Aesthetic Pivot</a></li>
-          <li class="toc-item"><a href="#composition">Composition & Synthesis</a></li>
+          <li class="toc-item"><a href="#composition">Composition &amp; Synthesis</a></li>
           <li class="toc-item"><a href="#stems">15-Stem Architecture</a></li>
           <li class="toc-item"><a href="#sfx">Sound Effects Pipeline</a></li>
           <li class="toc-item"><a href="#metasound">MetaSound Integration</a></li>
@@ -226,7 +226,7 @@
         <div class="section-break"></div>
 
         <section id="composition">
-          <h2>Composition & Synthesis</h2>
+          <h2>Composition &amp; Synthesis</h2>
 
           <h3>The 140 BPM Foundation</h3>
           <p>Locking the entire project to a rigid 140 BPM grid was a deliberate engineering decision as much as a musical one. All subsequent MetaSound implementation depends on stems being sample-accurate at loop boundaries; any tempo inconsistency would cause rhythmic drift between layers during intensity transitions. Establishing this grid in week four and never deviating from it eliminated an entire category of integration problems later in production.</p>
@@ -259,7 +259,7 @@
         <div class="section-break"></div>
 
         <section id="stems">
-          <h2>15-Stem Architecture & Export</h2>
+          <h2>15-Stem Architecture &amp; Export</h2>
           <p>The 15-stem architecture is the structural backbone of the entire audio system. Each arena track is split into five instrument groups (Bass, Data, Harmony, Rhythm, Topline) across three intensity levels, producing 15 individually mixed stems per theme. These stems are what MetaSound interpolates between in real time during gameplay.</p>
 
           <h3>Mixing process</h3>

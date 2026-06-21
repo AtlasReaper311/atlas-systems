@@ -9,7 +9,7 @@
   <title>Atlas Systems</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=DM+Serif+Display:ital@0;1&amp;display=swap" rel="stylesheet">
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -49,7 +49,7 @@
 	  box-shadow: 0 0 0 3px rgba(74,222,128,0.15);
 	  animation: pulse 2.5s ease-in-out infinite;
 	}
-	
+
     /* ── NAV ────────────────────────────────────── */
     nav {
       position: fixed;
@@ -129,7 +129,7 @@
 	}
 .nav-status:hover { color: var(--text); }
 .nav-status:hover::after { left: 0; right: 0; }
-	  
+
     @keyframes pulse {
       0%, 100% { box-shadow: 0 0 0 3px rgba(74,222,128,0.15); }
       50%       { box-shadow: 0 0 0 6px rgba(74,222,128,0.05); }
@@ -596,7 +596,7 @@
 <body>
 
   <!-- NAV -->
-  <nav>
+  <nav aria-label="Primary navigation">
     <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
     <ul class="nav-links">
       <li><a href="/work/" class="nav-link">Work</a></li>
@@ -873,7 +873,7 @@
     </div>
   </nav>
 
-	
+
   <script>
     // ── Terminal typewriter ──────────────────────────
     (function() {

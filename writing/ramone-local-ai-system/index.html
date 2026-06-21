@@ -8,7 +8,7 @@
   <title>Ramone — Local AI System // Atlas Systems</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=DM+Serif+Display:ital@0;1&amp;display=swap" rel="stylesheet">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -109,7 +109,7 @@
   </style>
 </head>
 <body>
-  <nav>
+  <nav aria-label="Primary navigation">
     <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
     <ul class="nav-links">
       <li><a href="/work/" class="nav-link">Work</a></li>
@@ -208,7 +208,7 @@
         <section id="phase1">
           <div class="phase-marker">
             <span class="phase-num">Phase I</span>
-            <span class="phase-title">The Ghost Network & Orphaned Configuration</span>
+            <span class="phase-title">The Ghost Network &amp; Orphaned Configuration</span>
           </div>
 
           <p>The first structural problem appeared immediately after initial setup. Open WebUI's network pipeline was established inside Docker, but it was configured to communicate via <code>host.docker.internal</code> (a Windows environment loopback interface). It was looking for Ollama on the Windows host network, but Ollama was not installed as a Windows background service. Every request was hitting empty space.</p>
@@ -248,7 +248,7 @@ Please install zstd and try again.</code></pre>
             <p>Update the APT repository index and install the missing dependency before retrying:</p>
           </div>
 
-          <pre><code>sudo apt-get update && sudo apt-get install -y zstd</code></pre>
+          <pre><code>sudo apt-get update &amp;&amp; sudo apt-get install -y zstd</code></pre>
 
           <p>The broader lesson is standard practice for Linux environment setup: always resolve dependency trees before running third-party install scripts on minimal images.</p>
         </section>
@@ -258,7 +258,7 @@ Please install zstd and try again.</code></pre>
         <section id="phase3">
           <div class="phase-marker">
             <span class="phase-num">Phase III</span>
-            <span class="phase-title">The Cross-OS Permission & Case-Sensitivity Conflict</span>
+            <span class="phase-title">The Cross-OS Permission &amp; Case-Sensitivity Conflict</span>
           </div>
 
           <p>This was the most technically complex phase; a collision between Windows file system behaviour and Unix environment expectations that produced two distinct failures.</p>
@@ -373,7 +373,7 @@ export OLLAMA_MODELS="/mnt/l/Ollama/models"</code></pre>
             <li><strong>Professional Correspondent</strong> — mimics personal writing style via RAG-grounded CV and email samples</li>
             <li><strong>Architect-Bot</strong> — specialist in Unreal Engine, audio systems, C++, and game development architecture</li>
             <li><strong>Academic Vector Index</strong> — university research assistant linked to chunked lecture notes and academic reading</li>
-            <li><strong>Narrative Forger V1 & V2</strong> — high-volume lore and item description generation for game development pipelines</li>
+            <li><strong>Narrative Forger V1 &amp; V2</strong> — high-volume lore and item description generation for game development pipelines</li>
             <li><strong>Senior Architect</strong> — high-level system design and codebase architecture for complex multi-file projects</li>
             <li><strong>Reasoning Brain</strong> — general-purpose deep reasoning using the largest available model</li>
             <li><strong>API Tester</strong> — minimal connection verification and endpoint testing</li>
