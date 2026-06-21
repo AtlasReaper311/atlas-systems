@@ -77,25 +77,254 @@
     /* ── LAB GRID ── */
     .lab-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem}
 
-    /* ── UPTIME LOG ── */
-    .uptime-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.5rem}
-    .uptime-refresh{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);background:none;border:1px solid var(--border);padding:0.2rem 0.6rem;cursor:pointer;transition:all 0.15s}
-    .uptime-refresh:hover{color:var(--text-dim);border-color:var(--border-hi)}
-    .uptime-entries{display:flex;flex-direction:column;max-height:380px;overflow-y:auto;border:1px solid var(--border)}
-    .uptime-entries::-webkit-scrollbar{width:3px}
-    .uptime-entries::-webkit-scrollbar-track{background:var(--bg-1)}
-    .uptime-entries::-webkit-scrollbar-thumb{background:var(--border-hi)}
-    .uptime-entry{display:grid;grid-template-columns:20px 1fr;gap:0.75rem;padding:0.9rem 1rem;border-bottom:1px solid var(--border);align-items:start}
-    .uptime-entry:last-child{border-bottom:none}
-    .uptime-entry:first-child{background:var(--bg-1)}
-    .uptime-dot{width:8px;height:8px;border-radius:50%;margin-top:3px;flex-shrink:0}
-    .uptime-dot.nominal{background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,0.12)}
-    .uptime-dot.degraded{background:var(--accent);box-shadow:0 0 0 3px rgba(245,166,35,0.12)}
-    .uptime-dot.critical{background:#e24b4a;box-shadow:0 0 0 3px rgba(226,75,74,0.12)}
-    .uptime-timestamp{font-size:10px;color:var(--text-faint);letter-spacing:0.06em;margin-bottom:2px}
-    .uptime-msg{font-size:12px;color:var(--text-dim)}
-    .uptime-empty{padding:2rem 1rem;font-size:12px;color:var(--text-faint);text-align:center;border:1px solid var(--border)}
-    .uptime-checking{padding:2rem 1rem;font-size:12px;color:var(--text-faint);text-align:center;border:1px solid var(--border)}
+    <!--
+  Lab Failure log panel — drop-in replacement for the System log section
+  in lab/index.html. Three pieces below:
+
+    1. <style> additions     — append to the existing <style> block
+    2. <section> markup      — replaces the entire "System log" section
+                               (the one containing #uptime-meta, #uptime-list etc.)
+    3. <script> block        — append to the existing <script> at the page end;
+                               and DELETE the old uptime SERVICES + pollUptime block
+
+  Visual rhythm: matches the heatmap panel exactly — same section label,
+  same border treatment, same monospace cadence. The level chips reuse
+  the heatmap legend colour rhythm (amber accent), and the level dots
+  reuse the existing .uptime-dot palette so no new CSS variables.
+-->
+
+<!-- =====================================================================
+     1. STYLES — append inside the existing <style> block
+     ===================================================================== -->
+<style>
+/* ── FAILURE LOG ── */
+.flog-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.75rem}
+.flog-meta{font-size:12px;color:var(--text-dim)}
+.flog-meta strong{color:var(--text);font-weight:500}
+.flog-filters{display:flex;gap:6px;flex-wrap:wrap}
+.flog-chip{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);background:none;border:1px solid var(--border);padding:0.2rem 0.6rem;cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:0.4rem}
+.flog-chip:hover{color:var(--text-dim);border-color:var(--border-hi)}
+.flog-chip.active{color:var(--text);border-color:rgba(245,166,35,0.5)}
+.flog-chip .dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.flog-chip .dot.success{background:#4ade80}
+.flog-chip .dot.warning{background:var(--accent)}
+.flog-chip .dot.failure{background:#e24b4a}
+.flog-chip .dot.info{background:#888888}
+.flog-chip .count{color:var(--text-faint);font-variant-numeric:tabular-nums}
+.flog-refresh{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);background:none;border:1px solid var(--border);padding:0.2rem 0.6rem;cursor:pointer;transition:all 0.15s}
+.flog-refresh:hover{color:var(--text-dim);border-color:var(--border-hi)}
+
+.flog-list{display:flex;flex-direction:column;max-height:420px;overflow-y:auto;border:1px solid var(--border)}
+.flog-list::-webkit-scrollbar{width:3px}
+.flog-list::-webkit-scrollbar-track{background:var(--bg-1)}
+.flog-list::-webkit-scrollbar-thumb{background:var(--border-hi)}
+.flog-entry{display:grid;grid-template-columns:20px 1fr auto;gap:0.75rem;padding:0.9rem 1rem;border-bottom:1px solid var(--border);align-items:start}
+.flog-entry:last-child{border-bottom:none}
+.flog-entry:first-child{background:var(--bg-1)}
+.flog-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.flog-dot.success{background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,0.12)}
+.flog-dot.info{background:#888;box-shadow:0 0 0 3px rgba(136,136,136,0.12)}
+.flog-dot.warning{background:var(--accent);box-shadow:0 0 0 3px rgba(245,166,35,0.12)}
+.flog-dot.failure{background:#e24b4a;box-shadow:0 0 0 3px rgba(226,75,74,0.12)}
+.flog-body{min-width:0}
+.flog-title{font-size:12px;color:var(--text);line-height:1.4;margin-bottom:2px;word-wrap:break-word}
+.flog-msg{font-size:11px;color:var(--text-dim);line-height:1.55;word-wrap:break-word}
+.flog-source{font-size:10px;color:var(--accent);letter-spacing:0.06em;margin-bottom:3px;text-transform:uppercase}
+.flog-when{font-size:10px;color:var(--text-faint);letter-spacing:0.04em;white-space:nowrap;text-align:right;padding-top:1px}
+.flog-empty{padding:2rem 1rem;font-size:12px;color:var(--text-faint);text-align:center}
+.flog-loading{padding:2rem 1rem;font-size:12px;color:var(--text-faint);text-align:center}
+.flog-note{font-size:11px;color:var(--text-faint);margin-top:1rem;letter-spacing:0.04em}
+</style>
+
+<!-- =====================================================================
+     2. MARKUP — replaces the entire <section> currently containing the
+        System log (the one with #uptime-meta / #uptime-list).
+     ===================================================================== -->
+<section class="section">
+  <div class="section-label">Failure log</div>
+  <div class="flog-head">
+    <div class="flog-meta">
+      <strong id="flog-total">—</strong> recent events ·
+      <strong id="flog-shown">—</strong> shown
+    </div>
+    <button class="flog-refresh" id="flog-refresh-btn" type="button">↻ refresh</button>
+  </div>
+
+  <div class="flog-filters" id="flog-filters">
+    <!-- chips populated by JS so counts and active state stay in sync -->
+  </div>
+
+  <div id="flog-list" class="flog-list">
+    <div class="flog-loading">Loading recent events…</div>
+  </div>
+
+  <div class="flog-note">
+    Historical companion to the home page live status. Source: atlas-notify
+    ring buffer, last 200 events across the stack.
+  </div>
+</section>
+
+<!-- =====================================================================
+     3. SCRIPT — append to the bottom <script>. ALSO DELETE the old uptime
+        block (SERVICES, loadLog, pollUptime, renderUptimeLog, etc.) since
+        the System log section it powered is now removed.
+     ===================================================================== -->
+<script>
+// ── FAILURE LOG ────────────────────────────────────────────────────────────
+const FLOG_URL = 'https://api.atlas-systems.uk/notify/recent';
+const FLOG_LIMIT = 10;
+const FLOG_LEVELS = ['success', 'info', 'warning', 'failure'];
+
+// null = no filter, otherwise a Set of active level names.
+let flogActiveLevels = null;
+let flogCachedData = null;
+
+async function loadFlog() {
+  const listEl = document.getElementById('flog-list');
+  listEl.innerHTML = '<div class="flog-loading">Loading recent events…</div>';
+
+  // Always fetch the unfiltered feed; filtering is client-side so chips
+  // are instant and counts stay accurate without an extra round trip.
+  let data;
+  try {
+    const res = await fetch(`${FLOG_URL}?limit=50`, { cache: 'no-store' });
+    data = await res.json();
+  } catch {
+    listEl.innerHTML = '<div class="flog-empty">Event feed unavailable.</div>';
+    return;
+  }
+  if (!data?.ok) {
+    listEl.innerHTML = `<div class="flog-empty">${data?.error || 'No data.'}</div>`;
+    return;
+  }
+
+  flogCachedData = data;
+  renderFlog();
+}
+
+function renderFlog() {
+  if (!flogCachedData) return;
+  const data = flogCachedData;
+  const listEl = document.getElementById('flog-list');
+
+  // ── Filter chips ───────────────────────────────────────────────────────
+  const filtersEl = document.getElementById('flog-filters');
+  filtersEl.innerHTML = '';
+  const counts = data.levelCounts || {};
+
+  const allChip = makeChip('all', null, data.total, flogActiveLevels === null);
+  filtersEl.appendChild(allChip);
+
+  for (const lvl of FLOG_LEVELS) {
+    if (!counts[lvl]) continue;
+    const isActive = flogActiveLevels && flogActiveLevels.has(lvl);
+    filtersEl.appendChild(makeChip(lvl, lvl, counts[lvl], isActive));
+  }
+
+  // ── Apply filter + slice to FLOG_LIMIT ─────────────────────────────────
+  const filtered = flogActiveLevels
+    ? data.events.filter(e => flogActiveLevels.has(e.level))
+    : data.events;
+  const shown = filtered.slice(0, FLOG_LIMIT);
+
+  document.getElementById('flog-total').textContent = data.total;
+  document.getElementById('flog-shown').textContent = shown.length;
+
+  if (!shown.length) {
+    listEl.innerHTML = '<div class="flog-empty">No events match this filter.</div>';
+    return;
+  }
+
+  listEl.innerHTML = '';
+  for (const e of shown) {
+    listEl.appendChild(renderEntry(e));
+  }
+}
+
+function makeChip(label, level, count, active) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'flog-chip' + (active ? ' active' : '');
+  if (level) {
+    const dot = document.createElement('span');
+    dot.className = `dot ${level}`;
+    btn.appendChild(dot);
+  }
+  btn.appendChild(document.createTextNode(label));
+  const c = document.createElement('span');
+  c.className = 'count';
+  c.textContent = count;
+  btn.appendChild(c);
+  btn.addEventListener('click', () => {
+    if (level === null) {
+      flogActiveLevels = null;
+    } else {
+      // Multi-select: clicking a chip toggles it in/out of the active set.
+      if (!flogActiveLevels) flogActiveLevels = new Set();
+      if (flogActiveLevels.has(level)) flogActiveLevels.delete(level);
+      else flogActiveLevels.add(level);
+      if (!flogActiveLevels.size) flogActiveLevels = null;
+    }
+    renderFlog();
+  });
+  return btn;
+}
+
+function renderEntry(e) {
+  const row = document.createElement('div');
+  row.className = 'flog-entry';
+
+  const dot = document.createElement('div');
+  dot.className = `flog-dot ${e.level || 'info'}`;
+  row.appendChild(dot);
+
+  const body = document.createElement('div');
+  body.className = 'flog-body';
+  const src = document.createElement('div');
+  src.className = 'flog-source';
+  src.textContent = `${e.event || e.dialect || 'event'}`;
+  const title = document.createElement('div');
+  title.className = 'flog-title';
+  title.textContent = e.title || '(no title)';
+  body.appendChild(src);
+  body.appendChild(title);
+  if (e.message) {
+    const msg = document.createElement('div');
+    msg.className = 'flog-msg';
+    msg.textContent = e.message;
+    body.appendChild(msg);
+  }
+  row.appendChild(body);
+
+  const when = document.createElement('div');
+  when.className = 'flog-when';
+  when.textContent = relTime(e.ts);
+  row.appendChild(when);
+
+  return row;
+}
+
+function relTime(iso) {
+  if (!iso) return '';
+  const then = new Date(iso).getTime();
+  if (!Number.isFinite(then)) return '';
+  const s = Math.max(1, Math.round((Date.now() - then) / 1000));
+  if (s < 60) return `${s}s ago`;
+  const m = Math.round(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.round(h / 24);
+  if (d < 30) return `${d}d ago`;
+  const mo = Math.round(d / 30);
+  return `${mo}mo ago`;
+}
+
+document.getElementById('flog-refresh-btn').addEventListener('click', loadFlog);
+loadFlog();
+// Re-render relative times every 30s without re-fetching.
+setInterval(() => { if (flogCachedData) renderFlog(); }, 30_000);
+</script>
 
     /* ── RAMONE CARD ── */
     .ramone-card{border:1px solid var(--border);position:relative;overflow:hidden;display:flex;flex-direction:column}
