@@ -1,1 +1,508 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#0a0a0f"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"><style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}:root{--bg:#0a0a0f;--bg-1:#111118;--border:rgba(255,255,255,0.08);--text:#e8e8e0;--text-dim:#888880;--accent:#f5a623;--mono:"IBM Plex Mono",monospace;--serif:"DM Serif Display",serif;--nav-h:56px}body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;min-height:100vh}nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(10,10,15,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem,5vw,3rem);z-index:100}.nav-wordmark{font-weight:500;font-size:13px;letter-spacing:.12em;color:var(--text);text-decoration:none;text-transform:uppercase}.nav-wordmark span{color:var(--accent)}.nav-links{display:flex;list-style:none}.nav-links a{display:block;padding:.35rem 1rem;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color .15s}.nav-links a:hover,.nav-links a.active{color:var(--text)}main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);padding-top:calc(var(--nav-h) + 5rem)}.page-heading{font-family:var(--serif);font-size:clamp(2rem,5vw,3.5rem);line-height:1.1;margin-bottom:1.5rem}.note{font-size:13px;color:var(--text-dim);line-height:1.8;max-width:480px}.note a{color:var(--accent);text-decoration:none}body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}</style><title>Lab — Atlas Systems</title></head><body><nav><a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a><ul class="nav-links"><li><a href="/work/" class="nav-link">Work</a></li><li><a href="/writing/" class="nav-link">Writing</a></li><li><a href="/lab/" class="nav-link">Lab</a></li><li><a href="/about/" class="nav-link">About</a></li></ul></nav><main><h1 class="page-heading">Lab</h1><p class="note">In active development. <a href="/">← Return home</a></p></main><script>document.querySelectorAll('.nav-link').forEach(a=>{if(window.location.pathname.startsWith(a.getAttribute('href')))a.classList.add('active')});</script><script src="/js/transitions.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Lab — Atlas Systems. Live commit activity, system uptime log, and experiments in progress.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Lab — Atlas Systems</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;
+      --border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);
+      --text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;
+      --accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);
+      --mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;
+      --nav-h:56px
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
+
+    /* ── NAV ── */
+    nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(10,10,15,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem,5vw,3rem);z-index:100}
+    .nav-wordmark{font-family:var(--mono);font-weight:500;font-size:13px;letter-spacing:0.12em;color:var(--text);text-decoration:none;text-transform:uppercase}
+    .nav-wordmark span{color:var(--accent)}
+    .nav-links{display:flex;list-style:none}
+    .nav-links a{display:block;padding:0.35rem 1rem;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color 0.15s;position:relative}
+    .nav-links a::after{content:'';position:absolute;bottom:-1px;left:50%;right:50%;height:1px;background:var(--accent);transition:left 0.2s,right 0.2s}
+    .nav-links a:hover{color:var(--text)}
+    .nav-links a:hover::after,.nav-links a.active::after{left:1rem;right:1rem}
+    .nav-links a.active{color:var(--text)}
+
+    /* ── LAYOUT ── */
+    main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);position:relative;z-index:1}
+    .page-header{padding-top:calc(var(--nav-h) + 5rem);padding-bottom:4rem;border-bottom:1px solid var(--border)}
+    .section-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem}
+    .section-label::before{content:'';display:inline-block;width:24px;height:1px;background:var(--accent)}
+    .page-heading{font-family:var(--serif);font-size:clamp(2.2rem,5vw,3.8rem);line-height:1.05;color:var(--text);margin-bottom:1.25rem;opacity:0;transform:translateY(10px);animation:fadeUp 0.5s 0.1s ease forwards}
+    .page-sub{font-size:13px;color:var(--text-dim);max-width:520px;line-height:1.8;opacity:0;transform:translateY(10px);animation:fadeUp 0.5s 0.22s ease forwards}
+    @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+    .section{padding:5rem 0;border-bottom:1px solid var(--border)}
+
+    /* ── HEATMAP ── */
+    .heatmap-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.75rem;flex-wrap:wrap;gap:0.75rem}
+    .heatmap-stats{display:flex;gap:2rem;flex-wrap:wrap}
+    .heatmap-stat{font-size:12px;color:var(--text-dim)}
+    .heatmap-stat strong{color:var(--text);font-weight:500}
+    .heatmap-legend{display:flex;align-items:center;gap:0.5rem;font-size:10px;color:var(--text-faint);letter-spacing:0.06em}
+    .heatmap-legend-cells{display:flex;gap:3px;align-items:center}
+    .heatmap-legend-cell{width:11px;height:11px;border-radius:2px}
+    .heatmap-outer{display:flex;gap:6px;align-items:flex-start;overflow-x:auto;padding-bottom:0.5rem}
+    .heatmap-left{display:flex;flex-direction:column;flex-shrink:0;padding-top:18px}
+    .heatmap-day-label{font-size:9px;color:var(--text-faint);line-height:11px;height:11px;display:flex;align-items:center;letter-spacing:0.04em;margin-bottom:3px}
+    .heatmap-day-label:last-child{margin-bottom:0}
+    .heatmap-right{display:flex;flex-direction:column}
+    .heatmap-month-row{display:flex;height:16px;margin-bottom:4px;position:relative}
+    .heatmap-month-label{font-size:10px;color:var(--text-faint);letter-spacing:0.06em;position:absolute;white-space:nowrap}
+    .heatmap-grid{display:grid;grid-template-rows:repeat(7,11px);grid-auto-flow:column;gap:3px}
+    .heatmap-cell{width:11px;height:11px;border-radius:2px;background:var(--bg-2);transition:opacity 0.1s}
+    .heatmap-cell.empty{visibility:hidden}
+    .heatmap-cell:not(.empty){cursor:pointer}
+    .heatmap-cell:not(.empty):hover{opacity:0.75}
+    .heatmap-cell[data-level="1"]{background:rgba(245,166,35,0.18)}
+    .heatmap-cell[data-level="2"]{background:rgba(245,166,35,0.38)}
+    .heatmap-cell[data-level="3"]{background:rgba(245,166,35,0.62)}
+    .heatmap-cell[data-level="4"]{background:var(--accent)}
+    .heatmap-note{font-size:11px;color:var(--text-faint);margin-top:1.25rem;letter-spacing:0.04em}
+
+    /* ── TOOLTIP ── */
+    #heatmap-tooltip{position:fixed;background:var(--bg-1);border:1px solid var(--border-hi);padding:0.4rem 0.75rem;font-size:11px;color:var(--text-dim);pointer-events:none;z-index:500;display:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.4)}
+    #heatmap-tooltip strong{color:var(--text);display:block;font-size:12px;margin-bottom:1px}
+
+    /* ── LAB GRID ── */
+    .lab-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem}
+
+    /* ── UPTIME LOG ── */
+    .uptime-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.5rem}
+    .uptime-refresh{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);background:none;border:1px solid var(--border);padding:0.2rem 0.6rem;cursor:pointer;transition:all 0.15s}
+    .uptime-refresh:hover{color:var(--text-dim);border-color:var(--border-hi)}
+    .uptime-entries{display:flex;flex-direction:column;max-height:380px;overflow-y:auto;border:1px solid var(--border)}
+    .uptime-entries::-webkit-scrollbar{width:3px}
+    .uptime-entries::-webkit-scrollbar-track{background:var(--bg-1)}
+    .uptime-entries::-webkit-scrollbar-thumb{background:var(--border-hi)}
+    .uptime-entry{display:grid;grid-template-columns:20px 1fr;gap:0.75rem;padding:0.9rem 1rem;border-bottom:1px solid var(--border);align-items:start}
+    .uptime-entry:last-child{border-bottom:none}
+    .uptime-entry:first-child{background:var(--bg-1)}
+    .uptime-dot{width:8px;height:8px;border-radius:50%;margin-top:3px;flex-shrink:0}
+    .uptime-dot.nominal{background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,0.12)}
+    .uptime-dot.degraded{background:var(--accent);box-shadow:0 0 0 3px rgba(245,166,35,0.12)}
+    .uptime-dot.critical{background:#e24b4a;box-shadow:0 0 0 3px rgba(226,75,74,0.12)}
+    .uptime-timestamp{font-size:10px;color:var(--text-faint);letter-spacing:0.06em;margin-bottom:2px}
+    .uptime-msg{font-size:12px;color:var(--text-dim)}
+    .uptime-empty{padding:2rem 1rem;font-size:12px;color:var(--text-faint);text-align:center;border:1px solid var(--border)}
+    .uptime-checking{padding:2rem 1rem;font-size:12px;color:var(--text-faint);text-align:center;border:1px solid var(--border)}
+
+    /* ── RAMONE CARD ── */
+    .ramone-card{border:1px solid var(--border);position:relative;overflow:hidden;display:flex;flex-direction:column}
+    .ramone-card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(245,166,35,0.4),transparent)}
+    .ramone-inner{padding:2rem;flex:1;display:flex;flex-direction:column}
+    .ramone-badges{display:flex;gap:0.5rem;margin-bottom:1.75rem;flex-wrap:wrap}
+    .ramone-badge{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border:1px solid var(--border);color:var(--text-faint)}
+    .ramone-badge.planned{border-color:rgba(245,166,35,0.3);color:rgba(245,166,35,0.7)}
+    .ramone-title{font-family:var(--serif);font-size:1.5rem;line-height:1.1;color:var(--text);margin-bottom:0.6rem}
+    .ramone-subtitle{font-size:11px;color:var(--accent);letter-spacing:0.06em;margin-bottom:1rem}
+    .ramone-desc{font-size:12px;color:var(--text-dim);line-height:1.8;margin-bottom:1.5rem}
+    .ramone-preview{background:var(--bg);border:1px solid var(--border);border-left:2px solid rgba(245,166,35,0.3);padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:11px;line-height:1.9}
+    .ramone-preview-line{display:flex;gap:0.5rem}
+    .ramone-preview-prompt{color:var(--text-faint);flex-shrink:0}
+    .ramone-preview-text{color:var(--text-dim)}
+    .ramone-preview-response{color:var(--text-faint);font-style:italic}
+    .ramone-preview-cursor{display:inline-block;width:6px;height:11px;background:var(--accent);vertical-align:middle;animation:blink 1.1s step-end infinite;opacity:0.6;margin-left:1px}
+    @keyframes blink{0%,100%{opacity:0.6}50%{opacity:0}}
+    .ramone-features{display:flex;flex-direction:column;gap:0.5rem;margin-top:auto;padding-top:1.5rem;border-top:1px solid var(--border)}
+    .ramone-feature{font-size:11px;color:var(--text-faint);display:flex;gap:0.6rem;align-items:flex-start;line-height:1.5}
+    .ramone-feature::before{content:'→';color:rgba(245,166,35,0.5);flex-shrink:0}
+
+    /* ── MOBILE NAV ── */
+    .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
+    .mobile-nav-inner{display:flex;align-items:stretch;height:100%}
+    .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.15s}
+    .mobile-nav-item:hover,.mobile-nav-item.active{color:var(--accent)}
+    .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:780px){.lab-grid{grid-template-columns:1fr}.heatmap-stats{gap:1rem}}
+    @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}}
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
+    <ul class="nav-links">
+      <li><a href="/work/" class="nav-link">Work</a></li>
+      <li><a href="/writing/" class="nav-link">Writing</a></li>
+      <li><a href="/lab/" class="nav-link">Lab</a></li>
+      <li><a href="/about/" class="nav-link">About</a></li>
+    </ul>
+  </nav>
+
+  <div id="heatmap-tooltip"><strong></strong><span></span></div>
+
+  <main>
+
+    <header class="page-header">
+      <div class="section-label">Lab</div>
+      <h1 class="page-heading">Live systems.</h1>
+      <p class="page-sub">Real data from the Atlas Systems stack — commit activity, uptime history, and experiments in progress.</p>
+    </header>
+
+    <!-- ACTIVITY HEATMAP -->
+    <section class="section">
+      <div class="section-label">Activity</div>
+
+      <div class="heatmap-meta">
+        <div class="heatmap-stats">
+          <div class="heatmap-stat"><strong id="heatmap-total">—</strong> commits · 90 days</div>
+          <div class="heatmap-stat"><strong id="heatmap-repos">—</strong> repos active</div>
+          <div class="heatmap-stat"><strong id="heatmap-top-lang">—</strong> top language</div>
+        </div>
+        <div class="heatmap-legend">
+          <span>less</span>
+          <div class="heatmap-legend-cells">
+            <div class="heatmap-legend-cell" style="background:var(--bg-2)"></div>
+            <div class="heatmap-legend-cell" style="background:rgba(245,166,35,0.18)"></div>
+            <div class="heatmap-legend-cell" style="background:rgba(245,166,35,0.38)"></div>
+            <div class="heatmap-legend-cell" style="background:rgba(245,166,35,0.62)"></div>
+            <div class="heatmap-legend-cell" style="background:var(--accent)"></div>
+          </div>
+          <span>more</span>
+        </div>
+      </div>
+
+      <div class="heatmap-outer">
+        <div class="heatmap-left" id="heatmap-day-labels">
+          <!-- Mon, Wed, Fri inserted by JS -->
+        </div>
+        <div class="heatmap-right">
+          <div class="heatmap-month-row" id="heatmap-months" style="position:relative"></div>
+          <div class="heatmap-grid" id="heatmap-grid"></div>
+        </div>
+      </div>
+
+      <p class="heatmap-note" id="heatmap-note">Loading activity data…</p>
+    </section>
+
+    <!-- UPTIME LOG + RAMONE -->
+    <section class="section">
+      <div class="lab-grid">
+
+        <!-- UPTIME LOG -->
+        <div>
+          <div class="section-label">System log</div>
+          <div class="uptime-head">
+            <span style="font-size:11px;color:var(--text-faint);letter-spacing:0.06em" id="uptime-meta">checking…</span>
+            <button class="uptime-refresh" id="uptime-refresh-btn">↻ check now</button>
+          </div>
+          <div id="uptime-list">
+            <div class="uptime-checking">Polling health endpoints…</div>
+          </div>
+        </div>
+
+        <!-- RAMONE PLACEHOLDER -->
+        <div>
+          <div class="section-label">Experiments</div>
+          <div class="ramone-card">
+            <div class="ramone-inner">
+              <div class="ramone-badges">
+                <span class="ramone-badge planned">Planned</span>
+                <span class="ramone-badge">Lab Feature</span>
+              </div>
+              <div class="ramone-title">Ask My Infrastructure</div>
+              <div class="ramone-subtitle">Ramone — Local AI Interface</div>
+              <p class="ramone-desc">A direct interface into Ramone, the private AI system running on SPECULAR-CORE. Ask it anything about Atlas Systems — the stack, the build decisions, the case studies. Every query routes through my local hardware; nothing leaves the machine.</p>
+
+              <div class="ramone-preview">
+                <div class="ramone-preview-line">
+                  <span class="ramone-preview-prompt">you →</span>
+                  <span class="ramone-preview-text">what models is Ramone running?</span>
+                </div>
+                <div class="ramone-preview-line" style="margin-top:0.5rem">
+                  <span class="ramone-preview-prompt" style="color:var(--accent);opacity:0.7">R →</span>
+                  <span class="ramone-preview-response">Five LLMs on a dedicated NVMe — llama3.2:3b for speed, qwen2.5:32b for deep reasoning…<span class="ramone-preview-cursor"></span></span>
+                </div>
+              </div>
+
+              <div class="ramone-features">
+                <div class="ramone-feature">Fully local — queries run on RTX 5070, zero cloud egress</div>
+                <div class="ramone-feature">RAG-grounded on Atlas Systems documentation and case studies</div>
+                <div class="ramone-feature">Discord notification on every query via atlas-notify</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-inner">
+      <a href="/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
+      <a href="/work/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Work</a>
+      <a href="/writing/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Writing</a>
+      <a href="/about/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg>About</a>
+    </div>
+  </nav>
+
+  <script>
+    // ── NAV ACTIVE ───────────────────────────────────────────────────────────
+    document.querySelectorAll('.nav-link').forEach(a => {
+      if (window.location.pathname.startsWith(a.getAttribute('href'))) a.classList.add('active');
+    });
+
+    // ── HEATMAP ──────────────────────────────────────────────────────────────
+    const PULSE_URL = 'https://api.atlas-systems.uk/pulse';
+    const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const DAY_LABELS  = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const CELL_SIZE   = 11; // px
+    const CELL_GAP    = 3;  // px
+    const COL_W       = CELL_SIZE + CELL_GAP; // 14px per column
+
+    async function initHeatmap() {
+      let data;
+      try {
+        const res = await fetch(PULSE_URL, { cache: 'no-store' });
+        data = await res.json();
+      } catch {
+        document.getElementById('heatmap-note').textContent = 'Activity data unavailable.';
+        return;
+      }
+
+      // Populate stats
+      document.getElementById('heatmap-total').textContent   = data.totals?.commitsLast90Days ?? '—';
+      document.getElementById('heatmap-repos').textContent   = data.totals?.publicRepos ?? '—';
+      document.getElementById('heatmap-top-lang').textContent = data.languages?.[0]?.name ?? '—';
+
+      // Build per-day commit count from recentCommits
+      const countMap = {};
+      (data.recentCommits || []).forEach(c => {
+        const day = c.date.slice(0, 10);
+        countMap[day] = (countMap[day] || 0) + 1;
+      });
+
+      // Generate 90 days ending today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const days = [];
+      for (let i = 89; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        days.push({ key, count: countMap[key] || 0, d });
+      }
+
+      // Day of week offset so grid starts on Monday (Mon=0, Sun=6)
+      const startDow = (days[0].d.getDay() + 6) % 7;
+
+      // Build cell list with leading empties for the first partial week
+      const cells = [
+        ...Array(startDow).fill(null),
+        ...days,
+      ];
+
+      // Total columns
+      const totalCols = Math.ceil(cells.length / 7);
+
+      // ── Day labels ───────────────────────────────────────────────────────
+      const dayLabelEl = document.getElementById('heatmap-day-labels');
+      DAY_LABELS.forEach(label => {
+        const el = document.createElement('div');
+        el.className = 'heatmap-day-label';
+        // Only show Mon / Wed / Fri to avoid crowding
+        el.textContent = (label === 'Mon' || label === 'Wed' || label === 'Fri') ? label : '';
+        dayLabelEl.appendChild(el);
+      });
+
+      // ── Month labels ─────────────────────────────────────────────────────
+      const monthRow = document.getElementById('heatmap-months');
+      monthRow.style.width = (totalCols * COL_W - CELL_GAP) + 'px';
+      monthRow.style.position = 'relative';
+
+      let lastMonth = -1;
+      for (let col = 0; col < totalCols; col++) {
+        const cellIdx = col * 7;
+        // Find the first real day in this column
+        const dayInCol = cells[cellIdx + startDow % 7] || cells.slice(cellIdx, cellIdx + 7).find(c => c !== null);
+        if (!dayInCol) continue;
+        const m = dayInCol.d.getMonth();
+        if (m !== lastMonth) {
+          lastMonth = m;
+          const label = document.createElement('span');
+          label.className = 'heatmap-month-label';
+          label.textContent = MONTH_NAMES[m];
+          label.style.left = (col * COL_W) + 'px';
+          monthRow.appendChild(label);
+        }
+      }
+
+      // ── Grid cells ───────────────────────────────────────────────────────
+      const grid = document.getElementById('heatmap-grid');
+      const tooltip = document.getElementById('heatmap-tooltip');
+
+      cells.forEach(cell => {
+        const el = document.createElement('div');
+        el.className = 'heatmap-cell';
+
+        if (!cell) {
+          el.classList.add('empty');
+        } else {
+          const count = cell.count;
+          if (count > 0) {
+            let level = 1;
+            if (count === 2)      level = 2;
+            else if (count <= 4)  level = 3;
+            else if (count >= 5)  level = 4;
+            el.dataset.level = level;
+          }
+
+          // Tooltip
+          el.addEventListener('mousemove', e => {
+            const dateObj = new Date(cell.key + 'T12:00:00');
+            const formatted = dateObj.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+            tooltip.querySelector('strong').textContent =
+              count === 0 ? 'No commits' : `${count} commit${count !== 1 ? 's' : ''}`;
+            tooltip.querySelector('span').textContent = formatted;
+            tooltip.style.display = 'block';
+            tooltip.style.left = (e.clientX + 14) + 'px';
+            tooltip.style.top  = (e.clientY - 42) + 'px';
+          });
+          el.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+        }
+
+        grid.appendChild(el);
+      });
+
+      // Note about data coverage
+      const knownDays = Object.keys(countMap).length;
+      document.getElementById('heatmap-note').textContent =
+        `Commit dates derived from recent activity feed · ${knownDays} day${knownDays !== 1 ? 's' : ''} with recorded commits shown · full history requires extended API`;
+    }
+
+    initHeatmap();
+
+    // ── UPTIME LOG ───────────────────────────────────────────────────────────
+    const SERVICES = [
+      { key: 'atlas-notify', name: 'atlas-notify', url: 'https://api.atlas-systems.uk/notify/health' },
+      { key: 'github-pulse', name: 'github-pulse', url: 'https://api.atlas-systems.uk/pulse'         },
+      { key: 'site-pulse',   name: 'site-pulse',   url: 'https://api.atlas-systems.uk/site-pulse/health' },
+      { key: 'deploy-watch', name: 'deploy-watch', url: 'https://api.atlas-systems.uk/deploy-watch/health' },
+    ];
+
+    const LOG_KEY        = 'atlas_uptime_log_v1';
+    const LAST_STATE_KEY = 'atlas_uptime_last_v1';
+    const MAX_ENTRIES    = 60;
+
+    function loadLog()       { try { return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); }      catch { return []; } }
+    function loadLastState() { try { return JSON.parse(localStorage.getItem(LAST_STATE_KEY) || 'null'); } catch { return null; } }
+    function saveLog(log)    { try { localStorage.setItem(LOG_KEY, JSON.stringify(log)); }            catch {} }
+    function saveState(s)    { try { localStorage.setItem(LAST_STATE_KEY, JSON.stringify(s)); }       catch {} }
+
+    function deriveLevel(results) {
+      const up    = Object.values(results).filter(v => v === 'ok').length;
+      const total = SERVICES.length;
+      if (up === total)                    return { level: 'nominal',  up, total, msg: 'all systems nominal' };
+      if (up >= Math.ceil(total / 2))     return { level: 'degraded', up, total, msg: `${up}/${total} services operational` };
+      return                                     { level: 'critical', up, total, msg: `major outage — ${up}/${total} operational` };
+    }
+
+    async function pollUptime() {
+      document.getElementById('uptime-meta').textContent = 'checking…';
+
+      const results = {};
+      await Promise.all(SERVICES.map(async s => {
+        try {
+          const res = await fetch(s.url, { cache: 'no-store' });
+          results[s.key] = res.ok ? 'ok' : 'error';
+        } catch {
+          results[s.key] = 'error';
+        }
+      }));
+
+      const { level, msg } = deriveLevel(results);
+      const lastState = loadLastState();
+      const log = loadLog();
+
+      // Log on first visit OR when status changes
+      const shouldLog = !lastState || lastState.level !== level ||
+        SERVICES.some(s => (lastState.results?.[s.key]) !== results[s.key]);
+
+      if (shouldLog) {
+        log.unshift({ ts: new Date().toISOString(), level, msg, results });
+        if (log.length > MAX_ENTRIES) log.length = MAX_ENTRIES;
+        saveLog(log);
+      }
+
+      saveState({ level, results });
+      renderUptimeLog(log, level);
+    }
+
+    function formatTs(iso) {
+      const d = new Date(iso);
+      return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+        + ' · '
+        + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function renderUptimeLog(log, currentLevel) {
+      const container = document.getElementById('uptime-list');
+      const meta      = document.getElementById('uptime-meta');
+
+      const levelLabels = { nominal: 'systems nominal', degraded: 'partial degradation', critical: 'major outage' };
+      const dotColors   = { nominal: '#4ade80', degraded: 'var(--accent)', critical: '#e24b4a' };
+
+      meta.textContent = `current status: ${levelLabels[currentLevel] || '—'}`;
+      meta.style.color = dotColors[currentLevel] || 'var(--text-faint)';
+
+      if (!log.length) {
+        container.innerHTML = '<div class="uptime-empty">No entries yet — check back after a status change.</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      const ul = document.createElement('div');
+      ul.className = 'uptime-entries';
+
+      log.forEach((entry, i) => {
+        const row = document.createElement('div');
+        row.className = 'uptime-entry';
+
+        const dot = document.createElement('div');
+        dot.className = `uptime-dot ${entry.level}`;
+
+        const right = document.createElement('div');
+
+        const ts = document.createElement('div');
+        ts.className = 'uptime-timestamp';
+        ts.textContent = formatTs(entry.ts) + (i === 0 ? ' · latest' : '');
+
+        const msg = document.createElement('div');
+        msg.className = 'uptime-msg';
+        msg.textContent = entry.msg;
+
+        right.appendChild(ts);
+        right.appendChild(msg);
+        row.appendChild(dot);
+        row.appendChild(right);
+        ul.appendChild(row);
+      });
+
+      container.appendChild(ul);
+    }
+
+    // Wire up manual refresh
+    document.getElementById('uptime-refresh-btn').addEventListener('click', pollUptime);
+
+    // Initial poll
+    pollUptime();
+  </script>
+
+  <script src="/js/transitions.js"></script>
+</body>
+</html>
