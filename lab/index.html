@@ -159,7 +159,7 @@
       <div class="heatmap-meta">
         <div class="heatmap-stats">
           <div class="heatmap-stat"><strong id="heatmap-total">—</strong> commits · 90 days</div>
-          <div class="heatmap-stat"><strong id="heatmap-repos">—</strong> repos active</div>
+          <div class="heatmap-stat"><strong id="heatmap-repos">—</strong> repos</div>
           <div class="heatmap-stat"><strong id="heatmap-top-lang">—</strong> top language</div>
         </div>
         <div class="heatmap-legend">
@@ -176,11 +176,9 @@
       </div>
 
       <div class="heatmap-outer">
-        <div class="heatmap-left" id="heatmap-day-labels">
-          <!-- Mon, Wed, Fri inserted by JS -->
-        </div>
+        <div class="heatmap-left" id="heatmap-day-labels"></div>
         <div class="heatmap-right">
-          <div class="heatmap-month-row" id="heatmap-months" style="position:relative"></div>
+          <div class="heatmap-month-row" id="heatmap-months"></div>
           <div class="heatmap-grid" id="heatmap-grid"></div>
         </div>
       </div>
@@ -258,36 +256,32 @@
     });
 
     // ── HEATMAP ──────────────────────────────────────────────────────────────
-    const PULSE_URL = 'https://api.atlas-systems.uk/pulse';
-    const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const DAY_LABELS  = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-    const CELL_SIZE   = 11; // px
-    const CELL_GAP    = 3;  // px
-    const COL_W       = CELL_SIZE + CELL_GAP; // 14px per column
+    const HEATMAP_URL  = 'https://api.atlas-systems.uk/pulse/heatmap';
+    const MONTH_NAMES  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const DAY_LABELS   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const CELL_SIZE    = 11;
+    const CELL_GAP     = 3;
+    const COL_W        = CELL_SIZE + CELL_GAP; // 14px per column
 
     async function initHeatmap() {
       let data;
       try {
-        const res = await fetch(PULSE_URL, { cache: 'no-store' });
+        const res = await fetch(HEATMAP_URL, { cache: 'no-store' });
         data = await res.json();
       } catch {
         document.getElementById('heatmap-note').textContent = 'Activity data unavailable.';
         return;
       }
 
-      // Populate stats
-      document.getElementById('heatmap-total').textContent   = data.totals?.commitsLast90Days ?? '—';
-      document.getElementById('heatmap-repos').textContent   = data.totals?.publicRepos ?? '—';
-      document.getElementById('heatmap-top-lang').textContent = data.languages?.[0]?.name ?? '—';
+      // Populate summary stats
+      document.getElementById('heatmap-total').textContent    = data.totals?.commitsLast90Days ?? '—';
+      document.getElementById('heatmap-repos').textContent    = data.totals?.publicRepos ?? '—';
+      document.getElementById('heatmap-top-lang').textContent = data.totals?.topLanguage ?? '—';
 
-      // Build per-day commit count from recentCommits
-      const countMap = {};
-      (data.recentCommits || []).forEach(c => {
-        const day = c.date.slice(0, 10);
-        countMap[day] = (countMap[day] || 0) + 1;
-      });
+      // data.days is { "2026-06-20": 5, "2026-06-19": 3, ... }
+      const countMap = data.days || {};
 
-      // Generate 90 days ending today
+      // Generate 90-day window ending today
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const days = [];
@@ -298,16 +292,9 @@
         days.push({ key, count: countMap[key] || 0, d });
       }
 
-      // Day of week offset so grid starts on Monday (Mon=0, Sun=6)
+      // Offset so grid starts on Monday (Mon=0, Sun=6)
       const startDow = (days[0].d.getDay() + 6) % 7;
-
-      // Build cell list with leading empties for the first partial week
-      const cells = [
-        ...Array(startDow).fill(null),
-        ...days,
-      ];
-
-      // Total columns
+      const cells = [...Array(startDow).fill(null), ...days];
       const totalCols = Math.ceil(cells.length / 7);
 
       // ── Day labels ───────────────────────────────────────────────────────
@@ -315,7 +302,6 @@
       DAY_LABELS.forEach(label => {
         const el = document.createElement('div');
         el.className = 'heatmap-day-label';
-        // Only show Mon / Wed / Fri to avoid crowding
         el.textContent = (label === 'Mon' || label === 'Wed' || label === 'Fri') ? label : '';
         dayLabelEl.appendChild(el);
       });
@@ -323,15 +309,13 @@
       // ── Month labels ─────────────────────────────────────────────────────
       const monthRow = document.getElementById('heatmap-months');
       monthRow.style.width = (totalCols * COL_W - CELL_GAP) + 'px';
-      monthRow.style.position = 'relative';
 
       let lastMonth = -1;
       for (let col = 0; col < totalCols; col++) {
-        const cellIdx = col * 7;
-        // Find the first real day in this column
-        const dayInCol = cells[cellIdx + startDow % 7] || cells.slice(cellIdx, cellIdx + 7).find(c => c !== null);
-        if (!dayInCol) continue;
-        const m = dayInCol.d.getMonth();
+        const slice = cells.slice(col * 7, col * 7 + 7);
+        const firstReal = slice.find(c => c !== null);
+        if (!firstReal) continue;
+        const m = firstReal.d.getMonth();
         if (m !== lastMonth) {
           lastMonth = m;
           const label = document.createElement('span');
@@ -343,7 +327,7 @@
       }
 
       // ── Grid cells ───────────────────────────────────────────────────────
-      const grid = document.getElementById('heatmap-grid');
+      const grid    = document.getElementById('heatmap-grid');
       const tooltip = document.getElementById('heatmap-tooltip');
 
       cells.forEach(cell => {
@@ -356,33 +340,36 @@
           const count = cell.count;
           if (count > 0) {
             let level = 1;
-            if (count === 2)      level = 2;
-            else if (count <= 4)  level = 3;
-            else if (count >= 5)  level = 4;
+            if (count === 2)     level = 2;
+            else if (count <= 4) level = 3;
+            else if (count >= 5) level = 4;
             el.dataset.level = level;
           }
 
-          // Tooltip
           el.addEventListener('mousemove', e => {
-            const dateObj = new Date(cell.key + 'T12:00:00');
-            const formatted = dateObj.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+            const dateObj  = new Date(cell.key + 'T12:00:00');
+            const formatted = dateObj.toLocaleDateString('en-GB', {
+              weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
+            });
             tooltip.querySelector('strong').textContent =
               count === 0 ? 'No commits' : `${count} commit${count !== 1 ? 's' : ''}`;
             tooltip.querySelector('span').textContent = formatted;
             tooltip.style.display = 'block';
-            tooltip.style.left = (e.clientX + 14) + 'px';
-            tooltip.style.top  = (e.clientY - 42) + 'px';
+            tooltip.style.left    = (e.clientX + 14) + 'px';
+            tooltip.style.top     = (e.clientY - 42) + 'px';
           });
-          el.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+          el.addEventListener('mouseleave', () => {
+            tooltip.style.display = 'none';
+          });
         }
 
         grid.appendChild(el);
       });
 
-      // Note about data coverage
-      const knownDays = Object.keys(countMap).length;
+      // Note: now shows real per-day breakdown from the heatmap endpoint
+      const activeDays = Object.keys(countMap).length;
       document.getElementById('heatmap-note').textContent =
-        `Commit dates derived from recent activity feed · ${knownDays} day${knownDays !== 1 ? 's' : ''} with recorded commits shown · full history requires extended API`;
+        `Per-day commit breakdown across all repos · ${activeDays} day${activeDays !== 1 ? 's' : ''} with commits in the last 90 days`;
     }
 
     initHeatmap();
@@ -399,17 +386,17 @@
     const LAST_STATE_KEY = 'atlas_uptime_last_v1';
     const MAX_ENTRIES    = 60;
 
-    function loadLog()       { try { return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); }      catch { return []; } }
+    function loadLog()       { try { return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); }       catch { return []; } }
     function loadLastState() { try { return JSON.parse(localStorage.getItem(LAST_STATE_KEY) || 'null'); } catch { return null; } }
-    function saveLog(log)    { try { localStorage.setItem(LOG_KEY, JSON.stringify(log)); }            catch {} }
-    function saveState(s)    { try { localStorage.setItem(LAST_STATE_KEY, JSON.stringify(s)); }       catch {} }
+    function saveLog(log)    { try { localStorage.setItem(LOG_KEY, JSON.stringify(log)); }             catch {} }
+    function saveState(s)    { try { localStorage.setItem(LAST_STATE_KEY, JSON.stringify(s)); }        catch {} }
 
     function deriveLevel(results) {
       const up    = Object.values(results).filter(v => v === 'ok').length;
       const total = SERVICES.length;
-      if (up === total)                    return { level: 'nominal',  up, total, msg: 'all systems nominal' };
-      if (up >= Math.ceil(total / 2))     return { level: 'degraded', up, total, msg: `${up}/${total} services operational` };
-      return                                     { level: 'critical', up, total, msg: `major outage — ${up}/${total} operational` };
+      if (up === total)                return { level: 'nominal',  up, total, msg: 'all systems nominal' };
+      if (up >= Math.ceil(total / 2)) return { level: 'degraded', up, total, msg: `${up}/${total} services operational` };
+      return                                  { level: 'critical', up, total, msg: `major outage — ${up}/${total} operational` };
     }
 
     async function pollUptime() {
@@ -429,7 +416,6 @@
       const lastState = loadLastState();
       const log = loadLog();
 
-      // Log on first visit OR when status changes
       const shouldLog = !lastState || lastState.level !== level ||
         SERVICES.some(s => (lastState.results?.[s.key]) !== results[s.key]);
 
@@ -496,10 +482,7 @@
       container.appendChild(ul);
     }
 
-    // Wire up manual refresh
     document.getElementById('uptime-refresh-btn').addEventListener('click', pollUptime);
-
-    // Initial poll
     pollUptime();
   </script>
 
