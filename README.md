@@ -51,3 +51,4 @@ The transferable pattern is treating a portfolio as a deployed system: the credi
 ---
 
 Part of [atlas-systems.uk](https://atlas-systems.uk)
+
