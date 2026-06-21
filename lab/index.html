@@ -135,6 +135,49 @@
     .ramone-feature{font-size:11px;color:var(--text-faint);display:flex;gap:0.6rem;align-items:flex-start;line-height:1.5}
     .ramone-feature::before{content:'→';color:rgba(245,166,35,0.5);flex-shrink:0}
 
+        /* ── PIPELINE STATUS GRID ── */
+    .pgrid-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.75rem}
+    .pgrid-meta{font-size:12px;color:var(--text-dim)}
+    .pgrid-meta strong{color:var(--text);font-weight:500}
+    .pgrid-legend{display:flex;gap:1rem;font-size:10px;color:var(--text-faint);letter-spacing:0.06em;text-transform:uppercase}
+    .pgrid-legend span{display:inline-flex;align-items:center;gap:0.4rem}
+    .pgrid-legend .dot{width:7px;height:7px;border-radius:50%}
+    .pgrid-legend .dot.success{background:#4ade80}
+    .pgrid-legend .dot.warning{background:var(--accent)}
+    .pgrid-legend .dot.failure{background:#e24b4a}
+    .pgrid-legend .dot.info{background:#888}
+    .pgrid-legend .dot.none{background:none;border:1px solid var(--text-faint)}
+    
+    .pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border)}
+    .pgrid-tile{background:var(--bg);padding:1.1rem 1.15rem;display:flex;flex-direction:column;gap:0.5rem;position:relative;min-height:118px;overflow:hidden}
+    .pgrid-tile.idle{opacity:0.55}
+    
+    .pgrid-row{display:flex;justify-content:space-between;align-items:flex-start;gap:0.75rem}
+    .pgrid-repo{font-family:var(--mono);font-size:12px;color:var(--text);letter-spacing:0.02em;line-height:1.2;word-break:break-all}
+    .pgrid-tile.idle .pgrid-repo{color:var(--text-faint)}
+    
+    .pgrid-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:2px}
+    .pgrid-dot.success{background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,0.14)}
+    .pgrid-dot.warning{background:var(--accent);box-shadow:0 0 0 3px rgba(245,166,35,0.14)}
+    .pgrid-dot.failure{background:#e24b4a;box-shadow:0 0 0 3px rgba(226,75,74,0.14)}
+    .pgrid-dot.info{background:#888;box-shadow:0 0 0 3px rgba(136,136,136,0.12)}
+    .pgrid-dot.none{background:transparent;border:1px solid var(--text-faint);box-shadow:none}
+    
+    .pgrid-meta-line{font-size:10px;color:var(--text-faint);letter-spacing:0.04em;font-variant-numeric:tabular-nums;display:flex;gap:0.5rem;align-items:center}
+    .pgrid-sha{color:var(--text-dim)}
+    .pgrid-sep{color:var(--text-faint)}
+    .pgrid-summary{font-size:11px;color:var(--text-dim);line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+    .pgrid-tile.idle .pgrid-summary{color:var(--text-faint)}
+    
+    /* heartbeat: a single amber sweep, only on recently-changed tiles */
+    .pgrid-pulse{position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--border);overflow:hidden}
+    .pgrid-tile.recent .pgrid-pulse::after{content:'';position:absolute;top:0;left:-30%;width:30%;height:100%;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:pgridSweep 6s linear infinite}
+    @keyframes pgridSweep{0%{left:-30%}100%{left:100%}}
+    @media (prefers-reduced-motion: reduce){.pgrid-tile.recent .pgrid-pulse::after{animation:none;opacity:0}}
+    
+    @media(max-width:880px){.pgrid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:420px){.pgrid{grid-template-columns:1fr}}
+    
     /* ── MOBILE NAV ── */
     .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
     .mobile-nav-inner{display:flex;align-items:stretch;height:100%}
@@ -203,6 +246,26 @@
       <p class="heatmap-note" id="heatmap-note">Loading activity data…</p>
     </section>
 
+    <section class="section" id="pipeline-grid-section">
+  <div class="section-label">Pipeline status</div>
+  <div class="pgrid-head">
+    <div class="pgrid-meta">
+      Live state across <strong>8</strong> repos · updated <strong id="pgrid-updated">—</strong>
+    </div>
+    <div class="pgrid-legend">
+      <span><span class="dot success"></span>ok</span>
+      <span><span class="dot warning"></span>warn</span>
+      <span><span class="dot failure"></span>fail</span>
+      <span><span class="dot info"></span>info</span>
+      <span><span class="dot none"></span>idle</span>
+    </div>
+  </div>
+  <div class="pgrid" id="pgrid"></div>
+  <p class="flog-note">
+    Each tile shows the latest pipeline-relevant event per repo. Pushes and other info events
+    don't clear a prior failure — only a successful deploy does. Source: atlas-notify ring buffer.
+  </p>
+</section>
     <!-- FAILURE LOG + RAMONE -->
     <section class="section">
       <div class="lab-grid">
@@ -533,6 +596,161 @@
     loadFlog();
     // Re-render relative times every 30s without re-fetching.
     setInterval(() => { if (flogCachedData) renderFlog(); }, 30_000);
+    // ── PIPELINE STATUS GRID ───────────────────────────────────────────────
+const PGRID_REPOS = [
+  'github-pulse',
+  'deploy-watch',
+  'atlas-systems',
+  'atlas-notify',
+  'atlas-vault',
+  'status',
+  'atlas-doc-viewer',
+  'atlas-scheduler',
+];
+const PGRID_RECENT_MS = 5 * 60 * 1000; // "recent change" = heartbeat on
+
+// Pull the repo name out of an event. Tries title patterns first,
+// then falls back to substring match against the canonical list.
+function pgridRepoFor(ev) {
+  const title = (ev.title || '').toLowerCase();
+  const msg = (ev.message || '').toLowerCase();
+  const hay = title + ' ' + msg;
+  // Direct slug match wins — handles "Push to AtlasReaperSOH/github-pulse",
+  // "Pages deploy succeeded: atlas-systems", "atlas-scheduler run failed", etc.
+  for (const repo of PGRID_REPOS) {
+    const r = repo.toLowerCase();
+    // word-ish boundary so "status" doesn't match inside "atlas-systems"
+    const re = new RegExp('(^|[^a-z0-9-])' + r.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') + '($|[^a-z0-9-])');
+    if (re.test(hay)) return repo;
+  }
+  return null;
+}
+
+// Extract a 7-char SHA if the event mentions one (push events often do).
+function pgridShaFrom(ev) {
+  const hay = (ev.title || '') + ' ' + (ev.message || '');
+  const m = hay.match(/\b[0-9a-f]{7,40}\b/i);
+  return m ? m[0].slice(0, 7) : null;
+}
+
+// Short, human label for the tile body.
+function pgridSummary(ev) {
+  const t = ev.title || '';
+  if (/^pages deploy succeeded/i.test(t)) return 'Pages deploy succeeded';
+  if (/^pages deploy failed/i.test(t))    return 'Pages deploy failed';
+  if (/^deployed:/i.test(t))              return 'Deployed';
+  if (/^deploy failed:/i.test(t))         return 'Deploy failed';
+  if (/^blocked:/i.test(t))               return 'Blocked';
+  if (/^push to/i.test(t))                return 'Push to main';
+  if (/^branch deleted/i.test(t))         return 'Branch deleted';
+  if (/^webhook connected/i.test(t))      return 'Webhook connected';
+  if (/^container health/i.test(t))       return 'Container health change';
+  if (ev.event === 'alert')               return ev.title || 'Alert';
+  return t || ev.event || 'event';
+}
+
+function pgridRender(events) {
+  const grid = document.getElementById('pgrid');
+  if (!grid) return;
+
+  // Per repo: scan newest-first, take the first non-info event for the dot.
+  // Always remember the absolute latest event for SHA + time display.
+  const state = {};
+  for (const repo of PGRID_REPOS) state[repo] = { latest: null, status: null };
+
+  for (const ev of events) {
+    const repo = pgridRepoFor(ev);
+    if (!repo || !state[repo]) continue;
+    if (!state[repo].latest) state[repo].latest = ev;
+    if (!state[repo].status && ev.level && ev.level !== 'info') {
+      state[repo].status = ev;
+    }
+  }
+
+  grid.innerHTML = '';
+  const now = Date.now();
+
+  for (const repo of PGRID_REPOS) {
+    const { latest, status } = state[repo];
+    const tile = document.createElement('div');
+    tile.className = 'pgrid-tile';
+
+    let level;
+    if (status) level = status.level;
+    else if (latest) level = 'info';
+    else level = 'none';
+
+    if (level === 'none') tile.classList.add('idle');
+
+    const refEv = status || latest;
+    if (refEv && refEv.ts) {
+      const age = now - new Date(refEv.ts).getTime();
+      if (Number.isFinite(age) && age <= PGRID_RECENT_MS) tile.classList.add('recent');
+    }
+
+    const row = document.createElement('div');
+    row.className = 'pgrid-row';
+    const name = document.createElement('div');
+    name.className = 'pgrid-repo';
+    name.textContent = repo;
+    const dot = document.createElement('div');
+    dot.className = 'pgrid-dot ' + level;
+    row.appendChild(name);
+    row.appendChild(dot);
+    tile.appendChild(row);
+
+    const meta = document.createElement('div');
+    meta.className = 'pgrid-meta-line';
+    if (latest) {
+      const sha = pgridShaFrom(latest);
+      if (sha) {
+        const shaEl = document.createElement('span');
+        shaEl.className = 'pgrid-sha';
+        shaEl.textContent = sha;
+        meta.appendChild(shaEl);
+        const sep = document.createElement('span');
+        sep.className = 'pgrid-sep';
+        sep.textContent = '·';
+        meta.appendChild(sep);
+      }
+      const when = document.createElement('span');
+      when.textContent = flogRelTime(latest.ts);
+      meta.appendChild(when);
+    } else {
+      meta.textContent = 'no events yet';
+    }
+    tile.appendChild(meta);
+
+    const summary = document.createElement('div');
+    summary.className = 'pgrid-summary';
+    summary.textContent = latest ? pgridSummary(latest) : '—';
+    tile.appendChild(summary);
+
+    const pulse = document.createElement('div');
+    pulse.className = 'pgrid-pulse';
+    tile.appendChild(pulse);
+
+    grid.appendChild(tile);
+  }
+
+  const updatedEl = document.getElementById('pgrid-updated');
+  if (updatedEl) updatedEl.textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+}
+
+// Piggyback on the failure log's fetch — render the grid every time
+// flogCachedData updates, and on the 30s re-render tick.
+const _origRenderFlog = renderFlog;
+renderFlog = function () {
+  _origRenderFlog();
+  if (flogCachedData?.events) pgridRender(flogCachedData.events);
+};
+// Initial paint after first load resolves
+const _pgridWatch = setInterval(() => {
+  if (flogCachedData?.events) {
+    pgridRender(flogCachedData.events);
+    clearInterval(_pgridWatch);
+  }
+}, 200);
   </script>
 
   <script src="/js/transitions.js"></script>
