@@ -184,7 +184,27 @@
     
     @media(max-width:880px){.pgrid{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:420px){.pgrid{grid-template-columns:1fr}}
-    
+
+    /* ── API SURFACE ── */
+    .api-surface-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:var(--border);border:1px solid var(--border)}
+    .api-worker-card{background:var(--bg);padding:1.1rem 1.15rem;display:flex;flex-direction:column;gap:0.9rem}
+    .api-worker-head{display:flex;justify-content:space-between;align-items:baseline;gap:0.75rem}
+    .api-worker-name{font-family:var(--mono);font-size:13px;color:var(--text);letter-spacing:0.02em}
+    .api-worker-link{font-size:10px;color:var(--text-faint);text-decoration:none;letter-spacing:0.04em;white-space:nowrap;transition:color 0.15s}
+    .api-worker-link:hover{color:var(--accent)}
+    .api-endpoint-list{display:flex;flex-direction:column;gap:0.7rem}
+    .api-endpoint-row{padding-top:0.7rem;border-top:1px solid var(--border)}
+    .api-endpoint-row:first-child{padding-top:0;border-top:none}
+    .api-endpoint-top{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap}
+    .api-method{font-family:var(--mono);font-size:9px;letter-spacing:0.04em;padding:1px 6px;border-radius:2px;flex-shrink:0}
+    .api-method.get{color:var(--text-dim);background:rgba(136,136,136,0.1);border:1px solid var(--border-hi)}
+    .api-method.post{color:var(--accent);background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.3)}
+    .api-path{font-family:var(--mono);font-size:11px;color:var(--text-dim);word-break:break-all}
+    .api-auth-tag{font-size:9px;letter-spacing:0.04em;text-transform:uppercase;color:var(--text-faint);border:1px solid var(--border-hi);padding:1px 5px;border-radius:2px;flex-shrink:0}
+    .api-desc{font-size:11px;color:var(--text-faint);line-height:1.5;margin-top:0.35rem}
+    .api-surface-note{font-size:11px;color:var(--text-faint);margin-top:1.25rem;letter-spacing:0.04em}
+    .api-loading{padding:2rem 1rem;font-size:12px;color:var(--text-faint);text-align:center;grid-column:1/-1}
+
     /* ── MOBILE NAV ── */
     .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
     .mobile-nav-inner{display:flex;align-items:stretch;height:100%}
@@ -330,6 +350,15 @@
         </div>
 
       </div>
+    </section>
+
+    <!-- API SURFACE -->
+    <section class="section">
+      <div class="section-label">Surface</div>
+      <div class="api-surface-grid" id="api-surface-grid">
+        <div class="api-loading">Loading API index…</div>
+      </div>
+      <p class="api-surface-note" id="api-surface-note">Loading…</p>
     </section>
 
   </main>
@@ -792,6 +821,123 @@ const _pgridWatch = setInterval(() => {
     clearInterval(_pgridWatch);
   }
 }, 200);
+
+// ── API SURFACE MAP ─────────────────────────────────────────────────────
+// Renders the live endpoint index served at the API root. Unlike the
+// heatmap and failure log, this isn't event data — it's a snapshot of
+// what the Worker source declares, so it's fetched once on load rather
+// than polled on an interval; it only changes when a Worker is redeployed.
+const API_INDEX_URL = 'https://api.atlas-systems.uk/';
+
+async function initApiSurface() {
+  const grid = document.getElementById('api-surface-grid');
+  const note = document.getElementById('api-surface-note');
+  if (!grid) return;
+
+  let data;
+  try {
+    const res = await fetch(API_INDEX_URL, {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    });
+    data = await res.json();
+  } catch {
+    grid.innerHTML = '<div class="api-loading">API index unavailable.</div>';
+    if (note) note.textContent = '';
+    return;
+  }
+
+  const endpoints = Array.isArray(data.endpoints) ? data.endpoints : [];
+  const repos = data.repos || {};
+
+  if (!endpoints.length) {
+    grid.innerHTML = '<div class="api-loading">No endpoints reported.</div>';
+    return;
+  }
+
+  // Group by worker, preserving first-seen order — matches the grouping
+  // already encoded in the source (atlas-notify, github-pulse, ...).
+  const order = [];
+  const byWorker = {};
+  for (const ep of endpoints) {
+    const w = ep.worker || 'unknown';
+    if (!byWorker[w]) { byWorker[w] = []; order.push(w); }
+    byWorker[w].push(ep);
+  }
+
+  grid.innerHTML = '';
+  for (const worker of order) {
+    const card = document.createElement('div');
+    card.className = 'api-worker-card';
+
+    const head = document.createElement('div');
+    head.className = 'api-worker-head';
+    const name = document.createElement('div');
+    name.className = 'api-worker-name';
+    name.textContent = worker;
+    head.appendChild(name);
+    if (repos[worker]) {
+      const link = document.createElement('a');
+      link.className = 'api-worker-link';
+      link.href = repos[worker];
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = 'repo →';
+      head.appendChild(link);
+    }
+    card.appendChild(head);
+
+    const list = document.createElement('div');
+    list.className = 'api-endpoint-list';
+    for (const ep of byWorker[worker]) {
+      const row = document.createElement('div');
+      row.className = 'api-endpoint-row';
+
+      const top = document.createElement('div');
+      top.className = 'api-endpoint-top';
+
+      const method = document.createElement('span');
+      method.className = 'api-method ' + (ep.method === 'POST' ? 'post' : 'get');
+      method.textContent = ep.method || 'GET';
+      top.appendChild(method);
+
+      const path = document.createElement('span');
+      path.className = 'api-path';
+      path.textContent = ep.path || '';
+      top.appendChild(path);
+
+      let desc = ep.description || '';
+      const needsAuth = /\(auth required\)/i.test(desc);
+      desc = desc.replace(/\s*\(auth required\)/i, '');
+      if (needsAuth) {
+        const authTag = document.createElement('span');
+        authTag.className = 'api-auth-tag';
+        authTag.textContent = 'auth';
+        top.appendChild(authTag);
+      }
+      row.appendChild(top);
+
+      if (desc) {
+        const descEl = document.createElement('div');
+        descEl.className = 'api-desc';
+        descEl.textContent = desc;
+        row.appendChild(descEl);
+      }
+
+      list.appendChild(row);
+    }
+    card.appendChild(list);
+    grid.appendChild(card);
+  }
+
+  if (note) {
+    const total = endpoints.length;
+    const workerCount = order.length;
+    note.textContent = `Live index — ${total} endpoint${total !== 1 ? 's' : ''} across ${workerCount} Worker${workerCount !== 1 ? 's' : ''}. Source: api.atlas-systems.uk/`;
+  }
+}
+
+initApiSurface();
   </script>
 
   <script src="/js/transitions.js"></script>
