@@ -290,7 +290,9 @@
   <div class="pgrid" id="pgrid"></div>
   <p class="flog-note">
     Each tile shows the latest pipeline-relevant event per repo. Pushes and other info events
-    don't clear a prior failure — only a successful deploy does. Source: atlas-notify ring buffer.
+    don't clear a prior failure — only a successful deploy does. Idle tiles (hollow dot) indicate
+    the pipeline is wired but no deploy has reached the ring buffer yet — they populate on the
+    repo's next push to main. Source: atlas-notify ring buffer.
   </p>
 </section>
     <!-- FAILURE LOG + RAMONE -->
@@ -793,7 +795,7 @@ function pgridRender(events) {
     const summary = document.createElement('div');
     summary.className = 'pgrid-summary';
     const summaryEv = status || latest;
-    summary.textContent = summaryEv ? pgridSummary(summaryEv) : '—';
+    summary.textContent = summaryEv ? pgridSummary(summaryEv) : 'awaiting first deploy';
     tile.appendChild(summary);
 
     const pulse = document.createElement('div');
