@@ -81,28 +81,30 @@
 
     <div class="articles">
 
-      <!-- W-04: Overclocking — coming soon -->
+      <!-- W-05: Atlas Pipeline — coming soon -->
       <a href="#" class="article-entry coming-soon">
         <div class="article-meta">
-          <span class="article-number">W-04</span>
-          <span class="article-date">Coming June 2026</span>
+          <span class="article-number">W-05</span>
+          <span class="article-date">Coming July 2026</span>
           <div class="article-tags">
-            <span class="tag highlight">Hardware</span>
-            <span class="tag">Overclocking</span>
-            <span class="tag">Performance</span>
+            <span class="tag highlight">DevOps</span>
+            <span class="tag">Infrastructure</span>
+            <span class="tag">CI/CD</span>
+            <span class="tag">Cloudflare Workers</span>
+            <span class="tag">Observability</span>
           </div>
-          <span class="read-time">~10 min read</span>
+          <span class="read-time">~12 min read</span>
         </div>
         <div class="article-body">
-          <h2 class="article-title">Pushing the Limits — Overclocking SPECULAR-CORE</h2>
-          <div class="article-subtitle">Hardware Tuning // Coming Soon</div>
-          <p class="article-summary">A documented walkthrough of overclocking the SPECULAR-CORE build — methodology, stability testing, thermal management, and the performance gains that actually matter for LLM inference and real-time audio processing.</p>
+          <h2 class="article-title">Atlas Pipeline</h2>
+          <div class="article-subtitle">Infrastructure Dashboard & CI/CD // Coming Soon</div>
+          <p class="article-summary">Building a live infrastructure dashboard and automated deployment pipeline across ten Cloudflare Workers repos, starting from manual deploys with no audit trail and ending with a self-reporting system that documents its own operation in Discord. A single authenticated event bus accepts three webhook auth dialects, observability Workers proxy GitHub and Cloudflare analytics behind cached endpoints, and identical GitHub Actions workflows deploy every Worker on push, all on free-tier infrastructure at zero cost.</p>
           <div class="article-sections">
-            <span class="section-pill">CPU Overclocking</span>
-            <span class="section-pill">RAM Tuning</span>
-            <span class="section-pill">Thermal Management</span>
-            <span class="section-pill">Stability Testing</span>
-            <span class="section-pill">LLM Inference Gains</span>
+            <span class="section-pill">Architecture</span>
+            <span class="section-pill">The Event Bus</span>
+            <span class="section-pill">Observability Workers</span>
+            <span class="section-pill">Phase I — Worker Route Claiming</span>
+            <span class="section-pill">Phase II — Bot Protection Blocking CI</span>
           </div>
           <div class="article-cta">
             Coming soon
@@ -112,6 +114,36 @@
       </a>
 
       <!-- ARTICLES_INSERT_POINT -->
+      <!-- W-04: Pushing the Limits — Overclocking SPECULAR-CORE -->
+      <a href="/writing/overclocking-specular-core/" class="article-entry">
+        <div class="article-meta">
+          <span class="article-number">W-04</span>
+          <span class="article-date">22 June 2026</span>
+          <div class="article-tags">
+            <span class="tag highlight">Hardware</span>
+            <span class="tag">Overclocking</span>
+            <span class="tag">Performance</span>
+            <span class="tag">AM5</span>
+          </div>
+          <span class="read-time">~13 min read</span>
+        </div>
+        <div class="article-body">
+          <h2 class="article-title">Pushing the Limits — Overclocking SPECULAR-CORE</h2>
+          <div class="article-subtitle">SPECULAR-CORE — Hardware Tuning // Case Study</div>
+          <p class="article-summary">A full system optimisation pass on SPECULAR-CORE: BIOS-level memory and Infinity Fabric synchronisation, a GPU voltage/frequency curve built by hand after a beta tool's batch editor failed, AIO and case cooling tuned around real-time audio noise constraints, and Process Lasso thread scheduling that finally gives Windows architectural awareness of the 9950X3D's dual-CCD layout. Validated through a full overnight stress test with zero crashes, zero thermal events.</p>
+          <div class="article-sections">
+            <span class="section-pill">Memory & Fabric Sync</span>
+            <span class="section-pill">GPU V/F Curve</span>
+            <span class="section-pill">AIO Cooling</span>
+            <span class="section-pill">Process Lasso CCD Scheduling</span>
+            <span class="section-pill">Stability Validation</span>
+          </div>
+          <div class="article-cta">
+            Read case study
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+      </a>
 
       <!-- W-03: Ramone -->
       <a href="/writing/ramone-local-ai-system/" class="article-entry">

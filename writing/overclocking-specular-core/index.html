@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Pushing the Limits — Overclocking SPECULAR-CORE case study by Atlas Reaper.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>SPECULAR-CORE — Hardware Tuning // Atlas Systems</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;
+      --border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);
+      --text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;
+      --accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);
+      --mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px;
+      --content-w:720px
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
+    nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(10,10,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem,5vw,3rem);z-index:100}
+    .nav-wordmark{font-family:var(--mono);font-weight:500;font-size:13px;letter-spacing:0.12em;color:var(--text);text-decoration:none;text-transform:uppercase}
+    .nav-wordmark span{color:var(--accent)}
+    .nav-links{display:flex;list-style:none}
+    .nav-links a{display:block;padding:0.35rem 1rem;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color 0.15s;position:relative}
+    .nav-links a::after{content:'';position:absolute;bottom:-1px;left:50%;right:50%;height:1px;background:var(--accent);transition:left 0.2s,right 0.2s}
+    .nav-links a:hover{color:var(--text)}
+    .nav-links a:hover::after,.nav-links a.active::after{left:1rem;right:1rem}
+    .nav-links a.active{color:var(--text)}
+    main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);position:relative;z-index:1}
+    .article-header{padding-top:calc(var(--nav-h) + 5rem);padding-bottom:4rem;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr 2fr;gap:3rem}
+    .header-meta{display:flex;flex-direction:column;gap:1rem}
+    .back-link{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s;margin-bottom:0.5rem}
+    .back-link:hover{color:var(--accent)}
+    .back-link svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .article-index{font-size:11px;color:var(--text-faint);letter-spacing:0.1em}
+    .article-date{font-size:11px;color:var(--text-dim)}
+    .article-read-time{font-size:11px;color:var(--text-faint)}
+    .header-tags{display:flex;flex-direction:column;gap:0.4rem;margin-top:0.5rem}
+    .tag{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:0.2rem 0.5rem;border:1px solid var(--border);color:var(--text-dim);display:inline-block}
+    .tag.highlight{border-color:rgba(245,166,35,0.4);color:rgba(245,166,35,0.8)}
+    .section-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem}
+    .section-label::before{content:'';display:inline-block;width:24px;height:1px;background:var(--accent)}
+    .article-title{font-family:var(--serif);font-size:clamp(2rem,4vw,3.2rem);line-height:1.05;color:var(--text);margin-bottom:0.75rem}
+    .article-subtitle{font-size:12px;color:var(--accent);letter-spacing:0.06em;margin-bottom:1.5rem}
+    .article-lede{font-size:14px;color:var(--text-dim);line-height:1.9;max-width:560px}
+    .spec-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin:3rem 0}
+    .spec-cell{background:var(--bg);padding:1rem 1.25rem}
+    .spec-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.3rem}
+    .spec-value{font-size:12px;color:var(--text)}
+    .article-body{display:grid;grid-template-columns:200px 1fr;gap:4rem;padding:4rem 0}
+    .toc{position:sticky;top:calc(var(--nav-h) + 2rem);align-self:start;height:fit-content}
+    .toc-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-faint);margin-bottom:1rem}
+    .toc-list{list-style:none;display:flex;flex-direction:column;gap:0.1rem}
+    .toc-item a{font-size:11px;color:var(--text-faint);text-decoration:none;display:block;padding:0.35rem 0.75rem;border-left:1px solid var(--border);transition:all 0.15s;line-height:1.4}
+    .toc-item a:hover{color:var(--text-dim);border-left-color:var(--border-hi)}
+    .toc-item a.active{color:var(--accent);border-left-color:var(--accent)}
+    .prose{max-width:var(--content-w)}
+    .prose h2{font-family:var(--serif);font-size:1.8rem;line-height:1.1;color:var(--text);margin:3rem 0 1.25rem;padding-top:1rem}
+    .prose h2:first-child{margin-top:0}
+    .prose h3{font-size:13px;font-weight:500;color:var(--text);letter-spacing:0.06em;text-transform:uppercase;margin:2rem 0 0.75rem;display:flex;align-items:center;gap:0.6rem}
+    .prose h3::before{content:'';display:inline-block;width:16px;height:1px;background:var(--accent);flex-shrink:0}
+    .prose p{font-size:13px;color:var(--text-dim);line-height:1.9;margin-bottom:1.25rem}
+    .prose p:last-child{margin-bottom:0}
+    .prose strong{color:var(--text);font-weight:500}
+    .prose code{font-family:var(--mono);font-size:12px;background:var(--bg-1);border:1px solid var(--border);padding:0.15rem 0.4rem;color:var(--accent)}
+    .prose ul{margin:1rem 0 1.25rem 0;display:flex;flex-direction:column;gap:0.5rem}
+    .prose ul li{font-size:13px;color:var(--text-dim);line-height:1.7;display:flex;gap:0.75rem;align-items:flex-start}
+    .prose ul li::before{content:'→';color:var(--accent);flex-shrink:0;margin-top:0.1rem}
+    .callout{border:1px solid var(--border);border-left:2px solid var(--accent);background:var(--bg-1);padding:1.25rem 1.5rem;margin:1.5rem 0}
+    .callout-label{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem}
+    .callout p{margin-bottom:0;font-size:12px}
+    .callout.error{border-left-color:#e24b4a}
+    .callout.error .callout-label{color:#e24b4a}
+    .callout.success{border-left-color:#4ade80}
+    .callout.success .callout-label{color:#4ade80}
+    .callout.warning{border-left-color:var(--accent)}
+    .phase-marker{display:flex;align-items:center;gap:1rem;margin:2.5rem 0 1.5rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border)}
+    .phase-num{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap}
+    .phase-title{font-size:13px;font-weight:500;color:var(--text)}
+    .model-table{width:100%;border-collapse:collapse;margin:1.5rem 0;font-size:12px}
+    .model-table th{text-align:left;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);padding:0.6rem 1rem;border-bottom:1px solid var(--border);font-weight:400}
+    .model-table td{padding:0.75rem 1rem;border-bottom:1px solid var(--border);color:var(--text-dim);vertical-align:top}
+    .model-table td:first-child{color:var(--text);font-weight:500}
+    .model-table tr:last-child td{border-bottom:none}
+    .section-break{height:1px;background:var(--border);margin:3rem 0}
+    .outcomes-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin:1.5rem 0}
+    .outcome-cell{background:var(--bg);padding:1.25rem 1.5rem}
+    .outcome-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.4rem}
+    .outcome-value{font-size:13px;color:var(--text)}
+    .article-footer{padding:3rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+    .footer-back{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s}
+    .footer-back:hover{color:var(--accent)}
+    .footer-back svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .footer-next{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);display:flex;align-items:center;gap:0.4rem}
+    .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
+    .mobile-nav-inner{display:flex;align-items:stretch;height:100%}
+    .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.15s}
+    .mobile-nav-item:hover,.mobile-nav-item.active{color:var(--accent)}
+    .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    @media(max-width:900px){.article-body{grid-template-columns:1fr}.toc{display:none}.article-header{grid-template-columns:1fr}}
+    @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}.outcomes-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
+    <ul class="nav-links">
+      <li><a href="/work/" class="nav-link">Work</a></li>
+      <li><a href="/writing/" class="nav-link">Writing</a></li>
+      <li><a href="/lab/" class="nav-link">Lab</a></li>
+      <li><a href="/about/" class="nav-link">About</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <header class="article-header">
+      <div class="header-meta">
+        <a href="/writing/" class="back-link">
+          <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Writing
+        </a>
+        <span class="article-index">W-04</span>
+        <span class="article-date">22 June 2026</span>
+        <span class="article-read-time">~13 min read</span>
+        <div class="header-tags">
+          <span class="tag highlight">Hardware</span>
+          <span class="tag">Overclocking</span>
+          <span class="tag">Performance</span>
+          <span class="tag">AM5</span>
+        </div>
+      </div>
+      <div class="header-content">
+        <div class="section-label">Case Study</div>
+        <h1 class="article-title">Pushing the Limits — Overclocking SPECULAR-CORE</h1>
+        <div class="article-subtitle">SPECULAR-CORE — Hardware Tuning</div>
+        <p class="article-lede">A full system optimisation record for a Ryzen 9 9950X3D and RTX 5070 build, BIOS-level memory and fabric synchronisation, GPU voltage/frequency curve tuning, AIO cooling profiles, and OS-level thread scheduling, validated through an overnight stress test with zero faults.</p>
+      </div>
+    </header>
+
+    <div class="spec-strip">
+      <div class="spec-cell"><div class="spec-label">CPU</div><div class="spec-value">Ryzen 9 9950X3D</div></div>
+      <div class="spec-cell"><div class="spec-label">GPU</div><div class="spec-value">RTX 5070 Trio OC</div></div>
+      <div class="spec-cell"><div class="spec-label">Memory</div><div class="spec-value">64GB DDR5-6000, 1:1:1</div></div>
+      <div class="spec-cell"><div class="spec-label">GPU gain</div><div class="spec-value">2610 → 3200 MHz (~23%)</div></div>
+      <div class="spec-cell"><div class="spec-label">Peak CCD1 temp</div><div class="spec-value">77.5°C / 80°C cap</div></div>
+      <div class="spec-cell"><div class="spec-label">Validation</div><div class="spec-value">Overnight, zero faults</div></div>
+    </div>
+
+    <div class="article-body">
+      <aside class="toc">
+        <div class="toc-label">Contents</div>
+        <ul class="toc-list">
+          <li class="toc-item"><a href="#overview">Overview</a></li>
+          <li class="toc-item"><a href="#memory">Memory & Fabric Sync</a></li>
+          <li class="toc-item"><a href="#gpu">GPU Tuning — V/F Curve</a></li>
+          <li class="toc-item"><a href="#cooling">AIO & Case Cooling</a></li>
+          <li class="toc-item"><a href="#validation">Stability Validation</a></li>
+          <li class="toc-item"><a href="#phase1">Phase I — Curve Editor Failure</a></li>
+          <li class="toc-item"><a href="#phase2">Phase II — AIO Detection</a></li>
+          <li class="toc-item"><a href="#rgb">RGB Profile — Deep Space</a></li>
+          <li class="toc-item"><a href="#scheduling">Thread Scheduling</a></li>
+          <li class="toc-item"><a href="#outcomes">Outcomes</a></li>
+        </ul>
+      </aside>
+
+      <article class="prose">
+
+        <section id="overview">
+          <h2>Overview</h2>
+          <p>The objective was straightforward: extract the maximum stable performance from every layer of a high-end AM5 platform built around the AMD Ryzen 9 9950X3D and the MSI RTX 5070 Gaming Trio OC, then validate the result through extended stress testing. A fresh Windows install provided the opportunity to do this from first principles rather than carry forward an accumulated set of ad hoc settings from a previous configuration.</p>
+          <p>Overclocking is usually treated as a single dial somewhere in a BIOS menu. This project treats it as a systems problem instead. CPU boost behaviour, memory architecture, GPU voltage and frequency curve, AIO cooling, OS-level thread scheduling, and peripheral configuration all interact, and tuning decisions on one layer were made with the others in mind throughout. The clearest example is the relationship between memory controller synchronisation and real-time audio processing; a setting most overclocking guides treat as a gaming-only concern turns out to matter just as much for ASIO buffer stability.</p>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="memory">
+          <h2>Memory & Fabric Synchronisation</h2>
+          <p>The CPU and memory configuration was established at the BIOS level before any application-level tuning began, since every later layer depends on it. EXPO Profile 1 sets the G.Skill Trident Z5 Neo RGB to its rated 6000 MT/s. The setting that actually matters is <code>UCLK = MCLK</code>, forcing a 1:1 ratio between the memory clock and the unified memory controller clock. AMD defaults to a 1:2 ratio at higher memory frequencies to protect stability, which adds latency the platform does not need to pay if the rest of the configuration can sustain a tighter ratio.</p>
+          <p>Infinity Fabric frequency was manually set to 2000 MHz to complete a 1:1:1 synchronisation between MCLK (3000 MHz effective), UCLK (3000 MHz effective), and FCLK. This is the single most impactful memory tuning decision on AM5; it minimises inter-die communication latency across the 9950X3D's chiplet architecture, and the effect is not limited to gaming. Real-time audio processing is sensitive to memory controller latency consistency in the same way a render thread is, so the same setting that improves frame pacing also reduces the chance of an ASIO buffer underrun.</p>
+
+          <div class="callout success">
+            <div class="callout-label">Confirmed Sync</div>
+            <p>MCLK 3000 MHz : UCLK 3000 MHz : FCLK 2000 MHz, 1:1:1 ratio. Validated stable at 1996.4 MHz FCLK across a full overnight stress test with zero PMIC warnings.</p>
+          </div>
+
+          <h3>PBO and the Curve Optimizer</h3>
+          <p>The 9950X3D is an AMD 3D V-Cache processor, which changes the correct overclocking method rather than just the target numbers. AMD explicitly discourages voltage-based overclocking on X3D SKUs because of the risk of degrading the stacked V-Cache die, so Precision Boost Overdrive combined with the Curve Optimizer is the only tuning vector used here.</p>
+          <p>PBO was set to Advanced with an 80°C thermal limit at Level 3, acting specifically as a governor for the V-Cache die, which is more heat-sensitive than the base compute die. A -10 Curve Optimizer offset across all cores was the stable operating point found through testing; it lets the processor reach higher boost clocks at lower voltage by telling the boost algorithm this specific silicon can sustain performance at a reduced offset. The Max Boost Clock Override was deliberately left at +0 MHz. On X3D hardware a positive override can push the CPU to chase voltages it cannot sustain at idle power states, trading a small ceiling gain for instability at rest.</p>
+
+          <h3>Memory sub-timings</h3>
+          <table class="model-table">
+            <thead><tr><th>Timing</th><th>Value</th><th>Why</th></tr></thead>
+            <tbody>
+              <tr><td>tCL</td><td>30</td><td>Primary latency</td></tr>
+              <tr><td>tRCDWR / tRCDRD</td><td>38 / 38</td><td>Write/read to CAS delay</td></tr>
+              <tr><td>tRP</td><td>38</td><td>Precharge time</td></tr>
+              <tr><td>tRAS</td><td>30</td><td>Row active time</td></tr>
+              <tr><td>tREFI</td><td>32768</td><td>Stable equilibrium between refresh latency and thermal desync</td></tr>
+              <tr><td>Gear Down Mode</td><td>Enabled</td><td>Required for stability at 6000 MT/s</td></tr>
+              <tr><td>PowerDown Mode</td><td>Disabled</td><td>Removes memory power-state sleep delays</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="gpu">
+          <h2>GPU Tuning — V/F Curve</h2>
+          <p>The GPU side was tuned entirely with MSI Afterburner 4.6.7 Beta, chosen specifically because it is the first version with meaningful GDDR7 memory overclocking support for RTX 50-series cards, unlocking transfer rates up to 36 GT/s against NVIDIA's factory specification of 28 to 30 GT/s.</p>
+          <p>Initial tuning with a fixed core offset established +400 MHz as the practical ceiling. Independent review data for this specific card shows no measurable gain past +350 MHz, and +400 MHz is roughly where it becomes unstable without curve management. A fixed offset is a blunt instrument though, since the GPU tries to apply it across its entire boost range, including voltage states it cannot actually sustain at that frequency. The fix is a Voltage/Frequency curve rather than a flat number.</p>
+          <p>The default curve under the +400 offset ramped from roughly 700mV (~580 MHz) to a theoretical 1165mV (~3500 MHz) ceiling. That ceiling is not achievable under sustained load; real-world clocks under gaming load run 300 to 400 MHz below it once power and thermal limits engage, so locking to it would just mean constant downclocking and inconsistent frame pacing.</p>
+          <p>The actual strategy was a flat lock. Every point on the curve from approximately 1025mV to the right edge was manually dragged to 3200 MHz, creating a hard frequency ceiling above that voltage threshold rather than letting the GPU chase a peak it cannot hold. 3200 MHz was chosen because independent data for this card shows an average sustained overclock of roughly 3144 MHz under real gaming load; the flat lock removes the boost variance that causes micro-stutters and gives a stable target that can be stepped toward 3300 MHz once further validated.</p>
+
+          <div class="callout warning">
+            <div class="callout-label">Caught Late</div>
+            <p>Fan speed initially reported as a fixed 42% instead of responding to temperature. Cause: "Enable user defined software automatic fan control" in Settings &gt; Fan was never switched on by default. A one-toggle fix once found, worth checking first on any fresh Afterburner install rather than assuming the curve editor alone controls fan behaviour.</p>
+          </div>
+
+          <h3>Final GPU configuration</h3>
+          <table class="model-table">
+            <thead><tr><th>Parameter</th><th>Final value</th><th>Note</th></tr></thead>
+            <tbody>
+              <tr><td>Power Limit</td><td>112%</td><td>Maximum allowable on this card</td></tr>
+              <tr><td>Core Voltage</td><td>+100%</td><td>Unlocks maximum manufacturer-approved headroom</td></tr>
+              <tr><td>Core Clock</td><td>V/F curve, flat lock 3200 MHz</td><td>Replaces the original fixed +400 MHz offset</td></tr>
+              <tr><td>Memory Clock</td><td>+1500 MHz (~15501 MHz)</td><td>GDDR7 headroom unlocked by 4.6.7 Beta</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Fan curve</h3>
+          <p>Configured via Settings &gt; Fan, with the update period reduced from the default 5000ms to 1000ms for faster thermal response, and a 2°C hysteresis to prevent rapid fan-speed hunting at threshold temperatures. Passive below 50°C, ramping in 5°C steps to 100% at 80°C and above.</p>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="cooling">
+          <h2>AIO & Case Cooling</h2>
+          <p>The Ryujin III's hardware presets (Silent, Standard, Turbo) were bypassed entirely in favour of custom Smart Mode curves hardcoded against CPU Tctl/Tdie as the tracking source. Presets respond to an averaged or delayed signal; tracking Tctl/Tdie directly means the pump reacts to Zen 5 thermal spikes as they happen rather than after they have already passed.</p>
+
+          <h3>Pump and micro-fan profiles</h3>
+          <table class="model-table">
+            <thead><tr><th>Node</th><th>CPU temp</th><th>Pump PWM</th><th>Micro-fan PWM</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>20°C</td><td>60% (~2460 RPM)</td><td>20%, silent baseline</td></tr>
+              <tr><td>2</td><td>55–65°C</td><td>75–90%</td><td>40%, low-noise ramp</td></tr>
+              <tr><td>3</td><td>75°C+</td><td>100% (~3600 RPM)</td><td>60–100%, active to emergency</td></tr>
+            </tbody>
+          </table>
+          <p>The embedded micro-fan cools the VRM phases and the Crucial T705 NVMe directly beneath the socket, and was deliberately speed-restricted; it sits close enough to a desk microphone that an unrestricted curve would raise the ambient noise floor during audio tracking sessions. A 12-second hysteresis window on both the pump and micro-fan prevents either from hunting in response to brief background thread activity.</p>
+
+          <h3>Case fans</h3>
+          <p>Seven Lian Li SL-Inf 120mm fans (three on the AIO radiator, three intake, one exhaust) run a shared five-point profile through L-Connect 3, the maximum number of points the software allows per custom curve. Temperature source is CPU, start/stop is disabled so fans never fully stop, and MB RPM Sync is enabled so the motherboard reports accurate fan telemetry rather than guessing from PWM duty cycle alone.</p>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="validation">
+          <h2>Stability Validation</h2>
+          <p>All settings were validated through an extended overnight stress test monitored in HWiNFO64 v8.34. CCD1, the 3D V-Cache die, peaked at 77.5°C against the 80°C PBO thermal cap. Package power peaked at 166.7W against a 170W TDP, confirming the PBO limit is functioning as a real governor rather than a soft suggestion. FCLK held at a confirmed 1996.4 MHz throughout, validating the 1:1:1 synchronisation under sustained load rather than just at idle.</p>
+
+          <table class="model-table">
+            <thead><tr><th>Metric</th><th>Average</th><th>Peak</th></tr></thead>
+            <tbody>
+              <tr><td>CCD1 Tdie (V-Cache)</td><td>70.7°C</td><td>77.5°C</td></tr>
+              <tr><td>CPU package power</td><td>151.3W</td><td>166.7W</td></tr>
+              <tr><td>Global frequency</td><td>5281.1 MHz</td><td>5520.0 MHz</td></tr>
+              <tr><td>FCLK</td><td>1996.4 MHz</td><td>1996.4 MHz</td></tr>
+              <tr><td>PPT limit usage</td><td>75.3%</td><td>82.9%</td></tr>
+            </tbody>
+          </table>
+
+          <p>DDR5 SPD temperatures peaked at 51.5°C against an 85°C+ rating, and no PMIC over-voltage, high-temperature, or under-voltage warnings were recorded across the full session. The system completed the test without a single crash, driver reset, memory error, or thermal event.</p>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="phase1">
+          <div class="phase-marker">
+            <span class="phase-num">Phase I</span>
+            <span class="phase-title">The V/F Curve Multi-Point Selection Failure</span>
+          </div>
+
+          <p>Afterburner 4.6.7 Beta's curve editor supports a Shift-drag multi-point selection intended to apply a value to several points at once. In practice it did not reliably apply to every selected point; some points moved, others silently stayed at their previous value with no error or warning shown.</p>
+
+          <div class="callout error">
+            <div class="callout-label">The Problem</div>
+            <p>Multi-point selection and batch frequency entry in the curve editor did not reliably apply to all selected points. Several points in the intended flat-lock region were left at stock values without any indication anything had failed.</p>
+          </div>
+
+          <p>The fix was the unglamorous one: abandon the batch tool and drag each point from 1025mV to the right edge of the curve individually to 3200 MHz, confirming each one visually before moving to the next. Slower, but deterministic; there is no ambiguity about whether a given point actually moved.</p>
+
+          <div class="callout success">
+            <div class="callout-label">Resolution</div>
+            <p>Manual point-by-point adjustment, each point verified individually. A known limitation of the current beta build; a production release should fix the batch path, but the manual method is the one to trust until it does.</p>
+          </div>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="phase2">
+          <div class="phase-marker">
+            <span class="phase-num">Phase II</span>
+            <span class="phase-title">Ryujin III Disappearing After a Clean Install</span>
+          </div>
+
+          <p>After the Windows reinstall, Armory Crate did not detect the Ryujin III AIO at all; no pump, no embedded fan, nothing in the Fan Control dashboard.</p>
+
+          <div class="callout error">
+            <div class="callout-label">Root Cause</div>
+            <p>A background hardware discovery service failure combined with a desynced SMBus state left over from the clean OS deployment. The AIO was physically fine; the software stack simply never established a session with it.</p>
+          </div>
+
+          <p>GIPService and RGBFusionService were restarted cleanly via Task Manager, followed by a firmware layer update through the Armory Crate Update Center to pull the G.Skill and ASUS hardware provider extensions. Both populated correctly afterward.</p>
+
+          <div class="callout success">
+            <div class="callout-label">Resolution</div>
+            <p>Pump block and embedded fan now detected and controllable. The broader pattern: a fresh OS install does not guarantee a fresh hardware-discovery state for everything attached to the board. Vendor services that handle SMBus communication can come up desynced and need an explicit restart, not just a reboot.</p>
+          </div>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="rgb">
+          <h2>RGB Profile — Deep Space</h2>
+          <p>A unified Deep Space purple theme was applied across every RGB-capable component, each through its own vendor tool since none of them share a control surface with Afterburner or with each other.</p>
+
+          <table class="model-table">
+            <thead><tr><th>Component</th><th>Software</th><th>Colour</th></tr></thead>
+            <tbody>
+              <tr><td>GPU shroud</td><td>MSI Center</td><td>#6A0DAD</td></tr>
+              <tr><td>GPU logo</td><td>MSI Center</td><td>#30006E</td></tr>
+              <tr><td>GPU backplate</td><td>MSI Center</td><td>#9370DB</td></tr>
+              <tr><td>Case fans</td><td>L-Connect 3</td><td>#6600CC</td></tr>
+              <tr><td>RAM</td><td>Gigabyte Control Center</td><td>#4B0082</td></tr>
+              <tr><td>AIO pump head</td><td>Armory Crate</td><td>#6A0DAD</td></tr>
+            </tbody>
+          </table>
+
+          <p>The GPU uses a three-zone gradient: the shroud at a vivid royal purple, the logo at a deeper violet for contrast, and the backplate at a softer lavender, producing a dark-to-light gradient across the card's surface rather than one flat colour.</p>
+
+          <div class="callout warning">
+            <div class="callout-label">Caught Late</div>
+            <p>The Lian Li SL-Inf fans initially read as off-white rather than purple. The fans wash out colour at high brightness, and the active RGBW mode adds a white channel that dilutes saturation further. Fixed by dropping brightness to roughly 65% in L-Connect 3 and pushing saturation up (#6600CC), with lighting mode locked to Static.</p>
+          </div>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="scheduling">
+          <h2>OS-Level Thread Scheduling</h2>
+          <p>The Windows 11 scheduler has no awareness of the 9950X3D's asymmetric dual-CCD layout, and left alone it migrates threads freely between the two dies. Every migration that crosses the Infinity Fabric to fetch data from a cache the thread does not currently reside on costs latency the rest of the tuning has been spent trying to remove.</p>
+          <p>Process Lasso enforces a permanent boundary instead. CCD 0 (cores 0–15) carries the 3D V-Cache and is reserved for anything latency-sensitive: game engines, FL Studio, REAPER, Focusrite Control 2, and the Unreal Editor, treated identically to a game engine so viewport behaviour and local audio testing mirror target deployment. CCD 1 (cores 16–31) takes everything else: launchers, communications, RGB and fan telemetry services, browsers, and security daemons, locked to Below Normal or Idle priority with Efficiency Mode enabled where supported.</p>
+          <p>Pinning the audio applications to CCD 0 specifically targets ASIO buffer stability; keeping the real-time audio pipeline resident on the V-Cache cores removes the chance of an underrun caused by a thread migrating mid-buffer. Pushing communications and hardware-telemetry processes onto CCD 1 protects the same cores from the opposite direction. L-Connect's fan polling and Discord's voice encoding never get a chance to pollute the cache lanes reserved for gaming or audio.</p>
+
+          <table class="model-table">
+            <thead><tr><th>Group</th><th>Cores</th><th>Priority</th><th>Efficiency Mode</th></tr></thead>
+            <tbody>
+              <tr><td>Games, DAWs, viewports</td><td>0–15</td><td>High</td><td>Off</td></tr>
+              <tr><td>Audio driver (Focusrite)</td><td>0–15</td><td>Above Normal</td><td>Off</td></tr>
+              <tr><td>Background, launchers, comms</td><td>16–31</td><td>Below Normal</td><td>On</td></tr>
+              <tr><td>System services, lighting</td><td>16–31</td><td>Idle</td><td>Off</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <div class="section-break"></div>
+
+        <section id="outcomes">
+          <h2>Outcomes</h2>
+
+          <div class="outcomes-grid">
+            <div class="outcome-cell"><div class="outcome-label">GPU sustained clock</div><div class="outcome-value">~3200 MHz vs. 2610 MHz stock, ~23% uplift</div></div>
+            <div class="outcome-cell"><div class="outcome-label">CPU thermal ceiling</div><div class="outcome-value">CCD1 peak 77.5°C against an 80°C PBO cap</div></div>
+            <div class="outcome-cell"><div class="outcome-label">Memory sync</div><div class="outcome-value">FCLK/UCLK/MCLK 1:1:1 at 6000 MT/s, zero PMIC warnings</div></div>
+            <div class="outcome-cell"><div class="outcome-label">Stress test</div><div class="outcome-value">Full overnight run, zero crashes, zero thermal events</div></div>
+          </div>
+
+          <p>The system now sustains roughly 3200 MHz GPU core under load against a stock boost of 2610 MHz, with a validated V/F curve and dynamic fan response rather than a fixed offset chasing an unstable peak. CCD1 held within its 80°C protection threshold across a full overnight stress run with zero crashes, driver resets, or memory errors, and the 1:1:1 FCLK/UCLK/MCLK synchronisation held at 6000 MT/s with zero PMIC warnings throughout.</p>
+          <p>The broader lesson is that overclocking a modern heterogeneous platform is a systems problem, not a per-component one. The Curve Optimizer offset, the memory fabric ratio, the AIO's tracking source, and the OS scheduler's CCD boundary all interact, and tuning any one of them in isolation from the others would have left real performance on the table or introduced instability nothing in that single component's settings could explain. Treating the fresh install as an opportunity to rebuild every layer from first principles, rather than restoring a backup of old settings, is what made it possible to actually understand why each setting mattered instead of just inheriting that it worked.</p>
+        </section>
+
+      </article>
+    </div>
+
+    <div class="article-footer">
+      <a href="/writing/ramone-local-ai-system/" class="footer-back">
+    <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    ← W-03 — Ramone
+  </a>
+  <span class="footer-next">Latest article</span>
+    </div>
+
+  </main>
+
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-inner">
+      <a href="/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
+      <a href="/work/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Work</a>
+      <a href="/writing/" class="mobile-nav-item active"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Writing</a>
+      <a href="/about/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg>About</a>
+    </div>
+  </nav>
+
+  <script>
+    document.querySelectorAll('.nav-link').forEach(a=>{if(window.location.pathname.startsWith(a.getAttribute('href')))a.classList.add('active')});
+    const sections=document.querySelectorAll('section[id]');
+    const tocLinks=document.querySelectorAll('.toc-item a');
+    const observer=new IntersectionObserver(entries=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          tocLinks.forEach(l=>l.classList.remove('active'));
+          const active=document.querySelector('.toc-item a[href="#'+e.target.id+'"]');
+          if(active)active.classList.add('active');
+        }
+      });
+    },{rootMargin:'-20% 0px -70% 0px'});
+    sections.forEach(s=>observer.observe(s));
+  </script>
+  <script src="/js/transitions.js"></script>
+</body>
+</html>
