@@ -107,7 +107,7 @@
   </style>
 </head>
 <body>
-  <nav>
+  <nav aria-label="Primary navigation">
     <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
     <ul class="nav-links">
       <li><a href="/work/" class="nav-link">Work</a></li>
@@ -156,9 +156,9 @@
         <div class="toc-label">Contents</div>
         <ul class="toc-list">
           <li class="toc-item"><a href="#overview">Overview</a></li>
-          <li class="toc-item"><a href="#memory">Memory & Fabric Sync</a></li>
+          <li class="toc-item"><a href="#memory">Memory &amp; Fabric Sync</a></li>
           <li class="toc-item"><a href="#gpu">GPU Tuning — V/F Curve</a></li>
-          <li class="toc-item"><a href="#cooling">AIO & Case Cooling</a></li>
+          <li class="toc-item"><a href="#cooling">AIO &amp; Case Cooling</a></li>
           <li class="toc-item"><a href="#validation">Stability Validation</a></li>
           <li class="toc-item"><a href="#phase1">Phase I — Curve Editor Failure</a></li>
           <li class="toc-item"><a href="#phase2">Phase II — AIO Detection</a></li>
@@ -179,7 +179,7 @@
         <div class="section-break"></div>
 
         <section id="memory">
-          <h2>Memory & Fabric Synchronisation</h2>
+          <h2>Memory &amp; Fabric Synchronisation</h2>
           <p>The CPU and memory configuration was established at the BIOS level before any application-level tuning began, since every later layer depends on it. EXPO Profile 1 sets the G.Skill Trident Z5 Neo RGB to its rated 6000 MT/s. The setting that actually matters is <code>UCLK = MCLK</code>, forcing a 1:1 ratio between the memory clock and the unified memory controller clock. AMD defaults to a 1:2 ratio at higher memory frequencies to protect stability, which adds latency the platform does not need to pay if the rest of the configuration can sustain a tighter ratio.</p>
           <p>Infinity Fabric frequency was manually set to 2000 MHz to complete a 1:1:1 synchronisation between MCLK (3000 MHz effective), UCLK (3000 MHz effective), and FCLK. This is the single most impactful memory tuning decision on AM5; it minimises inter-die communication latency across the 9950X3D's chiplet architecture, and the effect is not limited to gaming. Real-time audio processing is sensitive to memory controller latency consistency in the same way a render thread is, so the same setting that improves frame pacing also reduces the chance of an ASIO buffer underrun.</p>
 
@@ -239,7 +239,7 @@
         <div class="section-break"></div>
 
         <section id="cooling">
-          <h2>AIO & Case Cooling</h2>
+          <h2>AIO &amp; Case Cooling</h2>
           <p>The Ryujin III's hardware presets (Silent, Standard, Turbo) were bypassed entirely in favour of custom Smart Mode curves hardcoded against CPU Tctl/Tdie as the tracking source. Presets respond to an averaged or delayed signal; tracking Tctl/Tdie directly means the pump reacts to Zen 5 thermal spikes as they happen rather than after they have already passed.</p>
 
           <h3>Pump and micro-fan profiles</h3>
