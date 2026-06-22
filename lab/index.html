@@ -180,6 +180,32 @@
     .pgrid-pulse{position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--border);overflow:hidden}
     .pgrid-tile.recent .pgrid-pulse::after{content:'';position:absolute;top:0;left:-30%;width:30%;height:100%;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:pgridSweep 6s linear infinite}
     @keyframes pgridSweep{0%{left:-30%}100%{left:100%}}
+    /* ── PIPELINE STATS BAR ── */
+    .pgrid-stats{display:flex;gap:1px;background:var(--border);border:1px solid var(--border);border-bottom:none}
+    .pgrid-stat-chip{flex:1;background:var(--bg);padding:0.75rem 1rem;display:flex;flex-direction:column;gap:0.25rem;min-width:0}
+    .pgrid-stat-val{font-family:var(--mono);font-size:16px;color:var(--text);letter-spacing:-0.02em;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .pgrid-stat-val.good{color:#4ade80}
+    .pgrid-stat-val.warn{color:var(--accent)}
+    .pgrid-stat-val.bad{color:#e24b4a}
+    .pgrid-stat-label{font-size:10px;color:var(--text-faint);letter-spacing:0.06em;text-transform:uppercase}
+    @media(max-width:600px){.pgrid-stats{flex-wrap:wrap}.pgrid-stat-chip{flex:1 0 45%}}
+
+    /* ── WORKER HEALTH STRIP ── */
+    .health-strip{display:flex;gap:1px;background:var(--border);border:1px solid var(--border);border-top:none;margin-bottom:1rem}
+    .health-chip{flex:1;background:var(--bg);padding:0.65rem 1rem;display:flex;flex-direction:column;gap:0.3rem;min-width:0}
+    .health-chip-name{font-family:var(--mono);font-size:10px;color:var(--text-faint);letter-spacing:0.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .health-chip-row{display:flex;align-items:center;gap:0.45rem}
+    .health-chip-latency{font-family:var(--mono);font-size:13px;color:var(--text);font-variant-numeric:tabular-nums}
+    .health-chip-latency.fast{color:#4ade80}
+    .health-chip-latency.medium{color:var(--accent)}
+    .health-chip-latency.slow{color:#e24b4a}
+    .health-chip-latency.err{color:var(--text-faint);font-size:11px}
+    .health-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+    .health-dot.up{background:#4ade80;box-shadow:0 0 0 2px rgba(74,222,128,0.14)}
+    .health-dot.degraded{background:var(--accent);box-shadow:0 0 0 2px rgba(245,166,35,0.14)}
+    .health-dot.down{background:#e24b4a;box-shadow:0 0 0 2px rgba(226,75,74,0.14)}
+    .health-loading{font-size:11px;color:var(--text-faint);padding:0.75rem 1rem;font-family:var(--mono)}
+    @media(max-width:600px){.health-strip{flex-wrap:wrap}.health-chip{flex:1 0 45%}}
     @media (prefers-reduced-motion: reduce){.pgrid-tile.recent .pgrid-pulse::after{animation:none;opacity:0}}
     
     @media(max-width:880px){.pgrid{grid-template-columns:repeat(2,1fr)}}
@@ -287,7 +313,14 @@
       <span><span class="dot none"></span>idle</span>
     </div>
   </div>
+  <div class="pgrid-stats" id="pgrid-stats">
+    <div class="pgrid-stat-chip"><span class="pgrid-stat-val" id="pstat-total">—</span><span class="pgrid-stat-label">pipeline runs</span></div>
+    <div class="pgrid-stat-chip"><span class="pgrid-stat-val" id="pstat-rate">—</span><span class="pgrid-stat-label">success rate</span></div>
+    <div class="pgrid-stat-chip"><span class="pgrid-stat-val" id="pstat-week">—</span><span class="pgrid-stat-label">this week</span></div>
+    <div class="pgrid-stat-chip"><span class="pgrid-stat-val" id="pstat-top">—</span><span class="pgrid-stat-label">most active</span></div>
+  </div>
   <div class="pgrid" id="pgrid"></div>
+  <div class="health-strip" id="health-strip"><div class="health-loading">Checking worker latency…</div></div>
   <p class="flog-note">
     Each tile shows the latest pipeline-relevant event per repo. Pushes and other info events
     don't clear a prior failure — only a successful deploy does. Idle tiles (hollow dot) indicate
@@ -809,21 +842,162 @@ function pgridRender(events) {
   if (updatedEl) updatedEl.textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 }
 
+// ── PIPELINE STATS ────────────────────────────────────────────────────────
+// Computes summary metrics from the existing ring buffer — no extra fetch.
+// "Pipeline events" are deploy outcomes only; push/info events are excluded
+// so the stats reflect actual CI/CD signal rather than raw activity.
+
+function isPipelineEvent(e) {
+  const t = e.title || '';
+  return /^(deployed:|deploy failed:|blocked:|pages deploy)/i.test(t);
+}
+
+function renderPipelineStats(events) {
+  const pipeline = events.filter(isPipelineEvent);
+  const total    = pipeline.length;
+  const successes = pipeline.filter(e => e.level === 'success').length;
+  const failures  = pipeline.filter(e => e.level === 'failure').length;
+  const rateBase  = successes + failures;
+  const rate      = rateBase > 0 ? Math.round((successes / rateBase) * 100) : null;
+
+  const weekAgo  = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const thisWeek = pipeline.filter(e => new Date(e.ts).getTime() >= weekAgo).length;
+
+  const repoCounts = {};
+  for (const e of pipeline) {
+    const repo = pgridRepoFor(e);
+    if (repo) repoCounts[repo] = (repoCounts[repo] || 0) + 1;
+  }
+  const topEntry = Object.entries(repoCounts).sort((a, b) => b[1] - a[1])[0];
+  const topRepo  = topEntry ? topEntry[0] : null;
+
+  const totalEl = document.getElementById('pstat-total');
+  const rateEl  = document.getElementById('pstat-rate');
+  const weekEl  = document.getElementById('pstat-week');
+  const topEl   = document.getElementById('pstat-top');
+
+  if (totalEl) totalEl.textContent = total;
+  if (weekEl)  weekEl.textContent  = thisWeek;
+  if (topEl)   topEl.textContent   = topRepo ?? '—';
+
+  if (rateEl) {
+    if (rate === null) {
+      rateEl.textContent  = '—';
+      rateEl.className    = 'pgrid-stat-val';
+    } else {
+      rateEl.textContent  = rate + '%';
+      rateEl.className    = 'pgrid-stat-val ' + (rate >= 90 ? 'good' : rate >= 70 ? 'warn' : 'bad');
+    }
+  }
+}
+
 // Piggyback on the failure log's fetch — render the grid every time
 // flogCachedData updates, and on the 30s re-render tick.
 const _origRenderFlog = renderFlog;
 renderFlog = function () {
   _origRenderFlog();
-  if (flogCachedData?.events) pgridRender(flogCachedData.events);
-};
-// Initial paint after first load resolves
-const _pgridWatch = setInterval(() => {
   if (flogCachedData?.events) {
     pgridRender(flogCachedData.events);
+    renderPipelineStats(flogCachedData.events);
+  }
+};
+// Initial paint after first load resolves
+cconst _pgridWatch = setInterval(() => {
+  if (flogCachedData?.events) {
+    pgridRender(flogCachedData.events);
+    renderPipelineStats(flogCachedData.events);
     clearInterval(_pgridWatch);
   }
 }, 200);
 
+    // ── WORKER HEALTH STRIP ───────────────────────────────────────────────────
+// Ping targets are derived from the API surface data (loaded by initApiSurface)
+// so the strip stays in sync with whatever Workers the estate declares.
+// One unauthenticated GET per Worker; health/liveness endpoints are preferred.
+
+let _healthTargets = null;
+
+function deriveHealthTargets(endpoints) {
+  const BASE = 'https://api.atlas-systems.uk';
+  const byWorker = {};
+  for (const ep of endpoints) {
+    if (ep.method !== 'GET') continue;
+    if (/auth required/i.test(ep.description || '')) continue;
+    // First unauthenticated GET per Worker wins, health endpoint overrides
+    if (!byWorker[ep.worker]) byWorker[ep.worker] = ep;
+    if (/health|liveness|probe/i.test(ep.description || '')) byWorker[ep.worker] = ep;
+  }
+  return Object.entries(byWorker).map(([worker, ep]) => ({
+    label: worker,
+    // Strip query-string examples from path before pinging
+    url: BASE + ep.path.replace(/\?.*$/, ''),
+  }));
+}
+
+async function pingEndpoint(url) {
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), 5000);
+  const t0  = performance.now();
+  try {
+    const res = await fetch(url, { cache: 'no-store', signal: controller.signal });
+    const ms  = Math.round(performance.now() - t0);
+    return { ok: res.ok, ms };
+  } catch {
+    return { ok: false, ms: null };
+  } finally {
+    clearTimeout(tid);
+  }
+}
+
+function healthDotClass(ok, ms) {
+  if (!ok || ms === null)  return 'down';
+  if (ms >= 400)           return 'degraded';
+  return 'up';
+}
+
+function healthLatencyClass(ms) {
+  if (ms === null) return 'err';
+  if (ms < 150)    return 'fast';
+  if (ms < 400)    return 'medium';
+  return 'slow';
+}
+
+async function runHealthChecks() {
+  if (!_healthTargets?.length) return;
+  const strip = document.getElementById('health-strip');
+  if (!strip) return;
+
+  // Ping all targets concurrently
+  const results = await Promise.all(
+    _healthTargets.map(async (t) => ({ ...t, ping: await pingEndpoint(t.url) }))
+  );
+
+  strip.innerHTML = '';
+  for (const { label, ping } of results) {
+    const chip = document.createElement('div');
+    chip.className = 'health-chip';
+
+    const name = document.createElement('div');
+    name.className = 'health-chip-name';
+    name.textContent = label;
+
+    const row = document.createElement('div');
+    row.className = 'health-chip-row';
+
+    const dot = document.createElement('div');
+    dot.className = 'health-dot ' + healthDotClass(ping.ok, ping.ms);
+
+    const lat = document.createElement('span');
+    lat.className = 'health-chip-latency ' + healthLatencyClass(ping.ms);
+    lat.textContent = ping.ms !== null ? ping.ms + 'ms' : 'timeout';
+
+    row.appendChild(dot);
+    row.appendChild(lat);
+    chip.appendChild(name);
+    chip.appendChild(row);
+    strip.appendChild(chip);
+  }
+}
 // ── API SURFACE MAP ─────────────────────────────────────────────────────
 // Renders the live endpoint index served at the API root. Unlike the
 // heatmap and failure log, this isn't event data — it's a snapshot of
@@ -937,6 +1111,12 @@ async function initApiSurface() {
     const workerCount = order.length;
     note.textContent = `Live index — ${total} endpoint${total !== 1 ? 's' : ''} across ${workerCount} Worker${workerCount !== 1 ? 's' : ''}. Source: api.atlas-systems.uk/`;
   }
+
+  // Populate health-check targets now that we know which Workers exist,
+  // then kick off the first check and schedule subsequent refreshes.
+  _healthTargets = deriveHealthTargets(endpoints);
+  runHealthChecks();
+  setInterval(runHealthChecks, 60_000);
 }
 
 initApiSurface();
