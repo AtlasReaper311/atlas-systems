@@ -902,7 +902,7 @@ renderFlog = function () {
   }
 };
 // Initial paint after first load resolves
-cconst _pgridWatch = setInterval(() => {
+const _pgridWatch = setInterval(() => {
   if (flogCachedData?.events) {
     pgridRender(flogCachedData.events);
     renderPipelineStats(flogCachedData.events);
