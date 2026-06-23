@@ -22,7 +22,6 @@
 
   let inFlight = false;
 
-  // --- Status polling -------------------------------------------------
   let lastAwake = null;
   function setState(awake) {
     if (awake === lastAwake) return;
@@ -44,14 +43,12 @@
   pollStatus();
   setInterval(pollStatus, 30_000);
 
-  // --- Composer state -------------------------------------------------
   function updateSendState() {
     sendBtn.disabled = !(input.value.trim().length > 0 && !inFlight);
   }
   input.addEventListener("input", updateSendState);
   form.addEventListener("submit", (e) => { e.preventDefault(); transmit(); });
 
-  // --- Transmit -------------------------------------------------------
   async function transmit() {
     const question = input.value.trim();
     if (!question || inFlight) return;
