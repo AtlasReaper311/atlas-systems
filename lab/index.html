@@ -1,1127 +1,1337 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Lab — Atlas Systems. Live commit activity, recent stack events, and experiments in progress.">
-  <meta name="theme-color" content="#0a0a0f">
-  <title>Lab — Atlas Systems</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
-  <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    :root{
-      --bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;
-      --border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);
-      --text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;
-      --accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);
-      --mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;
-      --nav-h:56px
-    }
-    html{scroll-behavior:smooth}
-    body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
-    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Lab — Atlas Systems. Live commit activity, recent stack events, and experiments in progress."
+    />
+    <meta name="theme-color" content="#0a0a0f" />
+    <title>Lab — Atlas Systems</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+          *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+          :root{
+            --bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;
+            --border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);
+            --text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;
+            --accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);
+            --mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;
+            --nav-h:56px
+          }
+          html{scroll-behavior:smooth}
+          body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+          body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
 
-    /* ── NAV ── */
-    nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(10,10,15,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem,5vw,3rem);z-index:100}
-    .nav-wordmark{font-family:var(--mono);font-weight:500;font-size:13px;letter-spacing:0.12em;color:var(--text);text-decoration:none;text-transform:uppercase}
-    .nav-wordmark span{color:var(--accent)}
-    .nav-links{display:flex;list-style:none}
-    .nav-links a{display:block;padding:0.35rem 1rem;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color 0.15s;position:relative}
-    .nav-links a::after{content:'';position:absolute;bottom:-1px;left:50%;right:50%;height:1px;background:var(--accent);transition:left 0.2s,right 0.2s}
-    .nav-links a:hover{color:var(--text)}
-    .nav-links a:hover::after,.nav-links a.active::after{left:1rem;right:1rem}
-    .nav-links a.active{color:var(--text)}
+          /* ── NAV ── */
+          nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(10,10,15,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem,5vw,3rem);z-index:100}
+          .nav-wordmark{font-family:var(--mono);font-weight:500;font-size:13px;letter-spacing:0.12em;color:var(--text);text-decoration:none;text-transform:uppercase}
+          .nav-wordmark span{color:var(--accent)}
+          .nav-links{display:flex;list-style:none}
+          .nav-links a{display:block;padding:0.35rem 1rem;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color 0.15s;position:relative}
+          .nav-links a::after{content:'';position:absolute;bottom:-1px;left:50%;right:50%;height:1px;background:var(--accent);transition:left 0.2s,right 0.2s}
+          .nav-links a:hover{color:var(--text)}
+          .nav-links a:hover::after,.nav-links a.active::after{left:1rem;right:1rem}
+          .nav-links a.active{color:var(--text)}
 
-    /* ── LAYOUT ── */
-    main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);position:relative;z-index:1}
-    .page-header{padding-top:calc(var(--nav-h) + 5rem);padding-bottom:4rem;border-bottom:1px solid var(--border)}
-    .section-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem}
-    .section-label::before{content:'';display:inline-block;width:24px;height:1px;background:var(--accent)}
-    .page-heading{font-family:var(--serif);font-size:clamp(2.2rem,5vw,3.8rem);line-height:1.05;color:var(--text);margin-bottom:1.25rem;opacity:0;transform:translateY(10px);animation:fadeUp 0.5s 0.1s ease forwards}
-    .page-sub{font-size:13px;color:var(--text-dim);max-width:520px;line-height:1.8;opacity:0;transform:translateY(10px);animation:fadeUp 0.5s 0.22s ease forwards}
-    @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
-    .section{padding:5rem 0;border-bottom:1px solid var(--border)}
+          /* ── LAYOUT ── */
+          main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);position:relative;z-index:1}
+          .page-header{padding-top:calc(var(--nav-h) + 5rem);padding-bottom:4rem;border-bottom:1px solid var(--border)}
+          .section-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem}
+          .section-label::before{content:'';display:inline-block;width:24px;height:1px;background:var(--accent)}
+          .page-heading{font-family:var(--serif);font-size:clamp(2.2rem,5vw,3.8rem);line-height:1.05;color:var(--text);margin-bottom:1.25rem;opacity:0;transform:translateY(10px);animation:fadeUp 0.5s 0.1s ease forwards}
+          .page-sub{font-size:13px;color:var(--text-dim);max-width:520px;line-height:1.8;opacity:0;transform:translateY(10px);animation:fadeUp 0.5s 0.22s ease forwards}
+          @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+          .section{padding:5rem 0;border-bottom:1px solid var(--border)}
 
-    /* ── HEATMAP ── */
-    .heatmap-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.75rem;flex-wrap:wrap;gap:0.75rem}
-    .heatmap-stats{display:flex;gap:2rem;flex-wrap:wrap}
-    .heatmap-stat{font-size:12px;color:var(--text-dim)}
-    .heatmap-stat strong{color:var(--text);font-weight:500}
-    .heatmap-legend{display:flex;align-items:center;gap:0.5rem;font-size:10px;color:var(--text-faint);letter-spacing:0.06em}
-    .heatmap-legend-cells{display:flex;gap:3px;align-items:center}
-    .heatmap-legend-cell{width:11px;height:11px;border-radius:2px}
-    .heatmap-outer{display:flex;gap:6px;align-items:flex-start;overflow-x:auto;padding-bottom:0.5rem}
-    .heatmap-left{display:flex;flex-direction:column;flex-shrink:0;padding-top:18px}
-    .heatmap-day-label{font-size:9px;color:var(--text-faint);line-height:11px;height:11px;display:flex;align-items:center;letter-spacing:0.04em;margin-bottom:3px}
-    .heatmap-day-label:last-child{margin-bottom:0}
-    .heatmap-right{display:flex;flex-direction:column}
-    .heatmap-month-row{display:flex;height:16px;margin-bottom:4px;position:relative}
-    .heatmap-month-label{font-size:10px;color:var(--text-faint);letter-spacing:0.06em;position:absolute;white-space:nowrap}
-    .heatmap-grid{display:grid;grid-template-rows:repeat(7,11px);grid-auto-flow:column;gap:3px}
-    .heatmap-cell{width:11px;height:11px;border-radius:2px;background:var(--bg-2);transition:opacity 0.1s}
-    .heatmap-cell.empty{visibility:hidden}
-    .heatmap-cell:not(.empty){cursor:pointer}
-    .heatmap-cell:not(.empty):hover{opacity:0.75}
-    .heatmap-cell[data-level="1"]{background:rgba(245,166,35,0.18)}
-    .heatmap-cell[data-level="2"]{background:rgba(245,166,35,0.38)}
-    .heatmap-cell[data-level="3"]{background:rgba(245,166,35,0.62)}
-    .heatmap-cell[data-level="4"]{background:var(--accent)}
-    .heatmap-note{font-size:11px;color:var(--text-faint);margin-top:1.25rem;letter-spacing:0.04em}
+          /* ── HEATMAP ── */
+          .heatmap-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.75rem;flex-wrap:wrap;gap:0.75rem}
+          .heatmap-stats{display:flex;gap:2rem;flex-wrap:wrap}
+          .heatmap-stat{font-size:12px;color:var(--text-dim)}
+          .heatmap-stat strong{color:var(--text);font-weight:500}
+          .heatmap-legend{display:flex;align-items:center;gap:0.5rem;font-size:10px;color:var(--text-faint);letter-spacing:0.06em}
+          .heatmap-legend-cells{display:flex;gap:3px;align-items:center}
+          .heatmap-legend-cell{width:11px;height:11px;border-radius:2px}
+          .heatmap-outer{display:flex;gap:6px;align-items:flex-start;overflow-x:auto;padding-bottom:0.5rem}
+          .heatmap-left{display:flex;flex-direction:column;flex-shrink:0;padding-top:18px}
+          .heatmap-day-label{font-size:9px;color:var(--text-faint);line-height:11px;height:11px;display:flex;align-items:center;letter-spacing:0.04em;margin-bottom:3px}
+          .heatmap-day-label:last-child{margin-bottom:0}
+          .heatmap-right{display:flex;flex-direction:column}
+          .heatmap-month-row{display:flex;height:16px;margin-bottom:4px;position:relative}
+          .heatmap-month-label{font-size:10px;color:var(--text-faint);letter-spacing:0.06em;position:absolute;white-space:nowrap}
+          .heatmap-grid{display:grid;grid-template-rows:repeat(7,11px);grid-auto-flow:column;gap:3px}
+          .heatmap-cell{width:11px;height:11px;border-radius:2px;background:var(--bg-2);transition:opacity 0.1s}
+          .heatmap-cell.empty{visibility:hidden}
+          .heatmap-cell:not(.empty){cursor:pointer}
+          .heatmap-cell:not(.empty):hover{opacity:0.75}
+          .heatmap-cell[data-level="1"]{background:rgba(245,166,35,0.18)}
+          .heatmap-cell[data-level="2"]{background:rgba(245,166,35,0.38)}
+          .heatmap-cell[data-level="3"]{background:rgba(245,166,35,0.62)}
+          .heatmap-cell[data-level="4"]{background:var(--accent)}
+          .heatmap-note{font-size:11px;color:var(--text-faint);margin-top:1.25rem;letter-spacing:0.04em}
 
-    /* ── TOOLTIP ── */
-    #heatmap-tooltip{position:fixed;background:var(--bg-1);border:1px solid var(--border-hi);padding:0.4rem 0.75rem;font-size:11px;color:var(--text-dim);pointer-events:none;z-index:500;display:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.4)}
-    #heatmap-tooltip strong{color:var(--text);display:block;font-size:12px;margin-bottom:1px}
+          /* ── TOOLTIP ── */
+          #heatmap-tooltip{position:fixed;background:var(--bg-1);border:1px solid var(--border-hi);padding:0.4rem 0.75rem;font-size:11px;color:var(--text-dim);pointer-events:none;z-index:500;display:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.4)}
+          #heatmap-tooltip strong{color:var(--text);display:block;font-size:12px;margin-bottom:1px}
 
-    /* ── LAB GRID ── */
-    .lab-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem}
+          /* ── LAB GRID ── */
+          .lab-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem}
 
-    /* ── FAILURE LOG ── */
-    .flog-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.75rem}
-    .flog-meta{font-size:12px;color:var(--text-dim)}
-    .flog-meta strong{color:var(--text);font-weight:500}
-    .flog-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
-    .flog-chip{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);background:none;border:1px solid var(--border);padding:0.2rem 0.6rem;cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:0.4rem}
-    .flog-chip:hover{color:var(--text-dim);border-color:var(--border-hi)}
-    .flog-chip.active{color:var(--text);border-color:rgba(245,166,35,0.5)}
-    .flog-chip .dot{width:7px;height:7px;border-radius:50%;display:inline-block}
-    .flog-chip .dot.success{background:#4ade80}
-    .flog-chip .dot.warning{background:var(--accent)}
-    .flog-chip .dot.failure{background:#e24b4a}
-    .flog-chip .dot.info{background:#888}
-    .flog-chip .count{color:var(--text-faint);font-variant-numeric:tabular-nums}
-    .flog-refresh{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);background:none;border:1px solid var(--border);padding:0.2rem 0.6rem;cursor:pointer;transition:all 0.15s}
-    .flog-refresh:hover{color:var(--text-dim);border-color:var(--border-hi)}
-    .flog-list{display:flex;flex-direction:column;max-height:420px;overflow-y:auto;border:1px solid var(--border)}
-    .flog-list::-webkit-scrollbar{width:3px}
-    .flog-list::-webkit-scrollbar-track{background:var(--bg-1)}
-    .flog-list::-webkit-scrollbar-thumb{background:var(--border-hi)}
-    .flog-entry{display:grid;grid-template-columns:20px 1fr auto;gap:0.75rem;padding:0.9rem 1rem;border-bottom:1px solid var(--border);align-items:start}
-    .flog-entry:last-child{border-bottom:none}
-    .flog-entry:first-child{background:var(--bg-1)}
-    .flog-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
-    .flog-dot.success{background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,0.12)}
-    .flog-dot.info{background:#888;box-shadow:0 0 0 3px rgba(136,136,136,0.12)}
-    .flog-dot.warning{background:var(--accent);box-shadow:0 0 0 3px rgba(245,166,35,0.12)}
-    .flog-dot.failure{background:#e24b4a;box-shadow:0 0 0 3px rgba(226,75,74,0.12)}
-    .flog-body{min-width:0}
-    .flog-source{font-size:10px;color:var(--accent);letter-spacing:0.06em;margin-bottom:3px;text-transform:uppercase}
-    .flog-badge{display:inline-block;font-size:9px;letter-spacing:0.05em;text-transform:uppercase;padding:1px 6px;border-radius:2px;margin-left:6px;vertical-align:1px;font-family:var(--mono)}
-    .flog-badge.cicd{color:var(--accent);background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.3)}
-    .flog-badge.runtime{color:var(--text-faint);background:rgba(136,136,136,0.1);border:1px solid var(--border)}
-    .flog-title{font-size:12px;color:var(--text);line-height:1.4;margin-bottom:2px;word-wrap:break-word;overflow-wrap:anywhere}
-    .flog-msg{font-size:11px;color:var(--text-dim);line-height:1.55;word-wrap:break-word;overflow-wrap:anywhere}
-    .flog-when{font-size:10px;color:var(--text-faint);letter-spacing:0.04em;white-space:nowrap;text-align:right;padding-top:1px}
-    .flog-empty{padding:2rem 1rem;font-size:12px;color:var(--text-faint);text-align:center}
-    .flog-loading{padding:2rem 1rem;font-size:12px;color:var(--text-faint);text-align:center}
-    .flog-note{font-size:11px;color:var(--text-faint);margin-top:1rem;letter-spacing:0.04em}
+          /* ── FAILURE LOG ── */
+          .flog-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.75rem}
+          .flog-meta{font-size:12px;color:var(--text-dim)}
+          .flog-meta strong{color:var(--text);font-weight:500}
+          .flog-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+          .flog-chip{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);background:none;border:1px solid var(--border);padding:0.2rem 0.6rem;cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:0.4rem}
+          .flog-chip:hover{color:var(--text-dim);border-color:var(--border-hi)}
+          .flog-chip.active{color:var(--text);border-color:rgba(245,166,35,0.5)}
+          .flog-chip .dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+          .flog-chip .dot.success{background:#4ade80}
+          .flog-chip .dot.warning{background:var(--accent)}
+          .flog-chip .dot.failure{background:#e24b4a}
+          .flog-chip .dot.info{background:#888}
+          .flog-chip .count{color:var(--text-faint);font-variant-numeric:tabular-nums}
+          .flog-refresh{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);background:none;border:1px solid var(--border);padding:0.2rem 0.6rem;cursor:pointer;transition:all 0.15s}
+          .flog-refresh:hover{color:var(--text-dim);border-color:var(--border-hi)}
+          .flog-list{display:flex;flex-direction:column;max-height:420px;overflow-y:auto;border:1px solid var(--border)}
+          .flog-list::-webkit-scrollbar{width:3px}
+          .flog-list::-webkit-scrollbar-track{background:var(--bg-1)}
+          .flog-list::-webkit-scrollbar-thumb{background:var(--border-hi)}
+          .flog-entry{display:grid;grid-template-columns:20px 1fr auto;gap:0.75rem;padding:0.9rem 1rem;border-bottom:1px solid var(--border);align-items:start}
+          .flog-entry:last-child{border-bottom:none}
+          .flog-entry:first-child{background:var(--bg-1)}
+          .flog-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+          .flog-dot.success{background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,0.12)}
+          .flog-dot.info{background:#888;box-shadow:0 0 0 3px rgba(136,136,136,0.12)}
+          .flog-dot.warning{background:var(--accent);box-shadow:0 0 0 3px rgba(245,166,35,0.12)}
+          .flog-dot.failure{background:#e24b4a;box-shadow:0 0 0 3px rgba(226,75,74,0.12)}
+          .flog-body{min-width:0}
+          .flog-source{font-size:10px;color:var(--accent);letter-spacing:0.06em;margin-bottom:3px;text-transform:uppercase}
+          .flog-badge{display:inline-block;font-size:9px;letter-spacing:0.05em;text-transform:uppercase;padding:1px 6px;border-radius:2px;margin-left:6px;vertical-align:1px;font-family:var(--mono)}
+          .flog-badge.cicd{color:var(--accent);background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.3)}
+          .flog-badge.runtime{color:var(--text-faint);background:rgba(136,136,136,0.1);border:1px solid var(--border)}
+          .flog-title{font-size:12px;color:var(--text);line-height:1.4;margin-bottom:2px;word-wrap:break-word;overflow-wrap:anywhere}
+          .flog-msg{font-size:11px;color:var(--text-dim);line-height:1.55;word-wrap:break-word;overflow-wrap:anywhere}
+          .flog-when{font-size:10px;color:var(--text-faint);letter-spacing:0.04em;white-space:nowrap;text-align:right;padding-top:1px}
+          .flog-empty{padding:2rem 1rem;font-size:12px;color:var(--text-faint);text-align:center}
+          .flog-loading{padding:2rem 1rem;font-size:12px;color:var(--text-faint);text-align:center}
+          .flog-note{font-size:11px;color:var(--text-faint);margin-top:1rem;letter-spacing:0.04em}
 
-    /* ── RAMONE CARD ── */
-    .ramone-card{border:1px solid var(--border);position:relative;overflow:hidden;display:flex;flex-direction:column}
-    .ramone-card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(245,166,35,0.4),transparent)}
-    .ramone-inner{padding:2rem;flex:1;display:flex;flex-direction:column}
-    .ramone-badges{display:flex;gap:0.5rem;margin-bottom:1.75rem;flex-wrap:wrap}
-    .ramone-badge{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border:1px solid var(--border);color:var(--text-faint)}
-    .ramone-badge.planned{border-color:rgba(245,166,35,0.3);color:rgba(245,166,35,0.7)}
-    .ramone-title{font-family:var(--serif);font-size:1.5rem;line-height:1.1;color:var(--text);margin-bottom:0.6rem}
-    .ramone-subtitle{font-size:11px;color:var(--accent);letter-spacing:0.06em;margin-bottom:1rem}
-    .ramone-desc{font-size:12px;color:var(--text-dim);line-height:1.8;margin-bottom:1.5rem}
-    .ramone-preview{background:var(--bg);border:1px solid var(--border);border-left:2px solid rgba(245,166,35,0.3);padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:11px;line-height:1.9}
-    .ramone-preview-line{display:flex;gap:0.5rem}
-    .ramone-preview-prompt{color:var(--text-faint);flex-shrink:0}
-    .ramone-preview-text{color:var(--text-dim)}
-    .ramone-preview-response{color:var(--text-faint);font-style:italic}
-    .ramone-preview-cursor{display:inline-block;width:6px;height:11px;background:var(--accent);vertical-align:middle;animation:blink 1.1s step-end infinite;opacity:0.6;margin-left:1px}
-    @keyframes blink{0%,100%{opacity:0.6}50%{opacity:0}}
-    .ramone-features{display:flex;flex-direction:column;gap:0.5rem;margin-top:auto;padding-top:1.5rem;border-top:1px solid var(--border)}
-    .ramone-feature{font-size:11px;color:var(--text-faint);display:flex;gap:0.6rem;align-items:flex-start;line-height:1.5}
-    .ramone-feature::before{content:'→';color:rgba(245,166,35,0.5);flex-shrink:0}
+          <!--
+        Lab page card — Ramone live interface.
 
-        /* ── PIPELINE STATUS GRID ── */
-    .pgrid-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.75rem}
-    .pgrid-meta{font-size:12px;color:var(--text-dim)}
-    .pgrid-meta strong{color:var(--text);font-weight:500}
-    .pgrid-legend{display:flex;gap:1rem;font-size:10px;color:var(--text-faint);letter-spacing:0.06em;text-transform:uppercase}
-    .pgrid-legend span{display:inline-flex;align-items:center;gap:0.4rem}
-    .pgrid-legend .dot{width:7px;height:7px;border-radius:50%}
-    .pgrid-legend .dot.success{background:#4ade80}
-    .pgrid-legend .dot.warning{background:var(--accent)}
-    .pgrid-legend .dot.failure{background:#e24b4a}
-    .pgrid-legend .dot.info{background:#888}
-    .pgrid-legend .dot.none{background:none;border:1px solid var(--text-faint)}
-    
-    .pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border)}
-    .pgrid-tile{background:var(--bg);padding:1.1rem 1.15rem;display:flex;flex-direction:column;gap:0.5rem;position:relative;min-height:118px;overflow:hidden;text-decoration:none;color:inherit;cursor:pointer;transition:background 0.15s}
-    .pgrid-tile:hover{background:var(--bg-1)}
-    .pgrid-tile.idle{opacity:0.55}
-    .pgrid-tile.stale{opacity:0.62}
-    .pgrid-tile.stale .pgrid-dot{filter:saturate(0.4)}
-    
-    .pgrid-row{display:flex;justify-content:space-between;align-items:flex-start;gap:0.75rem}
-    .pgrid-repo{font-family:var(--mono);font-size:12px;color:var(--text);letter-spacing:0.02em;line-height:1.2;word-break:break-all}
-    .pgrid-tile.idle .pgrid-repo{color:var(--text-faint)}
-    
-    .pgrid-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:2px}
-    .pgrid-dot.success{background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,0.14)}
-    .pgrid-dot.warning{background:var(--accent);box-shadow:0 0 0 3px rgba(245,166,35,0.14)}
-    .pgrid-dot.failure{background:#e24b4a;box-shadow:0 0 0 3px rgba(226,75,74,0.14)}
-    .pgrid-dot.info{background:#888;box-shadow:0 0 0 3px rgba(136,136,136,0.12)}
-    .pgrid-dot.none{background:transparent;border:1px solid var(--text-faint);box-shadow:none}
-    
-    .pgrid-meta-line{font-size:10px;color:var(--text-faint);letter-spacing:0.04em;font-variant-numeric:tabular-nums;display:flex;gap:0.5rem;align-items:center}
-    .pgrid-sha{color:var(--text-dim)}
-    .pgrid-sep{color:var(--text-faint)}
-    .pgrid-stale-tag{color:var(--text-faint);text-transform:uppercase;font-size:9px;letter-spacing:0.06em}
-    .pgrid-summary{font-size:11px;color:var(--text-dim);line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-    .pgrid-tile.idle .pgrid-summary{color:var(--text-faint)}
-    
-    /* heartbeat: a single amber sweep, only on recently-changed tiles */
-    .pgrid-pulse{position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--border);overflow:hidden}
-    .pgrid-tile.recent .pgrid-pulse::after{content:'';position:absolute;top:0;left:-30%;width:30%;height:100%;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:pgridSweep 6s linear infinite}
-    @keyframes pgridSweep{0%{left:-30%}100%{left:100%}}
-    /* ── PIPELINE STATS BAR ── */
-    .pgrid-stats{display:flex;gap:1px;background:var(--border);border:1px solid var(--border);border-bottom:none}
-    .pgrid-stat-chip{flex:1;background:var(--bg);padding:0.75rem 1rem;display:flex;flex-direction:column;gap:0.25rem;min-width:0}
-    .pgrid-stat-val{font-family:var(--mono);font-size:16px;color:var(--text);letter-spacing:-0.02em;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .pgrid-stat-val.good{color:#4ade80}
-    .pgrid-stat-val.warn{color:var(--accent)}
-    .pgrid-stat-val.bad{color:#e24b4a}
-    .pgrid-stat-label{font-size:10px;color:var(--text-faint);letter-spacing:0.06em;text-transform:uppercase}
-    @media(max-width:600px){.pgrid-stats{flex-wrap:wrap}.pgrid-stat-chip{flex:1 0 45%}}
+        Drop this snippet into atlas-systems/lab/index.html (or wherever the
+        Lab page lives) in place of the current `.ramone-preview` placeholder
+        card. The card's outer class name (`lab-card` etc.) should match the
+        existing Lab grid cell. Adjust the wrapper class if the Lab page uses
+        something different.
 
-    /* ── WORKER HEALTH STRIP ── */
-    .health-strip{display:flex;gap:1px;background:var(--border);border:1px solid var(--border);border-top:none;margin-bottom:1rem}
-    .health-chip{flex:1;background:var(--bg);padding:0.65rem 1rem;display:flex;flex-direction:column;gap:0.3rem;min-width:0}
-    .health-chip-name{font-family:var(--mono);font-size:10px;color:var(--text-faint);letter-spacing:0.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .health-chip-row{display:flex;align-items:center;gap:0.45rem}
-    .health-chip-latency{font-family:var(--mono);font-size:13px;color:var(--text);font-variant-numeric:tabular-nums}
-    .health-chip-latency.fast{color:#4ade80}
-    .health-chip-latency.medium{color:var(--accent)}
-    .health-chip-latency.slow{color:#e24b4a}
-    .health-chip-latency.err{color:var(--text-faint);font-size:11px}
-    .health-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-    .health-dot.up{background:#4ade80;box-shadow:0 0 0 2px rgba(74,222,128,0.14)}
-    .health-dot.degraded{background:var(--accent);box-shadow:0 0 0 2px rgba(245,166,35,0.14)}
-    .health-dot.down{background:#e24b4a;box-shadow:0 0 0 2px rgba(226,75,74,0.14)}
-    .health-loading{font-size:11px;color:var(--text-faint);padding:0.75rem 1rem;font-family:var(--mono)}
-    @media(max-width:600px){.health-strip{flex-wrap:wrap}.health-chip{flex:1 0 45%}}
-    @media (prefers-reduced-motion: reduce){.pgrid-tile.recent .pgrid-pulse::after{animation:none;opacity:0}}
-    
-    @media(max-width:880px){.pgrid{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:420px){.pgrid{grid-template-columns:1fr}}
+        Required imports on the Lab page:
+          - the existing brand stylesheet (already present)
+          - lab-card.css from this folder, appended to the Lab stylesheet
+          - lab-card.js from this folder, loaded as a module at the end of body
 
-    /* ── API SURFACE ── */
-    .api-surface-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:var(--border);border:1px solid var(--border)}
-    .api-worker-card{background:var(--bg);padding:1.1rem 1.15rem;display:flex;flex-direction:column;gap:0.9rem}
-    .api-worker-head{display:flex;justify-content:space-between;align-items:baseline;gap:0.75rem}
-    .api-worker-name{font-family:var(--mono);font-size:13px;color:var(--text);letter-spacing:0.02em}
-    .api-worker-link{font-size:10px;color:var(--text-faint);text-decoration:none;letter-spacing:0.04em;white-space:nowrap;transition:color 0.15s}
-    .api-worker-link:hover{color:var(--accent)}
-    .api-endpoint-list{display:flex;flex-direction:column;gap:0.7rem}
-    .api-endpoint-row{padding-top:0.7rem;border-top:1px solid var(--border)}
-    .api-endpoint-row:first-child{padding-top:0;border-top:none}
-    .api-endpoint-top{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap}
-    .api-method{font-family:var(--mono);font-size:9px;letter-spacing:0.04em;padding:1px 6px;border-radius:2px;flex-shrink:0}
-    .api-method.get{color:var(--text-dim);background:rgba(136,136,136,0.1);border:1px solid var(--border-hi)}
-    .api-method.post{color:var(--accent);background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.3)}
-    .api-path{font-family:var(--mono);font-size:11px;color:var(--text-dim);word-break:break-all}
-    .api-auth-tag{font-size:9px;letter-spacing:0.04em;text-transform:uppercase;color:var(--text-faint);border:1px solid var(--border-hi);padding:1px 5px;border-radius:2px;flex-shrink:0}
-    .api-desc{font-size:11px;color:var(--text-faint);line-height:1.5;margin-top:0.35rem}
-    .api-surface-note{font-size:11px;color:var(--text-faint);margin-top:1.25rem;letter-spacing:0.04em}
-    .api-loading{padding:2rem 1rem;font-size:12px;color:var(--text-faint);text-align:center;grid-column:1/-1}
+        Required CSP / origin configuration:
+          - The Worker's ALLOWED_ORIGINS variable must include the Lab page's
+            origin (https://atlas-systems.uk). This is already configured in
+            wrangler.toml.
+      -->
 
-    /* ── MOBILE NAV ── */
-    .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
-    .mobile-nav-inner{display:flex;align-items:stretch;height:100%}
-    .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.15s}
-    .mobile-nav-item:hover,.mobile-nav-item.active{color:var(--accent)}
-    .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-
-    /* ── RESPONSIVE ── */
-    @media(max-width:780px){.lab-grid{grid-template-columns:1fr}.heatmap-stats{gap:1rem}}
-    @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}}
-  </style>
-</head>
-<body>
-
-  <nav aria-label="Primary navigation">
-    <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
-    <ul class="nav-links">
-      <li><a href="/work/" class="nav-link">Work</a></li>
-      <li><a href="/writing/" class="nav-link">Writing</a></li>
-      <li><a href="/lab/" class="nav-link">Lab</a></li>
-      <li><a href="/about/" class="nav-link">About</a></li>
-    </ul>
-  </nav>
-
-  <div id="heatmap-tooltip"><strong></strong><span></span></div>
-
-  <main>
-
-    <header class="page-header">
-      <div class="section-label">Lab</div>
-      <h1 class="page-heading">Live systems.</h1>
-      <p class="page-sub">Real data from the Atlas Systems stack — commit activity, recent stack events, and experiments in progress.</p>
-    </header>
-
-    <!-- ACTIVITY HEATMAP -->
-    <section class="section">
-      <div class="section-label">Activity</div>
-
-      <div class="heatmap-meta">
-        <div class="heatmap-stats">
-          <div class="heatmap-stat"><strong id="heatmap-total">—</strong> commits · 90 days</div>
-          <div class="heatmap-stat"><strong id="heatmap-repos">—</strong> repos</div>
-          <div class="heatmap-stat"><strong id="heatmap-top-lang">—</strong> top language</div>
-        </div>
-        <div class="heatmap-legend">
-          <span>less</span>
-          <div class="heatmap-legend-cells">
-            <div class="heatmap-legend-cell" style="background:var(--bg-2)"></div>
-            <div class="heatmap-legend-cell" style="background:rgba(245,166,35,0.18)"></div>
-            <div class="heatmap-legend-cell" style="background:rgba(245,166,35,0.38)"></div>
-            <div class="heatmap-legend-cell" style="background:rgba(245,166,35,0.62)"></div>
-            <div class="heatmap-legend-cell" style="background:var(--accent)"></div>
+      <article class="lab-card ramone-card" id="ramone-card">
+        <header class="lab-card-header">
+          <div class="lab-card-eyebrow">
+            <span class="ramone-dot" id="ramone-dot" aria-hidden="true"></span>
+            <span id="ramone-state-label">connecting</span>
           </div>
-          <span>more</span>
-        </div>
-      </div>
+          <h3 class="lab-card-title">ramone</h3>
+          <p class="lab-card-sub">ask my infrastructure</p>
+        </header>
 
-      <div class="heatmap-outer">
-        <div class="heatmap-left" id="heatmap-day-labels"></div>
-        <div class="heatmap-right">
-          <div class="heatmap-month-row" id="heatmap-months"></div>
-          <div class="heatmap-grid" id="heatmap-grid"></div>
-        </div>
-      </div>
+        <div class="ramone-card-body">
+          <p class="ramone-blurb">
+            A local AI running on the RTX 5070 in SPECULAR-CORE, grounded on
+            published Atlas Systems documentation. Ask a question; the answer
+            streams back with cited sources.
+          </p>
 
-      <p class="heatmap-note" id="heatmap-note">Loading activity data…</p>
-    </section>
-
-    <section class="section" id="pipeline-grid-section">
-  <div class="section-label">Pipeline status</div>
-  <div class="pgrid-head">
-    <div class="pgrid-meta">
-      Live state across <strong>8</strong> repos · updated <strong id="pgrid-updated">—</strong>
-    </div>
-    <div class="pgrid-legend">
-      <span><span class="dot success"></span>ok</span>
-      <span><span class="dot warning"></span>warn</span>
-      <span><span class="dot failure"></span>fail</span>
-      <span><span class="dot info"></span>info</span>
-      <span><span class="dot none"></span>idle</span>
-    </div>
-  </div>
-  <div class="pgrid-stats" id="pgrid-stats">
-    <div class="pgrid-stat-chip"><span class="pgrid-stat-val" id="pstat-total">—</span><span class="pgrid-stat-label">pipeline runs</span></div>
-    <div class="pgrid-stat-chip"><span class="pgrid-stat-val" id="pstat-rate">—</span><span class="pgrid-stat-label">success rate</span></div>
-    <div class="pgrid-stat-chip"><span class="pgrid-stat-val" id="pstat-week">—</span><span class="pgrid-stat-label">this week</span></div>
-    <div class="pgrid-stat-chip"><span class="pgrid-stat-val" id="pstat-top">—</span><span class="pgrid-stat-label">most active</span></div>
-  </div>
-  <div class="pgrid" id="pgrid"></div>
-  <div class="health-strip" id="health-strip"><div class="health-loading">Checking worker latency…</div></div>
-  <p class="flog-note">
-    Each tile shows the latest pipeline-relevant event per repo. Pushes and other info events
-    don't clear a prior failure — only a successful deploy does. Idle tiles (hollow dot) indicate
-    the pipeline is wired but no deploy has reached the ring buffer yet — they populate on the
-    repo's next push to main. Source: atlas-notify ring buffer.
-  </p>
-</section>
-    <!-- FAILURE LOG + RAMONE -->
-    <section class="section">
-      <div class="lab-grid">
-
-        <!-- FAILURE LOG -->
-        <div>
-          <div class="section-label">Failure log</div>
-          <div class="flog-head">
-            <div class="flog-meta">
-              <strong id="flog-total">—</strong> recent events ·
-              <strong id="flog-shown">—</strong> shown
+          <form class="ramone-mini" id="ramone-mini-form" autocomplete="off">
+            <label class="ramone-mini-label" for="ramone-mini-input">&gt; ask ramone</label>
+            <input
+              type="text"
+              id="ramone-mini-input"
+              class="ramone-mini-input"
+              maxlength="2000"
+              placeholder="What runs at api.atlas-systems.uk?"
+              aria-label="Ask Ramone a question"
+            />
+            <div class="ramone-mini-actions">
+              <div class="ramone-mini-turnstile" id="ramone-mini-turnstile"></div>
+              <button type="submit" class="ramone-mini-send" id="ramone-mini-send" disabled>
+                transmit
+              </button>
             </div>
-            <button class="flog-refresh" id="flog-refresh-btn" type="button">↻ refresh</button>
+          </form>
+
+          <div class="ramone-mini-answer" id="ramone-mini-answer" hidden>
+            <div class="ramone-mini-answer-text" id="ramone-mini-answer-text"></div>
+            <div class="ramone-mini-sources" id="ramone-mini-sources"></div>
+            <div class="ramone-mini-meta" id="ramone-mini-meta"></div>
           </div>
-          <div class="flog-filters" id="flog-filters"></div>
-          <div id="flog-list" class="flog-list">
-            <div class="flog-loading">Loading recent events…</div>
-          </div>
-          <div class="flog-note">
-            Historical companion to the home page live status — covers both runtime events and CI/CD pipeline outcomes. Source: atlas-notify ring buffer, last 200 events across the stack.
+
+          <div class="ramone-mini-footer">
+            <a href="https://ramone.atlas-systems.uk/" class="ramone-mini-link">
+              open full interface →
+            </a>
           </div>
         </div>
+      </article>
 
-        <!-- RAMONE PLACEHOLDER -->
-        <div>
-          <div class="section-label">Experiments</div>
-          <div class="ramone-card">
-            <div class="ramone-inner">
-              <div class="ramone-badges">
-                <span class="ramone-badge planned">Planned</span>
-                <span class="ramone-badge">Lab Feature</span>
-              </div>
-              <div class="ramone-title">Ask My Infrastructure</div>
-              <div class="ramone-subtitle">Ramone — Local AI Interface</div>
-              <p class="ramone-desc">A direct interface into Ramone, the private AI system running on SPECULAR-CORE. Ask it anything about Atlas Systems — the stack, the build decisions, the case studies. Every query routes through my local hardware; nothing leaves the machine.</p>
 
-              <div class="ramone-preview">
-                <div class="ramone-preview-line">
-                  <span class="ramone-preview-prompt">you →</span>
-                  <span class="ramone-preview-text">what models is Ramone running?</span>
-                </div>
-                <div class="ramone-preview-line" style="margin-top:0.5rem">
-                  <span class="ramone-preview-prompt" style="color:var(--accent);opacity:0.7">R →</span>
-                  <span class="ramone-preview-response">Five LLMs on a dedicated NVMe — llama3.2:3b for speed, qwen2.5:32b for deep reasoning…<span class="ramone-preview-cursor"></span></span>
-                </div>
-              </div>
+              /* ── PIPELINE STATUS GRID ── */
+          .pgrid-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.75rem}
+          .pgrid-meta{font-size:12px;color:var(--text-dim)}
+          .pgrid-meta strong{color:var(--text);font-weight:500}
+          .pgrid-legend{display:flex;gap:1rem;font-size:10px;color:var(--text-faint);letter-spacing:0.06em;text-transform:uppercase}
+          .pgrid-legend span{display:inline-flex;align-items:center;gap:0.4rem}
+          .pgrid-legend .dot{width:7px;height:7px;border-radius:50%}
+          .pgrid-legend .dot.success{background:#4ade80}
+          .pgrid-legend .dot.warning{background:var(--accent)}
+          .pgrid-legend .dot.failure{background:#e24b4a}
+          .pgrid-legend .dot.info{background:#888}
+          .pgrid-legend .dot.none{background:none;border:1px solid var(--text-faint)}
 
-              <div class="ramone-features">
-                <div class="ramone-feature">Fully local — queries run on RTX 5070, zero cloud egress</div>
-                <div class="ramone-feature">RAG-grounded on Atlas Systems documentation and case studies</div>
-                <div class="ramone-feature">Discord notification on every query via atlas-notify</div>
-              </div>
+          .pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border)}
+          .pgrid-tile{background:var(--bg);padding:1.1rem 1.15rem;display:flex;flex-direction:column;gap:0.5rem;position:relative;min-height:118px;overflow:hidden;text-decoration:none;color:inherit;cursor:pointer;transition:background 0.15s}
+          .pgrid-tile:hover{background:var(--bg-1)}
+          .pgrid-tile.idle{opacity:0.55}
+          .pgrid-tile.stale{opacity:0.62}
+          .pgrid-tile.stale .pgrid-dot{filter:saturate(0.4)}
+
+          .pgrid-row{display:flex;justify-content:space-between;align-items:flex-start;gap:0.75rem}
+          .pgrid-repo{font-family:var(--mono);font-size:12px;color:var(--text);letter-spacing:0.02em;line-height:1.2;word-break:break-all}
+          .pgrid-tile.idle .pgrid-repo{color:var(--text-faint)}
+
+          .pgrid-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:2px}
+          .pgrid-dot.success{background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,0.14)}
+          .pgrid-dot.warning{background:var(--accent);box-shadow:0 0 0 3px rgba(245,166,35,0.14)}
+          .pgrid-dot.failure{background:#e24b4a;box-shadow:0 0 0 3px rgba(226,75,74,0.14)}
+          .pgrid-dot.info{background:#888;box-shadow:0 0 0 3px rgba(136,136,136,0.12)}
+          .pgrid-dot.none{background:transparent;border:1px solid var(--text-faint);box-shadow:none}
+
+          .pgrid-meta-line{font-size:10px;color:var(--text-faint);letter-spacing:0.04em;font-variant-numeric:tabular-nums;display:flex;gap:0.5rem;align-items:center}
+          .pgrid-sha{color:var(--text-dim)}
+          .pgrid-sep{color:var(--text-faint)}
+          .pgrid-stale-tag{color:var(--text-faint);text-transform:uppercase;font-size:9px;letter-spacing:0.06em}
+          .pgrid-summary{font-size:11px;color:var(--text-dim);line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+          .pgrid-tile.idle .pgrid-summary{color:var(--text-faint)}
+
+          /* heartbeat: a single amber sweep, only on recently-changed tiles */
+          .pgrid-pulse{position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--border);overflow:hidden}
+          .pgrid-tile.recent .pgrid-pulse::after{content:'';position:absolute;top:0;left:-30%;width:30%;height:100%;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:pgridSweep 6s linear infinite}
+          @keyframes pgridSweep{0%{left:-30%}100%{left:100%}}
+          /* ── PIPELINE STATS BAR ── */
+          .pgrid-stats{display:flex;gap:1px;background:var(--border);border:1px solid var(--border);border-bottom:none}
+          .pgrid-stat-chip{flex:1;background:var(--bg);padding:0.75rem 1rem;display:flex;flex-direction:column;gap:0.25rem;min-width:0}
+          .pgrid-stat-val{font-family:var(--mono);font-size:16px;color:var(--text);letter-spacing:-0.02em;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+          .pgrid-stat-val.good{color:#4ade80}
+          .pgrid-stat-val.warn{color:var(--accent)}
+          .pgrid-stat-val.bad{color:#e24b4a}
+          .pgrid-stat-label{font-size:10px;color:var(--text-faint);letter-spacing:0.06em;text-transform:uppercase}
+          @media(max-width:600px){.pgrid-stats{flex-wrap:wrap}.pgrid-stat-chip{flex:1 0 45%}}
+
+          /* ── WORKER HEALTH STRIP ── */
+          .health-strip{display:flex;gap:1px;background:var(--border);border:1px solid var(--border);border-top:none;margin-bottom:1rem}
+          .health-chip{flex:1;background:var(--bg);padding:0.65rem 1rem;display:flex;flex-direction:column;gap:0.3rem;min-width:0}
+          .health-chip-name{font-family:var(--mono);font-size:10px;color:var(--text-faint);letter-spacing:0.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+          .health-chip-row{display:flex;align-items:center;gap:0.45rem}
+          .health-chip-latency{font-family:var(--mono);font-size:13px;color:var(--text);font-variant-numeric:tabular-nums}
+          .health-chip-latency.fast{color:#4ade80}
+          .health-chip-latency.medium{color:var(--accent)}
+          .health-chip-latency.slow{color:#e24b4a}
+          .health-chip-latency.err{color:var(--text-faint);font-size:11px}
+          .health-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+          .health-dot.up{background:#4ade80;box-shadow:0 0 0 2px rgba(74,222,128,0.14)}
+          .health-dot.degraded{background:var(--accent);box-shadow:0 0 0 2px rgba(245,166,35,0.14)}
+          .health-dot.down{background:#e24b4a;box-shadow:0 0 0 2px rgba(226,75,74,0.14)}
+          .health-loading{font-size:11px;color:var(--text-faint);padding:0.75rem 1rem;font-family:var(--mono)}
+          @media(max-width:600px){.health-strip{flex-wrap:wrap}.health-chip{flex:1 0 45%}}
+          @media (prefers-reduced-motion: reduce){.pgrid-tile.recent .pgrid-pulse::after{animation:none;opacity:0}}
+
+          @media(max-width:880px){.pgrid{grid-template-columns:repeat(2,1fr)}}
+          @media(max-width:420px){.pgrid{grid-template-columns:1fr}}
+
+          /* ── API SURFACE ── */
+          .api-surface-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:var(--border);border:1px solid var(--border)}
+          .api-worker-card{background:var(--bg);padding:1.1rem 1.15rem;display:flex;flex-direction:column;gap:0.9rem}
+          .api-worker-head{display:flex;justify-content:space-between;align-items:baseline;gap:0.75rem}
+          .api-worker-name{font-family:var(--mono);font-size:13px;color:var(--text);letter-spacing:0.02em}
+          .api-worker-link{font-size:10px;color:var(--text-faint);text-decoration:none;letter-spacing:0.04em;white-space:nowrap;transition:color 0.15s}
+          .api-worker-link:hover{color:var(--accent)}
+          .api-endpoint-list{display:flex;flex-direction:column;gap:0.7rem}
+          .api-endpoint-row{padding-top:0.7rem;border-top:1px solid var(--border)}
+          .api-endpoint-row:first-child{padding-top:0;border-top:none}
+          .api-endpoint-top{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap}
+          .api-method{font-family:var(--mono);font-size:9px;letter-spacing:0.04em;padding:1px 6px;border-radius:2px;flex-shrink:0}
+          .api-method.get{color:var(--text-dim);background:rgba(136,136,136,0.1);border:1px solid var(--border-hi)}
+          .api-method.post{color:var(--accent);background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.3)}
+          .api-path{font-family:var(--mono);font-size:11px;color:var(--text-dim);word-break:break-all}
+          .api-auth-tag{font-size:9px;letter-spacing:0.04em;text-transform:uppercase;color:var(--text-faint);border:1px solid var(--border-hi);padding:1px 5px;border-radius:2px;flex-shrink:0}
+          .api-desc{font-size:11px;color:var(--text-faint);line-height:1.5;margin-top:0.35rem}
+          .api-surface-note{font-size:11px;color:var(--text-faint);margin-top:1.25rem;letter-spacing:0.04em}
+          .api-loading{padding:2rem 1rem;font-size:12px;color:var(--text-faint);text-align:center;grid-column:1/-1}
+
+          /* ── MOBILE NAV ── */
+          .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
+          .mobile-nav-inner{display:flex;align-items:stretch;height:100%}
+          .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.15s}
+          .mobile-nav-item:hover,.mobile-nav-item.active{color:var(--accent)}
+          .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+          /* ── RESPONSIVE ── */
+          @media(max-width:780px){.lab-grid{grid-template-columns:1fr}.heatmap-stats{gap:1rem}}
+          @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}}
+    </style>
+  </head>
+  <body>
+    <nav aria-label="Primary navigation">
+      <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
+      <ul class="nav-links">
+        <li><a href="/work/" class="nav-link">Work</a></li>
+        <li><a href="/writing/" class="nav-link">Writing</a></li>
+        <li><a href="/lab/" class="nav-link">Lab</a></li>
+        <li><a href="/about/" class="nav-link">About</a></li>
+      </ul>
+    </nav>
+
+    <div id="heatmap-tooltip"><strong></strong><span></span></div>
+
+    <main>
+      <header class="page-header">
+        <div class="section-label">Lab</div>
+        <h1 class="page-heading">Live systems.</h1>
+        <p class="page-sub">
+          Real data from the Atlas Systems stack — commit activity, recent stack
+          events, and experiments in progress.
+        </p>
+      </header>
+
+      <!-- ACTIVITY HEATMAP -->
+      <section class="section">
+        <div class="section-label">Activity</div>
+
+        <div class="heatmap-meta">
+          <div class="heatmap-stats">
+            <div class="heatmap-stat">
+              <strong id="heatmap-total">—</strong> commits · 90 days
+            </div>
+            <div class="heatmap-stat">
+              <strong id="heatmap-repos">—</strong> repos
+            </div>
+            <div class="heatmap-stat">
+              <strong id="heatmap-top-lang">—</strong> top language
             </div>
           </div>
+          <div class="heatmap-legend">
+            <span>less</span>
+            <div class="heatmap-legend-cells">
+              <div
+                class="heatmap-legend-cell"
+                style="background: var(--bg-2)"
+              ></div>
+              <div
+                class="heatmap-legend-cell"
+                style="background: rgba(245, 166, 35, 0.18)"
+              ></div>
+              <div
+                class="heatmap-legend-cell"
+                style="background: rgba(245, 166, 35, 0.38)"
+              ></div>
+              <div
+                class="heatmap-legend-cell"
+                style="background: rgba(245, 166, 35, 0.62)"
+              ></div>
+              <div
+                class="heatmap-legend-cell"
+                style="background: var(--accent)"
+              ></div>
+            </div>
+            <span>more</span>
+          </div>
         </div>
 
+        <div class="heatmap-outer">
+          <div class="heatmap-left" id="heatmap-day-labels"></div>
+          <div class="heatmap-right">
+            <div class="heatmap-month-row" id="heatmap-months"></div>
+            <div class="heatmap-grid" id="heatmap-grid"></div>
+          </div>
+        </div>
+
+        <p class="heatmap-note" id="heatmap-note">Loading activity data…</p>
+      </section>
+
+      <section class="section" id="pipeline-grid-section">
+        <div class="section-label">Pipeline status</div>
+        <div class="pgrid-head">
+          <div class="pgrid-meta">
+            Live state across <strong>8</strong> repos · updated
+            <strong id="pgrid-updated">—</strong>
+          </div>
+          <div class="pgrid-legend">
+            <span><span class="dot success"></span>ok</span>
+            <span><span class="dot warning"></span>warn</span>
+            <span><span class="dot failure"></span>fail</span>
+            <span><span class="dot info"></span>info</span>
+            <span><span class="dot none"></span>idle</span>
+          </div>
+        </div>
+        <div class="pgrid-stats" id="pgrid-stats">
+          <div class="pgrid-stat-chip">
+            <span class="pgrid-stat-val" id="pstat-total">—</span
+            ><span class="pgrid-stat-label">pipeline runs</span>
+          </div>
+          <div class="pgrid-stat-chip">
+            <span class="pgrid-stat-val" id="pstat-rate">—</span
+            ><span class="pgrid-stat-label">success rate</span>
+          </div>
+          <div class="pgrid-stat-chip">
+            <span class="pgrid-stat-val" id="pstat-week">—</span
+            ><span class="pgrid-stat-label">this week</span>
+          </div>
+          <div class="pgrid-stat-chip">
+            <span class="pgrid-stat-val" id="pstat-top">—</span
+            ><span class="pgrid-stat-label">most active</span>
+          </div>
+        </div>
+        <div class="pgrid" id="pgrid"></div>
+        <div class="health-strip" id="health-strip">
+          <div class="health-loading">Checking worker latency…</div>
+        </div>
+        <p class="flog-note">
+          Each tile shows the latest pipeline-relevant event per repo. Pushes
+          and other info events don't clear a prior failure — only a successful
+          deploy does. Idle tiles (hollow dot) indicate the pipeline is wired
+          but no deploy has reached the ring buffer yet — they populate on the
+          repo's next push to main. Source: atlas-notify ring buffer.
+        </p>
+      </section>
+      <!-- FAILURE LOG + RAMONE -->
+      <section class="section">
+        <div class="lab-grid">
+          <!-- FAILURE LOG -->
+          <div>
+            <div class="section-label">Failure log</div>
+            <div class="flog-head">
+              <div class="flog-meta">
+                <strong id="flog-total">—</strong> recent events ·
+                <strong id="flog-shown">—</strong> shown
+              </div>
+              <button class="flog-refresh" id="flog-refresh-btn" type="button">
+                ↻ refresh
+              </button>
+            </div>
+            <div class="flog-filters" id="flog-filters"></div>
+            <div id="flog-list" class="flog-list">
+              <div class="flog-loading">Loading recent events…</div>
+            </div>
+            <div class="flog-note">
+              Historical companion to the home page live status — covers both
+              runtime events and CI/CD pipeline outcomes. Source: atlas-notify
+              ring buffer, last 200 events across the stack.
+            </div>
+          </div>
+
+          <!-- RAMONE PLACEHOLDER -->
+          <div>
+            <div class="section-label">Experiments</div>
+            <div class="ramone-card">
+              <div class="ramone-inner">
+                <div class="ramone-badges">
+                  <span class="ramone-badge planned">Planned</span>
+                  <span class="ramone-badge">Lab Feature</span>
+                </div>
+                <div class="ramone-title">Ask My Infrastructure</div>
+                <div class="ramone-subtitle">Ramone — Local AI Interface</div>
+                <p class="ramone-desc">
+                  A direct interface into Ramone, the private AI system running
+                  on SPECULAR-CORE. Ask it anything about Atlas Systems — the
+                  stack, the build decisions, the case studies. Every query
+                  routes through my local hardware; nothing leaves the machine.
+                </p>
+
+                <div class="ramone-preview">
+                  <div class="ramone-preview-line">
+                    <span class="ramone-preview-prompt">you →</span>
+                    <span class="ramone-preview-text"
+                      >what models is Ramone running?</span
+                    >
+                  </div>
+                  <div class="ramone-preview-line" style="margin-top: 0.5rem">
+                    <span
+                      class="ramone-preview-prompt"
+                      style="color: var(--accent); opacity: 0.7"
+                      >R →</span
+                    >
+                    <span class="ramone-preview-response"
+                      >Five LLMs on a dedicated NVMe — llama3.2:3b for speed,
+                      qwen2.5:32b for deep reasoning…<span
+                        class="ramone-preview-cursor"
+                      ></span
+                    ></span>
+                  </div>
+                </div>
+
+                <div class="ramone-features">
+                  <div class="ramone-feature">
+                    Fully local — queries run on RTX 5070, zero cloud egress
+                  </div>
+                  <div class="ramone-feature">
+                    RAG-grounded on Atlas Systems documentation and case studies
+                  </div>
+                  <div class="ramone-feature">
+                    Discord notification on every query via atlas-notify
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- API SURFACE -->
+      <section class="section">
+        <div class="section-label">Surface</div>
+        <div class="api-surface-grid" id="api-surface-grid">
+          <div class="api-loading">Loading API index…</div>
+        </div>
+        <p class="api-surface-note" id="api-surface-note">Loading…</p>
+      </section>
+    </main>
+
+    <nav class="mobile-nav" aria-label="Mobile navigation">
+      <div class="mobile-nav-inner">
+        <a href="/" class="mobile-nav-item"
+          ><svg viewBox="0 0 24 24">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" /></svg
+          >Home</a
+        >
+        <a href="/work/" class="mobile-nav-item"
+          ><svg viewBox="0 0 24 24">
+            <polyline points="16 18 22 12 16 6" />
+            <polyline points="8 6 2 12 8 18" /></svg
+          >Work</a
+        >
+        <a href="/writing/" class="mobile-nav-item"
+          ><svg viewBox="0 0 24 24">
+            <path d="M12 20h9" />
+            <path
+              d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"
+            /></svg
+          >Writing</a
+        >
+        <a href="/about/" class="mobile-nav-item"
+          ><svg viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M20 21a8 8 0 10-16 0" /></svg
+          >About</a
+        >
       </div>
-    </section>
+    </nav>
 
-    <!-- API SURFACE -->
-    <section class="section">
-      <div class="section-label">Surface</div>
-      <div class="api-surface-grid" id="api-surface-grid">
-        <div class="api-loading">Loading API index…</div>
-      </div>
-      <p class="api-surface-note" id="api-surface-note">Loading…</p>
-    </section>
-
-  </main>
-
-  <nav class="mobile-nav" aria-label="Mobile navigation">
-    <div class="mobile-nav-inner">
-      <a href="/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
-      <a href="/work/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Work</a>
-      <a href="/writing/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Writing</a>
-      <a href="/about/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg>About</a>
-    </div>
-  </nav>
-
-  <script>
-    // ── NAV ACTIVE ───────────────────────────────────────────────────────────
-    document.querySelectorAll('.nav-link').forEach(a => {
-      if (window.location.pathname.startsWith(a.getAttribute('href'))) a.classList.add('active');
-    });
-
-    // ── HEATMAP ──────────────────────────────────────────────────────────────
-    const HEATMAP_URL  = 'https://api.atlas-systems.uk/pulse/heatmap';
-    const MONTH_NAMES  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const DAY_LABELS   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-    const CELL_SIZE    = 11;
-    const CELL_GAP     = 3;
-    const COL_W        = CELL_SIZE + CELL_GAP; // 14px per column
-
-    async function initHeatmap() {
-      let data;
-      try {
-        const res = await fetch(HEATMAP_URL, { cache: 'no-store' });
-        data = await res.json();
-      } catch {
-        document.getElementById('heatmap-note').textContent = 'Activity data unavailable.';
-        return;
-      }
-
-      document.getElementById('heatmap-total').textContent    = data.totals?.commitsLast90Days ?? '—';
-      document.getElementById('heatmap-repos').textContent    = data.totals?.publicRepos ?? '—';
-      document.getElementById('heatmap-top-lang').textContent = data.totals?.topLanguage ?? '—';
-
-      const countMap = data.days || {};
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const days = [];
-      for (let i = 89; i >= 0; i--) {
-        const d = new Date(today);
-        d.setDate(d.getDate() - i);
-        const key = d.toISOString().slice(0, 10);
-        days.push({ key, count: countMap[key] || 0, d });
-      }
-
-      const startDow = (days[0].d.getDay() + 6) % 7;
-      const cells = [...Array(startDow).fill(null), ...days];
-      const totalCols = Math.ceil(cells.length / 7);
-
-      const dayLabelEl = document.getElementById('heatmap-day-labels');
-      DAY_LABELS.forEach(label => {
-        const el = document.createElement('div');
-        el.className = 'heatmap-day-label';
-        el.textContent = (label === 'Mon' || label === 'Wed' || label === 'Fri') ? label : '';
-        dayLabelEl.appendChild(el);
+    <script>
+      // ── NAV ACTIVE ───────────────────────────────────────────────────────────
+      document.querySelectorAll(".nav-link").forEach((a) => {
+        if (window.location.pathname.startsWith(a.getAttribute("href")))
+          a.classList.add("active");
       });
 
-      const monthRow = document.getElementById('heatmap-months');
-      monthRow.style.width = (totalCols * COL_W - CELL_GAP) + 'px';
+      // ── HEATMAP ──────────────────────────────────────────────────────────────
+      const HEATMAP_URL = "https://api.atlas-systems.uk/pulse/heatmap";
+      const MONTH_NAMES = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+      const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      const CELL_SIZE = 11;
+      const CELL_GAP = 3;
+      const COL_W = CELL_SIZE + CELL_GAP; // 14px per column
 
-      let lastMonth = -1;
-      for (let col = 0; col < totalCols; col++) {
-        const slice = cells.slice(col * 7, col * 7 + 7);
-        const firstReal = slice.find(c => c !== null);
-        if (!firstReal) continue;
-        const m = firstReal.d.getMonth();
-        if (m !== lastMonth) {
-          lastMonth = m;
-          const label = document.createElement('span');
-          label.className = 'heatmap-month-label';
-          label.textContent = MONTH_NAMES[m];
-          label.style.left = (col * COL_W) + 'px';
-          monthRow.appendChild(label);
+      async function initHeatmap() {
+        let data;
+        try {
+          const res = await fetch(HEATMAP_URL, { cache: "no-store" });
+          data = await res.json();
+        } catch {
+          document.getElementById("heatmap-note").textContent =
+            "Activity data unavailable.";
+          return;
         }
-      }
 
-      const grid    = document.getElementById('heatmap-grid');
-      const tooltip = document.getElementById('heatmap-tooltip');
+        document.getElementById("heatmap-total").textContent =
+          data.totals?.commitsLast90Days ?? "—";
+        document.getElementById("heatmap-repos").textContent =
+          data.totals?.publicRepos ?? "—";
+        document.getElementById("heatmap-top-lang").textContent =
+          data.totals?.topLanguage ?? "—";
 
-      cells.forEach(cell => {
-        const el = document.createElement('div');
-        el.className = 'heatmap-cell';
+        const countMap = data.days || {};
 
-        if (!cell) {
-          el.classList.add('empty');
-        } else {
-          const count = cell.count;
-          if (count > 0) {
-            let level = 1;
-            if (count === 2)     level = 2;
-            else if (count <= 4) level = 3;
-            else if (count >= 5) level = 4;
-            el.dataset.level = level;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const days = [];
+        for (let i = 89; i >= 0; i--) {
+          const d = new Date(today);
+          d.setDate(d.getDate() - i);
+          const key = d.toISOString().slice(0, 10);
+          days.push({ key, count: countMap[key] || 0, d });
+        }
+
+        const startDow = (days[0].d.getDay() + 6) % 7;
+        const cells = [...Array(startDow).fill(null), ...days];
+        const totalCols = Math.ceil(cells.length / 7);
+
+        const dayLabelEl = document.getElementById("heatmap-day-labels");
+        DAY_LABELS.forEach((label) => {
+          const el = document.createElement("div");
+          el.className = "heatmap-day-label";
+          el.textContent =
+            label === "Mon" || label === "Wed" || label === "Fri" ? label : "";
+          dayLabelEl.appendChild(el);
+        });
+
+        const monthRow = document.getElementById("heatmap-months");
+        monthRow.style.width = totalCols * COL_W - CELL_GAP + "px";
+
+        let lastMonth = -1;
+        for (let col = 0; col < totalCols; col++) {
+          const slice = cells.slice(col * 7, col * 7 + 7);
+          const firstReal = slice.find((c) => c !== null);
+          if (!firstReal) continue;
+          const m = firstReal.d.getMonth();
+          if (m !== lastMonth) {
+            lastMonth = m;
+            const label = document.createElement("span");
+            label.className = "heatmap-month-label";
+            label.textContent = MONTH_NAMES[m];
+            label.style.left = col * COL_W + "px";
+            monthRow.appendChild(label);
+          }
+        }
+
+        const grid = document.getElementById("heatmap-grid");
+        const tooltip = document.getElementById("heatmap-tooltip");
+
+        cells.forEach((cell) => {
+          const el = document.createElement("div");
+          el.className = "heatmap-cell";
+
+          if (!cell) {
+            el.classList.add("empty");
+          } else {
+            const count = cell.count;
+            if (count > 0) {
+              let level = 1;
+              if (count === 2) level = 2;
+              else if (count <= 4) level = 3;
+              else if (count >= 5) level = 4;
+              el.dataset.level = level;
+            }
+
+            el.addEventListener("mousemove", (e) => {
+              const dateObj = new Date(cell.key + "T12:00:00");
+              const formatted = dateObj.toLocaleDateString("en-GB", {
+                weekday: "short",
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              });
+              tooltip.querySelector("strong").textContent =
+                count === 0
+                  ? "No commits"
+                  : `${count} commit${count !== 1 ? "s" : ""}`;
+              tooltip.querySelector("span").textContent = formatted;
+              tooltip.style.display = "block";
+              tooltip.style.left = e.clientX + 14 + "px";
+              tooltip.style.top = e.clientY - 42 + "px";
+            });
+            el.addEventListener("mouseleave", () => {
+              tooltip.style.display = "none";
+            });
           }
 
-          el.addEventListener('mousemove', e => {
-            const dateObj  = new Date(cell.key + 'T12:00:00');
-            const formatted = dateObj.toLocaleDateString('en-GB', {
-              weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
-            });
-            tooltip.querySelector('strong').textContent =
-              count === 0 ? 'No commits' : `${count} commit${count !== 1 ? 's' : ''}`;
-            tooltip.querySelector('span').textContent = formatted;
-            tooltip.style.display = 'block';
-            tooltip.style.left    = (e.clientX + 14) + 'px';
-            tooltip.style.top     = (e.clientY - 42) + 'px';
+          grid.appendChild(el);
+        });
+
+        const activeDays = Object.keys(countMap).length;
+        document.getElementById("heatmap-note").textContent =
+          `Per-day commit breakdown across all repos · ${activeDays} day${activeDays !== 1 ? "s" : ""} with commits in the last 90 days`;
+      }
+
+      initHeatmap();
+
+      // ── FAILURE LOG ──────────────────────────────────────────────────────────
+      const FLOG_URL = "https://api.atlas-systems.uk/notify/recent";
+      const FLOG_LIMIT = 10;
+      const FLOG_LEVELS = ["success", "info", "warning", "failure"];
+
+      let flogActiveLevels = null; // null = no filter; otherwise a Set
+      let flogCachedData = null;
+
+      async function loadFlog() {
+        const listEl = document.getElementById("flog-list");
+        listEl.innerHTML =
+          '<div class="flog-loading">Loading recent events…</div>';
+
+        let data;
+        try {
+          const res = await fetch(`${FLOG_URL}?limit=50`, {
+            cache: "no-store",
           });
-          el.addEventListener('mouseleave', () => {
-            tooltip.style.display = 'none';
-          });
+          data = await res.json();
+        } catch {
+          listEl.innerHTML =
+            '<div class="flog-empty">Event feed unavailable.</div>';
+          return;
+        }
+        if (!data?.ok) {
+          listEl.innerHTML = `<div class="flog-empty">${data?.error || "No data."}</div>`;
+          return;
         }
 
-        grid.appendChild(el);
-      });
-
-      const activeDays = Object.keys(countMap).length;
-      document.getElementById('heatmap-note').textContent =
-        `Per-day commit breakdown across all repos · ${activeDays} day${activeDays !== 1 ? 's' : ''} with commits in the last 90 days`;
-    }
-
-    initHeatmap();
-
-    // ── FAILURE LOG ──────────────────────────────────────────────────────────
-    const FLOG_URL    = 'https://api.atlas-systems.uk/notify/recent';
-    const FLOG_LIMIT  = 10;
-    const FLOG_LEVELS = ['success', 'info', 'warning', 'failure'];
-
-    let flogActiveLevels = null;   // null = no filter; otherwise a Set
-    let flogCachedData   = null;
-
-    async function loadFlog() {
-      const listEl = document.getElementById('flog-list');
-      listEl.innerHTML = '<div class="flog-loading">Loading recent events…</div>';
-
-      let data;
-      try {
-        const res = await fetch(`${FLOG_URL}?limit=50`, { cache: 'no-store' });
-        data = await res.json();
-      } catch {
-        listEl.innerHTML = '<div class="flog-empty">Event feed unavailable.</div>';
-        return;
-      }
-      if (!data?.ok) {
-        listEl.innerHTML = `<div class="flog-empty">${data?.error || 'No data.'}</div>`;
-        return;
-      }
-
-      flogCachedData = data;
-      renderFlog();
-    }
-
-    function renderFlog() {
-      if (!flogCachedData) return;
-      const data = flogCachedData;
-      const listEl    = document.getElementById('flog-list');
-      const filtersEl = document.getElementById('flog-filters');
-
-      filtersEl.innerHTML = '';
-      const counts = data.levelCounts || {};
-      filtersEl.appendChild(makeChip('all', null, data.total, flogActiveLevels === null));
-      for (const lvl of FLOG_LEVELS) {
-        if (!counts[lvl]) continue;
-        const isActive = flogActiveLevels && flogActiveLevels.has(lvl);
-        filtersEl.appendChild(makeChip(lvl, lvl, counts[lvl], isActive));
-      }
-
-      const filtered = flogActiveLevels
-        ? data.events.filter(e => flogActiveLevels.has(e.level))
-        : data.events;
-      const shown = filtered.slice(0, FLOG_LIMIT);
-
-      document.getElementById('flog-total').textContent = data.total;
-      document.getElementById('flog-shown').textContent = shown.length;
-
-      if (!shown.length) {
-        listEl.innerHTML = '<div class="flog-empty">No events match this filter.</div>';
-        return;
-      }
-
-      listEl.innerHTML = '';
-      for (const e of shown) listEl.appendChild(renderFlogEntry(e));
-    }
-
-    function makeChip(label, level, count, active) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'flog-chip' + (active ? ' active' : '');
-      if (level) {
-        const dot = document.createElement('span');
-        dot.className = `dot ${level}`;
-        btn.appendChild(dot);
-      }
-      btn.appendChild(document.createTextNode(label));
-      const c = document.createElement('span');
-      c.className = 'count';
-      c.textContent = count;
-      btn.appendChild(c);
-      btn.addEventListener('click', () => {
-        if (level === null) {
-          flogActiveLevels = null;
-        } else {
-          if (!flogActiveLevels) flogActiveLevels = new Set();
-          if (flogActiveLevels.has(level)) flogActiveLevels.delete(level);
-          else flogActiveLevels.add(level);
-          if (!flogActiveLevels.size) flogActiveLevels = null;
-        }
+        flogCachedData = data;
         renderFlog();
-      });
-      return btn;
-    }
-
-    // Same title patterns pgridSummary already uses to recognise a
-    // pipeline outcome — keeps the Failure log and the status grid
-    // agreeing on what counts as CI/CD vs a runtime signal.
-    function flogIsCicd(e) {
-      const t = e.title || '';
-      return /^deployed:/i.test(t)
-        || /^blocked:/i.test(t)
-        || /^deploy failed:/i.test(t)
-        || /^pages deploy (succeeded|failed)/i.test(t);
-    }
-
-    function renderFlogEntry(e) {
-      const row = document.createElement('div');
-      row.className = 'flog-entry';
-
-      const dot = document.createElement('div');
-      dot.className = `flog-dot ${e.level || 'info'}`;
-      row.appendChild(dot);
-
-      const body = document.createElement('div');
-      body.className = 'flog-body';
-      const src = document.createElement('div');
-      src.className = 'flog-source';
-      src.textContent = e.event || e.dialect || 'event';
-      const badge = document.createElement('span');
-      badge.className = 'flog-badge ' + (flogIsCicd(e) ? 'cicd' : 'runtime');
-      badge.textContent = flogIsCicd(e) ? 'CI/CD' : 'Runtime';
-      src.appendChild(badge);
-      const title = document.createElement('div');
-      title.className = 'flog-title';
-      title.textContent = e.title || '(no title)';
-      body.appendChild(src);
-      body.appendChild(title);
-      if (e.message) {
-        const msg = document.createElement('div');
-        msg.className = 'flog-msg';
-        msg.textContent = e.message;
-        body.appendChild(msg);
-      }
-      row.appendChild(body);
-
-      const when = document.createElement('div');
-      when.className = 'flog-when';
-      when.textContent = flogRelTime(e.ts);
-      row.appendChild(when);
-
-      return row;
-    }
-
-    function flogRelTime(iso) {
-      if (!iso) return '';
-      const then = new Date(iso).getTime();
-      if (!Number.isFinite(then)) return '';
-      const s = Math.max(1, Math.round((Date.now() - then) / 1000));
-      if (s < 60)   return `${s}s ago`;
-      const m = Math.round(s / 60);
-      if (m < 60)   return `${m}m ago`;
-      const h = Math.round(m / 60);
-      if (h < 24)   return `${h}h ago`;
-      const d = Math.round(h / 24);
-      if (d < 30)   return `${d}d ago`;
-      const mo = Math.round(d / 30);
-      return `${mo}mo ago`;
-    }
-
-    document.getElementById('flog-refresh-btn').addEventListener('click', loadFlog);
-    loadFlog();
-    // Re-render relative times every 30s without re-fetching.
-    setInterval(() => { if (flogCachedData) renderFlog(); }, 30_000);
-    // ── PIPELINE STATUS GRID ───────────────────────────────────────────────
-const PGRID_REPOS = [
-  'github-pulse',
-  'atlas-systems',
-  'atlas-doc-viewer',
-  'atlas-notify',
-  'site-pulse',
-  'deploy-watch',
-  'status',
-  'atlas-vault',
-];
-const PGRID_RECENT_MS = 5 * 60 * 1000; // "recent change" = heartbeat on
-const PGRID_STALE_MS = 7 * 24 * 60 * 60 * 1000; // no pipeline-relevant event in 7 days = stale
-const PGRID_REPO_URL = (repo) => `https://github.com/AtlasReaper311/${repo}`;
-
-// Pull the repo name out of an event. Tries title patterns first,
-// then falls back to substring match against the canonical list.
-function pgridRepoFor(ev) {
-  const title = (ev.title || '').toLowerCase();
-  const msg = (ev.message || '').toLowerCase();
-  const hay = title + ' ' + msg;
-  // Direct slug match wins — handles "Push to AtlasReaperSOH/github-pulse",
-  // "Pages deploy succeeded: atlas-systems", "atlas-scheduler run failed", etc.
-  for (const repo of PGRID_REPOS) {
-    const r = repo.toLowerCase();
-    // word-ish boundary so "status" doesn't match inside "atlas-systems"
-    const re = new RegExp('(^|[^a-z0-9-])' + r.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') + '($|[^a-z0-9-])');
-    if (re.test(hay)) return repo;
-  }
-  return null;
-}
-
-// Extract a 7-char SHA if the event mentions one (push events often do).
-function pgridShaFrom(ev) {
-  const hay = (ev.title || '') + ' ' + (ev.message || '');
-  const m = hay.match(/\b[0-9a-f]{7,40}\b/i);
-  return m ? m[0].slice(0, 7) : null;
-}
-
-// Short, human label for the tile body.
-function pgridSummary(ev) {
-  const t = ev.title || '';
-  if (/^pages deploy succeeded/i.test(t)) return 'Pages deploy succeeded';
-  if (/^pages deploy failed/i.test(t))    return 'Pages deploy failed';
-  if (/^deployed:/i.test(t))              return 'Deployed';
-  if (/^deploy failed:/i.test(t))         return 'Deploy failed';
-  if (/^blocked:/i.test(t))               return 'Blocked';
-  if (/^push to/i.test(t))                return 'Push to main';
-  if (/^branch deleted/i.test(t))         return 'Branch deleted';
-  if (/^webhook connected/i.test(t))      return 'Webhook connected';
-  if (/^container health/i.test(t))       return 'Container health change';
-  if (ev.event === 'alert')               return ev.title || 'Alert';
-  return t || ev.event || 'event';
-}
-
-function pgridRender(events) {
-  const grid = document.getElementById('pgrid');
-  if (!grid) return;
-
-  // Per repo: scan newest-first, take the first non-info event for the dot.
-  // Always remember the absolute latest event for SHA + time display.
-  const state = {};
-  for (const repo of PGRID_REPOS) state[repo] = { latest: null, status: null };
-
-  for (const ev of events) {
-    const repo = pgridRepoFor(ev);
-    if (!repo || !state[repo]) continue;
-    if (!state[repo].latest) state[repo].latest = ev;
-    if (!state[repo].status && ev.level && ev.level !== 'info') {
-      state[repo].status = ev;
-    }
-  }
-
-  grid.innerHTML = '';
-  const now = Date.now();
-
-  for (const repo of PGRID_REPOS) {
-    const { latest, status } = state[repo];
-    const tile = document.createElement('a');
-    tile.className = 'pgrid-tile';
-    tile.href = PGRID_REPO_URL(repo);
-    tile.target = '_blank';
-    tile.rel = 'noopener noreferrer';
-
-    let level;
-    if (status) level = status.level;
-    else if (latest) level = 'info';
-    else level = 'none';
-
-    if (level === 'none') tile.classList.add('idle');
-
-    const refEv = status || latest;
-    let isStale = false;
-    if (refEv && refEv.ts) {
-      const age = now - new Date(refEv.ts).getTime();
-      if (Number.isFinite(age) && age <= PGRID_RECENT_MS) tile.classList.add('recent');
-      if (Number.isFinite(age) && age > PGRID_STALE_MS) isStale = true;
-    }
-    if (isStale && level !== 'none') tile.classList.add('stale');
-
-    const row = document.createElement('div');
-    row.className = 'pgrid-row';
-    const name = document.createElement('div');
-    name.className = 'pgrid-repo';
-    name.textContent = repo;
-    const dot = document.createElement('div');
-    dot.className = 'pgrid-dot ' + level;
-    row.appendChild(name);
-    row.appendChild(dot);
-    tile.appendChild(row);
-
-    const meta = document.createElement('div');
-    meta.className = 'pgrid-meta-line';
-    if (latest) {
-      const sha = pgridShaFrom(latest);
-      if (sha) {
-        const shaEl = document.createElement('span');
-        shaEl.className = 'pgrid-sha';
-        shaEl.textContent = sha;
-        meta.appendChild(shaEl);
-        const sep = document.createElement('span');
-        sep.className = 'pgrid-sep';
-        sep.textContent = '·';
-        meta.appendChild(sep);
-      }
-      const when = document.createElement('span');
-      when.textContent = flogRelTime(latest.ts);
-      meta.appendChild(when);
-      if (isStale && level !== 'none') {
-        const sep2 = document.createElement('span');
-        sep2.className = 'pgrid-sep';
-        sep2.textContent = '·';
-        meta.appendChild(sep2);
-        const staleTag = document.createElement('span');
-        staleTag.className = 'pgrid-stale-tag';
-        staleTag.textContent = 'stale';
-        meta.appendChild(staleTag);
-      }
-    } else {
-      meta.textContent = 'no events yet';
-    }
-    tile.appendChild(meta);
-
-    const summary = document.createElement('div');
-    summary.className = 'pgrid-summary';
-    const summaryEv = status || latest;
-    summary.textContent = summaryEv ? pgridSummary(summaryEv) : 'awaiting first deploy';
-    tile.appendChild(summary);
-
-    const pulse = document.createElement('div');
-    pulse.className = 'pgrid-pulse';
-    tile.appendChild(pulse);
-
-    grid.appendChild(tile);
-  }
-
-  const updatedEl = document.getElementById('pgrid-updated');
-  if (updatedEl) updatedEl.textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-}
-
-// ── PIPELINE STATS ────────────────────────────────────────────────────────
-// Computes summary metrics from the existing ring buffer — no extra fetch.
-// "Pipeline events" are deploy outcomes only; push/info events are excluded
-// so the stats reflect actual CI/CD signal rather than raw activity.
-
-function isPipelineEvent(e) {
-  const t = e.title || '';
-  return /^(deployed:|deploy failed:|blocked:|pages deploy)/i.test(t);
-}
-
-function renderPipelineStats(events) {
-  const pipeline = events.filter(isPipelineEvent);
-  const total    = pipeline.length;
-  const successes = pipeline.filter(e => e.level === 'success').length;
-  const failures  = pipeline.filter(e => e.level === 'failure').length;
-  const rateBase  = successes + failures;
-  const rate      = rateBase > 0 ? Math.round((successes / rateBase) * 100) : null;
-
-  const weekAgo  = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  const thisWeek = pipeline.filter(e => new Date(e.ts).getTime() >= weekAgo).length;
-
-  const repoCounts = {};
-  for (const e of pipeline) {
-    const repo = pgridRepoFor(e);
-    if (repo) repoCounts[repo] = (repoCounts[repo] || 0) + 1;
-  }
-  const topEntry = Object.entries(repoCounts).sort((a, b) => b[1] - a[1])[0];
-  const topRepo  = topEntry ? topEntry[0] : null;
-
-  const totalEl = document.getElementById('pstat-total');
-  const rateEl  = document.getElementById('pstat-rate');
-  const weekEl  = document.getElementById('pstat-week');
-  const topEl   = document.getElementById('pstat-top');
-
-  if (totalEl) totalEl.textContent = total;
-  if (weekEl)  weekEl.textContent  = thisWeek;
-  if (topEl)   topEl.textContent   = topRepo ?? '—';
-
-  if (rateEl) {
-    if (rate === null) {
-      rateEl.textContent  = '—';
-      rateEl.className    = 'pgrid-stat-val';
-    } else {
-      rateEl.textContent  = rate + '%';
-      rateEl.className    = 'pgrid-stat-val ' + (rate >= 90 ? 'good' : rate >= 70 ? 'warn' : 'bad');
-    }
-  }
-}
-
-// Piggyback on the failure log's fetch — render the grid every time
-// flogCachedData updates, and on the 30s re-render tick.
-const _origRenderFlog = renderFlog;
-renderFlog = function () {
-  _origRenderFlog();
-  if (flogCachedData?.events) {
-    pgridRender(flogCachedData.events);
-    renderPipelineStats(flogCachedData.events);
-  }
-};
-// Initial paint after first load resolves
-const _pgridWatch = setInterval(() => {
-  if (flogCachedData?.events) {
-    pgridRender(flogCachedData.events);
-    renderPipelineStats(flogCachedData.events);
-    clearInterval(_pgridWatch);
-  }
-}, 200);
-
-    // ── WORKER HEALTH STRIP ───────────────────────────────────────────────────
-// Ping targets are derived from the API surface data (loaded by initApiSurface)
-// so the strip stays in sync with whatever Workers the estate declares.
-// One unauthenticated GET per Worker; health/liveness endpoints are preferred.
-
-let _healthTargets = null;
-
-function deriveHealthTargets(endpoints) {
-  const BASE = 'https://api.atlas-systems.uk';
-  const byWorker = {};
-  for (const ep of endpoints) {
-    if (ep.method !== 'GET') continue;
-    if (/auth required/i.test(ep.description || '')) continue;
-    // First unauthenticated GET per Worker wins, health endpoint overrides
-    if (!byWorker[ep.worker]) byWorker[ep.worker] = ep;
-    if (/health|liveness|probe/i.test(ep.description || '')) byWorker[ep.worker] = ep;
-  }
-  return Object.entries(byWorker).map(([worker, ep]) => ({
-    label: worker,
-    // Strip query-string examples from path before pinging
-    url: BASE + ep.path.replace(/\?.*$/, ''),
-  }));
-}
-
-async function pingEndpoint(url) {
-  const controller = new AbortController();
-  const tid = setTimeout(() => controller.abort(), 5000);
-  const t0  = performance.now();
-  try {
-    const res = await fetch(url, { cache: 'no-store', signal: controller.signal });
-    const ms  = Math.round(performance.now() - t0);
-    return { ok: res.ok, ms };
-  } catch {
-    return { ok: false, ms: null };
-  } finally {
-    clearTimeout(tid);
-  }
-}
-
-function healthDotClass(ok, ms) {
-  if (!ok || ms === null)  return 'down';
-  if (ms >= 400)           return 'degraded';
-  return 'up';
-}
-
-function healthLatencyClass(ms) {
-  if (ms === null) return 'err';
-  if (ms < 150)    return 'fast';
-  if (ms < 400)    return 'medium';
-  return 'slow';
-}
-
-async function runHealthChecks() {
-  if (!_healthTargets?.length) return;
-  const strip = document.getElementById('health-strip');
-  if (!strip) return;
-
-  // Ping all targets concurrently
-  const results = await Promise.all(
-    _healthTargets.map(async (t) => ({ ...t, ping: await pingEndpoint(t.url) }))
-  );
-
-  strip.innerHTML = '';
-  for (const { label, ping } of results) {
-    const chip = document.createElement('div');
-    chip.className = 'health-chip';
-
-    const name = document.createElement('div');
-    name.className = 'health-chip-name';
-    name.textContent = label;
-
-    const row = document.createElement('div');
-    row.className = 'health-chip-row';
-
-    const dot = document.createElement('div');
-    dot.className = 'health-dot ' + healthDotClass(ping.ok, ping.ms);
-
-    const lat = document.createElement('span');
-    lat.className = 'health-chip-latency ' + healthLatencyClass(ping.ms);
-    lat.textContent = ping.ms !== null ? ping.ms + 'ms' : 'timeout';
-
-    row.appendChild(dot);
-    row.appendChild(lat);
-    chip.appendChild(name);
-    chip.appendChild(row);
-    strip.appendChild(chip);
-  }
-}
-// ── API SURFACE MAP ─────────────────────────────────────────────────────
-// Renders the live endpoint index served at the API root. Unlike the
-// heatmap and failure log, this isn't event data — it's a snapshot of
-// what the Worker source declares, so it's fetched once on load rather
-// than polled on an interval; it only changes when a Worker is redeployed.
-const API_INDEX_URL = 'https://api.atlas-systems.uk/';
-
-async function initApiSurface() {
-  const grid = document.getElementById('api-surface-grid');
-  const note = document.getElementById('api-surface-note');
-  if (!grid) return;
-
-  let data;
-  try {
-    const res = await fetch(API_INDEX_URL, {
-      headers: { Accept: 'application/json' },
-      cache: 'no-store',
-    });
-    data = await res.json();
-  } catch {
-    grid.innerHTML = '<div class="api-loading">API index unavailable.</div>';
-    if (note) note.textContent = '';
-    return;
-  }
-
-  const endpoints = Array.isArray(data.endpoints) ? data.endpoints : [];
-  const repos = data.repos || {};
-
-  if (!endpoints.length) {
-    grid.innerHTML = '<div class="api-loading">No endpoints reported.</div>';
-    return;
-  }
-
-  // Group by worker, preserving first-seen order — matches the grouping
-  // already encoded in the source (atlas-notify, github-pulse, ...).
-  const order = [];
-  const byWorker = {};
-  for (const ep of endpoints) {
-    const w = ep.worker || 'unknown';
-    if (!byWorker[w]) { byWorker[w] = []; order.push(w); }
-    byWorker[w].push(ep);
-  }
-
-  grid.innerHTML = '';
-  for (const worker of order) {
-    const card = document.createElement('div');
-    card.className = 'api-worker-card';
-
-    const head = document.createElement('div');
-    head.className = 'api-worker-head';
-    const name = document.createElement('div');
-    name.className = 'api-worker-name';
-    name.textContent = worker;
-    head.appendChild(name);
-    if (repos[worker]) {
-      const link = document.createElement('a');
-      link.className = 'api-worker-link';
-      link.href = repos[worker];
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.textContent = 'repo →';
-      head.appendChild(link);
-    }
-    card.appendChild(head);
-
-    const list = document.createElement('div');
-    list.className = 'api-endpoint-list';
-    for (const ep of byWorker[worker]) {
-      const row = document.createElement('div');
-      row.className = 'api-endpoint-row';
-
-      const top = document.createElement('div');
-      top.className = 'api-endpoint-top';
-
-      const method = document.createElement('span');
-      method.className = 'api-method ' + (ep.method === 'POST' ? 'post' : 'get');
-      method.textContent = ep.method || 'GET';
-      top.appendChild(method);
-
-      const path = document.createElement('span');
-      path.className = 'api-path';
-      path.textContent = ep.path || '';
-      top.appendChild(path);
-
-      let desc = ep.description || '';
-      const needsAuth = /\(auth required\)/i.test(desc);
-      desc = desc.replace(/\s*\(auth required\)/i, '');
-      if (needsAuth) {
-        const authTag = document.createElement('span');
-        authTag.className = 'api-auth-tag';
-        authTag.textContent = 'auth';
-        top.appendChild(authTag);
-      }
-      row.appendChild(top);
-
-      if (desc) {
-        const descEl = document.createElement('div');
-        descEl.className = 'api-desc';
-        descEl.textContent = desc;
-        row.appendChild(descEl);
       }
 
-      list.appendChild(row);
-    }
-    card.appendChild(list);
-    grid.appendChild(card);
-  }
+      function renderFlog() {
+        if (!flogCachedData) return;
+        const data = flogCachedData;
+        const listEl = document.getElementById("flog-list");
+        const filtersEl = document.getElementById("flog-filters");
 
-  if (note) {
-    const total = endpoints.length;
-    const workerCount = order.length;
-    note.textContent = `Live index — ${total} endpoint${total !== 1 ? 's' : ''} across ${workerCount} Worker${workerCount !== 1 ? 's' : ''}. Source: api.atlas-systems.uk/`;
-  }
+        filtersEl.innerHTML = "";
+        const counts = data.levelCounts || {};
+        filtersEl.appendChild(
+          makeChip("all", null, data.total, flogActiveLevels === null),
+        );
+        for (const lvl of FLOG_LEVELS) {
+          if (!counts[lvl]) continue;
+          const isActive = flogActiveLevels && flogActiveLevels.has(lvl);
+          filtersEl.appendChild(makeChip(lvl, lvl, counts[lvl], isActive));
+        }
 
-  // Populate health-check targets now that we know which Workers exist,
-  // then kick off the first check and schedule subsequent refreshes.
-  _healthTargets = deriveHealthTargets(endpoints);
-  runHealthChecks();
-  setInterval(runHealthChecks, 60_000);
-}
+        const filtered = flogActiveLevels
+          ? data.events.filter((e) => flogActiveLevels.has(e.level))
+          : data.events;
+        const shown = filtered.slice(0, FLOG_LIMIT);
 
-initApiSurface();
-  </script>
+        document.getElementById("flog-total").textContent = data.total;
+        document.getElementById("flog-shown").textContent = shown.length;
 
-  <script src="/js/transitions.js"></script>
-</body>
+        if (!shown.length) {
+          listEl.innerHTML =
+            '<div class="flog-empty">No events match this filter.</div>';
+          return;
+        }
+
+        listEl.innerHTML = "";
+        for (const e of shown) listEl.appendChild(renderFlogEntry(e));
+      }
+
+      function makeChip(label, level, count, active) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "flog-chip" + (active ? " active" : "");
+        if (level) {
+          const dot = document.createElement("span");
+          dot.className = `dot ${level}`;
+          btn.appendChild(dot);
+        }
+        btn.appendChild(document.createTextNode(label));
+        const c = document.createElement("span");
+        c.className = "count";
+        c.textContent = count;
+        btn.appendChild(c);
+        btn.addEventListener("click", () => {
+          if (level === null) {
+            flogActiveLevels = null;
+          } else {
+            if (!flogActiveLevels) flogActiveLevels = new Set();
+            if (flogActiveLevels.has(level)) flogActiveLevels.delete(level);
+            else flogActiveLevels.add(level);
+            if (!flogActiveLevels.size) flogActiveLevels = null;
+          }
+          renderFlog();
+        });
+        return btn;
+      }
+
+      // Same title patterns pgridSummary already uses to recognise a
+      // pipeline outcome — keeps the Failure log and the status grid
+      // agreeing on what counts as CI/CD vs a runtime signal.
+      function flogIsCicd(e) {
+        const t = e.title || "";
+        return (
+          /^deployed:/i.test(t) ||
+          /^blocked:/i.test(t) ||
+          /^deploy failed:/i.test(t) ||
+          /^pages deploy (succeeded|failed)/i.test(t)
+        );
+      }
+
+      function renderFlogEntry(e) {
+        const row = document.createElement("div");
+        row.className = "flog-entry";
+
+        const dot = document.createElement("div");
+        dot.className = `flog-dot ${e.level || "info"}`;
+        row.appendChild(dot);
+
+        const body = document.createElement("div");
+        body.className = "flog-body";
+        const src = document.createElement("div");
+        src.className = "flog-source";
+        src.textContent = e.event || e.dialect || "event";
+        const badge = document.createElement("span");
+        badge.className = "flog-badge " + (flogIsCicd(e) ? "cicd" : "runtime");
+        badge.textContent = flogIsCicd(e) ? "CI/CD" : "Runtime";
+        src.appendChild(badge);
+        const title = document.createElement("div");
+        title.className = "flog-title";
+        title.textContent = e.title || "(no title)";
+        body.appendChild(src);
+        body.appendChild(title);
+        if (e.message) {
+          const msg = document.createElement("div");
+          msg.className = "flog-msg";
+          msg.textContent = e.message;
+          body.appendChild(msg);
+        }
+        row.appendChild(body);
+
+        const when = document.createElement("div");
+        when.className = "flog-when";
+        when.textContent = flogRelTime(e.ts);
+        row.appendChild(when);
+
+        return row;
+      }
+
+      function flogRelTime(iso) {
+        if (!iso) return "";
+        const then = new Date(iso).getTime();
+        if (!Number.isFinite(then)) return "";
+        const s = Math.max(1, Math.round((Date.now() - then) / 1000));
+        if (s < 60) return `${s}s ago`;
+        const m = Math.round(s / 60);
+        if (m < 60) return `${m}m ago`;
+        const h = Math.round(m / 60);
+        if (h < 24) return `${h}h ago`;
+        const d = Math.round(h / 24);
+        if (d < 30) return `${d}d ago`;
+        const mo = Math.round(d / 30);
+        return `${mo}mo ago`;
+      }
+
+      document
+        .getElementById("flog-refresh-btn")
+        .addEventListener("click", loadFlog);
+      loadFlog();
+      // Re-render relative times every 30s without re-fetching.
+      setInterval(() => {
+        if (flogCachedData) renderFlog();
+      }, 30_000);
+      // ── PIPELINE STATUS GRID ───────────────────────────────────────────────
+      const PGRID_REPOS = [
+        "github-pulse",
+        "atlas-systems",
+        "atlas-doc-viewer",
+        "atlas-notify",
+        "site-pulse",
+        "deploy-watch",
+        "status",
+        "atlas-vault",
+      ];
+      const PGRID_RECENT_MS = 5 * 60 * 1000; // "recent change" = heartbeat on
+      const PGRID_STALE_MS = 7 * 24 * 60 * 60 * 1000; // no pipeline-relevant event in 7 days = stale
+      const PGRID_REPO_URL = (repo) =>
+        `https://github.com/AtlasReaper311/${repo}`;
+
+      // Pull the repo name out of an event. Tries title patterns first,
+      // then falls back to substring match against the canonical list.
+      function pgridRepoFor(ev) {
+        const title = (ev.title || "").toLowerCase();
+        const msg = (ev.message || "").toLowerCase();
+        const hay = title + " " + msg;
+        // Direct slug match wins — handles "Push to AtlasReaperSOH/github-pulse",
+        // "Pages deploy succeeded: atlas-systems", "atlas-scheduler run failed", etc.
+        for (const repo of PGRID_REPOS) {
+          const r = repo.toLowerCase();
+          // word-ish boundary so "status" doesn't match inside "atlas-systems"
+          const re = new RegExp(
+            "(^|[^a-z0-9-])" +
+              r.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&") +
+              "($|[^a-z0-9-])",
+          );
+          if (re.test(hay)) return repo;
+        }
+        return null;
+      }
+
+      // Extract a 7-char SHA if the event mentions one (push events often do).
+      function pgridShaFrom(ev) {
+        const hay = (ev.title || "") + " " + (ev.message || "");
+        const m = hay.match(/\b[0-9a-f]{7,40}\b/i);
+        return m ? m[0].slice(0, 7) : null;
+      }
+
+      // Short, human label for the tile body.
+      function pgridSummary(ev) {
+        const t = ev.title || "";
+        if (/^pages deploy succeeded/i.test(t)) return "Pages deploy succeeded";
+        if (/^pages deploy failed/i.test(t)) return "Pages deploy failed";
+        if (/^deployed:/i.test(t)) return "Deployed";
+        if (/^deploy failed:/i.test(t)) return "Deploy failed";
+        if (/^blocked:/i.test(t)) return "Blocked";
+        if (/^push to/i.test(t)) return "Push to main";
+        if (/^branch deleted/i.test(t)) return "Branch deleted";
+        if (/^webhook connected/i.test(t)) return "Webhook connected";
+        if (/^container health/i.test(t)) return "Container health change";
+        if (ev.event === "alert") return ev.title || "Alert";
+        return t || ev.event || "event";
+      }
+
+      function pgridRender(events) {
+        const grid = document.getElementById("pgrid");
+        if (!grid) return;
+
+        // Per repo: scan newest-first, take the first non-info event for the dot.
+        // Always remember the absolute latest event for SHA + time display.
+        const state = {};
+        for (const repo of PGRID_REPOS)
+          state[repo] = { latest: null, status: null };
+
+        for (const ev of events) {
+          const repo = pgridRepoFor(ev);
+          if (!repo || !state[repo]) continue;
+          if (!state[repo].latest) state[repo].latest = ev;
+          if (!state[repo].status && ev.level && ev.level !== "info") {
+            state[repo].status = ev;
+          }
+        }
+
+        grid.innerHTML = "";
+        const now = Date.now();
+
+        for (const repo of PGRID_REPOS) {
+          const { latest, status } = state[repo];
+          const tile = document.createElement("a");
+          tile.className = "pgrid-tile";
+          tile.href = PGRID_REPO_URL(repo);
+          tile.target = "_blank";
+          tile.rel = "noopener noreferrer";
+
+          let level;
+          if (status) level = status.level;
+          else if (latest) level = "info";
+          else level = "none";
+
+          if (level === "none") tile.classList.add("idle");
+
+          const refEv = status || latest;
+          let isStale = false;
+          if (refEv && refEv.ts) {
+            const age = now - new Date(refEv.ts).getTime();
+            if (Number.isFinite(age) && age <= PGRID_RECENT_MS)
+              tile.classList.add("recent");
+            if (Number.isFinite(age) && age > PGRID_STALE_MS) isStale = true;
+          }
+          if (isStale && level !== "none") tile.classList.add("stale");
+
+          const row = document.createElement("div");
+          row.className = "pgrid-row";
+          const name = document.createElement("div");
+          name.className = "pgrid-repo";
+          name.textContent = repo;
+          const dot = document.createElement("div");
+          dot.className = "pgrid-dot " + level;
+          row.appendChild(name);
+          row.appendChild(dot);
+          tile.appendChild(row);
+
+          const meta = document.createElement("div");
+          meta.className = "pgrid-meta-line";
+          if (latest) {
+            const sha = pgridShaFrom(latest);
+            if (sha) {
+              const shaEl = document.createElement("span");
+              shaEl.className = "pgrid-sha";
+              shaEl.textContent = sha;
+              meta.appendChild(shaEl);
+              const sep = document.createElement("span");
+              sep.className = "pgrid-sep";
+              sep.textContent = "·";
+              meta.appendChild(sep);
+            }
+            const when = document.createElement("span");
+            when.textContent = flogRelTime(latest.ts);
+            meta.appendChild(when);
+            if (isStale && level !== "none") {
+              const sep2 = document.createElement("span");
+              sep2.className = "pgrid-sep";
+              sep2.textContent = "·";
+              meta.appendChild(sep2);
+              const staleTag = document.createElement("span");
+              staleTag.className = "pgrid-stale-tag";
+              staleTag.textContent = "stale";
+              meta.appendChild(staleTag);
+            }
+          } else {
+            meta.textContent = "no events yet";
+          }
+          tile.appendChild(meta);
+
+          const summary = document.createElement("div");
+          summary.className = "pgrid-summary";
+          const summaryEv = status || latest;
+          summary.textContent = summaryEv
+            ? pgridSummary(summaryEv)
+            : "awaiting first deploy";
+          tile.appendChild(summary);
+
+          const pulse = document.createElement("div");
+          pulse.className = "pgrid-pulse";
+          tile.appendChild(pulse);
+
+          grid.appendChild(tile);
+        }
+
+        const updatedEl = document.getElementById("pgrid-updated");
+        if (updatedEl)
+          updatedEl.textContent = new Date().toLocaleTimeString("en-GB", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+      }
+
+      // ── PIPELINE STATS ────────────────────────────────────────────────────────
+      // Computes summary metrics from the existing ring buffer — no extra fetch.
+      // "Pipeline events" are deploy outcomes only; push/info events are excluded
+      // so the stats reflect actual CI/CD signal rather than raw activity.
+
+      function isPipelineEvent(e) {
+        const t = e.title || "";
+        return /^(deployed:|deploy failed:|blocked:|pages deploy)/i.test(t);
+      }
+
+      function renderPipelineStats(events) {
+        const pipeline = events.filter(isPipelineEvent);
+        const total = pipeline.length;
+        const successes = pipeline.filter((e) => e.level === "success").length;
+        const failures = pipeline.filter((e) => e.level === "failure").length;
+        const rateBase = successes + failures;
+        const rate =
+          rateBase > 0 ? Math.round((successes / rateBase) * 100) : null;
+
+        const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const thisWeek = pipeline.filter(
+          (e) => new Date(e.ts).getTime() >= weekAgo,
+        ).length;
+
+        const repoCounts = {};
+        for (const e of pipeline) {
+          const repo = pgridRepoFor(e);
+          if (repo) repoCounts[repo] = (repoCounts[repo] || 0) + 1;
+        }
+        const topEntry = Object.entries(repoCounts).sort(
+          (a, b) => b[1] - a[1],
+        )[0];
+        const topRepo = topEntry ? topEntry[0] : null;
+
+        const totalEl = document.getElementById("pstat-total");
+        const rateEl = document.getElementById("pstat-rate");
+        const weekEl = document.getElementById("pstat-week");
+        const topEl = document.getElementById("pstat-top");
+
+        if (totalEl) totalEl.textContent = total;
+        if (weekEl) weekEl.textContent = thisWeek;
+        if (topEl) topEl.textContent = topRepo ?? "—";
+
+        if (rateEl) {
+          if (rate === null) {
+            rateEl.textContent = "—";
+            rateEl.className = "pgrid-stat-val";
+          } else {
+            rateEl.textContent = rate + "%";
+            rateEl.className =
+              "pgrid-stat-val " +
+              (rate >= 90 ? "good" : rate >= 70 ? "warn" : "bad");
+          }
+        }
+      }
+
+      // Piggyback on the failure log's fetch — render the grid every time
+      // flogCachedData updates, and on the 30s re-render tick.
+      const _origRenderFlog = renderFlog;
+      renderFlog = function () {
+        _origRenderFlog();
+        if (flogCachedData?.events) {
+          pgridRender(flogCachedData.events);
+          renderPipelineStats(flogCachedData.events);
+        }
+      };
+      // Initial paint after first load resolves
+      const _pgridWatch = setInterval(() => {
+        if (flogCachedData?.events) {
+          pgridRender(flogCachedData.events);
+          renderPipelineStats(flogCachedData.events);
+          clearInterval(_pgridWatch);
+        }
+      }, 200);
+
+      // ── WORKER HEALTH STRIP ───────────────────────────────────────────────────
+      // Ping targets are derived from the API surface data (loaded by initApiSurface)
+      // so the strip stays in sync with whatever Workers the estate declares.
+      // One unauthenticated GET per Worker; health/liveness endpoints are preferred.
+
+      let _healthTargets = null;
+
+      function deriveHealthTargets(endpoints) {
+        const BASE = "https://api.atlas-systems.uk";
+        const byWorker = {};
+        for (const ep of endpoints) {
+          if (ep.method !== "GET") continue;
+          if (/auth required/i.test(ep.description || "")) continue;
+          // First unauthenticated GET per Worker wins, health endpoint overrides
+          if (!byWorker[ep.worker]) byWorker[ep.worker] = ep;
+          if (/health|liveness|probe/i.test(ep.description || ""))
+            byWorker[ep.worker] = ep;
+        }
+        return Object.entries(byWorker).map(([worker, ep]) => ({
+          label: worker,
+          // Strip query-string examples from path before pinging
+          url: BASE + ep.path.replace(/\?.*$/, ""),
+        }));
+      }
+
+      async function pingEndpoint(url) {
+        const controller = new AbortController();
+        const tid = setTimeout(() => controller.abort(), 5000);
+        const t0 = performance.now();
+        try {
+          const res = await fetch(url, {
+            cache: "no-store",
+            signal: controller.signal,
+          });
+          const ms = Math.round(performance.now() - t0);
+          return { ok: res.ok, ms };
+        } catch {
+          return { ok: false, ms: null };
+        } finally {
+          clearTimeout(tid);
+        }
+      }
+
+      function healthDotClass(ok, ms) {
+        if (!ok || ms === null) return "down";
+        if (ms >= 400) return "degraded";
+        return "up";
+      }
+
+      function healthLatencyClass(ms) {
+        if (ms === null) return "err";
+        if (ms < 150) return "fast";
+        if (ms < 400) return "medium";
+        return "slow";
+      }
+
+      async function runHealthChecks() {
+        if (!_healthTargets?.length) return;
+        const strip = document.getElementById("health-strip");
+        if (!strip) return;
+
+        // Ping all targets concurrently
+        const results = await Promise.all(
+          _healthTargets.map(async (t) => ({
+            ...t,
+            ping: await pingEndpoint(t.url),
+          })),
+        );
+
+        strip.innerHTML = "";
+        for (const { label, ping } of results) {
+          const chip = document.createElement("div");
+          chip.className = "health-chip";
+
+          const name = document.createElement("div");
+          name.className = "health-chip-name";
+          name.textContent = label;
+
+          const row = document.createElement("div");
+          row.className = "health-chip-row";
+
+          const dot = document.createElement("div");
+          dot.className = "health-dot " + healthDotClass(ping.ok, ping.ms);
+
+          const lat = document.createElement("span");
+          lat.className = "health-chip-latency " + healthLatencyClass(ping.ms);
+          lat.textContent = ping.ms !== null ? ping.ms + "ms" : "timeout";
+
+          row.appendChild(dot);
+          row.appendChild(lat);
+          chip.appendChild(name);
+          chip.appendChild(row);
+          strip.appendChild(chip);
+        }
+      }
+      // ── API SURFACE MAP ─────────────────────────────────────────────────────
+      // Renders the live endpoint index served at the API root. Unlike the
+      // heatmap and failure log, this isn't event data — it's a snapshot of
+      // what the Worker source declares, so it's fetched once on load rather
+      // than polled on an interval; it only changes when a Worker is redeployed.
+      const API_INDEX_URL = "https://api.atlas-systems.uk/";
+
+      async function initApiSurface() {
+        const grid = document.getElementById("api-surface-grid");
+        const note = document.getElementById("api-surface-note");
+        if (!grid) return;
+
+        let data;
+        try {
+          const res = await fetch(API_INDEX_URL, {
+            headers: { Accept: "application/json" },
+            cache: "no-store",
+          });
+          data = await res.json();
+        } catch {
+          grid.innerHTML =
+            '<div class="api-loading">API index unavailable.</div>';
+          if (note) note.textContent = "";
+          return;
+        }
+
+        const endpoints = Array.isArray(data.endpoints) ? data.endpoints : [];
+        const repos = data.repos || {};
+
+        if (!endpoints.length) {
+          grid.innerHTML =
+            '<div class="api-loading">No endpoints reported.</div>';
+          return;
+        }
+
+        // Group by worker, preserving first-seen order — matches the grouping
+        // already encoded in the source (atlas-notify, github-pulse, ...).
+        const order = [];
+        const byWorker = {};
+        for (const ep of endpoints) {
+          const w = ep.worker || "unknown";
+          if (!byWorker[w]) {
+            byWorker[w] = [];
+            order.push(w);
+          }
+          byWorker[w].push(ep);
+        }
+
+        grid.innerHTML = "";
+        for (const worker of order) {
+          const card = document.createElement("div");
+          card.className = "api-worker-card";
+
+          const head = document.createElement("div");
+          head.className = "api-worker-head";
+          const name = document.createElement("div");
+          name.className = "api-worker-name";
+          name.textContent = worker;
+          head.appendChild(name);
+          if (repos[worker]) {
+            const link = document.createElement("a");
+            link.className = "api-worker-link";
+            link.href = repos[worker];
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.textContent = "repo →";
+            head.appendChild(link);
+          }
+          card.appendChild(head);
+
+          const list = document.createElement("div");
+          list.className = "api-endpoint-list";
+          for (const ep of byWorker[worker]) {
+            const row = document.createElement("div");
+            row.className = "api-endpoint-row";
+
+            const top = document.createElement("div");
+            top.className = "api-endpoint-top";
+
+            const method = document.createElement("span");
+            method.className =
+              "api-method " + (ep.method === "POST" ? "post" : "get");
+            method.textContent = ep.method || "GET";
+            top.appendChild(method);
+
+            const path = document.createElement("span");
+            path.className = "api-path";
+            path.textContent = ep.path || "";
+            top.appendChild(path);
+
+            let desc = ep.description || "";
+            const needsAuth = /\(auth required\)/i.test(desc);
+            desc = desc.replace(/\s*\(auth required\)/i, "");
+            if (needsAuth) {
+              const authTag = document.createElement("span");
+              authTag.className = "api-auth-tag";
+              authTag.textContent = "auth";
+              top.appendChild(authTag);
+            }
+            row.appendChild(top);
+
+            if (desc) {
+              const descEl = document.createElement("div");
+              descEl.className = "api-desc";
+              descEl.textContent = desc;
+              row.appendChild(descEl);
+            }
+
+            list.appendChild(row);
+          }
+          card.appendChild(list);
+          grid.appendChild(card);
+        }
+
+        if (note) {
+          const total = endpoints.length;
+          const workerCount = order.length;
+          note.textContent = `Live index — ${total} endpoint${total !== 1 ? "s" : ""} across ${workerCount} Worker${workerCount !== 1 ? "s" : ""}. Source: api.atlas-systems.uk/`;
+        }
+
+        // Populate health-check targets now that we know which Workers exist,
+        // then kick off the first check and schedule subsequent refreshes.
+        _healthTargets = deriveHealthTargets(endpoints);
+        runHealthChecks();
+        setInterval(runHealthChecks, 60_000);
+      }
+
+      initApiSurface();
+    </script>
+
+    <script src="/js/transitions.js"></script>
+    <link rel="stylesheet" href="/lab/lab-card.css" />
+    <script src="/lab/lab-card.js" defer></script>
+  </body>
 </html>
