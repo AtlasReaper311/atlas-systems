@@ -213,3 +213,7 @@
   .ramone-card.awake .ramone-dot { animation: none; }
   .ramone-mini-cursor { animation: none; opacity: 0.6; }
 }
+
+.ramone-mini-turnstile.hidden {
+  display: none;
+}
