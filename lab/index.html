@@ -123,74 +123,6 @@
           .flog-loading{padding:2rem 1rem;font-size:12px;color:var(--text-faint);text-align:center}
           .flog-note{font-size:11px;color:var(--text-faint);margin-top:1rem;letter-spacing:0.04em}
 
-          <!--
-        Lab page card — Ramone live interface.
-
-        Drop this snippet into atlas-systems/lab/index.html (or wherever the
-        Lab page lives) in place of the current `.ramone-preview` placeholder
-        card. The card's outer class name (`lab-card` etc.) should match the
-        existing Lab grid cell. Adjust the wrapper class if the Lab page uses
-        something different.
-
-        Required imports on the Lab page:
-          - the existing brand stylesheet (already present)
-          - lab-card.css from this folder, appended to the Lab stylesheet
-          - lab-card.js from this folder, loaded as a module at the end of body
-
-        Required CSP / origin configuration:
-          - The Worker's ALLOWED_ORIGINS variable must include the Lab page's
-            origin (https://atlas-systems.uk). This is already configured in
-            wrangler.toml.
-      -->
-
-      <article class="lab-card ramone-card" id="ramone-card">
-        <header class="lab-card-header">
-          <div class="lab-card-eyebrow">
-            <span class="ramone-dot" id="ramone-dot" aria-hidden="true"></span>
-            <span id="ramone-state-label">connecting</span>
-          </div>
-          <h3 class="lab-card-title">ramone</h3>
-          <p class="lab-card-sub">ask my infrastructure</p>
-        </header>
-
-        <div class="ramone-card-body">
-          <p class="ramone-blurb">
-            A local AI running on the RTX 5070 in SPECULAR-CORE, grounded on
-            published Atlas Systems documentation. Ask a question; the answer
-            streams back with cited sources.
-          </p>
-
-          <form class="ramone-mini" id="ramone-mini-form" autocomplete="off">
-            <label class="ramone-mini-label" for="ramone-mini-input">&gt; ask ramone</label>
-            <input
-              type="text"
-              id="ramone-mini-input"
-              class="ramone-mini-input"
-              maxlength="2000"
-              placeholder="What runs at api.atlas-systems.uk?"
-              aria-label="Ask Ramone a question"
-            />
-            <div class="ramone-mini-actions">
-              <div class="ramone-mini-turnstile" id="ramone-mini-turnstile"></div>
-              <button type="submit" class="ramone-mini-send" id="ramone-mini-send" disabled>
-                transmit
-              </button>
-            </div>
-          </form>
-
-          <div class="ramone-mini-answer" id="ramone-mini-answer" hidden>
-            <div class="ramone-mini-answer-text" id="ramone-mini-answer-text"></div>
-            <div class="ramone-mini-sources" id="ramone-mini-sources"></div>
-            <div class="ramone-mini-meta" id="ramone-mini-meta"></div>
-          </div>
-
-          <div class="ramone-mini-footer">
-            <a href="https://ramone.atlas-systems.uk/" class="ramone-mini-link">
-              open full interface →
-            </a>
-          </div>
-        </div>
-      </article>
 
 
               /* ── PIPELINE STATUS GRID ── */
@@ -447,61 +379,53 @@
             </div>
           </div>
 
-          <!-- RAMONE PLACEHOLDER -->
-          <div>
-            <div class="section-label">Experiments</div>
-            <div class="ramone-card">
-              <div class="ramone-inner">
-                <div class="ramone-badges">
-                  <span class="ramone-badge planned">Planned</span>
-                  <span class="ramone-badge">Lab Feature</span>
-                </div>
-                <div class="ramone-title">Ask My Infrastructure</div>
-                <div class="ramone-subtitle">Ramone — Local AI Interface</div>
-                <p class="ramone-desc">
-                  A direct interface into Ramone, the private AI system running
-                  on SPECULAR-CORE. Ask it anything about Atlas Systems — the
-                  stack, the build decisions, the case studies. Every query
-                  routes through my local hardware; nothing leaves the machine.
-                </p>
+          <!-- RAMONE CARD -->
+        <article class="lab-card ramone-card" id="ramone-card">
+          <header class="lab-card-header">
+            <div class="lab-card-eyebrow">
+              <span class="ramone-dot" id="ramone-dot" aria-hidden="true"></span>
+              <span id="ramone-state-label">connecting</span>
+            </div>
+            <h3 class="lab-card-title">ramone</h3>
+            <p class="lab-card-sub">ask my infrastructure</p>
+          </header>
 
-                <div class="ramone-preview">
-                  <div class="ramone-preview-line">
-                    <span class="ramone-preview-prompt">you →</span>
-                    <span class="ramone-preview-text"
-                      >what models is Ramone running?</span
-                    >
-                  </div>
-                  <div class="ramone-preview-line" style="margin-top: 0.5rem">
-                    <span
-                      class="ramone-preview-prompt"
-                      style="color: var(--accent); opacity: 0.7"
-                      >R →</span
-                    >
-                    <span class="ramone-preview-response"
-                      >Five LLMs on a dedicated NVMe — llama3.2:3b for speed,
-                      qwen2.5:32b for deep reasoning…<span
-                        class="ramone-preview-cursor"
-                      ></span
-                    ></span>
-                  </div>
-                </div>
+          <div class="ramone-card-body">
+            <p class="ramone-blurb">
+              A local AI grounded on Atlas Systems documentation. Every query runs on the RTX 5070 inside SPECULAR-CORE through a Cloudflare Tunnel, with no third-party inference. Sources are surfaced beneath every answer.
+            </p>
 
-                <div class="ramone-features">
-                  <div class="ramone-feature">
-                    Fully local — queries run on RTX 5070, zero cloud egress
-                  </div>
-                  <div class="ramone-feature">
-                    RAG-grounded on Atlas Systems documentation and case studies
-                  </div>
-                  <div class="ramone-feature">
-                    Discord notification on every query via atlas-notify
-                  </div>
-                </div>
+            <form class="ramone-mini" id="ramone-mini-form" autocomplete="off">
+              <label class="ramone-mini-label" for="ramone-mini-input">&gt; ask ramone</label>
+              <input
+                type="text"
+                id="ramone-mini-input"
+                class="ramone-mini-input"
+                maxlength="2000"
+                placeholder="What runs at api.atlas-systems.uk?"
+                aria-label="Ask Ramone a question"
+              />
+              <div class="ramone-mini-actions">
+                <div class="ramone-mini-turnstile" id="ramone-mini-turnstile"></div>
+                <button type="submit" class="ramone-mini-send" id="ramone-mini-send" disabled>
+                  transmit
+                </button>
               </div>
+            </form>
+
+            <div class="ramone-mini-answer" id="ramone-mini-answer" hidden>
+              <div class="ramone-mini-answer-text" id="ramone-mini-answer-text"></div>
+              <div class="ramone-mini-sources" id="ramone-mini-sources"></div>
+              <div class="ramone-mini-meta" id="ramone-mini-meta"></div>
+            </div>
+
+            <div class="ramone-mini-footer">
+              <a href="https://ramone.atlas-systems.uk/" class="ramone-mini-link">
+                open full interface →
+              </a>
             </div>
           </div>
-        </div>
+        </article>
       </section>
 
       <!-- API SURFACE -->
