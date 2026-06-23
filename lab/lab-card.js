@@ -174,6 +174,8 @@
           window.turnstile.reset(turnstileWidgetId);
           turnstileToken = null;
         }
+        // Hide the widget while the answer is streaming
+        document.getElementById("ramone-mini-turnstile").classList.add("hidden");
 
         if (res.status === 503) {
           const data = await res.json().catch(() => ({}));
@@ -245,6 +247,8 @@
         inFlight = false;
         input.value = "";
         updateSendState();
+        // Show the widget again ready for the next question
+        document.getElementById("ramone-mini-turnstile").classList.remove("hidden");
       }
 
       function showError(msg) {
