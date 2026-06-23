@@ -1,0 +1,215 @@
+/* =====================================================================
+   ramone live card on the Lab page
+
+   Appended to the existing Lab stylesheet. All custom properties come
+   from the global brand stylesheet; nothing is duplicated.
+
+   The card is sized to fit a single Lab grid cell. The form area is
+   constrained vertically so the card height does not jump when an
+   answer streams in; the answer area scrolls instead.
+   ===================================================================== */
+
+.ramone-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.ramone-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  margin-right: 8px;
+  vertical-align: middle;
+  box-shadow: 0 0 0 0 transparent;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.ramone-card.awake .ramone-dot {
+  background: #4ade80;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.55);
+  animation: ramone-pulse 2.4s ease-in-out infinite;
+}
+.ramone-card.asleep .ramone-dot {
+  background: #e24b4a;
+}
+@keyframes ramone-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(74, 222, 128, 0.55); }
+  50%      { box-shadow: 0 0 14px rgba(74, 222, 128, 0.9); }
+}
+
+.ramone-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 12px;
+  flex: 1;
+}
+
+.ramone-blurb {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-dim);
+}
+
+/* --- composer ------------------------------------------------------ */
+.ramone-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  transition: border-color 0.15s;
+}
+.ramone-mini:focus-within {
+  border-color: var(--accent);
+}
+
+.ramone-mini-label {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.ramone-mini-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  width: 100%;
+  padding: 0;
+}
+.ramone-mini-input::placeholder {
+  color: var(--text-faint);
+}
+
+.ramone-mini-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ramone-mini-turnstile {
+  transform: scale(0.7);
+  transform-origin: left center;
+  margin-right: auto;
+  height: 44px;
+}
+
+.ramone-mini-send {
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.15s;
+}
+.ramone-mini-send:hover:not(:disabled) {
+  background: #f7b84a;
+}
+.ramone-mini-send:disabled {
+  background: var(--bg-2);
+  color: var(--text-faint);
+  cursor: not-allowed;
+}
+
+/* --- answer area --------------------------------------------------- */
+.ramone-mini-answer {
+  padding: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--accent);
+  border-radius: 3px;
+  max-height: 220px;
+  overflow-y: auto;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+.ramone-mini-answer.error {
+  border-left-color: #e24b4a;
+}
+
+.ramone-mini-answer-text {
+  color: var(--text-dim);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.ramone-mini-answer-text::before {
+  content: "R →";
+  display: inline-block;
+  min-width: 28px;
+  color: var(--accent);
+  margin-right: 6px;
+  vertical-align: top;
+}
+
+.ramone-mini-cursor {
+  display: inline-block;
+  width: 6px;
+  height: 12px;
+  background: var(--accent);
+  vertical-align: text-bottom;
+  margin-left: 2px;
+  animation: ramone-blink 1s steps(2, start) infinite;
+}
+@keyframes ramone-blink { to { visibility: hidden; } }
+
+.ramone-mini-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 10px;
+}
+.ramone-mini-sources:empty { display: none; }
+.ramone-mini-sources .src {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 2px 6px;
+  font-size: 10.5px;
+  border-radius: 2px;
+}
+.ramone-mini-sources .src strong {
+  color: var(--accent);
+  font-weight: 500;
+  margin-right: 3px;
+}
+
+.ramone-mini-meta {
+  margin-top: 8px;
+  font-size: 10.5px;
+  color: var(--text-faint);
+  letter-spacing: 0.02em;
+}
+.ramone-mini-meta:empty { display: none; }
+
+/* --- footer link --------------------------------------------------- */
+.ramone-mini-footer {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.ramone-mini-link {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  text-decoration: none;
+}
+.ramone-mini-link:hover {
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ramone-card.awake .ramone-dot { animation: none; }
+  .ramone-mini-cursor { animation: none; opacity: 0.6; }
+}
