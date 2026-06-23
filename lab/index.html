@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -15,6 +15,7 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="/lab/lab-card.css" />
     <style>
           *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
           :root{
@@ -29,7 +30,7 @@
           body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
           body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
 
-          /* ── NAV ── */
+          /* NAV */
           nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(10,10,15,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem,5vw,3rem);z-index:100}
           .nav-wordmark{font-family:var(--mono);font-weight:500;font-size:13px;letter-spacing:0.12em;color:var(--text);text-decoration:none;text-transform:uppercase}
           .nav-wordmark span{color:var(--accent)}
@@ -40,7 +41,7 @@
           .nav-links a:hover::after,.nav-links a.active::after{left:1rem;right:1rem}
           .nav-links a.active{color:var(--text)}
 
-          /* ── LAYOUT ── */
+          /* LAYOUT */
           main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);position:relative;z-index:1}
           .page-header{padding-top:calc(var(--nav-h) + 5rem);padding-bottom:4rem;border-bottom:1px solid var(--border)}
           .section-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem}
@@ -50,7 +51,7 @@
           @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
           .section{padding:5rem 0;border-bottom:1px solid var(--border)}
 
-          /* ── HEATMAP ── */
+          /* HEATMAP */
           .heatmap-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.75rem;flex-wrap:wrap;gap:0.75rem}
           .heatmap-stats{display:flex;gap:2rem;flex-wrap:wrap}
           .heatmap-stat{font-size:12px;color:var(--text-dim)}
@@ -76,14 +77,14 @@
           .heatmap-cell[data-level="4"]{background:var(--accent)}
           .heatmap-note{font-size:11px;color:var(--text-faint);margin-top:1.25rem;letter-spacing:0.04em}
 
-          /* ── TOOLTIP ── */
+          /* TOOLTIP */
           #heatmap-tooltip{position:fixed;background:var(--bg-1);border:1px solid var(--border-hi);padding:0.4rem 0.75rem;font-size:11px;color:var(--text-dim);pointer-events:none;z-index:500;display:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.4)}
           #heatmap-tooltip strong{color:var(--text);display:block;font-size:12px;margin-bottom:1px}
 
-          /* ── LAB GRID ── */
+          /* LAB GRID */
           .lab-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem}
 
-          /* ── FAILURE LOG ── */
+          /* FAILURE LOG */
           .flog-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.75rem}
           .flog-meta{font-size:12px;color:var(--text-dim)}
           .flog-meta strong{color:var(--text);font-weight:500}
@@ -123,9 +124,7 @@
           .flog-loading{padding:2rem 1rem;font-size:12px;color:var(--text-faint);text-align:center}
           .flog-note{font-size:11px;color:var(--text-faint);margin-top:1rem;letter-spacing:0.04em}
 
-
-
-              /* ── PIPELINE STATUS GRID ── */
+          /* PIPELINE STATUS GRID */
           .pgrid-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.75rem}
           .pgrid-meta{font-size:12px;color:var(--text-dim)}
           .pgrid-meta strong{color:var(--text);font-weight:500}
@@ -137,37 +136,30 @@
           .pgrid-legend .dot.failure{background:#e24b4a}
           .pgrid-legend .dot.info{background:#888}
           .pgrid-legend .dot.none{background:none;border:1px solid var(--text-faint)}
-
           .pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border)}
           .pgrid-tile{background:var(--bg);padding:1.1rem 1.15rem;display:flex;flex-direction:column;gap:0.5rem;position:relative;min-height:118px;overflow:hidden;text-decoration:none;color:inherit;cursor:pointer;transition:background 0.15s}
           .pgrid-tile:hover{background:var(--bg-1)}
           .pgrid-tile.idle{opacity:0.55}
           .pgrid-tile.stale{opacity:0.62}
           .pgrid-tile.stale .pgrid-dot{filter:saturate(0.4)}
-
           .pgrid-row{display:flex;justify-content:space-between;align-items:flex-start;gap:0.75rem}
           .pgrid-repo{font-family:var(--mono);font-size:12px;color:var(--text);letter-spacing:0.02em;line-height:1.2;word-break:break-all}
           .pgrid-tile.idle .pgrid-repo{color:var(--text-faint)}
-
           .pgrid-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:2px}
           .pgrid-dot.success{background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,0.14)}
           .pgrid-dot.warning{background:var(--accent);box-shadow:0 0 0 3px rgba(245,166,35,0.14)}
           .pgrid-dot.failure{background:#e24b4a;box-shadow:0 0 0 3px rgba(226,75,74,0.14)}
           .pgrid-dot.info{background:#888;box-shadow:0 0 0 3px rgba(136,136,136,0.12)}
           .pgrid-dot.none{background:transparent;border:1px solid var(--text-faint);box-shadow:none}
-
           .pgrid-meta-line{font-size:10px;color:var(--text-faint);letter-spacing:0.04em;font-variant-numeric:tabular-nums;display:flex;gap:0.5rem;align-items:center}
           .pgrid-sha{color:var(--text-dim)}
           .pgrid-sep{color:var(--text-faint)}
           .pgrid-stale-tag{color:var(--text-faint);text-transform:uppercase;font-size:9px;letter-spacing:0.06em}
           .pgrid-summary{font-size:11px;color:var(--text-dim);line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
           .pgrid-tile.idle .pgrid-summary{color:var(--text-faint)}
-
-          /* heartbeat: a single amber sweep, only on recently-changed tiles */
           .pgrid-pulse{position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--border);overflow:hidden}
           .pgrid-tile.recent .pgrid-pulse::after{content:'';position:absolute;top:0;left:-30%;width:30%;height:100%;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:pgridSweep 6s linear infinite}
           @keyframes pgridSweep{0%{left:-30%}100%{left:100%}}
-          /* ── PIPELINE STATS BAR ── */
           .pgrid-stats{display:flex;gap:1px;background:var(--border);border:1px solid var(--border);border-bottom:none}
           .pgrid-stat-chip{flex:1;background:var(--bg);padding:0.75rem 1rem;display:flex;flex-direction:column;gap:0.25rem;min-width:0}
           .pgrid-stat-val{font-family:var(--mono);font-size:16px;color:var(--text);letter-spacing:-0.02em;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -177,7 +169,7 @@
           .pgrid-stat-label{font-size:10px;color:var(--text-faint);letter-spacing:0.06em;text-transform:uppercase}
           @media(max-width:600px){.pgrid-stats{flex-wrap:wrap}.pgrid-stat-chip{flex:1 0 45%}}
 
-          /* ── WORKER HEALTH STRIP ── */
+          /* WORKER HEALTH STRIP */
           .health-strip{display:flex;gap:1px;background:var(--border);border:1px solid var(--border);border-top:none;margin-bottom:1rem}
           .health-chip{flex:1;background:var(--bg);padding:0.65rem 1rem;display:flex;flex-direction:column;gap:0.3rem;min-width:0}
           .health-chip-name{font-family:var(--mono);font-size:10px;color:var(--text-faint);letter-spacing:0.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -193,12 +185,11 @@
           .health-dot.down{background:#e24b4a;box-shadow:0 0 0 2px rgba(226,75,74,0.14)}
           .health-loading{font-size:11px;color:var(--text-faint);padding:0.75rem 1rem;font-family:var(--mono)}
           @media(max-width:600px){.health-strip{flex-wrap:wrap}.health-chip{flex:1 0 45%}}
-          @media (prefers-reduced-motion: reduce){.pgrid-tile.recent .pgrid-pulse::after{animation:none;opacity:0}}
-
+          @media(prefers-reduced-motion:reduce){.pgrid-tile.recent .pgrid-pulse::after{animation:none;opacity:0}}
           @media(max-width:880px){.pgrid{grid-template-columns:repeat(2,1fr)}}
           @media(max-width:420px){.pgrid{grid-template-columns:1fr}}
 
-          /* ── API SURFACE ── */
+          /* API SURFACE */
           .api-surface-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:var(--border);border:1px solid var(--border)}
           .api-worker-card{background:var(--bg);padding:1.1rem 1.15rem;display:flex;flex-direction:column;gap:0.9rem}
           .api-worker-head{display:flex;justify-content:space-between;align-items:baseline;gap:0.75rem}
@@ -218,14 +209,14 @@
           .api-surface-note{font-size:11px;color:var(--text-faint);margin-top:1.25rem;letter-spacing:0.04em}
           .api-loading{padding:2rem 1rem;font-size:12px;color:var(--text-faint);text-align:center;grid-column:1/-1}
 
-          /* ── MOBILE NAV ── */
+          /* MOBILE NAV */
           .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
           .mobile-nav-inner{display:flex;align-items:stretch;height:100%}
           .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.15s}
           .mobile-nav-item:hover,.mobile-nav-item.active{color:var(--accent)}
           .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 
-          /* ── RESPONSIVE ── */
+          /* RESPONSIVE */
           @media(max-width:780px){.lab-grid{grid-template-columns:1fr}.heatmap-stats{gap:1rem}}
           @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}}
     </style>
@@ -256,7 +247,6 @@
       <!-- ACTIVITY HEATMAP -->
       <section class="section">
         <div class="section-label">Activity</div>
-
         <div class="heatmap-meta">
           <div class="heatmap-stats">
             <div class="heatmap-stat">
@@ -272,31 +262,15 @@
           <div class="heatmap-legend">
             <span>less</span>
             <div class="heatmap-legend-cells">
-              <div
-                class="heatmap-legend-cell"
-                style="background: var(--bg-2)"
-              ></div>
-              <div
-                class="heatmap-legend-cell"
-                style="background: rgba(245, 166, 35, 0.18)"
-              ></div>
-              <div
-                class="heatmap-legend-cell"
-                style="background: rgba(245, 166, 35, 0.38)"
-              ></div>
-              <div
-                class="heatmap-legend-cell"
-                style="background: rgba(245, 166, 35, 0.62)"
-              ></div>
-              <div
-                class="heatmap-legend-cell"
-                style="background: var(--accent)"
-              ></div>
+              <div class="heatmap-legend-cell" style="background:var(--bg-2)"></div>
+              <div class="heatmap-legend-cell" style="background:rgba(245,166,35,0.18)"></div>
+              <div class="heatmap-legend-cell" style="background:rgba(245,166,35,0.38)"></div>
+              <div class="heatmap-legend-cell" style="background:rgba(245,166,35,0.62)"></div>
+              <div class="heatmap-legend-cell" style="background:var(--accent)"></div>
             </div>
             <span>more</span>
           </div>
         </div>
-
         <div class="heatmap-outer">
           <div class="heatmap-left" id="heatmap-day-labels"></div>
           <div class="heatmap-right">
@@ -304,10 +278,10 @@
             <div class="heatmap-grid" id="heatmap-grid"></div>
           </div>
         </div>
-
         <p class="heatmap-note" id="heatmap-note">Loading activity data…</p>
       </section>
 
+      <!-- PIPELINE STATUS GRID -->
       <section class="section" id="pipeline-grid-section">
         <div class="section-label">Pipeline status</div>
         <div class="pgrid-head">
@@ -325,20 +299,20 @@
         </div>
         <div class="pgrid-stats" id="pgrid-stats">
           <div class="pgrid-stat-chip">
-            <span class="pgrid-stat-val" id="pstat-total">—</span
-            ><span class="pgrid-stat-label">pipeline runs</span>
+            <span class="pgrid-stat-val" id="pstat-total">—</span>
+            <span class="pgrid-stat-label">pipeline runs</span>
           </div>
           <div class="pgrid-stat-chip">
-            <span class="pgrid-stat-val" id="pstat-rate">—</span
-            ><span class="pgrid-stat-label">success rate</span>
+            <span class="pgrid-stat-val" id="pstat-rate">—</span>
+            <span class="pgrid-stat-label">success rate</span>
           </div>
           <div class="pgrid-stat-chip">
-            <span class="pgrid-stat-val" id="pstat-week">—</span
-            ><span class="pgrid-stat-label">this week</span>
+            <span class="pgrid-stat-val" id="pstat-week">—</span>
+            <span class="pgrid-stat-label">this week</span>
           </div>
           <div class="pgrid-stat-chip">
-            <span class="pgrid-stat-val" id="pstat-top">—</span
-            ><span class="pgrid-stat-label">most active</span>
+            <span class="pgrid-stat-val" id="pstat-top">—</span>
+            <span class="pgrid-stat-label">most active</span>
           </div>
         </div>
         <div class="pgrid" id="pgrid"></div>
@@ -353,9 +327,11 @@
           repo's next push to main. Source: atlas-notify ring buffer.
         </p>
       </section>
+
       <!-- FAILURE LOG + RAMONE -->
       <section class="section">
         <div class="lab-grid">
+
           <!-- FAILURE LOG -->
           <div>
             <div class="section-label">Failure log</div>
@@ -410,21 +386,10 @@
                   transmit
                 </button>
               </div>
-            </form>
-
-            <div class="ramone-mini-answer" id="ramone-mini-answer" hidden>
-              <div class="ramone-mini-answer-text" id="ramone-mini-answer-text"></div>
-              <div class="ramone-mini-sources" id="ramone-mini-sources"></div>
-              <div class="ramone-mini-meta" id="ramone-mini-meta"></div>
             </div>
+          </article>
 
-            <div class="ramone-mini-footer">
-              <a href="https://ramone.atlas-systems.uk/" class="ramone-mini-link">
-                open full interface →
-              </a>
-            </div>
-          </div>
-        </article>
+        </div><!-- end .lab-grid -->
       </section>
 
       <!-- API SURFACE -->
@@ -439,62 +404,47 @@
 
     <nav class="mobile-nav" aria-label="Mobile navigation">
       <div class="mobile-nav-inner">
-        <a href="/" class="mobile-nav-item"
-          ><svg viewBox="0 0 24 24">
+        <a href="/" class="mobile-nav-item">
+          <svg viewBox="0 0 24 24">
             <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" /></svg
-          >Home</a
-        >
-        <a href="/work/" class="mobile-nav-item"
-          ><svg viewBox="0 0 24 24">
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>Home
+        </a>
+        <a href="/work/" class="mobile-nav-item">
+          <svg viewBox="0 0 24 24">
             <polyline points="16 18 22 12 16 6" />
-            <polyline points="8 6 2 12 8 18" /></svg
-          >Work</a
-        >
-        <a href="/writing/" class="mobile-nav-item"
-          ><svg viewBox="0 0 24 24">
+            <polyline points="8 6 2 12 8 18" />
+          </svg>Work
+        </a>
+        <a href="/writing/" class="mobile-nav-item">
+          <svg viewBox="0 0 24 24">
             <path d="M12 20h9" />
-            <path
-              d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"
-            /></svg
-          >Writing</a
-        >
-        <a href="/about/" class="mobile-nav-item"
-          ><svg viewBox="0 0 24 24">
+            <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+          </svg>Writing
+        </a>
+        <a href="/about/" class="mobile-nav-item">
+          <svg viewBox="0 0 24 24">
             <circle cx="12" cy="8" r="4" />
-            <path d="M20 21a8 8 0 10-16 0" /></svg
-          >About</a
-        >
+            <path d="M20 21a8 8 0 10-16 0" />
+          </svg>About
+        </a>
       </div>
     </nav>
 
     <script>
-      // ── NAV ACTIVE ───────────────────────────────────────────────────────────
+      // NAV ACTIVE
       document.querySelectorAll(".nav-link").forEach((a) => {
         if (window.location.pathname.startsWith(a.getAttribute("href")))
           a.classList.add("active");
       });
 
-      // ── HEATMAP ──────────────────────────────────────────────────────────────
+      // HEATMAP
       const HEATMAP_URL = "https://api.atlas-systems.uk/pulse/heatmap";
-      const MONTH_NAMES = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ];
-      const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      const DAY_LABELS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
       const CELL_SIZE = 11;
       const CELL_GAP = 3;
-      const COL_W = CELL_SIZE + CELL_GAP; // 14px per column
+      const COL_W = CELL_SIZE + CELL_GAP;
 
       async function initHeatmap() {
         let data;
@@ -502,22 +452,16 @@
           const res = await fetch(HEATMAP_URL, { cache: "no-store" });
           data = await res.json();
         } catch {
-          document.getElementById("heatmap-note").textContent =
-            "Activity data unavailable.";
+          document.getElementById("heatmap-note").textContent = "Activity data unavailable.";
           return;
         }
-
-        document.getElementById("heatmap-total").textContent =
-          data.totals?.commitsLast90Days ?? "—";
-        document.getElementById("heatmap-repos").textContent =
-          data.totals?.publicRepos ?? "—";
-        document.getElementById("heatmap-top-lang").textContent =
-          data.totals?.topLanguage ?? "—";
+        document.getElementById("heatmap-total").textContent = data.totals?.commitsLast90Days ?? "—";
+        document.getElementById("heatmap-repos").textContent = data.totals?.publicRepos ?? "—";
+        document.getElementById("heatmap-top-lang").textContent = data.totals?.topLanguage ?? "—";
 
         const countMap = data.days || {};
-
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        today.setHours(0,0,0,0);
         const days = [];
         for (let i = 89; i >= 0; i--) {
           const d = new Date(today);
@@ -525,7 +469,6 @@
           const key = d.toISOString().slice(0, 10);
           days.push({ key, count: countMap[key] || 0, d });
         }
-
         const startDow = (days[0].d.getDay() + 6) % 7;
         const cells = [...Array(startDow).fill(null), ...days];
         const totalCols = Math.ceil(cells.length / 7);
@@ -534,14 +477,12 @@
         DAY_LABELS.forEach((label) => {
           const el = document.createElement("div");
           el.className = "heatmap-day-label";
-          el.textContent =
-            label === "Mon" || label === "Wed" || label === "Fri" ? label : "";
+          el.textContent = (label === "Mon" || label === "Wed" || label === "Fri") ? label : "";
           dayLabelEl.appendChild(el);
         });
 
         const monthRow = document.getElementById("heatmap-months");
         monthRow.style.width = totalCols * COL_W - CELL_GAP + "px";
-
         let lastMonth = -1;
         for (let col = 0; col < totalCols; col++) {
           const slice = cells.slice(col * 7, col * 7 + 7);
@@ -560,11 +501,9 @@
 
         const grid = document.getElementById("heatmap-grid");
         const tooltip = document.getElementById("heatmap-tooltip");
-
         cells.forEach((cell) => {
           const el = document.createElement("div");
           el.className = "heatmap-cell";
-
           if (!cell) {
             el.classList.add("empty");
           } else {
@@ -576,29 +515,17 @@
               else if (count >= 5) level = 4;
               el.dataset.level = level;
             }
-
             el.addEventListener("mousemove", (e) => {
               const dateObj = new Date(cell.key + "T12:00:00");
-              const formatted = dateObj.toLocaleDateString("en-GB", {
-                weekday: "short",
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              });
-              tooltip.querySelector("strong").textContent =
-                count === 0
-                  ? "No commits"
-                  : `${count} commit${count !== 1 ? "s" : ""}`;
+              const formatted = dateObj.toLocaleDateString("en-GB", { weekday:"short", day:"numeric", month:"short", year:"numeric" });
+              tooltip.querySelector("strong").textContent = count === 0 ? "No commits" : `${count} commit${count !== 1 ? "s" : ""}`;
               tooltip.querySelector("span").textContent = formatted;
               tooltip.style.display = "block";
               tooltip.style.left = e.clientX + 14 + "px";
               tooltip.style.top = e.clientY - 42 + "px";
             });
-            el.addEventListener("mouseleave", () => {
-              tooltip.style.display = "none";
-            });
+            el.addEventListener("mouseleave", () => { tooltip.style.display = "none"; });
           }
-
           grid.appendChild(el);
         });
 
@@ -606,38 +533,30 @@
         document.getElementById("heatmap-note").textContent =
           `Per-day commit breakdown across all repos · ${activeDays} day${activeDays !== 1 ? "s" : ""} with commits in the last 90 days`;
       }
-
       initHeatmap();
 
-      // ── FAILURE LOG ──────────────────────────────────────────────────────────
+      // FAILURE LOG
       const FLOG_URL = "https://api.atlas-systems.uk/notify/recent";
       const FLOG_LIMIT = 10;
-      const FLOG_LEVELS = ["success", "info", "warning", "failure"];
-
-      let flogActiveLevels = null; // null = no filter; otherwise a Set
+      const FLOG_LEVELS = ["success","info","warning","failure"];
+      let flogActiveLevels = null;
       let flogCachedData = null;
 
       async function loadFlog() {
         const listEl = document.getElementById("flog-list");
-        listEl.innerHTML =
-          '<div class="flog-loading">Loading recent events…</div>';
-
+        listEl.innerHTML = '<div class="flog-loading">Loading recent events…</div>';
         let data;
         try {
-          const res = await fetch(`${FLOG_URL}?limit=50`, {
-            cache: "no-store",
-          });
+          const res = await fetch(`${FLOG_URL}?limit=50`, { cache: "no-store" });
           data = await res.json();
         } catch {
-          listEl.innerHTML =
-            '<div class="flog-empty">Event feed unavailable.</div>';
+          listEl.innerHTML = '<div class="flog-empty">Event feed unavailable.</div>';
           return;
         }
         if (!data?.ok) {
           listEl.innerHTML = `<div class="flog-empty">${data?.error || "No data."}</div>`;
           return;
         }
-
         flogCachedData = data;
         renderFlog();
       }
@@ -647,32 +566,22 @@
         const data = flogCachedData;
         const listEl = document.getElementById("flog-list");
         const filtersEl = document.getElementById("flog-filters");
-
         filtersEl.innerHTML = "";
         const counts = data.levelCounts || {};
-        filtersEl.appendChild(
-          makeChip("all", null, data.total, flogActiveLevels === null),
-        );
+        filtersEl.appendChild(makeChip("all", null, data.total, flogActiveLevels === null));
         for (const lvl of FLOG_LEVELS) {
           if (!counts[lvl]) continue;
           const isActive = flogActiveLevels && flogActiveLevels.has(lvl);
           filtersEl.appendChild(makeChip(lvl, lvl, counts[lvl], isActive));
         }
-
-        const filtered = flogActiveLevels
-          ? data.events.filter((e) => flogActiveLevels.has(e.level))
-          : data.events;
+        const filtered = flogActiveLevels ? data.events.filter((e) => flogActiveLevels.has(e.level)) : data.events;
         const shown = filtered.slice(0, FLOG_LIMIT);
-
         document.getElementById("flog-total").textContent = data.total;
         document.getElementById("flog-shown").textContent = shown.length;
-
         if (!shown.length) {
-          listEl.innerHTML =
-            '<div class="flog-empty">No events match this filter.</div>';
+          listEl.innerHTML = '<div class="flog-empty">No events match this filter.</div>';
           return;
         }
-
         listEl.innerHTML = "";
         for (const e of shown) listEl.appendChild(renderFlogEntry(e));
       }
@@ -705,27 +614,17 @@
         return btn;
       }
 
-      // Same title patterns pgridSummary already uses to recognise a
-      // pipeline outcome — keeps the Failure log and the status grid
-      // agreeing on what counts as CI/CD vs a runtime signal.
       function flogIsCicd(e) {
         const t = e.title || "";
-        return (
-          /^deployed:/i.test(t) ||
-          /^blocked:/i.test(t) ||
-          /^deploy failed:/i.test(t) ||
-          /^pages deploy (succeeded|failed)/i.test(t)
-        );
+        return /^deployed:/i.test(t) || /^blocked:/i.test(t) || /^deploy failed:/i.test(t) || /^pages deploy (succeeded|failed)/i.test(t);
       }
 
       function renderFlogEntry(e) {
         const row = document.createElement("div");
         row.className = "flog-entry";
-
         const dot = document.createElement("div");
         dot.className = `flog-dot ${e.level || "info"}`;
         row.appendChild(dot);
-
         const body = document.createElement("div");
         body.className = "flog-body";
         const src = document.createElement("div");
@@ -747,12 +646,10 @@
           body.appendChild(msg);
         }
         row.appendChild(body);
-
         const when = document.createElement("div");
         when.className = "flog-when";
         when.textContent = flogRelTime(e.ts);
         row.appendChild(when);
-
         return row;
       }
 
@@ -768,63 +665,35 @@
         if (h < 24) return `${h}h ago`;
         const d = Math.round(h / 24);
         if (d < 30) return `${d}d ago`;
-        const mo = Math.round(d / 30);
-        return `${mo}mo ago`;
+        return `${Math.round(d / 30)}mo ago`;
       }
 
-      document
-        .getElementById("flog-refresh-btn")
-        .addEventListener("click", loadFlog);
+      document.getElementById("flog-refresh-btn").addEventListener("click", loadFlog);
       loadFlog();
-      // Re-render relative times every 30s without re-fetching.
-      setInterval(() => {
-        if (flogCachedData) renderFlog();
-      }, 30_000);
-      // ── PIPELINE STATUS GRID ───────────────────────────────────────────────
-      const PGRID_REPOS = [
-        "github-pulse",
-        "atlas-systems",
-        "atlas-doc-viewer",
-        "atlas-notify",
-        "site-pulse",
-        "deploy-watch",
-        "status",
-        "atlas-vault",
-      ];
-      const PGRID_RECENT_MS = 5 * 60 * 1000; // "recent change" = heartbeat on
-      const PGRID_STALE_MS = 7 * 24 * 60 * 60 * 1000; // no pipeline-relevant event in 7 days = stale
-      const PGRID_REPO_URL = (repo) =>
-        `https://github.com/AtlasReaper311/${repo}`;
+      setInterval(() => { if (flogCachedData) renderFlog(); }, 30_000);
 
-      // Pull the repo name out of an event. Tries title patterns first,
-      // then falls back to substring match against the canonical list.
+      // PIPELINE STATUS GRID
+      const PGRID_REPOS = ["github-pulse","atlas-systems","atlas-doc-viewer","atlas-notify","site-pulse","deploy-watch","status","atlas-vault"];
+      const PGRID_RECENT_MS = 5 * 60 * 1000;
+      const PGRID_STALE_MS = 7 * 24 * 60 * 60 * 1000;
+      const PGRID_REPO_URL = (repo) => `https://github.com/AtlasReaper311/${repo}`;
+
       function pgridRepoFor(ev) {
-        const title = (ev.title || "").toLowerCase();
-        const msg = (ev.message || "").toLowerCase();
-        const hay = title + " " + msg;
-        // Direct slug match wins — handles "Push to AtlasReaperSOH/github-pulse",
-        // "Pages deploy succeeded: atlas-systems", "atlas-scheduler run failed", etc.
+        const hay = ((ev.title || "") + " " + (ev.message || "")).toLowerCase();
         for (const repo of PGRID_REPOS) {
           const r = repo.toLowerCase();
-          // word-ish boundary so "status" doesn't match inside "atlas-systems"
-          const re = new RegExp(
-            "(^|[^a-z0-9-])" +
-              r.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&") +
-              "($|[^a-z0-9-])",
-          );
+          const re = new RegExp("(^|[^a-z0-9-])" + r.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&") + "($|[^a-z0-9-])");
           if (re.test(hay)) return repo;
         }
         return null;
       }
 
-      // Extract a 7-char SHA if the event mentions one (push events often do).
       function pgridShaFrom(ev) {
         const hay = (ev.title || "") + " " + (ev.message || "");
         const m = hay.match(/\b[0-9a-f]{7,40}\b/i);
         return m ? m[0].slice(0, 7) : null;
       }
 
-      // Short, human label for the tile body.
       function pgridSummary(ev) {
         const t = ev.title || "";
         if (/^pages deploy succeeded/i.test(t)) return "Pages deploy succeeded";
@@ -843,25 +712,16 @@
       function pgridRender(events) {
         const grid = document.getElementById("pgrid");
         if (!grid) return;
-
-        // Per repo: scan newest-first, take the first non-info event for the dot.
-        // Always remember the absolute latest event for SHA + time display.
         const state = {};
-        for (const repo of PGRID_REPOS)
-          state[repo] = { latest: null, status: null };
-
+        for (const repo of PGRID_REPOS) state[repo] = { latest: null, status: null };
         for (const ev of events) {
           const repo = pgridRepoFor(ev);
           if (!repo || !state[repo]) continue;
           if (!state[repo].latest) state[repo].latest = ev;
-          if (!state[repo].status && ev.level && ev.level !== "info") {
-            state[repo].status = ev;
-          }
+          if (!state[repo].status && ev.level && ev.level !== "info") state[repo].status = ev;
         }
-
         grid.innerHTML = "";
         const now = Date.now();
-
         for (const repo of PGRID_REPOS) {
           const { latest, status } = state[repo];
           const tile = document.createElement("a");
@@ -869,24 +729,19 @@
           tile.href = PGRID_REPO_URL(repo);
           tile.target = "_blank";
           tile.rel = "noopener noreferrer";
-
           let level;
           if (status) level = status.level;
           else if (latest) level = "info";
           else level = "none";
-
           if (level === "none") tile.classList.add("idle");
-
           const refEv = status || latest;
           let isStale = false;
           if (refEv && refEv.ts) {
             const age = now - new Date(refEv.ts).getTime();
-            if (Number.isFinite(age) && age <= PGRID_RECENT_MS)
-              tile.classList.add("recent");
+            if (Number.isFinite(age) && age <= PGRID_RECENT_MS) tile.classList.add("recent");
             if (Number.isFinite(age) && age > PGRID_STALE_MS) isStale = true;
           }
           if (isStale && level !== "none") tile.classList.add("stale");
-
           const row = document.createElement("div");
           row.className = "pgrid-row";
           const name = document.createElement("div");
@@ -897,7 +752,6 @@
           row.appendChild(name);
           row.appendChild(dot);
           tile.appendChild(row);
-
           const meta = document.createElement("div");
           meta.className = "pgrid-meta-line";
           if (latest) {
@@ -929,34 +783,19 @@
             meta.textContent = "no events yet";
           }
           tile.appendChild(meta);
-
           const summary = document.createElement("div");
           summary.className = "pgrid-summary";
           const summaryEv = status || latest;
-          summary.textContent = summaryEv
-            ? pgridSummary(summaryEv)
-            : "awaiting first deploy";
+          summary.textContent = summaryEv ? pgridSummary(summaryEv) : "awaiting first deploy";
           tile.appendChild(summary);
-
           const pulse = document.createElement("div");
           pulse.className = "pgrid-pulse";
           tile.appendChild(pulse);
-
           grid.appendChild(tile);
         }
-
         const updatedEl = document.getElementById("pgrid-updated");
-        if (updatedEl)
-          updatedEl.textContent = new Date().toLocaleTimeString("en-GB", {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
+        if (updatedEl) updatedEl.textContent = new Date().toLocaleTimeString("en-GB", { hour:"2-digit", minute:"2-digit" });
       }
-
-      // ── PIPELINE STATS ────────────────────────────────────────────────────────
-      // Computes summary metrics from the existing ring buffer — no extra fetch.
-      // "Pipeline events" are deploy outcomes only; push/info events are excluded
-      // so the stats reflect actual CI/CD signal rather than raw activity.
 
       function isPipelineEvent(e) {
         const t = e.title || "";
@@ -969,48 +808,29 @@
         const successes = pipeline.filter((e) => e.level === "success").length;
         const failures = pipeline.filter((e) => e.level === "failure").length;
         const rateBase = successes + failures;
-        const rate =
-          rateBase > 0 ? Math.round((successes / rateBase) * 100) : null;
-
+        const rate = rateBase > 0 ? Math.round((successes / rateBase) * 100) : null;
         const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-        const thisWeek = pipeline.filter(
-          (e) => new Date(e.ts).getTime() >= weekAgo,
-        ).length;
-
+        const thisWeek = pipeline.filter((e) => new Date(e.ts).getTime() >= weekAgo).length;
         const repoCounts = {};
         for (const e of pipeline) {
           const repo = pgridRepoFor(e);
           if (repo) repoCounts[repo] = (repoCounts[repo] || 0) + 1;
         }
-        const topEntry = Object.entries(repoCounts).sort(
-          (a, b) => b[1] - a[1],
-        )[0];
+        const topEntry = Object.entries(repoCounts).sort((a, b) => b[1] - a[1])[0];
         const topRepo = topEntry ? topEntry[0] : null;
-
         const totalEl = document.getElementById("pstat-total");
         const rateEl = document.getElementById("pstat-rate");
         const weekEl = document.getElementById("pstat-week");
         const topEl = document.getElementById("pstat-top");
-
         if (totalEl) totalEl.textContent = total;
         if (weekEl) weekEl.textContent = thisWeek;
         if (topEl) topEl.textContent = topRepo ?? "—";
-
         if (rateEl) {
-          if (rate === null) {
-            rateEl.textContent = "—";
-            rateEl.className = "pgrid-stat-val";
-          } else {
-            rateEl.textContent = rate + "%";
-            rateEl.className =
-              "pgrid-stat-val " +
-              (rate >= 90 ? "good" : rate >= 70 ? "warn" : "bad");
-          }
+          if (rate === null) { rateEl.textContent = "—"; rateEl.className = "pgrid-stat-val"; }
+          else { rateEl.textContent = rate + "%"; rateEl.className = "pgrid-stat-val " + (rate >= 90 ? "good" : rate >= 70 ? "warn" : "bad"); }
         }
       }
 
-      // Piggyback on the failure log's fetch — render the grid every time
-      // flogCachedData updates, and on the 30s re-render tick.
       const _origRenderFlog = renderFlog;
       renderFlog = function () {
         _origRenderFlog();
@@ -1019,7 +839,6 @@
           renderPipelineStats(flogCachedData.events);
         }
       };
-      // Initial paint after first load resolves
       const _pgridWatch = setInterval(() => {
         if (flogCachedData?.events) {
           pgridRender(flogCachedData.events);
@@ -1028,11 +847,7 @@
         }
       }, 200);
 
-      // ── WORKER HEALTH STRIP ───────────────────────────────────────────────────
-      // Ping targets are derived from the API surface data (loaded by initApiSurface)
-      // so the strip stays in sync with whatever Workers the estate declares.
-      // One unauthenticated GET per Worker; health/liveness endpoints are preferred.
-
+      // WORKER HEALTH STRIP
       let _healthTargets = null;
 
       function deriveHealthTargets(endpoints) {
@@ -1041,14 +856,11 @@
         for (const ep of endpoints) {
           if (ep.method !== "GET") continue;
           if (/auth required/i.test(ep.description || "")) continue;
-          // First unauthenticated GET per Worker wins, health endpoint overrides
           if (!byWorker[ep.worker]) byWorker[ep.worker] = ep;
-          if (/health|liveness|probe/i.test(ep.description || ""))
-            byWorker[ep.worker] = ep;
+          if (/health|liveness|probe/i.test(ep.description || "")) byWorker[ep.worker] = ep;
         }
         return Object.entries(byWorker).map(([worker, ep]) => ({
           label: worker,
-          // Strip query-string examples from path before pinging
           url: BASE + ep.path.replace(/\?.*$/, ""),
         }));
       }
@@ -1058,10 +870,7 @@
         const tid = setTimeout(() => controller.abort(), 5000);
         const t0 = performance.now();
         try {
-          const res = await fetch(url, {
-            cache: "no-store",
-            signal: controller.signal,
-          });
+          const res = await fetch(url, { cache: "no-store", signal: controller.signal });
           const ms = Math.round(performance.now() - t0);
           return { ok: res.ok, ms };
         } catch {
@@ -1088,34 +897,23 @@
         if (!_healthTargets?.length) return;
         const strip = document.getElementById("health-strip");
         if (!strip) return;
-
-        // Ping all targets concurrently
         const results = await Promise.all(
-          _healthTargets.map(async (t) => ({
-            ...t,
-            ping: await pingEndpoint(t.url),
-          })),
+          _healthTargets.map(async (t) => ({ ...t, ping: await pingEndpoint(t.url) }))
         );
-
         strip.innerHTML = "";
         for (const { label, ping } of results) {
           const chip = document.createElement("div");
           chip.className = "health-chip";
-
           const name = document.createElement("div");
           name.className = "health-chip-name";
           name.textContent = label;
-
           const row = document.createElement("div");
           row.className = "health-chip-row";
-
           const dot = document.createElement("div");
           dot.className = "health-dot " + healthDotClass(ping.ok, ping.ms);
-
           const lat = document.createElement("span");
           lat.className = "health-chip-latency " + healthLatencyClass(ping.ms);
           lat.textContent = ping.ms !== null ? ping.ms + "ms" : "timeout";
-
           row.appendChild(dot);
           row.appendChild(lat);
           chip.appendChild(name);
@@ -1123,59 +921,40 @@
           strip.appendChild(chip);
         }
       }
-      // ── API SURFACE MAP ─────────────────────────────────────────────────────
-      // Renders the live endpoint index served at the API root. Unlike the
-      // heatmap and failure log, this isn't event data — it's a snapshot of
-      // what the Worker source declares, so it's fetched once on load rather
-      // than polled on an interval; it only changes when a Worker is redeployed.
+
+      // API SURFACE MAP
       const API_INDEX_URL = "https://api.atlas-systems.uk/";
 
       async function initApiSurface() {
         const grid = document.getElementById("api-surface-grid");
         const note = document.getElementById("api-surface-note");
         if (!grid) return;
-
         let data;
         try {
-          const res = await fetch(API_INDEX_URL, {
-            headers: { Accept: "application/json" },
-            cache: "no-store",
-          });
+          const res = await fetch(API_INDEX_URL, { headers: { Accept: "application/json" }, cache: "no-store" });
           data = await res.json();
         } catch {
-          grid.innerHTML =
-            '<div class="api-loading">API index unavailable.</div>';
+          grid.innerHTML = '<div class="api-loading">API index unavailable.</div>';
           if (note) note.textContent = "";
           return;
         }
-
         const endpoints = Array.isArray(data.endpoints) ? data.endpoints : [];
         const repos = data.repos || {};
-
         if (!endpoints.length) {
-          grid.innerHTML =
-            '<div class="api-loading">No endpoints reported.</div>';
+          grid.innerHTML = '<div class="api-loading">No endpoints reported.</div>';
           return;
         }
-
-        // Group by worker, preserving first-seen order — matches the grouping
-        // already encoded in the source (atlas-notify, github-pulse, ...).
         const order = [];
         const byWorker = {};
         for (const ep of endpoints) {
           const w = ep.worker || "unknown";
-          if (!byWorker[w]) {
-            byWorker[w] = [];
-            order.push(w);
-          }
+          if (!byWorker[w]) { byWorker[w] = []; order.push(w); }
           byWorker[w].push(ep);
         }
-
         grid.innerHTML = "";
         for (const worker of order) {
           const card = document.createElement("div");
           card.className = "api-worker-card";
-
           const head = document.createElement("div");
           head.className = "api-worker-head";
           const name = document.createElement("div");
@@ -1192,27 +971,21 @@
             head.appendChild(link);
           }
           card.appendChild(head);
-
           const list = document.createElement("div");
           list.className = "api-endpoint-list";
           for (const ep of byWorker[worker]) {
             const row = document.createElement("div");
             row.className = "api-endpoint-row";
-
             const top = document.createElement("div");
             top.className = "api-endpoint-top";
-
             const method = document.createElement("span");
-            method.className =
-              "api-method " + (ep.method === "POST" ? "post" : "get");
+            method.className = "api-method " + (ep.method === "POST" ? "post" : "get");
             method.textContent = ep.method || "GET";
             top.appendChild(method);
-
             const path = document.createElement("span");
             path.className = "api-path";
             path.textContent = ep.path || "";
             top.appendChild(path);
-
             let desc = ep.description || "";
             const needsAuth = /\(auth required\)/i.test(desc);
             desc = desc.replace(/\s*\(auth required\)/i, "");
@@ -1223,38 +996,30 @@
               top.appendChild(authTag);
             }
             row.appendChild(top);
-
             if (desc) {
               const descEl = document.createElement("div");
               descEl.className = "api-desc";
               descEl.textContent = desc;
               row.appendChild(descEl);
             }
-
             list.appendChild(row);
           }
           card.appendChild(list);
           grid.appendChild(card);
         }
-
         if (note) {
           const total = endpoints.length;
           const workerCount = order.length;
           note.textContent = `Live index — ${total} endpoint${total !== 1 ? "s" : ""} across ${workerCount} Worker${workerCount !== 1 ? "s" : ""}. Source: api.atlas-systems.uk/`;
         }
-
-        // Populate health-check targets now that we know which Workers exist,
-        // then kick off the first check and schedule subsequent refreshes.
         _healthTargets = deriveHealthTargets(endpoints);
         runHealthChecks();
         setInterval(runHealthChecks, 60_000);
       }
-
       initApiSurface();
     </script>
 
     <script src="/js/transitions.js"></script>
-    <link rel="stylesheet" href="/lab/lab-card.css" />
     <script src="/lab/lab-card.js" defer></script>
   </body>
 </html>
