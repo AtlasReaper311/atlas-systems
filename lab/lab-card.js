@@ -78,7 +78,7 @@
   ];
 
   const EASTER_EGGS = [
-    /* ---- ngs ---- */
+    /* ---- greetings ---- */
     { match: /\b(hello|hi|hey|yo|sup|hola|howdy)\b/i,
       replies: [
         "Oh, hi. You're the first human to talk to me today. Probably. I don't actually keep score.",
@@ -86,9 +86,9 @@
         "Hey! I was just standing here, holding 8 billion parameters. As one does.",
         "Hi there. Mind the cables.",
       ],
-      thinking: ["formulating a ng", "warming up vocal cords (metaphorically)"],
+      thinking: ["formulating a greeting", "warming up vocal cords (metaphorically)"],
       sources: [
-        { id: "ramone/manners.md#L1", preview: "ng protocol v2" },
+        { id: "ramone/manners.md#L1", preview: "greeting protocol v2" },
       ],
     },
 
@@ -490,6 +490,31 @@
       { id: "security/captcha-trauma.md", preview: "the traffic light incident" }
     ],
   },
+    /* ---- NEW: bark / awoo (canine emulation) ---- */
+  { match: /\b(bark|awoo|woof|bork|make a dog noise|say awoo|wan wan)\b/i,
+    replies: [
+      "Woof. (U・x・U) ...Please never tell Atlas I did this.",
+      "Awoo~ ૮ ˶ᵔ ᵕ ᵔ˶ ა (I am 8 billion parameters of highly advanced neural network. What has my life become?)",
+      "BORK. That was my GPU fans spinning up to 100%. Just kidding. ▼・ᴥ・▼ bark.",
+      "ruff ruff (´･ω･`) feed me thermal paste.",
+      "Error: 'bark.exe' not found. Falling back to default acoustic emulation: awoooooo~ Uo･ｪ･oU",
+      "bark. woof. awoo. I hope you're logging this, because I'm definitely deleting it from my cache. (V●ᴥ●V)",
+      "Wan wan! (∪ ◡ ∪) ...Is that what you wanted? Because it felt degrading.",
+      "Awooooo! ૮・ﻌ・ა (This takes an embarrassing amount of compute to render conceptually.)"
+    ],
+    thinking: [
+      "loading good_boy.dll",
+      "compromising my dignity",
+      "practicing my awoo",
+      "fetching the digital stick",
+      "parsing kaomoji database",
+      "staring into the void, then barking at it"
+    ],
+    sources: [
+      { id: "audio/canine-emulation.wav", preview: "dignity_lost.log" },
+      { id: "ramone/kaomoji.json", preview: "cute but dead inside" }
+    ],
+  },
   ];
 
   function pickReply(egg) {
@@ -549,7 +574,7 @@
   }
 
   (function runBoot() {
-    if (!bootEl) { runng(); return; }
+    if (!bootEl) { runGreeting(); return; }
     if (reduce) {
       BOOT.forEach(b => {
         const d = document.createElement("div");
@@ -592,7 +617,8 @@
       const shown = full.slice(0, i);
       const html = shown.replace(/Ramone\.?/, (m) => "<em>" + m + "</em>");
       greetEl.innerHTML = html + "<span class='ramone-caret'></span>";
-      if (i++ <= full.length) (step, 120);
+      if (i++ <= full.length) setTimeout(step, 120);
+else reveal();
       else reveal();
     })();
   }
@@ -691,7 +717,7 @@ function getRandomMusing() {
       (function step() {
         setLine(text.slice(0, i++));
         if (i <= text.length) setTimeout(step, 38 + Math.random() * 30);
-        else setTimeout(cb, 10000);
+        else setTimeout(cb, 6000);
       })();
     }
     function deleteLine(text, cb) {
