@@ -220,19 +220,16 @@
 
 /* =====================================================================
    RAMONE HERO BANNER
-   Full-width section at the top of the Lab page. Overrides the grid
-   card layout; all functional element IDs are preserved for lab-card.js.
    ===================================================================== */
 
-/* override the flex-column from .ramone-card */
 .ramone-hero.ramone-card {
   display: block;
   position: relative;
   overflow: hidden;
-  background: radial-gradient(ellipse 100% 70% at 50% 0%, rgba(245,166,35,0.05) 0%, transparent 65%);
+  box-shadow: inset 0 1px 0 rgba(245,166,35,0.1);
 }
 
-/* amber scanline that sweeps down while awake */
+/* scanline — only visible when awake */
 .ramone-hero-scanline {
   position: absolute;
   top: 0; left: 0; right: 0;
@@ -240,16 +237,16 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(245,166,35,0.5) 15%,
-    rgba(245,166,35,0.85) 50%,
-    rgba(245,166,35,0.5) 85%,
+    rgba(245,166,35,0.4) 20%,
+    rgba(245,166,35,0.8) 50%,
+    rgba(245,166,35,0.4) 80%,
     transparent 100%
   );
   pointer-events: none;
   z-index: 0;
   opacity: 0;
-  transition: opacity 0.6s;
-  animation: rh-scan 7s linear infinite;
+  transition: opacity 0.8s;
+  animation: rh-scan 8s linear infinite;
 }
 .ramone-hero.awake .ramone-hero-scanline { opacity: 1; }
 @keyframes rh-scan {
@@ -257,31 +254,29 @@
   to   { top: 100%; }
 }
 
-/* targeting-style corner brackets */
+/* targeting corners — dim at rest, amber when live */
 .rh-corner {
   position: absolute;
-  width: 14px;
-  height: 14px;
-  border-color: rgba(245,166,35,0.2);
+  width: 18px;
+  height: 18px;
+  border-color: rgba(245,166,35,0.12);
   border-style: solid;
   pointer-events: none;
   z-index: 2;
-  transition: border-color 0.5s;
+  transition: border-color 0.6s;
 }
-.ramone-hero.awake .rh-corner { border-color: rgba(245,166,35,0.55); }
+.ramone-hero.awake .rh-corner { border-color: rgba(245,166,35,0.45); }
 .rh-corner.tl { top: 20px; left: 20px; border-width: 1px 0 0 1px; }
 .rh-corner.tr { top: 20px; right: 20px; border-width: 1px 1px 0 0; }
 .rh-corner.bl { bottom: 20px; left: 20px; border-width: 0 0 1px 1px; }
 .rh-corner.br { bottom: 20px; right: 20px; border-width: 0 1px 1px 0; }
 
-/* top info / status bar */
+/* single info / status row */
 .ramone-hero-topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 3rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
+  margin-bottom: 3.5rem;
   position: relative;
   z-index: 2;
   flex-wrap: wrap;
@@ -290,28 +285,27 @@
 .ramone-hero-sysinfo {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  gap: 0.5rem;
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--text-faint);
   flex-wrap: wrap;
 }
-.rh-sep { color: var(--text-faint); }
+.rh-sep { opacity: 0.35; }
 .ramone-hero-live {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 10px;
-  letter-spacing: 0.14em;
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-faint);
   flex-shrink: 0;
 }
-/* no margin-right on dot inside the live badge */
 .ramone-hero-live .ramone-dot { margin-right: 0; }
 
-/* centered title block */
+/* centred title */
 .ramone-hero-center {
   text-align: center;
   position: relative;
@@ -319,41 +313,46 @@
 }
 .ramone-hero-name {
   font-family: var(--serif);
-  font-size: clamp(3.5rem, 9vw, 7.5rem);
+  font-style: italic;
+  font-size: clamp(3.5rem, 9vw, 7rem);
   line-height: 1;
   color: var(--text);
-  margin-bottom: 0.75rem;
-  letter-spacing: -0.01em;
-  transition: text-shadow 0.6s;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+  transition: text-shadow 0.8s;
 }
 .ramone-hero.awake .ramone-hero-name {
-  text-shadow: 0 0 60px rgba(245,166,35,0.1);
+  text-shadow: 0 0 80px rgba(245,166,35,0.1);
 }
 .ramone-hero-tagline {
-  font-size: 13px;
-  color: var(--text-dim);
-  line-height: 1.85;
-  margin-bottom: 2.25rem;
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 2.5rem;
 }
 
-/* terminal-style input */
+/* terminal input box */
 .ramone-hero-terminal {
-  max-width: 720px;
+  max-width: 680px;
   margin: 0 auto;
   background: var(--bg-1);
-  border: 1px solid var(--border-hi);
+  border: 1px solid var(--border);
   border-radius: 2px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.ramone-hero.awake .ramone-hero-terminal {
+  border-color: rgba(245,166,35,0.18);
 }
 .ramone-hero-terminal:focus-within {
-  border-color: rgba(245,166,35,0.55);
-  box-shadow: 0 0 0 1px rgba(245,166,35,0.12), 0 0 28px rgba(245,166,35,0.07);
+  border-color: rgba(245,166,35,0.6) !important;
+  box-shadow: 0 0 0 1px rgba(245,166,35,0.08), 0 0 40px rgba(245,166,35,0.07);
 }
 .ramone-hero-terminal-row {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem 1.25rem;
+  padding: 1.1rem 1.25rem;
 }
 .ramone-hero-prompt {
   color: var(--accent);
@@ -371,7 +370,6 @@
   font-family: var(--mono);
   font-size: 14px;
   padding: 0;
-  line-height: 1.4;
   min-width: 0;
 }
 .ramone-hero-input::placeholder { color: var(--text-faint); }
@@ -379,11 +377,11 @@
   background: var(--accent);
   color: var(--bg);
   border: none;
-  padding: 7px 22px;
+  padding: 7px 20px;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   cursor: pointer;
   border-radius: 1px;
@@ -392,7 +390,7 @@
 }
 .ramone-hero-send:hover:not(:disabled) {
   background: #f7b84a;
-  box-shadow: 0 0 18px rgba(245,166,35,0.4);
+  box-shadow: 0 0 20px rgba(245,166,35,0.45);
 }
 .ramone-hero-send:disabled {
   background: var(--bg-2);
@@ -400,50 +398,34 @@
   cursor: not-allowed;
 }
 
-/* answer area in hero — centred, slightly taller */
+/* terminal status bar — sits below input, houses the "open" link */
+.ramone-hero-terminal-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.5rem 1.25rem;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  background: rgba(0,0,0,0.18);
+}
+.ramone-hero-link {
+  font-size: 10.5px;
+  color: var(--text-faint);
+  text-decoration: none;
+  letter-spacing: 0.06em;
+  transition: color 0.15s;
+}
+.ramone-hero-link:hover { color: var(--accent); }
+
+/* answer area */
 .ramone-hero-answer {
-  max-width: 720px;
+  max-width: 680px;
   margin: 1.25rem auto 0;
   text-align: left;
   max-height: 280px;
 }
 
-/* spec / footer bar */
-.ramone-hero-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 3rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
-  position: relative;
-  z-index: 2;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-.ramone-hero-spec-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 10px;
-  color: var(--text-faint);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  flex-wrap: wrap;
-}
-.ramone-hero-link {
-  font-size: 12px;
-  color: var(--text-dim);
-  text-decoration: none;
-  letter-spacing: 0.04em;
-  transition: color 0.15s;
-}
-.ramone-hero-link:hover { color: var(--accent); }
-
 @media (prefers-reduced-motion: reduce) {
   .ramone-hero-scanline { animation: none; opacity: 0 !important; }
 }
 @media (max-width: 600px) {
-  .ramone-hero-topbar { flex-direction: column; align-items: flex-start; }
   .rh-corner { display: none; }
 }
