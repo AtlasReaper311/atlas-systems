@@ -691,7 +691,7 @@ function getRandomMusing() {
       (function step() {
         setLine(text.slice(0, i++));
         if (i <= text.length) setTimeout(step, 38 + Math.random() * 30);
-        else setTimeout(cb, 6000);
+        else setTimeout(cb, 10000);
       })();
     }
     function deleteLine(text, cb) {
