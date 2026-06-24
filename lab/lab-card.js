@@ -618,7 +618,6 @@
       const html = shown.replace(/Ramone\.?/, (m) => "<em>" + m + "</em>");
       greetEl.innerHTML = html + "<span class='ramone-caret'></span>";
       if (i++ <= full.length) setTimeout(step, 120);
-else reveal();
       else reveal();
     })();
   }
