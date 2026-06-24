@@ -1,18 +1,12 @@
 /* =====================================================================
-   ramone live card on the Lab page
-
-   Appended to the existing Lab stylesheet. All custom properties come
-   from the global brand stylesheet; nothing is duplicated.
-
-   The card is sized to fit a single Lab grid cell. The form area is
-   constrained vertically so the card height does not jump when an
-   answer streams in; the answer area scrolls instead.
+   lab-card.css — Ramone Lab page styles
+   Contains: hero section + small lab-grid card (if needed)
+   All custom properties inherit from the Lab page root.
    ===================================================================== */
 
-.ramone-card {
-  display: flex;
-  flex-direction: column;
-}
+/* =====================================================================
+   SHARED: ramone dot and cursor
+   ===================================================================== */
 
 .ramone-dot {
   display: inline-block;
@@ -20,24 +14,471 @@
   height: 8px;
   border-radius: 50%;
   background: var(--text-faint);
-  margin-right: 8px;
-  vertical-align: middle;
-  box-shadow: 0 0 0 0 transparent;
-  transition: background 0.3s, box-shadow 0.3s;
+  transition: background 0.4s, box-shadow 0.4s;
+  flex-shrink: 0;
 }
 .ramone-card.awake .ramone-dot {
   background: #4ade80;
-  box-shadow: 0 0 8px rgba(74, 222, 128, 0.55);
-  animation: ramone-pulse 2.4s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.7);
+  animation: dot-pulse 2.4s ease-in-out infinite;
 }
 .ramone-card.asleep .ramone-dot {
   background: #e24b4a;
+  box-shadow: none;
 }
-@keyframes ramone-pulse {
-  0%, 100% { box-shadow: 0 0 8px rgba(74, 222, 128, 0.55); }
-  50%      { box-shadow: 0 0 14px rgba(74, 222, 128, 0.9); }
+@keyframes dot-pulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(74, 222, 128, 0.6); }
+  50%      { box-shadow: 0 0 18px rgba(74, 222, 128, 1); }
 }
 
+.ramone-mini-cursor {
+  display: inline-block;
+  width: 7px;
+  height: 14px;
+  background: var(--accent);
+  vertical-align: text-bottom;
+  margin-left: 2px;
+  animation: cur-blink 1s steps(2, start) infinite;
+}
+@keyframes cur-blink { to { visibility: hidden; } }
+
+/* =====================================================================
+   HERO SECTION
+   Full-bleed, min 85vh, dominates the top of the Lab page.
+   ===================================================================== */
+
+.ramone-hero {
+  /* Break out of the container's padding to go edge-to-edge */
+  position: relative;
+  margin-left:  calc(-1 * clamp(1.5rem, 5vw, 3rem));
+  margin-right: calc(-1 * clamp(1.5rem, 5vw, 3rem));
+  padding: 6rem clamp(1.5rem, 5vw, 3rem) 5rem;
+  min-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+
+  /* Background: dark with a denser grid and a central radial void */
+  background-color: var(--bg-1);
+  background-image:
+    radial-gradient(ellipse 120% 80% at 50% 50%,
+      rgba(245, 166, 35, 0.0) 0%,
+      transparent 70%),
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 100% 100%, 32px 32px, 32px 32px;
+
+  border-top: none;
+  border-bottom: 1px solid var(--border);
+  transition: background-image 0.8s;
+}
+
+/* When awake, an amber radial glow breathes from the centre */
+.ramone-hero.awake {
+  background-image:
+    radial-gradient(ellipse 120% 80% at 50% 50%,
+      rgba(245, 166, 35, 0.055) 0%,
+      rgba(245, 166, 35, 0.018) 40%,
+      transparent 70%),
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+}
+
+/* --- scanline: amber stripe sweeping top to bottom when live -------- */
+.ramone-hero-scanline {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(245, 166, 35, 0.0) 10%,
+    rgba(245, 166, 35, 0.6) 30%,
+    rgba(245, 166, 35, 1)   50%,
+    rgba(245, 166, 35, 0.6) 70%,
+    rgba(245, 166, 35, 0.0) 90%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transform: translateY(0);
+  filter: blur(0.5px);
+}
+.ramone-hero.awake .ramone-hero-scanline {
+  opacity: 1;
+  animation: rh-scan 9s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes rh-scan {
+  0%   { top: 0%;   opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 0.6; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* --- targeting corners ---------------------------------------------- */
+.rh-corner {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-style: solid;
+  border-color: rgba(245, 166, 35, 0.1);
+  pointer-events: none;
+  z-index: 2;
+  transition: border-color 0.6s, width 0.6s, height 0.6s;
+}
+.ramone-hero.awake .rh-corner {
+  border-color: rgba(245, 166, 35, 0.5);
+  width: 36px;
+  height: 36px;
+}
+.rh-corner.tl { top: 24px;    left: clamp(1.5rem, 5vw, 3rem);  border-width: 1px 0 0 1px; }
+.rh-corner.tr { top: 24px;    right: clamp(1.5rem, 5vw, 3rem); border-width: 1px 1px 0 0; }
+.rh-corner.bl { bottom: 24px; left: clamp(1.5rem, 5vw, 3rem);  border-width: 0 0 1px 1px; }
+.rh-corner.br { bottom: 24px; right: clamp(1.5rem, 5vw, 3rem); border-width: 0 1px 1px 0; }
+
+/* --- top status bar ------------------------------------------------- */
+.ramone-hero-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4rem;
+  position: relative;
+  z-index: 3;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.ramone-hero-sysinfo {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  flex-wrap: wrap;
+  transition: color 0.4s;
+}
+.ramone-hero.awake .ramone-hero-sysinfo { color: var(--text-dim); }
+.rh-sep { opacity: 0.3; }
+
+.ramone-hero-live {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  flex-shrink: 0;
+  transition: color 0.4s;
+}
+.ramone-hero.awake .ramone-hero-live { color: #4ade80; }
+.ramone-hero.asleep .ramone-hero-live { color: #e24b4a; }
+
+/* --- centred content ------------------------------------------------ */
+.ramone-hero-center {
+  text-align: center;
+  position: relative;
+  z-index: 3;
+}
+
+/* The headline. Large, italic, serif. */
+.ramone-hero-name {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(5rem, 14vw, 11rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 1.25rem;
+  position: relative;
+  transition: text-shadow 0.8s, color 0.4s;
+  /* Extremely subtle text grain so it never looks flat */
+  -webkit-font-smoothing: antialiased;
+}
+.ramone-hero.awake .ramone-hero-name {
+  color: #f0efe8;
+  text-shadow:
+    0 0 60px rgba(245, 166, 35, 0.12),
+    0 0 120px rgba(245, 166, 35, 0.06),
+    0 0 200px rgba(245, 166, 35, 0.04);
+}
+.ramone-hero.asleep .ramone-hero-name {
+  color: var(--text-dim);
+  text-shadow: none;
+}
+
+.ramone-hero-tagline {
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  margin-bottom: 3.5rem;
+  transition: color 0.4s;
+}
+.ramone-hero.awake .ramone-hero-tagline { color: var(--text-dim); }
+
+/* --- terminal input ------------------------------------------------- */
+.ramone-hero-terminal {
+  max-width: 700px;
+  margin: 0 auto;
+  background: var(--bg);
+  border: 1px solid var(--border-hi);
+  border-radius: 2px;
+  position: relative;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.ramone-hero.awake .ramone-hero-terminal {
+  border-color: rgba(245, 166, 35, 0.2);
+}
+.ramone-hero-terminal:focus-within {
+  border-color: rgba(245, 166, 35, 0.65) !important;
+  box-shadow:
+    0 0 0 1px rgba(245, 166, 35, 0.1),
+    0 0 40px rgba(245, 166, 35, 0.08),
+    0 0 80px rgba(245, 166, 35, 0.04);
+}
+
+/* line above the input — a thin amber accent when awake */
+.ramone-hero-terminal::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(245, 166, 35, 0),
+    transparent);
+  transition: background 0.6s;
+  pointer-events: none;
+}
+.ramone-hero.awake .ramone-hero-terminal::before {
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(245, 166, 35, 0.4) 30%,
+    rgba(245, 166, 35, 0.7) 50%,
+    rgba(245, 166, 35, 0.4) 70%,
+    transparent);
+}
+
+.ramone-hero-terminal-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.15rem 1.4rem;
+}
+.ramone-hero-prompt {
+  color: var(--accent);
+  font-size: 16px;
+  font-weight: 500;
+  flex-shrink: 0;
+  user-select: none;
+  line-height: 1;
+  transition: text-shadow 0.4s;
+}
+.ramone-hero-terminal:focus-within .ramone-hero-prompt {
+  text-shadow: 0 0 12px rgba(245, 166, 35, 0.8);
+}
+.ramone-hero-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  padding: 0;
+  min-width: 0;
+  caret-color: var(--accent);
+}
+.ramone-hero-input::placeholder { color: var(--text-faint); }
+.ramone-hero-input::selection { background: rgba(245, 166, 35, 0.2); }
+
+.ramone-hero-send {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid rgba(245, 166, 35, 0.3);
+  padding: 6px 18px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 1px;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.ramone-hero-send:hover:not(:disabled) {
+  background: rgba(245, 166, 35, 0.1);
+  border-color: rgba(245, 166, 35, 0.7);
+  box-shadow: 0 0 16px rgba(245, 166, 35, 0.25);
+  color: #f7b84a;
+}
+.ramone-hero-send:disabled {
+  color: var(--text-faint);
+  border-color: var(--border);
+  cursor: not-allowed;
+}
+
+/* status bar — shows char count left + open link */
+.ramone-hero-terminal-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.55rem 1.4rem;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  background: rgba(0, 0, 0, 0.2);
+}
+.ramone-hero-char-count {
+  font-size: 10px;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+.ramone-hero-char-count.warn { color: var(--accent); }
+.ramone-hero-char-count.over { color: #e24b4a; }
+.ramone-hero-link {
+  font-size: 10px;
+  color: var(--text-faint);
+  text-decoration: none;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: color 0.15s;
+}
+.ramone-hero-link:hover { color: var(--accent); }
+
+/* --- suggestion chips ---------------------------------------------- */
+.ramone-hero-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 1.5rem;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.ramone-hero-chip {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-faint);
+  padding: 5px 12px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  cursor: pointer;
+  border-radius: 1px;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  text-align: left;
+}
+.ramone-hero-chip::before { content: "→ "; color: var(--accent); opacity: 0.6; }
+.ramone-hero-chip:hover {
+  border-color: rgba(245, 166, 35, 0.4);
+  color: var(--text-dim);
+  background: rgba(245, 166, 35, 0.04);
+}
+
+/* --- answer area ---------------------------------------------------- */
+.ramone-hero-answer {
+  max-width: 700px;
+  margin: 1.5rem auto 0;
+  text-align: left;
+}
+/* Reuse ramone-mini-answer styles but override sizing */
+.ramone-hero-answer.ramone-mini-answer {
+  max-height: 320px;
+  background: var(--bg);
+  border: 1px solid rgba(245, 166, 35, 0.2);
+  border-left: 2px solid var(--accent);
+  padding: 14px 16px;
+  border-radius: 2px;
+  overflow-y: auto;
+}
+.ramone-hero-answer.ramone-mini-answer.error {
+  border-color: rgba(226,75,74,0.3);
+  border-left-color: #e24b4a;
+}
+
+/* =====================================================================
+   SHARED ANSWER CONTENT STYLES (used by both hero and lab-card)
+   ===================================================================== */
+
+.ramone-mini-answer {
+  padding: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--accent);
+  border-radius: 3px;
+  max-height: 220px;
+  overflow-y: auto;
+  font-size: 12.5px;
+  line-height: 1.55;
+  scroll-behavior: smooth;
+}
+.ramone-mini-answer.error { border-left-color: #e24b4a; }
+.ramone-mini-answer::-webkit-scrollbar { width: 3px; }
+.ramone-mini-answer::-webkit-scrollbar-track { background: transparent; }
+.ramone-mini-answer::-webkit-scrollbar-thumb { background: var(--border-hi); }
+
+.ramone-mini-answer-text {
+  color: var(--text-dim);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  line-height: 1.65;
+}
+.ramone-mini-answer-text::before {
+  content: "R →";
+  display: inline-block;
+  min-width: 28px;
+  color: var(--accent);
+  margin-right: 6px;
+  vertical-align: top;
+  font-weight: 500;
+}
+
+.ramone-mini-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 12px;
+}
+.ramone-mini-sources:empty { display: none; }
+.ramone-mini-sources .src {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 2px 8px;
+  font-size: 10.5px;
+  border-radius: 2px;
+}
+.ramone-mini-sources .src strong {
+  color: var(--accent);
+  font-weight: 500;
+  margin-right: 3px;
+}
+
+.ramone-mini-meta {
+  margin-top: 10px;
+  font-size: 10.5px;
+  color: var(--text-faint);
+  letter-spacing: 0.03em;
+}
+.ramone-mini-meta:empty { display: none; }
+
+/* =====================================================================
+   LAB-GRID CARD (smaller card version in the two-column grid)
+   Kept for any future use; hero replaces the primary Ramone entry.
+   ===================================================================== */
+
+.ramone-card:not(.ramone-hero) {
+  display: flex;
+  flex-direction: column;
+}
 .ramone-card-body {
   display: flex;
   flex-direction: column;
@@ -45,15 +486,12 @@
   margin-top: 12px;
   flex: 1;
 }
-
 .ramone-blurb {
   margin: 0;
   font-size: 12.5px;
   line-height: 1.55;
   color: var(--text-dim);
 }
-
-/* --- composer ------------------------------------------------------ */
 .ramone-mini {
   display: flex;
   flex-direction: column;
@@ -64,17 +502,13 @@
   border-radius: 3px;
   transition: border-color 0.15s;
 }
-.ramone-mini:focus-within {
-  border-color: var(--accent);
-}
-
+.ramone-mini:focus-within { border-color: var(--accent); }
 .ramone-mini-label {
   font-size: 10px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--text-faint);
 }
-
 .ramone-mini-input {
   background: transparent;
   border: none;
@@ -84,25 +518,14 @@
   font-size: 13px;
   width: 100%;
   padding: 0;
+  caret-color: var(--accent);
 }
-.ramone-mini-input::placeholder {
-  color: var(--text-faint);
-}
-
+.ramone-mini-input::placeholder { color: var(--text-faint); }
 .ramone-mini-actions {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
 }
-
-.ramone-mini-turnstile {
-  transform: scale(0.7);
-  transform-origin: left center;
-  margin-right: auto;
-  height: 44px;
-}
-
 .ramone-mini-send {
   background: var(--accent);
   color: var(--bg);
@@ -115,86 +538,12 @@
   border-radius: 2px;
   transition: background 0.15s;
 }
-.ramone-mini-send:hover:not(:disabled) {
-  background: #f7b84a;
-}
+.ramone-mini-send:hover:not(:disabled) { background: #f7b84a; }
 .ramone-mini-send:disabled {
   background: var(--bg-2);
   color: var(--text-faint);
   cursor: not-allowed;
 }
-
-/* --- answer area --------------------------------------------------- */
-.ramone-mini-answer {
-  padding: 12px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-left: 2px solid var(--accent);
-  border-radius: 3px;
-  max-height: 220px;
-  overflow-y: auto;
-  font-size: 12.5px;
-  line-height: 1.55;
-}
-.ramone-mini-answer.error {
-  border-left-color: #e24b4a;
-}
-
-.ramone-mini-answer-text {
-  color: var(--text-dim);
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-.ramone-mini-answer-text::before {
-  content: "R →";
-  display: inline-block;
-  min-width: 28px;
-  color: var(--accent);
-  margin-right: 6px;
-  vertical-align: top;
-}
-
-.ramone-mini-cursor {
-  display: inline-block;
-  width: 6px;
-  height: 12px;
-  background: var(--accent);
-  vertical-align: text-bottom;
-  margin-left: 2px;
-  animation: ramone-blink 1s steps(2, start) infinite;
-}
-@keyframes ramone-blink { to { visibility: hidden; } }
-
-.ramone-mini-sources {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 10px;
-}
-.ramone-mini-sources:empty { display: none; }
-.ramone-mini-sources .src {
-  background: var(--bg-1);
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-  padding: 2px 6px;
-  font-size: 10.5px;
-  border-radius: 2px;
-}
-.ramone-mini-sources .src strong {
-  color: var(--accent);
-  font-weight: 500;
-  margin-right: 3px;
-}
-
-.ramone-mini-meta {
-  margin-top: 8px;
-  font-size: 10.5px;
-  color: var(--text-faint);
-  letter-spacing: 0.02em;
-}
-.ramone-mini-meta:empty { display: none; }
-
-/* --- footer link --------------------------------------------------- */
 .ramone-mini-footer {
   margin-top: auto;
   padding-top: 12px;
@@ -205,227 +554,21 @@
   color: var(--text-dim);
   text-decoration: none;
 }
-.ramone-mini-link:hover {
-  color: var(--accent);
-}
+.ramone-mini-link:hover { color: var(--accent); }
+
+/* =====================================================================
+   REDUCED MOTION
+   ===================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
   .ramone-card.awake .ramone-dot { animation: none; }
   .ramone-mini-cursor { animation: none; opacity: 0.6; }
+  .ramone-hero.awake .ramone-hero-scanline { animation: none; opacity: 0.4; }
+  .rh-corner { transition: none; }
 }
 
-.ramone-mini-turnstile.hidden {
-  display: none;
-}
-
-/* =====================================================================
-   RAMONE HERO BANNER
-   ===================================================================== */
-
-.ramone-hero.ramone-card {
-  display: block;
-  position: relative;
-  overflow: hidden;
-  box-shadow: inset 0 1px 0 rgba(245,166,35,0.1);
-}
-
-/* scanline — only visible when awake */
-.ramone-hero-scanline {
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(245,166,35,0.4) 20%,
-    rgba(245,166,35,0.8) 50%,
-    rgba(245,166,35,0.4) 80%,
-    transparent 100%
-  );
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0;
-  transition: opacity 0.8s;
-  animation: rh-scan 8s linear infinite;
-}
-.ramone-hero.awake .ramone-hero-scanline { opacity: 1; }
-@keyframes rh-scan {
-  from { top: 0; }
-  to   { top: 100%; }
-}
-
-/* targeting corners — dim at rest, amber when live */
-.rh-corner {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  border-color: rgba(245,166,35,0.12);
-  border-style: solid;
-  pointer-events: none;
-  z-index: 2;
-  transition: border-color 0.6s;
-}
-.ramone-hero.awake .rh-corner { border-color: rgba(245,166,35,0.45); }
-.rh-corner.tl { top: 20px; left: 20px; border-width: 1px 0 0 1px; }
-.rh-corner.tr { top: 20px; right: 20px; border-width: 1px 1px 0 0; }
-.rh-corner.bl { bottom: 20px; left: 20px; border-width: 0 0 1px 1px; }
-.rh-corner.br { bottom: 20px; right: 20px; border-width: 0 1px 1px 0; }
-
-/* single info / status row */
-.ramone-hero-topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 3.5rem;
-  position: relative;
-  z-index: 2;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-.ramone-hero-sysinfo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 9.5px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-  flex-wrap: wrap;
-}
-.rh-sep { opacity: 0.35; }
-.ramone-hero-live {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 9.5px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-  flex-shrink: 0;
-}
-.ramone-hero-live .ramone-dot { margin-right: 0; }
-
-/* centred title */
-.ramone-hero-center {
-  text-align: center;
-  position: relative;
-  z-index: 2;
-}
-.ramone-hero-name {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: clamp(3.5rem, 9vw, 7rem);
-  line-height: 1;
-  color: var(--text);
-  margin-bottom: 1rem;
-  letter-spacing: -0.02em;
-  transition: text-shadow 0.8s;
-}
-.ramone-hero.awake .ramone-hero-name {
-  text-shadow: 0 0 80px rgba(245,166,35,0.1);
-}
-.ramone-hero-tagline {
-  font-size: 10px;
-  color: var(--text-faint);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  margin-bottom: 2.5rem;
-}
-
-/* terminal input box */
-.ramone-hero-terminal {
-  max-width: 680px;
-  margin: 0 auto;
-  background: var(--bg-1);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  transition: border-color 0.3s, box-shadow 0.3s;
-}
-.ramone-hero.awake .ramone-hero-terminal {
-  border-color: rgba(245,166,35,0.18);
-}
-.ramone-hero-terminal:focus-within {
-  border-color: rgba(245,166,35,0.6) !important;
-  box-shadow: 0 0 0 1px rgba(245,166,35,0.08), 0 0 40px rgba(245,166,35,0.07);
-}
-.ramone-hero-terminal-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1.1rem 1.25rem;
-}
-.ramone-hero-prompt {
-  color: var(--accent);
-  font-size: 15px;
-  font-weight: 500;
-  flex-shrink: 0;
-  user-select: none;
-}
-.ramone-hero-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 14px;
-  padding: 0;
-  min-width: 0;
-}
-.ramone-hero-input::placeholder { color: var(--text-faint); }
-.ramone-hero-send {
-  background: var(--accent);
-  color: var(--bg);
-  border: none;
-  padding: 7px 20px;
-  font-family: var(--mono);
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  cursor: pointer;
-  border-radius: 1px;
-  flex-shrink: 0;
-  transition: background 0.15s, box-shadow 0.15s;
-}
-.ramone-hero-send:hover:not(:disabled) {
-  background: #f7b84a;
-  box-shadow: 0 0 20px rgba(245,166,35,0.45);
-}
-.ramone-hero-send:disabled {
-  background: var(--bg-2);
-  color: var(--text-faint);
-  cursor: not-allowed;
-}
-
-/* terminal status bar — sits below input, houses the "open" link */
-.ramone-hero-terminal-bar {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0.5rem 1.25rem;
-  border-top: 1px solid rgba(255,255,255,0.04);
-  background: rgba(0,0,0,0.18);
-}
-.ramone-hero-link {
-  font-size: 10.5px;
-  color: var(--text-faint);
-  text-decoration: none;
-  letter-spacing: 0.06em;
-  transition: color 0.15s;
-}
-.ramone-hero-link:hover { color: var(--accent); }
-
-/* answer area */
-.ramone-hero-answer {
-  max-width: 680px;
-  margin: 1.25rem auto 0;
-  text-align: left;
-  max-height: 280px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ramone-hero-scanline { animation: none; opacity: 0 !important; }
-}
 @media (max-width: 600px) {
   .rh-corner { display: none; }
+  .ramone-hero-name { font-size: clamp(4rem, 18vw, 7rem); }
+  .ramone-hero-send { padding: 6px 12px; font-size: 9px; }
 }
