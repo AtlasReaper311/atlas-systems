@@ -223,6 +223,7 @@
       </header>
 
       <!-- RAMONE HERO -->
+      <!-- RAMONE HERO -->
       <section class="section ramone-hero ramone-card" id="ramone-card">
         <span class="rh-corner tl" aria-hidden="true"></span>
         <span class="rh-corner tr" aria-hidden="true"></span>
@@ -236,9 +237,11 @@
             <span class="rh-sep">·</span>
             <span>RTX 5070</span>
             <span class="rh-sep">·</span>
-            <span>OLLAMA</span>
+            <span>llama3.1:8b</span>
             <span class="rh-sep">·</span>
             <span>CLOUDFLARE TUNNEL</span>
+            <span class="rh-sep">·</span>
+            <span>CHROMADB RAG</span>
           </div>
           <div class="ramone-hero-live">
             <span class="ramone-dot" aria-hidden="true"></span>
@@ -248,7 +251,7 @@
 
         <div class="ramone-hero-center">
           <h2 class="ramone-hero-name">ramone</h2>
-          <p class="ramone-hero-tagline">local ai · no cloud · on-device inference</p>
+          <p class="ramone-hero-tagline">local ai &nbsp;·&nbsp; no cloud &nbsp;·&nbsp; on-device inference</p>
 
           <form class="ramone-hero-terminal" id="ramone-mini-form" autocomplete="off">
             <div class="ramone-hero-terminal-row">
@@ -258,7 +261,7 @@
                 id="ramone-mini-input"
                 class="ramone-hero-input"
                 maxlength="2000"
-                placeholder="What runs at api.atlas-systems.uk?"
+                placeholder="ask anything about Atlas Systems..."
                 aria-label="Ask Ramone a question"
               />
               <button type="submit" class="ramone-hero-send" id="ramone-mini-send" disabled>
@@ -266,11 +269,19 @@
               </button>
             </div>
             <div class="ramone-hero-terminal-bar">
+              <span class="ramone-hero-char-count" id="ramone-hero-char-count">0 / 2000</span>
               <a href="https://ramone.atlas-systems.uk/" class="ramone-hero-link">
                 open full interface →
               </a>
             </div>
           </form>
+
+          <div class="ramone-hero-suggestions" id="ramone-hero-suggestions">
+            <button class="ramone-hero-chip" type="button">What runs at api.atlas-systems.uk?</button>
+            <button class="ramone-hero-chip" type="button">How does the CI/CD pipeline work?</button>
+            <button class="ramone-hero-chip" type="button">Why Cloudflare Workers over a VPS?</button>
+            <button class="ramone-hero-chip" type="button">What's the local AI stack on SPECULAR-CORE?</button>
+          </div>
 
           <div class="ramone-mini-answer ramone-hero-answer" id="ramone-mini-answer" hidden>
             <div class="ramone-mini-answer-text" id="ramone-mini-answer-text"></div>
