@@ -1,262 +1,304 @@
 /* =====================================================================
-   lab-card.css — Ramone Lab hero styles
-   Matches the aesthetic of ramone.atlas-systems.uk exactly.
+   lab-card.css — Ramone Lab hero, terminal edition.
+   Drops onto the lab page above the heatmap; uses tokens already
+   defined in index.html (--bg, --accent, --mono, --serif, etc).
    ===================================================================== */
 
 /* =====================================================================
-   SHARED: dot and cursor
+   SHARED: status dot & answer cursor (kept from the original API)
    ===================================================================== */
-
 .ramone-dot {
   display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  width: 8px; height: 8px; border-radius: 50%;
   background: var(--text-faint);
   transition: background 0.3s, box-shadow 0.3s;
   flex-shrink: 0;
 }
 .ramone-card.awake .ramone-dot {
   background: #4ade80;
-  box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
-  animation: dot-pulse 2.4s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.7);
+  animation: ramone-dot-pulse 2.4s ease-in-out infinite;
 }
-.ramone-card.asleep .ramone-dot {
-  background: #e24b4a;
-}
-@keyframes dot-pulse {
+.ramone-card.asleep .ramone-dot { background: #e24b4a; }
+@keyframes ramone-dot-pulse {
   0%, 100% { box-shadow: 0 0 8px rgba(74, 222, 128, 0.5); }
-  50%      { box-shadow: 0 0 14px rgba(74, 222, 128, 0.9); }
+  50%      { box-shadow: 0 0 16px rgba(74, 222, 128, 0.95); }
 }
 
 .ramone-mini-cursor {
   display: inline-block;
-  width: 7px;
-  height: 14px;
+  width: 7px; height: 14px;
   background: var(--accent);
-  vertical-align: text-bottom;
-  margin-left: 2px;
-  animation: cur-blink 1s steps(2, start) infinite;
+  vertical-align: text-bottom; margin-left: 2px;
+  box-shadow: 0 0 8px rgba(245, 166, 35, 0.7);
+  animation: ramone-blink 1s steps(2, start) infinite;
 }
-@keyframes cur-blink { to { visibility: hidden; } }
+@keyframes ramone-blink { to { opacity: 0; } }
 
 /* =====================================================================
-   HERO SECTION
-   Break out of the container so it goes edge-to-edge.
-   Then re-pad the content to align with the rest of the page.
+   HERO — break out of the container so the terminal sits flush.
+   Re-pad the content to align with the rest of the page.
    ===================================================================== */
-
 .ramone-hero {
   position: relative;
   margin-left:  calc(-1 * clamp(1.5rem, 5vw, 3rem));
   margin-right: calc(-1 * clamp(1.5rem, 5vw, 3rem));
-  padding: 5rem clamp(1.5rem, 5vw, 3rem) 5.5rem;
-  overflow: hidden;
+  padding: 3.5rem clamp(1.5rem, 5vw, 3rem) 4rem;
   border-bottom: 1px solid var(--border);
 }
 
-/* --- topbar: matches the standalone's topbar exactly --------------- */
-.ramone-hero-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  background: var(--bg-1);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  margin-bottom: 48px;
-  max-width: 920px;
-  margin-left: auto;
-  margin-right: auto;
-}
-.ramone-hero-sysinfo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 13px;
-  letter-spacing: 0.02em;
-  color: var(--text-dim);
-  flex-wrap: wrap;
-}
-.ramone-hero-sysinfo strong { color: var(--text); font-weight: 500; }
-.rh-sep { color: var(--text-faint); }
-.ramone-hero-live {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--text-dim);
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-.ramone-hero.awake  .ramone-hero-live { }
-.ramone-hero.asleep .ramone-hero-live { color: var(--text-faint); }
-
-/* --- hero content: centred column matching standalone --------------- */
-.ramone-hero-center {
+/* ---- the terminal "monitor" chassis -------------------------------- */
+.ramone-card {
+  position: relative;
   max-width: 920px;
   margin: 0 auto;
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(245,166,35,0.06), transparent 55%),
+    var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.6),
+    0 40px 120px -30px rgba(0,0,0,0.9),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+  overflow: hidden;
+}
+.ramone-card::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 64px 64px;
+  pointer-events: none; z-index: 0;
+}
+.ramone-card::after {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,0) 0px,
+      rgba(0,0,0,0) 2px,
+      rgba(0,0,0,0.14) 3px,
+      rgba(0,0,0,0) 4px
+    ),
+    radial-gradient(130% 100% at 50% 50%, transparent 64%, rgba(0,0,0,0.5) 100%);
+  pointer-events: none; z-index: 5;
+  mix-blend-mode: multiply;
 }
 
-/* The headline — DM Serif Display, "infrastructure" in amber italic,
-   exactly as on ramone.atlas-systems.uk */
+/* ---- title bar ----------------------------------------------------- */
+.ramone-hero-topbar {
+  position: relative; z-index: 6;
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 18px;
+  background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+  border-bottom: 1px solid var(--border);
+}
+.ramone-lights { display: flex; gap: 7px; }
+.ramone-lights i {
+  width: 11px; height: 11px; border-radius: 50%;
+  display: block;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+}
+.ramone-lights i:nth-child(1) { background: #5a2b2b; }
+.ramone-lights i:nth-child(2) { background: #5a4a23; }
+.ramone-lights i:nth-child(3) { background: #2b4a2f; }
+
+.ramone-hero-sysinfo {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 12px; letter-spacing: 0.06em;
+  color: var(--text-faint);
+  flex-wrap: wrap;
+}
+.ramone-hero-sysinfo strong { color: var(--text-dim); font-weight: 500; }
+.rh-sep { color: var(--accent); }
+
+.ramone-hero-live {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 9px;
+  font-size: 11px; letter-spacing: 0.04em; color: var(--text-dim);
+  white-space: nowrap; flex-shrink: 0;
+}
+.ramone-card.asleep .ramone-hero-live { color: var(--text-faint); }
+
+/* ---- screen -------------------------------------------------------- */
+.ramone-hero-center {
+  position: relative; z-index: 6;
+  padding: clamp(1.8rem, 4vw, 3rem) clamp(1.5rem, 4vw, 3rem) clamp(1.6rem, 3vw, 2.4rem);
+}
+
+/* ---- boot log ----------------------------------------------------- */
+.ramone-boot {
+  font-size: 12px; color: var(--text-faint);
+  line-height: 1.95; margin-bottom: 1.7rem;
+}
+.ramone-boot .ok  { color: #4ade80; }
+.ramone-boot .acc { color: var(--accent); }
+.ramone-boot .by  { color: var(--text-dim); }
+.ramone-boot-line { opacity: 0; transition: opacity .25s ease; }
+.ramone-boot-line.show { opacity: 1; }
+
+/* ---- greeting headline -------------------------------------------- */
 .ramone-hero-heading {
   font-family: var(--serif);
   font-weight: 400;
-  font-size: clamp(2.8rem, 5.5vw, 4.2rem);
+  font-size: clamp(2.4rem, 5.5vw, 3.8rem);
   line-height: 1.05;
+  letter-spacing: -0.01em;
   color: var(--text);
-  margin: 0 0 14px;
+  margin: 0 0 0.7rem;
+  min-height: 1.1em;
 }
 .ramone-hero-heading em {
-  color: var(--accent);
-  font-style: italic;
+  font-style: italic; color: var(--accent);
+  text-shadow: 0 0 28px rgba(245,166,35,0.4);
+}
+.ramone-caret {
+  display: inline-block;
+  width: 0.5ch; height: 0.82em;
+  background: var(--accent);
+  margin-left: 0.1em;
+  transform: translateY(0.08em);
+  box-shadow: 0 0 14px rgba(245,166,35,0.85);
+  animation: ramone-blink 1.05s steps(2, start) infinite;
 }
 
-.ramone-hero-lede {
-  color: var(--text-dim);
-  max-width: 640px;
-  font-size: 14px;
-  line-height: 1.8;
-  margin: 0;
-}
-
-/* --- section label (same as .label on standalone) ------------------ */
-.ramone-hero-label {
-  text-transform: uppercase;
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  color: var(--text-faint);
-  margin: 36px 0 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.ramone-hero-label::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-
-/* --- suggestion grid (same as .suggestions on standalone) ---------- */
-.ramone-hero-suggestions {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin-bottom: 0;
-}
-.ramone-hero-chip {
-  background: var(--bg-1);
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-  padding: 12px 14px;
-  text-align: left;
+/* ---- musing line --------------------------------------------------- */
+.ramone-musing {
   font-family: var(--mono);
-  font-size: 13px;
-  cursor: pointer;
-  border-radius: 2px;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
-  line-height: 1.4;
-}
-.ramone-hero-chip:hover {
-  border-color: var(--accent);
-  color: var(--text);
-  background: rgba(245, 166, 35, 0.06);
-}
-.ramone-hero-chip::before {
-  content: "→ ";
+  font-size: 14px;
   color: var(--accent);
-  margin-right: 2px;
+  min-height: 1.6em;
+  margin: 0 0 2.2rem;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 16px rgba(245,166,35,0.25);
+  opacity: 0;
+  transition: opacity .4s ease;
 }
-@media (max-width: 640px) {
-  .ramone-hero-suggestions { grid-template-columns: 1fr; }
+.ramone-musing.in { opacity: 1; }
+.ramone-musing-cursor {
+  display: inline-block;
+  width: 0.55ch; height: 1.05em;
+  background: var(--accent);
+  vertical-align: -0.16em; margin-left: 1px;
+  box-shadow: 0 0 10px rgba(245,166,35,0.8);
+  animation: ramone-blink 1.05s steps(2,start) infinite;
 }
 
-/* --- composer: same style as standalone composer ------------------- */
+/* ---- composer ------------------------------------------------------ */
 .ramone-hero-composer {
-  margin-top: 36px;
-  background: var(--bg-1);
+  background: var(--bg-2);
   border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 14px;
-  transition: border-color 0.15s;
+  border-radius: 6px;
+  padding: 14px 16px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .5s ease, transform .5s ease, border-color .18s, box-shadow .18s;
 }
-.ramone-hero-composer:focus-within {
-  border-color: var(--accent);
+.ramone-hero-composer.in { opacity: 1; transform: none; }
+.ramone-hero-composer.focused {
+  border-color: rgba(245,166,35,0.55);
+  box-shadow: 0 0 0 3px rgba(245,166,35,0.08), 0 0 30px -8px rgba(245,166,35,0.25);
 }
 .ramone-hero-composer-prompt {
-  color: var(--text-faint);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  margin-bottom: 8px;
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em;
+  color: var(--text-faint); margin-bottom: 9px;
+  display: flex; align-items: center; gap: 7px;
 }
+.ramone-hero-composer-prompt .blip {
+  color: var(--accent);
+  animation: ramone-blink 1.05s steps(2,start) infinite;
+}
+.ramone-input-wrap { display: flex; align-items: flex-start; gap: 10px; }
+.ramone-input-wrap .ps1 { color: var(--accent); padding-top: 1px; user-select: none; }
+
 .ramone-hero-input {
-  width: 100%;
-  background: transparent;
-  border: none;
-  outline: none;
+  flex: 1; width: 100%;
+  background: transparent; border: none; outline: none; resize: none;
   color: var(--text);
   font-family: var(--mono);
-  font-size: 14px;
-  line-height: 1.5;
-  resize: none;
-  min-height: 24px;
-  max-height: 180px;
-  display: block;
+  font-size: 14px; line-height: 1.55;
+  min-height: 24px; max-height: 180px;
   caret-color: var(--accent);
 }
 .ramone-hero-input::placeholder { color: var(--text-faint); }
 
 .ramone-hero-composer-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 12px;
+  display: flex; align-items: center; gap: 12px; margin-top: 12px;
 }
 .ramone-hero-char-count {
-  color: var(--text-faint);
-  font-size: 11px;
-  margin-right: auto;
+  font-size: 11px; color: var(--text-faint);
+  margin-right: auto; font-variant-numeric: tabular-nums;
 }
 .ramone-hero-char-count.warn { color: var(--accent); }
 .ramone-hero-char-count.over { color: #e24b4a; }
 
 .ramone-hero-send {
-  background: var(--accent);
-  color: var(--bg);
-  border: none;
-  padding: 8px 18px;
-  font-family: var(--mono);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  border-radius: 2px;
-  transition: background 0.15s;
-  white-space: nowrap;
+  background: var(--accent); color: #1a1206; border: none;
+  padding: 9px 20px;
+  font-family: var(--mono); font-size: 13px; font-weight: 600;
+  letter-spacing: 0.02em; cursor: pointer;
+  border-radius: 4px;
+  transition: background .15s, box-shadow .15s, transform .1s;
 }
-.ramone-hero-send:hover:not(:disabled) { background: #f7b84a; }
+.ramone-hero-send:hover:not(:disabled) {
+  background: #ffcb6b;
+  box-shadow: 0 0 20px -4px rgba(245,166,35,0.6);
+}
+.ramone-hero-send:active:not(:disabled) { transform: translateY(1px); }
 .ramone-hero-send:disabled {
-  background: var(--bg-2);
-  color: var(--text-faint);
-  cursor: not-allowed;
+  background: var(--bg-2); color: var(--text-faint); cursor: not-allowed;
 }
+.ramone-hero-send:focus-visible { outline: 2px solid #ffcb6b; outline-offset: 2px; }
 
-/* --- answer area --------------------------------------------------- */
+/* ---- example chips (pill style, below the box) -------------------- */
+.ramone-hero-suggestions {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-top: 1.1rem;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .5s .08s ease, transform .5s .08s ease;
+}
+.ramone-hero-suggestions.in { opacity: 1; transform: none; }
+.ramone-hero-suggestions-label {
+  width: 100%;
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em;
+  color: var(--text-faint);
+  margin-bottom: 2px;
+}
+.ramone-hero-chip {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 7px 12px;
+  font-family: var(--mono); font-size: 12px;
+  border-radius: 20px; cursor: pointer;
+  transition: border-color .15s, color .15s, background .15s, transform .15s;
+}
+.ramone-hero-chip::before { content: "→ "; color: var(--accent); }
+.ramone-hero-chip:hover {
+  border-color: rgba(245,166,35,0.5);
+  color: var(--text);
+  background: rgba(245,166,35,0.07);
+  transform: translateY(-1px);
+}
+.ramone-hero-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---- answer area -------------------------------------------------- */
 .ramone-hero-answer {
-  margin-top: 24px;
+  margin-top: 1.4rem;
   padding: 14px 16px;
-  background: var(--bg-1);
+  background: var(--bg-2);
   border: 1px solid var(--border);
   border-left: 2px solid var(--accent);
-  border-radius: 3px;
-  max-height: 300px;
-  overflow-y: auto;
-  font-size: 14px;
-  line-height: 1.65;
+  border-radius: 4px;
+  max-height: 300px; overflow-y: auto;
+  font-size: 13.5px; line-height: 1.7;
   scroll-behavior: smooth;
 }
+.ramone-hero-answer[hidden] { display: none; }
 .ramone-hero-answer.error { border-left-color: #e24b4a; }
 .ramone-hero-answer::-webkit-scrollbar { width: 3px; }
 .ramone-hero-answer::-webkit-scrollbar-thumb { background: var(--border-hi); }
@@ -268,23 +310,18 @@
 }
 .ramone-mini-answer-text::before {
   content: "R →";
-  display: inline-block;
-  min-width: 44px;
-  color: var(--accent);
-  margin-right: 8px;
-  vertical-align: top;
-  font-weight: 500;
+  display: inline-block; min-width: 36px;
+  color: var(--accent); font-weight: 600;
+  margin-right: 8px; vertical-align: top;
 }
 
 .ramone-mini-sources {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  display: flex; flex-wrap: wrap; gap: 6px;
   margin-top: 12px;
 }
 .ramone-mini-sources:empty { display: none; }
 .ramone-mini-sources .src {
-  background: var(--bg-2);
+  background: var(--bg-1);
   border: 1px solid var(--border);
   color: var(--text-dim);
   padding: 3px 8px;
@@ -292,9 +329,7 @@
   border-radius: 2px;
 }
 .ramone-mini-sources .src strong {
-  color: var(--accent);
-  font-weight: 500;
-  margin-right: 4px;
+  color: var(--accent); font-weight: 500; margin-right: 4px;
 }
 
 .ramone-mini-meta {
@@ -305,16 +340,19 @@
 }
 .ramone-mini-meta:empty { display: none; }
 
-/* --- open link ------------------------------------------------------ */
+/* ---- footer strip ------------------------------------------------- */
 .ramone-hero-footer {
-  margin-top: 20px;
-  text-align: right;
+  position: relative; z-index: 6;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px clamp(1.5rem, 4vw, 3rem);
+  border-top: 1px solid var(--border);
+  font-size: 11.5px;
+  color: var(--text-faint);
+  letter-spacing: 0.04em;
 }
 .ramone-hero-link {
-  font-size: 12px;
   color: var(--text-dim);
   text-decoration: none;
-  letter-spacing: 0.04em;
   transition: color 0.15s;
 }
 .ramone-hero-link:hover { color: var(--accent); }
@@ -324,5 +362,22 @@
    ===================================================================== */
 @media (prefers-reduced-motion: reduce) {
   .ramone-card.awake .ramone-dot { animation: none; }
-  .ramone-mini-cursor { animation: none; opacity: 0.6; }
+  .ramone-mini-cursor,
+  .ramone-caret,
+  .ramone-musing-cursor,
+  .ramone-hero-composer-prompt .blip { animation: none; opacity: 0.8; }
+  .ramone-card::after {
+    background: radial-gradient(130% 100% at 50% 50%, transparent 64%, rgba(0,0,0,0.4) 100%);
+  }
+  .ramone-hero-composer,
+  .ramone-hero-suggestions,
+  .ramone-musing { opacity: 1; transform: none; }
+}
+
+/* =====================================================================
+   RESPONSIVE
+   ===================================================================== */
+@media (max-width: 600px) {
+  .ramone-hero-live { font-size: 10px; }
+  .ramone-hero-sysinfo { font-size: 11px; }
 }
