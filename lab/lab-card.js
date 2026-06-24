@@ -592,7 +592,7 @@
       const shown = full.slice(0, i);
       const html = shown.replace(/Ramone\.?/, (m) => "<em>" + m + "</em>");
       greetEl.innerHTML = html + "<span class='ramone-caret'></span>";
-      if (i++ <= full.length) setTimeout(step, 120);
+      if (i++ <= full.length) (step, 120);
       else reveal();
     })();
   }
@@ -691,7 +691,7 @@ function getRandomMusing() {
       (function step() {
         setLine(text.slice(0, i++));
         if (i <= text.length) setTimeout(step, 38 + Math.random() * 30);
-        else setTimeout(cb, 10000);
+        else setTimeout(cb, 6000);
       })();
     }
     function deleteLine(text, cb) {
