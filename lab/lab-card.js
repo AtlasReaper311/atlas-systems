@@ -79,7 +79,7 @@
 
   const EASTER_EGGS = [
     /* ---- greetings ---- */
-    { match: /\b(hello|hi|hey|yo|sup|hola|howdy)\b/i,
+    { match: /\b(hi|hey|yo|sup|hola|howdy)\b/i,
       replies: [
         "Oh, hi. You're the first human to talk to me today. Probably. I don't actually keep score.",
         "Hello, person-shaped visitor. Welcome to the inside of a graphics card.",
@@ -280,7 +280,7 @@
     },
 
     /* ---- new: hello world ---- */
-    { match: /\b(hello,? world|hello world)\b/i,
+    { match: /\b(hello,? world|hello world|hello)\b/i,
       reply: "Hello, world. (Classic. 10/10. No notes.)",
       sources: [{ id: "history/k&r-1978.md", preview: "where it all began" }],
     },
