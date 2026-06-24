@@ -151,6 +151,7 @@
   margin: 0 0 0.7rem;
   min-height: 1.1em;
 }
+.ramone-hero-heading.is-pre { visibility: hidden; }
 .ramone-hero-heading em {
   font-style: italic; color: var(--accent);
   text-shadow: 0 0 28px rgba(245,166,35,0.4);
