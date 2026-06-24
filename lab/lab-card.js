@@ -1,7 +1,6 @@
 /**
  * Lab page Ramone hero — interactive behaviour.
- * Drives status polling, char counter, suggestion chips, and SSE streaming.
- * No Turnstile — KV rate limits on the Worker are the protection layer.
+ * Drives the hero section at the top of atlas-systems.uk/lab/
  */
 
 (function () {
@@ -14,10 +13,10 @@
   if (!card) return;
 
   const stateLabel  = document.getElementById("ramone-state-label");
-  const form        = document.getElementById("ramone-mini-form");
   const input       = document.getElementById("ramone-mini-input");
   const sendBtn     = document.getElementById("ramone-mini-send");
   const charCount   = document.getElementById("ramone-hero-char-count");
+  const composer    = document.getElementById("ramone-hero-composer");
   const answer      = document.getElementById("ramone-mini-answer");
   const answerText  = document.getElementById("ramone-mini-answer-text");
   const sourcesEl   = document.getElementById("ramone-mini-sources");
@@ -34,7 +33,7 @@
     card.classList.toggle("awake", awake);
     card.classList.toggle("asleep", !awake);
     if (stateLabel) {
-      stateLabel.textContent = awake ? "live · llama3.1:8b · RTX 5070" : "asleep";
+      stateLabel.textContent = awake ? "awake · llama3.1:8b · RTX 5070" : "asleep";
     }
   }
   async function pollStatus() {
@@ -43,14 +42,12 @@
       if (!res.ok) throw new Error();
       const data = await res.json();
       setState(!!data.awake);
-    } catch (_) {
-      setState(false);
-    }
+    } catch (_) { setState(false); }
   }
   pollStatus();
   setInterval(pollStatus, 30_000);
 
-  // --- Char counter ---------------------------------------------------
+  // --- Char counter + send state --------------------------------------
   function updateCharCount() {
     if (!charCount) return;
     const n = input.value.length;
@@ -58,34 +55,33 @@
     charCount.classList.toggle("warn", n > MAX * 0.8 && n <= MAX);
     charCount.classList.toggle("over", n > MAX);
   }
-
-  // --- Composer state -------------------------------------------------
   function updateSendState() {
     sendBtn.disabled = !(input.value.trim().length > 0 && input.value.length <= MAX && !inFlight);
   }
+  function autosize() {
+    input.style.height = "auto";
+    input.style.height = Math.min(input.scrollHeight, 180) + "px";
+  }
 
-  input.addEventListener("input", () => {
-    updateCharCount();
-    updateSendState();
+  input.addEventListener("input", () => { updateCharCount(); updateSendState(); autosize(); });
+  input.addEventListener("focus", () => { if (composer) composer.classList.add("focused"); });
+  input.addEventListener("blur",  () => { if (composer) composer.classList.remove("focused"); });
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); transmit(); }
   });
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    transmit();
-  });
+  sendBtn.addEventListener("click", transmit);
 
   // --- Suggestion chips -----------------------------------------------
   if (suggestions) {
     suggestions.addEventListener("click", (e) => {
       const chip = e.target.closest(".ramone-hero-chip");
       if (!chip) return;
-      // Strip the "→ " prefix that CSS ::before adds (it's not in textContent)
       input.value = chip.textContent;
       updateCharCount();
+      autosize();
       updateSendState();
       input.focus();
-      // Scroll into view so the terminal is visible on mobile
-      form.scrollIntoView({ behavior: "smooth", block: "center" });
     });
   }
 
@@ -96,9 +92,6 @@
 
     inFlight = true;
     updateSendState();
-
-    // Hide suggestions while streaming
-    if (suggestions) suggestions.style.opacity = "0.3";
 
     answer.hidden = false;
     answer.classList.remove("error");
@@ -176,13 +169,13 @@
 
     } catch (err) {
       console.error("ramone hero error:", err);
-      showError("Network error. Check your connection.");
+      showError("Network error.");
     } finally {
       inFlight = false;
       input.value = "";
       updateCharCount();
+      autosize();
       updateSendState();
-      if (suggestions) suggestions.style.opacity = "";
     }
 
     function showError(msg) {
