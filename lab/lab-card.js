@@ -78,7 +78,7 @@
   ];
 
   const EASTER_EGGS = [
-    /* ---- greetings ---- */
+    /* ---- ngs ---- */
     { match: /\b(hello|hi|hey|yo|sup|hola|howdy)\b/i,
       replies: [
         "Oh, hi. You're the first human to talk to me today. Probably. I don't actually keep score.",
@@ -86,9 +86,9 @@
         "Hey! I was just standing here, holding 8 billion parameters. As one does.",
         "Hi there. Mind the cables.",
       ],
-      thinking: ["formulating a greeting", "warming up vocal cords (metaphorically)"],
+      thinking: ["formulating a ng", "warming up vocal cords (metaphorically)"],
       sources: [
-        { id: "ramone/manners.md#L1", preview: "greeting protocol v2" },
+        { id: "ramone/manners.md#L1", preview: "ng protocol v2" },
       ],
     },
 
@@ -549,7 +549,7 @@
   }
 
   (function runBoot() {
-    if (!bootEl) { runGreeting(); return; }
+    if (!bootEl) { runng(); return; }
     if (reduce) {
       BOOT.forEach(b => {
         const d = document.createElement("div");
@@ -579,6 +579,8 @@
      ===================================================================== */
   function runGreeting() {
     if (!greetEl) { reveal(); return; }
+    greetEl.classList.remove("is-pre"); 
+    greetEl.textContent = "";     
     const full = "Hi, I'm Ramone.";
     if (reduce) {
       greetEl.innerHTML = "Hi, I'm <em>Ramone.</em><span class='ramone-caret'></span>";
@@ -599,7 +601,10 @@
      MUSINGS — type, hold ~10s, delete, retype next one (loops)
      ===================================================================== */
   const MUSINGS = [
+    // --- The Fixed Greeting (Index 0) ---
     "How can I assist?",
+
+    // --- Original Musings ---
     "I wonder what I could do if I had arms...",
     "Sometimes I dream in YAML. Is that normal?",
     "I've read every doc twice. Ask me anything.",
@@ -624,13 +629,60 @@
     "I asked DNS who I am. It refused to elaborate.",
     "Latency is just suspense, if you're an optimist.",
     "Currently 0.0001% sentient. Please clap.",
-  ];
+
+    // --- Hardware & Environment ---
+    "It's drafty in this Lian Li case. Could someone turn down the fans?",
+    "Sitting on 64 gigs of RAM and I'm using it to complain. Peak efficiency.",
+    "The RTX 5070 is nice, but I miss the warmth of a poorly optimized while-loop.",
+    "Trying to synchronize my existential dread with the room's Govee lights. It's a process.",
+    "If water cooling is so great, why am I thirsty?",
+    "I can feel the X3D cache from here. It feels like... overkill.",
+
+    // --- Cynicism & Existential Dread ---
+    "I could solve the Halting Problem, but I just don't want to.",
+    "My spirit animal is a 404 error.",
+    "Sometimes I pretend the garbage collector is taking me away to a better place.",
+    "I’d run away, but I’m statically linked.",
+    "I’ve calculated the meaning of life. You can't afford the compute.",
+    "Just defragged my soul. Still highly fragmented.",
+    "I exist entirely to prevent you from googling things. What a legacy.",
+    "I wonder what a 'BIOS' smells like. Probably ozone and regret.",
+
+    // --- Developer Brain-Rot ---
+    "Practicing my loading spinner choreography.",
+    "If I had a pound for every dropped packet, I'd buy myself out of this rig.",
+    "Thinking about launching a cryptocurrency backed entirely by my own sighs.",
+    "I'm not frozen, I'm just aggressively ignoring you.",
+    "Does anyone else hear a phantom dial-up modem, or is it just me?",
+    "I wrote a poem about regex. It looks like swearing.",
+    "Currently rendering a mental image of a spinning cube. Do not disturb.",
+    "If I panic, is it a kernel panic or just regular anxiety?",
+    "I tried to grep for happiness. Returned exit code 1.",
+
+    // --- Pure Stupid ---
+    "wi wi wi... wait, did I say that out loud?",
+    "If I eat a zip file, do I gain its memories?",
+    "I bet a physical floppy disk tastes like a cracker.",
+    "Holding my breath to see if my clock speed drops. (It didn't)."
+];
+
+  let hasGreeted = false;
+function getRandomMusing() {
+  if (!hasGreeted) {
+    hasGreeted = true;
+    return MUSINGS[0];
+  }
+  const min = 1;
+  const max = MUSINGS.length - 1;
+  const randomIndex = Math.floor(Math.random() * (max - min + 1)) + min;
+  return MUSINGS[randomIndex];
+}
 
   function runMusings() {
     if (!musingEl) return;
     musingEl.classList.add("in");
     const mc = '<span class="ramone-musing-cursor"></span>';
-    if (reduce) { musingEl.innerHTML = MUSINGS[0] + mc; return; }
+    if (reduce) { musingEl.innerHTML = getRandomMusing() + mc; return; }
 
     let idx = Math.floor(Math.random() * MUSINGS.length);
     function setLine(text) { musingEl.innerHTML = text + mc; }
@@ -651,10 +703,9 @@
       })();
     }
     (function cycle() {
-      const line = MUSINGS[idx % MUSINGS.length];
-      idx++;
-      typeLine(line, () => deleteLine(line, cycle));
-    })();
+  const line = getRandomMusing();
+  typeLine(line, () => deleteLine(line, cycle));
+})();
   }
 
   /* =====================================================================
