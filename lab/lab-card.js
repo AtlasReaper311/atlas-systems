@@ -1,34 +1,41 @@
 /**
- * Lab page Ramone card — interactive behaviour.
- * Turnstile removed. KV rate limits on the Worker are the protection layer.
+ * Lab page Ramone hero — interactive behaviour.
+ * Drives status polling, char counter, suggestion chips, and SSE streaming.
+ * No Turnstile — KV rate limits on the Worker are the protection layer.
  */
 
 (function () {
   "use strict";
 
   const RAMONE_BASE = "https://ramone.atlas-systems.uk";
+  const MAX = 2000;
 
-  const card = document.getElementById("ramone-card");
+  const card        = document.getElementById("ramone-card");
   if (!card) return;
 
   const stateLabel  = document.getElementById("ramone-state-label");
   const form        = document.getElementById("ramone-mini-form");
   const input       = document.getElementById("ramone-mini-input");
   const sendBtn     = document.getElementById("ramone-mini-send");
+  const charCount   = document.getElementById("ramone-hero-char-count");
   const answer      = document.getElementById("ramone-mini-answer");
   const answerText  = document.getElementById("ramone-mini-answer-text");
   const sourcesEl   = document.getElementById("ramone-mini-sources");
   const metaEl      = document.getElementById("ramone-mini-meta");
+  const suggestions = document.getElementById("ramone-hero-suggestions");
 
   let inFlight = false;
 
+  // --- Status polling -------------------------------------------------
   let lastAwake = null;
   function setState(awake) {
     if (awake === lastAwake) return;
     lastAwake = awake;
     card.classList.toggle("awake", awake);
     card.classList.toggle("asleep", !awake);
-    stateLabel.textContent = awake ? "live" : "asleep";
+    if (stateLabel) {
+      stateLabel.textContent = awake ? "live · llama3.1:8b · RTX 5070" : "asleep";
+    }
   }
   async function pollStatus() {
     try {
@@ -43,18 +50,55 @@
   pollStatus();
   setInterval(pollStatus, 30_000);
 
-  function updateSendState() {
-    sendBtn.disabled = !(input.value.trim().length > 0 && !inFlight);
+  // --- Char counter ---------------------------------------------------
+  function updateCharCount() {
+    if (!charCount) return;
+    const n = input.value.length;
+    charCount.textContent = `${n} / ${MAX}`;
+    charCount.classList.toggle("warn", n > MAX * 0.8 && n <= MAX);
+    charCount.classList.toggle("over", n > MAX);
   }
-  input.addEventListener("input", updateSendState);
-  form.addEventListener("submit", (e) => { e.preventDefault(); transmit(); });
 
+  // --- Composer state -------------------------------------------------
+  function updateSendState() {
+    sendBtn.disabled = !(input.value.trim().length > 0 && input.value.length <= MAX && !inFlight);
+  }
+
+  input.addEventListener("input", () => {
+    updateCharCount();
+    updateSendState();
+  });
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    transmit();
+  });
+
+  // --- Suggestion chips -----------------------------------------------
+  if (suggestions) {
+    suggestions.addEventListener("click", (e) => {
+      const chip = e.target.closest(".ramone-hero-chip");
+      if (!chip) return;
+      // Strip the "→ " prefix that CSS ::before adds (it's not in textContent)
+      input.value = chip.textContent;
+      updateCharCount();
+      updateSendState();
+      input.focus();
+      // Scroll into view so the terminal is visible on mobile
+      form.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
+
+  // --- Transmit -------------------------------------------------------
   async function transmit() {
     const question = input.value.trim();
-    if (!question || inFlight) return;
+    if (!question || question.length > MAX || inFlight) return;
 
     inFlight = true;
     updateSendState();
+
+    // Hide suggestions while streaming
+    if (suggestions) suggestions.style.opacity = "0.3";
 
     answer.hidden = false;
     answer.classList.remove("error");
@@ -67,6 +111,8 @@
     cursor.className = "ramone-mini-cursor";
     answerText.appendChild(textNode);
     answerText.appendChild(cursor);
+
+    answer.scrollIntoView({ behavior: "smooth", block: "nearest" });
 
     const startedAt = performance.now();
     let firstTokenAt = null;
@@ -129,12 +175,14 @@
       metaEl.textContent = parts.join(" · ");
 
     } catch (err) {
-      console.error("ramone card error:", err);
-      showError("Network error.");
+      console.error("ramone hero error:", err);
+      showError("Network error. Check your connection.");
     } finally {
       inFlight = false;
       input.value = "";
+      updateCharCount();
       updateSendState();
+      if (suggestions) suggestions.style.opacity = "";
     }
 
     function showError(msg) {
@@ -145,7 +193,7 @@
       } else {
         const e = document.createElement("div");
         e.style.color = "#e24b4a";
-        e.style.marginTop = "6px";
+        e.style.marginTop = "8px";
         e.textContent = msg;
         answerText.appendChild(e);
       }
@@ -165,5 +213,6 @@
     });
   }
 
+  updateCharCount();
   updateSendState();
 })();
