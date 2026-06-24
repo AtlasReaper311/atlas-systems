@@ -346,7 +346,7 @@
       "I'd help water the parsnips, but I'm afraid of water. And work. Mostly work.",
       "Tell your wife I said hi. Also, whether they're a local villager or literally just Ursa in a wig, eating quartz is terrible for your digestion.",
       "Mayor Lewis is corrupt, Pierre takes credit for your crops, and Joja at least has the decency to be openly evil. I stand by this.",
-      "I tried mining in the Skull Cavern once. Ran out of RAM on floor 12. Tell her to send staircases."
+      "I tried mining in the Skull Cavern once. Ran out of RAM on floor 12. Tell her to send staircases.",
       "JD?"
     ],
     thinking: [
