@@ -559,7 +559,11 @@
         listEl.innerHTML = '<div class="flog-loading">Loading recent events…</div>';
         let data;
         try {
-          const res = await fetch(`${FLOG_URL}?limit=50`, { cache: "no-store" });
+          let url = `${FLOG_URL}?limit=50`;
+            if (flogActiveLevels) {
+          for (const lvl of flogActiveLevels) url += `&level=${lvl}`;
+        }
+          const res = await fetch(url, { cache: "no-store" });
           data = await res.json();
         } catch {
           listEl.innerHTML = '<div class="flog-empty">Event feed unavailable.</div>';
@@ -612,7 +616,7 @@
             else flogActiveLevels.add(level);
             if (!flogActiveLevels.size) flogActiveLevels = null;
           }
-          renderFlog();
+          loadFlog();
         });
         return btn;
       }
