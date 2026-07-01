@@ -554,6 +554,7 @@
   const musingEl    = document.getElementById("ramone-musing");
 
   let inFlight = false;
+  let fallbackSessionId = null;
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function makeRamoneSessionId() {
@@ -583,15 +584,21 @@
   function getRamoneSessionId() {
     const KEY = "ramone:session_id";
     let stored = null;
-    try { stored = localStorage.getItem(KEY); } catch (_) { /* storage disabled */ }
-    if (stored) return stored;
+    try { stored = window.localStorage && window.localStorage.getItem(KEY); } catch (_) { /* storage disabled */ }
+    if (stored) {
+      fallbackSessionId = stored;
+      return stored;
+    }
+    if (fallbackSessionId) return fallbackSessionId;
     const fresh = makeRamoneSessionId();
-    try { localStorage.setItem(KEY, fresh); } catch (_) { /* best-effort only */ }
+    fallbackSessionId = fresh;
+    try { window.localStorage && window.localStorage.setItem(KEY, fresh); } catch (_) { /* best-effort only */ }
     return fresh;
   }
 
   function resetRamoneSession() {
-    try { localStorage.removeItem("ramone:session_id"); } catch (_) { /* no-op */ }
+    fallbackSessionId = null;
+    try { window.localStorage && window.localStorage.removeItem("ramone:session_id"); } catch (_) { /* no-op */ }
     location.reload();
   }
 
