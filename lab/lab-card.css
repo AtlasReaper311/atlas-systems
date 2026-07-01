@@ -124,6 +124,23 @@
   cursor: not-allowed;
 }
 
+.ramone-mini-reset {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 2px;
+  margin-right: auto;
+  transition: border-color 0.15s, color 0.15s;
+}
+.ramone-mini-reset:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
 /* --- answer area --------------------------------------------------- */
 .ramone-mini-answer {
   padding: 12px;

@@ -19,8 +19,48 @@
   const answerText  = document.getElementById("ramone-mini-answer-text");
   const sourcesEl   = document.getElementById("ramone-mini-sources");
   const metaEl      = document.getElementById("ramone-mini-meta");
+  const resetBtn    = document.getElementById("ramone-mini-reset");
 
   let inFlight = false;
+
+  function makeRamoneSessionId() {
+    const c = window.crypto;
+    if (c && typeof c.randomUUID === "function") return c.randomUUID();
+
+    const bytes = new Uint8Array(16);
+    if (c && typeof c.getRandomValues === "function") {
+      c.getRandomValues(bytes);
+    } else {
+      for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+    }
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+    const hex = [];
+    for (let j = 0; j < bytes.length; j++) hex.push(bytes[j].toString(16).padStart(2, "0"));
+    return (
+      hex.slice(0, 4).join("") + "-" +
+      hex.slice(4, 6).join("") + "-" +
+      hex.slice(6, 8).join("") + "-" +
+      hex.slice(8, 10).join("") + "-" +
+      hex.slice(10, 16).join("")
+    );
+  }
+
+  function getRamoneSessionId() {
+    const KEY = "ramone:session_id";
+    let stored = null;
+    try { stored = localStorage.getItem(KEY); } catch (_) { /* storage disabled */ }
+    if (stored) return stored;
+    const fresh = makeRamoneSessionId();
+    try { localStorage.setItem(KEY, fresh); } catch (_) { /* best-effort only */ }
+    return fresh;
+  }
+
+  function resetRamoneSession() {
+    try { localStorage.removeItem("ramone:session_id"); } catch (_) { /* no-op */ }
+    location.reload();
+  }
 
   // --- Status polling -------------------------------------------------
   let lastAwake = null;
@@ -50,6 +90,7 @@
   }
   input.addEventListener("input", updateSendState);
   form.addEventListener("submit", (e) => { e.preventDefault(); transmit(); });
+  if (resetBtn) resetBtn.addEventListener("click", resetRamoneSession);
 
   // --- Transmit -------------------------------------------------------
   async function transmit() {
@@ -79,7 +120,7 @@
       const res = await fetch(`${RAMONE_BASE}/ask`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ question, session_id: getRamoneSessionId() }),
       });
 
       if (res.status === 503) {
