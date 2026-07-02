@@ -13,3 +13,8 @@ jobs:
       site_label: atlas-systems.uk
       inject_build_meta: true
     secrets: inherit
+
+  refresh-corpus:
+    uses: AtlasReaper311/atlas-corpus/.github/workflows/refresh-corpus.yml@main
+    secrets:
+      CORPUS_SECRET: ${{ secrets.CORPUS_SECRET }}
