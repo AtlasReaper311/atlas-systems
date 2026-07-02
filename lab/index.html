@@ -1328,7 +1328,10 @@
           if (!byWorker[ep.worker]) byWorker[ep.worker] = ep;
           if (/health|liveness|probe/i.test(ep.description || "")) byWorker[ep.worker] = ep;
         }
-        return Object.entries(byWorker).map(([worker, ep]) => ({ label: worker, url: BASE + ep.path.replace(/\?.*$/, "") }));
+        return Object.entries(byWorker).map(([worker, ep]) => {
+          const path = (ep.path || "").replace(/\?.*$/, "");
+          return { label: worker, url: /^https?:\/\//i.test(path) ? path : BASE + path };
+        });
       }
 
       async function pingEndpoint(url) {
@@ -1361,6 +1364,56 @@
       }
 
       const API_INDEX_URL = "https://api.atlas-systems.uk/";
+
+      function normalizeApiSurface(data) {
+        const endpoints = [];
+        const repos = { ...(data.repos || {}) };
+        const undocumented = [];
+        const seen = new Set();
+
+        function addEndpoint(worker, meta, ep) {
+          const next = {
+            ...ep,
+            worker,
+            source: meta?.source || ep.source || "",
+          };
+          const key = [next.worker, next.method || "GET", next.path || "", next.description || ""].join("|");
+          if (!seen.has(key)) {
+            endpoints.push(next);
+            seen.add(key);
+          }
+        }
+
+        if (Array.isArray(data.endpoints)) {
+          for (const ep of data.endpoints) addEndpoint(ep.worker || "unknown", { source: ep.source }, ep);
+        }
+
+        if (Array.isArray(data.workers)) {
+          for (const worker of data.workers) {
+            const meta = worker.meta || {};
+            const name = meta.name || worker.name || "unknown";
+            if (meta.source && !repos[name]) repos[name] = meta.source;
+            if (worker.documented && Array.isArray(meta.endpoints)) {
+              for (const ep of meta.endpoints) addEndpoint(name, meta, ep);
+            } else {
+              undocumented.push({
+                worker: name,
+                note: worker.note || "No valid /_meta document yet.",
+                probeUrl: worker.probe_url || "",
+              });
+            }
+          }
+        }
+
+        return {
+          endpoints,
+          repos,
+          undocumented,
+          counts: data.counts || null,
+          warnings: Array.isArray(data.discovery_warnings) ? data.discovery_warnings : [],
+        };
+      }
+
       async function initApiSurface() {
         const grid = document.getElementById("api-surface-grid");
         const note = document.getElementById("api-surface-note");
@@ -1374,9 +1427,12 @@
           if (note) note.textContent = "";
           return;
         }
-        const endpoints = Array.isArray(data.endpoints) ? data.endpoints : [];
-        const repos = data.repos || {};
-        if (!endpoints.length) { grid.innerHTML = '<div class="api-loading">No endpoints reported.</div>'; return; }
+        const { endpoints, repos, undocumented, counts, warnings } = normalizeApiSurface(data);
+        if (!endpoints.length && !undocumented.length) {
+          grid.innerHTML = '<div class="api-loading">No endpoints reported.</div>';
+          if (note) note.textContent = "";
+          return;
+        }
         const order = []; const byWorker = {};
         for (const ep of endpoints) {
           const w = ep.worker || "unknown";
@@ -1407,7 +1463,27 @@
           }
           card.appendChild(list); grid.appendChild(card);
         }
-        if (note) { const total = endpoints.length; const wc = order.length; note.textContent = `Live index — ${total} endpoint${total !== 1 ? "s" : ""} across ${wc} Worker${wc !== 1 ? "s" : ""}. Source: api.atlas-systems.uk/`; }
+        for (const item of undocumented) {
+          const card = document.createElement("div"); card.className = "api-worker-card";
+          const head = document.createElement("div"); head.className = "api-worker-head";
+          const name = document.createElement("div"); name.className = "api-worker-name"; name.textContent = item.worker;
+          head.appendChild(name); card.appendChild(head);
+          const list = document.createElement("div"); list.className = "api-endpoint-list";
+          const row = document.createElement("div"); row.className = "api-endpoint-row";
+          const top = document.createElement("div"); top.className = "api-endpoint-top";
+          const method = document.createElement("span"); method.className = "api-method get"; method.textContent = "META";
+          const path = document.createElement("span"); path.className = "api-path"; path.textContent = "/_meta pending";
+          top.appendChild(method); top.appendChild(path); row.appendChild(top);
+          const descEl = document.createElement("div"); descEl.className = "api-desc"; descEl.textContent = item.note;
+          row.appendChild(descEl); list.appendChild(row); card.appendChild(list); grid.appendChild(card);
+        }
+        if (note) {
+          const total = endpoints.length;
+          const wc = order.length;
+          const missing = counts?.undocumented ?? undocumented.length;
+          const warningText = warnings.length ? ` ${warnings.length} discovery warning${warnings.length !== 1 ? "s" : ""}.` : "";
+          note.textContent = `Live registry — ${total} endpoint${total !== 1 ? "s" : ""} across ${wc} documented Worker${wc !== 1 ? "s" : ""}; ${missing} Worker${missing !== 1 ? "s" : ""} still need /_meta.${warningText} Source: api.atlas-systems.uk/`;
+        }
         _healthTargets = deriveHealthTargets(endpoints);
         runHealthChecks();
         setInterval(runHealthChecks, 60_000);
