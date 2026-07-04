@@ -83,16 +83,14 @@
   width: max-content;
 }
 
-/* ── The next chapter: scheduled, not empty ──────────────────────────── */
-/* Deliberately distinct from .coming-soon's 0.4 ghost: this is the
-   series' announced terminus, so it holds more presence, a dashed rail
-   continuation, a live node, and its own amber date treatment. It still
-   does not navigate anywhere; there is nothing to navigate to yet. */
+/* ── The next chapter: scheduled, still unpublished ──────────────────── */
+/* It keeps the "next chapter" copy and dashed rail continuation, but it
+   should read as unavailable just like the other unpublished cards. */
 .article-entry.series-upcoming {
-  opacity: 0.8;
+  opacity: 0.4;
   pointer-events: none;
 }
-.article-entry.series-upcoming.visible { opacity: 0.8; }
+.article-entry.series-upcoming.visible { opacity: 0.4; }
 
 .article-entry.series-upcoming::before {
   background: none;
@@ -101,17 +99,8 @@
 }
 
 .article-entry.series-upcoming::after {
-  border-color: var(--accent, #f5a623);
-  background: rgba(245, 166, 35, 0.15);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .article-entry.series-upcoming::after {
-    animation: series-node-pulse 2.4s ease-in-out infinite;
-  }
-  @keyframes series-node-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(245, 166, 35, 0.35); }
-    50%      { box-shadow: 0 0 0 6px rgba(245, 166, 35, 0.0); }
-  }
+  border-color: rgba(245, 166, 35, 0.4);
+  background: var(--bg, #0a0a0f);
 }
 
 .article-entry.series-upcoming .article-date {
