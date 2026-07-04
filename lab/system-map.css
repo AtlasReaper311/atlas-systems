@@ -1,0 +1,219 @@
+/* =====================================================================
+   system-map.css
+   Styles for the Lab system map. Inherits the site tokens (--bg, --accent,
+   --mono, etc) with hex fallbacks so the section renders correctly if it
+   is ever moved to a page that forgot to define them.
+
+   Colour carries status, shape carries role. Green means the registry
+   verified a /_meta this hour; nothing else on the map is allowed to
+   claim green, because the map's credibility is the whole feature.
+   ===================================================================== */
+
+.smap-section { padding: 5rem 0; border-bottom: 1px solid var(--border, rgba(255,255,255,0.08)); }
+
+.smap-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;
+}
+.smap-statusline {
+  font-size: 11px; letter-spacing: 0.05em;
+  color: var(--text-dim, #aaa9a0);
+}
+.smap-banner {
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+  border-left: 2px solid #e24b4a;
+  background: var(--bg-2, #1a1a24);
+  color: var(--text-dim, #aaa9a0);
+  font-size: 12px; padding: 8px 12px; margin-bottom: 1rem;
+}
+
+.smap-host {
+  position: relative;
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(245,166,35,0.05), transparent 55%),
+    var(--bg-1, #111118);
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+  border-radius: 8px;
+  overflow: hidden;
+}
+/* Same 64px grid as the Ramone chassis so the two live surfaces on this
+   page read as panels of one machine, not neighbours from different sites. */
+.smap-host::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 64px 64px;
+  pointer-events: none;
+}
+
+.smap-svg { display: block; width: 100%; height: auto; position: relative; }
+
+/* ── Edges ─────────────────────────────────────────────────────────── */
+.smap-edge { stroke-width: 1; }
+.smap-edge-binding  { stroke: rgba(245,166,35,0.45); }
+.smap-edge-tunnel   { stroke: rgba(245,166,35,0.55); stroke-dasharray: 5 4; }
+.smap-edge-http     { stroke: rgba(232,232,224,0.28); }
+.smap-edge-alert    { stroke: rgba(245,166,35,0.25); stroke-dasharray: 2 4; }
+.smap-edge-dispatch { stroke: rgba(232,232,224,0.30); stroke-dasharray: 7 4; }
+.smap-edge-notify   { stroke: rgba(232,232,224,0.20); }
+.smap-edge-poll     { stroke: rgba(232,232,224,0.13); }
+.smap-edge-probe    { stroke: rgba(245,166,35,0.10); stroke-dasharray: 1 5; }
+
+/* ── Nodes: role shapes ────────────────────────────────────────────── */
+.smap-node { cursor: pointer; outline: none; }
+.smap-node .smap-shape {
+  fill: var(--bg-2, #1a1a24);
+  stroke: var(--border-hi, rgba(255,255,255,0.16));
+  stroke-width: 1.25;
+  transition: stroke 0.25s ease, fill 0.25s ease;
+}
+.smap-node:hover .smap-shape,
+.smap-node:focus-visible .smap-shape { stroke: var(--accent, #f5a623); }
+.smap-node:focus-visible .smap-shape { stroke-width: 2; }
+
+.smap-label {
+  fill: var(--text-dim, #aaa9a0);
+  font-family: var(--mono, 'IBM Plex Mono', monospace);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  paint-order: stroke;
+  stroke: var(--bg-1, #111118);
+  stroke-width: 3px;
+  pointer-events: none;
+}
+.smap-node:hover .smap-label { fill: var(--text, #e8e8e0); }
+
+.smap-role-site .smap-shape  { stroke: rgba(232,232,224,0.35); }
+.smap-role-local .smap-shape { stroke: rgba(245,166,35,0.40); }
+.smap-role-infra .smap-shape { stroke: rgba(245,166,35,0.55); fill: rgba(245,166,35,0.08); }
+.smap-role-ext .smap-shape   { stroke: rgba(232,232,224,0.22); stroke-dasharray: 3 3; }
+
+/* ── Worker status vocabulary ──────────────────────────────────────── */
+.smap-halo { fill: none; stroke: transparent; stroke-width: 2; }
+.smap-ring { fill: none; stroke: transparent; stroke-width: 1; }
+
+.smap-st-live .smap-shape { stroke: #4ade80; }
+.smap-st-live .smap-halo  { stroke: rgba(74,222,128,0.55); }
+@media (prefers-reduced-motion: no-preference) {
+  .smap-st-live .smap-halo { animation: smap-pulse 2.4s ease-in-out infinite; }
+}
+@keyframes smap-pulse {
+  0%, 100% { stroke-width: 2;  stroke-opacity: 0.55; }
+  50%      { stroke-width: 9;  stroke-opacity: 0.10; }
+}
+
+.smap-st-degraded .smap-shape { stroke: var(--accent, #f5a623); }
+.smap-st-degraded .smap-halo  { stroke: rgba(245,166,35,0.4); }
+
+.smap-st-undoc .smap-shape { stroke: rgba(245,166,35,0.35); }
+.smap-st-undoc .smap-ring  { stroke: rgba(245,166,35,0.30); stroke-dasharray: 3 4; }
+.smap-st-undoc .smap-label { fill: var(--text-faint, #555560); }
+
+.smap-st-down .smap-shape { stroke: rgba(226,75,74,0.75); fill: rgba(226,75,74,0.06); }
+.smap-st-down .smap-label { fill: rgba(226,75,74,0.6); }
+
+.smap-st-unknown .smap-shape { stroke: rgba(232,232,224,0.14); }
+.smap-st-unknown .smap-label { fill: var(--text-faint, #555560); }
+
+/* ── KV satellites ─────────────────────────────────────────────────── */
+.smap-kv-box {
+  fill: var(--bg, #0a0a0f);
+  stroke: rgba(245,166,35,0.4);
+  stroke-width: 1;
+}
+.smap-kv-tether { stroke: rgba(245,166,35,0.18); stroke-width: 1; stroke-dasharray: 1 3; }
+.smap-kv-label {
+  fill: var(--text-faint, #555560);
+  font-family: var(--mono, 'IBM Plex Mono', monospace);
+  font-size: 8px; letter-spacing: 0.06em;
+  pointer-events: none;
+}
+
+/* ── Detail panel ──────────────────────────────────────────────────── */
+.smap-panel {
+  position: absolute;
+  z-index: 20;
+  background: var(--bg-1, #111118);
+  border: 1px solid var(--border-hi, rgba(255,255,255,0.16));
+  border-radius: 6px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  padding: 12px 14px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-dim, #aaa9a0);
+  pointer-events: auto;
+}
+.smap-panel-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+.smap-panel-name { color: var(--text, #e8e8e0); font-weight: 500; letter-spacing: 0.03em; }
+.smap-panel-role { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint, #555560); }
+.smap-panel-status { font-size: 11px; margin-bottom: 6px; }
+.smap-pst-live     { color: #4ade80; }
+.smap-pst-degraded { color: var(--accent, #f5a623); }
+.smap-pst-undoc    { color: rgba(245,166,35,0.7); }
+.smap-pst-down     { color: #e24b4a; }
+.smap-pst-unknown  { color: var(--text-faint, #555560); }
+.smap-panel-desc { margin-bottom: 8px; }
+.smap-panel-kv { font-size: 11px; color: var(--text-faint, #555560); margin-bottom: 6px; }
+.smap-panel-kv strong { color: var(--text-dim, #aaa9a0); font-weight: 500; }
+.smap-panel-eps { border-top: 1px solid var(--border, rgba(255,255,255,0.08)); padding-top: 8px; margin-bottom: 6px; }
+.smap-panel-ep { display: flex; gap: 8px; align-items: baseline; }
+.smap-ep-method {
+  font-size: 9px; letter-spacing: 0.08em; padding: 0 5px;
+  border: 1px solid rgba(245,166,35,0.4); color: var(--accent, #f5a623);
+}
+.smap-ep-path { color: var(--text, #e8e8e0); font-size: 11px; overflow-wrap: anywhere; }
+.smap-ep-desc { font-size: 10.5px; color: var(--text-faint, #555560); margin: 1px 0 6px 0; }
+.smap-panel-note {
+  border-left: 2px solid rgba(245,166,35,0.4);
+  padding-left: 8px; font-size: 11px; color: var(--text-faint, #555560);
+  margin-bottom: 6px;
+}
+.smap-panel-src { color: var(--accent, #f5a623); text-decoration: none; font-size: 11px; letter-spacing: 0.05em; }
+.smap-panel-src:hover { text-decoration: underline; }
+
+/* ── Legend ────────────────────────────────────────────────────────── */
+.smap-legend {
+  display: flex; flex-wrap: wrap; gap: 1.25rem;
+  margin-top: 1rem; font-size: 10.5px; letter-spacing: 0.05em;
+  color: var(--text-faint, #555560);
+}
+.smap-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.smap-leg-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.smap-leg-live  { background: #4ade80; }
+.smap-leg-undoc { background: transparent; border: 1px dashed rgba(245,166,35,0.6); }
+.smap-leg-down  { background: rgba(226,75,74,0.7); }
+.smap-leg-shape { width: 9px; height: 9px; display: inline-block; border: 1px solid var(--text-dim, #aaa9a0); }
+.smap-leg-diamond { transform: rotate(45deg); border-color: rgba(245,166,35,0.6); }
+
+.smap-note {
+  font-size: 11px; color: var(--text-faint, #555560);
+  margin-top: 1.25rem; letter-spacing: 0.04em; line-height: 1.7;
+}
+
+/* ── Mobile list ───────────────────────────────────────────────────── */
+.smap-list { display: none; padding: 6px 0; }
+.smap-list-group { padding: 10px 16px 4px; }
+.smap-list-title {
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--accent, #f5a623); margin-bottom: 8px;
+}
+.smap-list-row {
+  display: grid; grid-template-columns: 12px auto 1fr; gap: 10px;
+  align-items: baseline; padding: 6px 0;
+  border-bottom: 1px solid var(--border, rgba(255,255,255,0.06));
+}
+.smap-list-row:last-child { border-bottom: none; }
+.smap-list-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-faint, #555560); align-self: center; }
+.smap-list-row.smap-st-live .smap-list-dot { background: #4ade80; box-shadow: 0 0 8px rgba(74,222,128,0.6); }
+.smap-list-row.smap-st-degraded .smap-list-dot { background: var(--accent, #f5a623); }
+.smap-list-row.smap-st-undoc .smap-list-dot { background: transparent; border: 1px dashed rgba(245,166,35,0.6); }
+.smap-list-row.smap-st-down .smap-list-dot { background: #e24b4a; }
+.smap-list-name { font-size: 12px; color: var(--text, #e8e8e0); white-space: nowrap; }
+.smap-list-desc { font-size: 11px; color: var(--text-faint, #555560); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 720px) {
+  .smap-list { display: block; }
+  .smap-list-desc { white-space: normal; }
+}

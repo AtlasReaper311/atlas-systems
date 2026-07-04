@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=DM+Serif+Display:ital@0;1&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/card-search.css">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{--bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;--border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);--text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;--accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);--mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px}
@@ -137,6 +138,17 @@
       <button type="button" class="filter-btn" data-filter="devops">DevOps</button>
       <button type="button" class="filter-btn" data-filter="gamedev">Game Dev</button>
     </div>
+
+    <div class="card-search">
+      <span class="card-search-prompt" aria-hidden="true">&gt;</span>
+      <label for="card-search-input" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">Filter projects</label>
+      <input class="card-search-input" id="card-search-input" type="search"
+             placeholder="filter projects: title, tag, spec…"
+             autocomplete="off" spellcheck="false">
+      <span class="card-search-count" id="card-search-count" aria-live="polite"></span>
+      <kbd class="card-search-key" aria-hidden="true">/</kbd>
+    </div>
+    <p class="card-search-empty" id="card-search-empty" hidden></p>
 
     <div class="projects">
 
@@ -458,6 +470,7 @@
       else{btn.classList.add('playing');btn.querySelector('svg polygon').setAttribute('points','2,2 8,2 8,8 2,8');currentAudio=new Audio(tracks[trackId]);currentAudio.play().catch(()=>{btn.classList.remove('playing');btn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9')});currentAudio.onended=()=>{btn.classList.remove('playing');btn.querySelector('svg polygon').setAttribute('points','2,1 9,5 2,9');currentBtn=null};currentBtn=btn}
     }
   </script>
+  <script src="/js/card-search.js" defer></script>
   <script src="/js/transitions.js"></script>
 </body>
 </html>

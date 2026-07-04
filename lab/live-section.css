@@ -1,0 +1,427 @@
+/* =====================================================================
+   live-section.css
+   One chassis for the three live feeds: telemetry, estate status, corpus
+   search. The frame is the Ramone monitor pattern from lab-card.css
+   (topbar with lights, 64px grid, CRT scanlines) so the Lab page reads
+   as two screens of the same machine, not four unrelated widgets.
+
+   The sp-w and cs-w internal styles moved here from their old
+   <script type="text/plain"> blocks; their OUTER container rules
+   (background, border, padding, max-width) are gone on purpose, because
+   the shared panel now owns the container look. Their internals (tiles,
+   bars, core strip, hit cards) are unchanged.
+   ===================================================================== */
+
+/* ── Chassis ─────────────────────────────────────────────────────────── */
+.live-card {
+  position: relative;
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(245,166,35,0.06), transparent 55%),
+    var(--bg-1, #111118);
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.6),
+    0 40px 120px -30px rgba(0,0,0,0.9),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+  overflow: hidden;
+}
+.live-card::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 64px 64px;
+  pointer-events: none; z-index: 0;
+}
+.live-card::after {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,0) 0px,
+      rgba(0,0,0,0) 2px,
+      rgba(0,0,0,0.14) 3px,
+      rgba(0,0,0,0) 4px
+    ),
+    radial-gradient(130% 100% at 50% 50%, transparent 64%, rgba(0,0,0,0.5) 100%);
+  pointer-events: none; z-index: 5;
+  mix-blend-mode: multiply;
+}
+
+.live-topbar {
+  position: relative; z-index: 6;
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 18px;
+  background: linear-gradient(180deg, var(--bg-2, #1a1a24), var(--bg-1, #111118));
+  border-bottom: 1px solid var(--border, rgba(255,255,255,0.08));
+}
+.live-lights { display: flex; gap: 7px; }
+.live-lights i {
+  width: 11px; height: 11px; border-radius: 50%;
+  display: block;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+}
+.live-lights i:nth-child(1) { background: #5a2b2b; }
+.live-lights i:nth-child(2) { background: #5a4a23; }
+.live-lights i:nth-child(3) { background: #2b4a2f; }
+
+.live-sysinfo {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 12px; letter-spacing: 0.06em;
+  color: var(--text-faint, #555560);
+  flex-wrap: wrap;
+}
+.live-sysinfo strong { color: var(--text-dim, #aaa9a0); font-weight: 500; }
+.live-sep { color: var(--accent, #f5a623); }
+
+/* Two feed dots on the right of the topbar: registry and telemetry.
+   They are the section's own heartbeat, independent of the panels. */
+.live-feeds {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 14px;
+  font-size: 11px; letter-spacing: 0.04em; color: var(--text-dim, #aaa9a0);
+  white-space: nowrap; flex-shrink: 0;
+}
+.live-feed { display: inline-flex; align-items: center; gap: 7px; }
+.live-feed-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--text-faint, #555560);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.live-feed[data-state="ok"] .live-feed-dot {
+  background: #4ade80;
+  box-shadow: 0 0 10px rgba(74,222,128,0.7);
+}
+.live-feed[data-state="warn"] .live-feed-dot { background: var(--accent, #f5a623); }
+.live-feed[data-state="down"] .live-feed-dot { background: #e24b4a; }
+@media (prefers-reduced-motion: no-preference) {
+  .live-feed[data-state="ok"] .live-feed-dot { animation: live-dot-pulse 2.4s ease-in-out infinite; }
+}
+@keyframes live-dot-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(74,222,128,0.5); }
+  50%      { box-shadow: 0 0 16px rgba(74,222,128,0.95); }
+}
+
+.live-inner {
+  position: relative; z-index: 6;
+  padding: clamp(1.6rem, 3.5vw, 2.6rem) clamp(1.4rem, 3.5vw, 2.6rem);
+}
+
+/* ── Boot log: identical grammar to the Ramone widget ────────────────── */
+.live-boot {
+  font-size: 12px; color: var(--text-faint, #555560);
+  line-height: 1.95; margin-bottom: 1.6rem;
+  min-height: 1.95em;
+}
+.live-boot .ok  { color: #4ade80; }
+.live-boot .acc { color: var(--accent, #f5a623); }
+.live-boot .by  { color: var(--text-dim, #aaa9a0); }
+.live-boot-line { opacity: 0; transition: opacity .25s ease; }
+.live-boot-line.show { opacity: 1; }
+
+/* ── Panel grid ──────────────────────────────────────────────────────── */
+.live-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 14px;
+}
+.live-panel {
+  background: rgba(10,10,15,0.45);
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+  border-radius: 6px;
+  padding: 16px 18px;
+  min-width: 0;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .5s ease, transform .5s ease;
+}
+.live-panel.in { opacity: 1; transform: none; }
+.live-panel-corpus { grid-column: 1 / -1; }
+
+.live-panel-title {
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--accent, #f5a623);
+  margin: 0 0 14px;
+  display: flex; align-items: center; gap: 0.6rem;
+}
+.live-panel-title::before {
+  content: ''; display: inline-block;
+  width: 18px; height: 1px; background: var(--accent, #f5a623);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-panel { opacity: 1; transform: none; transition: none; }
+  .live-boot-line { opacity: 1; transition: none; }
+}
+
+/* ── Telemetry internals (moved from #spw-style; container rules gone) ── */
+.sp-w {
+  --spw-bg: var(--bg-1, #111118);
+  --spw-bg-2: var(--bg-2, #1a1a24);
+  --spw-border: var(--border, rgba(255, 255, 255, 0.08));
+  --spw-text: var(--text, #e8e8e0);
+  --spw-dim: var(--text-dim, #aaa9a0);
+  --spw-faint: var(--text-faint, #555560);
+  --spw-accent: var(--accent, #f5a623);
+  --spw-green: #4ade80;
+  --spw-red: #e24b4a;
+  display: block;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--spw-text);
+}
+.sp-w * { box-sizing: border-box; }
+.sp-w-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.sp-w-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--spw-faint);
+  align-self: center;
+  flex: none;
+}
+.sp-w[data-state="online"] .sp-w-dot { background: var(--spw-green); }
+.sp-w[data-state="offline"] .sp-w-dot { background: var(--spw-red); }
+@media (prefers-reduced-motion: no-preference) {
+  .sp-w[data-state="online"] .sp-w-dot { animation: sp-w-pulse 2.4s ease-in-out infinite; }
+  @keyframes sp-w-pulse { 50% { opacity: 0.35; } }
+}
+.sp-w-name { font-weight: 500; letter-spacing: 0.04em; }
+.sp-w-label { color: var(--spw-faint); }
+.sp-w-age { margin-left: auto; color: var(--spw-faint); font-size: 12px; }
+.sp-w-offline {
+  display: none;
+  border: 1px solid var(--spw-border);
+  border-left: 2px solid var(--spw-red);
+  background: var(--spw-bg-2);
+  color: var(--spw-dim);
+  padding: 10px 12px;
+  margin-bottom: 16px;
+}
+.sp-w[data-state="offline"] .sp-w-offline { display: block; }
+.sp-w[data-state="offline"] .sp-w-grid { opacity: 0.45; }
+.sp-w-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+.sp-w-tile {
+  background: var(--spw-bg-2);
+  border: 1px solid var(--spw-border);
+  border-radius: 4px;
+  padding: 12px;
+  min-width: 0;
+}
+.sp-w-tile h4 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--spw-faint);
+  text-transform: uppercase;
+}
+.sp-w-big { font-size: 18px; color: var(--spw-text); }
+.sp-w-sub { font-size: 12px; color: var(--spw-dim); overflow-wrap: anywhere; }
+.sp-w-bar {
+  height: 6px;
+  background: var(--spw-bg);
+  border: 1px solid var(--spw-border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 8px 0 6px;
+}
+.sp-w-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--spw-accent);
+  transition: width 0.6s ease;
+}
+/* The signature: one thin meter per logical core. Structure as
+   information; the strip's width is literally the core count. */
+.sp-w-cores {
+  display: flex;
+  gap: 2px;
+  align-items: flex-end;
+  height: 26px;
+  margin-top: 8px;
+}
+.sp-w-core {
+  flex: 1 1 0;
+  min-width: 2px;
+  height: 100%;
+  background: var(--spw-bg);
+  border: 1px solid var(--spw-border);
+  position: relative;
+  overflow: hidden;
+}
+.sp-w-core i {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 4%;
+  background: var(--spw-accent);
+  transition: height 0.6s ease;
+}
+.sp-w-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.sp-w-chip {
+  border: 1px solid var(--spw-border);
+  background: rgba(245, 166, 35, 0.12);
+  color: var(--spw-text);
+  padding: 1px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+.sp-w-foot {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  font-size: 11px;
+  color: var(--spw-faint);
+}
+.sp-w-foot a { color: var(--spw-faint); text-decoration: underline; }
+.sp-w-foot a:hover { color: var(--spw-accent); }
+
+/* ── Estate status panel ─────────────────────────────────────────────── */
+.live-estate-line {
+  font-size: 13px; color: var(--text, #e8e8e0);
+  margin-bottom: 4px;
+}
+.live-estate-sub {
+  font-size: 11px; color: var(--text-faint, #555560);
+  letter-spacing: 0.04em; margin-bottom: 14px;
+}
+.live-workers {
+  display: flex; flex-direction: column; gap: 7px;
+  margin-bottom: 14px;
+}
+.live-worker-row {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12px; color: var(--text-dim, #aaa9a0);
+}
+.live-worker-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--text-faint, #555560);
+  flex: none;
+}
+.live-worker-row[data-st="live"] .live-worker-dot { background: #4ade80; box-shadow: 0 0 8px rgba(74,222,128,0.55); }
+.live-worker-row[data-st="undoc"] .live-worker-dot { background: transparent; border: 1px dashed rgba(245,166,35,0.6); }
+.live-worker-row[data-st="live"] .live-worker-name { color: var(--text, #e8e8e0); }
+.live-worker-name { letter-spacing: 0.02em; }
+.live-worker-note {
+  color: var(--text-faint, #555560);
+  font-size: 10.5px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.live-map-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent, #f5a623); text-decoration: none;
+}
+.live-map-link:hover { text-decoration: underline; }
+
+/* ── Corpus internals (moved from #csw-style; container rules gone) ──── */
+.cs-w {
+  --csw-bg: var(--bg-1, #111118);
+  --csw-bg-2: var(--bg-2, #1a1a24);
+  --csw-border: var(--border, rgba(255, 255, 255, 0.08));
+  --csw-text: var(--text, #e8e8e0);
+  --csw-dim: var(--text-dim, #aaa9a0);
+  --csw-faint: var(--text-faint, #555560);
+  --csw-accent: var(--accent, #f5a623);
+  display: block;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--csw-text);
+}
+.cs-w * { box-sizing: border-box; }
+.cs-w-head { color: var(--csw-faint); margin-bottom: 12px; }
+.cs-w-head strong { color: var(--csw-text); font-weight: 500; letter-spacing: 0.04em; }
+
+/* Terminal-styled query line: prompt glyph, bottom border only, glowing
+   caret. Same treatment as the Work and Writing search inputs so "type
+   here to interrogate the system" is one learned pattern site-wide. */
+.cs-w-form {
+  display: flex; gap: 10px; align-items: center;
+  border-bottom: 1px solid var(--csw-border);
+  padding-bottom: 8px;
+  transition: border-color 0.2s;
+}
+.cs-w-form:focus-within { border-color: var(--csw-accent); }
+.cs-w-prompt { color: var(--csw-accent); flex: none; font-weight: 500; }
+.cs-w-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  color: var(--csw-text);
+  font: inherit;
+  padding: 4px 0;
+  caret-color: var(--csw-accent);
+}
+.cs-w-input:focus { outline: none; }
+.cs-w-input::placeholder { color: var(--csw-faint); }
+.cs-w-btn {
+  flex: none;
+  background: transparent;
+  border: 1px solid var(--csw-accent);
+  border-radius: 4px;
+  color: var(--csw-accent);
+  font: inherit;
+  font-size: 12px;
+  padding: 5px 14px;
+  cursor: pointer;
+}
+.cs-w-btn:hover { background: rgba(245, 166, 35, 0.12); }
+.cs-w-btn:disabled { opacity: 0.5; cursor: wait; }
+.cs-w-status { margin: 12px 0 0; color: var(--csw-faint); font-size: 12px; }
+.cs-w-results { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; }
+.cs-w-hit {
+  background: var(--csw-bg-2);
+  border: 1px solid var(--csw-border);
+  border-left: 2px solid var(--csw-accent);
+  border-radius: 4px;
+  padding: 12px 14px;
+}
+.cs-w-hit-meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+.cs-w-type {
+  color: var(--csw-accent);
+  border: 1px solid var(--csw-border);
+  border-radius: 3px;
+  padding: 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.cs-w-path { color: var(--csw-dim); overflow-wrap: anywhere; }
+.cs-w-score { color: var(--csw-faint); margin-left: auto; }
+.cs-w-excerpt { color: var(--csw-dim); font-size: 12px; }
+
+/* ── Responsive ──────────────────────────────────────────────────────── */
+@media (max-width: 780px) {
+  .live-grid { grid-template-columns: 1fr; }
+  .live-sysinfo { font-size: 11px; }
+  .live-feeds { gap: 10px; }
+  .live-feed span:last-child { display: none; } /* dots only; labels crowd the bar */
+}
+@media (max-width: 520px) {
+  .cs-w-form { flex-wrap: wrap; }
+  .cs-w-btn { width: 100%; }
+  .cs-w-score { margin-left: 0; }
+}

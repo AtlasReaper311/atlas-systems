@@ -1,0 +1,136 @@
+/* =====================================================================
+   home-additions.css
+   The two Part 5 additions: the estate strip under the hero CTA and
+   the system map tease at the end of the Live signal section. Inherits
+   the homepage tokens; hex fallbacks match the rest of the estate.
+   ===================================================================== */
+
+/* ── Estate strip ────────────────────────────────────────────────────── */
+/* One line, one link. Hidden until the registry client has something
+   honest to say; revealed by JS with the same fade the hero children
+   use, one beat after the CTA row. */
+.estate-strip {
+  display: flex;
+  width: max-content;
+  max-width: 100%;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2.4rem;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  color: var(--text-dim, #aaa9a0);
+  text-decoration: none;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.estate-strip.in { opacity: 1; transform: none; }
+
+.estate-strip-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--text-faint, #555560);
+  flex: none;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.estate-strip[data-state="ok"] .estate-strip-dot {
+  background: #4ade80;
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .estate-strip[data-state="ok"] .estate-strip-dot {
+    animation: pulse 2.5s ease-in-out infinite; /* homepage keyframes, reused */
+  }
+}
+.estate-strip[data-state="stale"] .estate-strip-dot {
+  background: var(--accent, #f5a623);
+  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
+}
+
+.estate-strip-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.estate-strip-cta {
+  color: var(--text-faint, #555560);
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+.estate-strip:hover .estate-strip-cta { color: var(--accent, #f5a623); }
+
+@media (prefers-reduced-motion: reduce) {
+  .estate-strip { transition: none; transform: none; }
+}
+@media (max-width: 680px) {
+  .estate-strip { flex-wrap: wrap; row-gap: 4px; }
+  .estate-strip-text { white-space: normal; }
+}
+
+/* ── System map tease ────────────────────────────────────────────────── */
+.map-tease {
+  margin-top: 2.5rem;
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 1.75rem;
+  align-items: center;
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(245,166,35,0.05), transparent 55%),
+    var(--bg-1, #111118);
+  padding: 1.5rem 1.75rem;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s;
+}
+.map-tease:hover { border-color: var(--border-hi, rgba(255,255,255,0.16)); }
+
+.map-tease-svg { display: block; width: 100%; height: auto; }
+
+/* The constellation is deliberately schematic: real roles (hub, edge
+   workers, tunnel, LAN), fake coordinates. The live one is the map. */
+.mt-edge   { stroke: rgba(232,232,224,0.18); stroke-width: 1; }
+.mt-tunnel { stroke: rgba(245,166,35,0.5); stroke-width: 1; stroke-dasharray: 4 3; }
+.mt-node   { fill: var(--bg-2, #1a1a24); stroke: rgba(255,255,255,0.22); stroke-width: 1.2; }
+.mt-lan    { stroke: rgba(245,166,35,0.45); }
+.mt-hub    { stroke: #4ade80; }
+.mt-halo   { fill: none; stroke: rgba(74,222,128,0.5); stroke-width: 2; }
+@media (prefers-reduced-motion: no-preference) {
+  .mt-halo { animation: mt-pulse 2.4s ease-in-out infinite; }
+  @keyframes mt-pulse {
+    0%, 100% { stroke-width: 2; stroke-opacity: 0.5; }
+    50%      { stroke-width: 7; stroke-opacity: 0.08; }
+  }
+}
+
+.map-tease-title {
+  font-family: var(--serif, 'DM Serif Display', Georgia, serif);
+  font-size: 1.35rem;
+  color: var(--text, #e8e8e0);
+  margin-bottom: 0.4rem;
+}
+.map-tease-desc {
+  font-size: 12px;
+  color: var(--text-dim, #aaa9a0);
+  line-height: 1.7;
+  max-width: 480px;
+  margin-bottom: 0.9rem;
+}
+.map-tease-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent, #f5a623);
+}
+.map-tease-cta svg {
+  width: 12px; height: 12px;
+  stroke: currentColor; fill: none;
+  stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+  transition: transform 0.15s;
+}
+.map-tease:hover .map-tease-cta svg { transform: translateX(4px); }
+
+@media (max-width: 680px) {
+  .map-tease { grid-template-columns: 1fr; gap: 1.25rem; }
+  .map-tease-svg { max-width: 220px; }
+}

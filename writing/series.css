@@ -1,0 +1,131 @@
+/* =====================================================================
+   series.css
+   The series treatment for the Writing page: a rail down the left edge
+   connecting consecutive parts, a node per card, a part chip in the
+   meta column, a banner above the group, and a distinct "next chapter"
+   state for a scheduled-but-unpublished final part.
+
+   The rail lives in the page gutter (negative left offset inside main's
+   padding), so it decorates the cards without touching their grid. The
+   1px margin between cards is bridged by extending each rail segment
+   1px past its card's bottom edge; adjacency classes are computed by
+   series.js at load, so the rail always matches the real DOM order.
+   ===================================================================== */
+
+/* ── Banner above the group ──────────────────────────────────────────── */
+.series-banner {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  padding: 2rem 0 0.9rem;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.series-banner::before {
+  content: '';
+  display: inline-block;
+  width: 24px;
+  height: 1px;
+  background: var(--accent, #f5a623);
+  align-self: center;
+}
+.series-banner-title { color: var(--accent, #f5a623); }
+.series-banner-note  { color: var(--text-faint, #555560); letter-spacing: 0.12em; }
+
+/* ── Rail and nodes ──────────────────────────────────────────────────── */
+.article-entry.in-series { position: relative; }
+
+/* The rail segment: one per card, fused into a continuous line by the
+   1px overdraw. Solid for published and standard coming-soon parts. */
+.article-entry.in-series::before {
+  content: '';
+  position: absolute;
+  left: -16px;
+  top: 0;
+  bottom: -2px; /* bridges the 1px card gap plus rounding */
+  width: 2px;
+  background: rgba(245, 166, 35, 0.35);
+}
+.article-entry.series-first::before { border-radius: 2px 2px 0 0; }
+.article-entry.series-last::before  { bottom: 0; border-radius: 0 0 2px 2px; }
+
+/* The node: a small marker aligned with the W-number line, so the rail
+   reads as a track with stations rather than a stray border. */
+.article-entry.in-series::after {
+  content: '';
+  position: absolute;
+  left: -21px;
+  top: 2.3rem;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--bg, #0a0a0f);
+  border: 2px solid rgba(245, 166, 35, 0.8);
+}
+
+/* Coming-soon parts inside a series keep the ghosted card but their rail
+   node hollows out, so the track shows exactly which stations are open. */
+.article-entry.in-series.coming-soon::after {
+  border-color: rgba(245, 166, 35, 0.4);
+}
+
+/* ── Part chip in the meta column ────────────────────────────────────── */
+.series-chip {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border: 1px dashed rgba(245, 166, 35, 0.45);
+  color: rgba(245, 166, 35, 0.85);
+  display: inline-block;
+  width: max-content;
+}
+
+/* ── The next chapter: scheduled, not empty ──────────────────────────── */
+/* Deliberately distinct from .coming-soon's 0.4 ghost: this is the
+   series' announced terminus, so it holds more presence, a dashed rail
+   continuation, a live node, and its own amber date treatment. It still
+   does not navigate anywhere; there is nothing to navigate to yet. */
+.article-entry.series-upcoming {
+  opacity: 0.8;
+  pointer-events: none;
+}
+.article-entry.series-upcoming.visible { opacity: 0.8; }
+
+.article-entry.series-upcoming::before {
+  background: none;
+  width: 0;
+  border-left: 2px dashed rgba(245, 166, 35, 0.45);
+}
+
+.article-entry.series-upcoming::after {
+  border-color: var(--accent, #f5a623);
+  background: rgba(245, 166, 35, 0.15);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .article-entry.series-upcoming::after {
+    animation: series-node-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes series-node-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(245, 166, 35, 0.35); }
+    50%      { box-shadow: 0 0 0 6px rgba(245, 166, 35, 0.0); }
+  }
+}
+
+.article-entry.series-upcoming .article-date {
+  color: var(--accent, #f5a623);
+  letter-spacing: 0.1em;
+}
+.article-entry.series-upcoming .article-cta {
+  color: var(--accent, #f5a623);
+}
+
+/* ── Mobile ──────────────────────────────────────────────────────────── */
+@media (max-width: 680px) {
+  /* main's side padding bottoms out at 1.5rem (24px); pull the rail in
+     so the nodes stay inside it. */
+  .article-entry.in-series::before { left: -12px; }
+  .article-entry.in-series::after  { left: -17px; top: 1.6rem; }
+}

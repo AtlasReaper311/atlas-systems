@@ -9,6 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=DM+Serif+Display:ital@0;1&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/card-search.css">
+  <link rel="stylesheet" href="/writing/series.css">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{--bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;--border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);--text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;--accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);--mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px}
@@ -79,7 +81,71 @@
       <p class="page-sub">Architecture decisions documented in full. How things were built, why they were built that way, and what the tradeoffs were.</p>
     </header>
 
+    <div class="card-search">
+      <span class="card-search-prompt" aria-hidden="true">&gt;</span>
+      <label for="card-search-input" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">Filter articles</label>
+      <input class="card-search-input" id="card-search-input" type="search"
+             placeholder="filter articles: title, tag, summary…"
+             autocomplete="off" spellcheck="false">
+      <span class="card-search-count" id="card-search-count" aria-live="polite"></span>
+      <kbd class="card-search-key" aria-hidden="true">/</kbd>
+    </div>
+    <p class="card-search-empty" id="card-search-empty" hidden></p>
+
     <div class="articles">
+
+      <!-- W-07: Pipeline & Observability, part 3 :: the next chapter -->
+      <a href="#" class="article-entry series-upcoming"
+         data-series="pipeline-observability" data-series-part="3"
+         data-series-total="3" data-series-title="Pipeline &amp; Observability"
+         data-series-state="upcoming">
+        <div class="article-meta">
+          <span class="article-number">W-07</span>
+          <span class="article-date">NEXT CHAPTER // SEPTEMBER 2026</span>
+          <div class="article-tags">
+            <span class="tag highlight">DevOps</span>
+            <span class="tag">Observability</span>
+            <span class="tag">Infrastructure</span>
+          </div>
+        </div>
+        <div class="article-body">
+          <!-- TITLE UNCONFIRMED: replace with the real W-07 title on confirmation -->
+          <h2 class="article-title">Pipeline &amp; Observability, Part III</h2>
+          <div class="article-subtitle">Pipeline &amp; Observability — Part III // September</div>
+          <p class="article-summary">The final part of the series. Scheduled for September; the two parts before it set up what this one closes out.</p>
+          <div class="article-cta">
+            The next chapter
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- W-06: Pipeline & Observability, part 2 :: standard coming soon -->
+      <a href="#" class="article-entry coming-soon"
+         data-series="pipeline-observability" data-series-part="2"
+         data-series-total="3" data-series-title="Pipeline &amp; Observability">
+        <div class="article-meta">
+          <span class="article-number">W-06</span>
+          <!-- MONTH UNCONFIRMED: decisions.md dates W-05 July and W-07 September;
+               August is the inferred slot for part 2. Correct if wrong. -->
+          <span class="article-date">Coming August 2026</span>
+          <div class="article-tags">
+            <span class="tag highlight">DevOps</span>
+            <span class="tag">CI/CD</span>
+            <span class="tag">Infrastructure</span>
+          </div>
+        </div>
+        <div class="article-body">
+          <!-- TITLE UNCONFIRMED: replace with the real W-06 title on confirmation -->
+          <h2 class="article-title">Pipeline &amp; Observability, Part II</h2>
+          <div class="article-subtitle">Pipeline &amp; Observability — Part II // Coming Soon</div>
+          <p class="article-summary">Part two of the series: the middle chapter between the pipeline build and the estate's self-documentation layer.</p>
+          <div class="article-cta">
+            Coming soon
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+      </a>
 
       <!-- W-05: Atlas Pipeline — coming soon -->
       <a href="#" class="article-entry coming-soon">
@@ -257,6 +323,8 @@
     const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target)}})},{threshold:0.08});
     document.querySelectorAll('.article-entry').forEach(el=>observer.observe(el));
   </script>
+  <script src="/js/card-search.js" defer></script>
+  <script src="/writing/series.js" defer></script>
   <script src="/js/transitions.js"></script>
 </body>
 </html>

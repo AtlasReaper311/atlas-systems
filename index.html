@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=DM+Serif+Display:ital@0;1&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/home-additions.css">
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -640,6 +641,12 @@
           GitHub
         </a>
       </div>
+
+      <a class="estate-strip" id="estate-strip" href="/lab/#system-map" hidden data-state="">
+        <span class="estate-strip-dot" id="estate-strip-dot" aria-hidden="true"></span>
+        <span class="estate-strip-text" id="estate-strip-text"></span>
+        <span class="estate-strip-cta">view live architecture &rarr;</span>
+      </a>
     </section>
 
     <!-- PILLARS -->
@@ -834,6 +841,36 @@
           </div>
         </div>
       </div>
+
+      <a href="/lab/#system-map" class="map-tease reveal" aria-label="Open the live system map on the Lab page">
+        <svg class="map-tease-svg" viewBox="0 0 160 96" aria-hidden="true">
+          <!-- schematic constellation: hub, edge workers, tunnel, LAN -->
+          <line class="mt-edge" x1="36" y1="48" x2="66" y2="22"/>
+          <line class="mt-edge" x1="36" y1="48" x2="68" y2="72"/>
+          <line class="mt-edge" x1="36" y1="48" x2="16" y2="24"/>
+          <line class="mt-edge" x1="36" y1="48" x2="18" y2="74"/>
+          <line class="mt-edge" x1="36" y1="48" x2="98" y2="48"/>
+          <line class="mt-tunnel" x1="106" y1="48" x2="134" y2="30"/>
+          <line class="mt-tunnel" x1="106" y1="48" x2="136" y2="66"/>
+          <circle class="mt-halo" cx="36" cy="48" r="6"/>
+          <circle class="mt-node mt-hub" cx="36" cy="48" r="6"/>
+          <circle class="mt-node" cx="66" cy="22" r="4.5"/>
+          <circle class="mt-node" cx="68" cy="72" r="4.5"/>
+          <circle class="mt-node" cx="16" cy="24" r="4"/>
+          <circle class="mt-node" cx="18" cy="74" r="4"/>
+          <rect class="mt-node" x="92" y="43" width="16" height="10" rx="2"/>
+          <rect class="mt-node mt-lan" x="128" y="24" width="11" height="11" rx="2" transform="rotate(45 133.5 29.5)"/>
+          <rect class="mt-node mt-lan" x="130" y="60" width="11" height="11" rx="2" transform="rotate(45 135.5 65.5)"/>
+        </svg>
+        <div class="map-tease-body">
+          <div class="map-tease-title">The estate, drawn by itself.</div>
+          <p class="map-tease-desc">Every Worker, every binding, every tunnel, with live status from the registry that discovers them. Not a diagram of the system; the system, describing itself.</p>
+          <span class="map-tease-cta">
+            Open the live map
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </span>
+        </div>
+      </a>
     </section>
 
   </main>
@@ -940,6 +977,8 @@
       if (path.startsWith(a.getAttribute('href'))) a.classList.add('active');
     });
   </script>
+   <script src="/js/atlas-registry.js" defer></script>
+   <script src="/js/home-live-strip.js" defer></script>
    <script src="/js/live-signal.js" defer></script>
   <script src="/js/pulse.js" defer></script>
  <script src="/js/transitions.js"></script>
