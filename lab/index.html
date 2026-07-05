@@ -123,25 +123,25 @@
           .pgrid-legend span{display:inline-flex;align-items:center;gap:0.4rem}
           .pgrid-legend .dot{width:7px;height:7px;border-radius:50%}
           .pgrid-legend .dot.success{background:#4ade80}
-          .pgrid-legend .dot.warning{background:var(--accent)}
+          .pgrid-legend .dot.activity{background:var(--accent)}
           .pgrid-legend .dot.failure{background:#e24b4a}
           .pgrid-legend .dot.info{background:#888}
           .pgrid-legend .dot.none{background:none;border:1px solid var(--text-faint)}
           .pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border)}
           .pgrid-tile{background:var(--bg);padding:1.1rem 1.15rem;display:flex;flex-direction:column;gap:0.5rem;position:relative;min-height:118px;overflow:hidden;text-decoration:none;color:inherit;cursor:pointer;transition:background 0.15s}
           .pgrid-tile:hover{background:var(--bg-1)}
-          .pgrid-tile.idle{opacity:0.55}
-          .pgrid-tile.stale{opacity:0.62}
-          .pgrid-tile.stale .pgrid-dot{filter:saturate(0.4)}
+          .pgrid-tile.idle{background:rgba(17,17,24,0.36)}
+          .pgrid-tile.stale{background:rgba(17,17,24,0.22)}
           .pgrid-row{display:flex;justify-content:space-between;align-items:flex-start;gap:0.75rem}
           .pgrid-repo{font-family:var(--mono);font-size:12px;color:var(--text);letter-spacing:0.02em;line-height:1.2;word-break:break-all}
           .pgrid-tile.idle .pgrid-repo{color:var(--text-faint)}
           .pgrid-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:2px}
           .pgrid-dot.success{background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,0.14)}
+          .pgrid-dot.activity{background:var(--accent);box-shadow:0 0 0 3px rgba(245,166,35,0.14)}
           .pgrid-dot.warning{background:var(--accent);box-shadow:0 0 0 3px rgba(245,166,35,0.14)}
           .pgrid-dot.failure{background:#e24b4a;box-shadow:0 0 0 3px rgba(226,75,74,0.14)}
           .pgrid-dot.info{background:#888;box-shadow:0 0 0 3px rgba(136,136,136,0.12)}
-          .pgrid-dot.none{background:transparent;border:1px solid var(--text-faint);box-shadow:none}
+          .pgrid-dot.none{background:transparent;border:1px solid rgba(232,232,224,0.35);box-shadow:none}
           .pgrid-meta-line{font-size:10px;color:var(--text-faint);letter-spacing:0.04em;font-variant-numeric:tabular-nums;display:flex;gap:0.5rem;align-items:center}
           .pgrid-sha{color:var(--text-dim)}
           .pgrid-sep{color:var(--text-faint)}
@@ -166,7 +166,7 @@
           .health-chip-latency{font-family:var(--mono);font-size:13px;color:var(--text);font-variant-numeric:tabular-nums}
           .health-chip-latency.fast{color:#4ade80}
           .health-chip-latency.medium{color:var(--accent)}
-          .health-chip-latency.slow{color:#e24b4a}
+          .health-chip-latency.slow{color:var(--accent)}
           .health-chip-latency.err{color:var(--text-faint);font-size:11px}
           .health-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
           .health-dot.up{background:#4ade80;box-shadow:0 0 0 2px rgba(74,222,128,0.14)}
@@ -435,7 +435,7 @@
           </div>
           <div class="pgrid-legend">
             <span><span class="dot success"></span>ok</span>
-            <span><span class="dot warning"></span>warn</span>
+            <span><span class="dot activity"></span>activity</span>
             <span><span class="dot failure"></span>fail</span>
             <span><span class="dot info"></span>info</span>
             <span><span class="dot none"></span>idle</span>
@@ -464,10 +464,11 @@
           <div class="health-loading">Checking worker latency…</div>
         </div>
         <p class="flog-note">
-          Green, amber, and red are reserved for deploy state. Pushes without
-          a confirmed deploy become amber activity; runtime warnings do not set
-          repo health. Source: atlas-notify ring buffer, deploy-watch, and
-          live build metadata for atlas-systems.uk.
+          Green, amber, and red are reserved for deploy state. Amber means
+          activity is waiting on a confirmed deploy signal; older tags mean the
+          last deploy record is old, not offline. Runtime warnings do not set
+          repo health. Source: atlas-notify ring buffer, deploy-watch, and live
+          build metadata for atlas-systems.uk.
         </p>
       </section>
 
@@ -1204,12 +1205,12 @@
       }
 
       function pgridStatusLevel(status, activity) {
-        if (!status && activity) return "warning";
+        if (!status && activity) return "activity";
         if (!status) return "none";
         if (!activity) return status.level || "info";
         const statusTime = opsMs(status.ts);
         const activityTime = opsMs(activity.ts);
-        if (activityTime > statusTime) return "warning";
+        if (activityTime > statusTime) return "activity";
         return status.level || "info";
       }
 
@@ -1256,15 +1257,15 @@
             const sha = pgridShaFrom(refEv);
             if (sha) { const s = document.createElement("span"); s.className = "pgrid-sha"; s.textContent = sha; meta.appendChild(s); const sep = document.createElement("span"); sep.className = "pgrid-sep"; sep.textContent = "·"; meta.appendChild(sep); }
             const when = document.createElement("span"); when.textContent = flogRelTime(refEv.ts); meta.appendChild(when);
-            if (isStale && level !== "none") { const sep2 = document.createElement("span"); sep2.className = "pgrid-sep"; sep2.textContent = "·"; meta.appendChild(sep2); const st = document.createElement("span"); st.className = "pgrid-stale-tag"; st.textContent = "stale"; meta.appendChild(st); }
-          } else { meta.textContent = "no events yet"; }
+            if (isStale && level !== "none") { const sep2 = document.createElement("span"); sep2.className = "pgrid-sep"; sep2.textContent = "·"; meta.appendChild(sep2); const st = document.createElement("span"); st.className = "pgrid-stale-tag"; st.textContent = "older"; meta.appendChild(st); }
+          } else { meta.textContent = "no deploy feed yet"; }
           tile.appendChild(meta);
           const summary = document.createElement("div"); summary.className = "pgrid-summary";
-          if (activityAfterStatus) summary.textContent = "Activity seen; deploy not confirmed";
+          if (activityAfterStatus) summary.textContent = "Activity seen; deploy signal pending";
           else if (status) summary.textContent = pgridSummary(status);
-          else if (activity) summary.textContent = "Activity seen; deploy not confirmed";
+          else if (activity) summary.textContent = "Activity seen; deploy signal pending";
           else if (latest) summary.textContent = pgridSummary(latest);
-          else summary.textContent = "awaiting first deploy";
+          else summary.textContent = "Deploy feed not wired yet";
           tile.appendChild(summary);
           const pulse = document.createElement("div"); pulse.className = "pgrid-pulse"; tile.appendChild(pulse);
           grid.appendChild(tile);
@@ -1317,8 +1318,17 @@
 
       let _healthTargets = null;
 
-      function deriveHealthTargets(endpoints) {
+      function endpointProbeUrl(ep) {
         const BASE = "https://api.atlas-systems.uk";
+        const path = (ep.path || "").replace(/\?.*$/, "");
+        if (/^https?:\/\//i.test(path)) return path;
+        try {
+          if (ep.probeUrl) return new URL(path || "/", new URL(ep.probeUrl).origin).href;
+        } catch {}
+        return BASE + (path || "/");
+      }
+
+      function deriveHealthTargets(endpoints) {
         const byWorker = {};
         for (const ep of endpoints) {
           if (ep.method !== "GET") continue;
@@ -1327,20 +1337,42 @@
           if (/health|liveness|probe/i.test(ep.description || "")) byWorker[ep.worker] = ep;
         }
         return Object.entries(byWorker).map(([worker, ep]) => {
-          const path = (ep.path || "").replace(/\?.*$/, "");
-          return { label: worker, url: /^https?:\/\//i.test(path) ? path : BASE + path };
+          return { label: worker, url: endpointProbeUrl(ep) };
         });
       }
 
       async function pingEndpoint(url) {
-        const controller = new AbortController();
-        const tid = setTimeout(() => controller.abort(), 5000);
         const t0 = performance.now();
+        async function attempt(options = {}) {
+          const controller = new AbortController();
+          const tid = setTimeout(() => controller.abort(), 5000);
+          try {
+            return await fetch(url, { cache: "no-store", signal: controller.signal, ...options });
+          } finally {
+            clearTimeout(tid);
+          }
+        }
         try {
-          const res = await fetch(url, { cache: "no-store", signal: controller.signal });
-          return { ok: res.ok, ms: Math.round(performance.now() - t0) };
-        } catch { return { ok: false, ms: null }; }
-        finally { clearTimeout(tid); }
+          const res = await attempt();
+          return {
+            ok: res.ok,
+            reachable: res.status < 500,
+            status: res.status,
+            ms: Math.round(performance.now() - t0),
+          };
+        } catch {
+          try {
+            await attempt({ mode: "no-cors" });
+            return {
+              ok: true,
+              reachable: true,
+              status: "opaque",
+              ms: Math.round(performance.now() - t0),
+            };
+          } catch {
+            return { ok: false, reachable: false, status: null, ms: null };
+          }
+        }
       }
 
       async function runHealthChecks() {
@@ -1349,14 +1381,15 @@
         if (!strip) return;
         const results = await Promise.all(_healthTargets.map(async (t) => ({ ...t, ping: await pingEndpoint(t.url) })));
         strip.innerHTML = "";
-        for (const { label, ping } of results) {
+        for (const { label, url, ping } of results) {
           const chip = document.createElement("div"); chip.className = "health-chip";
           const name = document.createElement("div"); name.className = "health-chip-name"; name.textContent = label;
           const row = document.createElement("div"); row.className = "health-chip-row";
-          const dotClass = !ping.ok || ping.ms === null ? "down" : ping.ms >= 400 ? "degraded" : "up";
+          const dotClass = !ping.reachable || ping.ms === null ? "down" : !ping.ok || ping.ms >= 400 ? "degraded" : "up";
           const latClass = ping.ms === null ? "err" : ping.ms < 150 ? "fast" : ping.ms < 400 ? "medium" : "slow";
           const dot = document.createElement("div"); dot.className = "health-dot " + dotClass;
           const lat = document.createElement("span"); lat.className = "health-chip-latency " + latClass; lat.textContent = ping.ms !== null ? ping.ms + "ms" : "timeout";
+          chip.title = `${label} · ${ping.status || "timeout"} · ${ping.ms !== null ? ping.ms + "ms" : "no response"} · ${url || ""}`;
           row.appendChild(dot); row.appendChild(lat); chip.appendChild(name); chip.appendChild(row); strip.appendChild(chip);
         }
       }
@@ -1374,6 +1407,7 @@
             ...ep,
             worker,
             source: meta?.source || ep.source || "",
+            probeUrl: meta?.probeUrl || ep.probeUrl || ep.probe_url || "",
           };
           const key = [next.worker, next.method || "GET", next.path || "", next.description || ""].join("|");
           if (!seen.has(key)) {
@@ -1392,7 +1426,7 @@
             const name = meta.name || worker.name || "unknown";
             if (meta.source && !repos[name]) repos[name] = meta.source;
             if (worker.documented && Array.isArray(meta.endpoints)) {
-              for (const ep of meta.endpoints) addEndpoint(name, meta, ep);
+              for (const ep of meta.endpoints) addEndpoint(name, { ...meta, probeUrl: worker.probe_url || "" }, ep);
             } else {
               undocumented.push({
                 worker: name,
