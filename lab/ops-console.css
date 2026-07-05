@@ -279,11 +279,25 @@
   white-space: nowrap;
 }
 
+.bbx-section {
+  padding-bottom: 2.5rem;
+}
+
+.incident-console-head {
+  justify-content: flex-end;
+  margin-top: -2.55rem;
+  min-height: 1.4rem;
+}
+
+.incident-console-head .bbx-statusline {
+  margin-left: auto;
+}
+
 .incident-console-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(250px, 320px);
-  gap: 14px;
-  align-items: stretch;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 390px);
+  gap: 18px;
+  align-items: start;
 }
 
 .incident-console-main,
@@ -296,6 +310,9 @@
   border-radius: 8px;
   background: rgba(10,10,15,0.45);
   padding: 14px;
+  display: flex;
+  flex-direction: column;
+  max-height: 445px;
 }
 
 .incident-console-log .section-label {
@@ -312,7 +329,8 @@
 }
 
 .incident-console-log .flog-list {
-  max-height: 500px;
+  flex: 1 1 auto;
+  max-height: 265px;
 }
 
 .incident-console-log .flog-entry {
@@ -372,8 +390,21 @@
 }
 
 @media (max-width: 920px) {
+  .incident-console-head {
+    justify-content: flex-start;
+    margin-top: 0;
+  }
+
+  .incident-console-head .bbx-statusline {
+    margin-left: 0;
+  }
+
   .incident-console-grid {
     grid-template-columns: 1fr;
+  }
+
+  .incident-console-log {
+    max-height: none;
   }
 
   .incident-console-log .flog-list {
