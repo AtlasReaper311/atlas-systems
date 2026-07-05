@@ -21,7 +21,7 @@
   "use strict";
 
   /* ── Config ──────────────────────────────────────────────────────── */
-  var CSS_HREF = "/css/atlas-terminal-card.css";
+  var CSS_HREF = "/css/atlas-terminal-card-v2.css";
   var REGISTRY_SRC = "/js/atlas-registry.js";
   var CORPUS_BASE = "https://corpus.atlas-systems.uk";
   var DECISIONS_PATH = "/decisions.md";
@@ -531,9 +531,21 @@
     overlay.appendChild(panel);
     (document.documentElement || document.body).appendChild(overlay);
 
-    head.querySelector(".term-close").addEventListener("click", close);
+    var closeButton = head.querySelector(".term-close");
+    function closeFromControl(ev) {
+      if (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+      }
+      close();
+    }
+    closeButton.addEventListener("pointerdown", closeFromControl);
+    closeButton.addEventListener("click", closeFromControl);
     overlay.addEventListener("pointerdown", function (ev) {
-      if (ev.target === overlay) { close(); return; }
+      if (panel && !panel.contains(ev.target)) {
+        ev.preventDefault();
+        close();
+      }
     });
     panel.addEventListener("pointerdown", function (ev) {
       if (ev.target && ev.target.closest && ev.target.closest("button, a, input, textarea, select")) return;
