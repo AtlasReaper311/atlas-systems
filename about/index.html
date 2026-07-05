@@ -81,6 +81,58 @@
 
     @media(max-width:780px){.about-grid{grid-template-columns:1fr}.profile-img{max-width:200px}.domains-grid{grid-template-columns:1fr}}
     @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}}
+
+    /* hybrid about layout */
+    main{max-width:1160px}
+    .page-header{padding-top:calc(var(--nav-h) + 4.75rem);padding-bottom:3rem}
+    .intro-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:3.5rem;align-items:start}
+    .page-heading{font-size:clamp(2.5rem,6vw,5rem);line-height:0.98}
+    .thesis{max-width:690px;font-family:var(--serif);font-size:clamp(1.55rem,3vw,2.15rem);line-height:1.18;color:var(--text);margin-bottom:1.4rem}
+    .intro-copy{max-width:660px;color:var(--text-dim);font-size:13px;line-height:1.9}
+    .identity-panel{border:1px solid var(--border-hi);background:rgba(17,17,24,0.78)}
+    .identity-media{display:grid;grid-template-columns:118px 1fr;gap:1rem;align-items:center;padding:1rem;border-bottom:1px solid var(--border)}
+    .identity-media .profile-img{width:118px;max-width:none;margin:0;aspect-ratio:1;object-fit:cover;object-position:center top;display:block;border:1px solid var(--border);filter:grayscale(20%)}
+    .identity-status{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)}
+    .identity-cell{padding:0.85rem 1rem;border-right:1px solid var(--border)}
+    .identity-cell:nth-child(even){border-right:0}
+    .identity-cell:nth-child(n+3){border-top:1px solid var(--border)}
+    .identity-label{font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.3rem}
+    .identity-value{font-size:11px;color:var(--text)}
+    .status-dot-green{box-shadow:0 0 12px rgba(74,222,128,0.45)}
+    .link-label{min-width:0}
+    .link-label span{overflow-wrap:anywhere}
+    .about-shell{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:3rem;padding:3.5rem 0 4.5rem;border-bottom:1px solid var(--border)}
+    .story-panel{min-width:0}
+    .timeline{position:relative;display:flex;flex-direction:column;gap:1.15rem;margin-top:1.5rem}
+    .timeline::before{content:'';position:absolute;top:0.75rem;bottom:0.75rem;left:9px;width:1px;background:linear-gradient(to bottom,var(--accent),rgba(245,166,35,0.1))}
+    .timeline-item{display:grid;grid-template-columns:42px minmax(0,1fr);gap:1rem;position:relative}
+    .timeline-index{width:19px;height:19px;border:1px solid var(--accent);background:var(--bg);color:var(--accent);font-size:10px;display:flex;align-items:center;justify-content:center;margin-top:0.35rem;z-index:1}
+    .timeline-body{border:1px solid var(--border);background:rgba(17,17,24,0.55);padding:1.1rem 1.2rem}
+    .timeline-meta{display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.65rem}
+    .timeline-label{font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent)}
+    .timeline-tag{font-size:10px;color:var(--text-faint)}
+    .timeline-body p{font-size:13px;color:var(--text-dim);line-height:1.9}
+    .timeline-body p strong{color:var(--text);font-weight:500}
+    .proof-rail{display:flex;flex-direction:column;gap:1rem;align-self:start;position:sticky;top:calc(var(--nav-h) + 1.25rem)}
+    .proof-card{border:1px solid var(--border);background:rgba(10,10,15,0.76);padding:1rem;text-decoration:none;color:var(--text-dim);display:block;transition:border-color 0.15s,background 0.15s,transform 0.15s}
+    .proof-card:hover{border-color:var(--border-hi);background:var(--bg-1);transform:translateY(-1px)}
+    .proof-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:0.8rem}
+    .proof-label{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent)}
+    .proof-arrow{color:var(--text-faint);font-size:11px}
+    .proof-title{font-size:13px;color:var(--text);margin-bottom:0.45rem}
+    .proof-copy{font-size:11px;line-height:1.75;color:var(--text-dim)}
+    .proof-card.primary{border-color:rgba(245,166,35,0.32);background:linear-gradient(180deg,rgba(245,166,35,0.08),rgba(10,10,15,0.7))}
+    .rail-note{border:1px solid var(--border);padding:1rem;background:rgba(17,17,24,0.48)}
+    .section-kicker{font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-faint)}
+    .rail-note .section-kicker{margin-bottom:0.65rem}
+    .rail-note p{font-size:11px;color:var(--text-dim);line-height:1.75}
+    .system-section{padding:3.75rem 0 5rem}
+    .section-head{display:flex;align-items:end;justify-content:space-between;gap:2rem;margin-bottom:1.5rem}
+    .section-head p{max-width:520px;font-size:12px;color:var(--text-dim);line-height:1.8}
+    .domain-cell{padding:1.35rem}
+    @media(max-width:940px){.intro-grid,.about-shell{grid-template-columns:1fr}.identity-panel{max-width:560px}.proof-rail{position:static;display:grid;grid-template-columns:1fr 1fr}.rail-note{grid-column:1 / -1}}
+    @media(max-width:780px){.page-header{padding-top:calc(var(--nav-h) + 3.75rem)}.section-head{display:block}.section-head p{margin-top:1rem}}
+    @media(max-width:680px){.mobile-nav{top:auto}.term-chip{bottom:70px}.identity-media{grid-template-columns:92px 1fr}.identity-media .profile-img{width:92px}.identity-status{grid-template-columns:1fr}.identity-cell{border-right:0}.identity-cell:nth-child(n+2){border-top:1px solid var(--border)}.proof-rail{grid-template-columns:1fr}.timeline-item{grid-template-columns:30px minmax(0,1fr);gap:0.75rem}.timeline-body{padding:1rem}.about-shell{gap:2rem;padding-top:2.75rem}}
   </style>
 </head>
 <body>
@@ -96,128 +148,234 @@
 
   <main>
     <header class="page-header">
-      <div class="section-label">About</div>
-      <h1 class="page-heading">Atlas Reaper.</h1>
+      <div class="intro-grid">
+        <div>
+          <div class="section-label">About</div>
+          <h1 class="page-heading">Atlas Reaper.</h1>
+          <p class="thesis">I build systems where creative work, local AI, and operational infrastructure meet.</p>
+          <p class="intro-copy">This page is the through-line: music, engineering, audio systems, local models, and the infrastructure layer that turns experiments into something live.</p>
+        </div>
+
+        <aside class="identity-panel" aria-label="Atlas Reaper profile">
+          <div class="identity-media">
+            <img class="profile-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779927020/atlas-profile_j7lybj.jpg" alt="Atlas Reaper">
+            <div>
+              <div class="sidebar-name">Atlas Reaper</div>
+              <div class="sidebar-role">Audio Systems / AI Infrastructure</div>
+            </div>
+          </div>
+          <div class="identity-status">
+            <div class="identity-cell">
+              <div class="identity-label">Currently</div>
+              <div class="identity-value"><span class="status-dot-green"></span>Final year</div>
+            </div>
+            <div class="identity-cell">
+              <div class="identity-label">University</div>
+              <div class="identity-value">Abertay University</div>
+            </div>
+            <div class="identity-cell">
+              <div class="identity-label">Scholarship</div>
+              <div class="identity-value">Saltire Scholar</div>
+            </div>
+            <div class="identity-cell">
+              <div class="identity-label">Building</div>
+              <div class="identity-value">Pillar 2 — GitHub</div>
+            </div>
+          </div>
+          <div class="sidebar-links">
+            <div class="sidebar-section-label">Links</div>
+            <a href="https://git.atlas-systems.uk" class="sidebar-link" target="_blank" rel="noopener">
+              <span class="link-label">
+                <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+                <span>GitHub</span>
+              </span>
+              <span class="link-arrow">↗</span>
+            </a>
+            <a href="https://linkedin.atlas-systems.uk" class="sidebar-link" target="_blank" rel="noopener">
+              <span class="link-label">
+                <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+                <span>LinkedIn</span>
+              </span>
+              <span class="link-arrow">↗</span>
+            </a>
+            <a href="https://reel.atlas-systems.uk" class="sidebar-link" target="_blank" rel="noopener">
+              <span class="link-label">
+                <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                <span>Reel</span>
+              </span>
+              <span class="link-arrow">↗</span>
+            </a>
+            <a href="https://cv.atlas-systems.uk" class="sidebar-link" target="_blank" rel="noopener">
+              <span class="link-label">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <span>CV</span>
+              </span>
+              <span class="link-arrow">↗</span>
+            </a>
+            <div class="sidebar-section-label">Contact</div>
+            <a href="mailto:atlas@atlas-systems.uk" class="sidebar-link">
+              <span class="link-label">
+                <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <span>atlas@atlas-systems.uk</span>
+              </span>
+              <span class="link-arrow">↗</span>
+            </a>
+          </div>
+        </aside>
+      </div>
     </header>
 
-    <div class="about-grid">
+    <section class="about-shell" aria-labelledby="story-heading">
+      <div class="story-panel">
+        <div class="section-label" id="story-heading">Signal path</div>
+        <div class="timeline">
+          <article class="timeline-item">
+            <div class="timeline-index">01</div>
+            <div class="timeline-body">
+              <div class="timeline-meta">
+                <div class="timeline-label">Music</div>
+                <div class="timeline-tag">Scotland / age 13 onward</div>
+              </div>
+              <p>I grew up in Scotland making classical music from the age of 13; self-taught and obsessive about it in the way most kids aren't. By 15 that had shifted into something heavier and more experimental, and by 17 I was working with a collective across LA and Chicago producing trap metal and experimental music on tour.</p>
+            </div>
+          </article>
 
-      <!-- sidebar -->
-      <aside class="about-sidebar">
-        <img class="profile-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779927020/atlas-profile_j7lybj.jpg" alt="Atlas Reaper">
-        <div class="sidebar-name">Atlas Reaper</div>
-        <div class="sidebar-role">Audio Systems / AI Infrastructure</div>
+          <article class="timeline-item">
+            <div class="timeline-index">02</div>
+            <div class="timeline-body">
+              <div class="timeline-meta">
+                <div class="timeline-label">Engineering</div>
+                <div class="timeline-tag">Glasgow / aeronautical engineering</div>
+              </div>
+              <p>At 19 I went to Glasgow to study Aeronautical Engineering. COVID hit almost immediately and somewhere in that period of everything stopping, I realised I was studying the wrong thing. I left, worked full time for a while, kept making music, and started paying attention to what actually held my interest; which turned out to be systems. How things are built, how they connect, how they scale.</p>
+            </div>
+          </article>
 
-        <div class="sidebar-links">
-          <div class="sidebar-section-label">Links</div>
-          <a href="https://git.atlas-systems.uk" class="sidebar-link" target="_blank" rel="noopener">
-            <span class="link-label">
-              <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
-              GitHub
-            </span>
-            <span class="link-arrow">↗</span>
-          </a>
-          <a href="https://linkedin.atlas-systems.uk" class="sidebar-link" target="_blank" rel="noopener">
-            <span class="link-label">
-              <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
-              LinkedIn
-            </span>
-            <span class="link-arrow">↗</span>
-          </a>
-          <a href="https://reel.atlas-systems.uk" class="sidebar-link" target="_blank" rel="noopener">
-            <span class="link-label">
-              <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-              Reel
-            </span>
-            <span class="link-arrow">↗</span>
-          </a>
-          <a href="https://cv.atlas-systems.uk" class="sidebar-link" target="_blank" rel="noopener">
-            <span class="link-label">
-              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              CV
-            </span>
-            <span class="link-arrow">↗</span>
-          </a>
-          <div class="sidebar-section-label">Contact</div>
-          <a href="mailto:atlas@atlas-systems.uk" class="sidebar-link">
-            <span class="link-label">
-              <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-              atlas@atlas-systems.uk
-            </span>
-            <span class="link-arrow">↗</span>
-          </a>
+          <article class="timeline-item">
+            <div class="timeline-index">03</div>
+            <div class="timeline-body">
+              <div class="timeline-meta">
+                <div class="timeline-label">Audio systems</div>
+                <div class="timeline-tag">Abertay / technical design</div>
+              </div>
+              <p>That led me to game design at Abertay University with a focus on audio systems, which clicked immediately. It sits at the intersection of everything I'd been doing without realising it: technical precision, creative problem solving, and building modular systems that behave predictably under pressure. From there I got into AI infrastructure, local LLMs, RAG pipelines, and the DevOps layer that ties it all together.</p>
+            </div>
+          </article>
+
+          <article class="timeline-item">
+            <div class="timeline-index">04</div>
+            <div class="timeline-body">
+              <div class="timeline-meta">
+                <div class="timeline-label">Atlas Systems</div>
+                <div class="timeline-tag">Live record / current build</div>
+              </div>
+              <p>I'm currently in my final year, a recipient of the <strong>Saltire Scholarship</strong>, and building Atlas Systems as a live record of all of it — the projects, the decisions, and everything in between.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <aside class="proof-rail" aria-label="Live proof links">
+        <a class="proof-card primary" href="/lab/#ramone-card">
+          <div class="proof-head">
+            <div class="proof-label">Flagship</div>
+            <div class="proof-arrow">↗</div>
+          </div>
+          <div class="proof-title">Ramone / local AI</div>
+          <p class="proof-copy">The living edge system: voice, local models, memory, and the lab console around it.</p>
+        </a>
+        <a class="proof-card" href="/work/">
+          <div class="proof-head">
+            <div class="proof-label">Archive</div>
+            <div class="proof-arrow">↗</div>
+          </div>
+          <div class="proof-title">Project work</div>
+          <p class="proof-copy">Selected builds, audio systems, infrastructure experiments, and project notes.</p>
+        </a>
+        <a class="proof-card" href="/lab/#blackbox">
+          <div class="proof-head">
+            <div class="proof-label">Operations</div>
+            <div class="proof-arrow">↗</div>
+          </div>
+          <div class="proof-title">Blackbox / Lab</div>
+          <p class="proof-copy">Runtime signals, incidents, telemetry, and the operational side of Atlas Systems.</p>
+        </a>
+        <a class="proof-card" href="/writing/">
+          <div class="proof-head">
+            <div class="proof-label">Notes</div>
+            <div class="proof-arrow">↗</div>
+          </div>
+          <div class="proof-title">Writing</div>
+          <p class="proof-copy">Decisions, case studies, and the thinking behind the build record.</p>
+        </a>
+        <div class="rail-note">
+          <div class="section-kicker">Current mode</div>
+          <p>Build the system in public enough that the decisions, failures, and progress stay inspectable.</p>
         </div>
       </aside>
+    </section>
 
-      <!-- main content -->
-      <div class="about-content">
-        <div class="bio">
-          <p>I grew up in Scotland making classical music from the age of 13; self-taught and obsessive about it in the way most kids aren't. By 15 that had shifted into something heavier and more experimental, and by 17 I was working with a collective across LA and Chicago producing trap metal and experimental music on tour.</p>
-          <p>At 19 I went to Glasgow to study Aeronautical Engineering. COVID hit almost immediately and somewhere in that period of everything stopping, I realised I was studying the wrong thing. I left, worked full time for a while, kept making music, and started paying attention to what actually held my interest; which turned out to be systems. How things are built, how they connect, how they scale.</p>
-          <p>That led me to game design at Abertay University with a focus on audio systems, which clicked immediately. It sits at the intersection of everything I'd been doing without realising it: technical precision, creative problem solving, and building modular systems that behave predictably under pressure. From there I got into AI infrastructure, local LLMs, RAG pipelines, and the DevOps layer that ties it all together.</p>
-          <p>I'm currently in my final year, a recipient of the <strong>Saltire Scholarship</strong>, and building Atlas Systems as a live record of all of it — the projects, the decisions, and everything in between.</p>
-        </div>
-
-        <div class="section-label">Domains</div>
-        <div class="domains-grid">
-          <div class="domain-cell">
-            <div class="domain-label">Audio Systems</div>
-            <div class="domain-items">
-              <span class="domain-item">Unreal Engine 5</span>
-              <span class="domain-item">MetaSounds</span>
-              <span class="domain-item">Dynamic mix engines</span>
-              <span class="domain-item">FL Studio / REAPER</span>
-              <span class="domain-item">Wavetable synthesis</span>
-              <span class="domain-item">Stem architecture</span>
-            </div>
-          </div>
-          <div class="domain-cell">
-            <div class="domain-label">AI Infrastructure</div>
-            <div class="domain-items">
-              <span class="domain-item">Local LLMs (Ollama)</span>
-              <span class="domain-item">RAG pipelines</span>
-              <span class="domain-item">Open WebUI</span>
-              <span class="domain-item">Docker</span>
-              <span class="domain-item">WSL2 / Ubuntu</span>
-              <span class="domain-item">Workbot engineering</span>
-            </div>
-          </div>
-          <div class="domain-cell">
-            <div class="domain-label">Infrastructure</div>
-            <div class="domain-items">
-              <span class="domain-item">Cloudflare Pages</span>
-              <span class="domain-item">GitHub Actions</span>
-              <span class="domain-item">Python / JavaScript</span>
-              <span class="domain-item">C++</span>
-              <span class="domain-item">Static site architecture</span>
-              <span class="domain-item">AWS (in progress)</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="section-label">Status</div>
-        <div class="status-strip">
-          <div class="status-cell">
-            <div class="status-label">Currently</div>
-            <div class="status-value"><span class="status-dot-green"></span>Final year</div>
-          </div>
-          <div class="status-cell">
-            <div class="status-label">University</div>
-            <div class="status-value">Abertay University</div>
-          </div>
-          <div class="status-cell">
-            <div class="status-label">Scholarship</div>
-            <div class="status-value">Saltire Scholar</div>
-          </div>
-          <div class="status-cell">
-            <div class="status-label">Building</div>
-            <div class="status-value">Pillar 2 — GitHub</div>
-          </div>
-        </div>
-
+    <section class="system-section" aria-labelledby="systems-heading">
+      <div class="section-head">
+        <div class="section-label" id="systems-heading">Working domains</div>
+        <p>The same domains from the original page, kept as a compact operating map instead of the whole story.</p>
       </div>
-    </div>
 
+      <div class="domains-grid">
+        <div class="domain-cell">
+          <div class="domain-label">Audio Systems</div>
+          <div class="domain-items">
+            <span class="domain-item">Unreal Engine 5</span>
+            <span class="domain-item">MetaSounds</span>
+            <span class="domain-item">Dynamic mix engines</span>
+            <span class="domain-item">FL Studio / REAPER</span>
+            <span class="domain-item">Wavetable synthesis</span>
+            <span class="domain-item">Stem architecture</span>
+          </div>
+        </div>
+        <div class="domain-cell">
+          <div class="domain-label">AI Infrastructure</div>
+          <div class="domain-items">
+            <span class="domain-item">Local LLMs (Ollama)</span>
+            <span class="domain-item">RAG pipelines</span>
+            <span class="domain-item">Open WebUI</span>
+            <span class="domain-item">Docker</span>
+            <span class="domain-item">WSL2 / Ubuntu</span>
+            <span class="domain-item">Workbot engineering</span>
+          </div>
+        </div>
+        <div class="domain-cell">
+          <div class="domain-label">Infrastructure</div>
+          <div class="domain-items">
+            <span class="domain-item">Cloudflare Pages</span>
+            <span class="domain-item">GitHub Actions</span>
+            <span class="domain-item">Python / JavaScript</span>
+            <span class="domain-item">C++</span>
+            <span class="domain-item">Static site architecture</span>
+            <span class="domain-item">AWS (in progress)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="status-strip">
+        <div class="status-cell">
+          <div class="status-label">Currently</div>
+          <div class="status-value"><span class="status-dot-green"></span>Final year</div>
+        </div>
+        <div class="status-cell">
+          <div class="status-label">University</div>
+          <div class="status-value">Abertay University</div>
+        </div>
+        <div class="status-cell">
+          <div class="status-label">Scholarship</div>
+          <div class="status-value">Saltire Scholar</div>
+        </div>
+        <div class="status-cell">
+          <div class="status-label">Building</div>
+          <div class="status-value">Pillar 2 — GitHub</div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <nav class="mobile-nav" aria-label="Mobile navigation">
