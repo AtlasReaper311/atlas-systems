@@ -24,11 +24,17 @@
   overlay.setAttribute("aria-hidden", "true");
   document.body.appendChild(overlay);
 
-  requestAnimationFrame(function () {
+  function showPage() {
+    document.body.classList.remove("route-closing");
     requestAnimationFrame(function () {
-      document.body.classList.add("route-ready");
+      requestAnimationFrame(function () {
+        document.body.classList.add("route-ready");
+      });
     });
-  });
+  }
+
+  showPage();
+  window.addEventListener("pageshow", showPage);
 
   document.addEventListener("click", function (event) {
     if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -61,7 +67,7 @@
     document.body.classList.add("route-closing");
 
     window.setTimeout(function () {
-      window.location.href = url.href;
+      window.location.assign(url.href);
     }, 190);
   });
 })();
