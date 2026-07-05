@@ -622,6 +622,7 @@
         <span id="terminal-text"></span>
         <span class="cursor" id="terminal-cursor"></span>
       </div>
+      <div class="terminal-output" id="terminal-output" aria-live="off"></div>
 
       <h1 class="hero-heading">
   	Three domains.<br>
@@ -631,6 +632,27 @@
       <p class="hero-sub">
         A live technical record of how I design and build; spanning local AI, system automation, and the infrastructure that ties it all together.
       </p>
+
+      <div class="hero-domain-grid" role="group" aria-label="Atlas Systems domains">
+        <a href="/work/#local-ai" class="domain-lane" data-domain="ai">
+          <span class="domain-code">domain / 01</span>
+          <span class="domain-title">Local AI</span>
+          <span class="domain-desc">RAG, local models, memory, and voice surfaces that run close to the machine.</span>
+          <span class="domain-signal">active experiments</span>
+        </a>
+        <a href="/lab/#system-map" class="domain-lane" data-domain="automation">
+          <span class="domain-code">domain / 02</span>
+          <span class="domain-title">Automation</span>
+          <span class="domain-desc">Workers, actions, triggers, Blackbox, and pipelines that keep the estate moving.</span>
+          <span class="domain-signal">event-driven</span>
+        </a>
+        <a href="/lab/#pipeline-grid-section" class="domain-lane" data-domain="infra">
+          <span class="domain-code">domain / 03</span>
+          <span class="domain-title">Infrastructure</span>
+          <span class="domain-desc">Cloudflare, GitHub, status feeds, deploy logs, and self-documenting system maps.</span>
+          <span class="domain-signal">live edge</span>
+        </a>
+      </div>
 
       <div class="hero-cta">
         <a href="/work/" class="btn btn-primary">
@@ -643,11 +665,108 @@
         </a>
       </div>
 
+      <div class="ops-rail" role="group" aria-label="Operational summary">
+        <a href="/lab/#pipeline-grid-section" class="ops-rail-item">
+          <span class="ops-rail-label">Pipeline</span>
+          <span class="ops-rail-value">deploy feed green</span>
+        </a>
+        <a href="/lab/#blackbox" class="ops-rail-item">
+          <span class="ops-rail-label">Blackbox</span>
+          <span class="ops-rail-value">incident recorder armed</span>
+        </a>
+        <a href="/lab/#system-map" class="ops-rail-item">
+          <span class="ops-rail-label">Registry</span>
+          <span class="ops-rail-value">self-documenting</span>
+        </a>
+        <a href="/writing/" class="ops-rail-item">
+          <span class="ops-rail-label">Digest</span>
+          <span class="ops-rail-value warn">weekly signal fixed</span>
+        </a>
+      </div>
+
       <a class="estate-strip" id="estate-strip" href="/lab/index.html#system-map" hidden data-state="">
         <span class="estate-strip-dot" id="estate-strip-dot" aria-hidden="true"></span>
         <span class="estate-strip-text" id="estate-strip-text"></span>
         <span class="estate-strip-cta">view live architecture &rarr;</span>
       </a>
+    </section>
+
+    <!-- CONTROL ROOM -->
+    <section class="section control-room reveal" id="start">
+      <div class="section-label">Start here</div>
+      <h2 class="section-title">Enter through the system, the builds, or the evidence.</h2>
+      <p class="section-copy">
+        The homepage is the front door; the Lab is the live surface. These routes split the estate into practical paths for people who want to understand what exists, what runs, and what was learned while building it.
+      </p>
+
+      <div class="control-grid">
+        <div class="control-stack">
+          <div class="route-grid" role="group" aria-label="Homepage routes">
+            <a href="/lab/" class="route-card">
+              <span class="route-label">route / live</span>
+              <span class="route-title">Open the Lab</span>
+              <span class="route-desc">Pipeline grid, incident console, system map, worker health, and Blackbox events.</span>
+            </a>
+            <a href="/work/" class="route-card">
+              <span class="route-label">route / build</span>
+              <span class="route-title">Browse the Work</span>
+              <span class="route-desc">Projects, case studies, and reusable components across local AI and infrastructure.</span>
+            </a>
+            <a href="/writing/" class="route-card">
+              <span class="route-label">route / notes</span>
+              <span class="route-title">Read the Logs</span>
+              <span class="route-desc">Design notes, technical decisions, postmortems, and build journals from the estate.</span>
+            </a>
+          </div>
+
+          <div class="flagship-grid" role="group" aria-label="Flagship systems">
+            <a href="/lab/#blackbox" class="flagship-card">
+              <span class="flagship-label">flagship / blackbox</span>
+              <span class="flagship-title">Incident Recorder</span>
+              <span class="flagship-desc">Telemetry frames, trigger events, replay context, and sealed failure records.</span>
+              <span class="flagship-meta">recording</span>
+            </a>
+            <a href="/work/" class="flagship-card">
+              <span class="flagship-label">flagship / ramone</span>
+              <span class="flagship-title">Local AI Edge</span>
+              <span class="flagship-desc">Voice, local memory, retrieval, and edge dispatch as a real assistant pipeline.</span>
+              <span class="flagship-meta">active</span>
+            </a>
+            <a href="/lab/#pipeline-grid-section" class="flagship-card">
+              <span class="flagship-label">flagship / atlas lab</span>
+              <span class="flagship-title">Ops Surface</span>
+              <span class="flagship-desc">Live deploy status, worker registry, status feed, and weekly digest truthing.</span>
+              <span class="flagship-meta">nominal</span>
+            </a>
+          </div>
+        </div>
+
+        <a href="/lab/#system-map" class="map-preview" aria-label="Open the live Atlas system map">
+          <div class="map-preview-title">
+            <span>System map preview</span>
+            <span>live route</span>
+          </div>
+          <svg class="map-preview-svg" viewBox="0 0 260 160" aria-hidden="true">
+            <line class="edge" x1="42" y1="80" x2="102" y2="38"/>
+            <line class="edge" x1="42" y1="80" x2="104" y2="122"/>
+            <line class="edge" x1="42" y1="80" x2="176" y2="80"/>
+            <line class="edge" x1="176" y1="80" x2="220" y2="46"/>
+            <line class="edge" x1="176" y1="80" x2="222" y2="116"/>
+            <path class="flow" d="M42 80 L102 38 M42 80 L176 80 L220 46"/>
+            <circle class="node node-live" cx="42" cy="80" r="11"/>
+            <circle class="node" cx="102" cy="38" r="8"/>
+            <circle class="node" cx="104" cy="122" r="8"/>
+            <rect class="node node-live" x="160" y="67" width="32" height="26" rx="4"/>
+            <rect class="node" x="211" y="37" width="18" height="18" rx="3" transform="rotate(45 220 46)"/>
+            <rect class="node" x="213" y="107" width="18" height="18" rx="3" transform="rotate(45 222 116)"/>
+          </svg>
+          <div class="map-preview-rows">
+            <div class="map-preview-row"><span>Workers</span><strong>edge registry</strong></div>
+            <div class="map-preview-row"><span>Signals</span><strong>notify · deploy · pulse</strong></div>
+            <div class="map-preview-row"><span>State</span><strong>nominal</strong></div>
+          </div>
+        </a>
+      </div>
     </section>
 
     <!-- PILLARS -->
@@ -917,38 +1036,78 @@
     (function() {
       const el = document.getElementById('terminal-text');
       const cursor = document.getElementById('terminal-cursor');
-      const lines = [
-        'whoami',
-        'atlas-reaper  //  system infrastructure +  local LLMs + audio systems' ,
-      ];
-      let li = 0, ci = 0, phase = 'typing';
+      const output = document.getElementById('terminal-output');
+      if (!el || !output) return;
 
+      const commands = [
+        {
+          cmd: 'atlas status',
+          out: 'systems nominal · deploy feed green · registry live'
+        },
+        {
+          cmd: 'atlas map --live',
+          out: 'workers, bindings, tunnels, and feeds resolved from the estate'
+        },
+        {
+          cmd: 'blackbox latest',
+          out: 'incident recorder armed · telemetry frames buffered'
+        },
+        {
+          cmd: 'atlas digest --truth',
+          out: 'weekly signal uses commit counts and filters scanner paths'
+        }
+      ];
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const delay = ms => new Promise(r => setTimeout(r, ms));
 
-      async function run() {
-        await delay(400);
-        for (const line of lines) {
-          phase = 'typing';
-          for (const ch of line) {
-            el.textContent += ch;
-            await delay(line === lines[0] ? 90 : 35);
-          }
-          if (line === lines[0]) {
-            await delay(300);
-            // simulate enter
-            cursor.style.display = 'none';
-            await delay(120);
-            el.textContent = '';
-            el.style.color = 'var(--text-dim)';
-            cursor.style.display = 'inline-block';
-          }
-        }
-        // stop blinking when done — stays as static context
-        cursor.style.animation = 'none';
-        cursor.style.opacity = '1';
+      function setOutput(text) {
+        output.classList.add('is-swapping');
+        window.setTimeout(() => {
+          output.textContent = text;
+          output.classList.remove('is-swapping');
+        }, reduceMotion ? 0 : 120);
       }
 
-      run();
+      async function type(text) {
+        el.textContent = '';
+        for (const ch of text) {
+          el.textContent += ch;
+          await delay(42);
+        }
+      }
+
+      async function erase() {
+        while (el.textContent.length) {
+          el.textContent = el.textContent.slice(0, -1);
+          await delay(18);
+        }
+      }
+
+      if (reduceMotion) {
+        el.textContent = commands[0].cmd;
+        output.textContent = commands[0].out;
+        if (cursor) cursor.style.animation = 'none';
+        return;
+      }
+
+      async function run() {
+        await delay(360);
+        let i = 0;
+        while (true) {
+          const item = commands[i % commands.length];
+          await type(item.cmd);
+          setOutput(item.out);
+          await delay(2800);
+          await erase();
+          i += 1;
+          await delay(260);
+        }
+      }
+
+      run().catch(() => {
+        el.textContent = commands[0].cmd;
+        output.textContent = commands[0].out;
+      });
     })();
 
     // ── Year in footer ───────────────────────────────
@@ -982,7 +1141,7 @@
    <script src="/js/home-live-strip.js" defer></script>
    <script src="/js/live-signal.js" defer></script>
   <script src="/js/pulse.js" defer></script>
- <script src="/js/transitions.js?v=20260705-terminal-fixed"></script>
+ <script src="/js/transitions.js?v=20260705-operational"></script>
   <script src="/js/atlas-terminal-card-v3.js" defer></script>
 </body>
 </html>
