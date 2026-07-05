@@ -21,7 +21,7 @@
   "use strict";
 
   /* ── Config ──────────────────────────────────────────────────────── */
-  var CSS_HREF = "/css/atlas-terminal.css";
+  var CSS_HREF = "/css/atlas-terminal.css?v=20260705-terminal-card";
   var REGISTRY_SRC = "/js/atlas-registry.js";
   var CORPUS_BASE = "https://corpus.atlas-systems.uk";
   var DECISIONS_PATH = "/decisions.md";
@@ -33,11 +33,18 @@
   var HISTORY_MAX = 60;
 
   var PROMPT = "atlas@edge:~$";
+  var EXAMPLE_COMMANDS = [
+    "status",
+    "ls repos",
+    "cat decisions.md",
+    "search kv write limits",
+    "whoami"
+  ];
 
   /* ── State ───────────────────────────────────────────────────────── */
   var built = false;
   var isOpen = false;
-  var overlay, output, input, restoreFocusTo = null;
+  var overlay, panel, output, input, restoreFocusTo = null, focusTimer = null;
   var history = [];
   var histIdx = -1;
   var draft = "";
@@ -468,14 +475,34 @@
     overlay.setAttribute("aria-modal", "true");
     overlay.setAttribute("aria-label", "Atlas Systems estate terminal");
 
-    var panel = document.createElement("div");
+    panel = document.createElement("div");
     panel.className = "term-panel";
 
     var head = document.createElement("div");
     head.className = "term-head";
     head.innerHTML =
       '<span class="term-title"><span class="t-accent">atlas@edge</span> :: estate shell</span>' +
-      '<button type="button" class="term-close" aria-label="Close terminal">esc</button>';
+      '<button type="button" class="term-close" aria-label="Close terminal">x</button>';
+
+    var examples = document.createElement("div");
+    examples.className = "term-examples";
+    examples.setAttribute("aria-label", "Example commands");
+    var examplesLabel = document.createElement("span");
+    examplesLabel.className = "term-examples-label";
+    examplesLabel.textContent = "try";
+    examples.appendChild(examplesLabel);
+    EXAMPLE_COMMANDS.forEach(function (cmd) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "term-example";
+      b.textContent = cmd;
+      b.addEventListener("click", function () {
+        input.value = "";
+        run(cmd);
+        queueInputFocus();
+      });
+      examples.appendChild(b);
+    });
 
     output = document.createElement("div");
     output.className = "term-output";
@@ -498,19 +525,21 @@
     inputRow.appendChild(input);
 
     panel.appendChild(head);
+    panel.appendChild(examples);
     panel.appendChild(output);
     panel.appendChild(inputRow);
     overlay.appendChild(panel);
-    document.body.appendChild(overlay);
+    (document.documentElement || document.body).appendChild(overlay);
 
     head.querySelector(".term-close").addEventListener("click", close);
     overlay.addEventListener("pointerdown", function (ev) {
       if (ev.target === overlay) { close(); return; }
+    });
+    panel.addEventListener("pointerdown", function (ev) {
+      if (ev.target && ev.target.closest && ev.target.closest("button, a, input, textarea, select")) return;
       /* Anywhere inside the panel keeps the input live; a terminal whose
          focus wanders is a terminal that feels broken. */
-      if (!window.getSelection || String(window.getSelection()) === "") {
-        setTimeout(function () { input.focus(); }, 0);
-      }
+      if (!window.getSelection || String(window.getSelection()) === "") queueInputFocus();
     });
 
     input.addEventListener("keydown", function (ev) {
@@ -540,13 +569,20 @@
     bootShown = true;
     line('<span class="t-accent">ATLAS SYSTEMS</span> <span class="t-dim">:: estate shell</span><span class="term-cursor" aria-hidden="true"></span>');
     line('<span class="t-faint">live data \u00B7 the registry, the corpus, and the decisions file are the same ones the rest of the site runs on</span>');
-    line('<span class="t-faint">type</span> <span class="t-cmd">help</span> <span class="t-faint">for commands</span>');
+    line('<span class="t-faint">run a command above, or type</span> <span class="t-cmd">help</span> <span class="t-faint">for the full list</span>');
     gap();
     /* Warm the registry quietly so ls/status answer instantly. */
     ensureRegistry();
   }
 
   /* ── Open/close ──────────────────────────────────────────────────── */
+  function queueInputFocus() {
+    if (focusTimer !== null) clearTimeout(focusTimer);
+    focusTimer = setTimeout(function () {
+      focusTimer = null;
+      if (isOpen && input) input.focus();
+    }, 0);
+  }
   function open() {
     build();
     if (isOpen) return;
@@ -555,21 +591,35 @@
     overlay.hidden = false;
     document.body.classList.add("term-open");
     boot();
-    setTimeout(function () { input.focus(); }, 30);
+    if (focusTimer !== null) clearTimeout(focusTimer);
+    focusTimer = setTimeout(function () {
+      focusTimer = null;
+      if (isOpen) input.focus();
+    }, 30);
   }
   function close() {
     if (!isOpen) return;
     isOpen = false;
+    if (focusTimer !== null) {
+      clearTimeout(focusTimer);
+      focusTimer = null;
+    }
+    if (input) input.blur();
     overlay.hidden = true;
     document.body.classList.remove("term-open");
-    if (restoreFocusTo && restoreFocusTo.focus) restoreFocusTo.focus();
+    var target = restoreFocusTo;
+    restoreFocusTo = null;
+    if (target && target.focus && (!overlay || !overlay.contains(target))) {
+      try { target.focus({ preventScroll: true }); }
+      catch (e) { target.focus(); }
+    }
   }
   function toggle() { if (isOpen) { close(); } else { open(); } }
 
   /* Backtick opens and closes, console-style; it never fires while the
      visitor is typing in some other field, and Escape always closes. */
   document.addEventListener("keydown", function (ev) {
-    if (ev.key === "Escape" && isOpen) { close(); return; }
+    if (ev.key === "Escape" && isOpen) { ev.preventDefault(); close(); return; }
     if (ev.key !== "`" || ev.ctrlKey || ev.metaKey || ev.altKey) return;
     var t = ev.target;
     var editable = t && (t.isContentEditable ||
