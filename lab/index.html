@@ -1244,7 +1244,7 @@
           tile.target = "_blank"; tile.rel = "noopener noreferrer";
           const activityAfterStatus = status && activity && opsMs(activity.ts) > opsMs(status.ts);
           let level = pgridStatusLevel(status, activity);
-          if (level === "none" && registryLive) level = "info";
+          if (level === "none" && registryLive) level = "success";
           if (level === "none") tile.classList.add("idle");
           if (registryLive) tile.classList.add("registry-live");
           const refEv = activityAfterStatus ? activity : status || activity || latest;
@@ -1270,10 +1270,10 @@
           const summary = document.createElement("div"); summary.className = "pgrid-summary";
           if (activityAfterStatus) summary.textContent = "New push; waiting for deploy event";
           else if (status) summary.textContent = pgridSummary(status);
-          else if (activity && registryLive) summary.textContent = "Endpoint live; deploy feed waiting";
+          else if (activity && registryLive) summary.textContent = "Endpoint live";
           else if (activity) summary.textContent = "Push seen; waiting for first deploy event";
           else if (latest) summary.textContent = pgridSummary(latest);
-          else if (registryLive) summary.textContent = "Endpoint live; deploy feed not wired";
+          else if (registryLive) summary.textContent = "Endpoint live";
           else summary.textContent = "Deploy feed not wired yet";
           tile.appendChild(summary);
           const pulse = document.createElement("div"); pulse.className = "pgrid-pulse"; tile.appendChild(pulse);
