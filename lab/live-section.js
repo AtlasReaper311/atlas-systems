@@ -150,6 +150,7 @@
     function render(payload) {
       root.dataset.state = payload.online ? "online" : "offline";
       if (feedDot) feedDot.dataset.state = payload.online ? "ok" : "down";
+      window.dispatchEvent(new CustomEvent("atlas:telemetry", { detail: payload }));
       var t = payload.telemetry;
       if (payload.online) {
         sampledAt = Date.parse(t.sampled_at);

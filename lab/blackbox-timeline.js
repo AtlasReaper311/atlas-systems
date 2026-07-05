@@ -59,6 +59,9 @@
       return res.json();
     });
   }
+  function emit(name, detail) {
+    window.dispatchEvent(new CustomEvent("atlas:blackbox:" + name, { detail: detail }));
+  }
 
   /* ── Interpolation (exported for the smoke test) ─────────────────── */
   function lerp(a, b, t) {
@@ -176,6 +179,17 @@
     renderFeed();
   }
 
+  window.addEventListener("atlas:blackbox:seek-event", function (ev) {
+    var c = state.current;
+    if (!c || !ev.detail || !ev.detail.ts) return;
+    var ms = typeof ev.detail.ts === "number" ? ev.detail.ts : Date.parse(ev.detail.ts);
+    if (!Number.isFinite(ms) || ms < c.t0 || ms > c.t1) return;
+    stopReplay();
+    setCursor(ms);
+    var section = document.getElementById("blackbox");
+    if (section) section.scrollIntoView({ block: "start", behavior: reduceMotion ? "auto" : "smooth" });
+  });
+
   function gaugeRow(label, value, max, unit, text) {
     var pct = value == null || max == null || max === 0 ? 0 : Math.max(0, Math.min(100, (value / max) * 100));
     var display = text != null ? text : (value == null ? "\u2013" : Math.round(value) + unit);
@@ -197,6 +211,7 @@
         t.vram_used == null ? "\u2013" : (t.vram_used / 1024).toFixed(1) + " / " + (t.vram_total / 1024).toFixed(1) + " GB") +
       gaugeRow("cpu", t.cpu, 100, "%") +
       gaugeRow("ram", t.ram, 100, "%");
+    emit("cursor-telemetry", { incident: state.current.id, cursor: state.cursor, telemetry: t });
   }
 
   var DIALECT_LABEL = { github: "ci/cd", cloudflare: "cf", alert: "runtime", drill: "drill" };
@@ -288,6 +303,7 @@
         t0: frames[0].ts,
         t1: frames[frames.length - 1].ts
       };
+      emit("incident", { incident: inc, frameCount: frames.length });
       els.badges.innerHTML =
         '<span class="bbx-badge">' + frames.length + " frames</span>" +
         '<span class="bbx-badge">' + state.current.events.length + " events</span>" +
@@ -316,6 +332,7 @@
 
     fetchJson(BASE + "/status").then(function (s) {
       var tick = s.last_tick ? hhmmss(s.last_tick) + " UTC" : "never";
+      emit("status", s);
       setStatusline(
         (s.recording ? '<span class="t-ok">\u25CF recording</span>' : '<span class="t-err">\u25CF not recording</span>') +
         ' <span class="t-faint">\u00B7 ' + (s.buffer ? s.buffer.frames : 0) + " frames buffered \u00B7 last tick " + esc(tick) + "</span>"
@@ -326,6 +343,7 @@
 
     fetchJson(BASE + "/incidents").then(function (list) {
       state.incidents = list.incidents || [];
+      emit("incidents", { incidents: state.incidents });
       if (!state.incidents.length) {
         els.deck.hidden = true;
         showEmpty("no incidents on the shelf. the estate has not failed on record yet; this deck waits for the first one. (a ground test can stage a drill.)");

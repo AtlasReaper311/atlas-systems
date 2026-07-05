@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="/lab/system-map.css" />
     <link rel="stylesheet" href="/lab/blackbox-timeline.css" />
     <link rel="stylesheet" href="/lab/live-section.css" />
+    <link rel="stylesheet" href="/lab/ops-console.css?v=20260705-ops-console" />
     <link rel="stylesheet" href="/css/atlas-terminal-card-v3.css?v=20260705-close-hidden" />
     <style>
           *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -42,7 +43,7 @@
           .nav-links a:hover{color:var(--text)}
           .nav-links a:hover::after,.nav-links a.active::after{left:1rem;right:1rem}
           .nav-links a.active{color:var(--text)}
-          main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);position:relative;z-index:1}
+          main{max-width:1420px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);position:relative;z-index:1}
           .page-header{padding-top:calc(var(--nav-h) + 5rem);padding-bottom:4rem;border-bottom:1px solid var(--border)}
           .section-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem}
           .section-label::before{content:'';display:inline-block;width:24px;height:1px;background:var(--accent)}
@@ -320,6 +321,8 @@
 
 
       <!-- ACTIVITY HEATMAP -->
+      <div class="ops-shell" id="ops-console">
+        <div class="ops-main">
       <!-- SYSTEM MAP -->
       <section class="section smap-section" id="system-map">
         <div class="section-label">System map</div>
@@ -356,10 +359,34 @@
 
       <section class="section bbx-section" id="blackbox">
         <div class="smap-head">
-          <h2>Black box</h2>
+          <h2>Incident console</h2>
           <p class="bbx-statusline" id="blackbox-statusline">contacting recorder&#8230;</p>
         </div>
-        <div id="blackbox-host"></div>
+        <div class="incident-console-grid">
+          <div class="incident-console-main">
+            <div id="blackbox-host"></div>
+          </div>
+          <aside class="incident-console-log" aria-label="Recent event log">
+            <div class="section-label">Failure log</div>
+            <div class="flog-head">
+              <div class="flog-meta">
+                <strong id="flog-total">—</strong> recent events ·
+                <strong id="flog-shown">—</strong> shown
+              </div>
+              <button class="flog-refresh" id="flog-refresh-btn" type="button">
+                ↻ refresh
+              </button>
+            </div>
+            <div class="flog-filters" id="flog-filters"></div>
+            <div id="flog-list" class="flog-list">
+              <div class="flog-loading">Loading recent events…</div>
+            </div>
+            <div class="flog-note">
+              Source: atlas-notify ring buffer. Blackbox preserves these events
+              beside telemetry when a failure or drill lands.
+            </div>
+          </aside>
+        </div>
       </section>
 
       <section class="section">
@@ -442,29 +469,6 @@
           deploy does. Idle tiles (hollow dot) indicate the pipeline is wired
           but no deploy has reached the ring buffer yet. Source: atlas-notify ring buffer.
         </p>
-      </section>
-
-      <!-- FAILURE LOG -->
-      <section class="section">
-        <div class="section-label">Failure log</div>
-        <div class="flog-head">
-          <div class="flog-meta">
-            <strong id="flog-total">—</strong> recent events ·
-            <strong id="flog-shown">—</strong> shown
-          </div>
-          <button class="flog-refresh" id="flog-refresh-btn" type="button">
-            ↻ refresh
-          </button>
-        </div>
-        <div class="flog-filters" id="flog-filters"></div>
-        <div id="flog-list" class="flog-list">
-          <div class="flog-loading">Loading recent events…</div>
-        </div>
-        <div class="flog-note">
-          Historical companion to the home page live status — covers both
-          runtime events and CI/CD pipeline outcomes. Source: atlas-notify
-          ring buffer, last 200 events across the stack.
-        </div>
       </section>
 
       <!-- LIVE -->
@@ -583,6 +587,76 @@
         </div>
         <p class="api-surface-note" id="api-surface-note">Loading…</p>
       </section>
+        </div>
+
+        <aside class="ops-rail" aria-label="Operations summary">
+          <div class="ops-panel ops-panel-primary">
+            <div class="ops-panel-head">
+              <span>Ops rail</span>
+              <a href="#blackbox">console</a>
+            </div>
+            <div class="ops-status-grid">
+              <a class="ops-status-tile" href="#blackbox">
+                <span>blackbox</span>
+                <strong id="ops-recorder-state">contacting</strong>
+                <small id="ops-recorder-meta">waiting for recorder</small>
+              </a>
+              <a class="ops-status-tile" href="#live">
+                <span>specular</span>
+                <strong id="ops-telemetry-state">waiting</strong>
+                <small id="ops-telemetry-meta">no sample yet</small>
+              </a>
+            </div>
+          </div>
+
+          <div class="ops-panel">
+            <div class="ops-panel-head">
+              <span>Latest incident</span>
+              <a href="#blackbox">open</a>
+            </div>
+            <div class="ops-incident-card">
+              <strong id="ops-incident-title">No incident loaded</strong>
+              <span id="ops-incident-meta">Blackbox is still loading.</span>
+            </div>
+          </div>
+
+          <div class="ops-panel">
+            <div class="ops-panel-head">
+              <span>Telemetry</span>
+              <a href="#live">live</a>
+            </div>
+            <div class="ops-meters">
+              <div class="ops-meter"><span>GPU</span><strong id="ops-gpu-util">—</strong></div>
+              <div class="ops-meter"><span>TEMP</span><strong id="ops-gpu-temp">—</strong></div>
+              <div class="ops-meter"><span>CPU</span><strong id="ops-cpu">—</strong></div>
+              <div class="ops-meter"><span>RAM</span><strong id="ops-ram">—</strong></div>
+            </div>
+          </div>
+
+          <div class="ops-panel">
+            <div class="ops-panel-head">
+              <span>Pipeline</span>
+              <a href="#pipeline-grid-section">grid</a>
+            </div>
+            <div class="ops-pipeline-line" id="ops-pipeline-line">waiting for events</div>
+            <div class="ops-pipeline-stats">
+              <span><strong id="ops-pipeline-runs">—</strong> runs</span>
+              <span><strong id="ops-pipeline-rate">—</strong> ok</span>
+              <span><strong id="ops-pipeline-week">—</strong> week</span>
+            </div>
+          </div>
+
+          <div class="ops-panel ops-panel-feed">
+            <div class="ops-panel-head">
+              <span>Failure feed</span>
+              <a href="#blackbox">log</a>
+            </div>
+            <div class="ops-feed" id="ops-failure-feed">
+              <div class="ops-feed-empty">Loading event feed…</div>
+            </div>
+          </div>
+        </aside>
+      </div>
     </main>
 
     <nav class="mobile-nav" aria-label="Mobile navigation">
@@ -708,6 +782,148 @@
       const FLOG_LEVELS = ["success","info","warning","failure"];
       let flogActiveLevels = null;
       let flogCachedData = null;
+      let flogFallbackData = null;
+
+      function opsEl(id) { return document.getElementById(id); }
+      function opsText(id, value) {
+        const target = opsEl(id);
+        if (target) target.textContent = value;
+      }
+      function opsTime(value) {
+        const t = typeof value === "number" ? value : Date.parse(value);
+        if (!Number.isFinite(t)) return "unknown";
+        return new Date(t).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+      }
+      function opsMs(value) {
+        const t = typeof value === "number" ? value : Date.parse(value);
+        return Number.isFinite(t) ? t : 0;
+      }
+      function opsEventLabel(e) {
+        return e.title || e.event || e.message || "event";
+      }
+      function countEventLevels(events) {
+        return events.reduce((acc, e) => {
+          const level = e.level || "info";
+          acc[level] = (acc[level] || 0) + 1;
+          return acc;
+        }, {});
+      }
+      function normalizeBlackboxEvents(inc) {
+        const events = [];
+        (inc.frames || []).forEach((frame) => {
+          (frame.events || []).forEach((event) => {
+            events.push({
+              level: event.level || "info",
+              event: event.event || "blackbox",
+              dialect: event.dialect || "blackbox",
+              title: event.title || event.message || "Recorded event",
+              message: event.message || `Captured inside ${inc.id}`,
+              ts: event.ts || new Date(frame.ts).toISOString(),
+            });
+          });
+        });
+        (inc.triggers || []).forEach((trigger) => {
+          events.push({
+            level: trigger.level || "failure",
+            event: trigger.event || "trigger",
+            dialect: trigger.dialect || "blackbox",
+            title: trigger.title || "Blackbox trigger",
+            message: trigger.message || `Triggered incident ${inc.id}`,
+            ts: trigger.ts || inc.ts,
+          });
+        });
+        return events
+          .filter((event) => event.ts)
+          .sort((a, b) => opsMs(b.ts) - opsMs(a.ts));
+      }
+      function setFlogFallback(events) {
+        if (!events.length) return;
+        flogFallbackData = {
+          ok: true,
+          total: events.length,
+          levelCounts: countEventLevels(events),
+          events,
+          fallback: true,
+        };
+        if (!flogCachedData || flogCachedData.fallback) {
+          flogCachedData = flogFallbackData;
+          renderFlog();
+        }
+      }
+
+      window.addEventListener("atlas:blackbox:status", (ev) => {
+        const s = ev.detail || {};
+        opsText("ops-recorder-state", s.recording ? "recording" : "not recording");
+        const frames = s.buffer?.frames ?? 0;
+        const tick = s.last_tick ? opsTime(s.last_tick) : "never";
+        opsText("ops-recorder-meta", `${frames} frames · tick ${tick}`);
+      });
+
+      window.addEventListener("atlas:blackbox:incident", (ev) => {
+        const inc = ev.detail?.incident || {};
+        const trigger = Array.isArray(inc.triggers) ? inc.triggers[0] : null;
+        opsText("ops-incident-title", trigger?.title || inc.id || "No incident loaded");
+        const bits = [];
+        if (inc.ts) bits.push(opsTime(inc.ts));
+        if (inc.frame_count || ev.detail?.frameCount) bits.push(`${inc.frame_count || ev.detail.frameCount} frames`);
+        bits.push(inc.sealed ? "sealed" : "recording");
+        opsText("ops-incident-meta", bits.join(" · "));
+        setFlogFallback(normalizeBlackboxEvents(inc));
+      });
+
+      window.addEventListener("atlas:telemetry", (ev) => {
+        const payload = ev.detail || {};
+        const t = payload.telemetry || {};
+        opsText("ops-telemetry-state", payload.online ? "online" : "offline");
+        opsText("ops-telemetry-meta", t.sampled_at ? `sample ${opsTime(t.sampled_at)}` : "no sample yet");
+        if (t.gpu) {
+          opsText("ops-gpu-util", `${Math.round(t.gpu.utilisation_pct)}%`);
+          opsText("ops-gpu-temp", `${Math.round(t.gpu.temperature_c)}°C`);
+        }
+        if (t.cpu) opsText("ops-cpu", `${Math.round(t.cpu.overall_pct)}%`);
+        if (t.ram) opsText("ops-ram", `${Math.round(t.ram.pct)}%`);
+      });
+
+      function updateOpsFailureFeed(events) {
+        const feed = opsEl("ops-failure-feed");
+        if (!feed) return;
+        const picked = (events || [])
+          .filter((e) => e.level === "failure" || e.level === "warning")
+          .slice(0, 5);
+        if (!picked.length) {
+          feed.innerHTML = '<div class="ops-feed-empty">No warnings or failures in the recent buffer.</div>';
+          return;
+        }
+        feed.innerHTML = "";
+        picked.forEach((e) => {
+          const row = document.createElement("button");
+          row.type = "button";
+          row.className = `ops-feed-item ${e.level || "info"}`;
+          const dot = document.createElement("span");
+          dot.className = "ops-feed-dot";
+          const title = document.createElement("span");
+          title.className = "ops-feed-title";
+          title.textContent = opsEventLabel(e);
+          const time = document.createElement("span");
+          time.className = "ops-feed-time";
+          time.textContent = flogRelTime(e.ts);
+          row.appendChild(dot);
+          row.appendChild(title);
+          row.appendChild(time);
+          row.addEventListener("click", () => {
+            window.dispatchEvent(new CustomEvent("atlas:blackbox:seek-event", { detail: { ts: e.ts } }));
+          });
+          feed.appendChild(row);
+        });
+      }
+
+      function updateOpsPipeline(stats) {
+        opsText("ops-pipeline-runs", stats.total);
+        opsText("ops-pipeline-rate", stats.rate === null ? "—" : `${stats.rate}%`);
+        opsText("ops-pipeline-week", stats.thisWeek);
+        const tone = stats.failures ? `${stats.failures} failure${stats.failures !== 1 ? "s" : ""}` : "no recent failures";
+        opsText("ops-pipeline-line", `${tone} · most active ${stats.top || "—"}`);
+      }
 
       async function loadFlog() {
         const listEl = document.getElementById("flog-list");
@@ -721,10 +937,20 @@
           const res = await fetch(url, { cache: "no-store" });
           data = await res.json();
         } catch {
-          listEl.innerHTML = '<div class="flog-empty">Event feed unavailable.</div>';
+          if (flogFallbackData) {
+            flogCachedData = flogFallbackData;
+            renderFlog();
+            return;
+          }
+          listEl.innerHTML = '<div class="flog-empty">Event feed unavailable. Waiting for Blackbox fallback.</div>';
           return;
         }
         if (!data?.ok) {
+          if (flogFallbackData) {
+            flogCachedData = flogFallbackData;
+            renderFlog();
+            return;
+          }
           listEl.innerHTML = `<div class="flog-empty">${data?.error || "No data."}</div>`;
           return;
         }
@@ -746,6 +972,7 @@
         }
         const filtered = flogActiveLevels ? data.events.filter((e) => flogActiveLevels.has(e.level)) : data.events;
         const shown = filtered.slice(0, FLOG_LIMIT);
+        updateOpsFailureFeed(data.events || []);
         document.getElementById("flog-total").textContent = data.total;
         document.getElementById("flog-shown").textContent = shown.length;
         if (!shown.length) {
@@ -793,6 +1020,18 @@
         if (e.message) { const msg = document.createElement("div"); msg.className = "flog-msg"; msg.textContent = e.message; body.appendChild(msg); }
         row.appendChild(body);
         const when = document.createElement("div"); when.className = "flog-when"; when.textContent = flogRelTime(e.ts); row.appendChild(when);
+        row.tabIndex = 0;
+        row.setAttribute("role", "button");
+        row.setAttribute("aria-label", "Focus event in incident console: " + (e.title || e.event || "event"));
+        row.addEventListener("click", () => {
+          window.dispatchEvent(new CustomEvent("atlas:blackbox:seek-event", { detail: { ts: e.ts } }));
+        });
+        row.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            window.dispatchEvent(new CustomEvent("atlas:blackbox:seek-event", { detail: { ts: e.ts } }));
+          }
+        });
         return row;
       }
 
@@ -920,6 +1159,13 @@
           if (rate === null) { rateEl.textContent = "—"; rateEl.className = "pgrid-stat-val"; }
           else { rateEl.textContent = rate + "%"; rateEl.className = "pgrid-stat-val " + (rate >= 90 ? "good" : rate >= 70 ? "warn" : "bad"); }
         }
+        updateOpsPipeline({
+          total,
+          rate,
+          thisWeek,
+          failures,
+          top: topEntry ? topEntry[0] : null,
+        });
       }
 
       const _origRenderFlog = renderFlog;
@@ -1110,8 +1356,8 @@
     <script src="/js/atlas-registry.js" defer></script>
     <script src="/lab/system-map.topology.js" defer></script>
     <script src="/lab/system-map.js" defer></script>
-    <script src="/lab/live-section.js" defer></script>
-    <script src="/lab/blackbox-timeline.js" defer></script>
+    <script src="/lab/live-section.js?v=20260705-ops-console" defer></script>
+    <script src="/lab/blackbox-timeline.js?v=20260705-ops-console" defer></script>
     <script src="/js/atlas-terminal-card-v3.js" defer></script>
   </body>
 </html>

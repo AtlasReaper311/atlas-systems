@@ -1,0 +1,414 @@
+/* =====================================================================
+   ops-console.css
+   Lab operations layout: a sticky rail plus a denser incident console.
+   ===================================================================== */
+
+.page-header {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.ops-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: clamp(1.2rem, 2.6vw, 2rem);
+  align-items: start;
+  padding: 3rem 0 5rem;
+}
+
+.ops-main {
+  min-width: 0;
+}
+
+.ops-main > .section {
+  padding: 3.2rem 0;
+}
+
+.ops-main > .section:first-child {
+  padding-top: 0;
+}
+
+.ops-main > .section:last-child {
+  border-bottom: none;
+}
+
+.ops-rail {
+  position: sticky;
+  top: calc(var(--nav-h, 56px) + 18px);
+  display: grid;
+  gap: 12px;
+  max-height: calc(100vh - var(--nav-h, 56px) - 36px);
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.ops-rail::-webkit-scrollbar,
+.incident-console-log .flog-list::-webkit-scrollbar,
+.api-surface-grid::-webkit-scrollbar {
+  width: 3px;
+}
+
+.ops-rail::-webkit-scrollbar-track,
+.incident-console-log .flog-list::-webkit-scrollbar-track,
+.api-surface-grid::-webkit-scrollbar-track {
+  background: var(--bg-1, #111118);
+}
+
+.ops-rail::-webkit-scrollbar-thumb,
+.incident-console-log .flog-list::-webkit-scrollbar-thumb,
+.api-surface-grid::-webkit-scrollbar-thumb {
+  background: var(--border-hi, rgba(255,255,255,0.16));
+}
+
+.ops-panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+  border-radius: 8px;
+  background:
+    radial-gradient(110% 90% at 50% -10%, rgba(245,166,35,0.055), transparent 58%),
+    rgba(17,17,24,0.82);
+  padding: 14px;
+}
+
+.ops-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+}
+
+.ops-panel > * {
+  position: relative;
+}
+
+.ops-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent, #f5a623);
+}
+
+.ops-panel-head a {
+  color: var(--text-faint, #555560);
+  text-decoration: none;
+  letter-spacing: 0.08em;
+}
+
+.ops-panel-head a:hover,
+.ops-panel-head a:focus-visible {
+  color: var(--accent, #f5a623);
+  outline: none;
+}
+
+.ops-status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border, rgba(255,255,255,0.08));
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+}
+
+.ops-status-tile {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(10,10,15,0.82);
+  padding: 10px;
+  text-decoration: none;
+}
+
+.ops-status-tile span {
+  color: var(--text-faint, #555560);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ops-status-tile strong {
+  color: var(--text, #e8e8e0);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ops-status-tile small {
+  color: var(--text-faint, #555560);
+  font-size: 10.5px;
+  line-height: 1.4;
+}
+
+.ops-incident-card {
+  display: grid;
+  gap: 5px;
+}
+
+.ops-incident-card strong {
+  color: var(--text, #e8e8e0);
+  font-size: 13px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.ops-incident-card span,
+.ops-pipeline-line {
+  color: var(--text-dim, #aaa9a0);
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+
+.ops-meters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border, rgba(255,255,255,0.08));
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+}
+
+.ops-meter {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  background: rgba(10,10,15,0.82);
+  padding: 9px 10px;
+}
+
+.ops-meter span {
+  color: var(--text-faint, #555560);
+  font-size: 10px;
+  letter-spacing: 0.09em;
+}
+
+.ops-meter strong {
+  color: var(--text, #e8e8e0);
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ops-pipeline-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  color: var(--text-faint, #555560);
+  font-size: 10.5px;
+}
+
+.ops-pipeline-stats strong {
+  color: var(--text, #e8e8e0);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.ops-feed {
+  display: grid;
+  gap: 8px;
+}
+
+.ops-feed-item {
+  display: grid;
+  grid-template-columns: 9px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: baseline;
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--border, rgba(255,255,255,0.08));
+  background: transparent;
+  padding-top: 8px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ops-feed-item:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.ops-feed-item:focus-visible,
+.flog-entry[role="button"]:focus-visible {
+  outline: 1px solid var(--accent, #f5a623);
+  outline-offset: 3px;
+}
+
+.flog-entry[role="button"] {
+  cursor: pointer;
+}
+
+.ops-feed-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  align-self: center;
+  background: var(--text-faint, #555560);
+}
+
+.ops-feed-item.success .ops-feed-dot { background: #4ade80; }
+.ops-feed-item.warning .ops-feed-dot { background: var(--accent, #f5a623); }
+.ops-feed-item.failure .ops-feed-dot { background: #e24b4a; }
+
+.ops-feed-title {
+  color: var(--text-dim, #aaa9a0);
+  font-size: 11.5px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ops-feed-time,
+.ops-feed-empty {
+  color: var(--text-faint, #555560);
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+.incident-console-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 320px);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.incident-console-main,
+.incident-console-log {
+  min-width: 0;
+}
+
+.incident-console-log {
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+  border-radius: 8px;
+  background: rgba(10,10,15,0.45);
+  padding: 14px;
+}
+
+.incident-console-log .section-label {
+  margin-bottom: 0.9rem;
+}
+
+.incident-console-log .flog-head {
+  align-items: center;
+  margin-bottom: 0.9rem;
+}
+
+.incident-console-log .flog-filters {
+  margin-bottom: 0.75rem;
+}
+
+.incident-console-log .flog-list {
+  max-height: 500px;
+}
+
+.incident-console-log .flog-entry {
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 0.65rem;
+  padding: 0.75rem 0.25rem;
+}
+
+.incident-console-log .flog-when {
+  grid-column: 2;
+  text-align: left;
+  padding-top: 0;
+}
+
+.incident-console-log .flog-msg {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ops-main .pgrid {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.ops-main .api-surface-grid {
+  max-height: 780px;
+  overflow-y: auto;
+}
+
+.ops-main .api-worker-card {
+  min-height: 0;
+}
+
+@media (max-width: 1180px) {
+  main {
+    max-width: 1100px;
+  }
+
+  .ops-shell {
+    grid-template-columns: 1fr;
+    padding-top: 2rem;
+  }
+
+  .ops-rail {
+    position: static;
+    order: -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .ops-panel-feed {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 920px) {
+  .incident-console-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .incident-console-log .flog-list {
+    max-height: 360px;
+  }
+}
+
+@media (max-width: 680px) {
+  .ops-shell {
+    padding: 1.5rem 0 3.5rem;
+  }
+
+  .ops-main > .section {
+    padding: 2.4rem 0;
+  }
+
+  .ops-rail {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .ops-status-grid,
+  .ops-meters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ops-feed-title {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 420px) {
+  .ops-status-grid,
+  .ops-meters {
+    grid-template-columns: 1fr;
+  }
+}
