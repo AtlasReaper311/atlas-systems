@@ -17,6 +17,7 @@
     />
     <link rel="stylesheet" href="/lab/lab-card.css" />
     <link rel="stylesheet" href="/lab/system-map.css" />
+    <link rel="stylesheet" href="/lab/blackbox-timeline.css" />
     <link rel="stylesheet" href="/lab/live-section.css" />
     <style>
           *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -350,6 +351,14 @@
           <code>/_meta</code> this hour. LAN services sit behind the tunnel and
           claim no liveness here.
         </p>
+      </section>
+
+      <section class="section bbx-section" id="blackbox">
+        <div class="smap-head">
+          <h2>Black box</h2>
+          <p class="bbx-statusline" id="blackbox-statusline">contacting recorder&#8230;</p>
+        </div>
+        <div id="blackbox-host"></div>
       </section>
 
       <section class="section">
@@ -1101,5 +1110,7 @@
     <script src="/lab/system-map.topology.js" defer></script>
     <script src="/lab/system-map.js" defer></script>
     <script src="/lab/live-section.js" defer></script>
+    <script src="/lab/blackbox-timeline.js" defer></script>
+    <script src="/js/atlas-terminal.js" defer></script>
   </body>
 </html>

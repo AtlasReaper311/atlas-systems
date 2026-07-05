@@ -326,15 +326,18 @@
     return rows.join("");
   }
 
-  function showPanel(n) {
+  function showPanel(n, atX, atY) {
     panel.innerHTML = panelHtml(n);
     panel.hidden = false;
     /* Position in container space, clamped so the panel never clips outside
-       the map; SVG coordinates map to pixels via the current render scale. */
+       the map; SVG coordinates map to pixels via the current render scale.
+       The 3D scene passes explicit host-relative pixels instead, because a
+       node's screen position under a movable camera has nothing to do with
+       the frozen 2D layout. */
     const rect = host.getBoundingClientRect();
     const scale = rect.width / W;
-    let px = n.x * scale + 24;
-    let py = n.y * scale - 12;
+    let px = typeof atX === "number" ? atX + 18 : n.x * scale + 24;
+    let py = typeof atY === "number" ? atY - 12 : n.y * scale - 12;
     const pw = Math.min(300, rect.width - 24);
     if (px + pw > rect.width - 8) px = n.x * scale - pw - 24;
     if (px < 8) px = 8;
@@ -479,6 +482,12 @@
     }
 
     if (mobileQuery.matches) renderList(snap);
+
+    /* 3D seam: remember the snapshot (probe edges derive from it) and let
+       any mounted renderer re-read state. Subscribers are isolated; a
+       throwing renderer cannot take the flat map down with it. */
+    lastSnap = snap;
+    vmSubscribers.forEach((fn) => { try { fn(); } catch (e) { /* isolated */ } });
   }
 
   /* ── Mobile list ─────────────────────────────────────────────────────
@@ -525,6 +534,70 @@
     syncViewMode();
     renderList({});
   });
+
+  /* ── 3D scene seam ────────────────────────────────────────────────────
+     The data layer above is the product; rendering is a consumer of it.
+     AtlasMapVM is the entire contract the 3D scene gets: live references
+     to the merged working set, the same panel, and a way back down. The
+     scene overlays the SVG rather than replacing it, so the flat map
+     stays warm underneath and fallback is "remove the canvas". */
+  var lastSnap = null;
+  var vmSubscribers = [];
+  window.AtlasMapVM = {
+    getState() {
+      /* Probe edges are derived, not stored: the registry's target list
+         IS the live data, same rule the SVG renderer follows. */
+      const probes = [];
+      if (lastSnap && nodeById.get("atlas-api-index")) {
+        lastSnap.workers.forEach((w) => {
+          if (nodeById.get(w.name) && w.name !== "atlas-api-index") {
+            probes.push({ from: "atlas-api-index", to: w.name, kind: "probe" });
+          }
+        });
+      }
+      return { nodes, edges, kv: kvNodes, probes, W, H };
+    },
+    onUpdate(fn) { vmSubscribers.push(fn); },
+    openDetail(id, atX, atY) {
+      const n = nodeById.get(id);
+      if (n) { panelPinned = n; showPanel(n, atX, atY); }
+    },
+    closeDetail() { hidePanel(); },
+    sceneMounted() { host.classList.add("smap-3d"); },
+    fallbackToSvg() { host.classList.remove("smap-3d"); }
+  };
+
+  /* Loader: every gate errs toward the flat map. The scene script only
+     ever loads when the map is on screen on a WebGL2-capable, motion-ok,
+     desktop-width viewport; any failure after that point removes itself. */
+  (function maybeMountScene() {
+    try {
+      if (new URLSearchParams(location.search).get("flat") === "1") return;
+      if (mobileQuery.matches || reduceMotion) return;
+      const probe = document.createElement("canvas");
+      const gl = probe.getContext("webgl2");
+      if (!gl) return;
+      const inject = () => {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "/lab/system-map-scene.css";
+        document.head.appendChild(link);
+        const s = document.createElement("script");
+        s.type = "module";
+        s.src = "/lab/system-map-scene.js";
+        s.onerror = () => window.AtlasMapVM.fallbackToSvg();
+        document.head.appendChild(s);
+      };
+      if ("IntersectionObserver" in window) {
+        const io = new IntersectionObserver((entries) => {
+          if (entries.some((e) => e.isIntersecting)) { io.disconnect(); inject(); }
+        }, { rootMargin: "240px" });
+        io.observe(host);
+      } else {
+        inject();
+      }
+    } catch (e) { /* the flat map is already rendered; nothing to undo */ }
+  })();
 
   window.AtlasRegistry.subscribe(applySnapshot);
 })();

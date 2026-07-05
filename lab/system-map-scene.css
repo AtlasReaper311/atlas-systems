@@ -1,0 +1,75 @@
+/* =====================================================================
+   system-map-scene.css
+   The 3D layer's chrome. The canvas paints the diorama; everything here
+   is the thin DOM riding on top of it: projected labels, the flat-view
+   toggle, and the one-time control hint. Injected by system-map.js only
+   when the scene mounts, so flat-map visitors never load it.
+   ===================================================================== */
+
+.smap3d-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0; /* the detail panel is a later sibling; it paints above */
+  overflow: hidden;
+  border-radius: inherit;
+}
+.smap3d-layer canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.smap3d-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-family: var(--mono, 'IBM Plex Mono', monospace);
+}
+.smap3d-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: var(--text-dim, #aaa9a0);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+  will-change: transform, opacity;
+}
+.smap3d-label-hub { color: var(--accent, #f5a623); }
+.smap3d-label-kv { font-size: 9px; color: var(--text-faint, #555560); }
+
+.smap3d-toggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(17, 17, 24, 0.85);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  border-radius: 3px;
+  color: var(--text-faint, #555560);
+  font-family: var(--mono, 'IBM Plex Mono', monospace);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.smap3d-toggle:hover,
+.smap3d-toggle:focus-visible {
+  color: var(--accent, #f5a623);
+  border-color: var(--accent, #f5a623);
+  outline: none;
+}
+
+.smap3d-hint {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  font-family: var(--mono, 'IBM Plex Mono', monospace);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--text-faint, #555560);
+  transition: opacity 1.2s ease;
+}
+.smap3d-hint-gone { opacity: 0; }
