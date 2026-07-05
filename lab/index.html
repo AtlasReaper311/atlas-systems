@@ -437,7 +437,7 @@
             <span><span class="dot success"></span>ok</span>
             <span><span class="dot activity"></span>activity</span>
             <span><span class="dot failure"></span>fail</span>
-            <span><span class="dot info"></span>info</span>
+            <span><span class="dot info"></span>live</span>
             <span><span class="dot none"></span>idle</span>
           </div>
         </div>
@@ -466,9 +466,10 @@
         <p class="flog-note">
           Green, amber, and red are reserved for deploy state. Amber means
           activity is waiting on a confirmed deploy signal; older tags mean the
-          last deploy record is old, not offline. Runtime warnings do not set
-          repo health. Source: atlas-notify ring buffer, deploy-watch, and live
-          build metadata for atlas-systems.uk.
+          last deploy record is old, not offline. Live means the API registry
+          reports an endpoint even when the deploy feed is not wired. Runtime
+          warnings do not set repo health. Source: atlas-notify ring buffer,
+          deploy-watch, and live build metadata for atlas-systems.uk.
         </p>
       </section>
 
@@ -786,6 +787,7 @@
       let flogCachedData = null;
       let flogFallbackData = null;
       let pgridDeployLatest = null;
+      let pgridRegistryLive = new Set();
 
       function opsEl(id) { return document.getElementById(id); }
       function opsText(id, value) {
@@ -1233,13 +1235,16 @@
         const now = Date.now();
         for (const repo of PGRID_REPO_IDS) {
           const { activity, latest, status } = state[repo];
+          const registryLive = pgridRegistryLive.has(repo);
           const tile = document.createElement("a");
           tile.className = "pgrid-tile";
           tile.href = PGRID_REPO_URL(repo);
           tile.target = "_blank"; tile.rel = "noopener noreferrer";
           const activityAfterStatus = status && activity && opsMs(activity.ts) > opsMs(status.ts);
           let level = pgridStatusLevel(status, activity);
+          if (level === "none" && registryLive) level = "info";
           if (level === "none") tile.classList.add("idle");
+          if (registryLive) tile.classList.add("registry-live");
           const refEv = activityAfterStatus ? activity : status || activity || latest;
           let isStale = false;
           if (refEv && refEv.ts) {
@@ -1265,6 +1270,7 @@
           else if (status) summary.textContent = pgridSummary(status);
           else if (activity) summary.textContent = "Activity seen; deploy signal pending";
           else if (latest) summary.textContent = pgridSummary(latest);
+          else if (registryLive) summary.textContent = "Endpoint live; deploy feed not wired";
           else summary.textContent = "Deploy feed not wired yet";
           tile.appendChild(summary);
           const pulse = document.createElement("div"); pulse.className = "pgrid-pulse"; tile.appendChild(pulse);
@@ -1337,7 +1343,11 @@
           if (/health|liveness|probe/i.test(ep.description || "")) byWorker[ep.worker] = ep;
         }
         return Object.entries(byWorker).map(([worker, ep]) => {
-          return { label: worker, url: endpointProbeUrl(ep) };
+          return {
+            label: worker,
+            url: endpointProbeUrl(ep),
+            registryLive: /^(live|ok|active|operational)$/i.test(ep.registryStatus || ""),
+          };
         });
       }
 
@@ -1381,15 +1391,16 @@
         if (!strip) return;
         const results = await Promise.all(_healthTargets.map(async (t) => ({ ...t, ping: await pingEndpoint(t.url) })));
         strip.innerHTML = "";
-        for (const { label, url, ping } of results) {
+        for (const { label, url, registryLive, ping } of results) {
+          const registryFallback = registryLive && (!ping.reachable || ping.ms === null);
           const chip = document.createElement("div"); chip.className = "health-chip";
           const name = document.createElement("div"); name.className = "health-chip-name"; name.textContent = label;
           const row = document.createElement("div"); row.className = "health-chip-row";
-          const dotClass = !ping.reachable || ping.ms === null ? "down" : !ping.ok || ping.ms >= 400 ? "degraded" : "up";
-          const latClass = ping.ms === null ? "err" : ping.ms < 150 ? "fast" : ping.ms < 400 ? "medium" : "slow";
+          const dotClass = registryFallback ? "up" : !ping.reachable || ping.ms === null ? "down" : !ping.ok || ping.ms >= 400 ? "degraded" : "up";
+          const latClass = registryFallback ? "fast" : ping.ms === null ? "err" : ping.ms < 150 ? "fast" : ping.ms < 400 ? "medium" : "slow";
           const dot = document.createElement("div"); dot.className = "health-dot " + dotClass;
-          const lat = document.createElement("span"); lat.className = "health-chip-latency " + latClass; lat.textContent = ping.ms !== null ? ping.ms + "ms" : "timeout";
-          chip.title = `${label} · ${ping.status || "timeout"} · ${ping.ms !== null ? ping.ms + "ms" : "no response"} · ${url || ""}`;
+          const lat = document.createElement("span"); lat.className = "health-chip-latency " + latClass; lat.textContent = registryFallback ? "live" : ping.ms !== null ? ping.ms + "ms" : "timeout";
+          chip.title = `${label} · ${registryFallback ? "registry live" : ping.status || "timeout"} · ${registryFallback ? "registry fallback" : ping.ms !== null ? ping.ms + "ms" : "no response"} · ${url || ""}`;
           row.appendChild(dot); row.appendChild(lat); chip.appendChild(name); chip.appendChild(row); strip.appendChild(chip);
         }
       }
@@ -1408,6 +1419,7 @@
             worker,
             source: meta?.source || ep.source || "",
             probeUrl: meta?.probeUrl || ep.probeUrl || ep.probe_url || "",
+            registryStatus: meta?.status || ep.status || "",
           };
           const key = [next.worker, next.method || "GET", next.path || "", next.description || ""].join("|");
           if (!seen.has(key)) {
@@ -1517,6 +1529,13 @@
           note.textContent = `Live registry — ${total} endpoint${total !== 1 ? "s" : ""} across ${wc} documented Worker${wc !== 1 ? "s" : ""}; ${missing} Worker${missing !== 1 ? "s" : ""} still need /_meta.${warningText} Source: api.atlas-systems.uk/`;
         }
         _healthTargets = deriveHealthTargets(endpoints);
+        pgridRegistryLive = new Set();
+        for (const ep of endpoints) {
+          if (!/^(live|ok|active|operational)$/i.test(ep.registryStatus || "")) continue;
+          const repo = pgridRepoFor({ title: `${ep.worker || ""} ${ep.source || ""}` });
+          if (repo) pgridRegistryLive.add(repo);
+        }
+        if (flogCachedData?.events) pgridRender(flogCachedData.events);
         runHealthChecks();
         setInterval(runHealthChecks, 60_000);
       }
