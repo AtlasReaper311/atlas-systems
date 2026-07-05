@@ -21,7 +21,7 @@
   "use strict";
 
   /* ── Config ──────────────────────────────────────────────────────── */
-  var CSS_HREF = "/css/atlas-terminal-card-v2.css";
+  var CSS_HREF = "/css/atlas-terminal-card-v3.css?v=20260705-close-hidden";
   var REGISTRY_SRC = "/js/atlas-registry.js";
   var CORPUS_BASE = "https://corpus.atlas-systems.uk";
   var DECISIONS_PATH = "/decisions.md";
@@ -44,7 +44,7 @@
   /* ── State ───────────────────────────────────────────────────────── */
   var built = false;
   var isOpen = false;
-  var overlay, panel, output, input, restoreFocusTo = null, focusTimer = null;
+  var overlay, panel, output, input, restoreFocusTo = null, focusTimer = null, openScrollX = 0, openScrollY = 0;
   var history = [];
   var histIdx = -1;
   var draft = "";
@@ -529,7 +529,7 @@
     panel.appendChild(output);
     panel.appendChild(inputRow);
     overlay.appendChild(panel);
-    (document.documentElement || document.body).appendChild(overlay);
+    (document.body || document.documentElement).appendChild(overlay);
 
     var closeButton = head.querySelector(".term-close");
     function closeFromControl(ev) {
@@ -589,24 +589,51 @@
 
   /* ── Open/close ──────────────────────────────────────────────────── */
   function queueInputFocus() {
+    if (!canAutoFocus()) return;
     if (focusTimer !== null) clearTimeout(focusTimer);
     focusTimer = setTimeout(function () {
       focusTimer = null;
-      if (isOpen && input) input.focus();
+      if (isOpen && input) focusInput();
     }, 0);
+  }
+  function canAutoFocus() {
+    return !window.matchMedia || window.matchMedia("(min-width: 721px)").matches;
+  }
+  function restoreScroll(x, y) {
+    window.scrollTo(x, y);
+    document.documentElement.scrollLeft = x;
+    document.documentElement.scrollTop = y;
+    if (document.body) {
+      document.body.scrollLeft = x;
+      document.body.scrollTop = y;
+    }
+  }
+  function focusInput() {
+    var x = window.scrollX || window.pageXOffset || 0;
+    var y = window.scrollY || window.pageYOffset || 0;
+    try { input.focus({ preventScroll: true }); }
+    catch (e) {
+      input.focus();
+    }
+    restoreScroll(x, y);
+    setTimeout(function () { restoreScroll(x, y); }, 0);
+    if (window.requestAnimationFrame) window.requestAnimationFrame(function () { restoreScroll(x, y); });
   }
   function open() {
     build();
     if (isOpen) return;
     isOpen = true;
+    openScrollX = window.scrollX || window.pageXOffset || 0;
+    openScrollY = window.scrollY || window.pageYOffset || 0;
     restoreFocusTo = document.activeElement;
     overlay.hidden = false;
     document.body.classList.add("term-open");
+    restoreScroll(openScrollX, openScrollY);
     boot();
     if (focusTimer !== null) clearTimeout(focusTimer);
     focusTimer = setTimeout(function () {
       focusTimer = null;
-      if (isOpen) input.focus();
+      if (isOpen && canAutoFocus()) focusInput();
     }, 30);
   }
   function close() {
@@ -619,6 +646,8 @@
     if (input) input.blur();
     overlay.hidden = true;
     document.body.classList.remove("term-open");
+    restoreScroll(openScrollX, openScrollY);
+    setTimeout(function () { restoreScroll(openScrollX, openScrollY); }, 0);
     var target = restoreFocusTo;
     restoreFocusTo = null;
     if (target && target.focus && (!overlay || !overlay.contains(target))) {
@@ -667,6 +696,8 @@
     chip.addEventListener("click", toggle);
     document.body.appendChild(chip);
   }
+
+  ensureCss();
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", injectTriggers);

@@ -22,6 +22,10 @@
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           document.body.style.transform = 'scale(1)';
+          setTimeout(() => {
+            document.body.style.transform = '';
+            document.body.style.transition = '';
+          }, 360);
         });
       });
     });
