@@ -466,8 +466,8 @@
         <p class="flog-note">
           Green, amber, and red are reserved for deploy state. Pushes without
           a confirmed deploy become amber activity; runtime warnings do not set
-          repo health. Source: atlas-notify ring buffer plus deploy-watch for
-          the live atlas-systems.uk deploy.
+          repo health. Source: atlas-notify ring buffer, deploy-watch, and
+          live build metadata for atlas-systems.uk.
         </p>
       </section>
 
@@ -989,25 +989,50 @@
         renderFlog();
       }
 
+      function buildMetaDeployEvent() {
+        const commitSha = document.querySelector('meta[name="build-commit"]')?.content?.trim();
+        if (!commitSha) return null;
+        const builtAt = document.querySelector('meta[name="build-time"]')?.content?.trim();
+        return {
+          ts: builtAt || new Date().toISOString(),
+          level: "success",
+          dialect: "build-meta",
+          event: "pages-deploy",
+          title: "Deployed: atlas-systems.uk",
+          message: `Current deployed build [${commitSha}]`,
+          repo: "atlas-systems",
+          commitUrl: `https://github.com/AtlasReaper311/atlas-systems/commit/${commitSha}`,
+          pipeline: true,
+        };
+      }
+
+      function latestDeployEvent(data) {
+        if (!data?.ok || !data.commitSha) return null;
+        const ok = data.status === "success";
+        return {
+          ts: data.endedOn || data.createdOn || data.checkedAt,
+          level: ok ? "success" : "failure",
+          dialect: "deploy-watch",
+          event: "pages-deploy",
+          title: ok ? "Deployed: atlas-systems.uk" : "Deploy failed: atlas-systems.uk",
+          message: `Cloudflare Pages ${data.status || "unknown"} [${data.commitSha}]`,
+          repo: "atlas-systems",
+          commitUrl: data.commitUrl,
+          pipeline: true,
+        };
+      }
+
       async function loadLatestDeploy() {
+        const buildMeta = buildMetaDeployEvent();
         try {
           const res = await fetch(DEPLOY_LATEST_URL, { cache: "no-store" });
           const data = await res.json();
-          if (!data?.ok || !data.commitSha) return null;
-          const ok = data.status === "success";
-          return {
-            ts: data.endedOn || data.createdOn || data.checkedAt,
-            level: ok ? "success" : "failure",
-            dialect: "deploy-watch",
-            event: "pages-deploy",
-            title: ok ? "Deployed: atlas-systems.uk" : "Deploy failed: atlas-systems.uk",
-            message: `Cloudflare Pages ${data.status || "unknown"} [${data.commitSha}]`,
-            repo: "atlas-systems",
-            commitUrl: data.commitUrl,
-            pipeline: true,
-          };
+          const watchEvent = latestDeployEvent(data);
+          if (!buildMeta) return watchEvent;
+          if (!watchEvent) return buildMeta;
+          return opsMs(buildMeta.ts) >= opsMs(watchEvent.ts) ? buildMeta : watchEvent;
         } catch {
-          return null;
+          return buildMeta;
         }
       }
 
@@ -1166,7 +1191,7 @@
         if (!activity) return status.level || "info";
         const statusTime = opsMs(status.ts);
         const activityTime = opsMs(activity.ts);
-        if (activityTime > statusTime && !status.pipeline) return "warning";
+        if (activityTime > statusTime) return "warning";
         return status.level || "info";
       }
 
@@ -1193,7 +1218,7 @@
           tile.className = "pgrid-tile";
           tile.href = PGRID_REPO_URL(repo);
           tile.target = "_blank"; tile.rel = "noopener noreferrer";
-          const activityAfterStatus = status && activity && opsMs(activity.ts) > opsMs(status.ts) && !status.pipeline;
+          const activityAfterStatus = status && activity && opsMs(activity.ts) > opsMs(status.ts);
           let level = pgridStatusLevel(status, activity);
           if (level === "none") tile.classList.add("idle");
           const refEv = activityAfterStatus ? activity : status || activity || latest;
@@ -1239,6 +1264,7 @@
         const rate = rateBase > 0 ? Math.round((successes / rateBase) * 100) : null;
         const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
         const thisWeek = pipeline.filter((e) => new Date(e.ts).getTime() >= weekAgo).length;
+        const recentFailures = pipeline.filter((e) => e.level === "failure" && new Date(e.ts).getTime() >= weekAgo).length;
         const repoCounts = {};
         for (const e of pipeline) { const repo = pgridRepoFor(e); if (repo) repoCounts[repo] = (repoCounts[repo] || 0) + 1; }
         const topEntry = Object.entries(repoCounts).sort((a, b) => b[1] - a[1])[0];
@@ -1257,7 +1283,7 @@
           total,
           rate,
           thisWeek,
-          failures,
+          failures: recentFailures,
           top: topEntry ? topEntry[0] : null,
         });
       }
