@@ -52,6 +52,9 @@ jobs:
           LATEST_COMMIT_MSG="—"
           LATEST_COMMIT_DATE="0000-00-00T00:00:00Z"
           ACTIVE_REPOS=""
+          MOST_ACTIVE_REPO="none"
+          MOST_ACTIVE_COUNT=0
+          COMMIT_DAYS_JSON="[]"
 
           while IFS= read -r repo; do
             [ -z "$repo" ] && continue
@@ -73,6 +76,22 @@ jobs:
                 ACTIVE_REPOS="$USERNAME/$repo"
               fi
 
+              # Track the real most-active repo by commit count, not by
+              # whichever repo happened to push most recently.
+              if [ "$COUNT" -gt "$MOST_ACTIVE_COUNT" ] 2>/dev/null; then
+                MOST_ACTIVE_COUNT="$COUNT"
+                MOST_ACTIVE_REPO="$USERNAME/$repo"
+              fi
+
+              REPO_DAYS_JSON=$(echo "$RESP" | jq -c '
+                if type=="array" then
+                  [.[] | .commit.author.date // empty | fromdateiso8601 | strftime("%A")]
+                else
+                  []
+                end
+              ' 2>/dev/null || echo '[]')
+              COMMIT_DAYS_JSON=$(jq -c -n --argjson a "$COMMIT_DAYS_JSON" --argjson b "$REPO_DAYS_JSON" '$a + $b')
+
               # Track latest commit across all repos
               NEWEST_DATE=$(echo "$RESP" | jq -r '.[0].commit.author.date // ""')
               NEWEST_MSG=$(echo "$RESP" | jq -r '.[0].commit.message // ""' | head -1)
@@ -87,29 +106,21 @@ jobs:
 
           [ -z "$ACTIVE_REPOS" ] && ACTIVE_REPOS="none this week"
 
-          # --- Most active repo and busiest day ---
-          # Derived from the same commits data would require storing
-          # per-repo counts. Using the events feed here is acceptable
-          # because these are display-only fields, not totals — a miss
-          # just means "none" rather than a wrong number.
-          EVENTS=$(curl -sf -H "$GH_AUTH" \
-            "https://api.github.com/users/$USERNAME/events?per_page=100" || echo '[]')
-          echo "$EVENTS" | jq empty 2>/dev/null || EVENTS='[]'
+          if [ "$MOST_ACTIVE_COUNT" -gt 0 ] 2>/dev/null; then
+            MOST_ACTIVE_REPO="${MOST_ACTIVE_REPO} (${MOST_ACTIVE_COUNT} commits)"
+          fi
 
-          MOST_ACTIVE_REPO=$(echo "$REPOS_DATA" | jq -r --arg since "$SINCE" '
-            [.[] | select(.fork == false and .pushed_at >= $since)]
-            | sort_by(.pushed_at) | reverse | .[0].full_name // "none"
-          ')
-
-          BUSIEST_DAY=$(echo "$EVENTS" | jq -r --arg since "$SINCE" '
-            [.[] | select(.type=="PushEvent" and .created_at>=$since)
-                  | (.created_at | strptime("%Y-%m-%dT%H:%M:%SZ") | mktime | strftime("%A"))]
-            | group_by(.) | map({day: .[0], count: length}) | sort_by(-.count) | .[0].day // "—"
+          BUSIEST_DAY=$(echo "$COMMIT_DAYS_JSON" | jq -r '
+            group_by(.) | map({day: .[0], count: length}) | sort_by(-.count) | .[0].day // "—"
           ')
 
           # --- PRs and Issues (7d) ---
           # Events feed is fine here — PRs and issues generate fewer
           # events than pushes, so the 100-event window rarely clips them.
+          EVENTS=$(curl -sf -H "$GH_AUTH" \
+            "https://api.github.com/users/$USERNAME/events?per_page=100" || echo '[]')
+          echo "$EVENTS" | jq empty 2>/dev/null || EVENTS='[]'
+
           PR_OPENED=$(echo "$EVENTS" | jq --arg since "$SINCE" '
             [.[] | select(.type=="PullRequestEvent" and .created_at>=$since and .payload.action=="opened")] | length
           ')
@@ -145,7 +156,13 @@ jobs:
           SITE_PULSE_NOW=$(curl -sf "https://api.atlas-systems.uk/site-pulse" || echo '{}')
           echo "$SITE_PULSE_NOW" | jq empty 2>/dev/null || SITE_PULSE_NOW='{}'
 
-          TOP_PAGE_RAW=$(echo "$SITE_PULSE_NOW" | jq -r '.topPages[0].path // "—"')
+          TOP_PAGE_RAW=$(echo "$SITE_PULSE_NOW" | jq -r '
+            def scanner:
+              test("^/(wp-|wp-admin|wp-login|xmlrpc|\\.env|\\.aws|cgi-bin|admin|login|shell|zmia|vendor|boaform)|\\.php($|[?#])"; "i");
+            def asset:
+              test("\\.(js|css|png|jpe?g|webp|gif|svg|ico|xml|txt|map|json)($|[?#])"; "i");
+            [.topPages[]? | select((.path | scanner | not) and (.path | asset | not))][0].path // "—"
+          ')
           if [ "$TOP_PAGE_RAW" = "/" ]; then
             TOP_PAGE="/ (homepage)"
           elif [ "$TOP_PAGE_RAW" = "—" ]; then
@@ -162,13 +179,13 @@ jobs:
           # Fall back to live 24h data if no daily snapshots exist yet
           if [ "$DAYS_COLLECTED" = "0" ] || [ "$DAYS_COLLECTED" = "null" ]; then
             SITE_VISITS=$(echo "$SITE_PULSE_NOW" | jq -r '.totalVisits // 0')
-            SITE_LABEL="Site visits (24h)"
+            SITE_LABEL="Site requests (24h)"
           else
-            SITE_LABEL="Site visits (${DAYS_COLLECTED}d)"
+            SITE_LABEL="Site requests (${DAYS_COLLECTED}d)"
           fi
 
           echo "::debug::Commits: $COMMIT_COUNT | Active repos: $ACTIVE_REPOS"
-          echo "::debug::Site visits: $SITE_VISITS over $DAYS_COLLECTED days"
+          echo "::debug::Site requests: $SITE_VISITS over $DAYS_COLLECTED days"
           echo "::debug::Latest commit: $LATEST_COMMIT_MSG"
 
           # --- Build Discord embed ---
@@ -193,7 +210,7 @@ jobs:
               username: "weekly-digest",
               embeds: [{
                 title: "Weekly Digest",
-                description: "Activity across all repos (public + private) — past 7 days, plus all-time totals.",
+                description: "Activity across all repos (public + private) — past 7 days. Site traffic is request-based; scanner paths are filtered from the top page.",
                 color: 16098851,
                 fields: [
                   {name: "Commits (7d)", value: $commits, inline: true},
@@ -206,7 +223,7 @@ jobs:
                   {name: "Public repos (all-time)", value: $public_repos, inline: true},
                   {name: "Followers", value: $followers, inline: true},
                   {name: $site_label, value: $site_visits, inline: true},
-                  {name: "Top page", value: $top_page, inline: true},
+                  {name: "Top real page (24h)", value: $top_page, inline: true},
                   {name: "Active repos this week", value: $repos, inline: false},
                   {name: "Latest commit", value: ("\u201c" + $latest_commit + "\u201d"), inline: false}
                 ],
