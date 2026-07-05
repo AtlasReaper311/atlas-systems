@@ -989,10 +989,8 @@
         renderFlog();
       }
 
-      function buildMetaDeployEvent() {
-        const commitSha = document.querySelector('meta[name="build-commit"]')?.content?.trim();
+      function makeBuildMetaDeployEvent(commitSha, builtAt) {
         if (!commitSha) return null;
-        const builtAt = document.querySelector('meta[name="build-time"]')?.content?.trim();
         return {
           ts: builtAt || new Date().toISOString(),
           level: "success",
@@ -1004,6 +1002,26 @@
           commitUrl: `https://github.com/AtlasReaper311/atlas-systems/commit/${commitSha}`,
           pipeline: true,
         };
+      }
+
+      function buildMetaFromDocument(doc) {
+        const commitSha = doc.querySelector('meta[name="build-commit"]')?.content?.trim();
+        const builtAt = doc.querySelector('meta[name="build-time"]')?.content?.trim();
+        return makeBuildMetaDeployEvent(commitSha, builtAt);
+      }
+
+      async function buildMetaDeployEvent() {
+        const localMeta = buildMetaFromDocument(document);
+        if (localMeta) return localMeta;
+        try {
+          const res = await fetch(`/?build-meta=${Date.now()}`, { cache: "no-store" });
+          if (!res.ok) return null;
+          const html = await res.text();
+          const doc = new DOMParser().parseFromString(html, "text/html");
+          return buildMetaFromDocument(doc);
+        } catch {
+          return null;
+        }
       }
 
       function latestDeployEvent(data) {
@@ -1023,7 +1041,7 @@
       }
 
       async function loadLatestDeploy() {
-        const buildMeta = buildMetaDeployEvent();
+        const buildMeta = await buildMetaDeployEvent();
         try {
           const res = await fetch(DEPLOY_LATEST_URL, { cache: "no-store" });
           const data = await res.json();
