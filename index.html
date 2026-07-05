@@ -427,12 +427,14 @@
       grid-template-columns: 1fr 1.4fr;
       gap: 3rem;
       margin-top: 2.5rem;
+      min-width: 0;
     }
+    .pulse-grid > * { min-width: 0; }
     @media (max-width: 720px) {
-      .pulse-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .pulse-grid { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
     }
 
-    .pulse-lang { margin-bottom: 0.9rem; }
+    .pulse-lang { margin-bottom: 0.9rem; max-width: 100%; min-width: 0; }
     .pulse-lang-head {
       display: flex;
       justify-content: space-between;
@@ -440,7 +442,7 @@
       color: var(--text-dim);
       margin-bottom: 0.35rem;
     }
-    .pulse-lang-track { height: 4px; background: var(--bg-2); }
+    .pulse-lang-track { height: 4px; background: var(--bg-2); max-width: 100%; }
     .pulse-lang-bar {
       height: 4px;
       background: var(--accent);
