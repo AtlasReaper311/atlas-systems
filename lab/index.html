@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="/lab/system-map.css" />
     <link rel="stylesheet" href="/lab/blackbox-timeline.css" />
     <link rel="stylesheet" href="/lab/live-section.css" />
+    <link rel="stylesheet" href="/lab/live-infra.css?v=20260706-live-infra" />
     <link rel="stylesheet" href="/lab/ops-console.css?v=20260705-ops-console-v2" />
     <link rel="stylesheet" href="/css/atlas-terminal-card-v3.css?v=20260705-close-hidden" />
     <style>
@@ -575,6 +576,41 @@
 
                   <p class="cs-w-status" id="csw-status" aria-live="polite"></p>
                   <ol class="cs-w-results" id="csw-results"></ol>
+                </section>
+              </div>
+
+              <!-- live-infra:panels:v1 -->
+              <!-- INFRA HEALTH: fed by atlas-api-public /v1/infra/status -->
+              <div class="live-panel">
+                <h3 class="live-panel-title">infra health</h3>
+                <section class="li-w" id="infra-health" aria-label="Infra health for the Ollama and RAG stack">
+                  <p class="li-w-head"><strong>INFRA HEALTH</strong> // ollama + rag reachability, wsl2 ip drift</p>
+                  <div class="li-w-state" id="liw-state" data-state="unknown">
+                    <span class="li-w-dot" aria-hidden="true"></span>
+                    <span id="liw-overall">checking&hellip;</span>
+                  </div>
+                  <ul class="li-w-checks">
+                    <li data-check="ollama"><span class="li-w-name">ollama</span><span class="li-w-val" id="liw-ollama">&hellip;</span></li>
+                    <li data-check="corpus_health"><span class="li-w-name">corpus health</span><span class="li-w-val" id="liw-corpus-health">&hellip;</span></li>
+                    <li data-check="corpus_search"><span class="li-w-name">rag search</span><span class="li-w-val" id="liw-corpus-search">&hellip;</span></li>
+                    <li data-check="wsl_ip"><span class="li-w-name">wsl2 ip</span><span class="li-w-val" id="liw-ip">&hellip;</span></li>
+                  </ul>
+                  <p class="li-w-meta" id="liw-checked" aria-live="polite"></p>
+                </section>
+              </div>
+
+              <!-- RAG QUERIES: fed by atlas-api-public /v1/rag/stats -->
+              <div class="live-panel">
+                <h3 class="live-panel-title">rag queries</h3>
+                <section class="li-w" id="rag-queries" aria-label="RAG query statistics">
+                  <p class="li-w-head"><strong>RAG QUERIES</strong> // real searches against the corpus; ips never logged</p>
+                  <div class="li-w-big"><span id="lrq-hour">&hellip;</span><span class="li-w-big-label">last hour</span></div>
+                  <ul class="li-w-rows">
+                    <li><span class="li-w-name">today</span><span class="li-w-val" id="lrq-today">&hellip;</span></li>
+                    <li><span class="li-w-name">all time</span><span class="li-w-val" id="lrq-total">&hellip;</span></li>
+                    <li><span class="li-w-name">last query</span><span class="li-w-val" id="lrq-last">&hellip;</span></li>
+                  </ul>
+                  <p class="li-w-meta" id="lrq-checked" aria-live="polite"></p>
                 </section>
               </div>
 
@@ -1551,6 +1587,7 @@
     <script src="/lab/system-map.topology.js" defer></script>
     <script src="/lab/system-map.js" defer></script>
     <script src="/lab/live-section.js?v=20260705-ops-console" defer></script>
+    <script src="/lab/live-infra.js?v=20260706-live-infra" defer></script>
     <script src="/lab/blackbox-timeline.js?v=20260705-ops-console" defer></script>
     <script src="/js/atlas-terminal-card-v3.js" defer></script>
   </body>

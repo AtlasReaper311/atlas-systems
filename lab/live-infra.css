@@ -1,0 +1,71 @@
+/* live-infra.css :: Infra Health + RAG Queries panels.
+   Scoped to .li-w; tokens per atlas-brand.md. Site cards use brand
+   colours (the badge on GitHub uses shields-native ones; each artefact
+   matches its context). */
+
+.li-w { font-size: 13px; }
+
+.li-w-head { color: #aaa9a0; margin: 0 0 10px; }
+.li-w-head strong { color: #e8e8e0; font-weight: 500; }
+
+.li-w-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  color: #e8e8e0;
+}
+.li-w-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #555560;
+  flex: none;
+}
+.li-w-state[data-state="ok"] .li-w-dot { background: #4ade80; box-shadow: 0 0 6px rgba(74, 222, 128, 0.5); }
+.li-w-state[data-state="degraded"] .li-w-dot { background: #f5a623; box-shadow: 0 0 6px rgba(245, 166, 35, 0.5); }
+.li-w-state[data-state="down"] .li-w-dot { background: #e24b4a; box-shadow: 0 0 6px rgba(226, 75, 74, 0.5); }
+
+.li-w-checks,
+.li-w-rows {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+}
+.li-w-checks li,
+.li-w-rows li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.li-w-checks li:last-child,
+.li-w-rows li:last-child { border-bottom: none; }
+
+.li-w-name { color: #555560; }
+.li-w-val {
+  color: #aaa9a0;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 65%;
+}
+.li-w-val.is-ok { color: #4ade80; }
+.li-w-val.is-bad { color: #e24b4a; }
+
+.li-w-big {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 10px;
+}
+.li-w-big span:first-child {
+  font-size: 30px;
+  color: #f5a623;
+  line-height: 1;
+}
+.li-w-big-label { color: #555560; }
+
+.li-w-meta { color: #555560; margin: 0; font-size: 12px; }
