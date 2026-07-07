@@ -830,6 +830,7 @@
 
       const FLOG_URL = "https://api.atlas-systems.uk/notify/recent";
       const DEPLOY_LATEST_URL = "https://api.atlas-systems.uk/deploy-watch/latest";
+      const SPECULAR_LIVE_URL = "https://api.atlas-systems.uk/specular";
       const FLOG_LIMIT = 10;
       const FLOG_LEVELS = ["success","info","warning","failure"];
       let flogActiveLevels = null;
@@ -864,6 +865,22 @@
         if (!opsInfraHealthy) return false;
         const hay = ((e?.title || "") + " " + (e?.message || "") + " " + (e?.event || "")).toLowerCase();
         return hay.includes("sentinel silent") || hay.includes("specular-core is offline");
+      }
+      function opsMetric(value, suffix = "") {
+        const n = Number(value);
+        return Number.isFinite(n) ? `${Math.round(n)}${suffix}` : "-";
+      }
+      function paintOpsTelemetry(payload) {
+        const data = payload || {};
+        const t = data.telemetry || {};
+        const online = data.online === true;
+        const sampledAt = t.sampled_at || data.fetched_at || data.last_seen;
+        opsText("ops-telemetry-state", online ? "online" : data.online === false ? "offline" : "unknown");
+        opsText("ops-telemetry-meta", sampledAt ? `${online ? "live" : "sample"} ${opsTime(sampledAt)}` : "no sample yet");
+        opsText("ops-gpu-util", opsMetric(t.gpu?.utilisation_pct, "%"));
+        opsText("ops-gpu-temp", opsMetric(t.gpu?.temperature_c, "°C"));
+        opsText("ops-cpu", opsMetric(t.cpu?.overall_pct, "%"));
+        opsText("ops-ram", opsMetric(t.ram?.pct, "%"));
       }
       function countEventLevels(events) {
         return events.reduce((acc, e) => {
@@ -974,15 +991,27 @@
       window.addEventListener("atlas:telemetry", (ev) => {
         const payload = ev.detail || {};
         if (opsInfraHealthy && payload.online === false) return;
-        const t = payload.telemetry || {};
-        opsText("ops-telemetry-state", payload.online ? "online" : "offline");
-        opsText("ops-telemetry-meta", t.sampled_at ? `sample ${opsTime(t.sampled_at)}` : "no sample yet");
-        if (t.gpu) {
-          opsText("ops-gpu-util", `${Math.round(t.gpu.utilisation_pct)}%`);
-          opsText("ops-gpu-temp", `${Math.round(t.gpu.temperature_c)}°C`);
-        }
-        if (t.cpu) opsText("ops-cpu", `${Math.round(t.cpu.overall_pct)}%`);
-        if (t.ram) opsText("ops-ram", `${Math.round(t.ram.pct)}%`);
+        paintOpsTelemetry(payload);
+      });
+
+      function pollOpsTelemetry() {
+        fetch(SPECULAR_LIVE_URL, { cache: "no-store" })
+          .then((res) => res.ok ? res.json() : Promise.reject(new Error(`specular ${res.status}`)))
+          .then((payload) => {
+            if (opsInfraHealthy && payload.online === false) return;
+            paintOpsTelemetry(payload);
+          })
+          .catch(() => {
+            if (!opsInfraHealthy) {
+              opsText("ops-telemetry-state", "unreachable");
+              opsText("ops-telemetry-meta", "no live sample");
+            }
+          });
+      }
+      pollOpsTelemetry();
+      window.setInterval(pollOpsTelemetry, 60000);
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) pollOpsTelemetry();
       });
 
       function updateOpsFailureFeed(events) {

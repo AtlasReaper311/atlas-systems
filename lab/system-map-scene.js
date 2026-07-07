@@ -35,7 +35,7 @@ import * as THREE from "./vendor/three/three.module.min.js";
 
 /* ── Pure helpers (exported for the smoke test) ─────────────────────── */
 
-export const BOARD_SCALE = 0.021;
+export const BOARD_SCALE = 0.026;
 
 export function worldFromLayout(x, y, W, H) {
   return { x: (x - W / 2) * BOARD_SCALE, z: (y - H / 2) * BOARD_SCALE };
@@ -156,7 +156,7 @@ function boot(vm, host) {
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x0a0a0f, 0.03);
 
-  const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 120);
+  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 120);
 
   scene.add(new THREE.AmbientLight(0x2a2a34, 1.6));
   const key = new THREE.DirectionalLight(0xf5ead6, 1.15);
@@ -409,7 +409,7 @@ function boot(vm, host) {
      first-class instead of fought for, and the vendored surface stays
      one file. The drift is additive over the user's angle, so the
      diorama breathes without stealing the camera back. */
-  const orbit = { az: -0.62, el: 0.62, r: 15.5, vAz: 0, vEl: 0, target: new THREE.Vector3(0, 0.35, 0) };
+  const orbit = { az: -0.62, el: 0.62, r: 19.5, vAz: 0, vEl: 0, target: new THREE.Vector3(0, 0.35, 0) };
   let lastInteract = 0;
   let dragging = false, downX = 0, downY = 0, lastX = 0, lastY = 0, moved = 0;
 
@@ -450,7 +450,7 @@ function boot(vm, host) {
   });
   el2.addEventListener("wheel", (ev) => {
     ev.preventDefault();
-    orbit.r = Math.max(9, Math.min(26, orbit.r + ev.deltaY * 0.012));
+    orbit.r = Math.max(12, Math.min(32, orbit.r + ev.deltaY * 0.012));
     lastInteract = performance.now();
   }, { passive: false });
 
