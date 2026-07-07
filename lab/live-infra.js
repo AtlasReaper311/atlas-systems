@@ -54,6 +54,7 @@
   }
 
   function renderInfra(data) {
+    window.dispatchEvent(new CustomEvent("atlas:infra:status", { detail: data || {} }));
     var state = $("liw-state");
     if (state) state.setAttribute("data-state", data.overall || "unknown");
     var overall = $("liw-overall");

@@ -837,6 +837,8 @@
       let flogFallbackData = null;
       let pgridDeployLatest = null;
       let pgridRegistryLive = new Set();
+      let opsInfraHealthy = false;
+      let opsLastFailureEvents = [];
 
       function opsEl(id) { return document.getElementById(id); }
       function labDisplayText(value) {
@@ -857,6 +859,11 @@
       }
       function opsEventLabel(e) {
         return labDisplayText(e.title || e.event || e.message || "event");
+      }
+      function isResolvedSentinelEvent(e) {
+        if (!opsInfraHealthy) return false;
+        const hay = ((e?.title || "") + " " + (e?.message || "") + " " + (e?.event || "")).toLowerCase();
+        return hay.includes("sentinel silent") || hay.includes("specular-core is offline");
       }
       function countEventLevels(events) {
         return events.reduce((acc, e) => {
@@ -935,17 +942,38 @@
       window.addEventListener("atlas:blackbox:incident", (ev) => {
         const inc = ev.detail?.incident || {};
         const trigger = Array.isArray(inc.triggers) ? inc.triggers[0] : null;
-        opsText("ops-incident-title", trigger?.title || inc.id || "No incident loaded");
+        const resolvedSentinel = isResolvedSentinelEvent(trigger);
+        opsText("ops-incident-title", resolvedSentinel ? "Infra health recovered" : trigger?.title || inc.id || "No incident loaded");
         const bits = [];
-        if (inc.ts) bits.push(opsTime(inc.ts));
-        if (inc.frame_count || ev.detail?.frameCount) bits.push(`${inc.frame_count || ev.detail.frameCount} frames`);
-        bits.push(inc.sealed ? "sealed" : "recording");
+        if (resolvedSentinel) {
+          bits.push("latest sentinel report is healthy");
+        } else {
+          if (inc.ts) bits.push(opsTime(inc.ts));
+          if (inc.frame_count || ev.detail?.frameCount) bits.push(`${inc.frame_count || ev.detail.frameCount} frames`);
+          bits.push(inc.sealed ? "sealed" : "recording");
+        }
         opsText("ops-incident-meta", bits.join(" · "));
         setFlogFallback(normalizeBlackboxEvents(inc));
       });
 
+      window.addEventListener("atlas:infra:status", (ev) => {
+        const data = ev.detail || {};
+        opsInfraHealthy = data.ok === true && data.overall === "ok" && data.stale !== true;
+        if (opsInfraHealthy) {
+          opsText("ops-telemetry-state", "online");
+          opsText("ops-telemetry-meta", data.generated_at ? `live ${opsTime(data.generated_at)}` : "live");
+          const incidentTitle = opsEl("ops-incident-title");
+          if (incidentTitle && /sentinel silent|specular-core is offline/i.test(incidentTitle.textContent || "")) {
+            opsText("ops-incident-title", "Infra health recovered");
+            opsText("ops-incident-meta", "latest sentinel report is healthy");
+          }
+        }
+        if (opsLastFailureEvents.length) updateOpsFailureFeed(opsLastFailureEvents);
+      });
+
       window.addEventListener("atlas:telemetry", (ev) => {
         const payload = ev.detail || {};
+        if (opsInfraHealthy && payload.online === false) return;
         const t = payload.telemetry || {};
         opsText("ops-telemetry-state", payload.online ? "online" : "offline");
         opsText("ops-telemetry-meta", t.sampled_at ? `sample ${opsTime(t.sampled_at)}` : "no sample yet");
@@ -960,8 +988,10 @@
       function updateOpsFailureFeed(events) {
         const feed = opsEl("ops-failure-feed");
         if (!feed) return;
+        opsLastFailureEvents = events || [];
         const picked = (events || [])
           .filter((e) => e.level === "failure" || e.level === "warning")
+          .filter((e) => !isResolvedSentinelEvent(e))
           .slice(0, 5);
         if (!picked.length) {
           feed.innerHTML = '<div class="ops-feed-empty">No warnings or failures in the recent buffer.</div>';
@@ -1626,7 +1656,7 @@
     <script src="/lab/system-map.topology.js?v=20260707-lab-mapfix" defer></script>
     <script src="/lab/system-map.js?v=20260707-lab-mapfix" defer></script>
     <script src="/lab/live-section.js?v=20260707-lab-mapfix" defer></script>
-    <script src="/lab/live-infra.js?v=20260706-live-infra" defer></script>
+    <script src="/lab/live-infra.js?v=20260707-infra-recovery" defer></script>
     <script src="/lab/blackbox-timeline.js?v=20260705-ops-console" defer></script>
     <script src="/js/atlas-terminal-card-v3.js" defer></script>
   </body>
