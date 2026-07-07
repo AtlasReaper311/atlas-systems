@@ -50,8 +50,6 @@
       blurb: "Personal streaming-data backup vault" },
     { id: "atlas-backend",   role: "worker", label: "atlas-backend",
       blurb: "Legacy backend Worker" },
-    { id: "simple-proxy",    role: "worker", label: "simple-proxy",
-      blurb: "Utility proxy" },
 
     /* ── Cloudflare Pages sites ── */
     { id: "atlas-systems",    role: "site", label: "atlas-systems.uk",

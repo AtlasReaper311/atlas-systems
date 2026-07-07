@@ -179,8 +179,12 @@
           @media(prefers-reduced-motion:reduce){.pgrid-tile.recent .pgrid-pulse::after{animation:none;opacity:0}}
           @media(max-width:880px){.pgrid{grid-template-columns:repeat(2,1fr)}}
           @media(max-width:420px){.pgrid{grid-template-columns:1fr}}
-          .api-surface-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:var(--border);border:1px solid var(--border)}
-          .api-worker-card{background:var(--bg);padding:1.1rem 1.15rem;display:flex;flex-direction:column;gap:0.9rem}
+          .api-surface-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:0.9rem}
+          .api-surface-stat{background:rgba(10,10,15,0.92);padding:0.85rem 1rem}
+          .api-surface-stat strong{display:block;font-family:var(--mono);font-size:18px;color:var(--text);font-variant-numeric:tabular-nums}
+          .api-surface-stat span{display:block;margin-top:0.2rem;font-size:10px;color:var(--text-faint);letter-spacing:0.08em;text-transform:uppercase}
+          .api-surface-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+          .api-worker-card{background:rgba(10,10,15,0.9);border:1px solid var(--border);padding:1rem;display:flex;flex-direction:column;gap:0.8rem;min-width:0}
           .api-worker-head{display:flex;justify-content:space-between;align-items:baseline;gap:0.75rem}
           .api-worker-name{font-family:var(--mono);font-size:13px;color:var(--text);letter-spacing:0.02em}
           .api-worker-link{font-size:10px;color:var(--text-faint);text-decoration:none;letter-spacing:0.04em;white-space:nowrap;transition:color 0.15s}
@@ -195,6 +199,7 @@
           .api-path{font-family:var(--mono);font-size:11px;color:var(--text-dim);word-break:break-all}
           .api-auth-tag{font-size:9px;letter-spacing:0.04em;text-transform:uppercase;color:var(--text-faint);border:1px solid var(--border-hi);padding:1px 5px;border-radius:2px;flex-shrink:0}
           .api-desc{font-size:11px;color:var(--text-faint);line-height:1.5;margin-top:0.35rem}
+          .api-more{font-family:var(--mono);font-size:10px;color:var(--text-faint);padding-top:0.55rem;border-top:1px solid var(--border);letter-spacing:0.04em}
           .api-surface-note{font-size:11px;color:var(--text-faint);margin-top:1.25rem;letter-spacing:0.04em}
           .api-loading{padding:2rem 1rem;font-size:12px;color:var(--text-faint);text-align:center;grid-column:1/-1}
           .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
@@ -203,6 +208,7 @@
           .mobile-nav-item:hover,.mobile-nav-item.active{color:var(--accent)}
           .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
           @media(max-width:780px){.lab-grid{grid-template-columns:1fr}.heatmap-stats{gap:1rem}}
+          @media(max-width:600px){.api-surface-summary{grid-template-columns:1fr}}
           @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}}
     </style>
   </head>
@@ -622,6 +628,11 @@
       <!-- API SURFACE -->
       <section class="section">
         <div class="section-label">Surface</div>
+        <div class="api-surface-summary" id="api-surface-summary" aria-live="polite">
+          <div class="api-surface-stat"><strong>—</strong><span>public endpoints</span></div>
+          <div class="api-surface-stat"><strong>—</strong><span>documented workers</span></div>
+          <div class="api-surface-stat"><strong>—</strong><span>pending meta</span></div>
+        </div>
         <div class="api-surface-grid" id="api-surface-grid">
           <div class="api-loading">Loading API index…</div>
         </div>
@@ -1445,6 +1456,7 @@
       }
 
       const API_INDEX_URL = "https://api.atlas-systems.uk/";
+      const API_SURFACE_EXCLUDED_WORKERS = new Set(["simple-proxy"]);
 
       function normalizeApiSurface(data) {
         const endpoints = [];
@@ -1489,9 +1501,9 @@
         }
 
         return {
-          endpoints,
+          endpoints: endpoints.filter((ep) => !API_SURFACE_EXCLUDED_WORKERS.has(ep.worker || "")),
           repos,
-          undocumented,
+          undocumented: undocumented.filter((item) => !API_SURFACE_EXCLUDED_WORKERS.has(item.worker || "")),
           counts: data.counts || null,
           warnings: Array.isArray(data.discovery_warnings) ? data.discovery_warnings : [],
         };
@@ -1500,6 +1512,7 @@
       async function initApiSurface() {
         const grid = document.getElementById("api-surface-grid");
         const note = document.getElementById("api-surface-note");
+        const summary = document.getElementById("api-surface-summary");
         if (!grid) return;
         let data;
         try {
@@ -1522,6 +1535,22 @@
           if (!byWorker[w]) { byWorker[w] = []; order.push(w); }
           byWorker[w].push(ep);
         }
+        const workerPriority = ["atlas-api-public", "atlas-api-index", "atlas-notify", "ramone-edge", "github-pulse", "site-pulse", "deploy-watch", "ramone-trigger", "specular-edge", "atlas-backend"];
+        order.sort((a, b) => {
+          const ai = workerPriority.indexOf(a);
+          const bi = workerPriority.indexOf(b);
+          if (ai !== -1 || bi !== -1) return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+          return a.localeCompare(b);
+        });
+        if (summary) {
+          const total = endpoints.length;
+          const pending = undocumented.length;
+          summary.innerHTML = `
+            <div class="api-surface-stat"><strong>${total}</strong><span>public endpoints</span></div>
+            <div class="api-surface-stat"><strong>${order.length}</strong><span>documented workers</span></div>
+            <div class="api-surface-stat"><strong>${pending}</strong><span>pending meta</span></div>
+          `;
+        }
         grid.innerHTML = "";
         for (const worker of order) {
           const card = document.createElement("div"); card.className = "api-worker-card";
@@ -1531,7 +1560,8 @@
           if (repos[worker]) { const link = document.createElement("a"); link.className = "api-worker-link"; link.href = repos[worker]; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = "repo →"; head.appendChild(link); }
           card.appendChild(head);
           const list = document.createElement("div"); list.className = "api-endpoint-list";
-          for (const ep of byWorker[worker]) {
+          const shown = byWorker[worker].slice(0, 4);
+          for (const ep of shown) {
             const row = document.createElement("div"); row.className = "api-endpoint-row";
             const top = document.createElement("div"); top.className = "api-endpoint-top";
             const method = document.createElement("span"); method.className = "api-method " + (ep.method === "POST" ? "post" : "get"); method.textContent = ep.method || "GET";
@@ -1543,6 +1573,12 @@
             row.appendChild(top);
             if (desc) { const descEl = document.createElement("div"); descEl.className = "api-desc"; descEl.textContent = desc; row.appendChild(descEl); }
             list.appendChild(row);
+          }
+          if (byWorker[worker].length > shown.length) {
+            const more = document.createElement("div");
+            more.className = "api-more";
+            more.textContent = `+ ${byWorker[worker].length - shown.length} more endpoint${byWorker[worker].length - shown.length !== 1 ? "s" : ""} in /v1/docs`;
+            list.appendChild(more);
           }
           card.appendChild(list); grid.appendChild(card);
         }
@@ -1563,7 +1599,7 @@
         if (note) {
           const total = endpoints.length;
           const wc = order.length;
-          const missing = counts?.undocumented ?? undocumented.length;
+          const missing = undocumented.length;
           const warningText = warnings.length ? ` ${warnings.length} discovery warning${warnings.length !== 1 ? "s" : ""}.` : "";
           note.textContent = `Live registry — ${total} endpoint${total !== 1 ? "s" : ""} across ${wc} documented Worker${wc !== 1 ? "s" : ""}; ${missing} Worker${missing !== 1 ? "s" : ""} still need /_meta.${warningText} Source: api.atlas-systems.uk/`;
         }

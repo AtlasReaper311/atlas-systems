@@ -82,6 +82,7 @@
     infra: "infrastructure",
     ext: "external"
   };
+  const LAB_EXCLUDED_WORKERS = new Set(["simple-proxy"]);
 
   /* Rest lengths per edge kind: bindings pull tight (they are same-account,
      zero-hop), tunnels hold the LAN visibly apart from the edge, pollers and
@@ -413,7 +414,7 @@
     const seen = new Set();
     let orphanIndex = 0;
 
-    snap.workers.forEach((w) => {
+    snap.workers.filter((w) => !LAB_EXCLUDED_WORKERS.has(w.name)).forEach((w) => {
       seen.add(w.name);
       let n = nodeById.get(w.name);
 
@@ -466,7 +467,7 @@
     if (!probesDrawn) {
       const idx = nodeById.get("atlas-api-index");
       if (idx) {
-        snap.workers.forEach((w) => {
+        snap.workers.filter((w) => !LAB_EXCLUDED_WORKERS.has(w.name)).forEach((w) => {
           const t = nodeById.get(w.name);
           if (t && t !== idx) drawEdge(gProbe, idx, t, "probe");
         });
@@ -549,7 +550,7 @@
          IS the live data, same rule the SVG renderer follows. */
       const probes = [];
       if (lastSnap && nodeById.get("atlas-api-index")) {
-        lastSnap.workers.forEach((w) => {
+        lastSnap.workers.filter((w) => !LAB_EXCLUDED_WORKERS.has(w.name)).forEach((w) => {
           if (nodeById.get(w.name) && w.name !== "atlas-api-index") {
             probes.push({ from: "atlas-api-index", to: w.name, kind: "probe" });
           }

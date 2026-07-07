@@ -355,6 +355,7 @@
      ===================================================================== */
   var statusStart = (function () {
     var started = false;
+    var excludedWorkers = { "simple-proxy": true };
 
     function esc(s) {
       return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
@@ -381,10 +382,16 @@
         }
         if (feedDot) feedDot.dataset.state = snap.stale ? "warn" : "ok";
 
-        if (line && snap.counts) {
-          line.textContent = snap.counts.workers + " workers · " +
-            snap.counts.documented + " documented · " +
-            snap.counts.undocumented + " pending /_meta";
+        var workers = (snap.workers || []).filter(function (w) {
+          return !excludedWorkers[w.name];
+        });
+
+        if (line) {
+          var documented = workers.filter(function (w) { return w.documented; }).length;
+          var pending = workers.length - documented;
+          line.textContent = workers.length + " workers · " +
+            documented + " documented · " +
+            pending + " pending /_meta";
         }
         if (sub) {
           sub.textContent = (snap.stale ? "stale snapshot · " : "") +
@@ -397,7 +404,7 @@
              retrofit queue with the registry's own diagnostic note; the
              honest view of the /_meta adoption gap, updating itself as each
              legacy Worker gets retrofitted. */
-          var sorted = snap.workers.slice().sort(function (a, b) {
+          var sorted = workers.slice().sort(function (a, b) {
             if (a.documented !== b.documented) return a.documented ? -1 : 1;
             return a.name.localeCompare(b.name);
           });
