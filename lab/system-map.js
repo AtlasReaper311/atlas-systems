@@ -925,11 +925,11 @@
       const inject = () => {
         const link = document.createElement("link");
         link.rel = "stylesheet";
-        link.href = "/lab/system-map-scene.css?v=20260707-3d-map-readable";
+        link.href = "/lab/system-map-scene.css?v=20260707-lab-cache";
         document.head.appendChild(link);
         const s = document.createElement("script");
         s.type = "module";
-        s.src = "/lab/system-map-scene.js?v=20260707-3d-map-readable";
+        s.src = "/lab/system-map-scene.js?v=20260707-lab-cache";
         s.onerror = () => window.AtlasMapVM.fallbackToSvg();
         document.head.appendChild(s);
       };
