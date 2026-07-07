@@ -52,10 +52,10 @@
   opacity: 0.86;
 }
 
-.smap3d-toggle {
+.smap3d-toggle,
+.smap3d-reset {
   position: absolute;
   top: 10px;
-  right: 10px;
   background: rgba(17, 17, 24, 0.85);
   border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
   border-radius: 3px;
@@ -67,8 +67,12 @@
   cursor: pointer;
   transition: color 0.2s ease, border-color 0.2s ease;
 }
+.smap3d-toggle { right: 10px; }
+.smap3d-reset { right: 90px; }
 .smap3d-toggle:hover,
-.smap3d-toggle:focus-visible {
+.smap3d-toggle:focus-visible,
+.smap3d-reset:hover,
+.smap3d-reset:focus-visible {
   color: var(--accent, #f5a623);
   border-color: var(--accent, #f5a623);
   outline: none;

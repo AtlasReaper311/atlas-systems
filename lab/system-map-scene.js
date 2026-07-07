@@ -33,6 +33,8 @@
 
 import * as THREE from "./vendor/three/three.module.min.js";
 
+const LAB_EXCLUDED_WORKERS = new Set(["simple-proxy"]);
+
 /* ── Pure helpers (exported for the smoke test) ─────────────────────── */
 
 export const BOARD_SCALE = 0.034;
@@ -94,15 +96,36 @@ export function allocateParticles(edgeLengths, cap) {
   return counts;
 }
 
-export const KIND_COLOR = {
-  probe: 0x8a8a93,  /* the registry's heartbeat: quiet, grey */
-  tunnel: 0x4ade80, /* the LAN lifeline earns the one green */
-  default: 0xf5a623 /* everything else moves in brand amber */
+/* Mirrors the edge custom properties in system-map.css. Colour is signal
+   type, dash is the second cue, and weight keeps the tunnel readable. */
+export const EDGE_STYLE = {
+  binding: { color: 0x8892a8, dash: null, weight: 1.2, opacity: 0.82 },
+  tunnel: { color: 0xf5a623, dash: null, weight: 2.2, opacity: 0.98 },
+  http: { color: 0x3fb8d0, dash: null, weight: 1.25, opacity: 0.84 },
+  poll: { color: 0x7f93e0, dash: [0.08, 0.18], weight: 1.05, opacity: 0.76 },
+  probe: { color: 0xc9a24a, dash: [0.12, 0.14], weight: 0.95, opacity: 0.68 },
+  dispatch: { color: 0xa274d8, dash: [0.22, 0.12], weight: 1.15, opacity: 0.82 },
+  notify: { color: 0xd074c0, dash: null, weight: 1.2, opacity: 0.82 },
+  alert: { color: 0xe0654a, dash: null, weight: 1.3, opacity: 0.86 },
+  kv: { color: 0xcfc8b8, dash: null, weight: 0.9, opacity: 0.76 },
+  default: { color: 0x8892a8, dash: null, weight: 1.1, opacity: 0.78 }
 };
 
 export function kindColor(kind) {
-  return KIND_COLOR[kind] || KIND_COLOR.default;
+  return (EDGE_STYLE[kind] || EDGE_STYLE.default).color;
 }
+
+/* Mirrors the role custom properties in system-map.css so SVG and 3D
+   encode trust boundaries with the same accents. */
+export const ROLE_ACCENT = {
+  worker: 0xf5a623,
+  site: 0xe8935c,
+  local: 0x4aa8d8,
+  ext: 0x8891a0,
+  infra: 0xf5a623
+};
+
+export const MAP_KV = 0xcfc8b8;
 
 /* ── Boot guard ─────────────────────────────────────────────────────── */
 /* Node (the smoke test) imports the helpers above; only a real page with
@@ -139,9 +162,14 @@ function boot(vm, host) {
   toggle.className = "smap3d-toggle";
   toggle.textContent = "flat view";
   toggle.setAttribute("aria-label", "Switch to the flat system map");
+  const reset = document.createElement("button");
+  reset.type = "button";
+  reset.className = "smap3d-reset";
+  reset.textContent = "reset view";
+  reset.setAttribute("aria-label", "Reset the 3D system map view");
   const hint = document.createElement("div");
   hint.className = "smap3d-hint";
-  hint.textContent = "drag to orbit \u00B7 scroll to zoom \u00B7 click a node";
+  hint.textContent = "drag orbit \u00B7 shift-drag pan \u00B7 double-click focus";
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "low-power" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
@@ -149,6 +177,7 @@ function boot(vm, host) {
   layer.appendChild(renderer.domElement);
   layer.appendChild(labelLayer);
   layer.appendChild(toggle);
+  layer.appendChild(reset);
   layer.appendChild(hint);
   host.appendChild(layer);
   setTimeout(() => hint.classList.add("smap3d-hint-gone"), 6000);
@@ -158,10 +187,13 @@ function boot(vm, host) {
 
   const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 140);
 
-  scene.add(new THREE.AmbientLight(0x2a2a34, 1.6));
+  scene.add(new THREE.AmbientLight(0x2a2a34, 1.9));
   const key = new THREE.DirectionalLight(0xf5ead6, 1.15);
   key.position.set(7, 11, 5);
   scene.add(key);
+  const fill = new THREE.DirectionalLight(0x7895aa, 0.28);
+  fill.position.set(-6, 4, -7);
+  scene.add(fill);
 
   /* Ground: near-black plane, the site's 64px grid translated into
      world units, and one soft amber pool of light under the board;
@@ -215,35 +247,48 @@ function boot(vm, host) {
     infra:  { base: GEO.infraBase,  core: GEO.infraCore,  baseY: 0.42,  coreY: 0.42, port: 0.42, label: 1.0 },
     ext:    { base: GEO.extBase,    core: GEO.extCore,    baseY: 0.55,  coreY: 0.55, port: 0.55, label: 1.15, spin: true }
   };
+  const ROLE_INTENSITY = { worker: 1.0, site: 0.92, local: 0.95, infra: 1.08, ext: 0.5 };
+  const KV_WORLD_HALF = 0.075 * 1.28;
+  const KV_BASE_Y = 1.22;
+  const KV_CROWD_RADIUS = 2.25;
+  const KV_LIFT_MARGIN = 0.34;
   const baseMat = new THREE.MeshStandardMaterial({ color: 0x181820, roughness: 0.85, metalness: 0.15, flatShading: true });
   const baseMatDark = new THREE.MeshStandardMaterial({ color: 0x0e0e13, roughness: 1, metalness: 0, flatShading: true });
   const kvMat = new THREE.MeshStandardMaterial({
-    color: 0x181820, roughness: 0.8, flatShading: true,
-    emissive: 0xf5a623, emissiveIntensity: 0.3
+    color: 0x2b2924, roughness: 0.82, flatShading: true,
+    emissive: MAP_KV, emissiveIntensity: 0.5
   });
 
   const { W, H } = vm.getState();
   const nodeViews = new Map(); /* id -> view */
   const pickMeshes = [];
   const spinners = [];
-  const bobbers = [];
 
   function makeNodeView(n) {
     const r = ROLE[n.role] || ROLE.worker;
+    const accent = ROLE_ACCENT[n.role] || ROLE_ACCENT.worker;
+    const roleIntensity = ROLE_INTENSITY[n.role] || ROLE_INTENSITY.worker;
     const p = worldFromLayout(n.x, n.y, W, H);
     const s = n.hub ? 1.35 : 1;
     const group = new THREE.Group();
     group.position.set(p.x, 0, p.z);
     group.scale.setScalar(s);
 
-    const base = new THREE.Mesh(r.base, baseMat);
+    const roleBaseMat = baseMat.clone();
+    roleBaseMat.emissive.setHex(accent);
+    roleBaseMat.emissiveIntensity = n.role === "ext" ? 0.05 : 0.1;
+    const roleDarkMat = baseMatDark.clone();
+    roleDarkMat.emissive.setHex(accent);
+    roleDarkMat.emissiveIntensity = 0.025;
+
+    const base = new THREE.Mesh(r.base, roleBaseMat);
     base.position.y = r.baseY;
     base.userData.nodeId = n.id;
     group.add(base);
 
     const coreMat = new THREE.MeshStandardMaterial({
       color: 0x101016, roughness: 0.6, flatShading: true,
-      emissive: 0xf5a623, emissiveIntensity: 0.9
+      emissive: accent, emissiveIntensity: roleIntensity
     });
     const core = new THREE.Mesh(r.core, coreMat);
     core.position.y = r.coreY;
@@ -260,7 +305,7 @@ function boot(vm, host) {
     pickMeshes.push(base);
 
     const view = {
-      node: n, group, base, core, coreMat, label,
+      node: n, group, base, core, coreMat, label, roleBaseMat, roleDarkMat, accent, roleIntensity,
       seed: (n.id.length * 7 + n.id.charCodeAt(0)) % 97,
       portY: r.port * s, labelY: r.label * s,
       world: new THREE.Vector3(p.x, 0, p.z)
@@ -272,25 +317,40 @@ function boot(vm, host) {
   function applyStatus(view) {
     const v = statusVisual(view.node.status || "static");
     view.visual = v;
-    view.coreMat.emissive.setHex(v.core);
-    view.coreMat.emissiveIntensity = v.intensity;
-    view.base.material = v.dark ? baseMatDark : baseMat;
+    view.coreMat.emissive.setHex(view.accent);
+    const statusFloor = view.node.role === "worker" ? v.intensity : Math.max(v.intensity, 0.62);
+    view.coreBaseIntensity = view.roleIntensity * (v.dark ? 0.18 : statusFloor);
+    view.coreMat.emissiveIntensity = view.coreBaseIntensity;
+    view.base.material = v.dark ? view.roleDarkMat : view.roleBaseMat;
   }
 
   function makeKvView(kv) {
     const p = worldFromLayout(kv.x, kv.y, W, H);
+    const parent = nodeViews.get(kv.parent);
+    const parentWorld = parent ? parent.world : new THREE.Vector3(p.x, 0, p.z);
+    let nearbyTop = parent ? parent.labelY : 1.1;
+    nodeViews.forEach((view) => {
+      const dx = view.world.x - parentWorld.x;
+      const dz = view.world.z - parentWorld.z;
+      if (Math.sqrt(dx * dx + dz * dz) <= KV_CROWD_RADIUS) nearbyTop = Math.max(nearbyTop, view.labelY);
+    });
+    const chipY = Math.max(KV_BASE_Y, nearbyTop + KV_LIFT_MARGIN + KV_WORLD_HALF);
     const mesh = new THREE.Mesh(GEO.kv, kvMat);
-    mesh.position.set(p.x, 0.62, p.z);
+    mesh.position.set(p.x, chipY, p.z);
+    mesh.scale.setScalar(1.28);
     scene.add(mesh);
-    bobbers.push(mesh);
     const label = document.createElement("span");
     label.className = "smap3d-label smap3d-label-kv";
     label.textContent = kv.label;
     labelLayer.appendChild(label);
-    return { mesh, label, world: mesh.position };
+    return { mesh, label, parent: kv.parent, world: mesh.position, cleared: chipY > KV_BASE_Y + 0.12 };
   }
 
-  const kvViews = vm.getState().kv.map(makeKvView);
+  let kvViews = [];
+
+  function sceneNodes() {
+    return vm.getState().nodes.filter((n) => !LAB_EXCLUDED_WORKERS.has(n.id));
+  }
 
   /* ── Edges + the particle system ─────────────────────────────────
      All connection lines share one LineSegments; all flow particles
@@ -313,8 +373,19 @@ function boot(vm, host) {
     return new THREE.Vector3(view.world.x, view.portY, view.world.z);
   }
 
+  function stableUnit(a, b, c) {
+    const x = Math.sin(a * 12.9898 + b * 78.233 + c * 37.719) * 43758.5453;
+    return x - Math.floor(x);
+  }
+
   function rebuildEdges() {
-    if (edgeLines) { scene.remove(edgeLines); edgeLines.geometry.dispose(); }
+    if (edgeLines) {
+      scene.remove(edgeLines);
+      edgeLines.traverse((line) => {
+        if (line.geometry) line.geometry.dispose();
+        if (line.material) line.material.dispose();
+      });
+    }
     if (points) { scene.remove(points); points.geometry.dispose(); }
 
     const st = vm.getState();
@@ -325,40 +396,54 @@ function boot(vm, host) {
       if (a && b) defs.push({ a, b, kind: e.kind });
     });
 
-    /* KV access lines: owned storage sits beside its Worker; a short
-       amber thread makes the ownership legible. */
+    /* KV access lines: owned storage sits beside its Worker. */
     st.kv.forEach((kv, i) => {
       const p = nodeViews.get(kv.parent);
       if (p && kvViews[i]) defs.push({ a: p, b: kvViews[i], kind: "kv", kvTarget: true });
     });
 
-    const linePos = [];
-    const lineCol = [];
-    const cA = new THREE.Color();
+    const lineGroups = new Map();
     edgeRuntime = defs.map((d) => {
       const from = portPos(d.a);
-      const to = d.kvTarget ? d.b.world.clone() : portPos(d.b);
-      linePos.push(from.x, from.y, from.z, to.x, to.y, to.z);
-      cA.setHex(d.kind === "tunnel" ? 0x1f3a2b : d.kind === "probe" ? 0x1d1d26 : 0x2b2820);
-      lineCol.push(cA.r, cA.g, cA.b, cA.r, cA.g, cA.b);
-      return { from, to, kind: d.kind, a: d.a, b: d.b, kvTarget: !!d.kvTarget, len: from.distanceTo(to) };
+      const to = d.kvTarget ? d.b.world.clone().setY(d.b.world.y - KV_WORLD_HALF) : portPos(d.b);
+      const style = EDGE_STYLE[d.kind] || EDGE_STYLE.default;
+      const bucket = lineGroups.get(d.kind) || { style, pos: [] };
+      bucket.pos.push(from.x, from.y, from.z, to.x, to.y, to.z);
+      lineGroups.set(d.kind, bucket);
+      return { from, to, kind: d.kind, style, a: d.a, b: d.b, kvTarget: !!d.kvTarget, len: from.distanceTo(to) };
     });
 
-    const lg = new THREE.BufferGeometry();
-    lg.setAttribute("position", new THREE.Float32BufferAttribute(linePos, 3));
-    lg.setAttribute("color", new THREE.Float32BufferAttribute(lineCol, 3));
-    edgeLines = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.8 }));
+    edgeLines = new THREE.Group();
+    lineGroups.forEach(({ style, pos }) => {
+      const lg = new THREE.BufferGeometry();
+      lg.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+      const opts = {
+        color: style.color,
+        transparent: true,
+        opacity: style.opacity,
+        linewidth: style.weight,
+        depthWrite: false,
+        toneMapped: false
+      };
+      const mat = style.dash
+        ? new THREE.LineDashedMaterial({ ...opts, dashSize: style.dash[0], gapSize: style.dash[1] })
+        : new THREE.LineBasicMaterial(opts);
+      const line = new THREE.LineSegments(lg, mat);
+      if (style.dash) line.computeLineDistances();
+      edgeLines.add(line);
+    });
     scene.add(edgeLines);
 
-    const counts = allocateParticles(edgeRuntime.map((e) => e.len), particleCap);
+    const flowEdges = edgeRuntime.filter((e) => !e.kvTarget);
+    const counts = allocateParticles(flowEdges.map((e) => e.len), particleCap);
     particles = [];
-    edgeRuntime.forEach((e, i) => {
+    flowEdges.forEach((e, i) => {
       for (let k = 0; k < counts[i]; k++) {
         particles.push({
           edge: e,
-          t: (k / counts[i] + Math.random() * 0.1) % 1,
-          speed: (0.10 + Math.random() * 0.07) / Math.max(0.8, e.len * 0.28),
-          color: new THREE.Color(kindColor(e.kind))
+          t: (k / counts[i] + stableUnit(i, k, 1) * 0.1) % 1,
+          speed: (0.10 + stableUnit(i, k, 2) * 0.07) / Math.max(0.8, e.len * 0.28),
+          color: new THREE.Color(e.style.color)
         });
       }
     });
@@ -384,7 +469,7 @@ function boot(vm, host) {
   function syncFromVM() {
     const st = vm.getState();
     let membershipChanged = false;
-    st.nodes.forEach((n) => {
+    st.nodes.filter((n) => !LAB_EXCLUDED_WORKERS.has(n.id)).forEach((n) => {
       let view = nodeViews.get(n.id);
       if (!view) {
         /* An orphan Worker discovered mid-session: the registry found
@@ -400,7 +485,8 @@ function boot(vm, host) {
     if (membershipChanged || !edgeLines) rebuildEdges();
   }
 
-  vm.getState().nodes.forEach((n) => nodeViews.set(n.id, makeNodeView(n)));
+  sceneNodes().forEach((n) => nodeViews.set(n.id, makeNodeView(n)));
+  kvViews = vm.getState().kv.map(makeKvView);
   rebuildEdges();
   vm.onUpdate(syncFromVM);
 
@@ -409,9 +495,76 @@ function boot(vm, host) {
      first-class instead of fought for, and the vendored surface stays
      one file. The drift is additive over the user's angle, so the
      diorama breathes without stealing the camera back. */
-  const orbit = { az: -0.62, el: 0.62, r: 27, vAz: 0, vEl: 0, target: new THREE.Vector3(0, 0.35, 0) };
+  const defaultOrbit = { az: -0.62, el: 0.62, r: 31, target: new THREE.Vector3(0, 0.35, 0) };
+  const orbit = { az: defaultOrbit.az, el: defaultOrbit.el, r: defaultOrbit.r, vAz: 0, vEl: 0, target: defaultOrbit.target.clone() };
+  const bounds = { minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity };
+  nodeViews.forEach((view) => {
+    bounds.minX = Math.min(bounds.minX, view.world.x);
+    bounds.maxX = Math.max(bounds.maxX, view.world.x);
+    bounds.minZ = Math.min(bounds.minZ, view.world.z);
+    bounds.maxZ = Math.max(bounds.maxZ, view.world.z);
+  });
+  if (!Number.isFinite(bounds.minX)) {
+    bounds.minX = bounds.minZ = -8;
+    bounds.maxX = bounds.maxZ = 8;
+  }
+  const panMargin = 4;
   let lastInteract = 0;
-  let dragging = false, downX = 0, downY = 0, lastX = 0, lastY = 0, moved = 0;
+  let dragging = false, downX = 0, downY = 0, lastX = 0, lastY = 0, moved = 0, dragMode = "orbit";
+  let targetTween = null;
+  const activePointers = new Map();
+  let touchGesture = null;
+
+  function clampTarget() {
+    orbit.target.x = Math.max(bounds.minX - panMargin, Math.min(bounds.maxX + panMargin, orbit.target.x));
+    orbit.target.z = Math.max(bounds.minZ - panMargin, Math.min(bounds.maxZ + panMargin, orbit.target.z));
+    orbit.target.y = 0.35;
+  }
+
+  function moveTargetTo(world, instant = false) {
+    const to = new THREE.Vector3(world.x, 0.35, world.z);
+    to.x = Math.max(bounds.minX - panMargin, Math.min(bounds.maxX + panMargin, to.x));
+    to.z = Math.max(bounds.minZ - panMargin, Math.min(bounds.maxZ + panMargin, to.z));
+    const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (instant || reduceMotion) {
+      orbit.target.copy(to);
+      targetTween = null;
+      return;
+    }
+    targetTween = { from: orbit.target.clone(), to, t: 0, dur: 0.42 };
+  }
+
+  function updateTargetTween(dt) {
+    if (!targetTween) return;
+    targetTween.t = Math.min(1, targetTween.t + dt / targetTween.dur);
+    const p = targetTween.t * targetTween.t * (3 - 2 * targetTween.t);
+    orbit.target.lerpVectors(targetTween.from, targetTween.to, p);
+    if (targetTween.t >= 1) targetTween = null;
+  }
+
+  function panCamera(dx, dy) {
+    const forward = new THREE.Vector3();
+    const right = new THREE.Vector3();
+    camera.getWorldDirection(forward);
+    right.crossVectors(forward, camera.up).normalize();
+    forward.y = 0;
+    if (forward.lengthSq() < 0.001) forward.set(0, 0, -1);
+    forward.normalize();
+    const scale = orbit.r * 0.0019;
+    orbit.target.addScaledVector(right, -dx * scale);
+    orbit.target.addScaledVector(forward, dy * scale);
+    clampTarget();
+  }
+
+  function resetCamera() {
+    orbit.az = defaultOrbit.az;
+    orbit.el = defaultOrbit.el;
+    orbit.r = defaultOrbit.r;
+    orbit.vAz = 0;
+    orbit.vEl = 0;
+    moveTargetTo(defaultOrbit.target, false);
+    lastInteract = performance.now();
+  }
 
   function applyCamera(timeSec) {
     const idle = performance.now() - lastInteract > 6000;
@@ -429,30 +582,68 @@ function boot(vm, host) {
 
   const el2 = renderer.domElement;
   el2.addEventListener("pointerdown", (ev) => {
+    activePointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
     dragging = true; moved = 0;
+    dragMode = (ev.button === 2 || ev.shiftKey) ? "pan" : "orbit";
     downX = lastX = ev.clientX; downY = lastY = ev.clientY;
     lastInteract = performance.now();
     el2.setPointerCapture && el2.setPointerCapture(ev.pointerId);
   });
   el2.addEventListener("pointermove", (ev) => {
     pointer.x = ev.clientX; pointer.y = ev.clientY; pointer.fresh = true;
+    if (activePointers.has(ev.pointerId)) activePointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+    if (activePointers.size >= 2) {
+      const pts = Array.from(activePointers.values()).slice(0, 2);
+      const cx = (pts[0].x + pts[1].x) * 0.5;
+      const cy = (pts[0].y + pts[1].y) * 0.5;
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      if (touchGesture) {
+        panCamera(cx - touchGesture.cx, cy - touchGesture.cy);
+        orbit.r = Math.max(18, Math.min(52, orbit.r - (dist - touchGesture.dist) * 0.035));
+        moved += Math.abs(cx - touchGesture.cx) + Math.abs(cy - touchGesture.cy) + Math.abs(dist - touchGesture.dist);
+      }
+      touchGesture = { cx, cy, dist };
+      lastInteract = performance.now();
+      return;
+    }
     if (!dragging) return;
     const dx = ev.clientX - lastX, dy = ev.clientY - lastY;
     lastX = ev.clientX; lastY = ev.clientY;
     moved += Math.abs(dx) + Math.abs(dy);
-    orbit.vAz = -dx * 0.005; orbit.vEl = dy * 0.004;
-    orbit.az += orbit.vAz; orbit.el = Math.max(0.3, Math.min(1.05, orbit.el + orbit.vEl));
+    if (dragMode === "pan") {
+      panCamera(dx, dy);
+    } else {
+      orbit.vAz = -dx * 0.005; orbit.vEl = dy * 0.004;
+      orbit.az += orbit.vAz; orbit.el = Math.max(0.3, Math.min(1.05, orbit.el + orbit.vEl));
+    }
     lastInteract = performance.now();
   });
   el2.addEventListener("pointerup", (ev) => {
+    activePointers.delete(ev.pointerId);
+    if (activePointers.size < 2) touchGesture = null;
     dragging = false;
-    if (moved < 6) pick(ev.clientX, ev.clientY);
+    if (moved < 6 && dragMode === "orbit") pick(ev.clientX, ev.clientY);
   });
+  el2.addEventListener("pointercancel", (ev) => {
+    activePointers.delete(ev.pointerId);
+    if (activePointers.size < 2) touchGesture = null;
+    dragging = false;
+  });
+  el2.addEventListener("contextmenu", (ev) => ev.preventDefault());
   el2.addEventListener("wheel", (ev) => {
     ev.preventDefault();
-    orbit.r = Math.max(16, Math.min(44, orbit.r + ev.deltaY * 0.012));
+    orbit.r = Math.max(18, Math.min(52, orbit.r + ev.deltaY * 0.012));
     lastInteract = performance.now();
   }, { passive: false });
+  el2.addEventListener("dblclick", (ev) => {
+    const id = castAt(ev.clientX, ev.clientY);
+    const view = id ? nodeViews.get(id) : null;
+    if (view) {
+      moveTargetTo(view.world);
+      lastInteract = performance.now();
+    }
+  });
+  reset.addEventListener("click", resetCamera);
 
   /* ── Picking: same panel, new pointer ────────────────────────────── */
   const ray = new THREE.Raycaster();
@@ -506,20 +697,20 @@ function boot(vm, host) {
       return;
     }
 
+    updateTargetTween(dt);
     applyCamera(t);
 
-    /* Node breathing, flicker, spin, bob */
+    /* Node breathing, flicker, spin */
     nodeViews.forEach((view) => {
       const v = view.visual;
       if (!v) return;
       if (v.stutter) {
-        view.coreMat.emissiveIntensity = v.intensity * (0.5 + 0.5 * stutterGate(t, view.seed));
+        view.coreMat.emissiveIntensity = view.coreBaseIntensity * (0.5 + 0.5 * stutterGate(t, view.seed));
       } else if (v.flow > 0 && !v.dark) {
-        view.coreMat.emissiveIntensity = v.intensity * (0.92 + 0.08 * Math.sin(t * 1.3 + view.seed));
+        view.coreMat.emissiveIntensity = view.coreBaseIntensity * (0.92 + 0.08 * Math.sin(t * 1.3 + view.seed));
       }
     });
     for (let i = 0; i < spinners.length; i++) spinners[i].rotation.y = t * 0.4;
-    for (let i = 0; i < bobbers.length; i++) bobbers[i].position.y = 0.62 + Math.sin(t * 1.1 + i) * 0.04;
 
     /* The most important detail on the board: flow. One buffer write,
        one draw call. Down edges fade their pulses to black, which under
@@ -565,9 +756,14 @@ function boot(vm, host) {
       el: view.label,
       world: view.world,
       yOff: view.labelY,
-      priority: view.node.hub ? 4 : view.node.role === "worker" ? 3 : view.node.role === "local" ? 2 : 1,
+      priority: view.node.hub ? 5 : view.node.role === "worker" ? 4 : view.node.role === "local" ? 3 : view.node.role === "site" ? 2 : 2,
     }));
-    kvViews.forEach((kv) => labels.push({ el: kv.label, world: kv.world, yOff: 0.22, priority: 0 }));
+    kvViews.forEach((kv) => labels.push({
+      el: kv.label,
+      world: kv.world,
+      yOff: KV_WORLD_HALF + 0.24,
+      priority: kv.cleared ? 5.2 : 1.1
+    }));
     labels
       .sort((a, b) => b.priority - a.priority)
       .forEach((item) => projectLabel(item, rect, labelSlots));
@@ -588,24 +784,56 @@ function boot(vm, host) {
     const { el: labelEl, world, yOff, priority } = item;
     tmpV.set(world.x, yOff + (world.y || 0), world.z).project(camera);
     if (tmpV.z > 1) { labelEl.style.opacity = "0"; return; }
-    const x = (tmpV.x * 0.5 + 0.5) * rect.w;
-    const y = (-tmpV.y * 0.5 + 0.5) * rect.h;
-    if (x < -80 || x > rect.w + 80 || y < -40 || y > rect.h + 40) {
+    let x = (tmpV.x * 0.5 + 0.5) * rect.w;
+    let y = (-tmpV.y * 0.5 + 0.5) * rect.h;
+    if (x < -180 || x > rect.w + 180 || y < -120 || y > rect.h + 120) {
       labelEl.style.opacity = "0";
       return;
     }
+    const margin = 12;
     const w = labelEl.offsetWidth || 92;
     const h = labelEl.offsetHeight || 18;
-    const box = { l: x - w / 2, r: x + w / 2, t: y - h - 4, b: y + 4 };
-    if (priority < 4 && labelSlots.some((slot) => overlaps(box, slot))) {
+    let left = x - w / 2;
+    if (left < margin) left = margin;
+    if (left + w > rect.w - margin) left = Math.max(margin, rect.w - margin - w);
+    const baseTop = y - h - 4;
+    let top = baseTop;
+    if (top < margin) top = margin;
+    if (top + h > rect.h - margin) top = Math.max(margin, rect.h - margin - h);
+    const controlBox = { l: rect.w - 118, r: rect.w - 8, t: 8, b: 48 };
+    if (overlaps({ l: left, r: left + w, t: top, b: top + h }, controlBox, 4)) {
+      top = Math.min(rect.h - margin - h, controlBox.b + 8);
+    }
+    const step = h + 7;
+    const tops = [top, top + step, top - step, top + step * 2, top - step * 2]
+      .map((next) => Math.max(margin, Math.min(rect.h - margin - h, next)));
+    const lefts = [left, left + 34, left - 34, left + 68, left - 68]
+      .map((next) => Math.max(margin, Math.min(rect.w - margin - w, next)));
+    let box = null;
+    let chosenTop = top;
+    let chosenLeft = left;
+    for (let i = 0; i < tops.length; i++) {
+      for (let j = 0; j < lefts.length; j++) {
+        const nextBox = { l: lefts[j], r: lefts[j] + w, t: tops[i], b: tops[i] + h };
+        if (!labelSlots.some((slot) => overlaps(nextBox, slot))) {
+          box = nextBox;
+          chosenTop = tops[i];
+          chosenLeft = lefts[j];
+          break;
+        }
+      }
+      if (box) break;
+    }
+    if (!box) box = { l: left, r: left + w, t: top, b: top + h };
+    if (priority < 5 && labelSlots.some((slot) => overlaps(box, slot))) {
       labelEl.style.opacity = "0";
       return;
     }
-    labelSlots.push(box);
+    if (!labelSlots.some((slot) => overlaps(box, slot))) labelSlots.push(box);
     const d = camera.position.distanceTo(tmpV.set(world.x, 0, world.z));
     labelEl.style.zIndex = String(10 + priority);
-    labelEl.style.opacity = String(Math.max(0.45, Math.min(1, 1.45 - d / 42)));
-    labelEl.style.transform = `translate(-50%, -100%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+    labelEl.style.opacity = String(Math.max(0.62, Math.min(1, 1.55 - d / 48)));
+    labelEl.style.transform = `translate(${chosenLeft.toFixed(1)}px, ${chosenTop.toFixed(1)}px)`;
   }
 
   /* ── Sizing, pausing, and every way out ──────────────────────────── */

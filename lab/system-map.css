@@ -9,7 +9,24 @@
    claim green, because the map's credibility is the whole feature.
    ===================================================================== */
 
-.smap-section { padding: 5rem 0; border-bottom: 1px solid var(--border, rgba(255,255,255,0.08)); }
+.smap-section {
+  --map-role-worker: #f5a623;
+  --map-role-site: #e8935c;
+  --map-role-local: #4aa8d8;
+  --map-role-ext: #8891a0;
+  --map-role-infra: #f5a623;
+  --map-kv: #cfc8b8;
+  --map-edge-binding: #8892a8;
+  --map-edge-tunnel: #f5a623;
+  --map-edge-http: #3fb8d0;
+  --map-edge-poll: #7f93e0;
+  --map-edge-probe: #c9a24a;
+  --map-edge-dispatch: #a274d8;
+  --map-edge-notify: #d074c0;
+  --map-edge-alert: #e0654a;
+  padding: 5rem 0;
+  border-bottom: 1px solid var(--border, rgba(255,255,255,0.08));
+}
 
 .smap-head {
   display: flex; justify-content: space-between; align-items: baseline;
@@ -34,7 +51,7 @@
     var(--bg-1, #111118);
   border: 1px solid var(--border, rgba(255,255,255,0.08));
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
 }
 /* Same 64px grid as the Ramone chassis so the two live surfaces on this
    page read as panels of one machine, not neighbours from different sites. */
@@ -48,18 +65,46 @@
   pointer-events: none;
 }
 
-.smap-svg { display: block; width: 100%; height: auto; position: relative; }
+.smap-svg { display: block; width: 100%; height: auto; position: relative; cursor: grab; }
+.smap-svg.smap-panning { cursor: grabbing; }
+.smap-3d .smap-svg { cursor: default; }
 
 /* ── Edges ─────────────────────────────────────────────────────────── */
-.smap-edge { stroke-width: 1; }
-.smap-edge-binding  { stroke: rgba(245,166,35,0.45); }
-.smap-edge-tunnel   { stroke: rgba(245,166,35,0.55); stroke-dasharray: 5 4; }
-.smap-edge-http     { stroke: rgba(232,232,224,0.28); }
-.smap-edge-alert    { stroke: rgba(245,166,35,0.25); stroke-dasharray: 2 4; }
-.smap-edge-dispatch { stroke: rgba(232,232,224,0.30); stroke-dasharray: 7 4; }
-.smap-edge-notify   { stroke: rgba(232,232,224,0.20); }
-.smap-edge-poll     { stroke: rgba(232,232,224,0.13); }
-.smap-edge-probe    { stroke: rgba(245,166,35,0.10); stroke-dasharray: 1 5; }
+.smap-edge {
+  stroke-width: 1.45;
+  stroke-linecap: round;
+  stroke-opacity: 0.68;
+  vector-effect: non-scaling-stroke;
+}
+.smap-edge-binding  { stroke: var(--map-edge-binding); stroke-width: 1.75; }
+.smap-edge-tunnel   { stroke: var(--map-edge-tunnel); stroke-width: 3.1; stroke-opacity: 0.96; }
+.smap-edge-http     { stroke: var(--map-edge-http); stroke-width: 1.75; }
+.smap-edge-alert    { stroke: var(--map-edge-alert); stroke-width: 1.9; }
+.smap-edge-dispatch { stroke: var(--map-edge-dispatch); stroke-width: 1.75; stroke-dasharray: 9 5; }
+.smap-edge-notify   { stroke: var(--map-edge-notify); stroke-width: 1.8; }
+.smap-edge-poll     { stroke: var(--map-edge-poll); stroke-width: 1.55; stroke-dasharray: 2 6; }
+.smap-edge-probe    { stroke: var(--map-edge-probe); stroke-width: 1.25; stroke-opacity: 0.56; stroke-dasharray: 4 5; }
+
+.smap-edge-direction {
+  stroke-width: 2.1;
+  stroke-linecap: round;
+  stroke-dasharray: 1 12;
+  stroke-opacity: 0.38;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+  animation: smap-edge-flow 14s linear infinite;
+}
+.smap-edge-direction-binding { stroke: var(--map-edge-binding); }
+.smap-edge-direction-tunnel { stroke: var(--map-edge-tunnel); stroke-width: 3.7; stroke-opacity: 0.52; animation-duration: 9s; }
+.smap-edge-direction-http { stroke: var(--map-edge-http); }
+.smap-edge-direction-alert { stroke: var(--map-edge-alert); }
+.smap-edge-direction-dispatch { stroke: var(--map-edge-dispatch); }
+.smap-edge-direction-notify { stroke: var(--map-edge-notify); }
+.smap-edge-direction-poll { stroke: var(--map-edge-poll); animation-duration: 18s; }
+.smap-edge-direction-probe { stroke: var(--map-edge-probe); stroke-width: 1.6; stroke-opacity: 0.3; animation-duration: 18s; }
+@keyframes smap-edge-flow {
+  to { stroke-dashoffset: -42; }
+}
 
 /* ── Nodes: role shapes ────────────────────────────────────────────── */
 .smap-node { cursor: pointer; outline: none; }
@@ -85,10 +130,11 @@
 }
 .smap-node:hover .smap-label { fill: var(--text, #e8e8e0); }
 
-.smap-role-site .smap-shape  { stroke: rgba(232,232,224,0.35); }
-.smap-role-local .smap-shape { stroke: rgba(245,166,35,0.40); }
-.smap-role-infra .smap-shape { stroke: rgba(245,166,35,0.55); fill: rgba(245,166,35,0.08); }
-.smap-role-ext .smap-shape   { stroke: rgba(232,232,224,0.22); stroke-dasharray: 3 3; }
+.smap-role-worker .smap-shape { stroke: var(--map-role-worker); }
+.smap-role-site .smap-shape   { stroke: var(--map-role-site); fill: rgba(232,147,92,0.07); }
+.smap-role-local .smap-shape  { stroke: var(--map-role-local); fill: rgba(74,168,216,0.07); }
+.smap-role-infra .smap-shape  { stroke: var(--map-role-infra); fill: rgba(245,166,35,0.08); }
+.smap-role-ext .smap-shape    { stroke: var(--map-role-ext); stroke-dasharray: 3 3; fill: rgba(136,145,160,0.06); }
 
 /* ── Worker status vocabulary ──────────────────────────────────────── */
 .smap-halo { fill: none; stroke: transparent; stroke-width: 2; }
@@ -119,17 +165,49 @@
 
 /* ── KV satellites ─────────────────────────────────────────────────── */
 .smap-kv-box {
-  fill: var(--bg, #0a0a0f);
-  stroke: rgba(245,166,35,0.4);
-  stroke-width: 1;
+  fill: rgba(207,200,184,0.13);
+  stroke: var(--map-kv);
+  stroke-width: 1.25;
+  filter: drop-shadow(0 0 5px rgba(207,200,184,0.28));
 }
-.smap-kv-tether { stroke: rgba(245,166,35,0.18); stroke-width: 1; stroke-dasharray: 1 3; }
+.smap-kv-tether { stroke: var(--map-kv); stroke-width: 1.45; stroke-opacity: 0.62; }
 .smap-kv-label {
   fill: var(--text-faint, #555560);
   font-family: var(--mono, 'IBM Plex Mono', monospace);
-  font-size: 8px; letter-spacing: 0.06em;
+  font-size: 9px; letter-spacing: 0.06em;
+  paint-order: stroke;
+  stroke: var(--bg-1, #111118);
+  stroke-width: 3px;
   pointer-events: none;
 }
+
+.smap-flat-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 14;
+  display: flex;
+  gap: 4px;
+}
+.smap-flat-controls button {
+  background: rgba(17, 17, 24, 0.86);
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+  border-radius: 3px;
+  color: var(--text-dim, #aaa9a0);
+  font-family: var(--mono, 'IBM Plex Mono', monospace);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  min-width: 28px;
+  padding: 4px 7px;
+  cursor: pointer;
+}
+.smap-flat-controls button:hover,
+.smap-flat-controls button:focus-visible {
+  color: var(--accent, #f5a623);
+  border-color: var(--accent, #f5a623);
+  outline: none;
+}
+.smap-3d .smap-flat-controls { display: none; }
 
 /* ── Detail panel ──────────────────────────────────────────────────── */
 .smap-panel {
@@ -186,6 +264,21 @@
 .smap-leg-down  { background: rgba(226,75,74,0.7); }
 .smap-leg-shape { width: 9px; height: 9px; display: inline-block; border: 1px solid var(--text-dim, #aaa9a0); }
 .smap-leg-diamond { transform: rotate(45deg); border-color: rgba(245,166,35,0.6); }
+.smap-leg-line {
+  width: 24px;
+  height: 0;
+  display: inline-block;
+  border-top: 2px solid currentColor;
+}
+.smap-leg-edge-binding { color: var(--map-edge-binding); }
+.smap-leg-edge-tunnel { color: var(--map-edge-tunnel); border-top-width: 3px; }
+.smap-leg-edge-http { color: var(--map-edge-http); }
+.smap-leg-edge-poll { color: var(--map-edge-poll); border-top-style: dotted; }
+.smap-leg-edge-probe { color: var(--map-edge-probe); border-top-style: dashed; }
+.smap-leg-edge-dispatch { color: var(--map-edge-dispatch); border-top-style: dashed; }
+.smap-leg-edge-notify { color: var(--map-edge-notify); }
+.smap-leg-edge-alert { color: var(--map-edge-alert); }
+.smap-leg-edge-kv { color: var(--map-kv); border-top-width: 1px; }
 
 .smap-note {
   font-size: 11px; color: var(--text-faint, #555560);

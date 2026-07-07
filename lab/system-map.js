@@ -34,9 +34,14 @@
 
   /* Layout space is a fixed coordinate system; the SVG viewBox scales it to
      whatever width the container has, so responsiveness costs nothing. */
-  const W = 1000;
-  const H = 640;
-  const PAD = 70;
+  const W = 1080;
+  const H = 760;
+  const PAD = 86;
+  const KV_BOX_HALF = 7;
+  const KV_BOX_SIZE = KV_BOX_HALF * 2;
+  const KV_STALK_LENGTH = 50;
+  const KV_LABEL_GAP = 15;
+  const KV_FAN_STEP = Math.PI / 10;
 
   /* ── Seeded randomness ─────────────────────────────────────────────────
      The seed is hashed from the sorted node id list, so the layout is
@@ -68,11 +73,11 @@
      The regions encode the real trust boundary (public edge vs LAN) without
      hard-coding a single node position. */
   const ANCHORS = {
-    worker: { x: W * 0.44, y: H * 0.50, spread: 200 },
-    site:   { x: W * 0.15, y: H * 0.22, spread: 90 },
-    local:  { x: W * 0.84, y: H * 0.52, spread: 120 },
-    infra:  { x: W * 0.66, y: H * 0.50, spread: 30 },
-    ext:    { x: W * 0.16, y: H * 0.78, spread: 80 }
+    worker: { x: W * 0.43, y: H * 0.51, spread: 280 },
+    site:   { x: W * 0.14, y: H * 0.20, spread: 170 },
+    local:  { x: W * 0.77, y: H * 0.51, spread: 95 },
+    infra:  { x: W * 0.66, y: H * 0.46, spread: 48 },
+    ext:    { x: W * 0.13, y: H * 0.82, spread: 110 }
   };
 
   const ROLE_LABELS = {
@@ -87,13 +92,23 @@
   /* Rest lengths per edge kind: bindings pull tight (they are same-account,
      zero-hop), tunnels hold the LAN visibly apart from the edge, pollers and
      notifications sit long so read paths do not crowd the core. */
-  const REST = { binding: 120, tunnel: 130, http: 100, alert: 190, dispatch: 170, notify: 170, poll: 210, probe: 230 };
+  const REST = { binding: 145, tunnel: 180, http: 140, alert: 240, dispatch: 210, notify: 230, poll: 275, probe: 290 };
 
   /* ── Build the working node set ──────────────────────────────────────── */
   const topo = window.ATLAS_TOPOLOGY;
-  const nodes = topo.nodes.map((n) => ({ ...n, x: 0, y: 0, vx: 0, vy: 0, status: n.role === "worker" ? "unknown" : "static" }));
+  const declaredNodes = topo.nodes.filter((n) => !LAB_EXCLUDED_WORKERS.has(n.id));
+  const declaredNodeIds = new Set(declaredNodes.map((n) => n.id));
+  const nodes = declaredNodes.map((n) => ({ ...n, x: 0, y: 0, vx: 0, vy: 0, status: n.role === "worker" ? "unknown" : "static" }));
   const nodeById = new Map(nodes.map((n) => [n.id, n]));
-  const edges = topo.edges.slice();
+  const edges = topo.edges.filter((e) =>
+    declaredNodeIds.has(e.from) &&
+    declaredNodeIds.has(e.to) &&
+    !LAB_EXCLUDED_WORKERS.has(e.from) &&
+    !LAB_EXCLUDED_WORKERS.has(e.to)
+  );
+  const topologyKv = topo.kv.filter((kv) =>
+    declaredNodeIds.has(kv.parent) && !LAB_EXCLUDED_WORKERS.has(kv.parent)
+  );
 
   const seedRand = mulberry32(hashString(nodes.map((n) => n.id).sort().join("|")));
 
@@ -115,10 +130,39 @@
      O(n²) per tick is nothing at ~25 nodes; 360 ticks completes in well
      under a frame of budget, which is why it can run synchronously before
      paint instead of animating a settle the visitor has to sit through. */
+  function relaxSpacing(list, iterations) {
+    const MIN_SEPARATION = 74;
+    for (let tick = 0; tick < iterations; tick++) {
+      for (let i = 0; i < list.length; i++) {
+        const a = list[i];
+        for (let j = i + 1; j < list.length; j++) {
+          const b = list[j];
+          let dx = b.x - a.x;
+          let dy = b.y - a.y;
+          let d = Math.sqrt(dx * dx + dy * dy);
+          if (d < 0.01) {
+            const t = seedRand() * Math.PI * 2;
+            dx = Math.cos(t);
+            dy = Math.sin(t);
+            d = 1;
+          }
+          if (d >= MIN_SEPARATION) continue;
+          const push = (MIN_SEPARATION - d) * 0.5;
+          const nx = dx / d;
+          const ny = dy / d;
+          a.x -= nx * push;
+          a.y -= ny * push;
+          b.x += nx * push;
+          b.y += ny * push;
+        }
+      }
+    }
+  }
+
   function simulate(list, links, ticks) {
-    const REPULSE = 26000;
+    const REPULSE = 42000;
     const SPRING = 0.012;
-    const ANCHOR_PULL = 0.012;
+    const ANCHOR_PULL = 0.009;
     const DAMP = 0.82;
 
     for (let tick = 0; tick < ticks; tick++) {
@@ -162,6 +206,8 @@
       }
     }
 
+    relaxSpacing(list, 64);
+
     /* Fit the settled layout into the padded viewBox. Scaling the result is
        cheaper and more stable than tuning forces to land in-bounds. */
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -169,25 +215,209 @@
       if (n.x < minX) minX = n.x; if (n.x > maxX) maxX = n.x;
       if (n.y < minY) minY = n.y; if (n.y > maxY) maxY = n.y;
     });
-    const sx = (W - PAD * 2) / Math.max(1, maxX - minX);
-    const sy = (H - PAD * 2) / Math.max(1, maxY - minY);
+    const longestLabel = list.reduce((m, n) => Math.max(m, n.label.length), 0);
+    const xPad = Math.max(PAD, Math.min(172, longestLabel * 7.4 + 28));
+    const topPad = PAD + 54;
+    const bottomPad = PAD + 18;
+    const sx = (W - xPad * 2) / Math.max(1, maxX - minX);
+    const sy = (H - topPad - bottomPad) / Math.max(1, maxY - minY);
     const s = Math.min(sx, sy);
     list.forEach((n) => {
-      n.x = PAD + (n.x - minX) * s + (W - PAD * 2 - (maxX - minX) * s) / 2;
-      n.y = PAD + (n.y - minY) * s + (H - PAD * 2 - (maxY - minY) * s) / 2;
+      n.x = xPad + (n.x - minX) * s + (W - xPad * 2 - (maxX - minX) * s) / 2;
+      n.y = topPad + (n.y - minY) * s + (H - topPad - bottomPad - (maxY - minY) * s) / 2;
     });
   }
 
   simulate(nodes, edges, 360);
 
-  /* KV satellites pin beside their parent after the sim; they are owned
-     storage, not network peers, and simulating them as peers would let
-     repulsion push a namespace away from the Worker that owns it. */
-  const kvNodes = topo.kv.map((kv, i) => {
-    const p = nodeById.get(kv.parent);
-    const side = p && p.x > W / 2 ? -1 : 1;
-    return p ? { ...kv, x: p.x + side * 34, y: p.y - 26 - (i % 2) * 6 } : null;
-  }).filter(Boolean);
+  function nodeRadius(n) {
+    if (n.hub) return 21;
+    if (n.role === "site") return 18;
+    if (n.role === "local") return 18;
+    if (n.role === "infra") return 20;
+    return 16;
+  }
+
+  const layoutCentroid = nodes.reduce((sum, n) => {
+    sum.x += n.x;
+    sum.y += n.y;
+    return sum;
+  }, { x: 0, y: 0 });
+  layoutCentroid.x /= Math.max(1, nodes.length);
+  layoutCentroid.y /= Math.max(1, nodes.length);
+
+  function rotateVector(v, radians) {
+    const c = Math.cos(radians);
+    const s = Math.sin(radians);
+    return { x: v.x * c - v.y * s, y: v.x * s + v.y * c };
+  }
+
+  function normalise(v) {
+    const d = Math.sqrt(v.x * v.x + v.y * v.y) || 1;
+    return { x: v.x / d, y: v.y / d };
+  }
+
+  const kvByParent = new Map();
+  topologyKv.forEach((kv) => {
+    const list = kvByParent.get(kv.parent) || [];
+    list.push(kv);
+    kvByParent.set(kv.parent, list);
+  });
+
+  /* KV satellites sit on stalks pointing away from the local cluster.
+     They stay deterministic because direction derives from frozen node
+     positions, parent order, and fixed fan angles. */
+  const kvNodes = [];
+  kvByParent.forEach((list, parentId) => {
+    const p = nodeById.get(parentId);
+    if (!p) return;
+    const outward = normalise({
+      x: (p.x - layoutCentroid.x) * 0.75,
+      y: (p.y - layoutCentroid.y) * 0.75 - 90
+    });
+    list.forEach((kv, i) => {
+      const mid = (list.length - 1) / 2;
+      const dir = normalise(rotateVector(outward, (i - mid) * KV_FAN_STEP));
+      const base = nodeRadius(p) + KV_STALK_LENGTH + KV_BOX_HALF;
+      kvNodes.push({
+        ...kv,
+        kind: "kv",
+        dir,
+        x: p.x + dir.x * base,
+        y: p.y + dir.y * base,
+        parentX: p.x,
+        parentY: p.y
+      });
+    });
+  });
+
+  function labelWidth(text, scale) {
+    return Math.max(30, text.length * scale + 8);
+  }
+
+  function boxForLabel(x, y, w, h, anchor) {
+    let l = x - w / 2;
+    if (anchor === "start") l = x;
+    if (anchor === "end") l = x - w;
+    return { l, r: l + w, t: y - h, b: y + 4 };
+  }
+
+  function boxOverlaps(a, b, pad) {
+    return !(
+      a.r + pad < b.l ||
+      a.l - pad > b.r ||
+      a.b + pad < b.t ||
+      a.t - pad > b.b
+    );
+  }
+
+  function overlapArea(a, b, pad) {
+    const x = Math.max(0, Math.min(a.r + pad, b.r) - Math.max(a.l - pad, b.l));
+    const y = Math.max(0, Math.min(a.b + pad, b.b) - Math.max(a.t - pad, b.t));
+    return x * y;
+  }
+
+  function clampLabelCandidate(c) {
+    const margin = 18;
+    let box = boxForLabel(c.x, c.y, c.w, c.h, c.anchor);
+    if (box.l < margin) c.x += margin - box.l;
+    box = boxForLabel(c.x, c.y, c.w, c.h, c.anchor);
+    if (box.r > W - margin) c.x -= box.r - (W - margin);
+    box = boxForLabel(c.x, c.y, c.w, c.h, c.anchor);
+    if (box.t < margin) c.y += margin - box.t;
+    box = boxForLabel(c.x, c.y, c.w, c.h, c.anchor);
+    if (box.b > H - margin) c.y -= box.b - (H - margin);
+    c.box = boxForLabel(c.x, c.y, c.w, c.h, c.anchor);
+    return c;
+  }
+
+  function shapeBox(item) {
+    const r = item.kind === "kv" ? KV_BOX_HALF + 3 : nodeRadius(item);
+    return { l: item.x - r, r: item.x + r, t: item.y - r, b: item.y + r };
+  }
+
+  function labelCandidates(item) {
+    const r = item.kind === "kv" ? KV_BOX_HALF + 3 : nodeRadius(item);
+    const h = item.kind === "kv" ? 14 : 17;
+    const w = labelWidth(item.label, item.kind === "kv" ? 6.4 : 8.4);
+    if (item.kind === "kv" && item.dir) {
+      const anchor = item.dir.x > 0.2 ? "start" : item.dir.x < -0.2 ? "end" : "middle";
+      const labelOffset = KV_BOX_HALF + KV_LABEL_GAP;
+      return [
+        { x: item.x + item.dir.x * labelOffset, y: item.y + item.dir.y * labelOffset + 5, anchor, w, h },
+        { x: item.x, y: item.y - KV_BOX_HALF - KV_LABEL_GAP, anchor: "middle", w, h },
+        { x: item.x + KV_BOX_HALF + KV_LABEL_GAP, y: item.y + 5, anchor: "start", w, h },
+        { x: item.x - KV_BOX_HALF - KV_LABEL_GAP, y: item.y + 5, anchor: "end", w, h }
+      ].map(clampLabelCandidate);
+    }
+    const candidates = [
+      { x: item.x, y: item.y + r + 28, anchor: "middle", w, h },
+      { x: item.x, y: item.y - r - 14, anchor: "middle", w, h },
+      { x: item.x + r + 24, y: item.y + 6, anchor: "start", w, h },
+      { x: item.x - r - 24, y: item.y + 6, anchor: "end", w, h },
+      { x: item.x + r + 20, y: item.y - r - 8, anchor: "start", w, h },
+      { x: item.x - r - 20, y: item.y - r - 8, anchor: "end", w, h },
+      { x: item.x + r + 20, y: item.y + r + 20, anchor: "start", w, h },
+      { x: item.x - r - 20, y: item.y + r + 20, anchor: "end", w, h }
+    ].map(clampLabelCandidate);
+    const out = normalise({ x: item.x - layoutCentroid.x, y: item.y - layoutCentroid.y });
+    return candidates
+      .map((c, i) => {
+        const box = c.box || boxForLabel(c.x, c.y, c.w, c.h, c.anchor);
+        const centre = { x: (box.l + box.r) / 2, y: (box.t + box.b) / 2 };
+        const dir = normalise({ x: centre.x - item.x, y: centre.y - item.y });
+        return { c, i, score: dir.x * out.x + dir.y * out.y };
+      })
+      .sort((a, b) => b.score - a.score || a.i - b.i)
+      .map((entry) => entry.c);
+  }
+
+  function labelPriority(item) {
+    if (item.hub) return 60;
+    if (item.role === "worker") return 50;
+    if (item.role === "local") return 40;
+    if (item.role === "site") return 30;
+    if (item.role === "infra") return 25;
+    if (item.role === "ext") return 20;
+    return 10;
+  }
+
+  function placeLabels() {
+    const items = nodes.map((n) => ({ ...n, kind: "node", priority: labelPriority(n) }))
+      .concat(kvNodes.map((kv) => ({ ...kv, kind: "kv", priority: 10 })));
+    const shapeBoxes = items.map((item) => ({ id: item.id, box: shapeBox(item) }));
+    const placed = [];
+    items.sort((a, b) => b.priority - a.priority || a.id.localeCompare(b.id)).forEach((item) => {
+      let winner = null;
+      let best = null;
+      let bestScore = Infinity;
+      const candidates = labelCandidates(item);
+      for (let i = 0; i < candidates.length; i++) {
+        const c = candidates[i];
+        const hitsLabel = placed.some((p) => boxOverlaps(c.box, p, 8));
+        const hitsShape = shapeBoxes.some((s) =>
+          s.id !== item.id && boxOverlaps(c.box, s.box, 6)
+        );
+        const labelScore = placed.reduce((sum, p) => sum + overlapArea(c.box, p, 8), 0);
+        const shapeScore = shapeBoxes.reduce((sum, s) =>
+          s.id === item.id ? sum : sum + overlapArea(c.box, s.box, 6) * 2, 0
+        );
+        const score = labelScore + shapeScore + i;
+        if (score < bestScore) {
+          best = c;
+          bestScore = score;
+        }
+        if (!hitsLabel && !hitsShape) { winner = c; break; }
+      }
+      if (!winner) winner = best || candidates[0];
+      item.labelPlacement = winner;
+      placed.push(winner.box);
+      const target = item.kind === "kv" ? kvNodes.find((kv) => kv.id === item.id) : nodeById.get(item.id);
+      if (target) target.labelPlacement = winner;
+    });
+  }
+
+  placeLabels();
 
   /* ── SVG construction ────────────────────────────────────────────────── */
   const SVG_NS = "http://www.w3.org/2000/svg";
@@ -205,10 +435,11 @@
     "aria-label": "Live map of the Atlas Systems estate. Interactive; each node is focusable."
   });
 
-  const gProbe = el("g", { class: "smap-layer-probe" }, svg);
-  const gEdges = el("g", { class: "smap-layer-edges" }, svg);
-  const gKv    = el("g", { class: "smap-layer-kv" }, svg);
-  const gNodes = el("g", { class: "smap-layer-nodes" }, svg);
+  const gViewport = el("g", { class: "smap-viewport" }, svg);
+  const gProbe = el("g", { class: "smap-layer-probe" }, gViewport);
+  const gEdges = el("g", { class: "smap-layer-edges" }, gViewport);
+  const gKv    = el("g", { class: "smap-layer-kv" }, gViewport);
+  const gNodes = el("g", { class: "smap-layer-nodes" }, gViewport);
 
   function drawEdge(parent, a, b, kind, cls) {
     /* Shorten each end so lines meet node borders, not node centres; a line
@@ -218,7 +449,15 @@
     const trimA = 18, trimB = 20;
     const x1 = a.x + (dx / d) * trimA, y1 = a.y + (dy / d) * trimA;
     const x2 = b.x - (dx / d) * trimB, y2 = b.y - (dy / d) * trimB;
-    return el("line", { x1, y1, x2, y2, class: `smap-edge ${cls || "smap-edge-" + kind}` }, parent);
+    const baseClass = cls || "smap-edge-" + kind;
+    const base = el("line", { x1, y1, x2, y2, class: `smap-edge ${baseClass}` }, parent);
+    if (!reduceMotion) {
+      el("line", {
+        x1, y1, x2, y2,
+        class: `smap-edge-direction smap-edge-direction-${kind}`
+      }, parent);
+    }
+    return base;
   }
 
   edges.forEach((e) => {
@@ -244,6 +483,16 @@
     return el("circle", { cx: n.x, cy: n.y, r, class: "smap-shape" }, parent);
   }
 
+  function drawPlacedLabel(item, parent, cls) {
+    const p = item.labelPlacement || labelCandidates(item)[0];
+    return el("text", {
+      x: p.x,
+      y: p.y,
+      class: cls,
+      "text-anchor": p.anchor
+    }, parent);
+  }
+
   nodes.forEach((n, i) => {
     const g = el("g", {
       class: `smap-node smap-role-${n.role} smap-st-${n.status}`,
@@ -260,7 +509,7 @@
       n.ringEl = el("circle", { cx: n.x, cy: n.y, r: (n.hub ? 16 : 12) + 5, class: "smap-ring" }, g);
     }
     n.shapeEl = nodeShape(n, g);
-    el("text", { x: n.x, y: n.y + (n.hub ? 34 : 30), class: "smap-label", "text-anchor": "middle" }, g)
+    drawPlacedLabel(n, g, "smap-label")
       .textContent = n.label;
     n.el = g;
 
@@ -274,9 +523,19 @@
   kvNodes.forEach((kv) => {
     const g = el("g", { class: "smap-kv" }, gKv);
     const p = nodeById.get(kv.parent);
-    el("line", { x1: p.x, y1: p.y, x2: kv.x, y2: kv.y, class: "smap-kv-tether" }, g);
-    el("rect", { x: kv.x - 5, y: kv.y - 5, width: 10, height: 10, class: "smap-kv-box" }, g);
-    el("text", { x: kv.x, y: kv.y - 10, class: "smap-kv-label", "text-anchor": "middle" }, g)
+    const dx = kv.x - p.x;
+    const dy = kv.y - p.y;
+    const d = Math.sqrt(dx * dx + dy * dy) || 1;
+    const parentR = nodeRadius(p);
+    el("line", {
+      x1: p.x + (dx / d) * parentR,
+      y1: p.y + (dy / d) * parentR,
+      x2: kv.x - (dx / d) * KV_BOX_HALF,
+      y2: kv.y - (dy / d) * KV_BOX_HALF,
+      class: "smap-kv-tether"
+    }, g);
+    el("rect", { x: kv.x - KV_BOX_HALF, y: kv.y - KV_BOX_HALF, width: KV_BOX_SIZE, height: KV_BOX_SIZE, rx: 2, class: "smap-kv-box" }, g);
+    drawPlacedLabel({ ...kv, kind: "kv" }, g, "smap-kv-label")
       .textContent = kv.label;
   });
 
@@ -443,7 +702,7 @@
         n.haloEl = el("circle", { cx: n.x, cy: n.y, r: 12, class: "smap-halo" }, g);
         n.ringEl = el("circle", { cx: n.x, cy: n.y, r: 17, class: "smap-ring" }, g);
         n.shapeEl = nodeShape(n, g);
-        el("text", { x: n.x, y: n.y + 30, class: "smap-label", "text-anchor": "middle" }, g).textContent = n.label;
+        drawPlacedLabel(n, g, "smap-label").textContent = n.label;
         n.el = g;
       }
 
@@ -528,6 +787,86 @@
   /* ── Mount ───────────────────────────────────────────────────────────── */
   host.appendChild(svg);
   host.appendChild(panel);
+
+  const flatControls = document.createElement("div");
+  flatControls.className = "smap-flat-controls";
+  flatControls.innerHTML =
+    '<button type="button" data-map-zoom="in" aria-label="Zoom in">+</button>' +
+    '<button type="button" data-map-zoom="out" aria-label="Zoom out">-</button>' +
+    '<button type="button" data-map-zoom="reset" aria-label="Reset map view">reset</button>';
+  host.appendChild(flatControls);
+
+  const panZoom = { k: 1, x: 0, y: 0 };
+  const panLimit = { x: W * 0.45, y: H * 0.45 };
+  function clampPanZoom() {
+    panZoom.k = Math.max(1, Math.min(3.2, panZoom.k));
+    const extraX = (W * (panZoom.k - 1)) / 2 + panLimit.x;
+    const extraY = (H * (panZoom.k - 1)) / 2 + panLimit.y;
+    panZoom.x = Math.max(-extraX, Math.min(extraX, panZoom.x));
+    panZoom.y = Math.max(-extraY, Math.min(extraY, panZoom.y));
+  }
+  function applyPanZoom() {
+    clampPanZoom();
+    gViewport.setAttribute("transform", `translate(${panZoom.x.toFixed(2)} ${panZoom.y.toFixed(2)}) scale(${panZoom.k.toFixed(3)})`);
+    host.classList.toggle("smap-zoomed", panZoom.k > 1.001 || Math.abs(panZoom.x) > 0.5 || Math.abs(panZoom.y) > 0.5);
+  }
+  function svgPoint(clientX, clientY) {
+    const pt = svg.createSVGPoint();
+    pt.x = clientX;
+    pt.y = clientY;
+    const ctm = svg.getScreenCTM();
+    return ctm ? pt.matrixTransform(ctm.inverse()) : { x: W / 2, y: H / 2 };
+  }
+  function zoomFlat(delta, clientX, clientY) {
+    const before = svgPoint(clientX, clientY);
+    const oldK = panZoom.k;
+    const nextK = Math.max(1, Math.min(3.2, oldK * delta));
+    const ratio = nextK / oldK;
+    panZoom.x = before.x - (before.x - panZoom.x) * ratio;
+    panZoom.y = before.y - (before.y - panZoom.y) * ratio;
+    panZoom.k = nextK;
+    applyPanZoom();
+  }
+  flatControls.addEventListener("click", (ev) => {
+    const btn = ev.target.closest("button[data-map-zoom]");
+    if (!btn) return;
+    const rect = svg.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    if (btn.dataset.mapZoom === "in") zoomFlat(1.24, cx, cy);
+    else if (btn.dataset.mapZoom === "out") zoomFlat(1 / 1.24, cx, cy);
+    else {
+      panZoom.k = 1; panZoom.x = 0; panZoom.y = 0; applyPanZoom();
+    }
+  });
+  svg.addEventListener("wheel", (ev) => {
+    if (mobileQuery.matches) return;
+    ev.preventDefault();
+    zoomFlat(ev.deltaY < 0 ? 1.14 : 1 / 1.14, ev.clientX, ev.clientY);
+  }, { passive: false });
+  let flatDrag = null;
+  svg.addEventListener("pointerdown", (ev) => {
+    if (mobileQuery.matches || ev.button !== 0) return;
+    if (ev.target.closest(".smap-node")) return;
+    flatDrag = { x: ev.clientX, y: ev.clientY, px: panZoom.x, py: panZoom.y };
+    svg.classList.add("smap-panning");
+    svg.setPointerCapture && svg.setPointerCapture(ev.pointerId);
+  });
+  svg.addEventListener("pointermove", (ev) => {
+    if (!flatDrag) return;
+    const rect = svg.getBoundingClientRect();
+    panZoom.x = flatDrag.px + ((ev.clientX - flatDrag.x) / Math.max(1, rect.width)) * W;
+    panZoom.y = flatDrag.py + ((ev.clientY - flatDrag.y) / Math.max(1, rect.height)) * H;
+    applyPanZoom();
+  });
+  svg.addEventListener("pointerup", () => {
+    flatDrag = null;
+    svg.classList.remove("smap-panning");
+  });
+  svg.addEventListener("pointercancel", () => {
+    flatDrag = null;
+    svg.classList.remove("smap-panning");
+  });
 
   function syncViewMode() {
     const mobile = mobileQuery.matches;
