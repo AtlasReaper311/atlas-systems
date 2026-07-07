@@ -35,7 +35,7 @@ import * as THREE from "./vendor/three/three.module.min.js";
 
 /* ── Pure helpers (exported for the smoke test) ─────────────────────── */
 
-export const BOARD_SCALE = 0.026;
+export const BOARD_SCALE = 0.034;
 
 export function worldFromLayout(x, y, W, H) {
   return { x: (x - W / 2) * BOARD_SCALE, z: (y - H / 2) * BOARD_SCALE };
@@ -156,7 +156,7 @@ function boot(vm, host) {
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x0a0a0f, 0.03);
 
-  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 120);
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 140);
 
   scene.add(new THREE.AmbientLight(0x2a2a34, 1.6));
   const key = new THREE.DirectionalLight(0xf5ead6, 1.15);
@@ -173,7 +173,7 @@ function boot(vm, host) {
   ground.rotation.x = -Math.PI / 2;
   scene.add(ground);
 
-  const grid = new THREE.GridHelper(28, 22, 0x1e1e28, 0x14141c);
+  const grid = new THREE.GridHelper(38, 26, 0x1e1e28, 0x14141c);
   grid.material.transparent = true;
   grid.material.opacity = 0.55;
   grid.position.y = 0.01;
@@ -409,7 +409,7 @@ function boot(vm, host) {
      first-class instead of fought for, and the vendored surface stays
      one file. The drift is additive over the user's angle, so the
      diorama breathes without stealing the camera back. */
-  const orbit = { az: -0.62, el: 0.62, r: 19.5, vAz: 0, vEl: 0, target: new THREE.Vector3(0, 0.35, 0) };
+  const orbit = { az: -0.62, el: 0.62, r: 27, vAz: 0, vEl: 0, target: new THREE.Vector3(0, 0.35, 0) };
   let lastInteract = 0;
   let dragging = false, downX = 0, downY = 0, lastX = 0, lastY = 0, moved = 0;
 
@@ -450,7 +450,7 @@ function boot(vm, host) {
   });
   el2.addEventListener("wheel", (ev) => {
     ev.preventDefault();
-    orbit.r = Math.max(12, Math.min(32, orbit.r + ev.deltaY * 0.012));
+    orbit.r = Math.max(16, Math.min(44, orbit.r + ev.deltaY * 0.012));
     lastInteract = performance.now();
   }, { passive: false });
 
@@ -555,21 +555,56 @@ function boot(vm, host) {
       }
     }
 
-    /* Labels: project, fade by distance, drop when behind the camera */
+    /* Labels: project, fade by distance, and drop lower-priority labels
+       when screen-space boxes collide. The scene stays legible even when
+       the estate grows denser around the Worker cluster. */
     const rect = { w: el2.clientWidth, h: el2.clientHeight };
-    nodeViews.forEach((view) => projectLabel(view.label, view.world, view.labelY, rect));
-    kvViews.forEach((kv) => projectLabel(kv.label, kv.world, 0.22, rect));
+    const labelSlots = [];
+    const labels = [];
+    nodeViews.forEach((view) => labels.push({
+      el: view.label,
+      world: view.world,
+      yOff: view.labelY,
+      priority: view.node.hub ? 4 : view.node.role === "worker" ? 3 : view.node.role === "local" ? 2 : 1,
+    }));
+    kvViews.forEach((kv) => labels.push({ el: kv.label, world: kv.world, yOff: 0.22, priority: 0 }));
+    labels
+      .sort((a, b) => b.priority - a.priority)
+      .forEach((item) => projectLabel(item, rect, labelSlots));
 
     renderer.render(scene, camera);
   }
 
-  function projectLabel(labelEl, world, yOff, rect) {
+  function overlaps(a, b, pad = 6) {
+    return !(
+      a.r + pad < b.l ||
+      a.l - pad > b.r ||
+      a.b + pad < b.t ||
+      a.t - pad > b.b
+    );
+  }
+
+  function projectLabel(item, rect, labelSlots) {
+    const { el: labelEl, world, yOff, priority } = item;
     tmpV.set(world.x, yOff + (world.y || 0), world.z).project(camera);
     if (tmpV.z > 1) { labelEl.style.opacity = "0"; return; }
     const x = (tmpV.x * 0.5 + 0.5) * rect.w;
     const y = (-tmpV.y * 0.5 + 0.5) * rect.h;
+    if (x < -80 || x > rect.w + 80 || y < -40 || y > rect.h + 40) {
+      labelEl.style.opacity = "0";
+      return;
+    }
+    const w = labelEl.offsetWidth || 92;
+    const h = labelEl.offsetHeight || 18;
+    const box = { l: x - w / 2, r: x + w / 2, t: y - h - 4, b: y + 4 };
+    if (priority < 4 && labelSlots.some((slot) => overlaps(box, slot))) {
+      labelEl.style.opacity = "0";
+      return;
+    }
+    labelSlots.push(box);
     const d = camera.position.distanceTo(tmpV.set(world.x, 0, world.z));
-    labelEl.style.opacity = String(Math.max(0.3, Math.min(1, 1.35 - d / 30)));
+    labelEl.style.zIndex = String(10 + priority);
+    labelEl.style.opacity = String(Math.max(0.45, Math.min(1, 1.45 - d / 42)));
     labelEl.style.transform = `translate(-50%, -100%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
   }
 

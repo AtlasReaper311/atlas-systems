@@ -586,11 +586,11 @@
       const inject = () => {
         const link = document.createElement("link");
         link.rel = "stylesheet";
-        link.href = "/lab/system-map-scene.css?v=20260707-map-readability";
+        link.href = "/lab/system-map-scene.css?v=20260707-3d-map-readable";
         document.head.appendChild(link);
         const s = document.createElement("script");
         s.type = "module";
-        s.src = "/lab/system-map-scene.js?v=20260707-map-readability";
+        s.src = "/lab/system-map-scene.js?v=20260707-3d-map-readable";
         s.onerror = () => window.AtlasMapVM.fallbackToSvg();
         document.head.appendChild(s);
       };
