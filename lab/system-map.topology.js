@@ -34,6 +34,10 @@
       blurb: "Event router; central Discord poster" },
     { id: "atlas-api-index", role: "worker", label: "atlas-api-index",
       blurb: "Self-documenting Worker registry; source of this map's live data" },
+    { id: "atlas-api-public", role: "worker", label: "atlas-api-public",
+      blurb: "Versioned public API for estate status, docs, RAG stats, search, and badges" },
+    { id: "atlas-blackbox", role: "worker", label: "atlas-blackbox",
+      blurb: "Rolling incident recorder for Atlas runtime and pipeline signals" },
     { id: "ramone-trigger",  role: "worker", label: "ramone-trigger",
       blurb: "Voice-triggered GitHub Actions dispatch" },
     { id: "specular-edge",   role: "worker", label: "specular-edge",
@@ -96,6 +100,8 @@
     /* src: decisions.md, Problems encountered: ramone-edge's notify calls
        moved to a service binding after public-hostname 522s. */
     { from: "ramone-edge",    to: "atlas-notify", kind: "binding", label: "alert envelope" },
+    { from: "atlas-api-public", to: "atlas-notify", kind: "binding", label: "infra/rag alerts" },
+    { from: "atlas-blackbox", to: "atlas-notify", kind: "binding", label: "incident reports" },
     /* atlas-corpus consumes the same envelope but lives on the LAN, so it
        reaches atlas-notify over HTTPS rather than a binding.
        src: decisions.md, Discord routing (envelope consumers list). */

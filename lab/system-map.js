@@ -411,10 +411,11 @@
       }
     }
 
+    const visibleWorkers = snap.workers.filter((w) => !LAB_EXCLUDED_WORKERS.has(w.name));
     const seen = new Set();
     let orphanIndex = 0;
 
-    snap.workers.filter((w) => !LAB_EXCLUDED_WORKERS.has(w.name)).forEach((w) => {
+    visibleWorkers.forEach((w) => {
       seen.add(w.name);
       let n = nodeById.get(w.name);
 
@@ -467,7 +468,7 @@
     if (!probesDrawn) {
       const idx = nodeById.get("atlas-api-index");
       if (idx) {
-        snap.workers.filter((w) => !LAB_EXCLUDED_WORKERS.has(w.name)).forEach((w) => {
+        visibleWorkers.forEach((w) => {
           const t = nodeById.get(w.name);
           if (t && t !== idx) drawEdge(gProbe, idx, t, "probe");
         });
@@ -475,8 +476,12 @@
       }
     }
 
-    if (statusLine && snap.counts) {
-      const c = snap.counts;
+    if (statusLine) {
+      const c = {
+        workers: visibleWorkers.length,
+        documented: visibleWorkers.filter((w) => w.documented).length
+      };
+      c.undocumented = c.workers - c.documented;
       statusLine.textContent =
         `${c.workers} workers discovered · ${c.documented} documented · ${c.undocumented} pending /_meta` +
         (snap.generatedAt ? ` · registry built ${snap.generatedAt.slice(11, 16)}Z` : "");
