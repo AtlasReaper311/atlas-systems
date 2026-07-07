@@ -248,9 +248,9 @@
       var isLocalLab = location.hostname === "localhost" || location.hostname === "127.0.0.1";
       var localCorpusHost = location.hostname === "127.0.0.1" ? "127.0.0.1" : "localhost";
       var ENDPOINT = isLocalLab
-        ? "http://" + localCorpusHost + ":8092/search"
-        : "https://corpus.atlas-systems.uk/search";
-      var FALLBACK_ENDPOINT = "https://corpus.atlas-systems.uk/search";
+        ? "http://" + localCorpusHost + ":8092/ask"
+        : "https://corpus.atlas-systems.uk/ask";
+      var FALLBACK_ENDPOINT = "https://corpus.atlas-systems.uk/ask";
       var form = document.getElementById("csw-form");
       var input = document.getElementById("csw-q");
       var button = document.getElementById("csw-go");
@@ -262,36 +262,36 @@
         while (list.firstChild) list.removeChild(list.firstChild);
       }
 
-      function renderHit(hit) {
+      function sourceUrl(source) {
+        return "https://github.com/AtlasReaper311/" +
+          encodeURIComponent(source.repo) + "/blob/main/" +
+          source.file.split("/").map(encodeURIComponent).join("/");
+      }
+
+      function renderAnswer(data) {
         var item = document.createElement("li");
-        item.className = "cs-w-hit";
+        item.className = "cs-w-answer";
 
-        var meta = document.createElement("div");
-        meta.className = "cs-w-hit-meta";
+        var answer = document.createElement("p");
+        answer.className = "cs-w-answer-text";
+        answer.textContent = data.answer;
+        item.appendChild(answer);
 
-        var type = document.createElement("span");
-        type.className = "cs-w-type";
-        type.textContent = hit.doc_type;
-
-        var path = document.createElement("span");
-        path.className = "cs-w-path";
-        path.textContent = hit.source_repo + "/" + hit.file_path;
-
-        var score = document.createElement("span");
-        score.className = "cs-w-score";
-        score.textContent = hit.score.toFixed(2);
-
-        meta.appendChild(type);
-        meta.appendChild(path);
-        meta.appendChild(score);
-
-        var excerpt = document.createElement("p");
-        excerpt.className = "cs-w-excerpt";
-        var text = hit.text.length > 320 ? hit.text.slice(0, 319) + "…" : hit.text;
-        excerpt.textContent = text;
-
-        item.appendChild(meta);
-        item.appendChild(excerpt);
+        if (data.sources && data.sources.length) {
+          var sources = document.createElement("div");
+          sources.className = "cs-w-sources";
+          data.sources.forEach(function (source) {
+            var tag = document.createElement("a");
+            tag.className = "cs-w-source";
+            tag.href = sourceUrl(source);
+            tag.target = "_blank";
+            tag.rel = "noopener noreferrer";
+            tag.title = source.excerpt;
+            tag.textContent = source.repo + "/" + source.file;
+            sources.appendChild(tag);
+          });
+          item.appendChild(sources);
+        }
         list.appendChild(item);
       }
 
@@ -328,20 +328,22 @@
         if (!query) return;
 
         button.disabled = true;
-        status.textContent = "searching…";
+        status.textContent = "asking…";
         clearResults();
 
         searchCorpus(query)
           .then(function (data) {
-            if (!data.hits.length) {
-              status.textContent = "nothing relevant indexed for that";
+            if (!data.answer) {
+              status.textContent = "no answer returned";
               return;
             }
-            status.textContent = data.hits.length + " hits · " + data.took_ms + "ms";
-            data.hits.forEach(renderHit);
+            status.textContent = data.sources.length
+              ? data.sources.length + " cited sources"
+              : "answered without supporting sources";
+            renderAnswer(data);
           })
           .catch(function (err) {
-            status.textContent = "search unavailable: " + err.message;
+            status.textContent = "corpus unavailable: " + err.message;
           })
           .finally(function () {
             button.disabled = false;
