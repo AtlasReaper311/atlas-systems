@@ -20,7 +20,7 @@ import {
   PARAM_RAMP_SECS,
   TRANSPORT_BPM,
   VIBRATO_MAX_DEPTH,
-} from "./mapping.js?v=20260708-controls2";
+} from "./mapping.js?v=20260708-drumhit";
 
 /* ------------------------------------------------------------------ */
 /* Engine-local constants                                              */
@@ -55,6 +55,32 @@ export const INCIDENT_NOTE = "C1";
 export const INCIDENT_DURATION = "8n";
 export const INCIDENT_VELOCITY = 0.9;
 export const REVERB_DECAY_SECS = 1.5;
+
+/**
+ * Incident click: a very short broadband noise burst layered under
+ * the membrane hit. C1 (~33Hz) sits at or below the low-end rolloff of
+ * most laptop and phone speakers, so the membrane's sustained
+ * fundamental can go essentially unheard on exactly the devices a
+ * portfolio visitor is most likely using. The click supplies the
+ * percussive transient definition a kick drum normally gets from its
+ * own noise/attack layer, independent of how much sub bass the output
+ * device can actually reproduce. Highpassed so it reads as "snap", not
+ * as a second low-frequency layer competing with the membrane.
+ */
+export const INCIDENT_CLICK_DECAY_SECS = 0.045;
+export const INCIDENT_CLICK_HIGHPASS_HZ = 1800;
+
+/**
+ * The incident layer gets its own gain stage, deliberately separate
+ * from the -6dB per-voice headroom on the ambient FMSynths. Without
+ * this, a hit fires at the same relative level as the six-voice bed
+ * at the exact moment computeMasterGainDb pushes that bed to unity
+ * (incidents force the master to 0dB, its loudest point), so the hit
+ * had to compete against the loudest the pad ever gets. +4dB tuned by
+ * ear: reads as a distinct event over a unity-gain bed without
+ * clipping the reverb tail.
+ */
+export const INCIDENT_HIT_GAIN_DB = 4;
 
 /** Default position for the user volume slider (linear gain 0..1). */
 export const DEFAULT_USER_GAIN = 1;
@@ -91,8 +117,12 @@ export function createEngine() {
   let healthVolume = null;
   let membrane = null;
   let reverb = null;
+  let incidentGain = null;
+  let incidentClick = null;
+  let incidentClickFilter = null;
   let tickIndex = 0;
   let voiceTickHandler = null;
+  let incidentHitHandler = null;
 
   function requireTone() {
     const Tone = globalThis.Tone;
@@ -118,13 +148,38 @@ export function createEngine() {
     // alert must land at full user volume even while the estate rests
     // at the -18dB calm floor. The user slider still governs it.
     reverb = new Tone.Reverb({ decay: REVERB_DECAY_SECS, wet: 0.5 });
-    reverb.connect(userGain);
+
+    // Incident layer's own gain stage: see INCIDENT_HIT_GAIN_DB above
+    // for why it needs headroom the ambient voices don't get. Linear
+    // gain computed directly from dB rather than via a Tone utility,
+    // so this doesn't depend on which Tone.js version is vendored.
+    incidentGain = new Tone.Gain(Math.pow(10, INCIDENT_HIT_GAIN_DB / 20));
+    incidentGain.connect(userGain);
+    reverb.connect(incidentGain);
+
     membrane = new Tone.MembraneSynth({
       octaves: 4,
       pitchDecay: 0.06,
       envelope: { attack: 0.001, decay: 0.5, sustain: 0.01, release: 0.6 },
     });
     membrane.connect(reverb);
+
+    // Broadband click: gives the hit a percussive attack independent
+    // of low-end reproduction. See INCIDENT_CLICK_* above.
+    incidentClick = new Tone.NoiseSynth({
+      noise: { type: "white" },
+      envelope: {
+        attack: 0.001,
+        decay: INCIDENT_CLICK_DECAY_SECS,
+        sustain: 0,
+      },
+    });
+    incidentClickFilter = new Tone.Filter({
+      type: "highpass",
+      frequency: INCIDENT_CLICK_HIGHPASS_HZ,
+      rolloff: -12,
+    });
+    incidentClick.chain(incidentClickFilter, incidentGain);
 
     for (const name of CURATED_SERVICES) {
       const synth = new Tone.FMSynth({
@@ -293,11 +348,19 @@ export function createEngine() {
     },
 
     /**
-     * Schedule `count` membrane hits on successive quarter-note
-     * boundaries: never immediately, always quantised, per spec. The
-     * count is bounded by the curated list (six services), so no cap
-     * logic is needed. Hits arriving while muted are dropped on
-     * purpose: they are transient alerts, not a queue to replay.
+     * Schedule `count` membrane + click hits on successive
+     * quarter-note boundaries: never immediately, always quantised,
+     * per spec. The count is bounded by the curated list (six
+     * services), so no cap logic is needed. Hits arriving while muted
+     * are dropped on purpose: they are transient alerts, not a queue
+     * to replay.
+     *
+     * Each hit also schedules a UI callback via Tone.Draw, timed to
+     * the same `time` as the audio: Tone.Draw runs its queue on the
+     * animation frame nearest that scheduled time, so the visual flash
+     * lands in sync with what's actually heard instead of firing
+     * early on the calling stack (which can run up to a poll-tick
+     * ahead of when the Transport plays the note).
      */
     queueIncidentHits(count) {
       if (!initialized || !running || count <= 0) return;
@@ -305,6 +368,7 @@ export function createEngine() {
       const quarterSecs = Tone.Time("4n").toSeconds();
       const firstAt = transport.nextSubdivision("4n");
       for (let i = 0; i < count; i += 1) {
+        const at = firstAt + i * quarterSecs;
         transport.scheduleOnce((time) => {
           membrane.triggerAttackRelease(
             INCIDENT_NOTE,
@@ -312,7 +376,15 @@ export function createEngine() {
             time,
             INCIDENT_VELOCITY,
           );
-        }, firstAt + i * quarterSecs);
+          incidentClick.triggerAttackRelease(
+            INCIDENT_CLICK_DECAY_SECS,
+            time,
+            INCIDENT_VELOCITY,
+          );
+          Tone.Draw.schedule(() => {
+            incidentHitHandler?.();
+          }, time);
+        }, at);
       }
     },
 
@@ -328,6 +400,10 @@ export function createEngine() {
     isRunning: () => running,
     setVoiceTickHandler(handler) {
       voiceTickHandler = typeof handler === "function" ? handler : null;
+    },
+    /** Fired once per queued incident hit, in sync with the audio. */
+    setIncidentHitHandler(handler) {
+      incidentHitHandler = typeof handler === "function" ? handler : null;
     },
   };
 }

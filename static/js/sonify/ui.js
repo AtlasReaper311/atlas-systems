@@ -7,12 +7,12 @@
  * or soloed. Demo mode is local-only; it never writes telemetry.
  */
 
-import { createEngine, DEFAULT_USER_GAIN } from "./engine.js?v=20260708-controls2";
-import { createPoller } from "./poller.js?v=20260708-controls2";
+import { createEngine, DEFAULT_USER_GAIN } from "./engine.js?v=20260708-drumhit";
+import { createPoller } from "./poller.js?v=20260708-drumhit";
 import {
   CURATED_SERVICES,
   computeFrame,
-} from "./mapping.js?v=20260708-controls2";
+} from "./mapping.js?v=20260708-drumhit";
 
 const WIDGET_ID = "sonify-widget";
 
@@ -138,9 +138,13 @@ const STYLE = `
   font-size: 12px;
   line-height: 1.45;
   color: var(--text, #e8e8e0);
+  transition: box-shadow 60ms ease-out;
 }
 .sn-w[data-open="1"] { max-width: 560px; }
 .sn-w * { box-sizing: border-box; }
+.sn-w[data-inc-hit="1"] {
+  box-shadow: 0 0 0 2px #e24b4a, 0 16px 48px rgba(0, 0, 0, 0.35);
+}
 .sn-head { display: flex; align-items: center; gap: 8px; }
 .sn-toggle,
 .sn-icon,
@@ -183,6 +187,7 @@ const STYLE = `
 }
 .sn-health { color: var(--text, #e8e8e0); }
 .sn-inc[data-alert="1"] { color: #e24b4a; }
+.sn-inc[data-hit="1"] { color: #fff; text-shadow: 0 0 6px rgba(226, 75, 74, 0.9); }
 .sn-dots { display: flex; gap: 6px; }
 .sn-dot {
   width: 7px;
@@ -212,6 +217,10 @@ const STYLE = `
 .sn-mini[aria-pressed="true"] {
   border-color: var(--accent, #f5a623);
   color: var(--accent, #f5a623);
+}
+.sn-chip[data-variant="hit"] {
+  border-color: #e24b4a;
+  color: #e24b4a;
 }
 .sn-grid { display: grid; gap: 5px; }
 .sn-grid-head {
@@ -492,6 +501,22 @@ export function initSonify() {
     demoBar.append(button);
   }
 
+  // Direct audition control: plays one incident hit without touching
+  // mode, demo state, or manual statuses. Isolates the drum sound from
+  // the health-blend/colour changes every other trigger path also
+  // causes, so it can be tuned by ear on its own. No-ops silently (via
+  // engine.queueIncidentHits' own guard) if audio hasn't been started.
+  const testHitBtn = el("button", "sn-chip", {
+    type: "button",
+    "data-variant": "hit",
+  });
+  testHitBtn.textContent = "test hit";
+  testHitBtn.title = "Play one incident hit only, for tuning by ear (requires sonification started)";
+  testHitBtn.addEventListener("click", () => {
+    engine.queueIncidentHits(1);
+  });
+  demoBar.append(testHitBtn);
+
   const grid = el("div", "sn-grid");
   const gridHead = el("div", "sn-grid-head");
   for (const text of ["", "service", "ms", "pitch", "bright", "hear"]) {
@@ -655,6 +680,23 @@ export function initSonify() {
     }, 220);
   }
 
+  /**
+   * Incident hits are estate-level, not tied to one service (they can
+   * fire from a "down" status on any of several services, or from a
+   * live poll where the payload's active_incidents count rose), so
+   * this flashes the whole widget rather than a specific row. Visible
+   * whether the panel is expanded or collapsed, since the incident
+   * chip in the collapsed header (`inc N`) is always on screen.
+   */
+  function flashIncident() {
+    root.setAttribute("data-inc-hit", "1");
+    incSpan.setAttribute("data-hit", "1");
+    window.setTimeout(() => {
+      root.removeAttribute("data-inc-hit");
+      incSpan.removeAttribute("data-hit");
+    }, 260);
+  }
+
   toggle.addEventListener("click", async () => {
     toggle.disabled = true;
     try {
@@ -698,6 +740,7 @@ export function initSonify() {
   });
 
   engine.setVoiceTickHandler((name) => flashVoice(name));
+  engine.setIncidentHitHandler(() => flashIncident());
 
   const poller = createPoller({
     onFrame(frame, { newIncidents }) {
