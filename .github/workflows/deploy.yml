@@ -6,7 +6,41 @@ on:
   workflow_dispatch:
 
 jobs:
+  generate-sitemap:
+    name: Regenerate sitemap.xml
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # generate_sitemap.py reads each file's real lastmod via
+          # `git log`; a shallow clone (the default) would collapse
+          # every file to the same single commit date.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate sitemap.xml
+        run: python3 scripts/generate_sitemap.py
+
+      - name: Commit sitemap.xml if it changed
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- sitemap.xml; then
+            echo "sitemap.xml unchanged, nothing to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add sitemap.xml
+          git commit -m "Regenerate sitemap.xml [skip ci]"
+          git push
+
   deploy:
+    needs: generate-sitemap
     uses: AtlasReaper311/atlas-infra/.github/workflows/validate-static.yml@main
     with:
       project_name: atlas-systems
