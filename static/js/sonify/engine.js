@@ -20,7 +20,7 @@ import {
   PARAM_RAMP_SECS,
   TRANSPORT_BPM,
   VIBRATO_MAX_DEPTH,
-} from "./mapping.js?v=20260708-audio2";
+} from "./mapping.js?v=20260708-controls";
 
 /* ------------------------------------------------------------------ */
 /* Engine-local constants                                              */

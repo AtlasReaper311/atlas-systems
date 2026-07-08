@@ -7,12 +7,12 @@
  * or soloed. Demo mode is local-only; it never writes telemetry.
  */
 
-import { createEngine, DEFAULT_USER_GAIN } from "./engine.js?v=20260708-inspector";
-import { createPoller } from "./poller.js?v=20260708-inspector";
+import { createEngine, DEFAULT_USER_GAIN } from "./engine.js?v=20260708-controls";
+import { createPoller } from "./poller.js?v=20260708-controls";
 import {
   CURATED_SERVICES,
   computeFrame,
-} from "./mapping.js?v=20260708-inspector";
+} from "./mapping.js?v=20260708-controls";
 
 const WIDGET_ID = "sonify-widget";
 
@@ -31,6 +31,8 @@ const STATUS_LABELS = {
   down: "down",
   unknown: "unknown",
 };
+
+const STATUS_ORDER = ["healthy", "degraded", "down"];
 
 const DEMOS = {
   healthy: {
@@ -176,6 +178,15 @@ const STYLE = `
   color: var(--accent, #f5a623);
 }
 .sn-grid { display: grid; gap: 5px; }
+.sn-grid-head {
+  display: grid;
+  grid-template-columns: 10px minmax(95px, 1fr) 58px 58px 44px 52px;
+  gap: 7px;
+  color: var(--text-faint, #555560);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
 .sn-row {
   display: grid;
   grid-template-columns: 10px minmax(95px, 1fr) 58px 58px 44px 52px;
@@ -187,7 +198,17 @@ const STYLE = `
 }
 .sn-row[data-hit="1"] { background: rgba(245,166,35,.1); }
 .sn-row[data-muted="1"] { opacity: .42; }
-.sn-row-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint, #555560); }
+.sn-row-dot {
+  width: 10px;
+  height: 10px;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  background: var(--text-faint, #555560);
+  cursor: pointer;
+}
+.sn-row-dot:hover { outline: 1px solid var(--accent, #f5a623); outline-offset: 2px; }
+.sn-row-dot:focus-visible { outline: 1px solid var(--accent, #f5a623); outline-offset: 2px; }
 .sn-row-dot[data-status="healthy"] { background: #4ade80; }
 .sn-row-dot[data-status="degraded"] { background: var(--accent, #f5a623); }
 .sn-row-dot[data-status="down"] { background: #e24b4a; }
@@ -209,6 +230,7 @@ const STYLE = `
 .sn-w[data-stale="1"] .sn-dots { opacity: 0.45; }
 @media (max-width: 680px) {
   .sn-w { right: 12px; bottom: 72px; width: calc(100vw - 24px); }
+  .sn-grid-head,
   .sn-row { grid-template-columns: 10px minmax(80px, 1fr) 48px 48px 36px 48px; gap: 5px; }
   .sn-explain { grid-template-columns: 1fr; }
 }
@@ -264,18 +286,65 @@ function baseService(name) {
   };
 }
 
-function buildDemoPayload(kind) {
-  const demo = DEMOS[kind] || DEMOS.healthy;
+function statusPatch(status, fallbackLatency) {
+  if (status === "healthy") {
+    return {
+      status: "healthy",
+      uptime_pct: null,
+      error_rate: null,
+      latency_ms: fallbackLatency,
+    };
+  }
+  if (status === "degraded") {
+    return {
+      status: "degraded",
+      latency_ms: Number.isFinite(fallbackLatency) ? Math.max(fallbackLatency, 320) : 340,
+      uptime_pct: 91,
+      error_rate: 0.55,
+    };
+  }
   return {
-    timestamp: new Date().toISOString(),
-    estate: demo.estate,
-    services: CURATED_SERVICES.map((name, index) => ({
-      ...baseService(name),
-      latency_ms: [130, 150, null, 35, null, null][index],
-      ...demo.overrides[name],
-    })),
+    status: "down",
+    latency_ms: Number.isFinite(fallbackLatency) ? Math.max(fallbackLatency, 480) : null,
+    uptime_pct: 0,
+    error_rate: 0.75,
   };
 }
+
+function deriveEstateFromServices(services) {
+  const score = { healthy: 1, degraded: 0.45, down: 0 };
+  const known = services.filter((service) => service.status !== "unknown");
+  const base = known.length
+    ? known.reduce((sum, service) => sum + score[service.status], 0) / known.length
+    : 1;
+  const degraded = services.some((service) => service.status === "degraded");
+  const down = services.some((service) => service.status === "down");
+  return {
+    overall_health: down ? Math.min(base, 0.45) : degraded ? Math.min(base, 0.68) : base,
+    active_incidents: services.filter((service) => service.status === "down").length,
+  };
+}
+
+function buildDemoPayload(kind) {
+  const demo = DEMOS[kind] || DEMOS.healthy;
+  const services = CURATED_SERVICES.map((name, index) => {
+    const latency = [130, 150, null, 35, null, null][index];
+    const base = {
+      ...baseService(name),
+      latency_ms: latency,
+      ...demo.overrides[name],
+    };
+    const manual = manualStatuses.get(name);
+    return manual ? { ...base, ...statusPatch(manual, base.latency_ms) } : base;
+  });
+  return {
+    timestamp: new Date().toISOString(),
+    estate: deriveEstateFromServices(services),
+    services,
+  };
+}
+
+const manualStatuses = new Map();
 
 export function initSonify() {
   if (document.getElementById(WIDGET_ID)) return;
@@ -369,6 +438,7 @@ export function initSonify() {
     });
     button.textContent = demo.label;
     button.addEventListener("click", () => {
+      manualStatuses.clear();
       demoKind = key;
       mode = "demo";
       refreshSourceButtons();
@@ -379,10 +449,22 @@ export function initSonify() {
   }
 
   const grid = el("div", "sn-grid");
+  const gridHead = el("div", "sn-grid-head");
+  for (const text of ["", "service", "ms", "pitch", "bright", "hear"]) {
+    const span = document.createElement("span");
+    span.textContent = text;
+    gridHead.append(span);
+  }
+  grid.append(gridHead);
   const rows = new Map();
   for (const name of CURATED_SERVICES) {
     const row = el("div", "sn-row", { "data-service": name });
-    const dot = el("span", "sn-row-dot", { "data-status": "unknown" });
+    const dot = el("button", "sn-row-dot", {
+      type: "button",
+      "data-status": "unknown",
+      "aria-label": `Cycle ${name} status`,
+      title: `Cycle ${name}: healthy, degraded, down`,
+    });
     const serviceName = el("span", "sn-name");
     serviceName.textContent = SERVICE_LABELS[name] || name;
     const latency = el("span", "sn-metric");
@@ -399,6 +481,17 @@ export function initSonify() {
     row.append(dot, serviceName, latency, pitch, bright, actions);
     grid.append(row);
     rows.set(name, { row, dot, latency, pitch, bright, solo, mute });
+    dot.addEventListener("click", () => {
+      const frame = sourceFrame();
+      const voice = frame?.voices.find((v) => v.name === name);
+      const current = manualStatuses.get(name) || voice?.status || "healthy";
+      const next = STATUS_ORDER[(STATUS_ORDER.indexOf(current) + 1) % STATUS_ORDER.length];
+      manualStatuses.set(name, next);
+      mode = "demo";
+      demoKind = "healthy";
+      refreshSourceButtons();
+      renderCurrent();
+    });
     solo.addEventListener("click", () => {
       if (soloed.has(name)) soloed.delete(name);
       else soloed.add(name);
@@ -486,6 +579,14 @@ export function initSonify() {
       dot?.setAttribute("title", `${voice.name}: ${voice.status}`);
       dot?.setAttribute("aria-label", `${voice.name}: ${voice.status}`);
       row.dot.setAttribute("data-status", voice.status);
+      row.dot.setAttribute(
+        "aria-label",
+        `${voice.name}: ${STATUS_LABELS[voice.status]}; click to cycle status`,
+      );
+      row.dot.setAttribute(
+        "title",
+        `${voice.name}: ${STATUS_LABELS[voice.status]}; click for green/yellow/red demo`,
+      );
       row.row.setAttribute("data-muted", hidden ? "1" : "0");
       row.latency.textContent = fmtMs(voice.latency_ms);
       row.pitch.textContent = fmtPitch(voice);
