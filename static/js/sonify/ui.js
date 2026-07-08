@@ -7,12 +7,12 @@
  * or soloed. Demo mode is local-only; it never writes telemetry.
  */
 
-import { createEngine, DEFAULT_USER_GAIN } from "./engine.js?v=20260708-controls";
-import { createPoller } from "./poller.js?v=20260708-controls";
+import { createEngine, DEFAULT_USER_GAIN } from "./engine.js?v=20260708-controls2";
+import { createPoller } from "./poller.js?v=20260708-controls2";
 import {
   CURATED_SERVICES,
   computeFrame,
-} from "./mapping.js?v=20260708-controls";
+} from "./mapping.js?v=20260708-controls2";
 
 const WIDGET_ID = "sonify-widget";
 
@@ -33,6 +33,42 @@ const STATUS_LABELS = {
 };
 
 const STATUS_ORDER = ["healthy", "degraded", "down"];
+
+const DEMO_BASE_LATENCY = {
+  "ramone-memory": 130,
+  "atlas-corpus": 150,
+  "specular-telemetry": 95,
+  "atlas-api-index": 35,
+  "ramone-trigger": 115,
+  "specular-edge": 75,
+};
+
+const DEMO_STATE_VALUES = {
+  "ramone-memory": {
+    degraded: { latency_ms: 340, uptime_pct: 92, error_rate: 0.45 },
+    down: { latency_ms: 500, uptime_pct: 0, error_rate: 0.82 },
+  },
+  "atlas-corpus": {
+    degraded: { latency_ms: 380, uptime_pct: 90.5, error_rate: 0.55 },
+    down: { latency_ms: 500, uptime_pct: 0, error_rate: 0.86 },
+  },
+  "specular-telemetry": {
+    degraded: { latency_ms: 300, uptime_pct: 93, error_rate: 0.35 },
+    down: { latency_ms: 480, uptime_pct: 0, error_rate: 0.8 },
+  },
+  "atlas-api-index": {
+    degraded: { latency_ms: 460, uptime_pct: 91, error_rate: 0.5 },
+    down: { latency_ms: 500, uptime_pct: 0, error_rate: 0.84 },
+  },
+  "ramone-trigger": {
+    degraded: { latency_ms: 360, uptime_pct: 89.5, error_rate: 0.62 },
+    down: { latency_ms: 500, uptime_pct: 0, error_rate: 0.88 },
+  },
+  "specular-edge": {
+    degraded: { latency_ms: 280, uptime_pct: 94, error_rate: 0.3 },
+    down: { latency_ms: 490, uptime_pct: 0, error_rate: 0.78 },
+  },
+};
 
 const DEMOS = {
   healthy: {
@@ -65,9 +101,9 @@ const DEMOS = {
     overrides: {
       "ramone-trigger": {
         status: "down",
-        latency_ms: null,
+        latency_ms: DEMO_STATE_VALUES["ramone-trigger"].down.latency_ms,
         uptime_pct: 0,
-        error_rate: 1,
+        error_rate: DEMO_STATE_VALUES["ramone-trigger"].down.error_rate,
       },
     },
   },
@@ -286,7 +322,7 @@ function baseService(name) {
   };
 }
 
-function statusPatch(status, fallbackLatency) {
+function statusPatch(name, status, fallbackLatency) {
   if (status === "healthy") {
     return {
       status: "healthy",
@@ -295,6 +331,8 @@ function statusPatch(status, fallbackLatency) {
       latency_ms: fallbackLatency,
     };
   }
+  const values = DEMO_STATE_VALUES[name]?.[status];
+  if (values) return { status, ...values };
   if (status === "degraded") {
     return {
       status: "degraded",
@@ -305,9 +343,9 @@ function statusPatch(status, fallbackLatency) {
   }
   return {
     status: "down",
-    latency_ms: Number.isFinite(fallbackLatency) ? Math.max(fallbackLatency, 480) : null,
+    latency_ms: Number.isFinite(fallbackLatency) ? Math.max(fallbackLatency, 480) : 500,
     uptime_pct: 0,
-    error_rate: 0.75,
+    error_rate: 0.85,
   };
 }
 
@@ -328,14 +366,14 @@ function deriveEstateFromServices(services) {
 function buildDemoPayload(kind) {
   const demo = DEMOS[kind] || DEMOS.healthy;
   const services = CURATED_SERVICES.map((name, index) => {
-    const latency = [130, 150, null, 35, null, null][index];
+    const latency = DEMO_BASE_LATENCY[name] ?? [130, 150, 95, 35, 115, 75][index];
     const base = {
       ...baseService(name),
       latency_ms: latency,
       ...demo.overrides[name],
     };
     const manual = manualStatuses.get(name);
-    return manual ? { ...base, ...statusPatch(manual, base.latency_ms) } : base;
+    return manual ? { ...base, ...statusPatch(name, manual, base.latency_ms) } : base;
   });
   return {
     timestamp: new Date().toISOString(),
@@ -354,6 +392,7 @@ export function initSonify() {
   let demoKind = "healthy";
   let lastLiveFrame = null;
   let currentDisplayFrame = null;
+  let lastDemoIncidentCount = 0;
   const muted = new Set();
   const soloed = new Set();
 
@@ -443,6 +482,11 @@ export function initSonify() {
       mode = "demo";
       refreshSourceButtons();
       renderCurrent();
+      const nextIncidents = sourceFrame()?.activeIncidents ?? 0;
+      if (nextIncidents > lastDemoIncidentCount) {
+        engine.queueIncidentHits(nextIncidents - lastDemoIncidentCount);
+      }
+      lastDemoIncidentCount = nextIncidents;
     });
     demoButtons.set(key, button);
     demoBar.append(button);
@@ -491,6 +535,8 @@ export function initSonify() {
       demoKind = "healthy";
       refreshSourceButtons();
       renderCurrent();
+      if (next === "down") engine.queueIncidentHits(1);
+      lastDemoIncidentCount = sourceFrame()?.activeIncidents ?? 0;
     });
     solo.addEventListener("click", () => {
       if (soloed.has(name)) soloed.delete(name);
@@ -644,6 +690,7 @@ export function initSonify() {
     mode = "demo";
     refreshSourceButtons();
     renderCurrent();
+    lastDemoIncidentCount = sourceFrame()?.activeIncidents ?? 0;
   });
 
   slider.addEventListener("input", () => {

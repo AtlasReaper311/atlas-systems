@@ -13,7 +13,7 @@
  * once per failed poll, and resume silently on the first success.
  */
 
-import { computeFrame } from "./mapping.js?v=20260708-controls";
+import { computeFrame } from "./mapping.js?v=20260708-controls2";
 
 /**
  * The sonify surface lives on the api hostname like every other estate
