@@ -92,6 +92,7 @@ export function createEngine() {
   let membrane = null;
   let reverb = null;
   let tickIndex = 0;
+  let voiceTickHandler = null;
 
   function requireTone() {
     const Tone = globalThis.Tone;
@@ -195,6 +196,7 @@ export function createEngine() {
     const params = frameVoices.get(name);
     const voice = voices.get(name);
     if (!params || !voice) return;
+    voiceTickHandler?.(name, params);
     voice.synth.triggerAttackRelease(
       params.frequencyHz,
       NOTE_DURATION,
@@ -324,5 +326,8 @@ export function createEngine() {
 
     isInitialized: () => initialized,
     isRunning: () => running,
+    setVoiceTickHandler(handler) {
+      voiceTickHandler = typeof handler === "function" ? handler : null;
+    },
   };
 }

@@ -1,36 +1,86 @@
 /**
- * ui.js :: the floating control, and the module's entry point.
+ * ui.js :: floating control, inspector, and demo lab for sonification.
  *
- * Self-initialises on DOMContentLoaded, so the integration cost is one
- * <script type="module"> tag and zero inline script (the site's CSP is
- * script-src 'self'; a bootstrap snippet in the page would need
- * 'unsafe-inline' to be load-bearing, and it should not be).
- *
- * Estate widget idiom, same as specular-widget and corpus-search: one
- * scoped class prefix (.sn-), site tokens with hex fallbacks so the
- * control renders correctly even on a page that forgot a token, and
- * every piece of response data written via textContent, never
- * innerHTML.
- *
- * The control doubles as a compact status widget: polling starts on
- * page load, so the health readout and the six service dots are live
- * even for users who never unmute. Audio itself starts only on the
- * toggle press: Tone.start() must run inside a user gesture per
- * browser autoplay policy, and telemetry that sings uninvited would be
- * bad manners regardless.
+ * The small widget is still useful as a live monitor, but the expanded
+ * panel makes the mapping legible: each service row flashes when its
+ * note plays, shows the telemetry behind that note, and can be muted
+ * or soloed. Demo mode is local-only; it never writes telemetry.
  */
 
-import { createEngine, DEFAULT_USER_GAIN } from "./engine.js?v=20260708-audio2";
-import { createPoller } from "./poller.js?v=20260708-audio2";
-import { CURATED_SERVICES } from "./mapping.js?v=20260708-audio2";
+import { createEngine, DEFAULT_USER_GAIN } from "./engine.js?v=20260708-inspector";
+import { createPoller } from "./poller.js?v=20260708-inspector";
+import {
+  CURATED_SERVICES,
+  computeFrame,
+} from "./mapping.js?v=20260708-inspector";
 
 const WIDGET_ID = "sonify-widget";
 
-/**
- * Status dot colours reuse the estate palette: the green/red pair from
- * specular-widget's online/offline dot, the amber accent token for
- * degraded, the faint text token for unknown.
- */
+const SERVICE_LABELS = {
+  "ramone-memory": "memory",
+  "atlas-corpus": "corpus",
+  "specular-telemetry": "telemetry",
+  "atlas-api-index": "api index",
+  "ramone-trigger": "trigger",
+  "specular-edge": "edge",
+};
+
+const STATUS_LABELS = {
+  healthy: "healthy",
+  degraded: "degraded",
+  down: "down",
+  unknown: "unknown",
+};
+
+const DEMOS = {
+  healthy: {
+    label: "all healthy",
+    estate: { overall_health: 1, active_incidents: 0 },
+    overrides: {},
+  },
+  slowApi: {
+    label: "slow api",
+    estate: { overall_health: 0.9, active_incidents: 0 },
+    overrides: {
+      "atlas-api-index": { latency_ms: 460, status: "degraded" },
+    },
+  },
+  corpusDegraded: {
+    label: "corpus degraded",
+    estate: { overall_health: 0.78, active_incidents: 0 },
+    overrides: {
+      "atlas-corpus": {
+        status: "degraded",
+        latency_ms: 310,
+        uptime_pct: 91,
+        error_rate: 0.45,
+      },
+    },
+  },
+  incident: {
+    label: "incident",
+    estate: { overall_health: 0.46, active_incidents: 1 },
+    overrides: {
+      "ramone-trigger": {
+        status: "down",
+        latency_ms: null,
+        uptime_pct: 0,
+        error_rate: 1,
+      },
+    },
+  },
+  recovery: {
+    label: "fresh deploy",
+    estate: { overall_health: 0.98, active_incidents: 0 },
+    overrides: {
+      "specular-edge": {
+        status: "healthy",
+        last_deploy_secs_ago: 120,
+      },
+    },
+  },
+};
+
 const STYLE = `
 .sn-w {
   position: fixed;
@@ -39,33 +89,50 @@ const STYLE = `
   z-index: 300;
   display: grid;
   gap: 8px;
-  min-width: 208px;
+  width: min(560px, calc(100vw - 32px));
+  max-width: 232px;
   padding: 10px 12px;
   background: var(--bg-1, #111118);
   border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
   border-radius: 6px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
   font-family: var(--mono, "IBM Plex Mono", monospace);
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 1.45;
   color: var(--text, #e8e8e0);
 }
+.sn-w[data-open="1"] { max-width: 560px; }
 .sn-w * { box-sizing: border-box; }
-.sn-head { display: flex; align-items: center; gap: 10px; }
-.sn-toggle {
-  flex: none;
+.sn-head { display: flex; align-items: center; gap: 8px; }
+.sn-toggle,
+.sn-icon,
+.sn-chip,
+.sn-mini {
   background: transparent;
-  border: 1px solid var(--accent, #f5a623);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
   border-radius: 4px;
-  color: var(--accent, #f5a623);
+  color: var(--text, #e8e8e0);
   font: inherit;
   font-size: 11px;
-  letter-spacing: 0.06em;
-  padding: 3px 10px;
+  padding: 3px 8px;
   cursor: pointer;
-  transition: background 0.15s ease;
 }
-.sn-toggle:hover { background: rgba(245, 166, 35, 0.12); }
-.sn-toggle:focus-visible {
+.sn-toggle {
+  flex: none;
+  border-color: var(--accent, #f5a623);
+  color: var(--accent, #f5a623);
+  letter-spacing: 0.06em;
+  padding-inline: 10px;
+}
+.sn-icon { width: 26px; padding-inline: 0; color: var(--text-dim, #aaa9a0); }
+.sn-toggle:hover,
+.sn-icon:hover,
+.sn-chip:hover,
+.sn-mini:hover { background: rgba(245, 166, 35, 0.12); }
+.sn-toggle:focus-visible,
+.sn-icon:focus-visible,
+.sn-chip:focus-visible,
+.sn-mini:focus-visible {
   outline: 1px solid var(--accent, #f5a623);
   outline-offset: 2px;
 }
@@ -88,6 +155,7 @@ const STYLE = `
 .sn-dot[data-status="healthy"] { background: #4ade80; }
 .sn-dot[data-status="degraded"] { background: var(--accent, #f5a623); }
 .sn-dot[data-status="down"] { background: #e24b4a; }
+.sn-dot[data-hit="1"] { outline: 1px solid #fff; outline-offset: 2px; }
 .sn-vol {
   display: flex;
   align-items: center;
@@ -96,16 +164,53 @@ const STYLE = `
   font-size: 11px;
   letter-spacing: 0.06em;
 }
-.sn-vol input {
-  flex: 1 1 auto;
-  min-width: 0;
-  accent-color: var(--accent, #f5a623);
+.sn-vol input { flex: 1 1 auto; min-width: 0; accent-color: var(--accent, #f5a623); }
+.sn-panel { display: none; gap: 10px; border-top: 1px solid var(--border, rgba(255,255,255,.08)); padding-top: 10px; }
+.sn-w[data-open="1"] .sn-panel { display: grid; }
+.sn-mode,
+.sn-demo { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.sn-label { color: var(--text-faint, #555560); letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
+.sn-chip[aria-pressed="true"],
+.sn-mini[aria-pressed="true"] {
+  border-color: var(--accent, #f5a623);
+  color: var(--accent, #f5a623);
 }
+.sn-grid { display: grid; gap: 5px; }
+.sn-row {
+  display: grid;
+  grid-template-columns: 10px minmax(95px, 1fr) 58px 58px 44px 52px;
+  gap: 7px;
+  align-items: center;
+  min-height: 27px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.sn-row[data-hit="1"] { background: rgba(245,166,35,.1); }
+.sn-row[data-muted="1"] { opacity: .42; }
+.sn-row-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint, #555560); }
+.sn-row-dot[data-status="healthy"] { background: #4ade80; }
+.sn-row-dot[data-status="degraded"] { background: var(--accent, #f5a623); }
+.sn-row-dot[data-status="down"] { background: #e24b4a; }
+.sn-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sn-metric { color: var(--text-dim, #aaa9a0); white-space: nowrap; }
+.sn-actions { display: flex; gap: 4px; justify-content: flex-end; }
+.sn-mini { padding: 2px 5px; font-size: 10px; color: var(--text-dim, #aaa9a0); }
+.sn-explain {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px 12px;
+  color: var(--text-dim, #aaa9a0);
+  font-size: 11px;
+}
+.sn-explain b { color: var(--text, #e8e8e0); font-weight: 500; }
+.sn-summary { color: var(--text-dim, #aaa9a0); font-size: 11px; }
+.sn-summary b { color: var(--text, #e8e8e0); font-weight: 500; }
 .sn-w[data-stale="1"] .sn-readout,
 .sn-w[data-stale="1"] .sn-dots { opacity: 0.45; }
-/* Clear the 56px fixed mobile nav at the site's mobile breakpoint. */
 @media (max-width: 680px) {
-  .sn-w { right: 12px; bottom: 72px; }
+  .sn-w { right: 12px; bottom: 72px; width: calc(100vw - 24px); }
+  .sn-row { grid-template-columns: 10px minmax(80px, 1fr) 48px 48px 36px 48px; gap: 5px; }
+  .sn-explain { grid-template-columns: 1fr; }
 }
 `;
 
@@ -118,19 +223,77 @@ function el(tag, className, attrs = {}) {
   return node;
 }
 
+function fmtMs(value) {
+  return Number.isFinite(value) ? `${Math.round(value)}ms` : "no ms";
+}
+
+function fmtPct(value) {
+  return Number.isFinite(value) ? `${Math.round(value)}%` : "open";
+}
+
+function fmtPitch(voice) {
+  return `d${voice.degree}`;
+}
+
+function cloneFrame(frame) {
+  return {
+    ...frame,
+    scale: [...frame.scale],
+    voices: frame.voices.map((voice) => ({ ...voice })),
+  };
+}
+
+function applyMasks(frame, muted, soloed) {
+  const next = cloneFrame(frame);
+  const soloActive = soloed.size > 0;
+  next.voices = next.voices.map((voice) => {
+    const off = muted.has(voice.name) || (soloActive && !soloed.has(voice.name));
+    return off ? { ...voice, audible: false, voiceGain: 0, velocity: 0 } : voice;
+  });
+  return next;
+}
+
+function baseService(name) {
+  return {
+    name,
+    status: "healthy",
+    latency_ms: null,
+    uptime_pct: null,
+    error_rate: null,
+    last_deploy_secs_ago: null,
+  };
+}
+
+function buildDemoPayload(kind) {
+  const demo = DEMOS[kind] || DEMOS.healthy;
+  return {
+    timestamp: new Date().toISOString(),
+    estate: demo.estate,
+    services: CURATED_SERVICES.map((name, index) => ({
+      ...baseService(name),
+      latency_ms: [130, 150, null, 35, null, null][index],
+      ...demo.overrides[name],
+    })),
+  };
+}
+
 export function initSonify() {
-  if (document.getElementById(WIDGET_ID)) return; // idempotent
+  if (document.getElementById(WIDGET_ID)) return;
 
   const engine = createEngine();
-
-  /* ---------------- DOM ---------------- */
+  let mode = "live";
+  let demoKind = "healthy";
+  let lastLiveFrame = null;
+  let currentDisplayFrame = null;
+  const muted = new Set();
+  const soloed = new Set();
 
   const root = el("section", "sn-w", {
     id: WIDGET_ID,
     role: "region",
     "aria-label": "Estate sonification",
+    "data-open": "0",
   });
-
   const style = document.createElement("style");
   style.textContent = STYLE;
 
@@ -141,18 +304,24 @@ export function initSonify() {
     "aria-label": "Start estate sonification",
   });
   toggle.textContent = "start";
+  const expand = el("button", "sn-icon", {
+    type: "button",
+    "aria-expanded": "false",
+    title: "Open sonify inspector",
+  });
+  expand.textContent = "+";
 
   const readout = el("div", "sn-readout", { "aria-live": "polite" });
   const healthSpan = el("span", "sn-health");
   healthSpan.textContent = "health --%";
   const sep = document.createElement("span");
-  sep.textContent = " \u00b7 ";
+  sep.textContent = " . ";
   const incSpan = el("span", "sn-inc");
   incSpan.textContent = "inc -";
   readout.append(healthSpan, sep, incSpan);
-  head.append(toggle, readout);
+  head.append(toggle, expand, readout);
 
-  const dots = el("div", "sn-dots", { "aria-hidden": "false" });
+  const dots = el("div", "sn-dots");
   const dotByName = new Map();
   for (const name of CURATED_SERVICES) {
     const dot = el("span", "sn-dot", {
@@ -178,10 +347,89 @@ export function initSonify() {
   });
   vol.append(volText, slider);
 
-  root.append(style, head, dots, vol);
-  document.body.append(root);
+  const panel = el("div", "sn-panel");
+  const modeBar = el("div", "sn-mode");
+  const modeLabel = el("span", "sn-label");
+  modeLabel.textContent = "source";
+  const liveBtn = el("button", "sn-chip", { type: "button", "aria-pressed": "true" });
+  liveBtn.textContent = "live estate";
+  const demoBtn = el("button", "sn-chip", { type: "button", "aria-pressed": "false" });
+  demoBtn.textContent = "demo lab";
+  modeBar.append(modeLabel, liveBtn, demoBtn);
 
-  /* ---------------- Wiring ---------------- */
+  const demoBar = el("div", "sn-demo");
+  const demoLabel = el("span", "sn-label");
+  demoLabel.textContent = "try";
+  demoBar.append(demoLabel);
+  const demoButtons = new Map();
+  for (const [key, demo] of Object.entries(DEMOS)) {
+    const button = el("button", "sn-chip", {
+      type: "button",
+      "aria-pressed": key === demoKind ? "true" : "false",
+    });
+    button.textContent = demo.label;
+    button.addEventListener("click", () => {
+      demoKind = key;
+      mode = "demo";
+      refreshSourceButtons();
+      renderCurrent();
+    });
+    demoButtons.set(key, button);
+    demoBar.append(button);
+  }
+
+  const grid = el("div", "sn-grid");
+  const rows = new Map();
+  for (const name of CURATED_SERVICES) {
+    const row = el("div", "sn-row", { "data-service": name });
+    const dot = el("span", "sn-row-dot", { "data-status": "unknown" });
+    const serviceName = el("span", "sn-name");
+    serviceName.textContent = SERVICE_LABELS[name] || name;
+    const latency = el("span", "sn-metric");
+    const pitch = el("span", "sn-metric");
+    const bright = el("span", "sn-metric");
+    const actions = el("span", "sn-actions");
+    const solo = el("button", "sn-mini", { type: "button", "aria-pressed": "false" });
+    solo.textContent = "S";
+    solo.title = `Solo ${name}`;
+    const mute = el("button", "sn-mini", { type: "button", "aria-pressed": "false" });
+    mute.textContent = "M";
+    mute.title = `Mute ${name}`;
+    actions.append(solo, mute);
+    row.append(dot, serviceName, latency, pitch, bright, actions);
+    grid.append(row);
+    rows.set(name, { row, dot, latency, pitch, bright, solo, mute });
+    solo.addEventListener("click", () => {
+      if (soloed.has(name)) soloed.delete(name);
+      else soloed.add(name);
+      renderCurrent();
+    });
+    mute.addEventListener("click", () => {
+      if (muted.has(name)) muted.delete(name);
+      else muted.add(name);
+      renderCurrent();
+    });
+  }
+
+  const summary = el("div", "sn-summary");
+  const explain = el("div", "sn-explain");
+  for (const [label, value] of [
+    ["latency", "pitch"],
+    ["health", "mode + volume"],
+    ["uptime/current state", "brightness"],
+    ["errors", "note strength"],
+    ["incidents", "drum hit"],
+    ["deploy age", "vibrato"],
+  ]) {
+    const item = document.createElement("span");
+    const key = document.createElement("b");
+    key.textContent = label;
+    item.append(key, document.createTextNode(` -> ${value}`));
+    explain.append(item);
+  }
+  panel.append(modeBar, demoBar, grid, summary, explain);
+  root.append(style, head, dots, vol, panel);
+  document.body.append(root);
 
   function setToggleState(runningNow) {
     toggle.textContent = runningNow ? "mute" : "start";
@@ -190,6 +438,74 @@ export function initSonify() {
       "aria-label",
       runningNow ? "Mute estate sonification" : "Start estate sonification",
     );
+  }
+
+  function refreshSourceButtons() {
+    liveBtn.setAttribute("aria-pressed", String(mode === "live"));
+    demoBtn.setAttribute("aria-pressed", String(mode === "demo"));
+    for (const [key, button] of demoButtons) {
+      button.setAttribute("aria-pressed", String(mode === "demo" && key === demoKind));
+    }
+  }
+
+  function sourceFrame() {
+    if (mode === "demo") return computeFrame(buildDemoPayload(demoKind));
+    return lastLiveFrame;
+  }
+
+  function renderCurrent() {
+    const frame = sourceFrame();
+    if (!frame) return;
+    currentDisplayFrame = frame;
+    const audibleFrame = applyMasks(frame, muted, soloed);
+    engine.applyFrame(audibleFrame);
+    renderFrame(frame);
+  }
+
+  function renderFrame(frame) {
+    healthSpan.textContent = `health ${Math.round(frame.overallHealth * 100)}%`;
+    incSpan.textContent = `inc ${frame.activeIncidents}`;
+    incSpan.setAttribute("data-alert", frame.activeIncidents > 0 ? "1" : "0");
+    const modeName = frame.overallHealth > 0.75
+      ? "Lydian / open"
+      : frame.overallHealth < 0.5
+        ? "Phrygian / alert"
+        : "crossfade";
+    summary.textContent = "";
+    const summaryMood = document.createElement("b");
+    summaryMood.textContent = modeName;
+    summary.append(summaryMood, document.createTextNode(
+      ` . ${mode === "demo" ? "demo" : "live"} . ${frame.voices.length} voices`,
+    ));
+    for (const voice of frame.voices) {
+      const dot = dotByName.get(voice.name);
+      const row = rows.get(voice.name);
+      if (!row) continue;
+      const hidden = muted.has(voice.name) || (soloed.size > 0 && !soloed.has(voice.name));
+      dot?.setAttribute("data-status", voice.status);
+      dot?.setAttribute("title", `${voice.name}: ${voice.status}`);
+      dot?.setAttribute("aria-label", `${voice.name}: ${voice.status}`);
+      row.dot.setAttribute("data-status", voice.status);
+      row.row.setAttribute("data-muted", hidden ? "1" : "0");
+      row.latency.textContent = fmtMs(voice.latency_ms);
+      row.pitch.textContent = fmtPitch(voice);
+      row.bright.textContent = fmtPct(voice.uptime_pct);
+      row.solo.setAttribute("aria-pressed", String(soloed.has(voice.name)));
+      row.mute.setAttribute("aria-pressed", String(muted.has(voice.name)));
+      row.row.title = `${voice.name}: ${STATUS_LABELS[voice.status]}; latency controls pitch, brightness follows state, errors reduce strength`;
+    }
+  }
+
+  function flashVoice(name) {
+    const row = rows.get(name);
+    const dot = dotByName.get(name);
+    if (!row) return;
+    row.row.setAttribute("data-hit", "1");
+    dot?.setAttribute("data-hit", "1");
+    window.setTimeout(() => {
+      row.row.removeAttribute("data-hit");
+      dot?.removeAttribute("data-hit");
+    }, 220);
   }
 
   toggle.addEventListener("click", async () => {
@@ -203,8 +519,6 @@ export function initSonify() {
         setToggleState(true);
       }
     } catch (err) {
-      // Most likely cause: vendored Tone.js missing. Say what is wrong
-      // and how to fix it; the widget stays useful as a status readout.
       console.error("sonify: audio failed to start", err);
       toggle.textContent = "audio n/a";
       toggle.setAttribute("aria-label", "Audio unavailable; see console");
@@ -213,42 +527,44 @@ export function initSonify() {
     }
   });
 
+  expand.addEventListener("click", () => {
+    const open = root.getAttribute("data-open") !== "1";
+    root.setAttribute("data-open", open ? "1" : "0");
+    expand.setAttribute("aria-expanded", String(open));
+    expand.textContent = open ? "-" : "+";
+  });
+
+  liveBtn.addEventListener("click", () => {
+    mode = "live";
+    refreshSourceButtons();
+    renderCurrent();
+  });
+  demoBtn.addEventListener("click", () => {
+    mode = "demo";
+    refreshSourceButtons();
+    renderCurrent();
+  });
+
   slider.addEventListener("input", () => {
     engine.setUserVolume(Number(slider.value) / 100);
   });
 
-  function renderFrame(frame) {
-    healthSpan.textContent = `health ${Math.round(frame.overallHealth * 100)}%`;
-    incSpan.textContent = `inc ${frame.activeIncidents}`;
-    incSpan.setAttribute(
-      "data-alert",
-      frame.activeIncidents > 0 ? "1" : "0",
-    );
-    for (const voice of frame.voices) {
-      const dot = dotByName.get(voice.name);
-      if (!dot) continue;
-      dot.setAttribute("data-status", voice.status);
-      dot.setAttribute("title", `${voice.name}: ${voice.status}`);
-      dot.setAttribute("aria-label", `${voice.name}: ${voice.status}`);
-    }
-  }
+  engine.setVoiceTickHandler((name) => flashVoice(name));
 
   const poller = createPoller({
     onFrame(frame, { newIncidents }) {
-      engine.applyFrame(frame);
-      if (newIncidents > 0) engine.queueIncidentHits(newIncidents);
-      renderFrame(frame);
+      lastLiveFrame = frame;
+      if (mode === "live") {
+        renderCurrent();
+        if (newIncidents > 0) engine.queueIncidentHits(newIncidents);
+      }
     },
     onStatus({ failing }) {
-      // Honest-status idiom: stale data dims rather than lies. The
-      // last known values stay visible, per the hold rule.
       root.setAttribute("data-stale", failing ? "1" : "0");
     },
   });
 
-  // Poll from page load, muted or not: the readout and dots are the
-  // widget's always-on half, and the engine banks frames so the first
-  // unmuted moment already reflects the live estate.
+  refreshSourceButtons();
   poller.start();
 }
 
