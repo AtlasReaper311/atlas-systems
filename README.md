@@ -7,48 +7,51 @@
 ```
 ┌─────────────────────────────────────────────┐
 │  ATLAS SYSTEMS // atlas-systems             │
-│  the front of the system,                   │
-│  showing the infrastructure it documents    │
+│  the front of the system, showing the       │
+│  infrastructure it documents                │
 └─────────────────────────────────────────────┘
 ```
 
-[![Deploy Notify](https://github.com/AtlasReaper311/atlas-systems/actions/workflows/notify-deploy.yml/badge.svg)](https://github.com/AtlasReaper311/atlas-systems/actions)
-![HTML5](https://img.shields.io/badge/html5-f5a623?style=flat-square&labelColor=0a0a0f)
-![CSS3](https://img.shields.io/badge/css3-aaa9a0?style=flat-square&labelColor=0a0a0f)
-![JavaScript](https://img.shields.io/badge/javascript-aaa9a0?style=flat-square&labelColor=0a0a0f)
+[![Deploy](https://github.com/AtlasReaper311/atlas-systems/actions/workflows/deploy.yml/badge.svg)](https://github.com/AtlasReaper311/atlas-systems/actions)
+![Static](https://img.shields.io/badge/static-html%2Fcss%2Fjs-f5a623?style=flat-square&labelColor=0a0a0f)
 ![Cloudflare Pages](https://img.shields.io/badge/cloudflare-pages-4ade80?style=flat-square&labelColor=0a0a0f)
+![Cost](https://img.shields.io/badge/cost-%C2%A30-aaa9a0?style=flat-square&labelColor=0a0a0f)
 
-Live source for [atlas-systems.uk](https://atlas-systems.uk). Hand-built HTML, CSS, and JavaScript with no framework, deployed to Cloudflare Pages through native Git integration on every push to `main`.
-
-The site demonstrates the infrastructure it documents rather than describing it. Commit activity, deploy status, and GitHub stats pull from real data through [`github-pulse`](https://github.com/AtlasReaper311/github-pulse) and [`atlas-notify`](https://github.com/AtlasReaper311/atlas-notify); none of it is hardcoded.
+Live source for [atlas-systems.uk](https://atlas-systems.uk). Hand-built HTML, CSS, and JavaScript with no framework, validated and deployed to Cloudflare Pages through the reusable `atlas-infra` static-site workflow on every push to `main`.
 
 ## Stack
 
-- Static HTML, CSS, and JavaScript, hand-written, no build step
-- Dark terminal aesthetic (`#0a0a0f` background, amber `#f5a623` accent, IBM Plex Mono and DM Serif Display)
-- Cloudflare Pages for hosting and deploy
-- GitHub Actions for deploy notifications and a scheduled activity digest
+- Static HTML, CSS, and JavaScript
+- No framework and no build step
+- Cloudflare Pages for hosting
+- GitHub Actions for validation, publishing, notification, sitemap generation, and corpus refresh
+- Live data from `github-pulse`, `site-pulse`, `deploy-watch`, and `atlas-api-public`
 
 ## Pipeline
 
-| Workflow | Trigger | Does |
-|---|---|---|
-| `notify-deploy.yml` | push to `main` | Posts a Discord embed confirming a deploy was triggered |
-| `weekly-digest.yml` | scheduled, Sundays 18:00 UTC | Pulls commit, PR, and issue activity across all public repos and posts a summary embed |
+| Stage | Workflow | Trigger | Does |
+|---|---|---|---|
+| Sitemap | `deploy.yml` | push to `main`, manual dispatch | Regenerates `sitemap.xml` from real file history |
+| Static validation | `atlas-infra/validate-static.yml` | called by `deploy.yml` | Runs `html-validate` and offline internal-link checks |
+| Deploy | `atlas-infra/validate-static.yml` | validation success | Publishes to Cloudflare Pages through Wrangler |
+| Notify | `atlas-infra/validate-static.yml` | always | Reports deploy outcome to Discord and the Lab failure log |
+| Corpus refresh | `atlas-corpus/refresh-corpus.yml` | push to `main` | Re-ingests the estate docs into the searchable corpus |
+| Outcome verification | `deploy-watch` | Cloudflare cron | Confirms the actual Pages deployment result from Cloudflare's API |
 
-Both post through Discord webhooks into a server used as a live infrastructure dashboard.
+The push event, validation gate, deploy result, and Cloudflare Pages outcome are separate signals. `deploy.yml` handles the build path; `deploy-watch` independently verifies whether Cloudflare actually produced the expected deployment.
 
 ## Live data
 
-The homepage stops claiming activity and starts showing it. The Live Signal section and GitHub Pulse feed both read from `github-pulse`, a server-side proxy that holds the API token and caches responses, so a page view never touches the GitHub API directly and the token never reaches the browser.
+The homepage stops claiming activity and starts showing it. The Live Signal section and GitHub Pulse feed read from real endpoints so the page reflects the estate instead of describing it from memory.
+
+`github-pulse` holds the GitHub token server-side and exposes a cached read-only JSON shape for repository activity. `site-pulse` exposes Cloudflare Analytics in a browser-safe form. `deploy-watch` confirms the latest Cloudflare Pages deployment outcome. `atlas-api-public` exposes the versioned public surface for registry, health, search, stats, and badge data.
 
 ## How it fits into Atlas Systems
 
-This repo is the surface; everything else in the stack feeds it. The deploy badge above is the same workflow that reports into Discord, so the repo page and the dashboard tell the same story from two angles.
+This repo is the public surface of the estate. [`github-pulse`](https://github.com/AtlasReaper311/github-pulse), [`site-pulse`](https://github.com/AtlasReaper311/site-pulse), [`deploy-watch`](https://github.com/AtlasReaper311/deploy-watch), [`atlas-api-public`](https://github.com/AtlasReaper311/atlas-api-public), and [`atlas-corpus`](https://github.com/AtlasReaper311/atlas-corpus) all feed it; [`atlas-infra`](https://github.com/AtlasReaper311/atlas-infra) defines the deployment shape it runs through.
 
-The transferable pattern is treating a portfolio as a deployed system: the credibility comes from the thing running and reporting on itself, not from a description of what it would do.
+A portfolio becomes credible when the thing making the claim is wired to the system that proves it.
 
 ---
 
 Part of [atlas-systems.uk](https://atlas-systems.uk)
-
