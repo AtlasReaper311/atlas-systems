@@ -23,10 +23,12 @@ import {
   CALM_FLOOR_DB,
   FILTER_MAX_HZ,
   FILTER_MIN_HZ,
+  KNOWN_VOICE_GAIN,
   NEUTRAL_DEGREE,
   ROOT_MIDI,
   SCALE_LYDIAN,
   SCALE_PHRYGIAN,
+  UNKNOWN_VOICE_GAIN,
   blendScales,
   computeFrame,
   computeMasterGainDb,
@@ -75,6 +77,7 @@ test("healthy estate: pure Lydian, open filters, calm floor", () => {
 
   for (const v of frame.voices) {
     assert.equal(v.audible, true);
+    assert.equal(v.voiceGain, KNOWN_VOICE_GAIN);
     // 100% uptime opens the lowpass fully.
     assert.equal(v.filterHz, FILTER_MAX_HZ);
     // Zero error rate leaves the base velocity untouched.
@@ -149,7 +152,7 @@ test("degraded estate: Phrygian-weighted blend, muffle, recession", () => {
   assert.equal(frame.voices[4].filterHz, FILTER_MIN_HZ);
 });
 
-test("unknown status: null fields resolve to a silent, NaN-free voice", () => {
+test("unknown status: null fields resolve to a quiet, NaN-free voice", () => {
   const payload = {
     timestamp: "2026-07-07T12:00:20.000Z",
     estate: { overall_health: 0.3, active_incidents: 0 },
@@ -167,8 +170,9 @@ test("unknown status: null fields resolve to a silent, NaN-free voice", () => {
   const frame = computeFrame(payload);
   const v = frame.voices[0];
 
-  // Gated silent, but shaped healthy so it can fade in cleanly.
-  assert.equal(v.audible, false);
+  // Faint, but shaped healthy so it can fade in cleanly.
+  assert.equal(v.audible, true);
+  assert.equal(v.voiceGain, UNKNOWN_VOICE_GAIN);
   assert.equal(v.filterHz, FILTER_MAX_HZ);
   assert.equal(v.velocity, BASE_VELOCITY);
   assert.equal(v.vibratoDepth, 0);

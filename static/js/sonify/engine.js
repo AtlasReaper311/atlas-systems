@@ -20,7 +20,7 @@ import {
   PARAM_RAMP_SECS,
   TRANSPORT_BPM,
   VIBRATO_MAX_DEPTH,
-} from "./mapping.js";
+} from "./mapping.js?v=20260708-audio2";
 
 /* ------------------------------------------------------------------ */
 /* Engine-local constants                                              */
@@ -57,7 +57,7 @@ export const INCIDENT_VELOCITY = 0.9;
 export const REVERB_DECAY_SECS = 1.5;
 
 /** Default position for the user volume slider (linear gain 0..1). */
-export const DEFAULT_USER_GAIN = 0.8;
+export const DEFAULT_USER_GAIN = 1;
 
 /** Short ramp for start/stop and slider moves; snappier than the
  *  telemetry ramps because it answers a direct user action. */
@@ -163,8 +163,9 @@ export function createEngine() {
       });
 
       // Per-voice gate. Starts closed and fades open on the first
-      // frame; "unknown" voices hold at 0 but stay scheduled, so a
-      // service appearing mid-session fades in rather than pops.
+      // frame; unknown voices hold at a low mapped gain but stay
+      // scheduled, so a service appearing mid-session fades in rather
+      // than pops.
       const gain = new Tone.Gain(0);
 
       synth.chain(filter, gain, healthVolume);
@@ -231,7 +232,10 @@ export function createEngine() {
       const voice = voices.get(v.name);
       if (!voice) continue; // payload outside the curated pool: ignore
       voice.filter.frequency.rampTo(v.filterHz, PARAM_RAMP_SECS);
-      voice.gain.gain.rampTo(v.audible ? 1 : 0, PARAM_RAMP_SECS);
+      voice.gain.gain.rampTo(
+        v.voiceGain ?? (v.audible ? 1 : 0),
+        PARAM_RAMP_SECS,
+      );
       // Pitch under a sustained note glides too: this is what lets the
       // scale crossfade bend a held tone instead of waiting for the
       // next retrigger. New strikes then land on the same value.

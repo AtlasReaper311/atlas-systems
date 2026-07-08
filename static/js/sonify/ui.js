@@ -20,9 +20,9 @@
  * bad manners regardless.
  */
 
-import { createEngine, DEFAULT_USER_GAIN } from "./engine.js";
-import { createPoller } from "./poller.js";
-import { CURATED_SERVICES } from "./mapping.js";
+import { createEngine, DEFAULT_USER_GAIN } from "./engine.js?v=20260708-audio2";
+import { createPoller } from "./poller.js?v=20260708-audio2";
+import { CURATED_SERVICES } from "./mapping.js?v=20260708-audio2";
 
 const WIDGET_ID = "sonify-widget";
 

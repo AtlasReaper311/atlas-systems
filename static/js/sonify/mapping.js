@@ -99,7 +99,7 @@ export const FILTER_MAX_HZ = 8000;
 export const UPTIME_AUDIBLE_FLOOR_PCT = 90;
 
 /** Base note velocity; error_rate only ever scales it down. */
-export const BASE_VELOCITY = 0.4;
+export const BASE_VELOCITY = 0.55;
 
 /** Fresh-deploy vibrato: max depth, decaying to zero across one hour. */
 export const VIBRATO_MAX_DEPTH = 0.15;
@@ -114,8 +114,16 @@ export const VIBRATO_WINDOW_SECS = 3600;
  * immediately regardless of health.
  */
 export const CALM_HEALTH_THRESHOLD = 0.95;
-export const CALM_FLOOR_DB = -18;
+export const CALM_FLOOR_DB = -9;
 export const MASTER_UNITY_HEALTH = 0.5;
+
+/**
+ * Per-voice gain for known vs unknown services. Unknown voices stay
+ * faint and neutral rather than fully muted, so the six-service estate
+ * remains visible by ear even before every worker exposes metrics.
+ */
+export const KNOWN_VOICE_GAIN = 1;
+export const UNKNOWN_VOICE_GAIN = 0.18;
 
 /**
  * Continuous parameters (filter, gain, vibrato depth, master volume,
@@ -138,8 +146,8 @@ export const PARAM_RAMP_SECS = 0.3;
  *               velocity formula (error 1.0 gives 0.4 x 0 = 0); the
  *               alarm is carried by the estate layer instead (scale
  *               tilt, master gain, incident hit)
- *   unknown  -> healthy-shaped but gated silent, so it can fade in
- *               cleanly the moment data arrives
+ *   unknown  -> healthy-shaped but quiet, so it can fade into a
+ *               measured state cleanly the moment data arrives
  * Latency has no pessimistic default on purpose: inventing a pitch
  * would claim a measurement that was never made, so null latency
  * always resolves to the crossfade-invariant NEUTRAL_DEGREE.
@@ -214,6 +222,11 @@ export function uptimeToFilterHz(uptimePct) {
  */
 export function errorRateToVelocity(errorRate) {
   return BASE_VELOCITY * (1 - clamp(errorRate, 0, 1));
+}
+
+/** Voice gain from status: unknown is visible but clearly background. */
+export function statusToVoiceGain(status) {
+  return status === "unknown" ? UNKNOWN_VOICE_GAIN : KNOWN_VOICE_GAIN;
 }
 
 /**
@@ -301,9 +314,9 @@ export function resolveMetrics(service) {
 }
 
 /**
- * One voice's parameter set. `audible` gates the voice's gain node in
- * the engine; an unknown service is still scheduled and updated (so it
- * can fade in cleanly when data arrives) but contributes no sound.
+ * One voice's parameter set. `voiceGain` gates the voice's gain node in
+ * the engine; unknown services are still scheduled, updated, and faintly
+ * audible, so they can fade into measured data without popping.
  */
 export function computeVoiceParams(service, blendedScale) {
   const m = resolveMetrics(service);
@@ -313,7 +326,8 @@ export function computeVoiceParams(service, blendedScale) {
   return {
     name: service?.name ?? "unnamed",
     status: m.status,
-    audible: m.status !== "unknown",
+    audible: true,
+    voiceGain: statusToVoiceGain(m.status),
     degree,
     semitoneOffset,
     midi,
