@@ -52,8 +52,6 @@
       blurb: "Pages deploy poller" },
     { id: "atlas-vault",     role: "worker", label: "atlas-vault",
       blurb: "Personal streaming-data backup vault" },
-    { id: "atlas-backend",   role: "worker", label: "atlas-backend",
-      blurb: "Legacy backend Worker" },
 
     /* ── Cloudflare Pages sites ── */
     { id: "atlas-systems",    role: "site", label: "atlas-systems.uk",

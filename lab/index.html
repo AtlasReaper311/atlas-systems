@@ -1541,7 +1541,7 @@
       }
 
       const API_INDEX_URL = "https://api.atlas-systems.uk/";
-      const API_SURFACE_EXCLUDED_WORKERS = new Set(["simple-proxy"]);
+      const API_SURFACE_EXCLUDED_WORKERS = new Set(["simple-proxy", "atlas-backend"]);
 
       function normalizeApiSurface(data) {
         const endpoints = [];
@@ -1620,7 +1620,7 @@
           if (!byWorker[w]) { byWorker[w] = []; order.push(w); }
           byWorker[w].push(ep);
         }
-        const workerPriority = ["atlas-api-public", "atlas-api-index", "atlas-notify", "ramone-edge", "github-pulse", "site-pulse", "deploy-watch", "ramone-trigger", "specular-edge", "atlas-backend"];
+        const workerPriority = ["atlas-api-public", "atlas-api-index", "atlas-notify", "ramone-edge", "github-pulse", "site-pulse", "deploy-watch", "ramone-trigger", "specular-edge"];
         order.sort((a, b) => {
           const ai = workerPriority.indexOf(a);
           const bi = workerPriority.indexOf(b);

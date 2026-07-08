@@ -87,7 +87,7 @@
     infra: "infrastructure",
     ext: "external"
   };
-  const LAB_EXCLUDED_WORKERS = new Set(["simple-proxy"]);
+  const LAB_EXCLUDED_WORKERS = new Set(["simple-proxy", "atlas-backend"]);
 
   /* Rest lengths per edge kind: bindings pull tight (they are same-account,
      zero-hop), tunnels hold the LAN visibly apart from the edge, pollers and
