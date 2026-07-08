@@ -1,37 +1,43 @@
-name: Deploy Notify
+name: Pre-deploy Witness
 
 on:
   push:
     branches: [main]
 
 jobs:
-  notify:
+  witness:
+    name: Record publish-triggering push
     runs-on: ubuntu-latest
     steps:
       - name: Notify Discord
         run: |
+          set -euo pipefail
+
           SHORT_SHA="${GITHUB_SHA:0:7}"
           COMMIT_URL="https://github.com/${{ github.repository }}/commit/${{ github.sha }}"
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
           PAYLOAD=$(jq -n \
             --arg short_sha "$SHORT_SHA" \
             --arg commit_url "$COMMIT_URL" \
+            --arg run_url "$RUN_URL" \
             --arg actor "${{ github.actor }}" \
             '{
               username: "deploy-log",
               embeds: [{
-                title: "Deploy Log",
-                description: "Push to main triggered a Cloudflare Pages deploy.",
+                title: "Pre-deploy Witness",
+                description: "A push to main was observed. The deploy pipeline should now validate, publish, and report its own outcome.",
                 color: 16098851,
                 fields: [
-                  {name: "Status", value: "🟢 deploy triggered", inline: true},
+                  {name: "Status", value: "🟠 push observed", inline: true},
                   {name: "Commit", value: ("[" + $short_sha + "](" + $commit_url + ")"), inline: true},
-                  {name: "Actor", value: $actor, inline: true}
+                  {name: "Actor", value: $actor, inline: true},
+                  {name: "Run", value: ("[witness logs](" + $run_url + ")"), inline: false}
                 ],
-                footer: {text: "Atlas Systems — Pipeline"}
+                footer: {text: "Atlas Systems — Pre-deploy signal"}
               }]
             }')
 
-          curl -X POST "${{ secrets.DISCORD_DEPLOY_WEBHOOK }}" \
+          curl -fsS -X POST "${{ secrets.DISCORD_DEPLOY_WEBHOOK }}" \
             -H "Content-Type: application/json" \
             -d "$PAYLOAD"
