@@ -121,6 +121,7 @@
     @media(max-width:900px){.article-body{grid-template-columns:1fr}.toc{display:none}.article-header{grid-template-columns:1fr}}
     @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}.outcomes-grid{grid-template-columns:1fr}}
   </style>
+  <link rel="stylesheet" href="/static/css/estate-search.css">
 </head>
 <body>
   <nav aria-label="Primary navigation">
@@ -130,6 +131,17 @@
       <li><a href="/writing/" class="nav-link">Writing</a></li>
       <li><a href="/lab/" class="nav-link">Lab</a></li>
       <li><a href="/about/" class="nav-link">About</a></li>
+      <li>
+        <button type="button" class="es-nav-search" data-estate-search-open
+                aria-label="Search the estate" aria-haspopup="dialog">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="21" y1="21" x2="16.2" y2="16.2"></line>
+          </svg>
+          Search
+          <kbd data-estate-search-kbd>ctrl k</kbd>
+        </button>
+      </li>
     </ul>
   </nav>
 
@@ -458,6 +470,16 @@ export OLLAMA_MODELS="/mnt/l/Ollama/models"</code></pre>
       <a href="/work/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Work</a>
       <a href="/writing/" class="mobile-nav-item active"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Writing</a>
       <a href="/about/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg>About</a>
+      <button type="button" class="mobile-nav-item es-nav-search-mobile"
+              data-estate-search-open aria-label="Search the estate"
+              aria-haspopup="dialog"
+              style="background:transparent;border:none;font-family:inherit;cursor:pointer">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"></circle>
+          <line x1="21" y1="21" x2="16.2" y2="16.2"></line>
+        </svg>
+        Search
+      </button>
     </div>
   </nav>
 
@@ -477,5 +499,6 @@ export OLLAMA_MODELS="/mnt/l/Ollama/models"</code></pre>
     sections.forEach(s=>observer.observe(s));
   </script>
   <script src="/js/transitions.js?v=20260706-history"></script>
+  <script type="module" src="/static/js/estate-search/global-search.js"></script>
 </body>
 </html>

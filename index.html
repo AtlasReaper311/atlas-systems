@@ -610,6 +610,7 @@
       transform: none;
     }
   </style>
+  <link rel="stylesheet" href="/static/css/estate-search.css">
 </head>
 <body>
 
@@ -621,6 +622,17 @@
       <li><a href="/writing/" class="nav-link">Writing</a></li>
       <li><a href="/lab/" class="nav-link">Lab</a></li>
       <li><a href="/about/" class="nav-link">About</a></li>
+      <li>
+        <button type="button" class="es-nav-search" data-estate-search-open
+                aria-label="Search the estate" aria-haspopup="dialog">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="21" y1="21" x2="16.2" y2="16.2"></line>
+          </svg>
+          Search
+          <kbd data-estate-search-kbd>ctrl k</kbd>
+        </button>
+      </li>
     </ul>
     <a href="https://status.atlas-systems.uk" class="nav-status" target="_blank" rel="noopener">
       <div class="status-dot"></div>
@@ -706,6 +718,9 @@
         <span class="estate-strip-cta">view live architecture &rarr;</span>
       </a>
     </section>
+
+    <!-- ESTATE SEARCH -->
+    <section data-estate-search aria-label="Search the Atlas Systems corpus"></section>
 
     <!-- CONTROL ROOM -->
     <section class="section control-room reveal" id="start">
@@ -1043,6 +1058,16 @@
         <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg>
         About
       </a>
+      <button type="button" class="mobile-nav-item es-nav-search-mobile"
+              data-estate-search-open aria-label="Search the estate"
+              aria-haspopup="dialog"
+              style="background:transparent;border:none;font-family:inherit;cursor:pointer">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"></circle>
+          <line x1="21" y1="21" x2="16.2" y2="16.2"></line>
+        </svg>
+        Search
+      </button>
     </div>
   </nav>
 
@@ -1159,5 +1184,7 @@
   <script src="/js/pulse.js" defer></script>
   <script src="/js/transitions.js?v=20260706-history"></script>
   <script src="/js/atlas-terminal-card-v3.js" defer></script>
+  <script type="module" src="/static/js/estate-search/homepage-widget.js"></script>
+  <script type="module" src="/static/js/estate-search/global-search.js"></script>
 </body>
 </html>

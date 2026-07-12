@@ -46,6 +46,30 @@ The homepage stops claiming activity and starts showing it. The Live Signal sect
 
 `github-pulse` holds the GitHub token server-side and exposes a cached read-only JSON shape for repository activity. `site-pulse` exposes Cloudflare Analytics in a browser-safe form. `deploy-watch` confirms the latest Cloudflare Pages deployment outcome. `atlas-api-public` exposes the versioned public surface for registry, health, search, stats, and badge data.
 
+## Estate search
+
+The site has one reusable search component in `static/js/estate-search/`.
+The homepage widget, the persistent nav overlay, and the Lab corpus
+panel all share `client.js` for endpoint failover and `render.js` for
+result rows. Search stays literal: it renders ranked corpus hits with
+repo, path, type, score, excerpt, and an "ask ramone about this" action.
+Ramone remains the synthesis surface and still cites its sources.
+
+Browser search tries the local corpus when previewing on localhost,
+then `https://corpus.atlas-systems.uk/search`, then the edge proxy at
+`https://api.atlas-systems.uk/v1/search`. Both production hosts are
+already present in `_headers` `connect-src`. The full wiring notes live
+in `docs/README-estate-search.md`.
+
+Quick verification after changes:
+
+1. Search the homepage widget for `kv write limits` and confirm ranked
+   hits render with the Ramone bridge action.
+2. Press Ctrl+K or Cmd+K, type `tunnel`, arrow through results, press
+   Enter, then Esc and confirm focus returns to the trigger.
+3. Click "ask ramone about this" and confirm `/lab/#ramone-card`
+   pre-fills the composer without submitting.
+
 ## How it fits into Atlas Systems
 
 This repo is the public surface of the estate. [`github-pulse`](https://github.com/AtlasReaper311/github-pulse), [`site-pulse`](https://github.com/AtlasReaper311/site-pulse), [`deploy-watch`](https://github.com/AtlasReaper311/deploy-watch), [`atlas-api-public`](https://github.com/AtlasReaper311/atlas-api-public), and [`atlas-corpus`](https://github.com/AtlasReaper311/atlas-corpus) all feed it; [`atlas-infra`](https://github.com/AtlasReaper311/atlas-infra) defines the deployment shape it runs through.

@@ -1,0 +1,75 @@
+<!--
+  estate-search-includes.html
+
+  Every markup insertion the estate search needs, in one place. Nothing
+  here is a working page; copy each numbered block into the location it
+  names. Blocks 1 and 2 go on EVERY page (the overlay and the Ramone
+  bridge ride one stylesheet and one module script). Blocks 3 and 4 are
+  per-page nav edits. Block 5 goes on the homepage only.
+-->
+
+<!-- ================================================================
+  1. In <head>, on every page, after the page's own <style> block:
+================================================================= -->
+<link rel="stylesheet" href="/static/css/estate-search.css">
+
+<!-- ================================================================
+  2. Before </body>, on every page. One module include boots the
+     cmd+k overlay, the "/" shortcut, the nav trigger binding, and the
+     Ramone prefill listener (which only activates on pages that have
+     the composer, i.e. the Lab page):
+================================================================= -->
+<script type="module" src="/static/js/estate-search/global-search.js"></script>
+
+<!-- ================================================================
+  3. Inside <ul class="nav-links">, as the last item, on every page.
+     The kbd label self-corrects to the visitor's platform at runtime
+     (Cmd on mac, ctrl elsewhere):
+================================================================= -->
+<li>
+  <button type="button" class="es-nav-search" data-estate-search-open
+          aria-label="Search the estate" aria-haspopup="dialog">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="11" cy="11" r="7"></circle>
+      <line x1="21" y1="21" x2="16.2" y2="16.2"></line>
+    </svg>
+    Search
+    <kbd data-estate-search-kbd>ctrl k</kbd>
+  </button>
+</li>
+
+<!-- ================================================================
+  4. Optional but recommended: inside .mobile-nav-inner on every page,
+     because .nav-links is hidden under 680px. Same trigger, mobile
+     bar styling:
+================================================================= -->
+<button type="button" class="mobile-nav-item es-nav-search-mobile"
+        data-estate-search-open aria-label="Search the estate"
+        aria-haspopup="dialog"
+        style="background:transparent;border:none;font-family:inherit;cursor:pointer">
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="11" cy="11" r="7"></circle>
+    <line x1="21" y1="21" x2="16.2" y2="16.2"></line>
+  </svg>
+  Search
+</button>
+
+<!-- ================================================================
+  5. Homepage only: the full-size widget. Drop this section where the
+     search should live and add the module include next to block 2.
+     The container is empty on purpose; homepage-widget.js builds the
+     chassis so there is no markup to drift out of sync:
+================================================================= -->
+<section data-estate-search aria-label="Search the Atlas Systems corpus"></section>
+<script type="module" src="/static/js/estate-search/homepage-widget.js"></script>
+
+<!-- ================================================================
+  Migrating the Lab corpus panel (optional, recommended):
+  the Lab panel's existing .cs-w markup can keep its ids and classes.
+  Add data-estate-search to the <section class="cs-w" id="corpus-search">
+  element, include block 5's script tag on the Lab page, delete the old
+  inline corpus IIFE from live-section.js, and change the button label
+  from "ask" to "search". The panel then renders ranked hits instead of
+  a synthesized answer; synthesis is Ramone's job, one click away on
+  every result.
+================================================================= -->

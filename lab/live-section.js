@@ -1,11 +1,11 @@
 /**
  * live-section.js
- * Orchestrates the unified Live section: one boot sequence, three panels
- * (telemetry, estate status, corpus search), one chassis.
+ * Orchestrates the unified Live section: one boot sequence, live panels,
+ * and the shared estate status feed.
  *
- * The telemetry and corpus logic below is the existing widget code carried
- * over, not rewritten. Exactly two things changed in each, both documented
- * in NOTES-live-section.md:
+ * The telemetry logic below is the existing widget code carried over,
+ * not rewritten. Exactly two things changed, both documented in
+ * NOTES-live-section.md:
  *   1. The runtime style-injection lines are gone; styles now live in
  *      live-section.css like every other stylesheet on the page.
  *   2. The first fetch fires when the section scrolls into view instead of
@@ -83,7 +83,6 @@
     /* Data starts flowing the moment the boot starts, in parallel; the
        lines above are honest, the feeds really are attaching right now. */
     telemetryStart();
-    corpusStart();
     statusStart();
   }
 
@@ -231,123 +230,6 @@
       setInterval(tickAge, 5000);
       document.addEventListener("visibilitychange", function () {
         if (!document.hidden) refresh();
-      });
-    };
-  })();
-
-  /* =====================================================================
-     CORPUS SEARCH :: existing widget logic, carried over
-     ===================================================================== */
-  var corpusStart = (function () {
-    var started = false;
-
-    return function start() {
-      if (started) return;
-      started = true;
-
-      var isLocalLab = location.hostname === "localhost" || location.hostname === "127.0.0.1";
-      var localCorpusHost = location.hostname === "127.0.0.1" ? "127.0.0.1" : "localhost";
-      var ENDPOINT = isLocalLab
-        ? "http://" + localCorpusHost + ":8092/ask"
-        : "https://corpus.atlas-systems.uk/ask";
-      var FALLBACK_ENDPOINT = "https://corpus.atlas-systems.uk/ask";
-      var form = document.getElementById("csw-form");
-      var input = document.getElementById("csw-q");
-      var button = document.getElementById("csw-go");
-      var status = document.getElementById("csw-status");
-      var list = document.getElementById("csw-results");
-      if (!form) return;
-
-      function clearResults() {
-        while (list.firstChild) list.removeChild(list.firstChild);
-      }
-
-      function sourceUrl(source) {
-        return "https://github.com/AtlasReaper311/" +
-          encodeURIComponent(source.repo) + "/blob/main/" +
-          source.file.split("/").map(encodeURIComponent).join("/");
-      }
-
-      function renderAnswer(data) {
-        var item = document.createElement("li");
-        item.className = "cs-w-answer";
-
-        var answer = document.createElement("p");
-        answer.className = "cs-w-answer-text";
-        answer.textContent = data.answer;
-        item.appendChild(answer);
-
-        if (data.sources && data.sources.length) {
-          var sources = document.createElement("div");
-          sources.className = "cs-w-sources";
-          data.sources.forEach(function (source) {
-            var tag = document.createElement("a");
-            tag.className = "cs-w-source";
-            tag.href = sourceUrl(source);
-            tag.target = "_blank";
-            tag.rel = "noopener noreferrer";
-            tag.title = source.excerpt;
-            tag.textContent = source.repo + "/" + source.file;
-            sources.appendChild(tag);
-          });
-          item.appendChild(sources);
-        }
-        list.appendChild(item);
-      }
-
-      function searchCorpus(query) {
-        var endpoints = [ENDPOINT];
-        if (ENDPOINT !== FALLBACK_ENDPOINT) endpoints.push(FALLBACK_ENDPOINT);
-        var index = 0;
-
-        function tryNext(lastError) {
-          if (index >= endpoints.length) throw lastError;
-          var endpoint = endpoints[index++];
-          var url = endpoint + "?q=" + encodeURIComponent(query) + "&top_k=3";
-          return fetch(url, { cache: "no-store" })
-            .then(function (response) {
-              if (response.status === 429) throw new Error("rate limited; wait a minute");
-              if (!response.ok) throw new Error("corpus answered " + response.status);
-              return response.json();
-            })
-            .catch(function (err) {
-              if (index < endpoints.length) {
-                status.textContent = "local search unavailable; trying tunnel…";
-                return tryNext(err);
-              }
-              throw err;
-            });
-        }
-
-        return tryNext(new Error("search unavailable"));
-      }
-
-      form.addEventListener("submit", function (event) {
-        event.preventDefault();
-        var query = input.value.trim();
-        if (!query) return;
-
-        button.disabled = true;
-        status.textContent = "asking…";
-        clearResults();
-
-        searchCorpus(query)
-          .then(function (data) {
-            if (!data.answer) {
-              status.textContent = "no answer returned";
-              return;
-            }
-            status.textContent = data.sources.length
-              ? data.sources.length + " cited sources"
-              : "answered without supporting sources";
-            renderAnswer(data);
-          })
-          .catch(function (err) {
-            status.textContent = "corpus unavailable: " + err.message;
-          })
-          .finally(function () {
-            button.disabled = false;
-          });
       });
     };
   })();
