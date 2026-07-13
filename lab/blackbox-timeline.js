@@ -16,32 +16,42 @@
  * are NOT interpolated; each carries its own precise timestamp from the
  * ring buffer and appears at exactly that second.
  *
+ * Postmortems: an incident that has been reviewed and published (see
+ * atlas-blackbox/scripts/publish-postmortem.mjs) carries hasPostmortem
+ * on its incident payload. A small badge next to frames/events/sealed
+ * opens a lazy-fetched panel with the write-up; unpublished incidents
+ * show nothing extra. Panel HTML comes from the estate's own converter,
+ * not arbitrary input, so it is trusted the same way gauge/feed HTML
+ * already is in this file.
+ *
  * Zero dependencies, same host conventions as the system map. Every
  * remote string is escaped; every fetch failure is a sentence, not a
  * broken widget.
  */
 (function () {
   "use strict";
-
+ 
   var host = document.getElementById("blackbox-host");
   if (!host) return;
-
+ 
   var statusline = document.getElementById("blackbox-statusline");
   var BASE = "https://api.atlas-systems.uk/blackbox";
   var REPLAY_RATE = 30;      /* window-seconds per real second */
   var REPLAY_TICK_MS = 100;
   var FEED_MAX = 12;
-
+ 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
+ 
   var state = {
     incidents: [],
-    current: null,   /* { id, ts, sealed, triggers, frames, t0, t1, events } */
+    current: null,   /* { id, ts, sealed, hasPostmortem, triggers, frames, t0, t1, events } */
     cursor: 0,
     playing: false,
     playTimer: null
   };
-
+ 
+  var postmortemCache = {}; /* incident id -> { title, html }, this page load only */
+ 
   /* ── Utilities ───────────────────────────────────────────────────── */
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
@@ -62,7 +72,7 @@
   function emit(name, detail) {
     window.dispatchEvent(new CustomEvent("atlas:blackbox:" + name, { detail: detail }));
   }
-
+ 
   /* ── Interpolation (exported for the smoke test) ─────────────────── */
   function lerp(a, b, t) {
     if (typeof a !== "number" || typeof b !== "number") return null;
@@ -99,7 +109,7 @@
       ram: lerp(ar.pct, br.pct, t)
     };
   }
-
+ 
   function flattenEvents(incident) {
     var out = [];
     (incident.frames || []).forEach(function (f) {
@@ -111,14 +121,35 @@
     out.sort(function (a, b) { return a.ms - b.ms; });
     return out;
   }
-
+ 
   /* ── DOM scaffold ────────────────────────────────────────────────── */
   var els = {};
   function build() {
     host.innerHTML =
+      '<style>' +
+      '.bbx-postmortem{margin-top:12px;padding:14px 16px;background:#0a0a0f;' +
+      'border:1px solid rgba(255,255,255,.1);border-radius:4px}' +
+      '.bbx-postmortem-title{color:#f5a623;font-weight:600;font-size:13px;' +
+      'letter-spacing:.02em;margin-bottom:8px}' +
+      '.bbx-postmortem-body{font-size:13px;line-height:1.6;color:#e8e8e0}' +
+      '.bbx-postmortem-body h2{color:#f5a623;font-size:12px;text-transform:uppercase;' +
+      'letter-spacing:.08em;margin:14px 0 6px}' +
+      '.bbx-postmortem-body h2:first-child{margin-top:0}' +
+      '.bbx-postmortem-body p{margin:0 0 10px}' +
+      '.bbx-postmortem-body ul{margin:0 0 10px;padding-left:18px}' +
+      '.bbx-postmortem-body li{margin:0 0 4px}' +
+      '.bbx-postmortem-body code{background:rgba(255,255,255,.08);padding:1px 4px;' +
+      'border-radius:3px;font-size:12px}' +
+      '.bbx-postmortem-body a{color:#e8e8e0;text-decoration:underline}' +
+      '.bbx-badge-postmortem{cursor:pointer;border:none;font:inherit}' +
+      '</style>' +
       '<div class="bbx-top">' +
       '  <select class="bbx-picker" aria-label="Choose a recorded incident"></select>' +
       '  <div class="bbx-badges"></div>' +
+      "</div>" +
+      '<div class="bbx-postmortem" hidden>' +
+      '  <div class="bbx-postmortem-title"></div>' +
+      '  <div class="bbx-postmortem-body"></div>' +
       "</div>" +
       '<div class="bbx-deck" hidden>' +
       '  <div class="bbx-readout">' +
@@ -136,9 +167,12 @@
       '  <div class="bbx-foot">telemetry sampled once a minute; values between samples are interpolated \u00B7 events sit at their exact timestamps</div>' +
       "</div>" +
       '<div class="bbx-empty" hidden></div>';
-
+ 
     els.picker = host.querySelector(".bbx-picker");
     els.badges = host.querySelector(".bbx-badges");
+    els.postmortem = host.querySelector(".bbx-postmortem");
+    els.postmortemTitle = host.querySelector(".bbx-postmortem-title");
+    els.postmortemBody = host.querySelector(".bbx-postmortem-body");
     els.deck = host.querySelector(".bbx-deck");
     els.time = host.querySelector(".bbx-time");
     els.replay = host.querySelector(".bbx-replay");
@@ -148,7 +182,7 @@
     els.gauges = host.querySelector(".bbx-gauges");
     els.feed = host.querySelector(".bbx-feed");
     els.empty = host.querySelector(".bbx-empty");
-
+ 
     els.picker.addEventListener("change", function () { loadIncident(els.picker.value); });
     els.scrub.addEventListener("input", function () {
       stopReplay();
@@ -163,10 +197,55 @@
     });
     els.replay.addEventListener("click", toggleReplay);
     if (reduceMotion) els.replay.hidden = true;
+ 
+    els.badges.addEventListener("click", function (ev) {
+      var btn = ev.target.closest("[data-postmortem]");
+      if (!btn) return;
+      togglePostmortem(btn.getAttribute("data-postmortem"), btn);
+    });
   }
-
+ 
   function setStatusline(html) { if (statusline) statusline.innerHTML = html; }
-
+ 
+  /* ── Postmortem panel ────────────────────────────────────────────── */
+  function resetPostmortemPanel() {
+    els.postmortem.hidden = true;
+    els.postmortemTitle.textContent = "";
+    els.postmortemBody.innerHTML = "";
+  }
+ 
+  function togglePostmortem(id, btn) {
+    if (!els.postmortem.hidden) {
+      els.postmortem.hidden = true;
+      if (btn) btn.setAttribute("aria-expanded", "false");
+      return;
+    }
+    if (btn) btn.setAttribute("aria-expanded", "true");
+ 
+    var cached = postmortemCache[id];
+    if (cached) {
+      els.postmortemTitle.textContent = cached.title;
+      els.postmortemBody.innerHTML = cached.html;
+      els.postmortem.hidden = false;
+      return;
+    }
+ 
+    els.postmortemTitle.textContent = "Loading postmortem\u2026";
+    els.postmortemBody.innerHTML = "";
+    els.postmortem.hidden = false;
+ 
+    fetchJson(BASE + "/incidents/" + encodeURIComponent(id) + "/postmortem").then(function (res) {
+      if (!res.ok) throw new Error(res.error || "postmortem fetch failed");
+      postmortemCache[id] = { title: res.title, html: res.html };
+      els.postmortemTitle.textContent = res.title;
+      els.postmortemBody.innerHTML = res.html;
+    }).catch(function () {
+      els.postmortemTitle.textContent = "Postmortem unavailable";
+      els.postmortemBody.innerHTML =
+        '<p>This incident is marked as having a postmortem, but it would not load. Try again shortly.</p>';
+    });
+  }
+ 
   /* ── Rendering ───────────────────────────────────────────────────── */
   function setCursor(ms) {
     var c = state.current;
@@ -178,7 +257,7 @@
     renderGauges();
     renderFeed();
   }
-
+ 
   window.addEventListener("atlas:blackbox:seek-event", function (ev) {
     var c = state.current;
     if (!c || !ev.detail || !ev.detail.ts) return;
@@ -189,7 +268,7 @@
     var section = document.getElementById("blackbox");
     if (section) section.scrollIntoView({ block: "start", behavior: reduceMotion ? "auto" : "smooth" });
   });
-
+ 
   function gaugeRow(label, value, max, unit, text) {
     var pct = value == null || max == null || max === 0 ? 0 : Math.max(0, Math.min(100, (value / max) * 100));
     var display = text != null ? text : (value == null ? "\u2013" : Math.round(value) + unit);
@@ -197,7 +276,7 @@
       '<span class="bbx-gauge-bar"><span class="bbx-gauge-fill" style="width:' + pct.toFixed(1) + '%"></span></span>' +
       '<span class="bbx-gauge-val">' + esc(display) + "</span></div>";
   }
-
+ 
   function renderGauges() {
     var t = telemetryAt(state.current.frames, state.cursor);
     if (!t || t.online === false) {
@@ -213,7 +292,7 @@
       gaugeRow("ram", t.ram, 100, "%");
     emit("cursor-telemetry", { incident: state.current.id, cursor: state.cursor, telemetry: t });
   }
-
+ 
   var DIALECT_LABEL = { github: "ci/cd", cloudflare: "cf", alert: "runtime", drill: "drill" };
   function renderFeed() {
     var visible = state.current.events.filter(function (e) { return e.ms <= state.cursor; });
@@ -231,7 +310,7 @@
       ? rows.join("")
       : '<div class="bbx-ev bbx-ev-none">no events yet at this point in the window; the quiet before it</div>';
   }
-
+ 
   function renderMarkers() {
     var c = state.current;
     var span = c.t1 - c.t0 || 1;
@@ -247,7 +326,7 @@
       html += '<span class="bbx-mk bbx-mk-trigger" style="left:' + left.toFixed(2) + '%" title="trigger \u00B7 ' + esc(hhmmss(ms)) + '"></span>';
     });
     els.markers.innerHTML = html;
-
+ 
     /* Shade the fall: everything after the first trigger is aftermath. */
     var firstTrig = c.triggerMs.length ? Math.min.apply(null, c.triggerMs) : null;
     if (firstTrig != null) {
@@ -258,7 +337,7 @@
       els.aftermath.style.display = "none";
     }
   }
-
+ 
   /* ── Replay ──────────────────────────────────────────────────────── */
   function toggleReplay() {
     if (state.playing) { stopReplay(); return; }
@@ -281,10 +360,11 @@
     state.playing = false;
     els.replay.textContent = "replay \u00D7" + REPLAY_RATE;
   }
-
+ 
   /* ── Data flow ───────────────────────────────────────────────────── */
   function loadIncident(id) {
     stopReplay();
+    resetPostmortemPanel();
     fetchJson(BASE + "/incidents/" + encodeURIComponent(id)).then(function (inc) {
       var frames = (inc.frames || []).slice().sort(function (a, b) { return a.ts - b.ts; });
       if (!frames.length) {
@@ -297,6 +377,7 @@
       state.current = {
         id: inc.id,
         sealed: inc.sealed === true,
+        hasPostmortem: Boolean(inc.hasPostmortem),
         frames: frames,
         events: flattenEvents(inc),
         triggerMs: triggerMs,
@@ -309,6 +390,11 @@
         '<span class="bbx-badge">' + state.current.events.length + " events</span>" +
         '<span class="bbx-badge ' + (state.current.sealed ? "bbx-badge-sealed" : "bbx-badge-open") + '">' +
         (state.current.sealed ? "sealed" : "recording aftermath") + "</span>";
+      if (state.current.hasPostmortem) {
+        els.badges.innerHTML +=
+          '<button type="button" class="bbx-badge bbx-badge-postmortem" data-postmortem="' +
+          esc(inc.id) + '" aria-expanded="false">postmortem \u2192</button>';
+      }
       els.scrub.min = state.current.t0;
       els.scrub.max = state.current.t1;
       els.empty.hidden = true;
@@ -320,16 +406,16 @@
       showEmpty("that incident would not load; the recorder is reachable but this record was not. try another.");
     });
   }
-
+ 
   function showEmpty(msg) {
     els.empty.hidden = false;
     els.empty.innerHTML = '<span class="t-dim">' + esc(msg) + "</span>";
   }
-
+ 
   function init() {
     build();
     setStatusline('<span class="t-dim">contacting recorder\u2026</span>');
-
+ 
     fetchJson(BASE + "/status").then(function (s) {
       var tick = s.last_tick ? hhmmss(s.last_tick) + " UTC" : "never";
       emit("status", s);
@@ -340,7 +426,7 @@
     }).catch(function () {
       setStatusline('<span class="t-dim">recorder status unavailable</span>');
     });
-
+ 
     fetchJson(BASE + "/incidents").then(function (list) {
       state.incidents = list.incidents || [];
       emit("incidents", { incidents: state.incidents });
@@ -351,7 +437,8 @@
       }
       els.picker.innerHTML = state.incidents.map(function (inc) {
         var label = hhmmss(inc.ts) + " \u00B7 " + (inc.trigger && inc.trigger.title ? inc.trigger.title : "failure") +
-          (inc.trigger_count > 1 ? " (+" + (inc.trigger_count - 1) + ")" : "");
+          (inc.trigger_count > 1 ? " (+" + (inc.trigger_count - 1) + ")" : "") +
+          (inc.hasPostmortem ? " \u00B7 postmortem" : "");
         return '<option value="' + esc(inc.id) + '">' + esc(label.slice(0, 72)) + "</option>";
       }).join("");
       loadIncident(state.incidents[0].id);
@@ -360,9 +447,9 @@
       showEmpty("recorder unreachable. the black box is behind api.atlas-systems.uk; when it answers again, the incidents will still be there. that is the point of it.");
     });
   }
-
+ 
   init();
-
+ 
   /* Exposed for the smoke test only; nothing on the page depends on it. */
   window.AtlasBlackboxTimeline = { telemetryAt: telemetryAt, lerp: lerp, flattenEvents: flattenEvents };
 })();
