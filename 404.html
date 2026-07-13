@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="404: this path doesn't exist on Atlas Systems.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0a0a0f">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <title>404 — Atlas Systems</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=DM+Serif+Display:ital@0;1&amp;display=swap" rel="stylesheet">
+
+  <style>
+    /* Self-contained on purpose: a 404 page that 404s its own stylesheet
+       is the one failure mode this file must never have. Tokens match the
+       brand sheet exactly. */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0a0f;
+      --bg-1:      #111118;
+      --bg-2:      #1a1a24;
+      --border:    rgba(255,255,255,0.08);
+      --border-hi: rgba(255,255,255,0.16);
+      --text:      #e8e8e0;
+      --text-dim:  #aaa9a0;
+      --text-faint:#555560;
+      --accent:    #f5a623;
+      --accent-hover: #f7b84a;
+      --accent-dim:rgba(245,166,35,0.12);
+      --status-live: #4ade80;
+      --status-down: #e24b4a;
+      --mono:      'IBM Plex Mono', monospace;
+      --serif:     'DM Serif Display', Georgia, serif;
+      --nav-h:     56px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Site-wide background grid, same values as every other page. */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 80px 80px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    main, nav, footer { position: relative; z-index: 1; }
+
+    /* ── NAV (site shell) ─────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      background: rgba(10,10,15,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(1.5rem, 5vw, 3rem);
+      z-index: 100;
+    }
+    .nav-wordmark {
+      font-family: var(--mono);
+      font-weight: 500;
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      color: var(--text);
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+    .nav-wordmark span { color: var(--accent); }
+    .nav-links { display: flex; list-style: none; }
+    .nav-links a {
+      display: block;
+      padding: 0.35rem 1rem;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 11px;
+      color: var(--text-dim);
+      text-decoration: none;
+    }
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--status-live);
+      box-shadow: 0 0 0 3px rgba(74,222,128,0.15);
+      animation: dot-pulse 2.5s ease-in-out infinite;
+    }
+    @keyframes dot-pulse {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(74,222,128,0.15); }
+      50%      { box-shadow: 0 0 0 5px rgba(74,222,128,0.05); }
+    }
+    @media (max-width: 680px) {
+      /* The shared mobile tab bar lives in the site's common markup; this
+         standalone page keeps the links visible instead. Swap in the
+         shared .mobile-nav block if you want full parity. */
+      .nav-links a { padding: 0.35rem 0.5rem; }
+      .nav-status { display: none; }
+    }
+
+    /* ── PAGE ─────────────────────────────────────── */
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: calc(var(--nav-h) + 5rem) 1.5rem 6rem;
+    }
+
+    .term-echo {
+      font-size: 12px;
+      color: var(--text-faint);
+      margin-bottom: 2.5rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .term-echo .prompt { color: var(--accent); }
+    .term-echo .cmd    { color: var(--text-dim); }
+
+    .err-heading {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(4rem, 14vw, 7rem);
+      line-height: 1;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+    .err-heading em { color: var(--accent); font-style: italic; }
+
+    .err-sub {
+      color: var(--text-dim);
+      max-width: 540px;
+      margin-bottom: 0.4rem;
+    }
+    .err-hint { font-size: 12px; color: var(--text-faint); margin-bottom: 3.5rem; }
+    .err-hint a { color: var(--accent); text-decoration: none; }
+    .err-hint a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+    /* ── CLICKER ──────────────────────────────────── */
+    .clicker {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      padding: 2rem 1.75rem;
+    }
+    .clicker-label {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .clicker-label::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+    .deploy-btn {
+      font-family: var(--mono);
+      font-size: 14px;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      background: var(--bg-2);
+      border: 1px solid var(--accent);
+      padding: 0.85rem 1.4rem;
+      cursor: pointer;
+      border-radius: 2px;
+      animation: btn-glow 2.8s ease-in-out infinite;
+      transition: background 0.15s, color 0.15s, transform 0.05s;
+    }
+    .deploy-btn:hover { background: var(--accent-dim); color: var(--accent-hover); }
+    .deploy-btn:active { transform: scale(0.97); }
+    .deploy-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+    @keyframes btn-glow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(245,166,35,0.0); }
+      50%      { box-shadow: 0 0 18px 0 rgba(245,166,35,0.25); }
+    }
+
+    .deploy-count {
+      margin-top: 1.5rem;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    .deploy-count strong {
+      color: var(--text);
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .deploy-milestone {
+      margin-top: 0.75rem;
+      min-height: 1.6em;
+      font-size: 13px;
+      color: var(--accent);
+    }
+
+    .deploy-reset {
+      margin-top: 1.5rem;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      color: var(--text-faint);
+      background: none;
+      border: none;
+      border-bottom: 1px solid transparent;
+      padding: 0;
+      cursor: pointer;
+    }
+    .deploy-reset:hover { color: var(--text-dim); border-bottom-color: var(--border-hi); }
+    .deploy-reset:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+    /* ── FOOTER ───────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem;
+      display: flex;
+      justify-content: center;
+      gap: 1.75rem;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    footer a { color: var(--text-faint); text-decoration: none; transition: color 0.15s; }
+    footer a:hover { color: var(--accent); }
+
+    /* ── VISIBLE ON SCROLL (site convention) ──────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ── REDUCED MOTION ───────────────────────────── */
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .reveal { opacity: 1; transform: none; transition: none; }
+      .deploy-btn { animation: none; }
+      .deploy-btn:active { transform: none; }
+      .status-dot { animation: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV: same structure as every other page on the estate -->
+  <nav aria-label="Primary navigation">
+    <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
+    <ul class="nav-links">
+      <li><a href="/work/">Work</a></li>
+      <li><a href="/writing/">Writing</a></li>
+      <li><a href="/lab/">Lab</a></li>
+      <li><a href="/about/">About</a></li>
+    </ul>
+    <a href="https://status.atlas-systems.uk" class="nav-status" target="_blank" rel="noopener">
+      <div class="status-dot"></div>
+      <span>systems nominal</span>
+    </a>
+  </nav>
+
+  <main>
+    <!-- The shell echoes the path that was actually requested. Set via
+         textContent only: the pathname is visitor-controlled input and
+         must never touch innerHTML. -->
+    <div class="term-echo reveal" aria-hidden="true"><span class="prompt">atlas@SPECULAR-CORE:~$</span> <span class="cmd">cat <span id="echo-path">/this/path</span></span>
+cat: <span id="echo-path-2">/this/path</span>: No such file or directory</div>
+
+    <h1 class="err-heading reveal">4<em>0</em>4</h1>
+
+    <p class="err-sub reveal">This path doesn't exist. Might as well build something while you're here.</p>
+    <p class="err-hint reveal">Or head back to <a href="/">solid ground</a>. The nav still works. Everything else on this estate does.</p>
+
+    <section class="clicker reveal" aria-label="Idle clicker: deploy imaginary workers">
+      <div class="clicker-label">idle infrastructure simulator</div>
+
+      <button type="button" class="deploy-btn" id="deploy-btn">$ deploy_worker</button>
+
+      <p class="deploy-count" aria-live="polite">
+        workers deployed: <strong id="deploy-count">0</strong>
+      </p>
+
+      <p class="deploy-milestone" id="deploy-milestone" aria-live="polite"></p>
+
+      <button type="button" class="deploy-reset" id="deploy-reset">reset counter</button>
+    </section>
+  </main>
+
+  <footer>
+    <a href="/">Home</a>
+    <a href="/work/">Work</a>
+    <a href="/writing/">Writing</a>
+    <a href="/lab/">Lab</a>
+    <a href="/about/">About</a>
+  </footer>
+
+  <!-- Optional: the shared sound module (Deliverable 4). Every call below
+       is guarded, so this page is fully functional before js/atlas-sound.js
+       exists and after it, identically. -->
+  <script src="/js/atlas-sound.js" defer></script>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var STORAGE_KEY = "atlas:404:workers";
+
+      /* localStorage is correct here: this is production static-site code,
+         the counter should survive a return visit, and there is no backend
+         by design. Private-mode browsers can still throw on access, so
+         everything degrades to in-memory. */
+      var memoryValue = 0;
+      function readCount() {
+        try {
+          var raw = window.localStorage.getItem(STORAGE_KEY);
+          var parsed = parseInt(raw, 10);
+          return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+        } catch (err) {
+          return memoryValue;
+        }
+      }
+      function writeCount(value) {
+        memoryValue = value;
+        try { window.localStorage.setItem(STORAGE_KEY, String(value)); } catch (err) {}
+      }
+
+      /* Milestone lines: same voice as the Lab page's Ramone easter eggs.
+         Dry, self-aware, mildly haunted by infrastructure. */
+      var MILESTONES = {
+        1:    "one worker deployed. it does nothing. they all do nothing.",
+        10:   "ten workers. the free tier holds. for now.",
+        25:   "twenty five workers, zero incidents. mostly because they do nothing.",
+        50:   "fifty. somewhere, a load balancer just sighed.",
+        100:  "one hundred workers, no health checks, no fear.",
+        250:  "two hundred and fifty. this is legally a distributed system now. condolences.",
+        500:  "five hundred. the cold starts alone could heat a small flat.",
+        1000: "one thousand workers on a page that does not exist. the rest of the site is real, by the way. no pressure."
+      };
+      var RESET_LINE = "counter reset. the workers were never real.";
+
+      function latestMilestoneFor(count) {
+        var best = "";
+        for (var key in MILESTONES) {
+          if (count >= Number(key)) best = MILESTONES[key];
+        }
+        return best;
+      }
+
+      function playSound(name) {
+        /* Deliverable 4 opt-in: silent no-op if the module isn't loaded
+           or the visitor hasn't enabled sound. */
+        if (window.AtlasSound && typeof window.AtlasSound.play === "function") {
+          window.AtlasSound.play(name);
+        }
+      }
+
+      var button = document.getElementById("deploy-btn");
+      var countEl = document.getElementById("deploy-count");
+      var milestoneEl = document.getElementById("deploy-milestone");
+      var resetEl = document.getElementById("deploy-reset");
+
+      var count = readCount();
+
+      function render() {
+        countEl.textContent = count.toLocaleString();
+      }
+
+      button.addEventListener("click", function () {
+        count += 1;
+        writeCount(count);
+        render();
+        playSound("navClick");
+        if (MILESTONES[count]) {
+          milestoneEl.textContent = MILESTONES[count];
+          playSound("easterEgg");
+        }
+      });
+
+      resetEl.addEventListener("click", function () {
+        count = 0;
+        writeCount(0);
+        render();
+        milestoneEl.textContent = RESET_LINE;
+      });
+
+      /* Restore state: returning visitors keep their fleet and the last
+         milestone they earned. */
+      render();
+      var earned = latestMilestoneFor(count);
+      if (earned) milestoneEl.textContent = earned;
+
+      /* Echo the real missing path into the decorative shell lines. */
+      var path = window.location.pathname || "/unknown";
+      document.getElementById("echo-path").textContent = path;
+      document.getElementById("echo-path-2").textContent = path;
+
+      /* Mount the sound toggle in the nav if the module is present. */
+      window.addEventListener("DOMContentLoaded", function () {
+        if (window.AtlasSound && typeof window.AtlasSound.mountToggle === "function") {
+          window.AtlasSound.mountToggle();
+        }
+      });
+
+      /* .reveal: same scroll-in convention as the rest of the site. On a
+         page this short everything is above the fold, so reveal on load
+         with a small stagger; reduced-motion users get instant paint via
+         the CSS override. */
+      var revealEls = document.querySelectorAll(".reveal");
+      revealEls.forEach(function (el, index) {
+        window.setTimeout(function () { el.classList.add("visible"); }, 60 * index);
+      });
+    })();
+  </script>
+</body>
+</html>
