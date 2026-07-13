@@ -40,13 +40,22 @@ jobs:
           git push
 
   deploy:
-    needs: generate-sitemap
+    needs: [generate-sitemap, verify-pages-output]
     uses: AtlasReaper311/atlas-infra/.github/workflows/validate-static.yml@main
     with:
       project_name: atlas-systems
       site_label: atlas-systems.uk
       inject_build_meta: true
     secrets: inherit
+
+  verify-pages-output:
+    name: Verify Pages output contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Confirm 404 and routing contract
+        run: python3 scripts/verify_pages_output.py .
 
   refresh-corpus:
     uses: AtlasReaper311/atlas-corpus/.github/workflows/refresh-corpus.yml@main
