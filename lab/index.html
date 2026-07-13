@@ -1072,6 +1072,105 @@
         text-align: center;
         grid-column: 1/-1;
       }
+      .dora-panel {
+        --dp-bg: var(--bg-nested, #1a1a24);
+        --dp-bg-deep: var(--bg-alt, #111118);
+        --dp-text: var(--text, #e8e8e0);
+        --dp-dim: var(--text-dim, #aaa9a0);
+        --dp-faint: var(--text-faint, #555560);
+        --dp-accent: var(--accent, #f5a623);
+        --dp-good: var(--status-green, #4ade80);
+        --dp-bad: var(--status-red, #e24b4a);
+        width: min(720px, 100%);
+        box-sizing: border-box;
+        margin: 0 auto;
+        background: var(--dp-bg-deep);
+        border: 1px solid var(--dp-faint);
+        padding: 1.25rem 1.5rem 1rem;
+        font-family: "IBM Plex Mono", monospace;
+        color: var(--dp-text);
+      }
+      .dora-panel h2 {
+        font-family: "DM Serif Display", serif;
+        font-weight: 400;
+        font-size: 1.4rem;
+        margin: 0 0 0.25rem;
+        color: var(--dp-accent);
+      }
+      .dora-panel .dp-sub {
+        color: var(--dp-faint);
+        font-size: 0.72rem;
+        margin: 0 0 1rem;
+      }
+      .dora-panel .dp-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 0.75rem;
+      }
+      .dora-panel .dp-card {
+        background: var(--dp-bg);
+        border: 1px solid var(--dp-faint);
+        padding: 0.85rem 1rem;
+      }
+      .dora-panel .dp-label {
+        color: var(--dp-dim);
+        font-size: 0.7rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .dora-panel .dp-value {
+        font-size: 1.7rem;
+        font-weight: 500;
+        margin: 0.3rem 0 0.15rem;
+        color: var(--dp-text);
+      }
+      .dora-panel .dp-trend {
+        font-size: 0.75rem;
+      }
+      .dora-panel .dp-trend.good {
+        color: var(--dp-good);
+      }
+      .dora-panel .dp-trend.bad {
+        color: var(--dp-bad);
+      }
+      .dora-panel .dp-trend.flat {
+        color: var(--dp-faint);
+      }
+      .dora-panel .dp-basis {
+        color: var(--dp-faint);
+        font-size: 0.68rem;
+        margin-top: 0.35rem;
+        line-height: 1.5;
+      }
+      .dora-panel .dp-degraded {
+        display: none;
+        color: var(--dp-accent);
+        font-size: 0.72rem;
+        margin-top: 0.85rem;
+        line-height: 1.5;
+      }
+      .dora-panel .dp-error {
+        display: none;
+        color: var(--dp-bad);
+        background: var(--dp-bg);
+        border: 1px solid var(--dp-bad);
+        padding: 0.75rem 1rem;
+        font-size: 0.78rem;
+        margin-top: 0.85rem;
+        line-height: 1.5;
+        word-break: break-word;
+      }
+      .dora-panel footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+        padding-top: 0.6rem;
+        border-top: 1px solid var(--dp-faint);
+        color: var(--dp-faint);
+        font-size: 0.68rem;
+      }
       .mobile-nav {
         display: none;
         position: fixed;
@@ -1769,100 +1868,6 @@
             <div class="section-label">Delivery</div>
 
             <section class="dora-panel" aria-label="DORA metrics">
-            <style>
-              .dora-panel {
-                --dp-bg: var(--bg-nested, #1a1a24);
-                --dp-bg-deep: var(--bg-alt, #111118);
-                --dp-text: var(--text, #e8e8e0);
-                --dp-dim: var(--text-dim, #aaa9a0);
-                --dp-faint: var(--text-faint, #555560);
-                --dp-accent: var(--accent, #f5a623);
-                --dp-good: var(--status-green, #4ade80);
-                --dp-bad: var(--status-red, #e24b4a);
-                width: min(720px, 100%);
-                box-sizing: border-box;
-                margin: 0 auto;
-                background: var(--dp-bg-deep);
-                border: 1px solid var(--dp-faint);
-                padding: 1.25rem 1.5rem 1rem;
-                font-family: "IBM Plex Mono", monospace;
-                color: var(--dp-text);
-              }
-              .dora-panel h2 {
-                font-family: "DM Serif Display", serif;
-                font-weight: 400;
-                font-size: 1.4rem;
-                margin: 0 0 0.25rem;
-                color: var(--dp-accent);
-              }
-              .dora-panel .dp-sub {
-                color: var(--dp-faint);
-                font-size: 0.72rem;
-                margin: 0 0 1rem;
-              }
-              .dora-panel .dp-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-                gap: 0.75rem;
-              }
-              .dora-panel .dp-card {
-                background: var(--dp-bg);
-                border: 1px solid var(--dp-faint);
-                padding: 0.85rem 1rem;
-              }
-              .dora-panel .dp-label {
-                color: var(--dp-dim);
-                font-size: 0.7rem;
-                letter-spacing: 0.08em;
-                text-transform: uppercase;
-              }
-              .dora-panel .dp-value {
-                font-size: 1.7rem;
-                font-weight: 500;
-                margin: 0.3rem 0 0.15rem;
-                color: var(--dp-text);
-              }
-              .dora-panel .dp-trend { font-size: 0.75rem; }
-              .dora-panel .dp-trend.good { color: var(--dp-good); }
-              .dora-panel .dp-trend.bad { color: var(--dp-bad); }
-              .dora-panel .dp-trend.flat { color: var(--dp-faint); }
-              .dora-panel .dp-basis {
-                color: var(--dp-faint);
-                font-size: 0.68rem;
-                margin-top: 0.35rem;
-                line-height: 1.5;
-              }
-              .dora-panel .dp-degraded {
-                display: none;
-                color: var(--dp-accent);
-                font-size: 0.72rem;
-                margin-top: 0.85rem;
-                line-height: 1.5;
-              }
-              .dora-panel .dp-error {
-                display: none;
-                color: var(--dp-bad);
-                background: var(--dp-bg);
-                border: 1px solid var(--dp-bad);
-                padding: 0.75rem 1rem;
-                font-size: 0.78rem;
-                margin-top: 0.85rem;
-                line-height: 1.5;
-                word-break: break-word;
-              }
-              .dora-panel footer {
-                display: flex;
-                justify-content: space-between;
-                gap: 1rem;
-                flex-wrap: wrap;
-                margin-top: 1rem;
-                padding-top: 0.6rem;
-                border-top: 1px solid var(--dp-faint);
-                color: var(--dp-faint);
-                font-size: 0.68rem;
-              }
-            </style>
-
               <h2>DORA metrics</h2>
               <p class="dp-sub">computed live from the estate's own event stream · <a id="dp-raw-json" href="https://api.atlas-systems.uk/dora/metrics" style="color:inherit">raw JSON</a></p>
 
