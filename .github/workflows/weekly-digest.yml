@@ -5,6 +5,9 @@ on:
     - cron: '0 18 * * 0'   # every Sunday, 18:00 UTC
   workflow_dispatch:
 
+permissions:
+  contents: none
+
 concurrency:
   group: ${{ github.repository }}-weekly-digest-${{ github.ref }}
   cancel-in-progress: false
