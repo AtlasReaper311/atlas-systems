@@ -18,6 +18,10 @@ const css = fs.readFileSync(
   new URL("../system-map.css", import.meta.url),
   "utf8",
 );
+const html = fs.readFileSync(
+  new URL("../index.html", import.meta.url),
+  "utf8",
+);
 
 test("bootstrap updates the map without reloading the page", () => {
   assert.doesNotMatch(bootstrap, /location\.reload/);
@@ -41,6 +45,22 @@ test("3D renderer registers a persistent controller", () => {
   assert.match(scene, /placeLabels/);
 });
 
+test("3D controls pan by default and keep navigation bounded", () => {
+  assert.match(scene, /mode:\s*"pan"/);
+  assert.match(scene, /event\.button === 2 \|\| event\.altKey/);
+  assert.match(scene, /createPanBounds\(state, WORLD_SCALE\)/);
+  assert.match(scene, /zoomTargetTowardPoint/);
+  assert.doesNotMatch(scene, /shift-drag pan/);
+  assert.doesNotMatch(scene, /orbit\.panX|orbit\.panZ/);
+});
+
+test("3D scene has restrained global and node-local lighting", () => {
+  assert.match(scene, /THREE\.ACESFilmicToneMapping/);
+  assert.match(scene, /THREE\.HemisphereLight/);
+  assert.match(scene, /THREE\.AdditiveBlending/);
+  assert.match(scene, /function nodeGlow\(node\)/);
+});
+
 test("legend styles include every rendered role", () => {
   for (const role of [
     "worker",
@@ -48,8 +68,19 @@ test("legend styles include every rendered role", () => {
     "repo",
     "local",
     "ext",
+    "infra",
     "kv",
   ]) {
     assert.match(css, new RegExp(`smap-leg-role-${role}`));
   }
+});
+
+test("legend separates status, node type, and connection semantics", () => {
+  assert.match(html, /aria-label="Status"/);
+  assert.match(html, /aria-label="Node type"/);
+  assert.match(html, /aria-label="Connection"/);
+  assert.match(html, /smap-leg-role-ext/);
+  assert.match(html, />external dependency</);
+  assert.match(css, /smap-node-status/);
+  assert.match(css, /stroke-dasharray:\s*3 2/);
 });

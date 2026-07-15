@@ -4,7 +4,7 @@
   const TOPOLOGY_URL =
     "https://api.atlas-systems.uk/v1/topology";
   const MAP_URL =
-    "/lab/system-map.js?v=20260715-city-map-final";
+    "/lab/system-map.js?v=20260715-city-map-navigation";
   const BLOCKED = new Set(["simple-proxy"]);
 
   let mounted = false;
