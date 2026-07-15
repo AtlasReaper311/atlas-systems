@@ -49,7 +49,7 @@ jobs:
 
   deploy:
     needs: [generate-sitemap, verify-pages-output]
-    uses: AtlasReaper311/atlas-infra/.github/workflows/validate-static.yml@main
+    uses: AtlasReaper311/atlas-infra/.github/workflows/validate-static.yml@093df3f87fa4e068155455f82c9b69bffad76fb6 # atlas-infra main
     with:
       project_name: atlas-systems
       site_label: atlas-systems.uk
@@ -67,6 +67,6 @@ jobs:
         run: python3 scripts/verify_pages_output.py .
 
   refresh-corpus:
-    uses: AtlasReaper311/atlas-corpus/.github/workflows/refresh-corpus.yml@main
+    uses: AtlasReaper311/atlas-corpus/.github/workflows/refresh-corpus.yml@410a0ba16c8461b191edbed257d0271d76bd8369 # atlas-corpus main
     secrets:
       CORPUS_SECRET: ${{ secrets.CORPUS_SECRET }}
