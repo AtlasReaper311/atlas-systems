@@ -136,12 +136,15 @@
     var allowed = {};
     for (var i = 0; i < components.length; i++) {
       var component = components[i];
-      if (
-        component &&
-        component.kind === "worker" &&
-        typeof component.name === "string"
-      ) {
-        allowed[component.name] = true;
+      if (component && component.kind === "worker") {
+        var componentId =
+          typeof component.id === "string"
+            ? component.id
+            : component.name;
+
+        if (typeof componentId === "string" && componentId.length > 0) {
+          allowed[componentId] = true;
+        }
       }
     }
 
