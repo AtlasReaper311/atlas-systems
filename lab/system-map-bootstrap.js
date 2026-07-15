@@ -13,10 +13,10 @@
   function role(c){if(c.kind==="worker")return"worker";if(c.kind==="site")return"site";return"infra";}
   function compile(doc,snap){
     const g=cloneBase();
-    for(const c of doc.components||[]) addNode(g,{id:c.id,role:role(c),label:c.id,layer:c.layer||"reusable-kit",repo:c.repo||null,blurb:c.description||"",sourceOnly:c.kind==="tool"||c.kind==="github-actions"});
+    for(const c of doc.components||[]) addNode(g,{id:c.id,role:role(c),label:c.id,layer:c.layer||"reusable-kit",repo:c.repo||null,blurb:c.description||"",sourceOnly:c.source_only===true||c.kind==="repository"||c.kind==="tool"||c.kind==="github-actions"});
     for(const w of snap.workers||[]) addNode(g,{id:w.name,role:"worker",label:w.name,layer:"observability",blurb:w.meta?.description||"Discovered from the live Worker registry"});
     const ids=new Set(g.nodes.map((x)=>x.id));
-    for(const c of doc.components||[]) for(const d of c.depends_on||[]) if(ids.has(c.id)&&ids.has(d)) addEdge(g,{from:c.id,to:d,kind:c.kind==="github-actions"||c.kind==="tool"?"poll":"http",label:"declared dependency",generated:true});
+    for(const c of doc.components||[]) for(const d of c.depends_on||[]) if(ids.has(c.id)&&ids.has(d)) addEdge(g,{from:c.id,to:d,kind:c.kind==="repository"||c.kind==="github-actions"||c.kind==="tool"?"poll":"http",label:"declared dependency",generated:true});
     g.nodes=g.nodes.filter((x)=>!BLOCKED.has(x.id)).sort((a,b)=>a.id.localeCompare(b.id));
     const visible=new Set(g.nodes.map((x)=>x.id));
     g.edges=g.edges.filter((x)=>visible.has(x.from)&&visible.has(x.to)).sort((a,b)=>`${a.from}|${a.to}|${a.kind}`.localeCompare(`${b.from}|${b.to}|${b.kind}`));
