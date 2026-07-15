@@ -1,6 +1,6 @@
 /**
  * atlas-registry.js
- * One client for api.atlas-systems.uk/ shared by every consumer on the site.
+ * One client for the live registry, filtered by the canonical public topology.
  *
  * The system map (Lab), the unified Live section status panel (Lab), and the
  * homepage estate strip all need the same document. Three independent fetch
@@ -41,6 +41,7 @@
   "use strict";
 
   var ENDPOINT = "https://api.atlas-systems.uk/";
+  var TOPOLOGY_ENDPOINT = "https://api.atlas-systems.uk/v1/topology";
   var POLL_MS = 60000;
 
   var subscribers = [];
@@ -48,6 +49,7 @@
   var lastGood = null;
   var inFlight = false;
   var timer = null;
+  var topologyPromise = null;
 
   /* Normalise both shapes the registry has ever produced. The Lab API panel
      already had to learn this the hard way (a shape change rendered a healthy
@@ -104,6 +106,65 @@
     };
   }
 
+  function fetchJson(url, options) {
+    return fetch(url, options).then(function (res) {
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    });
+  }
+
+  function getTopology() {
+    if (!topologyPromise) {
+      topologyPromise = fetchJson(TOPOLOGY_ENDPOINT, {
+        headers: { Accept: "application/json" },
+        cache: "no-store"
+      }).catch(function (error) {
+        topologyPromise = null;
+        throw error;
+      });
+    }
+
+    return topologyPromise;
+  }
+
+  function filterToDeclaredWorkers(registry, topology) {
+    var components =
+      topology && Array.isArray(topology.components)
+        ? topology.components
+        : [];
+
+    var allowed = {};
+    for (var i = 0; i < components.length; i++) {
+      var component = components[i];
+      if (
+        component &&
+        component.kind === "worker" &&
+        typeof component.name === "string"
+      ) {
+        allowed[component.name] = true;
+      }
+    }
+
+    var workers = registry.workers.filter(function (worker) {
+      return !!allowed[worker.name];
+    });
+
+    return {
+      generatedAt: registry.generatedAt,
+      warnings: registry.warnings,
+      workers: workers,
+      counts: {
+        workers: workers.length,
+        documented: workers.filter(function (worker) {
+          return worker.documented;
+        }).length,
+        undocumented: workers.filter(function (worker) {
+          return !worker.documented;
+        }).length
+      }
+    };
+  }
+
   function emit() {
     for (var i = 0; i < subscribers.length; i++) {
       try { subscribers[i](snapshot); } catch (e) { /* one bad consumer must not break the rest */ }
@@ -114,29 +175,29 @@
     if (inFlight) return;
     inFlight = true;
 
-    fetch(ENDPOINT, { headers: { Accept: "application/json" }, cache: "no-store" })
-      .then(function (res) {
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        return res.json();
-      })
-      .then(function (data) {
-        var n = normalise(data);
+    Promise.all([
+      fetchJson(ENDPOINT, {
+        headers: { Accept: "application/json" },
+        cache: "no-store"
+      }),
+      getTopology()
+    ])
+      .then(function (values) {
+        var registry = normalise(values[0]);
+        var filtered = filterToDeclaredWorkers(registry, values[1]);
+
         snapshot = {
           ok: true,
           stale: false,
           fetchedAt: new Date(),
-          generatedAt: n.generatedAt,
-          counts: n.counts,
-          warnings: n.warnings,
-          workers: n.workers
+          generatedAt: filtered.generatedAt,
+          counts: filtered.counts,
+          warnings: filtered.warnings,
+          workers: filtered.workers
         };
         lastGood = snapshot;
       })
       .catch(function () {
-        /* Re-emit the last good snapshot flagged stale, or an explicit
-           failure state if no poll has ever succeeded. Consumers render
-           "stale" and "never reached" differently; the client just tells
-           the truth about which one this is. */
         if (lastGood) {
           snapshot = {
             ok: false,
