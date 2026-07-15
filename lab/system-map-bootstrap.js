@@ -1,29 +1,286 @@
-(function(){
+(function () {
   "use strict";
-  const URL="https://api.atlas-systems.uk/v1/topology";
-  const BLOCKED=new Set(["simple-proxy"]);
-  let topologyPromise=fetch(URL,{cache:"no-store",headers:{Accept:"application/json"}}).then((r)=>{if(!r.ok)throw new Error(`topology ${r.status}`);return r.json();}).catch(()=>({components:[]}));
-  let mounted=null;
-  let first=true;
-  let reloadPending=false;
 
-  function cloneBase(){const t=window.ATLAS_TOPOLOGY||{nodes:[],edges:[],kv:[]};return{nodes:t.nodes.map((x)=>({...x})),edges:t.edges.map((x)=>({...x})),kv:t.kv.map((x)=>({...x}))};}
-  function addNode(g,n){if(!n||!n.id||BLOCKED.has(n.id)||g.nodes.some((x)=>x.id===n.id))return;g.nodes.push(n);}
-  function addEdge(g,e){const ids=new Set(g.nodes.map((x)=>x.id));if(!ids.has(e.from)||!ids.has(e.to)||BLOCKED.has(e.from)||BLOCKED.has(e.to))return;if(!g.edges.some((x)=>x.from===e.from&&x.to===e.to&&x.kind===e.kind))g.edges.push(e);}
-  function role(c){if(c.kind==="worker")return"worker";if(c.kind==="site")return"site";return"infra";}
-  function compile(doc,snap){
-    const g=cloneBase();
-    for(const c of doc.components||[]) addNode(g,{id:c.id,role:role(c),label:c.id,layer:c.layer||"reusable-kit",repo:c.repo||null,blurb:c.description||"",sourceOnly:c.source_only===true||c.kind==="repository"||c.kind==="tool"||c.kind==="github-actions"});
-    for(const w of snap.workers||[]) addNode(g,{id:w.name,role:"worker",label:w.name,layer:"observability",blurb:w.meta?.description||"Discovered from the live Worker registry"});
-    const ids=new Set(g.nodes.map((x)=>x.id));
-    for(const c of doc.components||[]) for(const d of c.depends_on||[]) if(ids.has(c.id)&&ids.has(d)) addEdge(g,{from:c.id,to:d,kind:c.kind==="repository"||c.kind==="github-actions"||c.kind==="tool"?"poll":"http",label:"declared dependency",generated:true});
-    g.nodes=g.nodes.filter((x)=>!BLOCKED.has(x.id)).sort((a,b)=>a.id.localeCompare(b.id));
-    const visible=new Set(g.nodes.map((x)=>x.id));
-    g.edges=g.edges.filter((x)=>visible.has(x.from)&&visible.has(x.to)).sort((a,b)=>`${a.from}|${a.to}|${a.kind}`.localeCompare(`${b.from}|${b.to}|${b.kind}`));
-    g.kv=g.kv.filter((x)=>visible.has(x.parent)).sort((a,b)=>a.id.localeCompare(b.id));
-    return g;
+  const TOPOLOGY_URL =
+    "https://api.atlas-systems.uk/v1/topology";
+  const MAP_URL =
+    "/lab/system-map.js?v=20260715-city-map-final";
+  const BLOCKED = new Set(["simple-proxy"]);
+
+  let mounted = false;
+  let lastSnapshot = null;
+  let refreshInFlight = null;
+
+  function cloneBase() {
+    const topology = window.ATLAS_TOPOLOGY || {
+      nodes: [],
+      edges: [],
+      kv: [],
+    };
+
+    return {
+      nodes: (topology.nodes || []).map((node) => ({ ...node })),
+      edges: (topology.edges || []).map((edge) => ({ ...edge })),
+      kv: (topology.kv || []).map((entry) => ({ ...entry })),
+    };
   }
-  function fingerprint(g){return JSON.stringify({n:g.nodes.map((x)=>[x.id,x.role,x.layer||""]),e:g.edges.map((x)=>[x.from,x.to,x.kind]),k:g.kv.map((x)=>[x.id,x.parent])});}
-  function mount(g){window.ATLAS_TOPOLOGY=g;mounted=fingerprint(g);const s=document.createElement("script");s.src="/lab/system-map.js?v=20260715-district-overhaul";s.defer=true;document.body.appendChild(s);}
-  window.AtlasRegistry.subscribe(async(snap)=>{const doc=await topologyPromise;const g=compile(doc,snap);if(first){first=false;mount(g);return;}if(fingerprint(g)!==mounted&&!reloadPending){reloadPending=true;setTimeout(()=>window.location.reload(),250);}});
+
+  function statusFor(component, workerByName) {
+    if (component.kind !== "worker") return "static";
+
+    const worker = workerByName.get(component.id);
+
+    if (!worker) return "down";
+    if (worker.documented === false) return "undoc";
+
+    const status =
+      worker.meta && typeof worker.meta.status === "string"
+        ? worker.meta.status.toLowerCase()
+        : "live";
+
+    if (status === "ok" || status === "operational") return "live";
+    return status || "live";
+  }
+
+  function roleFor(component) {
+    if (component.kind === "worker") return "worker";
+    if (component.kind === "site") return "site";
+    if (component.kind === "repository") return "repo";
+    return "infra";
+  }
+
+  function mergeNode(graph, incoming) {
+    if (!incoming || !incoming.id || BLOCKED.has(incoming.id)) return;
+
+    const index = graph.nodes.findIndex(
+      (node) => node.id === incoming.id,
+    );
+
+    if (index === -1) {
+      graph.nodes.push(incoming);
+      return;
+    }
+
+    graph.nodes[index] = {
+      ...graph.nodes[index],
+      ...incoming,
+      role:
+        graph.nodes[index].role === "local" ||
+        graph.nodes[index].role === "ext"
+          ? graph.nodes[index].role
+          : incoming.role || graph.nodes[index].role,
+    };
+  }
+
+  function addEdge(graph, edge) {
+    if (!edge || !edge.from || !edge.to) return;
+    if (BLOCKED.has(edge.from) || BLOCKED.has(edge.to)) return;
+
+    const ids = new Set(graph.nodes.map((node) => node.id));
+
+    if (!ids.has(edge.from) || !ids.has(edge.to)) return;
+
+    const exists = graph.edges.some(
+      (candidate) =>
+        candidate.from === edge.from &&
+        candidate.to === edge.to &&
+        candidate.kind === edge.kind,
+    );
+
+    if (!exists) graph.edges.push(edge);
+  }
+
+  function compile(document, snapshot) {
+    const graph = cloneBase();
+    const workers = Array.isArray(snapshot?.workers)
+      ? snapshot.workers
+      : [];
+    const workerByName = new Map(
+      workers.map((worker) => [worker.name, worker]),
+    );
+
+    for (const component of document.components || []) {
+      if (!component || BLOCKED.has(component.id)) continue;
+
+      mergeNode(graph, {
+        id: component.id,
+        label: component.id,
+        role: roleFor(component),
+        kind: component.kind,
+        layer: component.layer || "reusable-kit",
+        lifecycle: component.lifecycle || "production",
+        status: statusFor(component, workerByName),
+        sourceOnly:
+          component.source_only === true ||
+          component.kind === "repository" ||
+          component.kind === "tool" ||
+          component.kind === "github-actions",
+        repo: component.repo || null,
+        publicSurface: component.public_surface || null,
+        description: component.description || "",
+        language: component.language || null,
+        topics: Array.isArray(component.topics)
+          ? component.topics
+          : [],
+      });
+    }
+
+    for (const worker of workers) {
+      if (!worker?.name || BLOCKED.has(worker.name)) continue;
+
+      const existing = graph.nodes.find(
+        (node) => node.id === worker.name,
+      );
+      const status =
+        worker.documented === false
+          ? "undoc"
+          : worker.meta?.status || "live";
+
+      mergeNode(graph, {
+        id: worker.name,
+        label: worker.name,
+        role: existing?.role || "worker",
+        kind: existing?.kind || "worker",
+        layer: existing?.layer || "public-api",
+        status,
+        description:
+          existing?.description ||
+          worker.meta?.description ||
+          "Discovered from the live Worker registry.",
+      });
+    }
+
+    const ids = new Set(graph.nodes.map((node) => node.id));
+
+    for (const component of document.components || []) {
+      if (!ids.has(component.id)) continue;
+
+      for (const dependency of component.depends_on || []) {
+        if (!ids.has(dependency)) continue;
+
+        addEdge(graph, {
+          from: component.id,
+          to: dependency,
+          kind:
+            component.kind === "repository" ||
+            component.kind === "github-actions" ||
+            component.kind === "tool"
+              ? "poll"
+              : "http",
+          label: "declared dependency",
+          generated: true,
+        });
+      }
+    }
+
+    graph.nodes = graph.nodes
+      .filter((node) => !BLOCKED.has(node.id))
+      .sort((a, b) => a.id.localeCompare(b.id));
+
+    const visible = new Set(
+      graph.nodes.map((node) => node.id),
+    );
+
+    graph.edges = graph.edges
+      .filter(
+        (edge) =>
+          visible.has(edge.from) &&
+          visible.has(edge.to) &&
+          !BLOCKED.has(edge.from) &&
+          !BLOCKED.has(edge.to),
+      )
+      .sort((a, b) =>
+        `${a.from}|${a.to}|${a.kind}`.localeCompare(
+          `${b.from}|${b.to}|${b.kind}`,
+        ),
+      );
+
+    graph.kv = graph.kv
+      .filter((entry) => visible.has(entry.parent))
+      .sort((a, b) => a.id.localeCompare(b.id));
+
+    return graph;
+  }
+
+  async function fetchTopology() {
+    const response = await fetch(TOPOLOGY_URL, {
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`topology ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  function mountMap() {
+    if (mounted) return;
+
+    mounted = true;
+    const script = document.createElement("script");
+    script.type = "module";
+    script.src = MAP_URL;
+    document.body.appendChild(script);
+  }
+
+  function publish(graph, snapshot, topology) {
+    const detail = {
+      graph,
+      snapshot,
+      topology,
+    };
+
+    window.ATLAS_SYSTEM_MAP_DATA = detail;
+    mountMap();
+
+    window.dispatchEvent(
+      new CustomEvent("atlas:system-map-data", {
+        detail,
+      }),
+    );
+  }
+
+  async function refresh(snapshot) {
+    if (refreshInFlight) return refreshInFlight;
+
+    refreshInFlight = fetchTopology()
+      .catch(() => ({
+        schema: "atlas-public-topology/fallback",
+        components: [],
+      }))
+      .then((topology) => {
+        const graph = compile(topology, snapshot);
+        publish(graph, snapshot, topology);
+      })
+      .finally(() => {
+        refreshInFlight = null;
+      });
+
+    return refreshInFlight;
+  }
+
+  function start() {
+    if (
+      !window.AtlasRegistry ||
+      typeof window.AtlasRegistry.subscribe !== "function"
+    ) {
+      window.setTimeout(start, 50);
+      return;
+    }
+
+    window.AtlasRegistry.subscribe((snapshot) => {
+      lastSnapshot = snapshot;
+      refresh(snapshot);
+    });
+
+    window.setInterval(() => {
+      if (lastSnapshot) refresh(lastSnapshot);
+    }, 60_000);
+  }
+
+  start();
 })();

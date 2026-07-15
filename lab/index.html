@@ -45,7 +45,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/lab/lab-card.css?v=20260707-lab-cache" />
-    <link rel="stylesheet" href="/lab/system-map.css?v=20260707-lab-cache" />
+    <link rel="stylesheet" href="/lab/system-map.css?v=20260715-city-map-final" />
     <link
       rel="stylesheet"
       href="/lab/blackbox-timeline.css?v=20260707-lab-cache"
@@ -1468,7 +1468,7 @@
 
             <div class="smap-head">
               <p class="smap-statusline" id="system-map-statusline">
-                contacting registry…
+                assembling estate districts…
               </p>
             </div>
 
@@ -1478,57 +1478,35 @@
               <div class="smap-list" id="system-map-list"></div>
             </div>
 
-            <div class="smap-legend" aria-hidden="true">
-              <span
-                ><i class="smap-leg-dot smap-leg-live"></i>live, /_meta
-                verified</span
-              >
-              <span
-                ><i class="smap-leg-dot smap-leg-undoc"></i>discovered, no
-                /_meta</span
-              >
-              <span
-                ><i class="smap-leg-dot smap-leg-down"></i>not answering</span
-              >
-              <span><i class="smap-leg-shape"></i>pages site</span>
-              <span
-                ><i class="smap-leg-shape smap-leg-diamond"></i>LAN
-                service</span
-              >
-              <span
-                ><i class="smap-leg-line smap-leg-edge-binding"></i
-                >binding</span
-              >
-              <span
-                ><i class="smap-leg-line smap-leg-edge-tunnel"></i>tunnel</span
-              >
+            <div class="smap-legend" aria-label="System map legend">
+              <span><i class="smap-leg-dot smap-leg-live"></i>live, /_meta verified</span>
+              <span><i class="smap-leg-dot smap-leg-undoc"></i>discovered, no /_meta</span>
+              <span><i class="smap-leg-dot smap-leg-down"></i>not answering</span>
+              <span><i class="smap-leg-role smap-leg-role-worker"></i>Worker service</span>
+              <span><i class="smap-leg-role smap-leg-role-site"></i>Pages site</span>
+              <span><i class="smap-leg-role smap-leg-role-repo"></i>source repository</span>
+              <span><i class="smap-leg-role smap-leg-role-local"></i>LAN service</span>
+              <span><i class="smap-leg-role smap-leg-role-ext"></i>external dependency</span>
+              <span><i class="smap-leg-role smap-leg-role-kv"></i>KV namespace</span>
+              <span><i class="smap-leg-line smap-leg-edge-binding"></i>binding</span>
+              <span><i class="smap-leg-line smap-leg-edge-tunnel"></i>tunnel</span>
               <span><i class="smap-leg-line smap-leg-edge-http"></i>http</span>
               <span><i class="smap-leg-line smap-leg-edge-poll"></i>poll</span>
-              <span
-                ><i class="smap-leg-line smap-leg-edge-probe"></i>probe</span
-              >
-              <span
-                ><i class="smap-leg-line smap-leg-edge-dispatch"></i
-                >dispatch</span
-              >
-              <span
-                ><i class="smap-leg-line smap-leg-edge-notify"></i>notify</span
-              >
-              <span
-                ><i class="smap-leg-line smap-leg-edge-alert"></i>alert</span
-              >
-              <span><i class="smap-leg-line smap-leg-edge-kv"></i>KV</span>
+              <span><i class="smap-leg-line smap-leg-edge-probe"></i>probe</span>
+              <span><i class="smap-leg-line smap-leg-edge-dispatch"></i>dispatch</span>
+              <span><i class="smap-leg-line smap-leg-edge-notify"></i>notify</span>
+              <span><i class="smap-leg-line smap-leg-edge-alert"></i>alert</span>
+              <span><i class="smap-leg-line smap-leg-edge-kv"></i>KV link</span>
             </div>
 
             <p class="smap-note">
-              Nodes and their status are live from
-              <a href="https://api.atlas-systems.uk/">api.atlas-systems.uk</a>,
-              rebuilt hourly by <code>atlas-api-index</code> and re-polled every
-              60 seconds. Connections are declared from the estate's own
-              decision log, since service bindings and tunnel wiring are
-              configuration no API exposes. Green is earned: it means the
-              registry verified that Worker's <code>/_meta</code> this hour. LAN
-              services sit behind the tunnel and claim no liveness here.
+              The 3D city view opens first on capable desktops; use the persistent
+              view controls to switch to the flat district plan. District streets
+              organise public source repositories and runtime services without
+              inventing dependencies. Coloured routes follow the key above and are
+              drawn only from declared estate wiring or live registry probes.
+              Source-only repositories remain buildings in the source quarter until
+              the canonical topology declares a real connection.
             </p>
           </section>
 
@@ -3609,7 +3587,7 @@
       defer
     ></script>
     <script
-      src="/lab/system-map-bootstrap.js?v=20260715-district-overhaul"
+      src="/lab/system-map-bootstrap.js?v=20260715-city-map-final"
       defer
     ></script>
     <script src="/lab/live-section.js?v=20260713-estate-search" defer></script>

@@ -1,745 +1,804 @@
-(function () {
-  "use strict";
+import {
+  buildCityLayout,
+  DISTRICT_ORDER,
+} from "./system-map-layout.js?v=20260715-city-map-final";
 
-  const host = document.getElementById("system-map-host");
-  if (!host) return;
+const host = document.getElementById("system-map-host");
+const statusLine = document.getElementById("system-map-statusline");
+const banner = document.getElementById("system-map-banner");
 
-  const LAB_EXCLUDED_WORKERS = new Set(["simple-proxy"]);
-  const W = 1180;
-  const H = 760;
-  const CELL_W = 72;
-  const CELL_H = 58;
-  const DISTRICT_MARGIN = 22;
+if (!host) {
+  throw new Error("System map host is missing.");
+}
 
-  const EDGE_STYLE = {
-    binding: { stroke: "#9aa4b4", width: 1.4, dash: "" },
-    tunnel: { stroke: "#f5a623", width: 2.7, dash: "" },
-    http: { stroke: "#48b9dc", width: 1.5, dash: "" },
-    poll: { stroke: "#7d8fe0", width: 1.2, dash: "5 5" },
-    probe: { stroke: "#d0ab58", width: 1.1, dash: "3 5" },
-    dispatch: { stroke: "#b186ee", width: 1.3, dash: "7 5" },
-    notify: { stroke: "#d277cf", width: 1.4, dash: "" },
-    alert: { stroke: "#f06d4f", width: 1.5, dash: "" },
-    kv: { stroke: "#d5d0c5", width: 1.0, dash: "" },
-    default: { stroke: "#9aa4b4", width: 1.2, dash: "" },
+const EDGE_STYLE = {
+  binding: { color: "#9aa4b4", width: 1.7, dash: "" },
+  tunnel: { color: "#f5a623", width: 3.1, dash: "" },
+  http: { color: "#48b9dc", width: 1.8, dash: "" },
+  poll: { color: "#7d8fe0", width: 1.5, dash: "3 7" },
+  probe: { color: "#d0ab58", width: 1.3, dash: "5 5" },
+  dispatch: { color: "#b186ee", width: 1.7, dash: "9 6" },
+  notify: { color: "#d277cf", width: 1.8, dash: "" },
+  alert: { color: "#f06d4f", width: 1.9, dash: "" },
+  kv: { color: "#d5d0c5", width: 1.2, dash: "" },
+  default: { color: "#9aa4b4", width: 1.5, dash: "" },
+};
+
+const DISTRICT_LABEL = {
+  surface: "surface ward",
+  publicApi: "control plaza",
+  source: "source quarter",
+  observability: "ops yard",
+  edge: "edge works",
+  local: "local valley",
+  external: "outer links",
+};
+
+const callbacks = [];
+let data =
+  window.ATLAS_SYSTEM_MAP_DATA || {
+    graph: window.ATLAS_TOPOLOGY || {
+      nodes: [],
+      edges: [],
+      kv: [],
+    },
+    snapshot: null,
+    topology: null,
   };
+let state = null;
+let sceneController = null;
+let mode = "flat";
+let flatView = null;
+let flatLayer = null;
+let mobileList = null;
+let detailPanel = null;
+let threeButton = null;
+let flatButton = null;
+let resetButton = null;
+let loading = null;
 
-  const DISTRICT_LAYOUT = {
-    surface: {
-      label: "surface ward",
-      x: 70,
-      y: 70,
-      w: 300,
-      h: 190,
-      accent: "#e8935c",
-      fill: "rgba(232,147,92,0.06)",
-    },
-    publicApi: {
-      label: "control plaza",
-      x: 380,
-      y: 70,
-      w: 300,
-      h: 190,
-      accent: "#4ade80",
-      fill: "rgba(74,222,128,0.05)",
-    },
-    source: {
-      label: "source quarter",
-      x: 720,
-      y: 70,
-      w: 390,
-      h: 220,
-      accent: "#f5a623",
-      fill: "rgba(245,166,35,0.05)",
-    },
-    observability: {
-      label: "ops yard",
-      x: 70,
-      y: 300,
-      w: 370,
-      h: 240,
-      accent: "#f5a623",
-      fill: "rgba(245,166,35,0.05)",
-    },
-    edge: {
-      label: "edge works",
-      x: 455,
-      y: 300,
-      w: 290,
-      h: 230,
-      accent: "#f5a623",
-      fill: "rgba(245,166,35,0.05)",
-    },
-    local: {
-      label: "local valley",
-      x: 760,
-      y: 330,
-      w: 350,
-      h: 250,
-      accent: "#48b9dc",
-      fill: "rgba(72,185,220,0.05)",
-    },
-    external: {
-      label: "outer links",
-      x: 70,
-      y: 580,
-      w: 260,
-      h: 120,
-      accent: "#8a8a93",
-      fill: "rgba(138,138,147,0.05)",
-    },
-  };
+function canUse3D() {
+  return (
+    window.matchMedia("(min-width: 1120px)").matches &&
+    !window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches &&
+    typeof WebGL2RenderingContext !== "undefined"
+  );
+}
 
-  const subscriptions = [];
-  let lastSnap = null;
-  let svg = null;
-  let panel = null;
-  let renderState = null;
+function createSvgElement(name, attributes = {}) {
+  const element = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    name,
+  );
 
-  function injectStyles() {
-    if (document.getElementById("atlas-system-map-overhaul-style")) return;
-
-    const style = document.createElement("style");
-    style.id = "atlas-system-map-overhaul-style";
-    style.textContent = `
-      #system-map-host {
-        position: relative;
-        min-height: 760px;
-        overflow: hidden;
-        background:
-          linear-gradient(var(--border, rgba(255,255,255,0.08)) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-        background-size: 80px 80px;
-        background-color: #0a0a0f;
-      }
-      #system-map-host .atlas-system-map-svg {
-        width: 100%;
-        height: auto;
-        display: block;
-      }
-      #system-map-host .atlas-system-map-panel {
-        position: absolute;
-        left: 18px;
-        bottom: 18px;
-        width: min(360px, calc(100% - 36px));
-        border: 1px solid rgba(255,255,255,0.08);
-        background: linear-gradient(180deg, rgba(17,17,24,0.95), rgba(10,10,15,0.96));
-        padding: 12px 14px;
-        color: #e8e8e0;
-        font: 12px/1.55 "IBM Plex Mono", monospace;
-        pointer-events: none;
-        opacity: 0;
-        transform: translateY(12px);
-        transition: opacity 0.16s ease, transform 0.16s ease;
-      }
-      #system-map-host .atlas-system-map-panel[data-open="true"] {
-        opacity: 1;
-        transform: translateY(0);
-      }
-      #system-map-host .atlas-system-map-panel h3 {
-        margin: 0 0 6px;
-        color: #f5a623;
-        font: 500 12px/1.35 "IBM Plex Mono", monospace;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-      }
-      #system-map-host .atlas-system-map-panel p {
-        margin: 0 0 6px;
-        color: #aaa9a0;
-      }
-      #system-map-host .atlas-system-map-panel p:last-child {
-        margin-bottom: 0;
-      }
-      #system-map-host .atlas-system-map-panel code {
-        color: #e8e8e0;
-      }
-      .smap-district-title {
-        fill: #aaa9a0;
-        font: 500 10px/1 "IBM Plex Mono", monospace;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-      }
-      .smap-road {
-        stroke: rgba(255,255,255,0.06);
-      }
-      .smap-edge {
-        fill: none;
-        stroke-linecap: round;
-        opacity: 0.94;
-      }
-      .smap-node-label {
-        fill: #aaa9a0;
-        font: 500 10px/1 "IBM Plex Mono", monospace;
-        pointer-events: none;
-      }
-      .smap-node-shape {
-        transition: opacity 0.14s ease, transform 0.14s ease;
-      }
-      .smap-node[data-status="live"] .smap-node-shape {
-        stroke: #4ade80;
-      }
-      .smap-node[data-status="down"] .smap-node-shape,
-      .smap-node[data-status="degraded"] .smap-node-shape {
-        stroke: #e24b4a;
-      }
-      .smap-node[data-status="undoc"] .smap-node-shape,
-      .smap-node[data-status="unknown"] .smap-node-shape {
-        stroke: #f5a623;
-      }
-      .smap-node[data-role="worker"] .smap-node-shape {
-        fill: rgba(245,166,35,0.12);
-        stroke-width: 2.2;
-      }
-      .smap-node[data-role="site"] .smap-node-shape {
-        fill: rgba(232,147,92,0.12);
-        stroke: #e8935c;
-        stroke-width: 2.0;
-      }
-      .smap-node[data-role="local"] .smap-node-shape {
-        fill: rgba(72,185,220,0.12);
-        stroke: #48b9dc;
-        stroke-width: 2.0;
-      }
-      .smap-node[data-role="ext"] .smap-node-shape {
-        fill: rgba(138,138,147,0.08);
-        stroke: #8a8a93;
-        stroke-width: 1.7;
-        stroke-dasharray: 4 4;
-      }
-      .smap-node[data-role="repo"] .smap-node-shape {
-        fill: rgba(245,166,35,0.08);
-        stroke: #f5a623;
-        stroke-width: 1.8;
-      }
-      .smap-node[data-role="infra"] .smap-node-shape {
-        fill: rgba(207,200,184,0.06);
-        stroke: #cfc8b8;
-        stroke-width: 1.6;
-      }
-      .smap-kv-label {
-        fill: #cfc8b8;
-        font: 500 9px/1 "IBM Plex Mono", monospace;
-        letter-spacing: 0.08em;
-        pointer-events: none;
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  function createSvgEl(name, attrs) {
-    const el = document.createElementNS("http://www.w3.org/2000/svg", name);
-    Object.entries(attrs || {}).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        el.setAttribute(key, String(value));
-      }
-    });
-    return el;
-  }
-
-  function sortById(a, b) {
-    return String(a.id).localeCompare(String(b.id));
-  }
-
-  function displayName(node) {
-    return node.label || node.id || node.name || "unknown";
-  }
-
-  function inferDistrict(node) {
-    if (node.sourceOnly || node.kind === "repository") return "source";
-    if (node.role === "site") return "surface";
-    if (node.role === "local") return "local";
-    if (node.role === "ext") return "external";
-    if (node.layer === "public-api") return "publicApi";
-    if (node.layer === "observability") return "observability";
-    if (node.layer === "edge") return "edge";
-    if (node.layer === "infra") return "observability";
-    return "publicApi";
-  }
-
-  function normaliseRole(raw) {
-    if (raw.sourceOnly === true || raw.source_only === true || raw.kind === "repository") {
-      return "repo";
+  for (const [key, value] of Object.entries(attributes)) {
+    if (value !== undefined && value !== null) {
+      element.setAttribute(key, String(value));
     }
-    if (raw.role === "site") return "site";
-    if (raw.role === "local") return "local";
-    if (raw.role === "ext") return "ext";
-    if (raw.role === "infra") return "infra";
-    return "worker";
   }
 
-  function normaliseNode(raw) {
-    const sourceOnly =
-      raw.sourceOnly === true ||
-      raw.source_only === true ||
-      raw.kind === "repository";
-    const node = {
-      ...raw,
-      id: raw.id || raw.name,
-      label: raw.label || raw.id || raw.name,
-      role: normaliseRole(raw),
-      status: raw.status || "unknown",
-      kind: raw.kind || (sourceOnly ? "repository" : "worker"),
-      layer: raw.layer || "",
-      sourceOnly,
-      publicSurface: raw.public_surface || raw.publicSurface || null,
-      description: raw.description || raw.notes || "",
-      dependsOn: Array.isArray(raw.depends_on) ? raw.depends_on.slice() : [],
+  return element;
+}
+
+function appendText(parent, text) {
+  parent.appendChild(document.createTextNode(text));
+}
+
+function createShell() {
+  host.replaceChildren();
+  host.classList.add("smap-city-host");
+
+  const toolbar = document.createElement("div");
+  toolbar.className = "smap-view-toolbar";
+  toolbar.setAttribute("aria-label", "System map view controls");
+
+  threeButton = document.createElement("button");
+  threeButton.type = "button";
+  threeButton.className = "smap-view-button";
+  threeButton.textContent = "3D view";
+  threeButton.disabled = !canUse3D();
+  threeButton.addEventListener("click", () => setMode("3d"));
+
+  flatButton = document.createElement("button");
+  flatButton.type = "button";
+  flatButton.className = "smap-view-button";
+  flatButton.textContent = "flat view";
+  flatButton.addEventListener("click", () => setMode("flat"));
+
+  resetButton = document.createElement("button");
+  resetButton.type = "button";
+  resetButton.className = "smap-view-button smap-view-reset";
+  resetButton.textContent = "reset";
+  resetButton.addEventListener("click", resetView);
+
+  toolbar.append(threeButton, flatButton, resetButton);
+
+  const stage = document.createElement("div");
+  stage.className = "smap-city-stage";
+
+  flatLayer = document.createElement("div");
+  flatLayer.className = "smap-flat-layer";
+  stage.appendChild(flatLayer);
+
+  loading = document.createElement("div");
+  loading.className = "smap-3d-loading";
+  loading.textContent = "building estate districts…";
+  stage.appendChild(loading);
+
+  detailPanel = document.createElement("aside");
+  detailPanel.className = "smap-city-detail";
+  detailPanel.dataset.open = "false";
+  detailPanel.setAttribute("aria-live", "polite");
+  stage.appendChild(detailPanel);
+
+  mobileList = document.createElement("div");
+  mobileList.id = "system-map-list";
+  mobileList.className = "smap-list";
+
+  host.append(toolbar, stage, mobileList);
+}
+
+function updateToolbar() {
+  threeButton.setAttribute(
+    "aria-pressed",
+    String(mode === "3d"),
+  );
+  flatButton.setAttribute(
+    "aria-pressed",
+    String(mode === "flat"),
+  );
+  host.dataset.mapMode = mode;
+}
+
+function setMode(nextMode) {
+  if (nextMode === "3d" && !sceneController) {
+    mode = canUse3D() ? "3d" : "flat";
+  } else {
+    mode = nextMode;
+  }
+
+  flatLayer.hidden = mode !== "flat";
+
+  if (sceneController) {
+    sceneController.setVisible(mode === "3d");
+  }
+
+  loading.hidden =
+    mode !== "3d" || Boolean(sceneController);
+
+  updateToolbar();
+}
+
+function resetView() {
+  if (mode === "3d" && sceneController) {
+    sceneController.reset();
+    return;
+  }
+
+  if (flatView && state) {
+    flatView = {
+      x: 0,
+      y: 0,
+      width: state.width,
+      height: state.height,
     };
-    node.district = inferDistrict(node);
-    return node;
+    applyFlatViewBox();
+  }
+}
+
+function pathData(points) {
+  return points
+    .map(
+      (point, index) =>
+        `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`,
+    )
+    .join(" ");
+}
+
+function districtRoads(svg, district) {
+  const innerX = district.x + 20;
+  const innerY = district.y + 42;
+  const innerWidth = district.w - 40;
+  const cellWidth = innerWidth / district.cols;
+
+  for (let column = 1; column < district.cols; column += 1) {
+    svg.appendChild(
+      createSvgElement("line", {
+        x1: innerX + column * cellWidth,
+        y1: district.y + 34,
+        x2: innerX + column * cellWidth,
+        y2: district.y + district.h - 12,
+        class: "smap-district-road",
+      }),
+    );
   }
 
-  function shapeSvg(node, x, y) {
-    if (node.role === "site") {
-      return createSvgEl("rect", {
-        x: x - 13,
-        y: y - 13,
-        width: 26,
-        height: 26,
-        rx: 4,
-        class: "smap-node-shape",
-      });
-    }
-
-    if (node.role === "local") {
-      const points = [
-        [x, y - 14],
-        [x + 14, y],
-        [x, y + 14],
-        [x - 14, y],
-      ].map((pair) => pair.join(",")).join(" ");
-      return createSvgEl("polygon", {
-        points,
-        class: "smap-node-shape",
-      });
-    }
-
-    if (node.role === "ext") {
-      return createSvgEl("circle", {
-        cx: x,
-        cy: y,
-        r: 12,
-        class: "smap-node-shape",
-      });
-    }
-
-    if (node.role === "repo") {
-      return createSvgEl("rect", {
-        x: x - 14,
-        y: y - 8,
-        width: 28,
-        height: 16,
-        rx: 3,
-        class: "smap-node-shape",
-      });
-    }
-
-    if (node.role === "infra") {
-      return createSvgEl("rect", {
-        x: x - 7,
-        y: y - 7,
-        width: 14,
-        height: 14,
-        class: "smap-node-shape",
-      });
-    }
-
-    return createSvgEl("circle", {
-      cx: x,
-      cy: y,
-      r: 14,
-      class: "smap-node-shape",
-    });
+  for (let row = 1; row < district.rows; row += 1) {
+    svg.appendChild(
+      createSvgElement("line", {
+        x1: district.x + 12,
+        y1: innerY + row * 72,
+        x2: district.x + district.w - 12,
+        y2: innerY + row * 72,
+        class: "smap-district-road",
+      }),
+    );
   }
+}
 
-  function buildNodeLayout(nodes) {
-    const byDistrict = {};
-    Object.keys(DISTRICT_LAYOUT).forEach((key) => {
-      byDistrict[key] = [];
-    });
+function renderDistrict(svg, district) {
+  const group = createSvgElement("g", {
+    class: `smap-district smap-district-${district.key}`,
+  });
 
-    nodes.forEach((node) => {
-      const key = DISTRICT_LAYOUT[node.district] ? node.district : "publicApi";
-      byDistrict[key].push(node);
-    });
-
-    Object.values(byDistrict).forEach((list) => list.sort(sortById));
-
-    const districtState = [];
-    Object.entries(DISTRICT_LAYOUT).forEach(([key, district]) => {
-      const members = byDistrict[key];
-      const innerX = district.x + DISTRICT_MARGIN;
-      const innerY = district.y + 36;
-      const innerW = district.w - DISTRICT_MARGIN * 2;
-      const cols = Math.max(1, Math.floor(innerW / CELL_W));
-
-      members.forEach((node, index) => {
-        const col = index % cols;
-        const row = Math.floor(index / cols);
-        node.x = innerX + col * CELL_W + 24;
-        node.y = innerY + row * CELL_H + 22;
-      });
-
-      const rows = Math.max(1, Math.ceil(members.length / cols));
-      districtState.push({
-        key,
-        ...district,
-        cols,
-        rows,
-        members,
-      });
-    });
-
-    return districtState;
-  }
-
-  function buildEdgeList(nodes, topo) {
-    const nodeById = new Map(nodes.map((node) => [node.id, node]));
-    const edges = [];
-
-    (topo.edges || []).forEach((edge) => {
-      if (!nodeById.has(edge.from) || !nodeById.has(edge.to)) return;
-      edges.push({
-        from: edge.from,
-        to: edge.to,
-        kind: edge.kind || "http",
-      });
-    });
-
-    if (lastSnap && nodeById.has("atlas-api-index")) {
-      (lastSnap.workers || []).forEach((worker) => {
-        const name = worker.name;
-        if (!name || name === "atlas-api-index" || LAB_EXCLUDED_WORKERS.has(name)) return;
-        if (!nodeById.has(name)) return;
-        edges.push({
-          from: "atlas-api-index",
-          to: name,
-          kind: "probe",
-          derived: true,
-        });
-      });
-    }
-
-    return edges;
-  }
-
-  function buildKvNodes(nodes, topo) {
-    const nodeById = new Map(nodes.map((node) => [node.id, node]));
-    return (topo.kv || [])
-      .filter((entry) => nodeById.has(entry.parent))
-      .map((entry, index) => {
-        const parent = nodeById.get(entry.parent);
-        const offset = index % 2 === 0 ? -18 : 18;
-        return {
-          id: entry.id || entry.label,
-          label: entry.label,
-          parent: entry.parent,
-          x: parent.x + offset,
-          y: parent.y - 24 - Math.floor(index / 2) * 18,
-        };
-      });
-  }
-
-  function collectNodes() {
-    const topo = window.ATLAS_TOPOLOGY || { nodes: [], edges: [], kv: [] };
-    const nodes = (topo.nodes || [])
-      .filter((node) => !LAB_EXCLUDED_WORKERS.has(node.id))
-      .map(normaliseNode);
-
-    const nodeById = new Map(nodes.map((node) => [node.id, node]));
-
-    if (lastSnap) {
-      (lastSnap.workers || []).forEach((worker) => {
-        const name = worker.name;
-        if (!name || LAB_EXCLUDED_WORKERS.has(name)) return;
-
-        const status =
-          worker.documented === false
-            ? "undoc"
-            : worker.status || (worker.ok === false ? "down" : "live");
-
-        if (nodeById.has(name)) {
-          nodeById.get(name).status = status;
-        } else {
-          const orphan = normaliseNode({
-            id: name,
-            label: name,
-            role: "worker",
-            kind: "worker",
-            layer: "public-api",
-            status,
-          });
-          orphan.district = "publicApi";
-          nodes.push(orphan);
-          nodeById.set(orphan.id, orphan);
-        }
-      });
-    }
-
-    nodes.sort((a, b) => {
-      if (a.sourceOnly !== b.sourceOnly) return a.sourceOnly ? 1 : -1;
-      return sortById(a, b);
-    });
-
-    return {
-      topo,
-      nodes,
-    };
-  }
-
-  function renderDistrict(svgRoot, district) {
-    const frame = createSvgEl("rect", {
+  group.appendChild(
+    createSvgElement("rect", {
       x: district.x,
       y: district.y,
       width: district.w,
       height: district.h,
       rx: 18,
-      fill: district.fill,
-      stroke: "rgba(255,255,255,0.08)",
+      class: "smap-district-frame",
+    }),
+  );
+
+  group.appendChild(
+    createSvgElement("line", {
+      x1: district.x + 12,
+      y1: district.y + 30,
+      x2: district.x + district.w - 12,
+      y2: district.y + 30,
+      class: "smap-district-header-line",
+    }),
+  );
+
+  const title = createSvgElement("text", {
+    x: district.x + 14,
+    y: district.y + 20,
+    class: "smap-district-title",
+  });
+  title.textContent = district.label;
+  group.appendChild(title);
+  districtRoads(group, district);
+  svg.appendChild(group);
+}
+
+function appendMultilineLabel(group, node) {
+  const label = createSvgElement("text", {
+    x: node.x,
+    y: node.y + 28,
+    "text-anchor": "middle",
+    class: "smap-node-label",
+  });
+
+  const text = String(node.label);
+  const splitAt =
+    text.length > 17
+      ? Math.max(
+          text.lastIndexOf("-", 17),
+          text.lastIndexOf("_", 17),
+        )
+      : -1;
+
+  if (splitAt > 4) {
+    const first = createSvgElement("tspan", {
+      x: node.x,
+      dy: "0",
     });
-    svgRoot.appendChild(frame);
+    first.textContent = text.slice(0, splitAt + 1);
 
-    const title = createSvgEl("text", {
-      x: district.x + 14,
-      y: district.y + 18,
-      class: "smap-district-title",
+    const second = createSvgElement("tspan", {
+      x: node.x,
+      dy: "11",
     });
-    title.textContent = district.label;
-    svgRoot.appendChild(title);
+    second.textContent = text.slice(splitAt + 1);
 
-    for (let col = 1; col < district.cols; col += 1) {
-      const x = district.x + DISTRICT_MARGIN + col * CELL_W - 12;
-      const road = createSvgEl("line", {
-        x1: x,
-        y1: district.y + 30,
-        x2: x,
-        y2: district.y + district.h - 16,
-        class: "smap-road",
-      });
-      svgRoot.appendChild(road);
-    }
-
-    for (let row = 1; row < district.rows; row += 1) {
-      const y = district.y + 36 + row * CELL_H - 7;
-      const road = createSvgEl("line", {
-        x1: district.x + 12,
-        y1: y,
-        x2: district.x + district.w - 12,
-        y2: y,
-        class: "smap-road",
-      });
-      svgRoot.appendChild(road);
-    }
+    label.append(first, second);
+  } else {
+    label.textContent = text;
   }
 
-  function showPanel(node) {
-    if (!panel) return;
-    if (!node) {
-      panel.dataset.open = "false";
-      panel.innerHTML = "";
-      return;
-    }
+  group.appendChild(label);
+}
 
-    panel.innerHTML = `
-      <h3>${displayName(node)}</h3>
-      <p><strong>role</strong> · ${node.role}${node.sourceOnly ? " · source-only repository" : ""}</p>
-      <p><strong>status</strong> · ${node.status}</p>
-      <p><strong>district</strong> · ${DISTRICT_LAYOUT[node.district] ? DISTRICT_LAYOUT[node.district].label : node.district}</p>
-      ${node.description ? `<p>${node.description}</p>` : ""}
-      ${node.publicSurface ? `<p><strong>public</strong> · <code>${node.publicSurface}</code></p>` : ""}
-    `;
-    panel.dataset.open = "true";
+function nodeShape(node) {
+  if (node.role === "site") {
+    return createSvgElement("rect", {
+      x: node.x - 15,
+      y: node.y - 12,
+      width: 30,
+      height: 24,
+      rx: 4,
+      class: "smap-node-shape",
+    });
   }
 
-  function render() {
-    const collected = collectNodes();
-    const districts = buildNodeLayout(collected.nodes);
-    const edges = buildEdgeList(collected.nodes, collected.topo);
-    const kvNodes = buildKvNodes(collected.nodes, collected.topo);
-    const nodeById = new Map(collected.nodes.map((node) => [node.id, node]));
-
-    const nextSvg = createSvgEl("svg", {
-      class: "atlas-system-map-svg",
-      viewBox: `0 0 ${W} ${H}`,
-      role: "img",
-      "aria-label": "Atlas Systems map of public services, repositories, and estate links",
+  if (node.role === "repo") {
+    return createSvgElement("path", {
+      d:
+        `M ${node.x - 18} ${node.y - 9} ` +
+        `H ${node.x + 18} V ${node.y + 9} ` +
+        `H ${node.x - 18} Z ` +
+        `M ${node.x - 12} ${node.y - 3} ` +
+        `H ${node.x + 12}`,
+      class: "smap-node-shape",
     });
+  }
 
-    const districtsLayer = createSvgEl("g");
-    const edgesLayer = createSvgEl("g");
-    const kvLayer = createSvgEl("g");
-    const nodesLayer = createSvgEl("g");
-
-    districts.forEach((district) => renderDistrict(districtsLayer, district));
-
-    edges.forEach((edge) => {
-      const from = nodeById.get(edge.from);
-      const to = nodeById.get(edge.to);
-      if (!from || !to) return;
-      const style = EDGE_STYLE[edge.kind] || EDGE_STYLE.default;
-      const line = createSvgEl("line", {
-        x1: from.x,
-        y1: from.y,
-        x2: to.x,
-        y2: to.y,
-        class: "smap-edge",
-        stroke: style.stroke,
-        "stroke-width": style.width,
-        "stroke-dasharray": style.dash,
-      });
-      edgesLayer.appendChild(line);
+  if (node.role === "local") {
+    return createSvgElement("polygon", {
+      points: [
+        [node.x, node.y - 15],
+        [node.x + 15, node.y],
+        [node.x, node.y + 15],
+        [node.x - 15, node.y],
+      ]
+        .map((point) => point.join(","))
+        .join(" "),
+      class: "smap-node-shape",
     });
+  }
 
-    kvNodes.forEach((kv) => {
-      const line = createSvgEl("line", {
-        x1: kv.x,
-        y1: kv.y,
-        x2: nodeById.get(kv.parent).x,
-        y2: nodeById.get(kv.parent).y,
-        class: "smap-edge",
-        stroke: EDGE_STYLE.kv.stroke,
+  if (node.role === "ext") {
+    return createSvgElement("polygon", {
+      points: [
+        [node.x, node.y - 14],
+        [node.x + 14, node.y],
+        [node.x, node.y + 14],
+        [node.x - 14, node.y],
+      ]
+        .map((point) => point.join(","))
+        .join(" "),
+      class: "smap-node-shape",
+    });
+  }
+
+  if (node.role === "infra") {
+    return createSvgElement("rect", {
+      x: node.x - 8,
+      y: node.y - 8,
+      width: 16,
+      height: 16,
+      class: "smap-node-shape",
+    });
+  }
+
+  return createSvgElement("circle", {
+    cx: node.x,
+    cy: node.y,
+    r: 15,
+    class: "smap-node-shape",
+  });
+}
+
+function clearEdgeHighlight() {
+  flatLayer
+    .querySelectorAll(".smap-route.is-related")
+    .forEach((route) => route.classList.remove("is-related"));
+
+  flatLayer
+    .querySelectorAll(".smap-route.is-muted")
+    .forEach((route) => route.classList.remove("is-muted"));
+}
+
+function highlightEdges(nodeId) {
+  const routes = flatLayer.querySelectorAll(".smap-route");
+
+  routes.forEach((route) => {
+    const related =
+      route.dataset.from === nodeId ||
+      route.dataset.to === nodeId;
+
+    route.classList.toggle("is-related", related);
+    route.classList.toggle("is-muted", !related);
+  });
+}
+
+function renderNode(svg, node) {
+  const group = createSvgElement("g", {
+    class: "smap-city-node",
+    "data-role": node.role,
+    "data-status": node.status,
+    tabindex: "0",
+  });
+
+  group.appendChild(nodeShape(node));
+  appendMultilineLabel(group, node);
+
+  const open = () => {
+    showDetail(node);
+    highlightEdges(node.id);
+  };
+
+  const close = () => {
+    clearDetail();
+    clearEdgeHighlight();
+  };
+
+  group.addEventListener("mouseenter", open);
+  group.addEventListener("focus", open);
+  group.addEventListener("mouseleave", close);
+  group.addEventListener("blur", close);
+  group.addEventListener("click", (event) => {
+    event.stopPropagation();
+    showDetail(node);
+    highlightEdges(node.id);
+  });
+
+  svg.appendChild(group);
+}
+
+function showDetail(node) {
+  detailPanel.replaceChildren();
+
+  const title = document.createElement("h3");
+  title.textContent = node.label;
+
+  const metadata = document.createElement("p");
+  metadata.className = "smap-city-detail-meta";
+  metadata.textContent =
+    `${node.role}` +
+    `${node.sourceOnly ? " · source-only repository" : ""}` +
+    ` · ${DISTRICT_LABEL[node.district] || node.district}`;
+
+  const status = document.createElement("p");
+  status.className = `smap-city-detail-status is-${node.status}`;
+  status.textContent = `status · ${node.status}`;
+
+  detailPanel.append(title, metadata, status);
+
+  if (node.description) {
+    const description = document.createElement("p");
+    description.textContent = node.description;
+    detailPanel.appendChild(description);
+  }
+
+  if (node.repo) {
+    const link = document.createElement("a");
+    link.href = node.repo;
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = "open source ↗";
+    detailPanel.appendChild(link);
+  } else if (node.publicSurface) {
+    const link = document.createElement("a");
+    link.href = node.publicSurface;
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = "open public surface ↗";
+    detailPanel.appendChild(link);
+  }
+
+  detailPanel.dataset.open = "true";
+}
+
+function clearDetail() {
+  detailPanel.dataset.open = "false";
+}
+
+function renderFlat() {
+  flatLayer.replaceChildren();
+
+  const svg = createSvgElement("svg", {
+    class: "smap-city-svg",
+    viewBox: `0 0 ${state.width} ${state.height}`,
+    role: "img",
+    "aria-label":
+      "Flat district map of the Atlas Systems estate",
+  });
+
+  const districtLayer = createSvgElement("g");
+  const routeLayer = createSvgElement("g");
+  const kvLayer = createSvgElement("g");
+  const nodeLayer = createSvgElement("g");
+
+  state.districts.forEach((district) =>
+    renderDistrict(districtLayer, district),
+  );
+
+  state.edges.forEach((edge) => {
+    const style = EDGE_STYLE[edge.kind] || EDGE_STYLE.default;
+    const path = createSvgElement("path", {
+      d: pathData(edge.route),
+      class: `smap-route smap-route-${edge.kind}`,
+      stroke: style.color,
+      "stroke-width": style.width,
+      "stroke-dasharray": style.dash,
+      "data-from": edge.from,
+      "data-to": edge.to,
+    });
+    routeLayer.appendChild(path);
+  });
+
+  state.kv.forEach((entry) => {
+    kvLayer.appendChild(
+      createSvgElement("path", {
+        d: pathData(entry.route),
+        class: "smap-route smap-route-kv",
+        stroke: EDGE_STYLE.kv.color,
         "stroke-width": EDGE_STYLE.kv.width,
-      });
-      kvLayer.appendChild(line);
+      }),
+    );
 
-      const rect = createSvgEl("rect", {
-        x: kv.x - 6,
-        y: kv.y - 6,
+    kvLayer.appendChild(
+      createSvgElement("rect", {
+        x: entry.x - 6,
+        y: entry.y - 6,
         width: 12,
         height: 12,
-        fill: "rgba(207,200,184,0.08)",
-        stroke: "#cfc8b8",
-      });
-      kvLayer.appendChild(rect);
+        class: "smap-kv-node",
+      }),
+    );
 
-      const label = createSvgEl("text", {
-        x: kv.x + 10,
-        y: kv.y + 3,
-        class: "smap-kv-label",
-      });
-      label.textContent = kv.label;
-      kvLayer.appendChild(label);
+    const label = createSvgElement("text", {
+      x: entry.x + 10,
+      y: entry.y + 3,
+      class: "smap-kv-label",
     });
+    label.textContent = entry.label;
+    kvLayer.appendChild(label);
+  });
 
-    collected.nodes.forEach((node) => {
-      const group = createSvgEl("g", {
-        class: "smap-node",
-        "data-role": node.role,
-        "data-status": node.status,
-        tabindex: "0",
-      });
+  state.nodes.forEach((node) => renderNode(nodeLayer, node));
 
-      const shape = shapeSvg(node, node.x, node.y);
-      const label = createSvgEl("text", {
-        x: node.x,
-        y: node.y - (node.role === "repo" ? 14 : 22),
-        "text-anchor": "middle",
-        class: "smap-node-label",
-      });
-      label.textContent = displayName(node);
+  svg.append(
+    districtLayer,
+    routeLayer,
+    kvLayer,
+    nodeLayer,
+  );
+  flatLayer.appendChild(svg);
 
-      group.appendChild(shape);
-      group.appendChild(label);
+  flatView = {
+    x: 0,
+    y: 0,
+    width: state.width,
+    height: state.height,
+  };
 
-      group.addEventListener("mouseenter", function () {
-        showPanel(node);
-      });
-      group.addEventListener("focus", function () {
-        showPanel(node);
-      });
-      group.addEventListener("mouseleave", function () {
-        showPanel(null);
-      });
-      group.addEventListener("blur", function () {
-        showPanel(null);
-      });
+  installFlatNavigation(svg);
+}
 
-      nodesLayer.appendChild(group);
-    });
+function applyFlatViewBox() {
+  const svg = flatLayer.querySelector(".smap-city-svg");
 
-    nextSvg.appendChild(districtsLayer);
-    nextSvg.appendChild(edgesLayer);
-    nextSvg.appendChild(kvLayer);
-    nextSvg.appendChild(nodesLayer);
+  if (!svg || !flatView) return;
 
-    if (svg) {
-      svg.replaceWith(nextSvg);
-    } else {
-      host.innerHTML = "";
-      host.appendChild(nextSvg);
-      const nextPanel = document.createElement("div");
-      nextPanel.className = "atlas-system-map-panel";
-      host.appendChild(nextPanel);
-      panel = nextPanel;
+  svg.setAttribute(
+    "viewBox",
+    `${flatView.x} ${flatView.y} ${flatView.width} ${flatView.height}`,
+  );
+}
+
+function installFlatNavigation(svg) {
+  let drag = null;
+
+  svg.addEventListener("pointerdown", (event) => {
+    if (event.target.closest(".smap-city-node")) return;
+
+    drag = {
+      x: event.clientX,
+      y: event.clientY,
+      viewX: flatView.x,
+      viewY: flatView.y,
+    };
+    svg.setPointerCapture(event.pointerId);
+    svg.classList.add("is-panning");
+  });
+
+  svg.addEventListener("pointermove", (event) => {
+    if (!drag) return;
+
+    const rect = svg.getBoundingClientRect();
+    const dx =
+      ((event.clientX - drag.x) / rect.width) *
+      flatView.width;
+    const dy =
+      ((event.clientY - drag.y) / rect.height) *
+      flatView.height;
+
+    flatView.x = drag.viewX - dx;
+    flatView.y = drag.viewY - dy;
+    applyFlatViewBox();
+  });
+
+  svg.addEventListener("pointerup", (event) => {
+    drag = null;
+    svg.releasePointerCapture(event.pointerId);
+    svg.classList.remove("is-panning");
+  });
+
+  svg.addEventListener(
+    "wheel",
+    (event) => {
+      event.preventDefault();
+
+      const rect = svg.getBoundingClientRect();
+      const pointerX =
+        flatView.x +
+        ((event.clientX - rect.left) / rect.width) *
+          flatView.width;
+      const pointerY =
+        flatView.y +
+        ((event.clientY - rect.top) / rect.height) *
+          flatView.height;
+      const scale = event.deltaY > 0 ? 1.12 : 0.89;
+      const nextWidth = Math.max(
+        state.width * 0.35,
+        Math.min(state.width * 1.4, flatView.width * scale),
+      );
+      const nextHeight =
+        nextWidth * (flatView.height / flatView.width);
+      const ratioX =
+        (pointerX - flatView.x) / flatView.width;
+      const ratioY =
+        (pointerY - flatView.y) / flatView.height;
+
+      flatView.x = pointerX - ratioX * nextWidth;
+      flatView.y = pointerY - ratioY * nextHeight;
+      flatView.width = nextWidth;
+      flatView.height = nextHeight;
+      applyFlatViewBox();
+    },
+    { passive: false },
+  );
+}
+
+function renderMobileList() {
+  mobileList.replaceChildren();
+
+  for (const districtKey of DISTRICT_ORDER) {
+    const members = state.nodes.filter(
+      (node) => node.district === districtKey,
+    );
+
+    if (!members.length) continue;
+
+    const section = document.createElement("section");
+    section.className = "smap-list-group";
+
+    const heading = document.createElement("h3");
+    heading.className = "smap-list-title";
+    heading.textContent = DISTRICT_LABEL[districtKey];
+    section.appendChild(heading);
+
+    for (const node of members) {
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "smap-list-row";
+
+      const dot = document.createElement("span");
+      dot.className = `smap-list-dot is-${node.status}`;
+
+      const name = document.createElement("strong");
+      name.className = "smap-list-name";
+      name.textContent = node.label;
+
+      const description = document.createElement("span");
+      description.className = "smap-list-desc";
+      description.textContent =
+        node.description ||
+        (node.sourceOnly
+          ? "public source repository"
+          : node.role);
+
+      row.append(dot, name, description);
+      row.addEventListener("click", () => showDetail(node));
+      section.appendChild(row);
     }
 
-    svg = nextSvg;
-    renderState = {
-      W,
-      H,
-      nodes: collected.nodes,
-      edges,
-      kv: kvNodes,
-      districts,
-    };
-
-    subscriptions.forEach((fn) => fn(renderState));
+    mobileList.appendChild(section);
   }
+}
 
-  function fallbackToSvg() {
-    const layer = host.querySelector(".smap3d-layer");
-    if (layer) layer.remove();
+function updateStatusLine() {
+  if (!statusLine) return;
+
+  const workers = state.nodes.filter(
+    (node) => node.role === "worker",
+  );
+  const live = workers.filter(
+    (node) => node.status === "live",
+  ).length;
+  const repositories = new Set(
+    state.nodes
+      .map((node) => node.repo)
+      .filter(Boolean),
+  ).size;
+  const generatedAt =
+    data.topology?.generated_at ||
+    data.snapshot?.generatedAt ||
+    null;
+  const timestamp = generatedAt
+    ? ` · topology ${String(generatedAt).slice(11, 16)}Z`
+    : "";
+
+  statusLine.textContent =
+    `${workers.length} workers · ${live} live · ` +
+    `${repositories} public repositories · ` +
+    `${state.districts.length} districts${timestamp}`;
+}
+
+function renderAll() {
+  const graph = data.graph || {
+    nodes: [],
+    edges: [],
+    kv: [],
+  };
+
+  state = buildCityLayout(
+    graph.nodes || [],
+    graph.edges || [],
+    graph.kv || [],
+  );
+
+  renderFlat();
+  renderMobileList();
+  updateStatusLine();
+
+  callbacks.forEach((callback) => callback(state));
+
+  if (sceneController) {
+    sceneController.update(state);
   }
+}
 
-  function bootViewModel() {
-    window.AtlasMapVM = {
-      getState() {
-        return renderState || { W, H, nodes: [], edges: [], kv: [], districts: [] };
-      },
-      onUpdate(fn) {
-        if (typeof fn === "function") subscriptions.push(fn);
-      },
-      openDetail(id) {
-        if (!renderState) return;
-        const node = renderState.nodes.find((entry) => entry.id === id);
-        showPanel(node || null);
-      },
-      fallbackToSvg,
-    };
+function register3D(controller) {
+  sceneController = controller;
+  threeButton.disabled = false;
+  loading.hidden = true;
+  controller.update(state);
+  setMode(mode);
+}
+
+function fail3D(error) {
+  console.warn("3D system map unavailable.", error);
+  sceneController = null;
+  threeButton.disabled = true;
+  setMode("flat");
+
+  if (banner) {
+    banner.hidden = false;
+    banner.textContent =
+      "3D rendering is unavailable in this browser. The flat district map remains complete.";
   }
+}
 
-  function tryBoot3D() {
-    const can3d =
-      window.matchMedia &&
-      window.matchMedia("(min-width: 1120px)").matches &&
-      !(window.matchMedia("(prefers-reduced-motion: reduce)").matches) &&
-      typeof WebGL2RenderingContext !== "undefined";
+window.AtlasMapVM = {
+  getState() {
+    return state;
+  },
+  onUpdate(callback) {
+    if (typeof callback === "function") callbacks.push(callback);
+  },
+  register3D,
+  fail3D,
+  setMode,
+  openDetail(id) {
+    const node = state?.nodes.find((candidate) => candidate.id === id);
+    if (node) showDetail(node);
+  },
+  clearDetail,
+};
 
-    if (!can3d) return;
+window.addEventListener(
+  "atlas:system-map-data",
+  (event) => {
+    data = event.detail;
+    renderAll();
+  },
+);
 
-    import(`/lab/system-map-scene.js?v=20260715-district-overhaul`).catch(function () {
-      fallbackToSvg();
-    });
-  }
+createShell();
+renderAll();
 
-  function subscribeRegistry() {
-    if (!window.AtlasRegistry || typeof window.AtlasRegistry.subscribe !== "function") {
-      render();
-      return;
-    }
+const preferredMode = canUse3D() ? "3d" : "flat";
+setMode(preferredMode);
 
-    window.AtlasRegistry.subscribe(function (snap) {
-      if (snap && (snap.ok || snap.stale)) {
-        lastSnap = snap;
-      }
-      render();
-    });
-  }
-
-  injectStyles();
-  host.style.position = "relative";
-  host.style.minHeight = "760px";
-  bootViewModel();
-  subscribeRegistry();
-  tryBoot3D();
-})();
+if (canUse3D()) {
+  import(
+    "/lab/system-map-scene.js?v=20260715-city-map-final"
+  ).catch(fail3D);
+}
