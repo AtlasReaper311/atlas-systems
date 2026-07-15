@@ -24,6 +24,6 @@
     return g;
   }
   function fingerprint(g){return JSON.stringify({n:g.nodes.map((x)=>[x.id,x.role,x.layer||""]),e:g.edges.map((x)=>[x.from,x.to,x.kind]),k:g.kv.map((x)=>[x.id,x.parent])});}
-  function mount(g){window.ATLAS_TOPOLOGY=g;mounted=fingerprint(g);const s=document.createElement("script");s.src="/lab/system-map.js?v=20260715-live-topology";s.defer=true;document.body.appendChild(s);}
+  function mount(g){window.ATLAS_TOPOLOGY=g;mounted=fingerprint(g);const s=document.createElement("script");s.src="/lab/system-map.js?v=20260715-district-overhaul";s.defer=true;document.body.appendChild(s);}
   window.AtlasRegistry.subscribe(async(snap)=>{const doc=await topologyPromise;const g=compile(doc,snap);if(first){first=false;mount(g);return;}if(fingerprint(g)!==mounted&&!reloadPending){reloadPending=true;setTimeout(()=>window.location.reload(),250);}});
 })();
