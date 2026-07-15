@@ -4,9 +4,8 @@
  *
  * Not a command simulator: every data command hits the same live surfaces
  * the rest of the site uses.
- *   ls repos   registry via the shared AtlasRegistry client (one poll loop
- *              site-wide; this is its fourth consumer, not a fifth fetch)
- *   status     same snapshot, summarised with the map's exact vocabulary
+ *   ls repos   declared public Workers via the shared AtlasRegistry client
+ *   status     the same filtered snapshot, summarised with the map vocabulary
  *   search     atlas-corpus GET /search?q= (the public RAG endpoint)
  *   cat decisions.md   the published decisions file, parsed client-side
  *
@@ -22,7 +21,7 @@
 
   /* ── Config ──────────────────────────────────────────────────────── */
   var CSS_HREF = "/css/atlas-terminal-card-v3.css?v=20260705-close-hidden";
-  var REGISTRY_SRC = "/js/atlas-registry.js";
+  var REGISTRY_SRC = "/js/atlas-registry.js?v=20260715-public-estate";
   var CORPUS_BASE = "https://corpus.atlas-systems.uk";
   var DECISIONS_PATH = "/decisions.md";
   var SEARCH_MIN_INTERVAL_MS = 1200; /* client courtesy gap; the corpus's
@@ -154,8 +153,8 @@
     line('<span class="t-accent">commands</span>');
     var rows = [
       ["whoami", "who runs this estate"],
-      ["ls repos", "live Worker registry (api.atlas-systems.uk)"],
-      ["status", "estate health summary from the registry"],
+      ["ls repos", "declared public Worker estate with live status"],
+      ["status", "declared public estate health summary"],
       ["search &lt;query&gt;", "semantic search over the estate docs (atlas-corpus)"],
       ["cat decisions.md", "the latest engineering decisions, from the real file"],
       ["clear", "wipe the scrollback"],
@@ -196,7 +195,7 @@
         var d = (order[statusOf(a)] || 9) - (order[statusOf(b)] || 9);
         return d !== 0 ? d : a.name.localeCompare(b.name);
       });
-      line('<span class="t-faint">' + pad("WORKER", 20) + pad("STATUS", 12) + "DESCRIPTION</span>", "t-row");
+      line('<span class="t-faint">' + pad("SERVICE", 20) + pad("STATUS", 12) + "DESCRIPTION</span>", "t-row");
       ws.forEach(function (w) {
         var st = statusOf(w);
         var desc = (w.meta && w.meta.description) || w.note || "";
