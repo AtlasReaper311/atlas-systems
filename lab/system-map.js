@@ -110,12 +110,13 @@
     declaredNodeIds.has(kv.parent) && !LAB_EXCLUDED_WORKERS.has(kv.parent)
   );
 
-  const seedRand = mulberry32(hashString(nodes.map((n) => n.id).sort().join("|")));
+  const seedRand = mulberry32(hashString("atlas-system-map"));
 
   function placeInitial(n) {
     const a = ANCHORS[n.role] || ANCHORS.worker;
-    const t = seedRand() * Math.PI * 2;
-    const r = seedRand() * a.spread;
+    const localRand = mulberry32(hashString(`atlas-map:${n.role}:${n.layer || ""}:${n.id}`));
+    const t = localRand() * Math.PI * 2;
+    const r = Math.sqrt(localRand()) * a.spread;
     n.x = a.x + Math.cos(t) * r;
     n.y = a.y + Math.sin(t) * r;
   }
@@ -131,7 +132,11 @@
      under a frame of budget, which is why it can run synchronously before
      paint instead of animating a settle the visitor has to sit through. */
   function relaxSpacing(list, iterations) {
-    const MIN_SEPARATION = 74;
+    function minimumSeparation(a, b) {
+      const labelDemand = Math.min(48, Math.max(a.label.length, b.label.length) * 2.25);
+      const sourceDemand = a.sourceOnly || b.sourceOnly ? 10 : 0;
+      return 88 + labelDemand + sourceDemand;
+    }
     for (let tick = 0; tick < iterations; tick++) {
       for (let i = 0; i < list.length; i++) {
         const a = list[i];
@@ -146,8 +151,9 @@
             dy = Math.sin(t);
             d = 1;
           }
-          if (d >= MIN_SEPARATION) continue;
-          const push = (MIN_SEPARATION - d) * 0.5;
+          const minimum = minimumSeparation(a, b);
+          if (d >= minimum) continue;
+          const push = (minimum - d) * 0.5;
           const nx = dx / d;
           const ny = dy / d;
           a.x -= nx * push;
@@ -206,7 +212,7 @@
       }
     }
 
-    relaxSpacing(list, 64);
+    relaxSpacing(list, 140);
 
     /* Fit the settled layout into the padded viewBox. Scaling the result is
        cheaper and more stable than tuning forces to land in-bounds. */
