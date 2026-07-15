@@ -2077,7 +2077,7 @@
           </section>
 
           <!-- API SURFACE -->
-          <section class="section">
+          <section class="section api-surface-compact" id="api-surface">
             <div class="section-label">Surface</div>
             <div
               class="api-surface-summary"
@@ -2091,13 +2091,29 @@
                 <strong>—</strong><span>documented workers</span>
               </div>
               <div class="api-surface-stat">
-                <strong>—</strong><span>pending meta</span>
+                <strong>—</strong><span>public repositories</span>
               </div>
             </div>
-            <div class="api-surface-grid" id="api-surface-grid">
-              <div class="api-loading">Loading API index…</div>
+            <div class="api-surface-overview">
+              <div>
+                <h2>One public contract, without another catalogue.</h2>
+                <p>
+                  The Lab keeps the operational summary. The versioned API
+                  documentation owns the complete endpoint catalogue, request
+                  methods, metadata, and public topology contract.
+                </p>
+              </div>
+              <a
+                class="api-surface-docs-link"
+                href="https://api.atlas-systems.uk/v1/docs"
+                target="_blank"
+                rel="noopener"
+              >
+                open API documentation →
+              </a>
             </div>
-            <p class="api-surface-note" id="api-surface-note">Loading…</p>
+            <div id="api-surface-grid" hidden></div>
+            <p class="api-surface-note" id="api-surface-note" hidden></p>
           </section>
         </div>
 
@@ -3610,5 +3626,9 @@
     ></script>
     <script type="module" src="/static/js/estate-search/homepage-widget.js"></script>
   <script type="module" src="/static/js/estate-search/global-search.js"></script>
-</body>
+    <script
+      src="/lab/api-surface-repository-count.js?v=20260715-public-repos"
+      defer
+    ></script>
+  </body>
 </html>
