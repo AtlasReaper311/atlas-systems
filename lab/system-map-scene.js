@@ -297,6 +297,8 @@ function boot(vm, host) {
 
     const label = document.createElement("span");
     label.className = "smap3d-label" + (n.hub ? " smap3d-label-hub" : "");
+    label.dataset.nodeId = n.id;
+    label.dataset.labelPriority = String(n.hub ? 100 : n.role === "worker" ? 80 : n.role === "site" ? 70 : n.role === "local" ? 60 : n.sourceOnly ? 20 : 40);
     label.textContent = n.label;
     labelLayer.appendChild(label);
 
@@ -341,6 +343,7 @@ function boot(vm, host) {
     scene.add(mesh);
     const label = document.createElement("span");
     label.className = "smap3d-label smap3d-label-kv";
+    label.dataset.labelPriority = "10";
     label.textContent = kv.label;
     labelLayer.appendChild(label);
     return { mesh, label, parent: kv.parent, world: mesh.position, cleared: chipY > KV_BASE_Y + 0.12 };
@@ -566,6 +569,21 @@ function boot(vm, host) {
     lastInteract = performance.now();
   }
 
+  function labelsOverlap(a, b, pad) {
+    return !(a.right + pad < b.left || a.left - pad > b.right || a.bottom + pad < b.top || a.top - pad > b.bottom);
+  }
+
+  function resolveProjectedLabelCollisions() {
+    const labels = Array.from(labelLayer.querySelectorAll(".smap3d-label")).sort((a, b) => Number(b.dataset.labelPriority || 0) - Number(a.dataset.labelPriority || 0) || a.textContent.localeCompare(b.textContent));
+    const placed = [];
+    for (const label of labels) {
+      label.style.visibility = "visible";
+      const rect = label.getBoundingClientRect();
+      if (placed.some((other) => labelsOverlap(rect, other, 5))) label.style.visibility = "hidden";
+      else placed.push(rect);
+    }
+  }
+
   function applyCamera(timeSec) {
     const idle = performance.now() - lastInteract > 6000;
     const driftAz = idle ? Math.sin(timeSec * 0.11) * 0.05 : 0;
@@ -769,6 +787,7 @@ function boot(vm, host) {
       .forEach((item) => projectLabel(item, rect, labelSlots));
 
     renderer.render(scene, camera);
+    resolveProjectedLabelCollisions();
   }
 
   function overlaps(a, b, pad = 6) {
