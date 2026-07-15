@@ -1,0 +1,20 @@
+.experiment-grid { margin-top: 1rem; }
+.experiment { display: grid; gap: 1rem; }
+.experiment-head { display: flex; justify-content: space-between; gap: 1rem; align-items: start; }
+.experiment-head code { word-break: break-word; }
+.verdict { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+.verdict.pass { color: var(--green); }
+.verdict.fail { color: var(--red); }
+.stage-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .5rem; }
+.stage { padding: .7rem; background: var(--bg-2); border: 1px solid var(--border); }
+.stage span { display: block; color: var(--text-faint); font-size: 9px; text-transform: uppercase; letter-spacing: .06em; }
+.stage strong { display: block; margin-top: .25rem; font-size: 13px; font-weight: 500; }
+.loop { list-style: none; padding: 0; margin: 1rem 0 0; display: grid; gap: 1px; background: var(--border); border: 1px solid var(--border); counter-reset: step; }
+.loop li { counter-increment: step; display: grid; grid-template-columns: 3rem 8rem 1fr; gap: 1rem; align-items: start; padding: 1rem; background: var(--bg-1); }
+.loop li::before { content: counter(step, decimal-leading-zero); color: var(--accent); }
+.loop span { color: var(--text-dim); }
+.provenance { display: grid; gap: 0; margin: 0; }
+.provenance div { display: grid; grid-template-columns: 12rem 1fr; gap: 1rem; padding: .65rem 0; border-bottom: 1px solid var(--border); }
+.provenance dt { color: var(--text-faint); }
+.provenance dd { margin: 0; word-break: break-all; }
+@media (max-width: 760px) { .stage-grid { grid-template-columns: repeat(2, 1fr); } .loop li { grid-template-columns: 2rem 1fr; } .loop span { grid-column: 2; } }

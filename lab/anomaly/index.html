@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Shape-aware telemetry anomaly evidence from SPECULAR-CORE using robust features, constrained DTW, and continuity-aware state decoding.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Telemetry Anomaly Detector // Atlas Systems</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/lab/shared/systems.css">
+  <link rel="stylesheet" href="/lab/anomaly/anomaly.css">
+</head>
+<body>
+  <nav aria-label="Primary navigation">
+    <a class="wordmark" href="/">Atlas<span>_</span>Systems</a>
+    <div class="nav-links">
+      <a href="/lab/">Lab</a>
+      <a href="/lab/signal/">Signal</a>
+      <a href="/lab/conformance/">Conformance</a>
+      <a href="/lab/reliability/">Reliability</a>
+    </div>
+  </nav>
+  <main>
+    <header>
+      <div class="eyebrow">Signal intelligence // telemetry</div>
+      <h1>Shape before threshold.</h1>
+      <p class="lede">The detector compares the active metric trajectory with historical normal motifs. Robust level, slope, volatility, derivative-DTW distance, and continuity state are combined so a sustained drift can become visible before a static red line is crossed.</p>
+    </header>
+
+    <section class="section">
+      <div class="summary-grid grid grid-3">
+        <div class="metric"><span>detector state</span><strong id="overall-state">loading</strong></div>
+        <div class="metric"><span>shape score</span><strong id="overall-score">-</strong></div>
+        <div class="metric"><span>evidence time</span><strong id="generated-at">-</strong></div>
+      </div>
+      <p class="status" id="source-status">contacting specular-edge</p>
+    </section>
+
+    <section class="section grid grid-2">
+      <div class="panel">
+        <div class="chart-head">
+          <div>
+            <h2>Trajectory evidence</h2>
+            <p class="note">Select a metric. The line is the persisted edge history; the amber area marks warning or critical observations.</p>
+          </div>
+          <label>Metric
+            <select id="metric-select"></select>
+          </label>
+        </div>
+        <div role="img" aria-label="Anomaly score and metric trajectory">
+          <canvas id="anomaly-chart" width="900" height="360"></canvas>
+        </div>
+        <p class="note" id="chart-summary">No evidence loaded.</p>
+      </div>
+      <div class="panel panel-deep">
+        <h2>Current explanation</h2>
+        <dl class="evidence-list">
+          <div><dt>Value</dt><dd id="metric-value">-</dd></div>
+          <div><dt>Robust z</dt><dd id="metric-z">-</dd></div>
+          <div><dt>Slope z</dt><dd id="metric-slope">-</dd></div>
+          <div><dt>Volatility ratio</dt><dd id="metric-volatility">-</dd></div>
+          <div><dt>Derivative DTW</dt><dd id="metric-dtw">-</dd></div>
+          <div><dt>Decoder confidence</dt><dd id="metric-confidence">-</dd></div>
+          <div><dt>First divergence</dt><dd id="metric-divergence">-</dd></div>
+          <div><dt>Warm-up remaining</dt><dd id="metric-warmup">-</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="section grid grid-3">
+      <article class="panel"><h3>Candidate evidence</h3><p>Each sample produces several imperfect clues. Median absolute deviation keeps the baseline useful when the history contains occasional spikes; slope and volatility detect motion rather than only magnitude.</p></article>
+      <article class="panel"><h3>Constrained alignment</h3><p>The active window is compared with earlier normal windows using a Sakoe-Chiba-bounded DTW path. Derivatives carry more weight than absolute level, which makes trajectory geometry explicit without erasing amplitude evidence.</p></article>
+      <article class="panel"><h3>Continuity decoder</h3><p>State transitions penalise implausible jumps. A single sample can raise the score, but warning and critical states require temporal support. Recovery also has to earn its way back to normal.</p></article>
+    </section>
+
+    <section class="section">
+      <h2>Metric evidence</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Metric</th><th scope="col">State</th><th scope="col">Score</th><th scope="col">Value</th><th scope="col">DTW</th><th scope="col">Slope z</th><th scope="col">Confidence</th></tr></thead>
+          <tbody id="metric-table"><tr><td colspan="7">Loading.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="/lab/anomaly/anomaly.js"></script>
+</body>
+</html>

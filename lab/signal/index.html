@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Signal Garden: a browser-native procedural audio system using AudioWorklet DSP, with a direct translation to Unreal Engine 5 MetaSounds.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Signal Garden // Atlas Systems</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/lab/shared/systems.css">
+  <link rel="stylesheet" href="/lab/signal/signal.css">
+</head>
+<body>
+  <nav aria-label="Primary navigation">
+    <a class="wordmark" href="/">Atlas<span>_</span>Systems</a>
+    <div class="nav-links">
+      <a href="/lab/">Lab</a>
+      <a href="/lab/anomaly/">Anomaly</a>
+      <a href="/lab/conformance/">Conformance</a>
+      <a href="/lab/reliability/">Reliability</a>
+    </div>
+  </nav>
+
+  <main>
+    <header>
+      <div class="eyebrow">Signal intelligence // browser DSP</div>
+      <h1>Signal Garden.</h1>
+      <p class="lede">A procedural sound environment whose synthesis, scheduling, filtering, feedback, and metering execute on the browser audio thread. The interface sends control intent; the <code>AudioWorkletProcessor</code> owns the signal.</p>
+    </header>
+
+    <section class="section instrument" aria-labelledby="instrument-title">
+      <div class="instrument-head">
+        <div>
+          <h2 id="instrument-title">Granular signal engine</h2>
+          <p class="note">Use headphones at a conservative level. Output is limited inside the processor and again at the destination gain.</p>
+        </div>
+        <div class="transport">
+          <button class="primary" id="start-audio" type="button">Start audio</button>
+          <button id="stop-audio" type="button" disabled>Stop</button>
+          <span class="status" id="audio-status">idle</span>
+        </div>
+      </div>
+
+      <div role="img" aria-label="Live stereo waveform and spectrum">
+        <canvas id="scope" width="1000" height="260"></canvas>
+      </div>
+      <div class="meter-row" aria-live="polite">
+        <span>RMS <strong id="rms-meter">-∞ dBFS</strong></span>
+        <span>peak <strong id="peak-meter">-∞ dBFS</strong></span>
+        <span>active grains <strong id="grain-meter">0</strong></span>
+        <span>sample rate <strong id="sample-rate">not started</strong></span>
+      </div>
+
+      <div class="controls" id="controls">
+        <div class="control"><label for="density">Density</label><output for="density">0.38</output><input id="density" type="range" min="0.02" max="1" step="0.01" value="0.38"></div>
+        <div class="control"><label for="grainSize">Grain duration</label><output for="grainSize">0.22 s</output><input id="grainSize" type="range" min="0.03" max="0.75" step="0.01" value="0.22"></div>
+        <div class="control"><label for="spread">Dispersion</label><output for="spread">0.45</output><input id="spread" type="range" min="0" max="1" step="0.01" value="0.45"></div>
+        <div class="control"><label for="tone">Tone</label><output for="tone">0.48</output><input id="tone" type="range" min="0" max="1" step="0.01" value="0.48"></div>
+        <div class="control"><label for="tension">Harmonic tension</label><output for="tension">0.28</output><input id="tension" type="range" min="0" max="1" step="0.01" value="0.28"></div>
+        <div class="control"><label for="texture">Texture</label><output for="texture">0.32</output><input id="texture" type="range" min="0" max="1" step="0.01" value="0.32"></div>
+        <div class="control"><label for="width">Stereo width</label><output for="width">0.70</output><input id="width" type="range" min="0" max="1" step="0.01" value="0.70"></div>
+        <div class="control"><label for="feedback">Feedback</label><output for="feedback">0.58</output><input id="feedback" type="range" min="0" max="0.82" step="0.01" value="0.58"></div>
+        <div class="control"><label for="evolution">Evolution</label><output for="evolution">0.30</output><input id="evolution" type="range" min="0" max="1" step="0.01" value="0.30"></div>
+      </div>
+
+      <div class="seed-row">
+        <label for="seed">Deterministic seed</label>
+        <input id="seed" type="number" min="1" max="4294967295" value="311">
+        <button id="apply-seed" type="button">Reseed engine</button>
+        <button id="random-seed" type="button">Generate seed</button>
+      </div>
+    </section>
+
+    <section class="section grid grid-3" aria-label="Signal chain">
+      <article class="panel"><h3>Source memory</h3><p>An evolving harmonic-noise source is written into a four-second circular buffer. Grains read historical positions with fractional interpolation, so the processor synthesises its own material instead of replaying a bundled sample.</p></article>
+      <article class="panel"><h3>Granular scheduler</h3><p>A seeded event accumulator creates overlapping Hann-windowed grains. Density, duration, transposition dispersion, gain, and pan remain bounded; the same seed and parameter path reproduce the same event sequence.</p></article>
+      <article class="panel"><h3>Feedback network</h3><p>Four mutually coupled prime-length delays use a Hadamard mixing matrix. Feedback is capped below unity, followed by DC blocking and soft clipping. The structure can evolve without becoming an unstable browser siren.</p></article>
+    </section>
+
+    <section class="section">
+      <div class="eyebrow">Browser to game engine</div>
+      <h2>The same idea in UE5 MetaSounds</h2>
+      <div class="grid grid-2">
+        <div class="panel">
+          <table>
+            <thead><tr><th>Browser</th><th>MetaSounds</th></tr></thead>
+            <tbody>
+              <tr><td><code>AudioWorkletProcessor</code></td><td>MetaSound operator graph executing in the audio renderer</td></tr>
+              <tr><td>Seeded grain event accumulator</td><td>Trigger-rate generator plus deterministic random stream</td></tr>
+              <tr><td>Circular source memory and interpolated grain reads</td><td>Wave assets or a custom granulator node with explicit voice state</td></tr>
+              <tr><td>Smoothed <code>AudioParam</code> controls</td><td>Graph inputs with interpolation before audio-rate destinations</td></tr>
+              <tr><td>Four-line feedback delay network</td><td>Delay nodes or a custom operator with feedback clamped below unity</td></tr>
+              <tr><td>Worklet meter messages</td><td>Envelope followers and gameplay-facing parameter outputs</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <article class="panel panel-deep">
+          <h3>Translation, not porting</h3>
+          <p>The reusable concept is ownership. UI or gameplay code expresses intent at control rate. The audio renderer owns phase, envelopes, grain life cycles, delay memory, and per-sample safety. In a browser that boundary is the worklet message port. In MetaSounds it is the graph input and operator boundary.</p>
+          <p>Voice limits and deterministic seeds matter in both environments. A browser protects a visitor's CPU budget; a game protects the audio render budget across every active actor. The graph changes, but the scheduling problem is the same.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="/lab/signal/signal.js"></script>
+</body>
+</html>

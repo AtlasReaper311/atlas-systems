@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="The public Atlas Systems estate conformance score, rule catalogue, repository results, and weekly evidence provenance.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Estate Conformance // Atlas Systems</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/lab/shared/systems.css">
+  <link rel="stylesheet" href="/lab/conformance/conformance.css">
+</head>
+<body>
+  <nav aria-label="Primary navigation">
+    <a class="wordmark" href="/">Atlas<span>_</span>Systems</a>
+    <div class="nav-links">
+      <a href="/lab/">Lab</a>
+      <a href="/lab/signal/">Signal</a>
+      <a href="/lab/anomaly/">Anomaly</a>
+      <a href="/lab/reliability/">Reliability</a>
+    </div>
+  </nav>
+  <main>
+    <header>
+      <div class="eyebrow">Reliability evidence // policy</div>
+      <h1>Conformance, scored.</h1>
+      <p class="lede">The same weekly policy run that gates the estate now publishes its complete denominator: which rules applied, which passed, which warned, which failed, and which repositories could not be read. The score measures Atlas conventions, not universal software quality.</p>
+    </header>
+
+    <section class="section">
+      <div class="grid grid-3">
+        <div class="metric"><span>estate score</span><strong id="estate-score">loading</strong></div>
+        <div class="metric"><span>repositories scanned</span><strong id="repo-count">-</strong></div>
+        <div class="metric"><span>last evidence</span><strong id="generated-at">-</strong></div>
+      </div>
+      <div class="finding-strip">
+        <span><strong id="error-count">-</strong> errors</span>
+        <span><strong id="warning-count">-</strong> warnings</span>
+        <span><strong id="unknown-count">-</strong> unknown</span>
+        <span class="status" id="evidence-status">contacting public evidence API</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <h2>Repository matrix</h2>
+          <p class="note">Warnings contribute half of their rule weight. Errors contribute zero. Not-applicable rules are excluded; unreadable repositories remain unscored.</p>
+        </div>
+        <label>Filter
+          <input id="repo-filter" type="search" placeholder="repo or status">
+        </label>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Repository</th><th scope="col">Score</th><th scope="col">Status</th><th scope="col">Errors</th><th scope="col">Warnings</th><th scope="col">Applicable rules</th></tr></thead>
+          <tbody id="repo-table"><tr><td colspan="6">Loading.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Rule catalogue</h2>
+      <div class="rule-grid grid grid-3" id="rule-grid"></div>
+    </section>
+
+    <section class="section">
+      <h2>Current findings</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Severity</th><th scope="col">Repository</th><th scope="col">Rule</th><th scope="col">Path</th><th scope="col">Finding</th></tr></thead>
+          <tbody id="finding-table"><tr><td colspan="5">Loading.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section panel panel-deep">
+      <h2>Evidence provenance</h2>
+      <dl class="provenance">
+        <div><dt>Policy version</dt><dd id="policy-version">-</dd></div>
+        <div><dt>Source repository</dt><dd id="source-repository">-</dd></div>
+        <div><dt>Source commit</dt><dd id="source-commit">-</dd></div>
+        <div><dt>Fingerprint</dt><dd id="fingerprint">-</dd></div>
+      </dl>
+    </section>
+  </main>
+  <script type="module" src="/lab/conformance/conformance.js"></script>
+</body>
+</html>
