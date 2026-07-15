@@ -1,0 +1,57 @@
+name: Pull request CI
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-validation:
+    name: Static site validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Check README style
+        run: |
+          test -s README.md
+          grep -q "ATLAS SYSTEMS //" README.md
+          grep -q "## How it fits into Atlas Systems" README.md
+          grep -q "Part of \[atlas-systems.uk\](https://atlas-systems.uk)" README.md
+          grep -q "labelColor=0a0a0f" README.md
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+
+      - name: Validate HTML, scripts, data, sitemap, and Pages output
+        run: |
+          npx --yes html-validate@9.7.1 "**/*.html"
+          node --test js/tests/*.test.mjs lab/tests/*.test.mjs
+          python3 scripts/generate_sitemap.py --check-only
+          python3 scripts/verify_pages_output.py .
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          for path in sorted(Path(".").rglob("*.json")):
+              if ".git" in path.parts:
+                  continue
+              json.loads(path.read_text(encoding="utf-8"))
+          PY
+
+      - name: Check repository links offline
+        uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411 # v2.8.0
+        with:
+          args: "--offline --no-progress --include-fragments --root-dir ${{ github.workspace }} ."
+          fail: true
