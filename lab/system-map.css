@@ -177,22 +177,54 @@
   text-transform: uppercase;
 }
 
-.smap-route {
+.smap-route,
+.smap-route-bridge,
+.smap-route-flow {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
-  opacity: 0.66;
   vector-effect: non-scaling-stroke;
+}
+
+.smap-route {
+  opacity: 0.66;
   transition: opacity 0.14s ease, stroke-width 0.14s ease;
 }
 
-.smap-route.is-related {
-  opacity: 1;
-  stroke-width: 3.2;
+.smap-route-bridge {
+  stroke: var(--bg-1, #111118);
+  opacity: 0.84;
+  pointer-events: none;
 }
 
-.smap-route.is-muted {
+.smap-route-flow {
+  stroke-width: 1.25;
+  stroke-dasharray: 3 15;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.smap-route-group.is-related .smap-route {
+  opacity: 1;
+  stroke-width: 3.2;
+  filter: drop-shadow(0 0 3px rgba(232,232,224,0.32));
+}
+
+.smap-route-group.is-related .smap-route-flow {
+  opacity: 0.72;
+  animation: smap-route-flow 1.15s linear infinite;
+}
+
+.smap-route-group.is-muted .smap-route {
   opacity: 0.08;
+}
+
+.smap-route-group.is-muted .smap-route-bridge {
+  opacity: 0.22;
+}
+
+@keyframes smap-route-flow {
+  to { stroke-dashoffset: -36; }
 }
 
 .smap-route-tunnel {
@@ -206,6 +238,20 @@
 .smap-city-node {
   cursor: pointer;
   outline: none;
+  transition: opacity 0.14s ease;
+}
+
+.smap-city-node.is-muted {
+  opacity: 0.16;
+}
+
+.smap-city-node.is-related .smap-node-label {
+  fill: var(--text, #e8e8e0);
+}
+
+.smap-city-node.is-pinned .smap-node-shape {
+  fill: rgba(245,166,35,0.18);
+  stroke-width: 2.7;
 }
 
 .smap-node-shape {
@@ -424,6 +470,15 @@
 
 .smap3d-node-label {
   color: var(--text-dim, #aaa9a0);
+  transition: opacity 0.14s ease, color 0.14s ease;
+}
+
+.smap3d-node-label.is-route-muted {
+  opacity: 0.2;
+}
+
+.smap3d-node-label.is-route-related {
+  color: var(--text, #e8e8e0);
 }
 
 .smap3d-kv-label {
@@ -696,9 +751,12 @@
 
 @media (prefers-reduced-motion: reduce) {
   .smap-route,
+  .smap-route-flow,
   .smap-node-shape,
+  .smap-city-node,
   .smap-city-detail,
   .smap3d-hint {
     transition: none;
+    animation: none;
   }
 }

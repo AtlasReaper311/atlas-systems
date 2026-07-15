@@ -2,6 +2,7 @@ const BOARD_MARGIN = 40;
 const DISTRICT_GAP = 28;
 const HEADER_HEIGHT = 42;
 const CELL_HEIGHT = 72;
+const ROUTE_LANE_GAP = 10;
 
 export const DISTRICT_SPECS = [
   {
@@ -80,17 +81,6 @@ const ROLE_PRIORITY = {
   repo: 5,
 };
 
-export function hashString(value) {
-  let hash = 2166136261;
-
-  for (let index = 0; index < String(value).length; index += 1) {
-    hash ^= String(value).charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-
-  return hash >>> 0;
-}
-
 export function normaliseRole(raw) {
   if (
     raw.sourceOnly === true ||
@@ -112,6 +102,8 @@ export function districtForNode(node) {
   if (node.sourceOnly || node.kind === "repository" || node.role === "repo") {
     return "source";
   }
+
+  if (DISTRICT_ORDER.includes(node.district)) return node.district;
 
   if (node.role === "site") return "surface";
   if (node.role === "local") return "local";
@@ -328,8 +320,84 @@ function facingGateway(fromDistrict, toDistrict) {
       };
 }
 
-function laneOffset(edge) {
-  return ((hashString(`${edge.from}|${edge.to}|${edge.kind}`) % 7) - 3) * 2;
+function edgeSortKey(edge) {
+  return [
+    edge.from,
+    edge.to,
+    edge.kind || "http",
+    edge.label || "",
+  ].join("|");
+}
+
+function routeGroupKey(edge, nodeById) {
+  const from = nodeById.get(edge.from);
+  const to = nodeById.get(edge.to);
+
+  if (from.district === to.district) {
+    return `inside:${from.district}`;
+  }
+
+  return `between:${[from.district, to.district].sort().join("|")}`;
+}
+
+function assignRouteLanes(edges, nodeById) {
+  const groups = new Map();
+
+  for (const edge of [...edges].sort((left, right) =>
+    edgeSortKey(left).localeCompare(edgeSortKey(right)),
+  )) {
+    const key = routeGroupKey(edge, nodeById);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(edge);
+  }
+
+  const assignments = new Map();
+
+  for (const members of groups.values()) {
+    members.forEach((edge, index) => {
+      assignments.set(edge, {
+        index,
+        count: members.length,
+      });
+    });
+  }
+
+  return assignments;
+}
+
+function centeredLaneOffset(index, count, gap = ROUTE_LANE_GAP) {
+  if (count <= 1) return 0;
+  return (index - (count - 1) / 2) * gap;
+}
+
+function gatewayLaneOffset(fromGateway, toGateway, index, count) {
+  if (count <= 1) return 0;
+
+  const available = Math.max(
+    0,
+    Math.min(
+      fromGateway.side === "left" || fromGateway.side === "right"
+        ? fromGateway.district.h / 2 - 30
+        : fromGateway.district.w / 2 - 30,
+      toGateway.side === "left" || toGateway.side === "right"
+        ? toGateway.district.h / 2 - 30
+        : toGateway.district.w / 2 - 30,
+    ),
+  );
+  const gap = Math.min(
+    ROUTE_LANE_GAP,
+    (available * 2) / (count - 1),
+  );
+
+  return centeredLaneOffset(index, count, gap);
+}
+
+function offsetGateway(gateway, offset) {
+  if (gateway.side === "left" || gateway.side === "right") {
+    return { ...gateway, y: gateway.y + offset };
+  }
+
+  return { ...gateway, x: gateway.x + offset };
 }
 
 function compactPoints(points) {
@@ -346,8 +414,8 @@ function compactPoints(points) {
   return compact;
 }
 
-function routeSameDistrict(edge, from, to, district) {
-  const offset = laneOffset(edge);
+function routeSameDistrict(from, to, district, lane) {
+  const offset = centeredLaneOffset(lane.index, lane.count, 8);
   const preferredY = (from.y + to.y) / 2 + offset;
   const minimumY = district.y + HEADER_HEIGHT + 12;
   const maximumY = district.y + district.h - 12;
@@ -361,10 +429,29 @@ function routeSameDistrict(edge, from, to, district) {
   ]);
 }
 
-function routeCrossDistrict(edge, from, to, fromDistrict, toDistrict) {
-  const fromGate = facingGateway(fromDistrict, toDistrict);
-  const toGate = facingGateway(toDistrict, fromDistrict);
-  const offset = laneOffset(edge);
+function routeCrossDistrict(
+  from,
+  to,
+  fromDistrict,
+  toDistrict,
+  lane,
+) {
+  const baseFromGate = {
+    ...facingGateway(fromDistrict, toDistrict),
+    district: fromDistrict,
+  };
+  const baseToGate = {
+    ...facingGateway(toDistrict, fromDistrict),
+    district: toDistrict,
+  };
+  const offset = gatewayLaneOffset(
+    baseFromGate,
+    baseToGate,
+    lane.index,
+    lane.count,
+  );
+  const fromGate = offsetGateway(baseFromGate, offset);
+  const toGate = offsetGateway(baseToGate, offset);
   const points = [{ x: from.x, y: from.y }];
 
   if (fromGate.side === "left" || fromGate.side === "right") {
@@ -410,29 +497,34 @@ function routeEdges(rawEdges, nodes, districts) {
     districts.map((district) => [district.key, district]),
   );
 
-  return rawEdges
-    .filter(
-      (edge) => nodeById.has(edge.from) && nodeById.has(edge.to),
-    )
+  const visibleEdges = rawEdges.filter(
+    (edge) => nodeById.has(edge.from) && nodeById.has(edge.to),
+  );
+  const lanes = assignRouteLanes(visibleEdges, nodeById);
+
+  return visibleEdges
     .map((edge) => {
       const from = nodeById.get(edge.from);
       const to = nodeById.get(edge.to);
       const fromDistrict = districtByKey.get(from.district);
       const toDistrict = districtByKey.get(to.district);
+      const lane = lanes.get(edge) || { index: 0, count: 1 };
       const route =
         from.district === to.district
-          ? routeSameDistrict(edge, from, to, fromDistrict)
+          ? routeSameDistrict(from, to, fromDistrict, lane)
           : routeCrossDistrict(
-              edge,
               from,
               to,
               fromDistrict,
               toDistrict,
+              lane,
             );
 
       return {
         ...edge,
         kind: edge.kind || "http",
+        laneIndex: lane.index,
+        laneCount: lane.count,
         route,
       };
     });

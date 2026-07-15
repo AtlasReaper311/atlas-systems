@@ -22,6 +22,10 @@ const html = fs.readFileSync(
   new URL("../index.html", import.meta.url),
   "utf8",
 );
+const topology = fs.readFileSync(
+  new URL("../system-map.topology.js", import.meta.url),
+  "utf8",
+);
 
 test("bootstrap updates the map without reloading the page", () => {
   assert.doesNotMatch(bootstrap, /location\.reload/);
@@ -59,6 +63,37 @@ test("3D scene has restrained global and node-local lighting", () => {
   assert.match(scene, /THREE\.HemisphereLight/);
   assert.match(scene, /THREE\.AdditiveBlending/);
   assert.match(scene, /function nodeGlow\(node\)/);
+});
+
+test("route focus is persistent, accessible, and shared by both views", () => {
+  assert.match(map, /function toggleRouteFocus\(node\)/);
+  assert.match(map, /event\.key === "Enter" \|\| event\.key === " "/);
+  assert.match(map, /class: "smap-route-bridge"/);
+  assert.match(map, /class: "smap-route-flow"/);
+  assert.match(scene, /function applyRouteFocus\(\)/);
+  assert.match(scene, /setRouteFocus\(nodeId\)/);
+  assert.match(css, /smap-route-group\.is-related/);
+  assert.match(css, /smap-route-group\.is-muted/);
+  assert.match(css, /@keyframes smap-route-flow/);
+});
+
+test("3D routes use subtle elevations and a closer initial fit", () => {
+  assert.match(scene, /const ROUTE_ELEVATION/);
+  assert.match(scene, /tunnel:\s*0\.24/);
+  assert.match(scene, /Math\.max\(fitHeight, fitWidth\) \* 0\.9/);
+  assert.doesNotMatch(scene, /Math\.max\(fitHeight, fitWidth\) \* 1\.34/);
+});
+
+test("edge works contains the declared edge workers", () => {
+  assert.match(
+    topology,
+    /id: "specular-edge", role: "worker", kind: "worker"/,
+  );
+  assert.match(
+    topology,
+    /id: "ramone-edge", role: "worker", kind: "worker"/,
+  );
+  assert.match(topology, /layer: "edge", district: "edge"/);
 });
 
 test("legend styles include every rendered role", () => {
