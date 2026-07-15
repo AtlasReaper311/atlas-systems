@@ -1,0 +1,13 @@
+.summary-grid { margin-top: 1rem; }
+.chart-head { display: flex; justify-content: space-between; align-items: end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.chart-head label { display: grid; gap: .35rem; color: var(--text-faint); font-size: 11px; }
+select { min-width: 15rem; padding: .55rem; background: var(--bg); color: var(--text); border: 1px solid var(--border-hi); }
+#anomaly-chart { height: 360px; }
+.evidence-list { display: grid; gap: 0; margin: 0; }
+.evidence-list div { display: flex; justify-content: space-between; gap: 1rem; padding: .7rem 0; border-bottom: 1px solid var(--border); }
+.evidence-list dt { color: var(--text-faint); }
+.evidence-list dd { margin: 0; color: var(--text); text-align: right; font-variant-numeric: tabular-nums; }
+.table-wrap { overflow-x: auto; }
+.state-normal { color: var(--green); }
+.state-watch, .state-warning { color: var(--accent); }
+.state-critical, .state-error { color: var(--red); }
