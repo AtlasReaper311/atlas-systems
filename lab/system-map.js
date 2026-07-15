@@ -1,7 +1,7 @@
 import {
   buildCityLayout,
   DISTRICT_ORDER,
-} from "./system-map-layout.js?v=20260715-city-map-final";
+} from "./system-map-layout.js?v=20260715-route-clarity";
 
 const host = document.getElementById("system-map-host");
 const statusLine = document.getElementById("system-map-statusline");
@@ -56,6 +56,8 @@ let threeButton = null;
 let flatButton = null;
 let resetButton = null;
 let loading = null;
+let pinnedNodeId = null;
+let previewNodeId = null;
 
 function canUse3D() {
   return (
@@ -172,6 +174,8 @@ function setMode(nextMode) {
 }
 
 function resetView() {
+  clearRouteFocus();
+
   if (mode === "3d" && sceneController) {
     sceneController.reset();
     return;
@@ -383,27 +387,91 @@ function nodeStatusLamp(node) {
   });
 }
 
-function clearEdgeHighlight() {
-  flatLayer
-    .querySelectorAll(".smap-route.is-related")
-    .forEach((route) => route.classList.remove("is-related"));
-
-  flatLayer
-    .querySelectorAll(".smap-route.is-muted")
-    .forEach((route) => route.classList.remove("is-muted"));
+function focusedNodeId() {
+  return previewNodeId || pinnedNodeId;
 }
 
-function highlightEdges(nodeId) {
-  const routes = flatLayer.querySelectorAll(".smap-route");
+function relatedNodeIds(nodeId) {
+  const related = new Set(nodeId ? [nodeId] : []);
 
-  routes.forEach((route) => {
+  if (!nodeId || !state) return related;
+
+  for (const edge of state.edges) {
+    if (edge.from === nodeId) related.add(edge.to);
+    if (edge.to === nodeId) related.add(edge.from);
+  }
+
+  return related;
+}
+
+function applyRouteFocus() {
+  const nodeId = focusedNodeId();
+  const relatedNodes = relatedNodeIds(nodeId);
+  const routeGroups = flatLayer.querySelectorAll(".smap-route-group");
+
+  routeGroups.forEach((group) => {
     const related =
-      route.dataset.from === nodeId ||
-      route.dataset.to === nodeId;
+      group.dataset.from === nodeId ||
+      group.dataset.to === nodeId;
 
-    route.classList.toggle("is-related", related);
-    route.classList.toggle("is-muted", !related);
+    group.classList.toggle("is-related", Boolean(nodeId && related));
+    group.classList.toggle("is-muted", Boolean(nodeId && !related));
   });
+
+  flatLayer.querySelectorAll(".smap-city-node").forEach((node) => {
+    const related = relatedNodes.has(node.dataset.nodeId);
+    node.classList.toggle("is-related", Boolean(nodeId && related));
+    node.classList.toggle("is-muted", Boolean(nodeId && !related));
+    node.classList.toggle("is-pinned", node.dataset.nodeId === pinnedNodeId);
+  });
+
+  if (sceneController?.setRouteFocus) {
+    sceneController.setRouteFocus(nodeId);
+  }
+}
+
+function showPinnedDetail() {
+  const node = state?.nodes.find((candidate) => candidate.id === pinnedNodeId);
+
+  if (node) {
+    showDetail(node);
+  } else {
+    clearDetail();
+  }
+}
+
+function previewRouteFocus(node) {
+  previewNodeId = node?.id || null;
+  applyRouteFocus();
+
+  if (node) showDetail(node);
+}
+
+function endRoutePreview() {
+  previewNodeId = null;
+  applyRouteFocus();
+  showPinnedDetail();
+}
+
+function toggleRouteFocus(node) {
+  pinnedNodeId = pinnedNodeId === node.id ? null : node.id;
+  previewNodeId = null;
+  applyRouteFocus();
+  showPinnedDetail();
+}
+
+function pinRouteFocus(node) {
+  pinnedNodeId = node.id;
+  previewNodeId = null;
+  applyRouteFocus();
+  showPinnedDetail();
+}
+
+function clearRouteFocus() {
+  pinnedNodeId = null;
+  previewNodeId = null;
+  applyRouteFocus();
+  clearDetail();
 }
 
 function renderNode(svg, node) {
@@ -411,6 +479,9 @@ function renderNode(svg, node) {
     class: "smap-city-node",
     "data-role": node.role,
     "data-status": node.status,
+    "data-node-id": node.id,
+    role: "button",
+    "aria-label": `${node.label}, ${node.role}, status ${node.status}`,
     tabindex: "0",
   });
 
@@ -418,13 +489,11 @@ function renderNode(svg, node) {
   appendMultilineLabel(group, node);
 
   const open = () => {
-    showDetail(node);
-    highlightEdges(node.id);
+    previewRouteFocus(node);
   };
 
   const close = () => {
-    clearDetail();
-    clearEdgeHighlight();
+    endRoutePreview();
   };
 
   group.addEventListener("mouseenter", open);
@@ -433,8 +502,17 @@ function renderNode(svg, node) {
   group.addEventListener("blur", close);
   group.addEventListener("click", (event) => {
     event.stopPropagation();
-    showDetail(node);
-    highlightEdges(node.id);
+    toggleRouteFocus(node);
+  });
+  group.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      toggleRouteFocus(node);
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      clearRouteFocus();
+      group.blur();
+    }
   });
 
   svg.appendChild(group);
@@ -510,16 +588,32 @@ function renderFlat() {
 
   state.edges.forEach((edge) => {
     const style = EDGE_STYLE[edge.kind] || EDGE_STYLE.default;
+    const group = createSvgElement("g", {
+      class: "smap-route-group",
+      "data-from": edge.from,
+      "data-to": edge.to,
+    });
+    const bridge = createSvgElement("path", {
+      d: pathData(edge.route),
+      class: "smap-route-bridge",
+      "stroke-width": style.width + 3.4,
+      "aria-hidden": "true",
+    });
     const path = createSvgElement("path", {
       d: pathData(edge.route),
       class: `smap-route smap-route-${edge.kind}`,
       stroke: style.color,
       "stroke-width": style.width,
       "stroke-dasharray": style.dash,
-      "data-from": edge.from,
-      "data-to": edge.to,
     });
-    routeLayer.appendChild(path);
+    const flow = createSvgElement("path", {
+      d: pathData(edge.route),
+      class: "smap-route-flow",
+      stroke: style.color,
+      "aria-hidden": "true",
+    });
+    group.append(bridge, path, flow);
+    routeLayer.appendChild(group);
   });
 
   state.kv.forEach((entry) => {
@@ -569,6 +663,7 @@ function renderFlat() {
   };
 
   installFlatNavigation(svg);
+  applyRouteFocus();
 }
 
 function applyFlatViewBox() {
@@ -584,6 +679,7 @@ function applyFlatViewBox() {
 
 function installFlatNavigation(svg) {
   let drag = null;
+  let suppressClick = false;
 
   svg.addEventListener("pointerdown", (event) => {
     if (event.target.closest(".smap-city-node")) return;
@@ -593,6 +689,7 @@ function installFlatNavigation(svg) {
       y: event.clientY,
       viewX: flatView.x,
       viewY: flatView.y,
+      moved: false,
     };
     svg.setPointerCapture(event.pointerId);
     svg.classList.add("is-panning");
@@ -609,15 +706,29 @@ function installFlatNavigation(svg) {
       ((event.clientY - drag.y) / rect.height) *
       flatView.height;
 
+    if (Math.hypot(dx, dy) > 3) drag.moved = true;
+
     flatView.x = drag.viewX - dx;
     flatView.y = drag.viewY - dy;
     applyFlatViewBox();
   });
 
   svg.addEventListener("pointerup", (event) => {
+    suppressClick = Boolean(drag?.moved);
     drag = null;
-    svg.releasePointerCapture(event.pointerId);
+    if (svg.hasPointerCapture(event.pointerId)) {
+      svg.releasePointerCapture(event.pointerId);
+    }
     svg.classList.remove("is-panning");
+  });
+
+  svg.addEventListener("click", (event) => {
+    if (suppressClick) {
+      suppressClick = false;
+      return;
+    }
+
+    if (!event.target.closest(".smap-city-node")) clearRouteFocus();
   });
 
   svg.addEventListener(
@@ -695,7 +806,7 @@ function renderMobileList() {
           : node.role);
 
       row.append(dot, name, description);
-      row.addEventListener("click", () => showDetail(node));
+      row.addEventListener("click", () => toggleRouteFocus(node));
       section.appendChild(row);
     }
 
@@ -753,6 +864,12 @@ function renderAll() {
   if (sceneController) {
     sceneController.update(state);
   }
+
+  if (pinnedNodeId && !state.nodes.some((node) => node.id === pinnedNodeId)) {
+    pinnedNodeId = null;
+  }
+  previewNodeId = null;
+  applyRouteFocus();
 }
 
 function register3D(controller) {
@@ -760,6 +877,7 @@ function register3D(controller) {
   threeButton.disabled = false;
   loading.hidden = true;
   controller.update(state);
+  controller.setRouteFocus?.(focusedNodeId());
   setMode(mode);
 }
 
@@ -790,6 +908,20 @@ window.AtlasMapVM = {
     const node = state?.nodes.find((candidate) => candidate.id === id);
     if (node) showDetail(node);
   },
+  previewRouteFocus(id) {
+    const node = state?.nodes.find((candidate) => candidate.id === id);
+    previewRouteFocus(node || null);
+  },
+  endRoutePreview,
+  toggleRouteFocus(id) {
+    const node = state?.nodes.find((candidate) => candidate.id === id);
+    if (node) toggleRouteFocus(node);
+  },
+  pinRouteFocus(id) {
+    const node = state?.nodes.find((candidate) => candidate.id === id);
+    if (node) pinRouteFocus(node);
+  },
+  clearRouteFocus,
   clearDetail,
 };
 
@@ -809,6 +941,6 @@ setMode(preferredMode);
 
 if (canUse3D()) {
   import(
-    "/lab/system-map-scene.js?v=20260715-city-map-navigation"
+    "/lab/system-map-scene.js?v=20260715-route-clarity"
   ).catch(fail3D);
 }

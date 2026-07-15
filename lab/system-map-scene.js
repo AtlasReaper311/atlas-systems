@@ -43,6 +43,18 @@ const EDGE_COLOR = {
   default: 0x9aa4b4,
 };
 
+const ROUTE_ELEVATION = {
+  probe: 0.12,
+  poll: 0.135,
+  binding: 0.15,
+  http: 0.165,
+  dispatch: 0.18,
+  notify: 0.195,
+  alert: 0.21,
+  tunnel: 0.24,
+  default: 0.15,
+};
+
 const DISTRICT_COLOR = {
   surface: 0xe8935c,
   publicApi: 0x4ade80,
@@ -355,7 +367,7 @@ function buildScene() {
   const hint = document.createElement("div");
   hint.className = "smap3d-hint";
   hint.textContent =
-    "drag move · alt/right-drag orbit · wheel zoom · double-click focus";
+    "hover/click trace routes · drag move · alt/right-drag orbit · wheel zoom";
   hint.setAttribute("role", "note");
 
   layer.append(labels, hint);
@@ -375,7 +387,7 @@ function buildScene() {
   renderer.domElement.tabIndex = 0;
   renderer.domElement.setAttribute(
     "aria-label",
-    "Interactive 3D system map. Drag to move, Alt-drag or right-drag to orbit, use the wheel to zoom, and double-click a node to focus it.",
+    "Interactive 3D system map. Hover or click nodes to trace routes, drag to move, Alt-drag or right-drag to orbit, and use the wheel to zoom.",
   );
   layer.insertBefore(renderer.domElement, labels);
 
@@ -425,9 +437,11 @@ function buildScene() {
   let defaultOrbit = null;
   let panBounds = null;
   let hovered = null;
+  let focusedNodeId = null;
   let particleGeometry = null;
   let particleRoutes = [];
   const nodeViews = [];
+  const routeViews = [];
   const districtViews = [];
   const kvViews = [];
   const raycaster = new THREE.Raycaster();
@@ -450,7 +464,7 @@ function buildScene() {
     const fitWidth =
       width /
       (2 * Math.tan(verticalFov / 2) * aspect);
-    const distance = Math.max(fitHeight, fitWidth) * 1.34;
+    const distance = Math.max(fitHeight, fitWidth) * 0.9;
 
     defaultOrbit = {
       yaw: 0.82,
@@ -607,14 +621,31 @@ function buildScene() {
   function buildRoutes(state) {
     clearGroup(routeGroup);
     clearGroup(particleGroup);
+    routeViews.length = 0;
+    particleGeometry = null;
     particleRoutes = [];
 
     for (const edge of state.edges) {
+      const elevation =
+        ROUTE_ELEVATION[edge.kind] || ROUTE_ELEVATION.default;
       const points = edge.route.map((point) => {
         const world = toWorld(point, state);
-        world.y = edge.kind === "tunnel" ? 0.17 : 0.12;
+        world.y = elevation;
         return world;
       });
+
+      const shadow = new THREE.Line(
+        polylineGeometry(
+          points.map((point) =>
+            point.clone().setY(Math.max(0.105, elevation - 0.045)),
+          ),
+        ),
+        new THREE.LineBasicMaterial({
+          color: 0x111118,
+          transparent: true,
+          opacity: 0.56,
+        }),
+      );
 
       const line = new THREE.Line(
         polylineGeometry(points),
@@ -624,7 +655,14 @@ function buildScene() {
           opacity: edge.kind === "probe" ? 0.52 : 0.86,
         }),
       );
-      routeGroup.add(line);
+      const baseOpacity = line.material.opacity;
+      routeGroup.add(shadow, line);
+      routeViews.push({
+        edge,
+        line,
+        shadow,
+        baseOpacity,
+      });
 
       particleRoutes.push({
         edge,
@@ -681,6 +719,91 @@ function buildScene() {
       }),
     );
     particleGroup.add(particles);
+  }
+
+  function routeNeighbourIds(nodeId) {
+    const related = new Set(nodeId ? [nodeId] : []);
+
+    if (!nodeId || !currentState) return related;
+
+    for (const edge of currentState.edges) {
+      if (edge.from === nodeId) related.add(edge.to);
+      if (edge.to === nodeId) related.add(edge.from);
+    }
+
+    return related;
+  }
+
+  function updateParticleColours() {
+    const colours = particleGeometry?.attributes.color;
+    if (!colours) return;
+
+    particleRoutes.forEach((route, index) => {
+      const related =
+        !focusedNodeId ||
+        route.edge.from === focusedNodeId ||
+        route.edge.to === focusedNodeId;
+      const color = new THREE.Color(
+        EDGE_COLOR[route.edge.kind] || EDGE_COLOR.default,
+      );
+
+      if (!related) color.multiplyScalar(0.08);
+      colours.setXYZ(index, color.r, color.g, color.b);
+    });
+
+    colours.needsUpdate = true;
+  }
+
+  function applyRouteFocus() {
+    const relatedNodes = routeNeighbourIds(focusedNodeId);
+
+    for (const view of routeViews) {
+      const related =
+        !focusedNodeId ||
+        view.edge.from === focusedNodeId ||
+        view.edge.to === focusedNodeId;
+      view.line.material.opacity = focusedNodeId
+        ? related
+          ? 1
+          : 0.055
+        : view.baseOpacity;
+      view.shadow.material.opacity = focusedNodeId
+        ? related
+          ? 0.82
+          : 0.025
+        : 0.56;
+      view.line.renderOrder = related ? 8 : 2;
+    }
+
+    for (const view of nodeViews) {
+      const related =
+        !focusedNodeId || relatedNodes.has(view.node.id);
+      const selected = view.node.id === focusedNodeId;
+      const hoveredNode = view.node.id === hovered?.id;
+      const glow = view.building.userData.glow;
+
+      if (glow) {
+        const baseOpacity = glow.userData.baseOpacity || 0.22;
+        glow.material.opacity = !related
+          ? baseOpacity * 0.18
+          : selected || hoveredNode
+            ? Math.min(0.46, baseOpacity * 1.55)
+            : focusedNodeId
+              ? Math.min(0.38, baseOpacity * 1.25)
+              : baseOpacity;
+      }
+
+      view.label.classList.toggle(
+        "is-route-muted",
+        Boolean(focusedNodeId && !related),
+      );
+      view.label.classList.toggle(
+        "is-route-related",
+        Boolean(focusedNodeId && related),
+      );
+    }
+
+    updateParticleColours();
   }
 
   function nodeGlow(node) {
@@ -758,17 +881,7 @@ function buildScene() {
 
   function setHoveredNode(node) {
     hovered = node;
-
-    for (const view of nodeViews) {
-      const glow = view.building.userData.glow;
-      if (!glow) continue;
-
-      const baseOpacity = glow.userData.baseOpacity || 0.22;
-      glow.material.opacity =
-        node?.id === view.node.id
-          ? Math.min(0.42, baseOpacity * 1.42)
-          : baseOpacity;
-    }
+    applyRouteFocus();
   }
 
   function buildKv(state) {
@@ -813,6 +926,7 @@ function buildScene() {
     buildBuildings(state);
     buildKv(state);
     fitCamera(state);
+    applyRouteFocus();
     resize();
   }
 
@@ -1109,6 +1223,18 @@ function buildScene() {
   }
 
   function finishPointer(event) {
+    const completedDrag =
+      drag?.pointerId === event.pointerId ? drag : null;
+    const wasClick =
+      event.type === "pointerup" &&
+      !pinch &&
+      completedDrag &&
+      Math.hypot(
+        event.clientX - completedDrag.x,
+        event.clientY - completedDrag.y,
+      ) < 4;
+    const clickedNode = wasClick ? raycast(event) : null;
+
     activePointers.delete(event.pointerId);
 
     if (
@@ -1145,6 +1271,12 @@ function buildScene() {
       "is-moving",
       "is-orbiting",
     );
+
+    if (clickedNode) {
+      vm.toggleRouteFocus(clickedNode.id);
+    } else if (wasClick) {
+      vm.clearRouteFocus();
+    }
   }
 
   renderer.domElement.addEventListener(
@@ -1215,9 +1347,9 @@ function buildScene() {
       setHoveredNode(node);
 
       if (node) {
-        vm.openDetail(node.id);
+        vm.previewRouteFocus(node.id);
       } else {
-        vm.clearDetail();
+        vm.endRoutePreview();
       }
     },
   );
@@ -1227,7 +1359,7 @@ function buildScene() {
     () => {
       if (drag || pinch) return;
       setHoveredNode(null);
-      vm.clearDetail();
+      vm.endRoutePreview();
     },
   );
 
@@ -1342,6 +1474,7 @@ function buildScene() {
         defaultOrbit.distance,
       );
       vm.openDetail(node.id);
+      vm.pinRouteFocus(node.id);
     },
   );
 
@@ -1351,7 +1484,7 @@ function buildScene() {
     Object.assign(orbit, defaultOrbit);
     target.set(0, 0, 0);
     setHoveredNode(null);
-    vm.clearDetail();
+    vm.clearRouteFocus();
   }
 
   function setVisible(nextVisible) {
@@ -1388,6 +1521,10 @@ function buildScene() {
     update,
     setVisible,
     reset,
+    setRouteFocus(nodeId) {
+      focusedNodeId = nodeId || null;
+      applyRouteFocus();
+    },
   };
 }
 
