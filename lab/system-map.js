@@ -373,6 +373,16 @@ function nodeShape(node) {
   });
 }
 
+function nodeStatusLamp(node) {
+  return createSvgElement("circle", {
+    cx: node.x + 11,
+    cy: node.y - 10,
+    r: 3.6,
+    class: "smap-node-status",
+    "aria-hidden": "true",
+  });
+}
+
 function clearEdgeHighlight() {
   flatLayer
     .querySelectorAll(".smap-route.is-related")
@@ -404,7 +414,7 @@ function renderNode(svg, node) {
     tabindex: "0",
   });
 
-  group.appendChild(nodeShape(node));
+  group.append(nodeShape(node), nodeStatusLamp(node));
   appendMultilineLabel(group, node);
 
   const open = () => {
@@ -799,6 +809,6 @@ setMode(preferredMode);
 
 if (canUse3D()) {
   import(
-    "/lab/system-map-scene.js?v=20260715-city-map-final"
+    "/lab/system-map-scene.js?v=20260715-city-map-navigation"
   ).catch(fail3D);
 }

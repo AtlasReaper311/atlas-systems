@@ -45,7 +45,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/lab/lab-card.css?v=20260707-lab-cache" />
-    <link rel="stylesheet" href="/lab/system-map.css?v=20260715-city-map-final" />
+    <link rel="stylesheet" href="/lab/system-map.css?v=20260715-city-map-navigation" />
     <link
       rel="stylesheet"
       href="/lab/blackbox-timeline.css?v=20260707-lab-cache"
@@ -1478,34 +1478,42 @@
               <div class="smap-list" id="system-map-list"></div>
             </div>
 
-            <div
-              class="smap-legend"
-              role="group"
-              aria-label="System map legend"
-            >
-              <span><i class="smap-leg-dot smap-leg-live"></i>live, /_meta verified</span>
-              <span><i class="smap-leg-dot smap-leg-undoc"></i>discovered, no /_meta</span>
-              <span><i class="smap-leg-dot smap-leg-down"></i>not answering</span>
-              <span><i class="smap-leg-role smap-leg-role-worker"></i>Worker service</span>
-              <span><i class="smap-leg-role smap-leg-role-site"></i>Pages site</span>
-              <span><i class="smap-leg-role smap-leg-role-repo"></i>source repository</span>
-              <span><i class="smap-leg-role smap-leg-role-local"></i>LAN service</span>
-              <span><i class="smap-leg-role smap-leg-role-ext"></i>external dependency</span>
-              <span><i class="smap-leg-role smap-leg-role-kv"></i>KV namespace</span>
-              <span><i class="smap-leg-line smap-leg-edge-binding"></i>binding</span>
-              <span><i class="smap-leg-line smap-leg-edge-tunnel"></i>tunnel</span>
-              <span><i class="smap-leg-line smap-leg-edge-http"></i>http</span>
-              <span><i class="smap-leg-line smap-leg-edge-poll"></i>poll</span>
-              <span><i class="smap-leg-line smap-leg-edge-probe"></i>probe</span>
-              <span><i class="smap-leg-line smap-leg-edge-dispatch"></i>dispatch</span>
-              <span><i class="smap-leg-line smap-leg-edge-notify"></i>notify</span>
-              <span><i class="smap-leg-line smap-leg-edge-alert"></i>alert</span>
-              <span><i class="smap-leg-line smap-leg-edge-kv"></i>KV link</span>
+            <div class="smap-legend" role="group" aria-label="System map legend">
+              <div class="smap-legend-group" role="group" aria-label="Status">
+                <span class="smap-legend-title">Status</span>
+                <span><i class="smap-leg-dot smap-leg-live"></i>live, /_meta verified</span>
+                <span><i class="smap-leg-dot smap-leg-undoc"></i>discovered, no /_meta</span>
+                <span><i class="smap-leg-dot smap-leg-down"></i>not answering</span>
+              </div>
+              <div class="smap-legend-group" role="group" aria-label="Node type">
+                <span class="smap-legend-title">Node type</span>
+                <span><svg class="smap-leg-role smap-leg-role-worker" viewBox="0 0 24 20" aria-hidden="true"><circle cx="12" cy="10" r="7"></circle></svg>Worker service</span>
+                <span><svg class="smap-leg-role smap-leg-role-site" viewBox="0 0 24 20" aria-hidden="true"><rect x="4" y="3" width="16" height="14" rx="3"></rect></svg>Pages site</span>
+                <span><svg class="smap-leg-role smap-leg-role-repo" viewBox="0 0 24 20" aria-hidden="true"><path d="M2 5H22V15H2ZM6 9H18"></path></svg>source repository</span>
+                <span><svg class="smap-leg-role smap-leg-role-local" viewBox="0 0 24 20" aria-hidden="true"><polygon points="12,2 21,10 12,18 3,10"></polygon></svg>LAN service</span>
+                <span><svg class="smap-leg-role smap-leg-role-ext" viewBox="0 0 24 20" aria-hidden="true"><polygon points="12,2 21,10 12,18 3,10"></polygon></svg>external dependency</span>
+                <span><svg class="smap-leg-role smap-leg-role-infra" viewBox="0 0 24 20" aria-hidden="true"><rect x="7" y="5" width="10" height="10"></rect></svg>infrastructure</span>
+                <span><svg class="smap-leg-role smap-leg-role-kv" viewBox="0 0 24 20" aria-hidden="true"><rect x="9" y="7" width="6" height="6"></rect></svg>KV namespace</span>
+              </div>
+              <div class="smap-legend-group" role="group" aria-label="Connection">
+                <span class="smap-legend-title">Connection</span>
+                <span><i class="smap-leg-line smap-leg-edge-binding"></i>binding</span>
+                <span><i class="smap-leg-line smap-leg-edge-tunnel"></i>tunnel</span>
+                <span><i class="smap-leg-line smap-leg-edge-http"></i>http</span>
+                <span><i class="smap-leg-line smap-leg-edge-poll"></i>poll</span>
+                <span><i class="smap-leg-line smap-leg-edge-probe"></i>probe</span>
+                <span><i class="smap-leg-line smap-leg-edge-dispatch"></i>dispatch</span>
+                <span><i class="smap-leg-line smap-leg-edge-notify"></i>notify</span>
+                <span><i class="smap-leg-line smap-leg-edge-alert"></i>alert</span>
+                <span><i class="smap-leg-line smap-leg-edge-kv"></i>KV link</span>
+              </div>
             </div>
 
             <p class="smap-note">
               The 3D city view opens first on capable desktops; use the persistent
-              view controls to switch to the flat district plan. District streets
+              view controls to switch to the flat district plan. Drag to move around
+              the bounded city, Alt-drag or right-drag to orbit, and use the wheel
+              or a pinch gesture to zoom toward the pointer. District streets
               organise public source repositories and runtime services without
               inventing dependencies. Coloured routes follow the key above and are
               drawn only from declared estate wiring or live registry probes.
@@ -3591,7 +3599,7 @@
       defer
     ></script>
     <script
-      src="/lab/system-map-bootstrap.js?v=20260715-city-map-final"
+      src="/lab/system-map-bootstrap.js?v=20260715-city-map-navigation"
       defer
     ></script>
     <script src="/lab/live-section.js?v=20260713-estate-search" defer></script>

@@ -1,9 +1,30 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
-const boot=fs.readFileSync(new URL("../system-map-bootstrap.js",import.meta.url),"utf8");
-const map=fs.readFileSync(new URL("../system-map.js",import.meta.url),"utf8");
-const scene=fs.readFileSync(new URL("../system-map-scene.js",import.meta.url),"utf8");
-test("uses public topology",()=>assert.match(boot,/\/v1\/topology/));
-test("stable per-node seed",()=>{assert.match(map,/atlas-map:/);assert.doesNotMatch(map,/nodes\.map\(\(n\) => n\.id\)\.sort/);});
-test("3D collision handling",()=>assert.match(scene,/resolveProjectedLabelCollisions/));
+
+const boot = fs.readFileSync(
+  new URL("../system-map-bootstrap.js", import.meta.url),
+  "utf8",
+);
+const layout = fs.readFileSync(
+  new URL("../system-map-layout.js", import.meta.url),
+  "utf8",
+);
+const scene = fs.readFileSync(
+  new URL("../system-map-scene.js", import.meta.url),
+  "utf8",
+);
+
+test("uses public topology", () => {
+  assert.match(boot, /\/v1\/topology/);
+});
+
+test("layout order is deterministic per node", () => {
+  assert.match(layout, /String\(a\.id\)\.localeCompare\(String\(b\.id\)\)/);
+  assert.match(layout, /members\.sort\(nodeSort\)/);
+});
+
+test("3D labels avoid projected collisions", () => {
+  assert.match(scene, /function overlaps\(/);
+  assert.match(scene, /placed\.some\(\(other\) => overlaps\(box, other\)\)/);
+});

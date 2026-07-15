@@ -1,4 +1,10 @@
 import * as THREE from "./vendor/three/three.module.min.js";
+import {
+  clampTarget,
+  clampZoom,
+  createPanBounds,
+  zoomTargetTowardPoint,
+} from "./system-map-controls.js";
 
 const vm =
   typeof window !== "undefined"
@@ -91,20 +97,20 @@ function createMaterials(node) {
 
   return {
     body: new THREE.MeshStandardMaterial({
-      color: 0x14141c,
-      roughness: 0.92,
-      metalness: 0.04,
+      color: 0x30303c,
+      roughness: 0.74,
+      metalness: 0.06,
     }),
     accent: new THREE.MeshStandardMaterial({
-      color: 0x181820,
+      color: 0x303038,
       emissive: accent,
       emissiveIntensity:
         node.status === "live"
-          ? 0.72
+          ? 0.78
           : node.status === "down"
-            ? 0.16
-            : 0.38,
-      roughness: 0.72,
+            ? 0.42
+            : 0.58,
+      roughness: 0.62,
       metalness: 0.08,
     }),
   };
@@ -264,12 +270,16 @@ function infraBuilding(node) {
 }
 
 function createBuilding(node) {
-  if (node.role === "repo") return repositoryBuilding(node);
-  if (node.role === "site") return siteBuilding(node);
-  if (node.role === "local") return localBuilding(node);
-  if (node.role === "ext") return externalBuilding(node);
-  if (node.role === "infra") return infraBuilding(node);
-  return workerBuilding(node);
+  let building;
+
+  if (node.role === "repo") building = repositoryBuilding(node);
+  else if (node.role === "site") building = siteBuilding(node);
+  else if (node.role === "local") building = localBuilding(node);
+  else if (node.role === "ext") building = externalBuilding(node);
+  else if (node.role === "infra") building = infraBuilding(node);
+  else building = workerBuilding(node);
+
+  return building;
 }
 
 function polylineGeometry(points) {
@@ -307,6 +317,32 @@ function routePointAt(route, progress) {
   return route[route.length - 1].clone();
 }
 
+function createGlowTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 96;
+  canvas.height = 96;
+
+  const context = canvas.getContext("2d");
+  const gradient = context.createRadialGradient(
+    48,
+    48,
+    2,
+    48,
+    48,
+    46,
+  );
+  gradient.addColorStop(0, "rgba(255,255,255,0.92)");
+  gradient.addColorStop(0.28, "rgba(255,255,255,0.5)");
+  gradient.addColorStop(0.68, "rgba(255,255,255,0.12)");
+  gradient.addColorStop(1, "rgba(255,255,255,0)");
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, 96, 96);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
 function buildScene() {
   const stage = host.querySelector(".smap-city-stage");
   const layer = document.createElement("div");
@@ -319,14 +355,11 @@ function buildScene() {
   const hint = document.createElement("div");
   hint.className = "smap3d-hint";
   hint.textContent =
-    "drag orbit · shift-drag pan · wheel zoom · double-click focus";
+    "drag move · alt/right-drag orbit · wheel zoom · double-click focus";
+  hint.setAttribute("role", "note");
 
   layer.append(labels, hint);
   stage.insertBefore(layer, stage.firstChild);
-  window.setTimeout(
-    () => hint.classList.add("is-hidden"),
-    5200,
-  );
 
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
@@ -335,11 +368,19 @@ function buildScene() {
   renderer.setPixelRatio(
     Math.min(window.devicePixelRatio || 1, 1.5),
   );
-  renderer.setClearColor(0x0a0a0f, 1);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.32;
+  renderer.setClearColor(0x13131d, 1);
+  renderer.domElement.tabIndex = 0;
+  renderer.domElement.setAttribute(
+    "aria-label",
+    "Interactive 3D system map. Drag to move, Alt-drag or right-drag to orbit, use the wheel to zoom, and double-click a node to focus it.",
+  );
   layer.insertBefore(renderer.domElement, labels);
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x0a0a0f, 0.022);
+  scene.fog = new THREE.FogExp2(0x13131d, 0.0095);
 
   const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 180);
   const target = new THREE.Vector3();
@@ -347,19 +388,20 @@ function buildScene() {
     yaw: 0.82,
     pitch: 0.68,
     distance: 24,
-    panX: 0,
-    panZ: 0,
   };
 
-  scene.add(new THREE.AmbientLight(0x2a2a34, 1.85));
+  scene.add(new THREE.HemisphereLight(0xc8d5e8, 0x33263f, 1.34));
+  scene.add(new THREE.AmbientLight(0x808090, 0.82));
 
-  const keyLight = new THREE.DirectionalLight(0xf5ead6, 1.1);
+  const keyLight = new THREE.DirectionalLight(0xfff0d6, 1.52);
   keyLight.position.set(8, 12, 6);
   scene.add(keyLight);
 
-  const fillLight = new THREE.DirectionalLight(0x7895aa, 0.28);
+  const fillLight = new THREE.DirectionalLight(0x80a9c7, 0.68);
   fillLight.position.set(-7, 4, -8);
   scene.add(fillLight);
+
+  const glowTexture = createGlowTexture();
 
   const boardGroup = new THREE.Group();
   const districtGroup = new THREE.Group();
@@ -381,6 +423,7 @@ function buildScene() {
   let visible = false;
   let drag = null;
   let defaultOrbit = null;
+  let panBounds = null;
   let hovered = null;
   let particleGeometry = null;
   let particleRoutes = [];
@@ -389,6 +432,12 @@ function buildScene() {
   const kvViews = [];
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
+  const groundPlane = new THREE.Plane(
+    new THREE.Vector3(0, 1, 0),
+    0,
+  );
+  const activePointers = new Map();
+  let pinch = null;
 
   function fitCamera(state) {
     const width = state.width * WORLD_SCALE;
@@ -407,9 +456,8 @@ function buildScene() {
       yaw: 0.82,
       pitch: 0.68,
       distance: Math.max(16, distance),
-      panX: 0,
-      panZ: 0,
     };
+    panBounds = createPanBounds(state, WORLD_SCALE);
 
     Object.assign(orbit, defaultOrbit);
     target.set(0, 0, 0);
@@ -424,8 +472,8 @@ function buildScene() {
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(width, height),
       new THREE.MeshStandardMaterial({
-        color: 0x0d0d13,
-        roughness: 1,
+        color: 0x1e1e29,
+        roughness: 0.88,
       }),
     );
     ground.rotation.x = -Math.PI / 2;
@@ -435,11 +483,11 @@ function buildScene() {
     const grid = new THREE.GridHelper(
       Math.max(width, height),
       34,
-      0x1d1d26,
-      0x12121a,
+      0x343441,
+      0x20202b,
     );
     grid.material.transparent = true;
-    grid.material.opacity = 0.42;
+    grid.material.opacity = 0.62;
     grid.position.y = 0;
     boardGroup.add(grid);
   }
@@ -462,8 +510,8 @@ function buildScene() {
       const plate = new THREE.Mesh(
         new THREE.BoxGeometry(width, 0.08, height),
         new THREE.MeshStandardMaterial({
-          color: 0x111118,
-          roughness: 0.96,
+          color: 0x24242f,
+          roughness: 0.88,
           metalness: 0.02,
         }),
       );
@@ -478,16 +526,16 @@ function buildScene() {
           color:
             DISTRICT_COLOR[district.key] || 0xf5a623,
           transparent: true,
-          opacity: 0.36,
+          opacity: 0.62,
         }),
       );
       outline.position.copy(plate.position);
       districtGroup.add(outline);
 
       const roadMaterial = new THREE.LineBasicMaterial({
-        color: 0x23232d,
+        color: 0x464655,
         transparent: true,
-        opacity: 0.88,
+        opacity: 0.96,
       });
       const innerX = district.x + 20;
       const innerY = district.y + 42;
@@ -635,12 +683,49 @@ function buildScene() {
     particleGroup.add(particles);
   }
 
+  function nodeGlow(node) {
+    const opacity =
+      node.status === "live"
+        ? 0.28
+        : node.status === "down" || node.status === "degraded"
+          ? 0.25
+          : 0.22;
+    const size =
+      node.role === "repo" || node.role === "site"
+        ? 2.05
+        : node.role === "local"
+          ? 2.15
+          : 1.9;
+    const glow = new THREE.Mesh(
+      new THREE.PlaneGeometry(size, size),
+      new THREE.MeshBasicMaterial({
+        color: statusColor(node),
+        map: glowTexture,
+        transparent: true,
+        opacity,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      }),
+    );
+
+    glow.rotation.x = -Math.PI / 2;
+    glow.position.y = 0.015;
+    glow.renderOrder = 1;
+    glow.raycast = () => {};
+    glow.userData.baseOpacity = opacity;
+    return glow;
+  }
+
   function buildBuildings(state) {
     clearGroup(buildingGroup);
     nodeViews.length = 0;
 
     for (const node of state.nodes) {
       const building = createBuilding(node);
+      const glow = nodeGlow(node);
+      building.add(glow);
+      building.userData.glow = glow;
       const position = toWorld(node, state);
       building.position.set(
         position.x,
@@ -668,6 +753,21 @@ function buildScene() {
                 ? 28
                 : 55,
       });
+    }
+  }
+
+  function setHoveredNode(node) {
+    hovered = node;
+
+    for (const view of nodeViews) {
+      const glow = view.building.userData.glow;
+      if (!glow) continue;
+
+      const baseOpacity = glow.userData.baseOpacity || 0.22;
+      glow.material.opacity =
+        node?.id === view.node.id
+          ? Math.min(0.42, baseOpacity * 1.42)
+          : baseOpacity;
     }
   }
 
@@ -741,15 +841,11 @@ function buildScene() {
       orbit.distance;
 
     camera.position.set(
-      target.x + x + orbit.panX,
+      target.x + x,
       target.y + y,
-      target.z + z + orbit.panZ,
+      target.z + z,
     );
-    camera.lookAt(
-      target.x + orbit.panX,
-      target.y,
-      target.z + orbit.panZ,
-    );
+    camera.lookAt(target);
   }
 
   function project(world) {
@@ -884,22 +980,26 @@ function buildScene() {
     particleGeometry.attributes.position.needsUpdate = true;
   }
 
-  function raycast(event) {
+  function setPointer(clientX, clientY) {
     const rectangle =
       renderer.domElement.getBoundingClientRect();
 
     pointer.x =
-      ((event.clientX - rectangle.left) /
+      ((clientX - rectangle.left) /
         rectangle.width) *
         2 -
       1;
     pointer.y =
       -(
-        (event.clientY - rectangle.top) /
+        (clientY - rectangle.top) /
         rectangle.height
       ) *
         2 +
       1;
+  }
+
+  function raycast(event) {
+    setPointer(event.clientX, event.clientY);
 
     raycaster.setFromCamera(pointer, camera);
 
@@ -910,16 +1010,209 @@ function buildScene() {
     return intersection?.object.userData.node || null;
   }
 
+  function groundPoint(clientX, clientY) {
+    setPointer(clientX, clientY);
+    raycaster.setFromCamera(pointer, camera);
+
+    const intersection = new THREE.Vector3();
+    return raycaster.ray.intersectPlane(
+      groundPlane,
+      intersection,
+    )
+      ? intersection
+      : null;
+  }
+
+  function setBoundedTarget(nextTarget) {
+    const bounded = clampTarget(nextTarget, panBounds);
+    target.set(bounded.x, 0, bounded.z);
+  }
+
+  function panFromScreenDelta(
+    startTarget,
+    dx,
+    dy,
+    referenceDistance,
+  ) {
+    camera.updateMatrixWorld();
+
+    const right = new THREE.Vector3()
+      .setFromMatrixColumn(camera.matrixWorld, 0);
+    right.y = 0;
+    right.normalize();
+
+    const screenUp = new THREE.Vector3()
+      .setFromMatrixColumn(camera.matrixWorld, 1);
+    screenUp.y = 0;
+
+    if (screenUp.lengthSq() < 0.0001) {
+      screenUp.set(-right.z, 0, right.x);
+    } else {
+      screenUp.normalize();
+    }
+
+    const rectangle =
+      renderer.domElement.getBoundingClientRect();
+    const worldPerPixel =
+      (2 *
+        Math.tan((camera.fov * Math.PI) / 360) *
+        referenceDistance) /
+      Math.max(1, rectangle.height);
+    const nextTarget = startTarget
+      .clone()
+      .addScaledVector(right, -dx * worldPerPixel)
+      .addScaledVector(screenUp, dy * worldPerPixel);
+
+    setBoundedTarget(nextTarget);
+  }
+
+  function pointerSnapshot(event) {
+    return {
+      id: event.pointerId,
+      type: event.pointerType,
+      x: event.clientX,
+      y: event.clientY,
+    };
+  }
+
+  function touchMetrics() {
+    const touches = [...activePointers.values()].filter(
+      (entry) => entry.type === "touch",
+    );
+
+    if (touches.length < 2) return null;
+
+    const [first, second] = touches;
+    return {
+      distance: Math.hypot(
+        second.x - first.x,
+        second.y - first.y,
+      ),
+      x: (first.x + second.x) / 2,
+      y: (first.y + second.y) / 2,
+    };
+  }
+
+  function startPinch() {
+    const metrics = touchMetrics();
+    if (!metrics) return;
+
+    pinch = {
+      ...metrics,
+      orbitDistance: orbit.distance,
+      target: target.clone(),
+      point: groundPoint(metrics.x, metrics.y),
+    };
+    drag = null;
+    renderer.domElement.classList.remove("is-moving");
+    renderer.domElement.classList.add("is-zooming");
+  }
+
+  function finishPointer(event) {
+    activePointers.delete(event.pointerId);
+
+    if (
+      renderer.domElement.hasPointerCapture(event.pointerId)
+    ) {
+      renderer.domElement.releasePointerCapture(
+        event.pointerId,
+      );
+    }
+
+    const remainingTouches = [
+      ...activePointers.values(),
+    ].filter((entry) => entry.type === "touch");
+
+    pinch = null;
+    renderer.domElement.classList.remove("is-zooming");
+
+    if (remainingTouches.length === 1) {
+      const remaining = remainingTouches[0];
+      drag = {
+        pointerId: remaining.id,
+        mode: "pan",
+        x: remaining.x,
+        y: remaining.y,
+        target: target.clone(),
+        distance: orbit.distance,
+      };
+      renderer.domElement.classList.add("is-moving");
+      return;
+    }
+
+    drag = null;
+    renderer.domElement.classList.remove(
+      "is-moving",
+      "is-orbiting",
+    );
+  }
+
   renderer.domElement.addEventListener(
     "pointermove",
     (event) => {
-      if (drag) return;
+      activePointers.set(
+        event.pointerId,
+        pointerSnapshot(event),
+      );
+
+      if (pinch) {
+        const metrics = touchMetrics();
+        if (!metrics || !defaultOrbit) return;
+
+        const nextDistance = clampZoom(
+          pinch.orbitDistance *
+            (pinch.distance / Math.max(1, metrics.distance)),
+          defaultOrbit.distance,
+        );
+        const zoomedTarget = zoomTargetTowardPoint({
+          target: pinch.target,
+          point: pinch.point,
+          previousDistance: pinch.orbitDistance,
+          nextDistance,
+          bounds: panBounds,
+        });
+
+        orbit.distance = nextDistance;
+        panFromScreenDelta(
+          new THREE.Vector3(
+            zoomedTarget.x,
+            0,
+            zoomedTarget.z,
+          ),
+          metrics.x - pinch.x,
+          metrics.y - pinch.y,
+          pinch.orbitDistance,
+        );
+        return;
+      }
+
+      if (drag?.pointerId === event.pointerId) {
+        const dx = event.clientX - drag.x;
+        const dy = event.clientY - drag.y;
+
+        if (drag.mode === "orbit") {
+          orbit.yaw = drag.yaw - dx * 0.006;
+          orbit.pitch = Math.max(
+            0.28,
+            Math.min(1.18, drag.pitch - dy * 0.005),
+          );
+        } else {
+          panFromScreenDelta(
+            drag.target,
+            dx,
+            dy,
+            drag.distance,
+          );
+        }
+
+        return;
+      }
 
       const node = raycast(event);
 
       if (node?.id === hovered?.id) return;
 
-      hovered = node;
+      setHoveredNode(node);
 
       if (node) {
         vm.openDetail(node.id);
@@ -932,7 +1225,8 @@ function buildScene() {
   renderer.domElement.addEventListener(
     "pointerleave",
     () => {
-      hovered = null;
+      if (drag || pinch) return;
+      setHoveredNode(null);
       vm.clearDetail();
     },
   );
@@ -940,69 +1234,93 @@ function buildScene() {
   renderer.domElement.addEventListener(
     "pointerdown",
     (event) => {
-      drag = {
-        x: event.clientX,
-        y: event.clientY,
-        shift: event.shiftKey,
-      };
+      if (
+        event.pointerType !== "touch" &&
+        event.button !== 0 &&
+        event.button !== 2
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      activePointers.set(
+        event.pointerId,
+        pointerSnapshot(event),
+      );
       renderer.domElement.setPointerCapture(
         event.pointerId,
       );
-    },
-  );
 
-  renderer.domElement.addEventListener(
-    "pointermove",
-    (event) => {
-      if (!drag) return;
-
-      const dx = event.clientX - drag.x;
-      const dy = event.clientY - drag.y;
-      drag.x = event.clientX;
-      drag.y = event.clientY;
-
-      if (drag.shift) {
-        orbit.panX -= dx * 0.012;
-        orbit.panZ -= dy * 0.012;
-      } else {
-        orbit.yaw -= dx * 0.006;
-        orbit.pitch = Math.max(
-          0.28,
-          Math.min(
-            1.18,
-            orbit.pitch - dy * 0.005,
-          ),
-        );
+      if (
+        event.pointerType === "touch" &&
+        touchMetrics()
+      ) {
+        startPinch();
+        return;
       }
+
+      const mode =
+        event.button === 2 || event.altKey
+          ? "orbit"
+          : "pan";
+      drag = {
+        pointerId: event.pointerId,
+        mode,
+        x: event.clientX,
+        y: event.clientY,
+        target: target.clone(),
+        distance: orbit.distance,
+        yaw: orbit.yaw,
+        pitch: orbit.pitch,
+      };
+      renderer.domElement.classList.toggle(
+        "is-orbiting",
+        mode === "orbit",
+      );
+      renderer.domElement.classList.toggle(
+        "is-moving",
+        mode === "pan",
+      );
     },
   );
 
   renderer.domElement.addEventListener(
     "pointerup",
-    (event) => {
-      drag = null;
-      renderer.domElement.releasePointerCapture(
-        event.pointerId,
-      );
-    },
+    finishPointer,
+  );
+  renderer.domElement.addEventListener(
+    "pointercancel",
+    finishPointer,
+  );
+  renderer.domElement.addEventListener(
+    "contextmenu",
+    (event) => event.preventDefault(),
   );
 
   renderer.domElement.addEventListener(
     "wheel",
     (event) => {
       event.preventDefault();
-      const minimum =
-        Math.max(9, defaultOrbit.distance * 0.38);
-      const maximum =
-        Math.max(34, defaultOrbit.distance * 1.7);
+      if (!defaultOrbit) return;
 
-      orbit.distance = Math.max(
-        minimum,
-        Math.min(
-          maximum,
-          orbit.distance + event.deltaY * 0.014,
-        ),
+      applyCamera();
+      camera.updateMatrixWorld();
+
+      const previousDistance = orbit.distance;
+      const nextDistance = clampZoom(
+        previousDistance * Math.exp(event.deltaY * 0.00125),
+        defaultOrbit.distance,
       );
+      const nextTarget = zoomTargetTowardPoint({
+        target,
+        point: groundPoint(event.clientX, event.clientY),
+        previousDistance,
+        nextDistance,
+        bounds: panBounds,
+      });
+
+      orbit.distance = nextDistance;
+      target.set(nextTarget.x, 0, nextTarget.z);
     },
     { passive: false },
   );
@@ -1018,12 +1336,10 @@ function buildScene() {
       }
 
       const position = toWorld(node, currentState);
-      target.set(position.x, 0, position.z);
-      orbit.panX = 0;
-      orbit.panZ = 0;
-      orbit.distance = Math.max(
-        8,
+      setBoundedTarget(position);
+      orbit.distance = clampZoom(
         defaultOrbit.distance * 0.42,
+        defaultOrbit.distance,
       );
       vm.openDetail(node.id);
     },
@@ -1034,7 +1350,7 @@ function buildScene() {
 
     Object.assign(orbit, defaultOrbit);
     target.set(0, 0, 0);
-    hovered = null;
+    setHoveredNode(null);
     vm.clearDetail();
   }
 

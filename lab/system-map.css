@@ -1,7 +1,7 @@
 /* Atlas Systems Lab system map */
 
 .smap-section {
-  --map-role-worker: #f5a623;
+  --map-role-worker: #4ade80;
   --map-role-site: #e8935c;
   --map-role-repo: #f5a623;
   --map-role-local: #48b9dc;
@@ -243,28 +243,38 @@
 
 .smap-city-node[data-role="ext"] .smap-node-shape {
   stroke: var(--map-role-ext);
-  stroke-dasharray: 4 4;
-  fill: rgba(138,138,147,0.05);
+  stroke-width: 2.1;
+  stroke-dasharray: 3 2;
+  fill: rgba(138,138,147,0.09);
 }
 
 .smap-city-node[data-role="infra"] .smap-node-shape {
   stroke: var(--map-role-infra);
 }
 
-.smap-city-node[data-status="live"] .smap-node-shape {
-  stroke: #4ade80;
+.smap-node-status {
+  fill: var(--text-faint, #555560);
+  stroke: var(--bg-0, #0a0a0f);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
 }
 
-.smap-city-node[data-status="down"] .smap-node-shape,
-.smap-city-node[data-status="degraded"] .smap-node-shape {
-  stroke: #e24b4a;
-  fill: rgba(226,75,74,0.07);
+.smap-city-node[data-status="live"] .smap-node-status {
+  fill: #4ade80;
 }
 
-.smap-city-node[data-status="undoc"] .smap-node-shape,
-.smap-city-node[data-status="unknown"] .smap-node-shape {
-  stroke: rgba(245,166,35,0.68);
-  stroke-dasharray: 4 3;
+.smap-city-node[data-status="down"] .smap-node-status,
+.smap-city-node[data-status="degraded"] .smap-node-status {
+  fill: #e24b4a;
+}
+
+.smap-city-node[data-status="undoc"] .smap-node-status,
+.smap-city-node[data-status="unknown"] .smap-node-status {
+  fill: var(--bg-0, #0a0a0f);
+  stroke: #f5a623;
+  stroke-width: 1.5;
+  stroke-dasharray: 1.5 1.5;
 }
 
 .smap-node-label {
@@ -369,7 +379,7 @@
 
 .smap3d-layer {
   z-index: 10;
-  background: #0a0a0f;
+  background: #13131d;
 }
 
 .smap3d-layer canvas {
@@ -377,6 +387,13 @@
   height: 100%;
   display: block;
   touch-action: none;
+  cursor: grab;
+}
+
+.smap3d-layer canvas.is-moving,
+.smap3d-layer canvas.is-orbiting,
+.smap3d-layer canvas.is-zooming {
+  cursor: grabbing;
 }
 
 .smap3d-label-layer {
@@ -418,31 +435,46 @@
   position: absolute;
   left: 16px;
   top: 16px;
-  color: var(--text-faint, #555560);
+  z-index: 3;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 3px;
+  background: rgba(15,15,23,0.78);
+  color: #777780;
+  padding: 7px 9px;
   font: 500 9px/1 var(--mono, "IBM Plex Mono", monospace);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  transition: opacity 0.18s ease;
-}
-
-.smap3d-hint.is-hidden {
-  opacity: 0;
+  pointer-events: none;
 }
 
 .smap-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem 1.2rem;
+  display: grid;
+  gap: 0.75rem;
   margin-top: 1rem;
   color: var(--text-faint, #555560);
   font-size: 10px;
   letter-spacing: 0.045em;
 }
 
-.smap-legend span {
+.smap-legend-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+.smap-legend-group > span {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.smap-legend-title {
+  min-width: 72px;
+  color: var(--text-dim, #aaa9a0);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .smap-leg-dot {
@@ -466,43 +498,43 @@
 }
 
 .smap-leg-role {
-  width: 12px;
-  height: 10px;
+  width: 18px;
+  height: 16px;
   display: inline-block;
-  border: 1px solid currentColor;
+  overflow: visible;
+  fill: rgba(255,255,255,0.035);
+  stroke: currentColor;
+  stroke-width: 1.6;
+  vector-effect: non-scaling-stroke;
 }
 
 .smap-leg-role-worker {
   color: var(--map-role-worker);
-  border-radius: 50%;
 }
 
 .smap-leg-role-site {
   color: var(--map-role-site);
-  border-radius: 2px;
 }
 
 .smap-leg-role-repo {
-  width: 16px;
-  height: 8px;
   color: var(--map-role-repo);
-  border-radius: 2px;
 }
 
 .smap-leg-role-local {
   color: var(--map-role-local);
-  transform: rotate(45deg);
 }
 
 .smap-leg-role-ext {
   color: var(--map-role-ext);
-  transform: rotate(45deg);
-  border-style: dashed;
+  stroke-width: 2;
+  stroke-dasharray: 3 2;
+}
+
+.smap-leg-role-infra {
+  color: var(--map-role-infra);
 }
 
 .smap-leg-role-kv {
-  width: 8px;
-  height: 8px;
   color: var(--map-kv);
 }
 
