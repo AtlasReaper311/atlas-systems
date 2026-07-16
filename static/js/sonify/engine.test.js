@@ -21,7 +21,10 @@ import {
   terminalEventForStep,
 } from "./engine.js";
 import { SCORE_STATES, STATUS_PARAMETERS, computeFrame } from "./mapping.js";
-import { createPerformanceArrangement } from "./performance.js";
+import {
+  DEFAULT_PERFORMANCE_SEED,
+  createPerformanceArrangement,
+} from "./performance.js";
 
 test("audio context start resolves normally", async () => {
   await startToneWithTimeout({ start: async () => undefined }, 20);
@@ -170,7 +173,8 @@ test("Demo performance changes activate only on measure boundaries", () => {
   assert.equal(shouldApplyPendingPerformance(1.5), false);
 });
 
-test("Demo arrangements add a bounded low and mid terminal sequence", () => {
+test("Demo arrangements add a fast bounded low and mid arpeggiator", () => {
+  const minimumEvents = { healthy: 19, warning: 22, critical: 24, unknown: 12 };
   for (const [state, score] of Object.entries(SCORE_STATES)) {
     for (const seed of ["0000", "7F3A", "A71A5", "FFFFFFFF"]) {
       const performance = createPerformanceArrangement(seed, state);
@@ -178,9 +182,15 @@ test("Demo arrangements add a bounded low and mid terminal sequence", () => {
         const events = Array.from({ length: 32 }, (_, step) => (
           terminalEventForStep(state, score.scale, step, phrase, performance)
         )).filter(Boolean);
-        assert.ok(events.length >= 7, `${state} ${seed} should keep terminal motion`);
+        assert.ok(
+          events.length >= minimumEvents[state],
+          `${state} ${seed} should keep its intended arp motion`,
+        );
         assert.ok(events.every((event) => event.midi >= PAD_ROOT_MIDI));
-        assert.ok(events.every((event) => event.midi <= 60));
+        assert.ok(events.every((event) => event.midi <= 55));
+        assert.ok(events.every((event) => (
+          event.duration === (state === "unknown" ? "8n" : "16n")
+        )));
         assert.ok(events.every((event) => Number.isFinite(event.velocity)));
       }
     }
@@ -188,12 +198,13 @@ test("Demo arrangements add a bounded low and mid terminal sequence", () => {
   assert.equal(
     terminalEventForStep("healthy", SCORE_STATES.healthy.scale, 3, 0, null),
     null,
-    "Live mode must not add the Demo terminal sequence",
+    "Live mode must not add the Demo arpeggiator",
   );
 });
 
 test("seeded Demo bass and percussion remain finite without losing the state groove", () => {
-  const minimumBassEvents = { healthy: 8, warning: 10, critical: 8, unknown: 4 };
+  const minimumBassEvents = { healthy: 12, warning: 12, critical: 12, unknown: 8 };
+  const minimumKickEvents = { healthy: 12, warning: 12, critical: 12, unknown: 8 };
   for (const [state, score] of Object.entries(SCORE_STATES)) {
     for (const seed of ["0000", "7F3A", "A71A5", "FFFFFFFF"]) {
       const performance = createPerformanceArrangement(seed, state);
@@ -203,10 +214,12 @@ test("seeded Demo bass and percussion remain finite without losing the state gro
       const drumEvents = Array.from({ length: 32 }, (_, step) => (
         percussionEventsForStep(state, step, performance)
       ));
-      assert.equal(bassEvents.length, minimumBassEvents[state]);
+      assert.ok(bassEvents.length >= minimumBassEvents[state]);
       assert.ok(bassEvents.every((event) => Number.isFinite(event.midi)));
       assert.ok(bassEvents.every((event) => Number.isFinite(event.velocity)));
-      assert.ok(drumEvents.some((events) => events.kick));
+      assert.ok(
+        drumEvents.filter((events) => events.kick).length >= minimumKickEvents[state],
+      );
       assert.ok(drumEvents.some((events) => events.hat));
       for (const events of drumEvents) {
         for (const event of Object.values(events)) {
@@ -217,9 +230,88 @@ test("seeded Demo bass and percussion remain finite without losing the state gro
   }
 });
 
+test("Demo scene rhythms separate night drive, pressure, pursuit and menu states", () => {
+  const sceneEvents = Object.fromEntries(
+    Object.entries(SCORE_STATES).map(([state, score]) => {
+      const performance = createPerformanceArrangement(DEFAULT_PERFORMANCE_SEED, state);
+      const bass = Array.from({ length: 32 }, (_, step) => (
+        bassEventForStep(state, score.scale, step, 0, performance)
+      )).filter(Boolean);
+      const drums = Array.from({ length: 32 }, (_, step) => (
+        percussionEventsForStep(state, step, performance)
+      ));
+      const arp = Array.from({ length: 32 }, (_, step) => (
+        terminalEventForStep(state, score.scale, step, 0, performance)
+      )).filter(Boolean);
+      return [state, {
+        bass: bass.length,
+        kicks: drums.filter((events) => events.kick).length,
+        snares: drums.filter((events) => events.snare).length,
+        hats: drums.filter((events) => events.hat).length,
+        metal: drums.filter((events) => events.metal).length,
+        arp: arp.length,
+      }];
+    }),
+  );
+
+  assert.deepEqual(sceneEvents.healthy, {
+    bass: 16,
+    kicks: 16,
+    snares: 8,
+    hats: 16,
+    metal: 4,
+    arp: 19,
+  });
+  assert.deepEqual(sceneEvents.warning, {
+    bass: 20,
+    kicks: 16,
+    snares: 8,
+    hats: 20,
+    metal: 4,
+    arp: 22,
+  });
+  assert.deepEqual(sceneEvents.critical, {
+    bass: 20,
+    kicks: 18,
+    snares: 12,
+    hats: 20,
+    metal: 4,
+    arp: 24,
+  });
+  assert.deepEqual(sceneEvents.unknown, {
+    bass: 12,
+    kicks: 8,
+    snares: 4,
+    hats: 12,
+    metal: 2,
+    arp: 12,
+  });
+});
+
+test("different Demo seeds create distinct audible phrase signatures", () => {
+  const seeds = ["A71A5", "7F3A", "B10C", "C0FFEE", "DEADBEEF"];
+  for (const [state, score] of Object.entries(SCORE_STATES)) {
+    const signatures = new Set(seeds.map((seed) => {
+      const performance = createPerformanceArrangement(seed, state);
+      const bass = Array.from({ length: 32 }, (_, step) => (
+        bassEventForStep(state, score.scale, step, 0, performance)
+      ));
+      const drums = Array.from({ length: 32 }, (_, step) => (
+        percussionEventsForStep(state, step, performance)
+      ));
+      const terminal = Array.from({ length: 32 }, (_, step) => (
+        terminalEventForStep(state, score.scale, step, 0, performance)
+      ));
+      return JSON.stringify({ bass, drums, terminal });
+    }));
+    assert.ok(signatures.size >= 4, `${state} needs clearly different seeded phrases`);
+  }
+});
+
 function fakeToneRuntime() {
   const constructed = [];
-  let scheduledEighth = null;
+  const triggers = [];
+  const scheduledRepeats = new Map();
   const parameter = (value = 0) => ({
     value,
     rampTo(nextValue) {
@@ -230,6 +322,7 @@ function fakeToneRuntime() {
   class FakeNode {
     constructor(name, input) {
       constructed.push(name);
+      this.name = name;
       const options = input && typeof input === "object" ? input : {};
       const numeric = Number.isFinite(input) ? input : 0;
       this.gain = parameter(numeric);
@@ -243,7 +336,7 @@ function fakeToneRuntime() {
     connect() { return this; }
     chain() { return this; }
     toDestination() { return this; }
-    triggerAttackRelease() {}
+    triggerAttackRelease(...args) { triggers.push({ name: this.name, args }); }
     start() { return this; }
     dispose() {}
     getValue() { return new Float32Array(512); }
@@ -259,9 +352,9 @@ function fakeToneRuntime() {
   const transport = {
     bpm: parameter(72),
     state: "stopped",
-    scheduleRepeat(callback) {
-      scheduledEighth = callback;
-      return 1;
+    scheduleRepeat(callback, interval) {
+      scheduledRepeats.set(interval, callback);
+      return scheduledRepeats.size;
     },
     scheduleOnce() {},
     nextSubdivision() { return 0; },
@@ -296,7 +389,10 @@ function fakeToneRuntime() {
   return {
     Tone,
     constructed,
-    runEighth: (time = 0) => scheduledEighth?.(time),
+    triggers,
+    scheduledRepeats,
+    runEighth: (time = 0) => scheduledRepeats.get("8n")?.(time),
+    runSixteenth: (time = 0) => scheduledRepeats.get("16n")?.(time),
   };
 }
 
@@ -316,9 +412,11 @@ test("the browser graph allocates Demo effects once and applies a queued score o
     await engine.start();
     assert.ok(runtime.constructed.includes("Distortion"));
     assert.ok(runtime.constructed.includes("FeedbackDelay"));
-    assert.ok(runtime.constructed.includes("AMSynth"));
+    assert.ok(runtime.constructed.filter((name) => name === "MonoSynth").length >= 2);
     assert.equal(runtime.constructed.filter((name) => name === "Distortion").length, 1);
     assert.equal(runtime.constructed.filter((name) => name === "FeedbackDelay").length, 1);
+    assert.ok(runtime.scheduledRepeats.has("8n"));
+    assert.ok(runtime.scheduledRepeats.has("16n"));
 
     const performance = createPerformanceArrangement("7F3A", "healthy");
     const result = engine.setPerformance(performance);
@@ -327,6 +425,12 @@ test("the browser graph allocates Demo effects once and applies a queued score o
     runtime.runEighth();
     assert.equal(applied.length, 1);
     assert.equal(applied[0].id, performance.id);
+    const triggerCount = runtime.triggers.length;
+    for (let step = 0; step < 32; step += 1) runtime.runSixteenth(step / 4);
+    assert.ok(
+      runtime.triggers.length >= triggerCount + 18,
+      "the active Demo arrangement must reach the audible 16th-note arp scheduler",
+    );
   } finally {
     engine.dispose();
     if (previousTone === undefined) delete globalThis.Tone;

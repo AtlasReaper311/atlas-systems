@@ -5,7 +5,7 @@
  * Live telemetry never imports these settings into its score frame.
  */
 
-import { stableHash } from "./mapping.js?v=20260716-system-symphony-performance-console";
+import { stableHash } from "./mapping.js?v=20260716-system-symphony-dark-club-arp";
 
 export const DEFAULT_PERFORMANCE_SEED = "A71A5";
 
@@ -36,6 +36,72 @@ export const PERFORMANCE_MACRO_DEFAULTS = Object.freeze({
 });
 
 const BASS_SHIFTS = Object.freeze([0, 1, -1, 0]);
+const PERFORMANCE_SCENE_DYNAMICS = Object.freeze({
+  healthy: Object.freeze({
+    bpm: 112,
+    density: [0.92, 0.38],
+    drums: [0.95, 0.35],
+    bass: [1, 0.35],
+    counterline: [0.82, 0.32],
+    pad: [0.48, 0.24],
+    drone: [0.3, 0.18],
+    texture: [0.8, 1],
+    arpGain: [0.38, 0.32],
+    arpDensity: [0.42, 0.42],
+    filter: [0.9, 0.12],
+    distortion: [0.03, 0.22],
+    delay: [0.12, 0.12, 0.08],
+    reverb: [0.13, 0.19],
+  }),
+  warning: Object.freeze({
+    bpm: 120,
+    density: [1, 0.45],
+    drums: [1.05, 0.42],
+    bass: [1.08, 0.4],
+    counterline: [0.92, 0.36],
+    pad: [0.38, 0.2],
+    drone: [0.22, 0.14],
+    texture: [1, 1.35],
+    arpGain: [0.46, 0.4],
+    arpDensity: [0.54, 0.5],
+    filter: [0.8, 0.14],
+    distortion: [0.07, 0.32],
+    delay: [0.09, 0.12, 0.07],
+    reverb: [0.1, 0.15],
+  }),
+  critical: Object.freeze({
+    bpm: 132,
+    density: [1.08, 0.5],
+    drums: [1.16, 0.5],
+    bass: [1.16, 0.45],
+    counterline: [1, 0.4],
+    pad: [0.26, 0.16],
+    drone: [0.12, 0.1],
+    texture: [1.25, 1.75],
+    arpGain: [0.54, 0.42],
+    arpDensity: [0.64, 0.56],
+    filter: [0.72, 0.16],
+    distortion: [0.12, 0.42],
+    delay: [0.05, 0.08, 0.05],
+    reverb: [0.07, 0.11],
+  }),
+  unknown: Object.freeze({
+    bpm: 104,
+    density: [0.78, 0.25],
+    drums: [0.42, 0.32],
+    bass: [0.58, 0.28],
+    counterline: [0.58, 0.22],
+    pad: [0.58, 0.3],
+    drone: [0.42, 0.22],
+    texture: [0.9, 1.15],
+    arpGain: [0.22, 0.24],
+    arpDensity: [0.1, 0.24],
+    filter: [0.68, 0.14],
+    distortion: [0.04, 0.2],
+    delay: [0.18, 0.1, 0.15],
+    reverb: [0.2, 0.3],
+  }),
+});
 const PERFORMANCE_SEED_PATTERN = /^[0-9A-F]{4,8}$/;
 
 function clamp(value, minimum, maximum) {
@@ -57,7 +123,13 @@ function bounded(value, minimum, maximum) {
 }
 
 function variation(seed, label, modulo) {
-  return stableHash(`${seed}:${label}`) % modulo;
+  let value = stableHash(`${seed}:${label}`) >>> 0;
+  value ^= value >>> 16;
+  value = Math.imul(value, 0x7feb352d);
+  value ^= value >>> 15;
+  value = Math.imul(value, 0x846ca68b);
+  value ^= value >>> 16;
+  return (value >>> 0) % modulo;
 }
 
 export function normalizePerformanceSeed(value) {
@@ -101,6 +173,34 @@ export function createPerformanceArrangement(
   const delayJitter = (variation(stateSeed, "delay", 7) - 3) / 100;
   const reverbJitter = (variation(stateSeed, "reverb", 7) - 3) / 100;
   const scene = PERFORMANCE_SCENES[normalizedState];
+  const dynamics = PERFORMANCE_SCENE_DYNAMICS[normalizedState];
+  const chordOffset = variation(stateSeed, "chords", 4);
+  const bassPattern = variation(stateSeed, "bass-pattern", 8);
+  const bassShift = BASS_SHIFTS[
+    variation(stateSeed, "bass-shift", BASS_SHIFTS.length)
+  ];
+  const bassDegreeOffset = variation(stateSeed, "bass-degree", 5);
+  const percussionVariant = variation(stateSeed, "percussion", 8);
+  const melodyOffset = variation(stateSeed, "melody", 8);
+  const terminalPattern = variation(stateSeed, "terminal-pattern", 8);
+  const phraseStride = variation(stateSeed, "phrase-stride", 2) === 0 ? 1 : 3;
+  const targetBpm = bounded(
+    dynamics.bpm
+      + (energy - PERFORMANCE_MACRO_DEFAULTS.energy / 100) * 24
+      + tempoJitter * 100,
+    96,
+    138,
+  );
+  const patternSignature = [
+    chordOffset,
+    bassPattern,
+    bassShift,
+    bassDegreeOffset,
+    percussionVariant,
+    melodyOffset,
+    terminalPattern,
+    phraseStride,
+  ].join("-");
 
   return Object.freeze({
     id: `${stateSeed}:${macroValues.energy}:${macroValues.motion}:${macroValues.grit}:${macroValues.space}`,
@@ -113,26 +213,83 @@ export function createPerformanceArrangement(
     motion,
     grit,
     space,
-    chordOffset: variation(stateSeed, "chords", 4),
-    bassShift: BASS_SHIFTS[variation(stateSeed, "bass-shift", BASS_SHIFTS.length)],
-    bassDegreeOffset: variation(stateSeed, "bass-degree", 5),
-    percussionVariant: variation(stateSeed, "percussion", 4),
-    melodyOffset: variation(stateSeed, "melody", 8),
-    terminalPattern: variation(stateSeed, "terminal-pattern", 4),
-    phraseStride: variation(stateSeed, "phrase-stride", 2) === 0 ? 1 : 3,
-    bpmMultiplier: bounded(0.94 + energy * 0.3 + tempoJitter, 0.92, 1.26),
-    densityMultiplier: bounded(0.78 + motion * 0.54, 0.78, 1.32),
-    drumMultiplier: bounded(0.7 + energy * 0.48, 0.7, 1.18),
-    bassMultiplier: bounded(0.76 + energy * 0.34, 0.76, 1.1),
-    counterlineMultiplier: bounded(0.72 + motion * 0.48, 0.72, 1.2),
-    padMultiplier: bounded(0.76 + space * 0.32, 0.76, 1.08),
-    droneMultiplier: bounded(0.84 + space * 0.24, 0.84, 1.08),
-    textureMultiplier: bounded(0.72 + grit * 1.58, 0.72, 2.3),
-    terminalGain: bounded(0.12 + motion * 0.3, 0.12, 0.42),
-    terminalDensity: bounded(0.24 + motion * 0.68, 0.24, 0.92),
-    serviceFilterMultiplier: bounded(0.9 + grit * 0.2 + filterJitter, 0.86, 1.14),
-    distortionWet: bounded(0.02 + grit * 0.28 + distortionJitter, 0.02, 0.32),
-    delayWet: bounded(0.04 + motion * 0.15 + space * 0.12 + delayJitter, 0.04, 0.33),
-    reverbWet: bounded(0.18 + space * 0.3 + reverbJitter, 0.18, 0.5),
+    patternSignature,
+    chordOffset,
+    bassPattern,
+    bassShift,
+    bassDegreeOffset,
+    percussionVariant,
+    melodyOffset,
+    terminalPattern,
+    phraseStride,
+    targetBpm,
+    densityMultiplier: bounded(
+      dynamics.density[0] + motion * dynamics.density[1],
+      0.76,
+      1.58,
+    ),
+    drumMultiplier: bounded(
+      dynamics.drums[0] + energy * dynamics.drums[1],
+      0.4,
+      1.56,
+    ),
+    bassMultiplier: bounded(
+      dynamics.bass[0] + energy * dynamics.bass[1],
+      0.56,
+      1.5,
+    ),
+    counterlineMultiplier: bounded(
+      dynamics.counterline[0] + motion * dynamics.counterline[1],
+      0.56,
+      1.28,
+    ),
+    padMultiplier: bounded(
+      dynamics.pad[0] + space * dynamics.pad[1],
+      0.24,
+      0.9,
+    ),
+    droneMultiplier: bounded(
+      dynamics.drone[0] + space * dynamics.drone[1],
+      0.1,
+      0.68,
+    ),
+    textureMultiplier: bounded(
+      dynamics.texture[0] + grit * dynamics.texture[1],
+      0.78,
+      2.8,
+    ),
+    terminalGain: bounded(
+      dynamics.arpGain[0] + motion * dynamics.arpGain[1],
+      0.2,
+      0.84,
+    ),
+    terminalDensity: bounded(
+      dynamics.arpDensity[0] + motion * dynamics.arpDensity[1],
+      0.08,
+      1,
+    ),
+    serviceFilterMultiplier: bounded(
+      dynamics.filter[0] + grit * dynamics.filter[1] + filterJitter,
+      0.64,
+      1.04,
+    ),
+    distortionWet: bounded(
+      dynamics.distortion[0] + grit * dynamics.distortion[1] + distortionJitter,
+      0.02,
+      0.48,
+    ),
+    delayWet: bounded(
+      dynamics.delay[0]
+        + motion * dynamics.delay[1]
+        + space * dynamics.delay[2]
+        + delayJitter,
+      0.04,
+      0.42,
+    ),
+    reverbWet: bounded(
+      dynamics.reverb[0] + space * dynamics.reverb[1] + reverbJitter,
+      0.08,
+      0.5,
+    ),
   });
 }

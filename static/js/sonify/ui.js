@@ -8,15 +8,15 @@
 import {
   DEFAULT_USER_GAIN,
   createEngine,
-} from "./engine.js?v=20260716-system-symphony-performance-console";
-import { createPoller } from "./poller.js?v=20260716-system-symphony-performance-console";
+} from "./engine.js?v=20260716-system-symphony-dark-club-arp";
+import { createPoller } from "./poller.js?v=20260716-system-symphony-dark-club-arp";
 import {
   applyDemoProfileToServices,
   buildDependencyGraph,
   computeFrame,
   deriveDemoEstate,
   filterVoices,
-} from "./mapping.js?v=20260716-system-symphony-performance-console";
+} from "./mapping.js?v=20260716-system-symphony-dark-club-arp";
 import {
   DEFAULT_PERFORMANCE_SEED,
   PERFORMANCE_MACRO_DEFAULTS,
@@ -24,7 +24,7 @@ import {
   createPerformanceArrangement,
   formatPerformanceSeed,
   normalizePerformanceSeed,
-} from "./performance.js?v=20260716-system-symphony-performance-console";
+} from "./performance.js?v=20260716-system-symphony-dark-club-arp";
 
 const WIDGET_ID = "system-symphony-widget";
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -54,7 +54,7 @@ const HELP_ROWS = [
   ["Error rate", "Instability, detuning and note confidence"],
   ["Active incidents", "Denser critical rhythm and harmonic tension"],
   ["New successful deployment", "One quantised amber hero motif"],
-  ["Demo performance", "Seeded bass, chords, drums, terminal sequence and effects at the next measure"],
+  ["Demo performance", "Seeded club bass, mechanical drums and a low/mid 16th-note arpeggiator"],
   ["Dependencies", "Topology edges"],
   ["Service identity", "Stable family, motif, register and stereo position"],
 ];
@@ -408,7 +408,7 @@ export function initSystemSymphony() {
     host.querySelector("[data-performance-scene]").textContent =
       scene.sceneName ?? scene.name;
     const performanceBpm = performanceArrangement
-      ? Math.round(frame.bpm * performanceArrangement.bpmMultiplier)
+      ? Math.round(performanceArrangement.targetBpm)
       : frame.bpm;
     host.querySelector("[data-dialog-score]").textContent =
       `${frame.scoreLabel} // ${scene.sceneName ?? scene.name} / ${frame.mode} / ${performanceBpm} BPM`;
@@ -429,9 +429,9 @@ export function initSystemSymphony() {
     host.querySelector("[data-performance-status]").textContent = performanceStatus;
   }
 
-  function stagePerformance(scoreState, action = "Score") {
+  function stagePerformance(scoreState, action = "Score", arrangement = null) {
     if (mode !== "demo") return;
-    performanceArrangement = createPerformanceArrangement(
+    performanceArrangement = arrangement ?? createPerformanceArrangement(
       performanceSeed,
       scoreState,
       performanceMacros,
@@ -949,8 +949,18 @@ export function initSystemSymphony() {
 
   function randomisePerformance() {
     if (mode !== "demo" || !currentFrame) return;
-    performanceSeed = randomPerformanceSeed();
-    stagePerformance(currentFrame.scoreState, "Random score");
+    const previousSignature = performanceArrangement?.patternSignature ?? null;
+    let nextArrangement = null;
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      performanceSeed = randomPerformanceSeed();
+      nextArrangement = createPerformanceArrangement(
+        performanceSeed,
+        currentFrame.scoreState,
+        performanceMacros,
+      );
+      if (nextArrangement.patternSignature !== previousSignature) break;
+    }
+    stagePerformance(currentFrame.scoreState, "Random score", nextArrangement);
   }
 
   function replayPerformanceSeed() {

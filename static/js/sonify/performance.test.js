@@ -73,6 +73,51 @@ test("different seeds coherently change the whole arrangement", () => {
     [first.serviceFilterMultiplier, first.distortionWet, first.delayWet, first.reverbWet],
     [second.serviceFilterMultiplier, second.distortionWet, second.delayWet, second.reverbWet],
   );
+  assert.notEqual(first.patternSignature, second.patternSignature);
+});
+
+test("random hexadecimal seeds provide broad musical pattern diversity", () => {
+  for (const state of Object.keys(PERFORMANCE_SCENES)) {
+    const signatures = new Set(
+      Array.from({ length: 128 }, (_, value) => (
+        createPerformanceArrangement(
+          value.toString(16).toUpperCase().padStart(4, "0"),
+          state,
+        ).patternSignature
+      )),
+    );
+    assert.ok(signatures.size >= 120, `${state} seed variation collapsed`);
+  }
+});
+
+test("Demo scenes have distinct cinematic intensity and atmosphere profiles", () => {
+  const healthy = createPerformanceArrangement(DEFAULT_PERFORMANCE_SEED, "healthy");
+  const warning = createPerformanceArrangement(DEFAULT_PERFORMANCE_SEED, "warning");
+  const critical = createPerformanceArrangement(DEFAULT_PERFORMANCE_SEED, "critical");
+  const ghost = createPerformanceArrangement(DEFAULT_PERFORMANCE_SEED, "unknown");
+
+  assert.ok(ghost.targetBpm < healthy.targetBpm);
+  assert.ok(healthy.targetBpm < warning.targetBpm);
+  assert.ok(warning.targetBpm < critical.targetBpm);
+  assert.ok(ghost.drumMultiplier < healthy.drumMultiplier);
+  assert.ok(healthy.drumMultiplier < warning.drumMultiplier);
+  assert.ok(warning.drumMultiplier < critical.drumMultiplier);
+  assert.ok(ghost.bassMultiplier < healthy.bassMultiplier);
+  assert.ok(healthy.bassMultiplier < warning.bassMultiplier);
+  assert.ok(warning.bassMultiplier < critical.bassMultiplier);
+  assert.ok(ghost.terminalDensity < healthy.terminalDensity);
+  assert.ok(healthy.terminalDensity < warning.terminalDensity);
+  assert.ok(warning.terminalDensity < critical.terminalDensity);
+  assert.ok(critical.droneMultiplier < warning.droneMultiplier);
+  assert.ok(warning.droneMultiplier < healthy.droneMultiplier);
+  assert.ok(healthy.droneMultiplier < ghost.droneMultiplier);
+  assert.ok(critical.padMultiplier < warning.padMultiplier);
+  assert.ok(warning.padMultiplier < healthy.padMultiplier);
+  assert.ok(healthy.padMultiplier < ghost.padMultiplier);
+  assert.ok(critical.distortionWet > warning.distortionWet);
+  assert.ok(warning.distortionWet > healthy.distortionWet);
+  assert.ok(ghost.reverbWet > healthy.reverbWet);
+  assert.ok(healthy.reverbWet > critical.reverbWet);
 });
 
 test("all performance controls remain finite and bounded", () => {
@@ -89,8 +134,8 @@ test("all performance controls remain finite and bounded", () => {
           assert.ok(Number.isFinite(value), `${state}.${name} must be finite`);
         }
       }
-      assert.ok(arrangement.bpmMultiplier >= 0.92 && arrangement.bpmMultiplier <= 1.26);
-      assert.ok(arrangement.distortionWet <= 0.32);
+      assert.ok(arrangement.targetBpm >= 96 && arrangement.targetBpm <= 138);
+      assert.ok(arrangement.distortionWet <= 0.48);
       assert.ok(arrangement.reverbWet <= 0.5);
     }
   }

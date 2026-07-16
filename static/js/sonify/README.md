@@ -95,7 +95,7 @@ A stable FNV-1a hash of the component name selects its motif variation, instrume
 | Infrastructure and deployment | Relay bass and mainframe low voices |
 | Reusable kits and unmatched roles | Tape signals and damaged data tones |
 
-The scheduler rotates across the whole represented estate instead of firing every component together. A D1/A1 drone spans each phrase, overlapping pads refresh every measure, and a shared low counterline guarantees harmonic motion even when foreground service motifs are sparse. Each score state also reserves service-anchor steps, so deterministic density cannot accidentally remove the orchestra for an entire phrase. Demo mode can add one shared low/mid terminal sequence, but recurring Demo notes remain at or below C4. Family-specific MIDI bounds hold recurring service notes between D1 and D4, with downward-only octave variation. Only the rare deployment motif can rise to F-sharp 4.
+The scheduler rotates across the whole represented estate instead of firing every component together. A D1/A1 drone spans each phrase, overlapping pads refresh every measure, and a shared low counterline guarantees harmonic motion even when foreground service motifs are sparse. Each score state also reserves service-anchor steps, so deterministic density cannot accidentally remove the orchestra for an entire phrase. Demo mode moves the drone and pad into the background and adds one shared low/mid 16th-note arpeggiator; recurring Demo arp notes remain at or below G3. Family-specific MIDI bounds hold recurring service notes between D1 and D4, with downward-only octave variation. Only the rare deployment motif can rise to F-sharp 4.
 
 ## Telemetry mappings
 
@@ -110,8 +110,8 @@ The scheduler rotates across the whole represented estate instead of firing ever
 | New successful deployment | One quantised D-centred hero motif |
 | Dependency relationships | Directed topology edges (`A → B` means A depends on B), external boundary nodes and related-node highlighting |
 | Service identity | Instrument family, motif, register and stereo position |
-| Demo Energy / Motion / Grit / Space | Tempo pressure, rhythmic movement, industrial saturation and atmospheric depth |
-| Demo score seed | Reproducible chord, bass, percussion, melody and effect variation |
+| Demo Energy / Motion / Grit / Space | Club tempo, rhythmic movement, industrial saturation and atmospheric depth |
+| Demo score seed | Reproducible chord, pulsing bass, mechanical drums, arpeggio and effect variation |
 
 ## Incidents and deployments
 
@@ -140,16 +140,16 @@ Demo mode clones the latest live merged snapshot in memory and is always labelle
 
 The four telemetry states remain the musical foundation and gain secondary performance names:
 
-| State | Demo scene |
-| --- | --- |
-| Healthy | Night Drive |
-| Warning | Grid Pressure |
-| Critical | Redline Protocol |
-| Unknown | Ghost Signal |
+| State | Demo scene | Default identity |
+| --- | --- | --- |
+| Healthy | Night Drive | ~112 BPM steady nocturnal drive, smooth pulsing bass, flowing arp and restrained atmosphere |
+| Warning | Grid Pressure | ~120 BPM syncopated pressure, denser bass and arp motion, darker filtering and more saturation |
+| Critical | Redline Protocol | ~132 BPM pursuit/combat rhythm, maximum drum pressure, aggressive bass, rapid arp and the driest mix |
+| Unknown | Ghost Signal | ~104 BPM menu/loading-screen pulse, fragmented half-density rhythm, slow arp notes and spacious reverb |
 
-`Energy`, `Motion`, `Grit` and `Space` are bounded macro controls rather than raw synthesizer parameters. They reshape tempo, density, drum pressure, terminal-sequence movement, saturation, delay, pad weight and reverb while retaining the selected state's scale and register limits. `Randomise score` generates one visible four-to-eight-character hexadecimal seed. The seed deterministically selects curated chord order, bass syncopation, drum fills, melody rotation and effects variation. Entering a previous value and pressing `Replay seed` restores the same arrangement for the current scene and macro values.
+`Energy`, `Motion`, `Grit` and `Space` are bounded macro controls rather than raw synthesizer parameters. They reshape tempo, density, drum pressure, 16th-note arpeggio movement, saturation, delay, pad weight and reverb while retaining the selected state's scale and register limits. Demo scenes run at roughly `102–134 BPM` with the default macros, foreground short pulsing sub-bass and mechanical club drums, and keep the original drone and pad as background atmosphere. `Randomise score` generates one visible four-to-eight-character hexadecimal seed. The seed deterministically selects curated chord order, bass rhythm, kick/snare/hat pattern, arpeggio rhythm and note order, and effects variation. The randomiser rejects a new seed if it resolves to the currently active pattern signature. Entering a previous value and pressing `Replay seed` restores the same arrangement for the current scene and macro values.
 
-While audio is running, seed and macro changes replace one pending arrangement and activate together at the next measure boundary. This avoids abrupt mid-beat changes. Switching to Live clears the Demo arrangement immediately, including the terminal sequence and performance effects.
+While audio is running, seed and macro changes replace one pending arrangement and activate together at the next measure boundary. This avoids abrupt mid-beat changes. Switching to Live clears the Demo arrangement immediately, including the arpeggiator and performance effects.
 
 ## Accessibility
 
@@ -167,7 +167,7 @@ While audio is running, seed and macro changes replace one pending arrangement a
 - Maximum represented components and allocated service voices: `32`.
 - At most one rotating service note starts per eighth-note scheduler tick.
 - Shared low drone, overlapping pad, terminal counterline, relay bass, drum machine, tape texture, compression and limiter nodes are reused.
-- Demo adds one shared terminal synth, feedback delay and service distortion node; all are allocated once when the graph starts and remain neutral in Live mode.
+- Demo adds one shared sawtooth arpeggiator, feedback delay and service distortion node; all are allocated once when the graph starts and remain neutral in Live mode.
 - Service voices leaving topology fade before disposal.
 - Incident onset accents are capped at four per observed increase.
 - No oscillator, LFO or effect node is created inside the scheduler loop.
@@ -189,7 +189,7 @@ python3 scripts/verify_pages_output.py .
 git diff --check
 ```
 
-The pure tests cover all four score states, stale behavior, measured Unknown versus Unmeasured counts, deterministic identities and motifs, safe family registers, pad cadence and voicing, finite off-grid bass events, eight-phrase non-drum layer persistence, deterministic performance seeds, bounded macros, measure-boundary activation, Demo terminal registers, seeded bass and percussion continuity, topology merge and failure fallback, external dependency graphs, component filters, coherent bulk profiles, incident deltas, deployment baselines, request overlap protection and voice counts beyond six.
+The pure tests cover all four score states, stale behavior, measured Unknown versus Unmeasured counts, deterministic identities and motifs, safe family registers, pad cadence and voicing, finite off-grid bass events, eight-phrase non-drum layer persistence, broad deterministic seed diversity, bounded macros, measure-boundary activation, the audible 16th-note arp scheduler, seeded club bass and percussion continuity, topology merge and failure fallback, external dependency graphs, component filters, coherent bulk profiles, incident deltas, deployment baselines, request overlap protection and voice counts beyond six.
 
 Musical quality, speaker translation, clipping margin and two-to-three-minute non-repetition still require a human listening pass because automated tests cannot judge those qualities reliably.
 

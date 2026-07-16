@@ -9,7 +9,7 @@
 import {
   computeFrame,
   mergeTelemetryAndTopology,
-} from "./mapping.js?v=20260716-system-symphony-performance-console";
+} from "./mapping.js?v=20260716-system-symphony-dark-club-arp";
 
 export const SONIFY_URL = "https://api.atlas-systems.uk/sonify";
 export const TOPOLOGY_URL = "https://api.atlas-systems.uk/v1/topology";

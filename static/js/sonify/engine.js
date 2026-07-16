@@ -12,7 +12,7 @@ import {
   boundVoiceMidi,
   midiToFrequencyHz,
   stableHash,
-} from "./mapping.js?v=20260716-system-symphony-performance-console";
+} from "./mapping.js?v=20260716-system-symphony-dark-club-arp";
 
 export const DEFAULT_USER_GAIN = 0.62;
 export const MAX_SERVICE_VOICES = MAX_COMPONENTS;
@@ -66,6 +66,17 @@ const BASS_DEGREES = Object.freeze({
   unknown: [0, 4, 0, 5],
 });
 
+const PERFORMANCE_BASS_PATTERNS = Object.freeze([
+  Object.freeze([0, 2, 3, 5, 7]),
+  Object.freeze([0, 1, 3, 4, 6]),
+  Object.freeze([0, 2, 4, 5, 7]),
+  Object.freeze([0, 3, 4, 6]),
+  Object.freeze([0, 1, 4, 5, 7]),
+  Object.freeze([0, 2, 3, 6]),
+  Object.freeze([0, 1, 3, 5, 6]),
+  Object.freeze([0, 2, 4, 6, 7]),
+]);
+
 const COUNTERLINE_STEPS = Object.freeze({
   healthy: [2, 10, 18, 26],
   warning: [2, 6, 10, 14, 18, 22, 26, 30],
@@ -95,10 +106,14 @@ const COUNTERLINE_VELOCITIES = Object.freeze({
 });
 
 const TERMINAL_PATTERNS = Object.freeze([
-  Object.freeze([1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31]),
-  Object.freeze([2, 3, 6, 7, 10, 11, 14, 15, 18, 19, 22, 23, 26, 27, 30, 31]),
-  Object.freeze([1, 4, 5, 8, 9, 12, 13, 16, 17, 20, 21, 24, 25, 28, 29, 31]),
-  Object.freeze([2, 5, 6, 9, 10, 13, 14, 17, 18, 21, 22, 25, 26, 29, 30, 31]),
+  Object.freeze([0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14, 16, 17, 18, 20, 21, 22, 24, 25, 26, 28, 29, 30]),
+  Object.freeze([1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15, 17, 18, 19, 21, 22, 23, 25, 26, 27, 29, 30, 31]),
+  Object.freeze([0, 1, 3, 4, 5, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21, 23, 24, 25, 27, 28, 29, 31]),
+  Object.freeze([0, 2, 3, 4, 6, 7, 8, 10, 11, 12, 14, 15, 16, 18, 19, 20, 22, 23, 24, 26, 27, 28, 30, 31]),
+  Object.freeze([0, 1, 2, 4, 5, 7, 8, 9, 10, 12, 13, 15, 16, 17, 18, 20, 21, 23, 24, 25, 26, 28, 29, 31]),
+  Object.freeze([0, 1, 3, 4, 6, 7, 8, 9, 11, 12, 14, 15, 16, 17, 19, 20, 22, 23, 24, 25, 27, 28, 30, 31]),
+  Object.freeze([0, 2, 3, 4, 5, 7, 8, 10, 11, 12, 13, 15, 16, 18, 19, 20, 21, 23, 24, 26, 27, 28, 29, 31]),
+  Object.freeze([1, 2, 3, 4, 6, 7, 9, 10, 11, 12, 14, 15, 17, 18, 19, 20, 22, 23, 25, 26, 27, 28, 30, 31]),
 ]);
 
 const TERMINAL_DEGREES = Object.freeze({
@@ -109,18 +124,44 @@ const TERMINAL_DEGREES = Object.freeze({
 });
 
 const PERFORMANCE_KICK_VARIANTS = Object.freeze([
-  Object.freeze([6, 22]),
-  Object.freeze([3, 11, 19, 27]),
-  Object.freeze([7, 15, 23, 31]),
-  Object.freeze([5, 13, 21, 29]),
+  Object.freeze([0, 2, 4, 6]),
+  Object.freeze([0, 2, 4, 7]),
+  Object.freeze([0, 3, 4, 6]),
+  Object.freeze([0, 2, 5, 6]),
+  Object.freeze([0, 2, 4, 6, 7]),
+  Object.freeze([0, 3, 4, 7]),
+  Object.freeze([0, 2, 4, 5, 7]),
+  Object.freeze([0, 1, 4, 6]),
+]);
+
+const PERFORMANCE_HAT_VARIANTS = Object.freeze([
+  Object.freeze([1, 3, 5, 7]),
+  Object.freeze([1, 3, 4, 5, 7]),
+  Object.freeze([1, 2, 3, 5, 7]),
+  Object.freeze([1, 3, 5, 6, 7]),
+  Object.freeze([1, 2, 3, 5, 6, 7]),
+  Object.freeze([0, 1, 3, 5, 7]),
+  Object.freeze([1, 3, 4, 5, 6, 7]),
+  Object.freeze([1, 2, 3, 4, 5, 7]),
 ]);
 
 const PERFORMANCE_METAL_VARIANTS = Object.freeze([
-  Object.freeze([7, 23]),
-  Object.freeze([11, 27]),
-  Object.freeze([15, 31]),
-  Object.freeze([5, 21]),
+  Object.freeze([7]),
+  Object.freeze([3]),
+  Object.freeze([5]),
+  Object.freeze([6]),
+  Object.freeze([2, 7]),
+  Object.freeze([4]),
+  Object.freeze([1, 6]),
+  Object.freeze([3, 7]),
 ]);
+
+const PERFORMANCE_VARIANT_POOLS = Object.freeze({
+  healthy: Object.freeze([0, 1, 0, 1]),
+  warning: Object.freeze([2, 3, 5, 6]),
+  critical: Object.freeze([4, 5, 6, 7]),
+  unknown: Object.freeze([0, 1, 2, 3]),
+});
 
 const SERVICE_ANCHOR_STEPS = Object.freeze({
   healthy: new Set([1, 5, 9, 13, 17, 21, 25, 29]),
@@ -181,14 +222,25 @@ export function bassEventForStep(
   phraseIndex = 0,
   performance = null,
 ) {
-  const baseSteps = [...(BASS_STEPS[scoreState] ?? BASS_STEPS.unknown)];
   const activeSteps = performance
-    ? baseSteps.map((activeStep, index) => (
-        index % 2 === 0
-          ? activeStep
-          : (activeStep + (performance.bassShift ?? 0) + PHRASE_STEPS) % PHRASE_STEPS
-      ))
-    : baseSteps;
+    ? Array.from({ length: PHRASE_STEPS / PAD_MEASURE_STEPS }, (_, measure) => {
+        const pattern = PERFORMANCE_BASS_PATTERNS[
+          Math.abs(Math.trunc(performance.bassPattern ?? 0))
+            % PERFORMANCE_BASS_PATTERNS.length
+        ];
+        const activePattern = scoreState === "unknown"
+          ? pattern.filter((_, index) => index % 2 === 0)
+          : pattern;
+        return activePattern.map((patternStep) => (
+          measure * PAD_MEASURE_STEPS
+          + (
+            patternStep
+            + (performance.bassShift ?? 0)
+            + PAD_MEASURE_STEPS
+          ) % PAD_MEASURE_STEPS
+        ));
+      }).flat()
+    : [...(BASS_STEPS[scoreState] ?? BASS_STEPS.unknown)];
   const eventIndex = activeSteps.indexOf(step);
   if (eventIndex === -1) return null;
 
@@ -206,21 +258,36 @@ export function bassEventForStep(
   ];
   const safeScale = Array.isArray(scale) && scale.length ? scale : [0];
   const midi = 26 + safeScale[degree % safeScale.length];
-  const baseVelocity = scoreState === "critical"
-    ? 0.5
-    : scoreState === "unknown"
-      ? 0.36
-      : 0.46;
+  const baseVelocity = performance
+    ? scoreState === "critical"
+      ? 0.62
+      : scoreState === "unknown"
+        ? 0.46
+        : 0.58
+    : scoreState === "critical"
+      ? 0.5
+      : scoreState === "unknown"
+        ? 0.36
+        : 0.46;
   return {
     midi,
-    duration: scoreState === "critical"
-      ? "8n"
-      : scoreState === "warning"
+    duration: performance
+      ? scoreState === "unknown"
         ? "4n"
-        : scoreState === "unknown"
-          ? "1m"
-          : "2n.",
-    velocity: Math.min(0.58, baseVelocity * (performance?.bassMultiplier ?? 1)),
+        : performance.motion >= 0.72
+          ? "16n"
+          : "8n"
+      : scoreState === "critical"
+        ? "8n"
+        : scoreState === "warning"
+          ? "4n"
+          : scoreState === "unknown"
+            ? "1m"
+            : "2n.",
+    velocity: Math.min(
+      performance ? 0.78 : 0.58,
+      baseVelocity * (performance?.bassMultiplier ?? 1),
+    ),
   };
 }
 
@@ -270,7 +337,7 @@ export function terminalEventForStep(
   ];
   const eventCount = Math.min(
     pattern.length,
-    4 + Math.round((performance.terminalDensity ?? 0.5) * 12),
+    8 + Math.round((performance.terminalDensity ?? 0.5) * 16),
   );
   const activeSteps = pattern.slice(0, eventCount);
   const eventIndex = activeSteps.indexOf(step);
@@ -285,11 +352,22 @@ export function terminalEventForStep(
       + phraseIndex * (performance.phraseStride ?? 1)
     ) % degrees.length
   ];
-  const octave = performance.energy >= 0.78 && eventIndex % 4 === 3 ? 12 : 0;
+  const octave = performance.energy >= 0.86 && eventIndex % 8 === 7 ? 12 : 0;
+  const stateVelocity = scoreState === "critical"
+    ? 1
+    : scoreState === "warning"
+      ? 0.9
+      : scoreState === "unknown"
+        ? 0.58
+        : 0.78;
   return {
-    midi: Math.min(60, PAD_ROOT_MIDI + safeScale[degree % safeScale.length] + octave),
-    duration: performance.motion >= 0.7 ? "8n" : "4n",
-    velocity: Math.min(0.46, 0.2 + performance.energy * 0.24),
+    midi: Math.min(55, PAD_ROOT_MIDI + safeScale[degree % safeScale.length] + octave),
+    duration: scoreState === "unknown"
+      ? "8n"
+      : performance.motion >= 0.55
+        ? "16n"
+        : "8n",
+    velocity: Math.min(0.68, (0.36 + performance.energy * 0.28) * stateVelocity),
   };
 }
 
@@ -394,23 +472,71 @@ export function percussionEventsForStep(scoreState, step, performance = null) {
   const base = basePercussionEventsForStep(scoreState, step);
   if (!performance) return base;
 
-  const events = { ...base };
+  if (!Number.isInteger(step) || step < 0 || step >= PHRASE_STEPS) return base;
+  const events = { kick: null, snare: null, hat: null, metal: null };
+  const measureStep = step % PAD_MEASURE_STEPS;
+  const variant = Math.abs(Math.trunc(performance.percussionVariant ?? 0));
+  const variantPool = PERFORMANCE_VARIANT_POOLS[scoreState]
+    ?? PERFORMANCE_VARIANT_POOLS.unknown;
+  const patternVariant = variantPool[variant % variantPool.length];
   const kickSteps = PERFORMANCE_KICK_VARIANTS[
-    Math.abs(Math.trunc(performance.percussionVariant ?? 0))
-      % PERFORMANCE_KICK_VARIANTS.length
+    patternVariant % PERFORMANCE_KICK_VARIANTS.length
+  ];
+  const hatSteps = PERFORMANCE_HAT_VARIANTS[
+    patternVariant % PERFORMANCE_HAT_VARIANTS.length
   ];
   const metalSteps = PERFORMANCE_METAL_VARIANTS[
-    Math.abs(Math.trunc(performance.percussionVariant ?? 0))
-      % PERFORMANCE_METAL_VARIANTS.length
+    patternVariant % PERFORMANCE_METAL_VARIANTS.length
   ];
-  if (!events.kick && performance.energy >= 0.45 && kickSteps.includes(step)) {
-    events.kick = { duration: "16n", velocity: 0.22 + performance.energy * 0.18 };
+  const stateLevel = scoreState === "critical"
+    ? 1
+    : scoreState === "warning"
+      ? 0.9
+      : scoreState === "unknown"
+        ? 0.62
+        : 0.82;
+  const unknownKickSteps = kickSteps.filter((_, index) => index % 2 === 0);
+  const activeKickSteps = scoreState === "unknown" ? unknownKickSteps : kickSteps;
+  if (activeKickSteps.includes(measureStep)) {
+    events.kick = {
+      duration: "8n",
+      velocity: (0.5 + performance.energy * 0.22) * stateLevel,
+    };
   }
-  if (!events.hat && performance.motion >= 0.72 && step % 4 === 2) {
-    events.hat = { duration: 0.025, velocity: 0.08 + performance.motion * 0.1 };
+  const snareSteps = scoreState === "unknown"
+    ? [4]
+    : scoreState === "critical"
+      ? patternVariant % 2 === 0
+        ? [2, 6, 7]
+        : [2, 5, 6]
+      : scoreState === "warning" && patternVariant % 2 === 1
+        ? [3, 6]
+        : [2, 6];
+  if (snareSteps.includes(measureStep)) {
+    events.snare = {
+      duration: 0.08,
+      velocity: (0.25 + performance.energy * 0.18) * stateLevel,
+    };
   }
-  if (!events.metal && performance.grit >= 0.56 && metalSteps.includes(step)) {
-    events.metal = { duration: "32n", velocity: 0.07 + performance.grit * 0.1 };
+  const activeHatSteps = scoreState === "unknown"
+    ? hatSteps.filter((_, index) => index % 2 === 0)
+    : hatSteps;
+  if (activeHatSteps.includes(measureStep)) {
+    events.hat = {
+      duration: 0.028,
+      velocity: (0.09 + performance.motion * 0.14) * stateLevel,
+    };
+  }
+  const allowMetal = scoreState !== "unknown"
+    || Math.floor(step / PAD_MEASURE_STEPS) % 2 === 1;
+  if (allowMetal && performance.grit >= 0.45 && metalSteps.includes(measureStep)) {
+    events.metal = {
+      duration: "32n",
+      velocity: (0.08 + performance.grit * 0.13) * stateLevel,
+    };
+  }
+  if (scoreState === "critical" && base.kick && !events.kick) {
+    events.kick = base.kick;
   }
 
   const multiplier = performance.drumMultiplier ?? 1;
@@ -559,6 +685,7 @@ export function createEngine() {
   let phraseIndex = 0;
   let stepIndex = 0;
   let serviceCursor = 0;
+  let arpStepIndex = 0;
   let activePerformance = null;
   let pendingPerformance = null;
   let pendingPerformanceSet = false;
@@ -569,6 +696,7 @@ export function createEngine() {
 
   let transport = null;
   let schedulerId = null;
+  let arpSchedulerId = null;
   let userGain = null;
   let analyser = null;
   let limiter = null;
@@ -739,13 +867,19 @@ export function createEngine() {
     });
     counterline.chain(counterlineFilter, counterlineGain);
 
-    terminalSynth = new Tone.AMSynth({
-      harmonicity: 1.5,
-      oscillator: { type: "triangle" },
-      modulation: { type: "square" },
-      envelope: { attack: 0.012, decay: 0.18, sustain: 0.24, release: 0.8 },
-      modulationEnvelope: { attack: 0.02, decay: 0.16, sustain: 0.08, release: 0.55 },
-      volume: -16,
+    terminalSynth = new Tone.MonoSynth({
+      oscillator: { type: "sawtooth" },
+      filter: { type: "lowpass", Q: 4.8, rolloff: -24 },
+      envelope: { attack: 0.008, decay: 0.14, sustain: 0.1, release: 0.34 },
+      filterEnvelope: {
+        attack: 0.004,
+        decay: 0.16,
+        sustain: 0.22,
+        release: 0.3,
+        baseFrequency: 105,
+        octaves: 3.4,
+      },
+      volume: -10,
     });
     terminalFilter = new Tone.Filter({
       type: "lowpass",
@@ -754,8 +888,8 @@ export function createEngine() {
       Q: 2.2,
     });
     terminalDelay = new Tone.FeedbackDelay({
-      delayTime: "8n.",
-      feedback: 0.22,
+      delayTime: "8n",
+      feedback: 0.28,
       wet: 0.08,
     });
     terminalSynth.chain(terminalFilter, terminalDelay, terminalGain);
@@ -813,6 +947,7 @@ export function createEngine() {
 
     transport = Tone.getTransport();
     schedulerId = transport.scheduleRepeat(onEighth, "8n");
+    arpSchedulerId = transport.scheduleRepeat(onSixteenth, "16n");
     initialized = true;
   }
 
@@ -885,12 +1020,12 @@ export function createEngine() {
     );
   }
 
-  function playTerminal(time, frame, step) {
+  function playTerminal(time, frame, step, arpPhraseIndex) {
     const event = terminalEventForStep(
       frame.scoreState,
       frame.scale,
       step,
-      phraseIndex,
+      arpPhraseIndex,
       activePerformance,
     );
     if (!event) return;
@@ -978,6 +1113,7 @@ export function createEngine() {
       activePerformance = pendingPerformance;
       pendingPerformance = null;
       pendingPerformanceSet = false;
+      arpStepIndex = 0;
       applyMixToGraph(currentFrame, 0.35);
       const Tone = requireTone();
       Tone.Draw.schedule(() => performanceHandler?.(activePerformance), time);
@@ -986,10 +1122,17 @@ export function createEngine() {
     playPad(time, currentFrame, step);
     playBass(time, currentFrame, step);
     playCounterline(time, currentFrame, step);
-    playTerminal(time, currentFrame, step);
     playPercussion(time, currentFrame, step);
     playService(time, currentFrame, step);
     stepIndex += 1;
+  }
+
+  function onSixteenth(time) {
+    if (!running || !currentFrame || !activePerformance) return;
+    const step = arpStepIndex % PHRASE_STEPS;
+    const arpPhraseIndex = Math.floor(arpStepIndex / PHRASE_STEPS);
+    playTerminal(time, currentFrame, step, arpPhraseIndex);
+    arpStepIndex += 1;
   }
 
   function applyMixToGraph(frame, transition = frame.transitionSeconds) {
@@ -1032,7 +1175,7 @@ export function createEngine() {
 
     safeRamp(
       transport.bpm,
-      frame.bpm * (performance?.bpmMultiplier ?? 1),
+      performance?.targetBpm ?? frame.bpm,
       transition,
     );
     safeRamp(masterVolume.volume, frame.masterGainDb, transition);
@@ -1130,6 +1273,7 @@ export function createEngine() {
   function disposeGraph() {
     if (!initialized) return;
     if (schedulerId !== null) transport.clear(schedulerId);
+    if (arpSchedulerId !== null) transport.clear(arpSchedulerId);
     for (const [name, voice] of voices) disposeServiceVoice(name, voice);
     for (const bus of familyBuses.values()) bus.dispose();
     familyBuses.clear();
@@ -1218,6 +1362,7 @@ export function createEngine() {
       activePerformance = nextPerformance;
       pendingPerformance = null;
       pendingPerformanceSet = false;
+      arpStepIndex = 0;
       if (initialized && currentFrame) {
         applyMixToGraph(currentFrame, 0.35);
       }
