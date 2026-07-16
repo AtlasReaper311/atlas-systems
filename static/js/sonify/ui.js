@@ -8,7 +8,7 @@
 import {
   DEFAULT_USER_GAIN,
   createEngine,
-} from "./engine.js?v=20260716-system-symphony-polish";
+} from "./engine.js?v=20260716-system-symphony-rhythm-bed";
 import { createPoller } from "./poller.js?v=20260716-system-symphony-polish";
 import {
   applyDemoProfileToServices,
