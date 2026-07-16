@@ -1,766 +1,901 @@
 /**
- * ui.js :: floating control, inspector, and demo lab for sonification.
+ * System SYMPHONY compact widget and full telemetry console.
  *
- * The small widget is still useful as a live monitor, but the expanded
- * panel makes the mapping legible: each service row flashes when its
- * note plays, shows the telemetry behind that note, and can be muted
- * or soloed. Demo mode is local-only; it never writes telemetry.
+ * Live mode is inspection-only. Demo mode clones the latest live snapshot and
+ * mutates only local objects; this module never performs a write request.
  */
 
-import { createEngine, DEFAULT_USER_GAIN } from "./engine.js?v=20260708-drumhit";
-import { createPoller } from "./poller.js?v=20260708-drumhit";
 import {
-  CURATED_SERVICES,
+  DEFAULT_USER_GAIN,
+  createEngine,
+} from "./engine.js?v=20260716-system-symphony-v2";
+import { createPoller } from "./poller.js?v=20260716-system-symphony-v2";
+import {
   computeFrame,
-} from "./mapping.js?v=20260708-drumhit";
+  deriveDemoEstate,
+} from "./mapping.js?v=20260716-system-symphony-v2";
 
-const WIDGET_ID = "sonify-widget";
-
-const SERVICE_LABELS = {
-  "ramone-memory": "memory",
-  "atlas-corpus": "corpus",
-  "specular-telemetry": "telemetry",
-  "atlas-api-index": "api index",
-  "ramone-trigger": "trigger",
-  "specular-edge": "edge",
-};
+const WIDGET_ID = "system-symphony-widget";
+const SVG_NS = "http://www.w3.org/2000/svg";
+const LAYER_ORDER = [
+  "surface",
+  "public-api",
+  "observability",
+  "edge",
+  "local-ai",
+  "infra",
+  "reusable-kit",
+  "unknown",
+];
 
 const STATUS_LABELS = {
-  healthy: "healthy",
-  degraded: "degraded",
-  down: "down",
-  unknown: "unknown",
+  healthy: "Healthy",
+  degraded: "Warning",
+  down: "Critical",
+  unknown: "Unknown",
 };
 
-const STATUS_ORDER = ["healthy", "degraded", "down"];
+const HELP_ROWS = [
+  ["Overall estate health", "Score state, orchestration, tempo and master intensity"],
+  ["Service status", "Timbre, articulation, density and stability"],
+  ["Latency", "Low-pass cutoff and spectral openness"],
+  ["Uptime / current state", "Brightness"],
+  ["Error rate", "Instability, detuning and note confidence"],
+  ["Active incidents", "Persistent critical rhythm and harmonic tension"],
+  ["New successful deployment", "One quantised amber hero motif"],
+  ["Dependencies", "Topology edges"],
+  ["Service identity", "Stable family, motif, register and stereo position"],
+];
 
-const DEMO_BASE_LATENCY = {
-  "ramone-memory": 130,
-  "atlas-corpus": 150,
-  "specular-telemetry": 95,
-  "atlas-api-index": 35,
-  "ramone-trigger": 115,
-  "specular-edge": 75,
-};
-
-const DEMO_STATE_VALUES = {
-  "ramone-memory": {
-    degraded: { latency_ms: 340, uptime_pct: 92, error_rate: 0.45 },
-    down: { latency_ms: 500, uptime_pct: 0, error_rate: 0.82 },
-  },
-  "atlas-corpus": {
-    degraded: { latency_ms: 380, uptime_pct: 90.5, error_rate: 0.55 },
-    down: { latency_ms: 500, uptime_pct: 0, error_rate: 0.86 },
-  },
-  "specular-telemetry": {
-    degraded: { latency_ms: 300, uptime_pct: 93, error_rate: 0.35 },
-    down: { latency_ms: 480, uptime_pct: 0, error_rate: 0.8 },
-  },
-  "atlas-api-index": {
-    degraded: { latency_ms: 460, uptime_pct: 91, error_rate: 0.5 },
-    down: { latency_ms: 500, uptime_pct: 0, error_rate: 0.84 },
-  },
-  "ramone-trigger": {
-    degraded: { latency_ms: 360, uptime_pct: 89.5, error_rate: 0.62 },
-    down: { latency_ms: 500, uptime_pct: 0, error_rate: 0.88 },
-  },
-  "specular-edge": {
-    degraded: { latency_ms: 280, uptime_pct: 94, error_rate: 0.3 },
-    down: { latency_ms: 490, uptime_pct: 0, error_rate: 0.78 },
-  },
-};
-
-const DEMOS = {
-  healthy: {
-    label: "all healthy",
-    estate: { overall_health: 1, active_incidents: 0 },
-    overrides: {},
-  },
-  slowApi: {
-    label: "slow api",
-    estate: { overall_health: 0.9, active_incidents: 0 },
-    overrides: {
-      "atlas-api-index": { latency_ms: 460, status: "degraded" },
-    },
-  },
-  corpusDegraded: {
-    label: "corpus degraded",
-    estate: { overall_health: 0.78, active_incidents: 0 },
-    overrides: {
-      "atlas-corpus": {
-        status: "degraded",
-        latency_ms: 310,
-        uptime_pct: 91,
-        error_rate: 0.45,
-      },
-    },
-  },
-  incident: {
-    label: "incident",
-    estate: { overall_health: 0.46, active_incidents: 1 },
-    overrides: {
-      "ramone-trigger": {
-        status: "down",
-        latency_ms: DEMO_STATE_VALUES["ramone-trigger"].down.latency_ms,
-        uptime_pct: 0,
-        error_rate: DEMO_STATE_VALUES["ramone-trigger"].down.error_rate,
-      },
-    },
-  },
-  recovery: {
-    label: "fresh deploy",
-    estate: { overall_health: 0.98, active_incidents: 0 },
-    overrides: {
-      "specular-edge": {
-        status: "healthy",
-        last_deploy_secs_ago: 120,
-      },
-    },
-  },
-};
-
-const STYLE = `
-.sn-w {
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
-  z-index: 300;
-  display: grid;
-  gap: 8px;
-  width: min(560px, calc(100vw - 32px));
-  max-width: 232px;
-  padding: 10px 12px;
-  background: var(--bg-1, #111118);
-  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
-  border-radius: 6px;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
-  font-family: var(--mono, "IBM Plex Mono", monospace);
-  font-size: 12px;
-  line-height: 1.45;
-  color: var(--text, #e8e8e0);
-  transition: box-shadow 60ms ease-out;
-}
-.sn-w[data-open="1"] { max-width: 560px; }
-.sn-w * { box-sizing: border-box; }
-.sn-w[data-inc-hit="1"] {
-  box-shadow: 0 0 0 2px #e24b4a, 0 16px 48px rgba(0, 0, 0, 0.35);
-}
-.sn-head { display: flex; align-items: center; gap: 8px; }
-.sn-toggle,
-.sn-icon,
-.sn-chip,
-.sn-mini {
-  background: transparent;
-  border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
-  border-radius: 4px;
-  color: var(--text, #e8e8e0);
-  font: inherit;
-  font-size: 11px;
-  padding: 3px 8px;
-  cursor: pointer;
-}
-.sn-toggle {
-  flex: none;
-  border-color: var(--accent, #f5a623);
-  color: var(--accent, #f5a623);
-  letter-spacing: 0.06em;
-  padding-inline: 10px;
-}
-.sn-icon { width: 26px; padding-inline: 0; color: var(--text-dim, #aaa9a0); }
-.sn-toggle:hover,
-.sn-icon:hover,
-.sn-chip:hover,
-.sn-mini:hover { background: rgba(245, 166, 35, 0.12); }
-.sn-toggle:focus-visible,
-.sn-icon:focus-visible,
-.sn-chip:focus-visible,
-.sn-mini:focus-visible {
-  outline: 1px solid var(--accent, #f5a623);
-  outline-offset: 2px;
-}
-.sn-toggle:disabled { opacity: 0.5; cursor: wait; }
-.sn-readout {
-  margin-left: auto;
-  color: var(--text-dim, #aaa9a0);
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-.sn-health { color: var(--text, #e8e8e0); }
-.sn-inc[data-alert="1"] { color: #e24b4a; }
-.sn-inc[data-hit="1"] { color: #fff; text-shadow: 0 0 6px rgba(226, 75, 74, 0.9); }
-.sn-dots { display: flex; gap: 6px; }
-.sn-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--text-faint, #555560);
-}
-.sn-dot[data-status="healthy"] { background: #4ade80; }
-.sn-dot[data-status="degraded"] { background: var(--accent, #f5a623); }
-.sn-dot[data-status="down"] { background: #e24b4a; }
-.sn-dot[data-hit="1"] { outline: 1px solid #fff; outline-offset: 2px; }
-.sn-vol {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--text-faint, #555560);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-}
-.sn-vol input { flex: 1 1 auto; min-width: 0; accent-color: var(--accent, #f5a623); }
-.sn-panel { display: none; gap: 10px; border-top: 1px solid var(--border, rgba(255,255,255,.08)); padding-top: 10px; }
-.sn-w[data-open="1"] .sn-panel { display: grid; }
-.sn-mode,
-.sn-demo { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.sn-label { color: var(--text-faint, #555560); letter-spacing: 0.06em; text-transform: uppercase; font-size: 10px; }
-.sn-chip[aria-pressed="true"],
-.sn-mini[aria-pressed="true"] {
-  border-color: var(--accent, #f5a623);
-  color: var(--accent, #f5a623);
-}
-.sn-chip[data-variant="hit"] {
-  border-color: #e24b4a;
-  color: #e24b4a;
-}
-.sn-grid { display: grid; gap: 5px; }
-.sn-grid-head {
-  display: grid;
-  grid-template-columns: 10px minmax(95px, 1fr) 58px 58px 44px 52px;
-  gap: 7px;
-  color: var(--text-faint, #555560);
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-.sn-row {
-  display: grid;
-  grid-template-columns: 10px minmax(95px, 1fr) 58px 58px 44px 52px;
-  gap: 7px;
-  align-items: center;
-  min-height: 27px;
-  padding: 4px 0;
-  border-bottom: 1px solid rgba(255,255,255,.05);
-}
-.sn-row[data-hit="1"] { background: rgba(245,166,35,.1); }
-.sn-row[data-muted="1"] { opacity: .42; }
-.sn-row-dot {
-  width: 10px;
-  height: 10px;
-  border: 0;
-  border-radius: 50%;
-  padding: 0;
-  background: var(--text-faint, #555560);
-  cursor: pointer;
-}
-.sn-row-dot:hover { outline: 1px solid var(--accent, #f5a623); outline-offset: 2px; }
-.sn-row-dot:focus-visible { outline: 1px solid var(--accent, #f5a623); outline-offset: 2px; }
-.sn-row-dot[data-status="healthy"] { background: #4ade80; }
-.sn-row-dot[data-status="degraded"] { background: var(--accent, #f5a623); }
-.sn-row-dot[data-status="down"] { background: #e24b4a; }
-.sn-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sn-metric { color: var(--text-dim, #aaa9a0); white-space: nowrap; }
-.sn-actions { display: flex; gap: 4px; justify-content: flex-end; }
-.sn-mini { padding: 2px 5px; font-size: 10px; color: var(--text-dim, #aaa9a0); }
-.sn-explain {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 5px 12px;
-  color: var(--text-dim, #aaa9a0);
-  font-size: 11px;
-}
-.sn-explain b { color: var(--text, #e8e8e0); font-weight: 500; }
-.sn-summary { color: var(--text-dim, #aaa9a0); font-size: 11px; }
-.sn-summary b { color: var(--text, #e8e8e0); font-weight: 500; }
-.sn-w[data-stale="1"] .sn-readout,
-.sn-w[data-stale="1"] .sn-dots { opacity: 0.45; }
-@media (max-width: 680px) {
-  .sn-w { right: 12px; bottom: 72px; width: calc(100vw - 24px); }
-  .sn-grid-head,
-  .sn-row { grid-template-columns: 10px minmax(80px, 1fr) 48px 48px 36px 48px; gap: 5px; }
-  .sn-explain { grid-template-columns: 1fr; }
-}
-`;
-
-function el(tag, className, attrs = {}) {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  for (const [key, value] of Object.entries(attrs)) {
-    node.setAttribute(key, value);
-  }
-  return node;
+function clone(value) {
+  return value == null ? value : structuredClone(value);
 }
 
-function fmtMs(value) {
-  return Number.isFinite(value) ? `${Math.round(value)}ms` : "no ms";
+function escapeText(value) {
+  return String(value ?? "");
 }
 
-function fmtPct(value) {
-  return Number.isFinite(value) ? `${Math.round(value)}%` : "open";
+function formatPercent(value, digits = 0) {
+  return Number.isFinite(value) ? `${value.toFixed(digits)}%` : "not measured";
 }
 
-function fmtPitch(voice) {
-  return `d${voice.degree}`;
+function formatHealth(value) {
+  return Number.isFinite(value) ? `${Math.round(value * 100)}%` : "unknown";
 }
 
-function cloneFrame(frame) {
+function formatLatency(value) {
+  return Number.isFinite(value) ? `${Math.round(value)} ms` : "not measured";
+}
+
+function formatTimestamp(value) {
+  if (!value) return "No successful update yet";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? escapeText(value)
+    : date.toLocaleString([], { dateStyle: "medium", timeStyle: "medium" });
+}
+
+function metricValue(root, name, value) {
+  const target = root.querySelector(`[data-metric="${name}"]`);
+  if (target) target.textContent = value;
+}
+
+function maskedFrame(frame, muted, soloed) {
+  const soloActive = soloed.size > 0;
   return {
     ...frame,
-    scale: [...frame.scale],
-    voices: frame.voices.map((voice) => ({ ...voice })),
+    voices: frame.voices.map((voice) => {
+      const silenced =
+        muted.has(voice.name) || (soloActive && !soloed.has(voice.name));
+      return silenced
+        ? { ...voice, voiceGain: 0, velocity: 0 }
+        : voice;
+    }),
   };
 }
 
-function applyMasks(frame, muted, soloed) {
-  const next = cloneFrame(frame);
-  const soloActive = soloed.size > 0;
-  next.voices = next.voices.map((voice) => {
-    const off = muted.has(voice.name) || (soloActive && !soloed.has(voice.name));
-    return off ? { ...voice, audible: false, voiceGain: 0, velocity: 0 } : voice;
-  });
-  return next;
+function template() {
+  return `
+    <section class="symphony-widget" aria-labelledby="symphony-widget-title">
+      <div class="symphony-widget__signal" aria-hidden="true"></div>
+      <div class="symphony-widget__topline">
+        <div>
+          <p class="symphony-kicker">Atlas telemetry instrument</p>
+          <h2 id="symphony-widget-title">SYSTEM <em>SYMPHONY</em></h2>
+        </div>
+        <span class="symphony-source-badge" data-source-badge>CONNECTING</span>
+      </div>
+      <div class="symphony-widget__readout">
+        <strong data-compact-state>UNKNOWN</strong>
+        <span data-compact-health>health --</span>
+        <span data-compact-components>0 / 0 measured</span>
+      </div>
+      <div class="symphony-widget__controls">
+        <button class="symphony-button symphony-button--primary" type="button" data-audio-toggle>Start</button>
+        <label class="symphony-volume symphony-volume--compact">
+          <span>Vol</span>
+          <input type="range" min="0" max="100" step="1" value="${Math.round(DEFAULT_USER_GAIN * 100)}" data-volume aria-label="System SYMPHONY volume" />
+        </label>
+        <button class="symphony-button" type="button" data-open-console aria-expanded="false" aria-haspopup="dialog">Open console</button>
+      </div>
+    </section>
+
+    <div class="symphony-overlay" data-overlay hidden>
+      <section class="symphony-console" role="dialog" aria-modal="true" aria-labelledby="symphony-console-title" tabindex="-1">
+        <header class="symphony-console__header">
+          <div>
+            <p class="symphony-kicker">Live estate generative score</p>
+            <h2 id="symphony-console-title">System <em>SYMPHONY</em></h2>
+            <p class="symphony-console__mode"><span data-dialog-source>CONNECTING</span> <span aria-hidden="true">/</span> <span data-dialog-score>Unknown score</span></p>
+          </div>
+          <div class="symphony-console__header-controls">
+            <button class="symphony-button symphony-button--primary" type="button" data-audio-toggle>Start</button>
+            <label class="symphony-volume">
+              <span>Volume</span>
+              <input type="range" min="0" max="100" step="1" value="${Math.round(DEFAULT_USER_GAIN * 100)}" data-volume aria-label="System SYMPHONY console volume" />
+            </label>
+            <button class="symphony-button" type="button" data-help-toggle aria-expanded="false">Mapping help</button>
+            <button class="symphony-button symphony-button--icon" type="button" data-close-console aria-label="Close System SYMPHONY console">Close</button>
+          </div>
+        </header>
+
+        <p class="symphony-important-status" data-important-status aria-live="polite"></p>
+
+        <aside class="symphony-help" data-help hidden aria-label="Telemetry to music mapping">
+          <div class="symphony-section-heading">
+            <div><span>Reference</span><h3>What you are hearing</h3></div>
+            <button class="symphony-button symphony-button--icon" type="button" data-help-close>Close help</button>
+          </div>
+          <p>Null measurements remain null. The score uses neutral musical defaults for continuity without claiming that a measurement exists.</p>
+          <div class="symphony-help__table" data-help-rows></div>
+        </aside>
+
+        <div class="symphony-console__scroll">
+          <section class="symphony-source-panel" aria-labelledby="symphony-source-title">
+            <div>
+              <span class="symphony-section-number">01</span>
+              <h3 id="symphony-source-title">Signal source</h3>
+              <p data-source-explanation>Reading current public telemetry. Live mode cannot alter estate state.</p>
+            </div>
+            <div class="symphony-source-panel__controls">
+              <div class="symphony-segmented" role="group" aria-label="Symphony data source">
+                <button type="button" data-live-mode aria-pressed="true">Live estate</button>
+                <button type="button" data-demo-mode aria-pressed="false" disabled>Demo lab</button>
+              </div>
+              <button class="symphony-button" type="button" data-demo-reset hidden>Reset from live</button>
+              <p class="symphony-update-time">Last successful telemetry: <time data-last-update>waiting</time></p>
+            </div>
+          </section>
+
+          <section class="symphony-metrics" aria-label="Estate metrics">
+            <article><span>Score state</span><strong data-metric="state">Unknown</strong></article>
+            <article><span>Overall health</span><strong data-metric="health">unknown</strong></article>
+            <article><span>Total components</span><strong data-metric="total">0</strong></article>
+            <article><span>Measured</span><strong data-metric="measured">0</strong></article>
+            <article><span>Warnings</span><strong data-metric="warnings">0</strong></article>
+            <article><span>Failures / incidents</span><strong data-metric="failures">0 / 0</strong></article>
+            <article><span>Unknown</span><strong data-metric="unknown">0</strong></article>
+            <article class="symphony-metric-deploy"><span>Recent deployment</span><strong data-metric="deployment">baseline pending</strong></article>
+          </section>
+
+          <section class="symphony-orchestra" aria-labelledby="symphony-orchestra-title">
+            <div class="symphony-section-heading">
+              <div><span>02</span><h3 id="symphony-orchestra-title">Estate orchestra</h3></div>
+              <p>Nodes pulse only when their service voice sounds. Lines are live topology dependencies.</p>
+            </div>
+            <div class="symphony-orchestra__grid">
+              <div class="symphony-visual" data-visual>
+                <svg class="symphony-topology" data-topology viewBox="0 0 960 520" role="img" aria-label="Atlas estate topology mapped to musical service voices"></svg>
+                <div class="symphony-waveform-wrap">
+                  <span>Master waveform / real analyser</span>
+                  <canvas data-waveform width="960" height="112" aria-label="Real-time waveform from the System SYMPHONY master analyser"></canvas>
+                </div>
+              </div>
+
+              <aside class="symphony-inspector" aria-labelledby="symphony-inspector-title">
+                <p class="symphony-kicker">Selected voice</p>
+                <h3 id="symphony-inspector-title" data-inspector-name>No component selected</h3>
+                <p class="symphony-inspector__identity" data-inspector-identity>Select a topology node or service row.</p>
+                <p class="symphony-inspector__description" data-inspector-description></p>
+                <dl data-inspector-details></dl>
+                <div class="symphony-dependencies">
+                  <h4>Dependencies</h4>
+                  <ul data-inspector-dependencies><li>None declared</li></ul>
+                </div>
+
+                <fieldset class="symphony-demo-editor" data-demo-editor hidden>
+                  <legend>Local demo controls</legend>
+                  <p>These controls change this browser snapshot only.</p>
+                  <label>Status
+                    <select data-demo-status>
+                      <option value="healthy">Healthy</option>
+                      <option value="degraded">Warning</option>
+                      <option value="down">Critical</option>
+                      <option value="unknown">Unknown</option>
+                    </select>
+                  </label>
+                  <div class="symphony-demo-editor__metrics">
+                    <label>Latency (ms)<input type="number" min="0" max="5000" step="1" inputmode="decimal" data-demo-latency /></label>
+                    <label>Uptime (%)<input type="number" min="0" max="100" step="0.1" inputmode="decimal" data-demo-uptime /></label>
+                    <label>Error rate (%)<input type="number" min="0" max="100" step="0.1" inputmode="decimal" data-demo-error /></label>
+                  </div>
+                  <div class="symphony-demo-editor__actions">
+                    <button class="symphony-button" type="button" data-demo-deployment>Trigger deployment motif</button>
+                    <button class="symphony-button" type="button" data-demo-solo aria-pressed="false">Solo voice</button>
+                    <button class="symphony-button" type="button" data-demo-mute aria-pressed="false">Mute voice</button>
+                  </div>
+                </fieldset>
+                <p class="symphony-live-lock" data-live-lock>Live mode is read-only. Inspection and audio controls only.</p>
+              </aside>
+            </div>
+          </section>
+
+          <section class="symphony-service-section" aria-labelledby="symphony-services-title">
+            <div class="symphony-section-heading">
+              <div><span>03</span><h3 id="symphony-services-title">Service score</h3></div>
+              <p>Measured health is authoritative. Topology-only components remain explicitly unknown.</p>
+            </div>
+            <div class="symphony-table-wrap">
+              <table>
+                <thead><tr><th>Service / component</th><th>Layer</th><th>Status</th><th>Latency</th><th>Instrument</th><th>Source</th><th><span class="visually-hidden">Inspect</span></th></tr></thead>
+                <tbody data-service-table></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </section>
+    </div>
+  `;
 }
 
-function baseService(name) {
-  return {
-    name,
-    status: "healthy",
-    latency_ms: null,
-    uptime_pct: null,
-    error_rate: null,
-    last_deploy_secs_ago: null,
-  };
-}
-
-function statusPatch(name, status, fallbackLatency) {
-  if (status === "healthy") {
-    return {
-      status: "healthy",
-      uptime_pct: null,
-      error_rate: null,
-      latency_ms: fallbackLatency,
-    };
-  }
-  const values = DEMO_STATE_VALUES[name]?.[status];
-  if (values) return { status, ...values };
-  if (status === "degraded") {
-    return {
-      status: "degraded",
-      latency_ms: Number.isFinite(fallbackLatency) ? Math.max(fallbackLatency, 320) : 340,
-      uptime_pct: 91,
-      error_rate: 0.55,
-    };
-  }
-  return {
-    status: "down",
-    latency_ms: Number.isFinite(fallbackLatency) ? Math.max(fallbackLatency, 480) : 500,
-    uptime_pct: 0,
-    error_rate: 0.85,
-  };
-}
-
-function deriveEstateFromServices(services) {
-  const score = { healthy: 1, degraded: 0.45, down: 0 };
-  const known = services.filter((service) => service.status !== "unknown");
-  const base = known.length
-    ? known.reduce((sum, service) => sum + score[service.status], 0) / known.length
-    : 1;
-  const degraded = services.some((service) => service.status === "degraded");
-  const down = services.some((service) => service.status === "down");
-  return {
-    overall_health: down ? Math.min(base, 0.45) : degraded ? Math.min(base, 0.68) : base,
-    active_incidents: services.filter((service) => service.status === "down").length,
-  };
-}
-
-function buildDemoPayload(kind) {
-  const demo = DEMOS[kind] || DEMOS.healthy;
-  const services = CURATED_SERVICES.map((name, index) => {
-    const latency = DEMO_BASE_LATENCY[name] ?? [130, 150, 95, 35, 115, 75][index];
-    const base = {
-      ...baseService(name),
-      latency_ms: latency,
-      ...demo.overrides[name],
-    };
-    const manual = manualStatuses.get(name);
-    return manual ? { ...base, ...statusPatch(name, manual, base.latency_ms) } : base;
-  });
-  return {
-    timestamp: new Date().toISOString(),
-    estate: deriveEstateFromServices(services),
-    services,
-  };
-}
-
-const manualStatuses = new Map();
-
-export function initSonify() {
+export function initSystemSymphony() {
   if (document.getElementById(WIDGET_ID)) return;
 
+  const host = document.createElement("div");
+  host.id = WIDGET_ID;
+  host.className = "system-symphony";
+  host.dataset.state = "unknown";
+  host.dataset.source = "connecting";
+  host.dataset.running = "0";
+  host.innerHTML = template();
+  document.body.append(host);
+
   const engine = createEngine();
-  let mode = "live";
-  let demoKind = "healthy";
-  let lastLiveFrame = null;
-  let currentDisplayFrame = null;
-  let lastDemoIncidentCount = 0;
+  const overlay = host.querySelector("[data-overlay]");
+  const consolePanel = host.querySelector(".symphony-console");
+  const openButton = host.querySelector("[data-open-console]");
+  const closeButton = host.querySelector("[data-close-console]");
+  const help = host.querySelector("[data-help]");
+  const helpToggle = host.querySelector("[data-help-toggle]");
+  const topologySvg = host.querySelector("[data-topology]");
+  const waveformCanvas = host.querySelector("[data-waveform]");
+  const waveformContext = waveformCanvas.getContext("2d");
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const topologyNodes = new Map();
   const muted = new Set();
   const soloed = new Set();
 
-  const root = el("section", "sn-w", {
-    id: WIDGET_ID,
-    role: "region",
-    "aria-label": "Estate sonification",
-    "data-open": "0",
-  });
-  const style = document.createElement("style");
-  style.textContent = STYLE;
+  let mode = "live";
+  let currentFrame = null;
+  let lastLiveFrame = null;
+  let lastLiveMerged = null;
+  let demoMerged = null;
+  let selectedName = null;
+  let latestDeployment = null;
+  let recentDeployment = null;
+  let dialogOpen = false;
+  let waveformAnimation = null;
+  let lastWaveformDraw = 0;
+  let lastAnnouncement = "";
+  let demoDeploymentCounter = 0;
 
-  const head = el("div", "sn-head");
-  const toggle = el("button", "sn-toggle", {
-    type: "button",
-    "aria-pressed": "false",
-    "aria-label": "Start estate sonification",
-  });
-  toggle.textContent = "start";
-  const expand = el("button", "sn-icon", {
-    type: "button",
-    "aria-expanded": "false",
-    title: "Open sonify inspector",
-  });
-  expand.textContent = "+";
-
-  const readout = el("div", "sn-readout", { "aria-live": "polite" });
-  const healthSpan = el("span", "sn-health");
-  healthSpan.textContent = "health --%";
-  const sep = document.createElement("span");
-  sep.textContent = " . ";
-  const incSpan = el("span", "sn-inc");
-  incSpan.textContent = "inc -";
-  readout.append(healthSpan, sep, incSpan);
-  head.append(toggle, expand, readout);
-
-  const dots = el("div", "sn-dots");
-  const dotByName = new Map();
-  for (const name of CURATED_SERVICES) {
-    const dot = el("span", "sn-dot", {
-      "data-status": "unknown",
-      title: `${name}: unknown`,
-      role: "img",
-      "aria-label": `${name}: unknown`,
-    });
-    dots.append(dot);
-    dotByName.set(name, dot);
+  const helpRows = host.querySelector("[data-help-rows]");
+  for (const [signal, musicalResult] of HELP_ROWS) {
+    const row = document.createElement("div");
+    const term = document.createElement("strong");
+    const definition = document.createElement("span");
+    term.textContent = signal;
+    definition.textContent = musicalResult;
+    row.append(term, definition);
+    helpRows.append(row);
   }
 
-  const vol = el("label", "sn-vol");
-  const volText = document.createElement("span");
-  volText.textContent = "vol";
-  const slider = el("input", "", {
-    type: "range",
-    min: "0",
-    max: "100",
-    step: "1",
-    value: String(Math.round(DEFAULT_USER_GAIN * 100)),
-    "aria-label": "Sonification volume",
-  });
-  vol.append(volText, slider);
-
-  const panel = el("div", "sn-panel");
-  const modeBar = el("div", "sn-mode");
-  const modeLabel = el("span", "sn-label");
-  modeLabel.textContent = "source";
-  const liveBtn = el("button", "sn-chip", { type: "button", "aria-pressed": "true" });
-  liveBtn.textContent = "live estate";
-  const demoBtn = el("button", "sn-chip", { type: "button", "aria-pressed": "false" });
-  demoBtn.textContent = "demo lab";
-  modeBar.append(modeLabel, liveBtn, demoBtn);
-
-  const demoBar = el("div", "sn-demo");
-  const demoLabel = el("span", "sn-label");
-  demoLabel.textContent = "try";
-  demoBar.append(demoLabel);
-  const demoButtons = new Map();
-  for (const [key, demo] of Object.entries(DEMOS)) {
-    const button = el("button", "sn-chip", {
-      type: "button",
-      "aria-pressed": key === demoKind ? "true" : "false",
-    });
-    button.textContent = demo.label;
-    button.addEventListener("click", () => {
-      manualStatuses.clear();
-      demoKind = key;
-      mode = "demo";
-      refreshSourceButtons();
-      renderCurrent();
-      const nextIncidents = sourceFrame()?.activeIncidents ?? 0;
-      if (nextIncidents > lastDemoIncidentCount) {
-        engine.queueIncidentHits(nextIncidents - lastDemoIncidentCount);
-      }
-      lastDemoIncidentCount = nextIncidents;
-    });
-    demoButtons.set(key, button);
-    demoBar.append(button);
+  function sourceState(frame = currentFrame) {
+    if (mode === "demo") return { key: "demo", label: "DEMO / LOCAL ONLY" };
+    if (frame?.stale) return { key: "stale", label: "LIVE DATA STALE" };
+    if (lastLiveFrame) return { key: "live", label: "LIVE" };
+    return { key: "connecting", label: "CONNECTING" };
   }
 
-  // Direct audition control: plays one incident hit without touching
-  // mode, demo state, or manual statuses. Isolates the drum sound from
-  // the health-blend/colour changes every other trigger path also
-  // causes, so it can be tuned by ear on its own. No-ops silently (via
-  // engine.queueIncidentHits' own guard) if audio hasn't been started.
-  const testHitBtn = el("button", "sn-chip", {
-    type: "button",
-    "data-variant": "hit",
-  });
-  testHitBtn.textContent = "test hit";
-  testHitBtn.title = "Play one incident hit only, for tuning by ear (requires sonification started)";
-  testHitBtn.addEventListener("click", () => {
-    engine.queueIncidentHits(1);
-  });
-  demoBar.append(testHitBtn);
-
-  const grid = el("div", "sn-grid");
-  const gridHead = el("div", "sn-grid-head");
-  for (const text of ["", "service", "ms", "pitch", "bright", "hear"]) {
-    const span = document.createElement("span");
-    span.textContent = text;
-    gridHead.append(span);
-  }
-  grid.append(gridHead);
-  const rows = new Map();
-  for (const name of CURATED_SERVICES) {
-    const row = el("div", "sn-row", { "data-service": name });
-    const dot = el("button", "sn-row-dot", {
-      type: "button",
-      "data-status": "unknown",
-      "aria-label": `Cycle ${name} status`,
-      title: `Cycle ${name}: healthy, degraded, down`,
-    });
-    const serviceName = el("span", "sn-name");
-    serviceName.textContent = SERVICE_LABELS[name] || name;
-    const latency = el("span", "sn-metric");
-    const pitch = el("span", "sn-metric");
-    const bright = el("span", "sn-metric");
-    const actions = el("span", "sn-actions");
-    const solo = el("button", "sn-mini", { type: "button", "aria-pressed": "false" });
-    solo.textContent = "S";
-    solo.title = `Solo ${name}`;
-    const mute = el("button", "sn-mini", { type: "button", "aria-pressed": "false" });
-    mute.textContent = "M";
-    mute.title = `Mute ${name}`;
-    actions.append(solo, mute);
-    row.append(dot, serviceName, latency, pitch, bright, actions);
-    grid.append(row);
-    rows.set(name, { row, dot, latency, pitch, bright, solo, mute });
-    dot.addEventListener("click", () => {
-      const frame = sourceFrame();
-      const voice = frame?.voices.find((v) => v.name === name);
-      const current = manualStatuses.get(name) || voice?.status || "healthy";
-      const next = STATUS_ORDER[(STATUS_ORDER.indexOf(current) + 1) % STATUS_ORDER.length];
-      manualStatuses.set(name, next);
-      mode = "demo";
-      demoKind = "healthy";
-      refreshSourceButtons();
-      renderCurrent();
-      if (next === "down") engine.queueIncidentHits(1);
-      lastDemoIncidentCount = sourceFrame()?.activeIncidents ?? 0;
-    });
-    solo.addEventListener("click", () => {
-      if (soloed.has(name)) soloed.delete(name);
-      else soloed.add(name);
-      renderCurrent();
-    });
-    mute.addEventListener("click", () => {
-      if (muted.has(name)) muted.delete(name);
-      else muted.add(name);
-      renderCurrent();
-    });
+  function announceImportant(frame) {
+    const source = sourceState(frame);
+    const message = `${source.label}. ${frame.scoreLabel} score.`;
+    if (message === lastAnnouncement) return;
+    lastAnnouncement = message;
+    host.querySelector("[data-important-status]").textContent = message;
   }
 
-  const summary = el("div", "sn-summary");
-  const explain = el("div", "sn-explain");
-  for (const [label, value] of [
-    ["latency", "pitch"],
-    ["health", "mode + volume"],
-    ["uptime/current state", "brightness"],
-    ["errors", "note strength"],
-    ["incidents", "drum hit"],
-    ["deploy age", "vibrato"],
-  ]) {
-    const item = document.createElement("span");
-    const key = document.createElement("b");
-    key.textContent = label;
-    item.append(key, document.createTextNode(` -> ${value}`));
-    explain.append(item);
-  }
-  panel.append(modeBar, demoBar, grid, summary, explain);
-  root.append(style, head, dots, vol, panel);
-  document.body.append(root);
-
-  function setToggleState(runningNow) {
-    toggle.textContent = runningNow ? "mute" : "start";
-    toggle.setAttribute("aria-pressed", String(runningNow));
-    toggle.setAttribute(
-      "aria-label",
-      runningNow ? "Mute estate sonification" : "Start estate sonification",
-    );
-  }
-
-  function refreshSourceButtons() {
-    liveBtn.setAttribute("aria-pressed", String(mode === "live"));
-    demoBtn.setAttribute("aria-pressed", String(mode === "demo"));
-    for (const [key, button] of demoButtons) {
-      button.setAttribute("aria-pressed", String(mode === "demo" && key === demoKind));
-    }
-  }
-
-  function sourceFrame() {
-    if (mode === "demo") return computeFrame(buildDemoPayload(demoKind));
-    return lastLiveFrame;
-  }
-
-  function renderCurrent() {
-    const frame = sourceFrame();
-    if (!frame) return;
-    currentDisplayFrame = frame;
-    const audibleFrame = applyMasks(frame, muted, soloed);
-    engine.applyFrame(audibleFrame);
-    renderFrame(frame);
-  }
-
-  function renderFrame(frame) {
-    healthSpan.textContent = `health ${Math.round(frame.overallHealth * 100)}%`;
-    incSpan.textContent = `inc ${frame.activeIncidents}`;
-    incSpan.setAttribute("data-alert", frame.activeIncidents > 0 ? "1" : "0");
-    const modeName = frame.overallHealth > 0.75
-      ? "Lydian / open"
-      : frame.overallHealth < 0.5
-        ? "Phrygian / alert"
-        : "crossfade";
-    summary.textContent = "";
-    const summaryMood = document.createElement("b");
-    summaryMood.textContent = modeName;
-    summary.append(summaryMood, document.createTextNode(
-      ` . ${mode === "demo" ? "demo" : "live"} . ${frame.voices.length} voices`,
-    ));
-    for (const voice of frame.voices) {
-      const dot = dotByName.get(voice.name);
-      const row = rows.get(voice.name);
-      if (!row) continue;
-      const hidden = muted.has(voice.name) || (soloed.size > 0 && !soloed.has(voice.name));
-      dot?.setAttribute("data-status", voice.status);
-      dot?.setAttribute("title", `${voice.name}: ${voice.status}`);
-      dot?.setAttribute("aria-label", `${voice.name}: ${voice.status}`);
-      row.dot.setAttribute("data-status", voice.status);
-      row.dot.setAttribute(
+  function setRunningUi() {
+    const running = engine.isRunning();
+    host.dataset.running = running ? "1" : "0";
+    for (const button of host.querySelectorAll("[data-audio-toggle]")) {
+      button.textContent = running ? "Stop" : "Start";
+      button.setAttribute("aria-pressed", String(running));
+      button.setAttribute(
         "aria-label",
-        `${voice.name}: ${STATUS_LABELS[voice.status]}; click to cycle status`,
+        running ? "Stop System SYMPHONY audio" : "Start System SYMPHONY audio",
       );
-      row.dot.setAttribute(
-        "title",
-        `${voice.name}: ${STATUS_LABELS[voice.status]}; click for green/yellow/red demo`,
-      );
-      row.row.setAttribute("data-muted", hidden ? "1" : "0");
-      row.latency.textContent = fmtMs(voice.latency_ms);
-      row.pitch.textContent = fmtPitch(voice);
-      row.bright.textContent = fmtPct(voice.uptime_pct);
-      row.solo.setAttribute("aria-pressed", String(soloed.has(voice.name)));
-      row.mute.setAttribute("aria-pressed", String(muted.has(voice.name)));
-      row.row.title = `${voice.name}: ${STATUS_LABELS[voice.status]}; latency controls pitch, brightness follows state, errors reduce strength`;
     }
+  }
+
+  function renderCompact(frame) {
+    const source = sourceState(frame);
+    host.dataset.source = source.key;
+    host.dataset.state = frame.scoreState;
+    const badge = host.querySelector("[data-source-badge]");
+    badge.textContent = source.label;
+    host.querySelector("[data-compact-state]").textContent = frame.scoreLabel.toUpperCase();
+    host.querySelector("[data-compact-health]").textContent =
+      `health ${formatHealth(frame.overallHealth)}${frame.stale ? " last known" : ""}`;
+    host.querySelector("[data-compact-components]").textContent =
+      `${frame.measuredComponents} / ${frame.totalComponents} measured`;
+  }
+
+  function renderMetrics(frame) {
+    metricValue(host, "state", `${frame.scoreLabel} / ${frame.mode}`);
+    metricValue(
+      host,
+      "health",
+      `${formatHealth(frame.overallHealth)}${frame.stale ? " (last known)" : ""}`,
+    );
+    metricValue(host, "total", String(frame.totalComponents));
+    metricValue(host, "measured", String(frame.measuredComponents));
+    metricValue(host, "warnings", String(frame.warningCount));
+    metricValue(host, "failures", `${frame.failureCount} / ${frame.activeIncidents}`);
+    metricValue(host, "unknown", String(frame.unknownCount));
+    const deploymentText = recentDeployment
+      ? `${recentDeployment.commitSha ?? recentDeployment.identity ?? "deployment"} / ${recentDeployment.status ?? "success"}`
+      : latestDeployment
+        ? `${latestDeployment.commitSha ?? latestDeployment.deployId ?? "baseline"} / baseline`
+        : "baseline pending";
+    metricValue(host, "deployment", deploymentText);
+  }
+
+  function layerPositions(voices) {
+    const groups = new Map();
+    for (const voice of voices) {
+      const layer = voice.layer || "unknown";
+      if (!groups.has(layer)) groups.set(layer, []);
+      groups.get(layer).push(voice);
+    }
+    const layers = [...groups.keys()].sort((left, right) => {
+      const leftIndex = LAYER_ORDER.indexOf(left);
+      const rightIndex = LAYER_ORDER.indexOf(right);
+      return (leftIndex < 0 ? 99 : leftIndex) - (rightIndex < 0 ? 99 : rightIndex);
+    });
+    const positions = new Map();
+    layers.forEach((layer, layerIndex) => {
+      const row = groups.get(layer).sort((a, b) => a.name.localeCompare(b.name));
+      const y = layers.length === 1
+        ? 260
+        : 50 + layerIndex * (420 / (layers.length - 1));
+      row.forEach((voice, index) => {
+        positions.set(voice.name, {
+          x: ((index + 1) * 920) / (row.length + 1) + 20,
+          y,
+        });
+      });
+    });
+    return positions;
+  }
+
+  function svgElement(tag, attributes = {}) {
+    const node = document.createElementNS(SVG_NS, tag);
+    for (const [key, value] of Object.entries(attributes)) {
+      node.setAttribute(key, String(value));
+    }
+    return node;
+  }
+
+  function selectService(name, focusInspector = false) {
+    selectedName = name;
+    renderInspector();
+    renderServiceTable();
+    for (const [nodeName, node] of topologyNodes) {
+      node.classList.toggle("is-selected", nodeName === name);
+    }
+    if (focusInspector) host.querySelector("[data-inspector-name]").focus?.();
+  }
+
+  function renderTopology(frame) {
+    topologyNodes.clear();
+    topologySvg.replaceChildren();
+    topologySvg.classList.toggle("is-critical", frame.scoreState === "critical");
+    const positions = layerPositions(frame.voices);
+
+    const edgeGroup = svgElement("g", { class: "symphony-topology__edges" });
+    const nodeNames = new Set(frame.voices.map((voice) => voice.name));
+    for (const voice of frame.voices) {
+      const from = positions.get(voice.name);
+      for (const dependency of voice.depends_on) {
+        if (!nodeNames.has(dependency)) continue;
+        const to = positions.get(dependency);
+        edgeGroup.append(svgElement("line", {
+          x1: from.x,
+          y1: from.y,
+          x2: to.x,
+          y2: to.y,
+          class: "symphony-edge",
+          "data-from": voice.name,
+          "data-to": dependency,
+        }));
+      }
+    }
+    topologySvg.append(edgeGroup);
+
+    for (const voice of frame.voices) {
+      const position = positions.get(voice.name);
+      const group = svgElement("g", {
+        class: `symphony-node status-${voice.status}${voice.name === selectedName ? " is-selected" : ""}`,
+        transform: `translate(${position.x} ${position.y})`,
+        tabindex: "0",
+        role: "button",
+        "aria-label": `${voice.displayName}, ${STATUS_LABELS[voice.status]}, ${voice.instrumentLabel}`,
+      });
+      group.dataset.node = voice.name;
+      const title = svgElement("title");
+      title.textContent = `${voice.displayName}: ${STATUS_LABELS[voice.status]} / ${voice.instrumentLabel}`;
+      const circle = svgElement("circle", { r: 13 });
+      const core = svgElement("circle", { r: 4, class: "symphony-node__core" });
+      const label = svgElement("text", { y: 28, "text-anchor": "middle" });
+      label.textContent = voice.displayName.length > 18
+        ? `${voice.displayName.slice(0, 16)}…`
+        : voice.displayName;
+      group.append(title, circle, core, label);
+      group.addEventListener("click", () => selectService(voice.name));
+      group.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          selectService(voice.name);
+        }
+      });
+      topologySvg.append(group);
+      topologyNodes.set(voice.name, group);
+    }
+  }
+
+  function renderServiceTable() {
+    const body = host.querySelector("[data-service-table]");
+    body.replaceChildren();
+    if (!currentFrame) return;
+    for (const voice of currentFrame.voices) {
+      const row = document.createElement("tr");
+      if (voice.name === selectedName) row.classList.add("is-selected");
+      row.dataset.status = voice.status;
+      const values = [
+        voice.displayName,
+        voice.layer,
+        STATUS_LABELS[voice.status],
+        formatLatency(voice.latency_ms),
+        voice.instrumentLabel,
+        voice.measured ? "measured" : "unknown",
+      ];
+      values.forEach((value, index) => {
+        const cell = document.createElement("td");
+        if (index === 2) {
+          const status = document.createElement("span");
+          status.className = `symphony-status status-${voice.status}`;
+          status.textContent = value;
+          cell.append(status);
+        } else {
+          cell.textContent = value;
+        }
+        row.append(cell);
+      });
+      const actionCell = document.createElement("td");
+      const inspect = document.createElement("button");
+      inspect.type = "button";
+      inspect.className = "symphony-table-action";
+      inspect.textContent = "Inspect";
+      inspect.setAttribute("aria-label", `Inspect ${voice.displayName}`);
+      inspect.addEventListener("click", () => selectService(voice.name));
+      actionCell.append(inspect);
+      row.append(actionCell);
+      row.addEventListener("dblclick", () => selectService(voice.name));
+      body.append(row);
+    }
+  }
+
+  function inspectorVoice() {
+    if (!currentFrame) return null;
+    return currentFrame.voices.find((voice) => voice.name === selectedName) ?? null;
+  }
+
+  function renderInspector() {
+    const voice = inspectorVoice();
+    const name = host.querySelector("[data-inspector-name]");
+    const identity = host.querySelector("[data-inspector-identity]");
+    const description = host.querySelector("[data-inspector-description]");
+    const details = host.querySelector("[data-inspector-details]");
+    const dependencies = host.querySelector("[data-inspector-dependencies]");
+    const editor = host.querySelector("[data-demo-editor]");
+    const liveLock = host.querySelector("[data-live-lock]");
+
+    if (!voice) {
+      name.textContent = "No component selected";
+      identity.textContent = "Select a topology node or service row.";
+      description.textContent = "";
+      details.replaceChildren();
+      dependencies.innerHTML = "<li>None declared</li>";
+      editor.hidden = true;
+      liveLock.hidden = mode === "demo";
+      return;
+    }
+
+    name.textContent = voice.displayName;
+    identity.textContent = `${voice.instrumentLabel} / ${voice.registerLabel} register / pan ${voice.pan.toFixed(2)} / ${voice.motifLabel}`;
+    description.textContent = voice.description ?? "No topology description supplied.";
+    details.replaceChildren();
+    const detailRows = [
+      ["Layer", voice.layer],
+      ["Status", STATUS_LABELS[voice.status]],
+      ["Measurement", voice.measured ? "Measured by /sonify" : "Topology only / unknown"],
+      ["Latency", formatLatency(voice.latency_ms)],
+      ["Uptime", formatPercent(voice.uptime_pct, 1)],
+      ["Error rate", Number.isFinite(voice.error_rate) ? formatPercent(voice.error_rate * 100, 1) : "not measured"],
+      ["Brightness", voice.brightness.toFixed(2)],
+      ["Stability", voice.stability.toFixed(2)],
+    ];
+    for (const [label, value] of detailRows) {
+      const term = document.createElement("dt");
+      const definition = document.createElement("dd");
+      term.textContent = label;
+      definition.textContent = value;
+      details.append(term, definition);
+    }
+
+    dependencies.replaceChildren();
+    const dependencyNames = voice.depends_on.length ? voice.depends_on : ["None declared"];
+    dependencyNames.forEach((dependency) => {
+      const item = document.createElement("li");
+      item.textContent = dependency;
+      dependencies.append(item);
+    });
+
+    const demoMode = mode === "demo";
+    editor.hidden = !demoMode;
+    liveLock.hidden = demoMode;
+    if (demoMode) {
+      host.querySelector("[data-demo-status]").value = voice.status;
+      host.querySelector("[data-demo-latency]").value = voice.latency_ms ?? "";
+      host.querySelector("[data-demo-uptime]").value = voice.uptime_pct ?? "";
+      host.querySelector("[data-demo-error]").value = Number.isFinite(voice.error_rate)
+        ? (voice.error_rate * 100).toFixed(1)
+        : "";
+      host.querySelector("[data-demo-solo]").setAttribute(
+        "aria-pressed",
+        String(soloed.has(voice.name)),
+      );
+      host.querySelector("[data-demo-mute]").setAttribute(
+        "aria-pressed",
+        String(muted.has(voice.name)),
+      );
+    }
+  }
+
+  function renderDialog(frame) {
+    const source = sourceState(frame);
+    host.querySelector("[data-dialog-source]").textContent = source.label;
+    host.querySelector("[data-dialog-score]").textContent = `${frame.scoreLabel} / ${frame.mode} / ${frame.bpm} BPM`;
+    host.querySelector("[data-last-update]").textContent = formatTimestamp(frame.lastSuccessfulAt);
+    const explanation = host.querySelector("[data-source-explanation]");
+    explanation.textContent = mode === "demo"
+      ? "Local demo cloned from the latest live snapshot. No estate data or endpoint is changed."
+      : frame.stale
+        ? "The live telemetry request failed. Last-known values remain visible, while the score is explicitly Unknown."
+        : "Reading current public telemetry. Live mode is strictly read-only.";
+    host.querySelector("[data-live-mode]").setAttribute("aria-pressed", String(mode === "live"));
+    host.querySelector("[data-demo-mode]").setAttribute("aria-pressed", String(mode === "demo"));
+    host.querySelector("[data-demo-reset]").hidden = mode !== "demo";
+    renderMetrics(frame);
+    renderTopology(frame);
+    renderServiceTable();
+    renderInspector();
+  }
+
+  function applyAndRender(frame) {
+    currentFrame = frame;
+    if (!selectedName || !frame.voices.some((voice) => voice.name === selectedName)) {
+      selectedName = frame.voices[0]?.name ?? null;
+    }
+    const audible = mode === "demo"
+      ? maskedFrame(frame, muted, soloed)
+      : frame;
+    engine.applyFrame(audible);
+    renderCompact(frame);
+    renderDialog(frame);
+    announceImportant(frame);
+    setRunningUi();
+  }
+
+  function currentDemoFrame() {
+    return demoMerged ? computeFrame(demoMerged) : null;
+  }
+
+  function resetDemoFromLive() {
+    if (!lastLiveMerged) return;
+    demoMerged = clone(lastLiveMerged);
+    demoMerged.stale = false;
+    demoMerged.lastSuccessfulAt = lastLiveFrame?.lastSuccessfulAt ?? null;
+    demoMerged.estate = deriveDemoEstate(demoMerged.services);
+    muted.clear();
+    soloed.clear();
+    applyAndRender(currentDemoFrame());
+  }
+
+  function switchToDemo() {
+    if (!lastLiveMerged) return;
+    mode = "demo";
+    resetDemoFromLive();
+  }
+
+  function switchToLive() {
+    mode = "live";
+    demoMerged = null;
+    muted.clear();
+    soloed.clear();
+    if (lastLiveFrame) applyAndRender(lastLiveFrame);
+  }
+
+  function updateSelectedDemo(patch) {
+    if (mode !== "demo" || !demoMerged || !selectedName) return;
+    const service = demoMerged.services.find((item) => item.name === selectedName);
+    if (!service) return;
+    const previousIncidents = demoMerged.estate?.active_incidents ?? 0;
+    Object.assign(service, patch);
+    demoMerged.estate = deriveDemoEstate(demoMerged.services);
+    demoMerged.timestamp = new Date().toISOString();
+    const frame = currentDemoFrame();
+    applyAndRender(frame);
+    const nextIncidents = demoMerged.estate.active_incidents;
+    if (nextIncidents > previousIncidents) {
+      engine.queueIncidentAccent(nextIncidents - previousIncidents);
+    }
+  }
+
+  function flashDeployment(deployment) {
+    recentDeployment = deployment;
+    const visual = host.querySelector("[data-visual]");
+    visual.classList.remove("has-deployment-pulse");
+    void visual.getBoundingClientRect();
+    visual.classList.add("has-deployment-pulse");
+    window.setTimeout(() => visual.classList.remove("has-deployment-pulse"), 1600);
+    if (currentFrame) renderMetrics(currentFrame);
+  }
+
+  function flashIncident() {
+    host.classList.add("has-incident-accent");
+    window.setTimeout(() => host.classList.remove("has-incident-accent"), 500);
   }
 
   function flashVoice(name) {
-    const row = rows.get(name);
-    const dot = dotByName.get(name);
-    if (!row) return;
-    row.row.setAttribute("data-hit", "1");
-    dot?.setAttribute("data-hit", "1");
-    window.setTimeout(() => {
-      row.row.removeAttribute("data-hit");
-      dot?.removeAttribute("data-hit");
-    }, 220);
+    const node = topologyNodes.get(name);
+    if (!node) return;
+    node.classList.remove("is-playing");
+    void node.getBoundingClientRect();
+    node.classList.add("is-playing");
+    window.setTimeout(() => node.classList.remove("is-playing"), 520);
   }
 
-  /**
-   * Incident hits are estate-level, not tied to one service (they can
-   * fire from a "down" status on any of several services, or from a
-   * live poll where the payload's active_incidents count rose), so
-   * this flashes the whole widget rather than a specific row. Visible
-   * whether the panel is expanded or collapsed, since the incident
-   * chip in the collapsed header (`inc N`) is always on screen.
-   */
-  function flashIncident() {
-    root.setAttribute("data-inc-hit", "1");
-    incSpan.setAttribute("data-hit", "1");
-    window.setTimeout(() => {
-      root.removeAttribute("data-inc-hit");
-      incSpan.removeAttribute("data-hit");
-    }, 260);
+  function drawWaveform(timestamp = 0) {
+    if (!dialogOpen) {
+      waveformAnimation = null;
+      return;
+    }
+    const minimumDelay = reducedMotion.matches ? 250 : 0;
+    if (timestamp - lastWaveformDraw >= minimumDelay) {
+      lastWaveformDraw = timestamp;
+      const data = engine.getWaveform();
+      const width = waveformCanvas.width;
+      const height = waveformCanvas.height;
+      waveformContext.clearRect(0, 0, width, height);
+      waveformContext.fillStyle = "#09090d";
+      waveformContext.fillRect(0, 0, width, height);
+      waveformContext.strokeStyle = "rgba(245, 166, 35, 0.2)";
+      waveformContext.beginPath();
+      waveformContext.moveTo(0, height / 2);
+      waveformContext.lineTo(width, height / 2);
+      waveformContext.stroke();
+      waveformContext.strokeStyle = engine.isRunning() ? "#f5a623" : "#555560";
+      waveformContext.lineWidth = 1.5;
+      waveformContext.beginPath();
+      const stride = width / Math.max(1, data.length - 1);
+      data.forEach((sample, index) => {
+        const x = index * stride;
+        const y = height / 2 + sample * height * 0.42;
+        if (index === 0) waveformContext.moveTo(x, y);
+        else waveformContext.lineTo(x, y);
+      });
+      waveformContext.stroke();
+    }
+    waveformAnimation = window.requestAnimationFrame(drawWaveform);
   }
 
-  toggle.addEventListener("click", async () => {
-    toggle.disabled = true;
+  function openConsole() {
+    if (dialogOpen) return;
+    dialogOpen = true;
+    overlay.hidden = false;
+    document.body.classList.add("symphony-console-open");
+    openButton.setAttribute("aria-expanded", "true");
+    closeButton.focus();
+    if (waveformAnimation === null) {
+      waveformAnimation = window.requestAnimationFrame(drawWaveform);
+    }
+  }
+
+  function closeConsole() {
+    if (!dialogOpen) return;
+    dialogOpen = false;
+    overlay.hidden = true;
+    document.body.classList.remove("symphony-console-open");
+    openButton.setAttribute("aria-expanded", "false");
+    openButton.focus();
+  }
+
+  function setHelp(open) {
+    help.hidden = !open;
+    helpToggle.setAttribute("aria-expanded", String(open));
+    if (open) help.querySelector("button")?.focus();
+    else if (dialogOpen) helpToggle.focus();
+  }
+
+  async function toggleAudio() {
+    const buttons = [...host.querySelectorAll("[data-audio-toggle]")];
+    buttons.forEach((button) => { button.disabled = true; });
     try {
-      if (engine.isRunning()) {
-        engine.pause();
-        setToggleState(false);
-      } else {
-        await engine.start();
-        setToggleState(true);
-      }
-    } catch (err) {
-      console.error("sonify: audio failed to start", err);
-      toggle.textContent = "audio n/a";
-      toggle.setAttribute("aria-label", "Audio unavailable; see console");
+      if (engine.isRunning()) engine.pause();
+      else await engine.start();
+      setRunningUi();
+    } catch (error) {
+      console.error("system-symphony: audio failed to start", error);
+      host.querySelector("[data-important-status]").textContent =
+        "Audio could not start. See the browser console for details.";
     } finally {
-      toggle.disabled = false;
+      buttons.forEach((button) => { button.disabled = false; });
+    }
+  }
+
+  host.querySelectorAll("[data-audio-toggle]").forEach((button) => {
+    button.addEventListener("click", toggleAudio);
+  });
+  host.querySelectorAll("[data-volume]").forEach((slider) => {
+    slider.addEventListener("input", () => {
+      const value = Number(slider.value);
+      engine.setUserVolume(value / 100);
+      host.querySelectorAll("[data-volume]").forEach((other) => {
+        if (other !== slider) other.value = String(value);
+      });
+    });
+  });
+
+  openButton.addEventListener("click", openConsole);
+  closeButton.addEventListener("click", closeConsole);
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) closeConsole();
+  });
+  helpToggle.addEventListener("click", () => setHelp(help.hidden));
+  host.querySelector("[data-help-close]").addEventListener("click", () => setHelp(false));
+  host.querySelector("[data-live-mode]").addEventListener("click", switchToLive);
+  host.querySelector("[data-demo-mode]").addEventListener("click", switchToDemo);
+  host.querySelector("[data-demo-reset]").addEventListener("click", resetDemoFromLive);
+
+  host.querySelector("[data-demo-status]").addEventListener("change", (event) => {
+    updateSelectedDemo({ status: event.target.value });
+  });
+  host.querySelector("[data-demo-latency]").addEventListener("change", (event) => {
+    const value = event.target.value === "" ? null : Number(event.target.value);
+    updateSelectedDemo({ latency_ms: Number.isFinite(value) ? value : null });
+  });
+  host.querySelector("[data-demo-uptime]").addEventListener("change", (event) => {
+    const value = event.target.value === "" ? null : Number(event.target.value);
+    updateSelectedDemo({ uptime_pct: Number.isFinite(value) ? value : null });
+  });
+  host.querySelector("[data-demo-error]").addEventListener("change", (event) => {
+    const value = event.target.value === "" ? null : Number(event.target.value) / 100;
+    updateSelectedDemo({ error_rate: Number.isFinite(value) ? value : null });
+  });
+  host.querySelector("[data-demo-deployment]").addEventListener("click", () => {
+    if (mode !== "demo") return;
+    demoDeploymentCounter += 1;
+    const deployment = {
+      identity: `demo-${demoDeploymentCounter}`,
+      commitSha: `demo-${demoDeploymentCounter}`,
+      status: "success",
+      localOnly: true,
+    };
+    engine.queueDeploymentMotif(deployment);
+    flashDeployment(deployment);
+  });
+  host.querySelector("[data-demo-solo]").addEventListener("click", () => {
+    if (mode !== "demo" || !selectedName) return;
+    if (soloed.has(selectedName)) soloed.delete(selectedName);
+    else soloed.add(selectedName);
+    applyAndRender(currentDemoFrame());
+  });
+  host.querySelector("[data-demo-mute]").addEventListener("click", () => {
+    if (mode !== "demo" || !selectedName) return;
+    if (muted.has(selectedName)) muted.delete(selectedName);
+    else muted.add(selectedName);
+    applyAndRender(currentDemoFrame());
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (!dialogOpen) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      if (!help.hidden) setHelp(false);
+      else closeConsole();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const focusable = [...consolePanel.querySelectorAll(
+      'button:not([disabled]):not([hidden]), input:not([disabled]):not([hidden]), select:not([disabled]):not([hidden]), [tabindex="0"]',
+    )].filter((element) => element.offsetParent !== null);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
     }
   });
 
-  expand.addEventListener("click", () => {
-    const open = root.getAttribute("data-open") !== "1";
-    root.setAttribute("data-open", open ? "1" : "0");
-    expand.setAttribute("aria-expanded", String(open));
-    expand.textContent = open ? "-" : "+";
+  engine.setVoiceHandler((name) => flashVoice(name));
+  engine.setIncidentHandler(flashIncident);
+  engine.setDeploymentHandler((deployment, firstNote) => {
+    if (firstNote) flashDeployment(deployment);
   });
-
-  liveBtn.addEventListener("click", () => {
-    mode = "live";
-    refreshSourceButtons();
-    renderCurrent();
-  });
-  demoBtn.addEventListener("click", () => {
-    mode = "demo";
-    refreshSourceButtons();
-    renderCurrent();
-    lastDemoIncidentCount = sourceFrame()?.activeIncidents ?? 0;
-  });
-
-  slider.addEventListener("input", () => {
-    engine.setUserVolume(Number(slider.value) / 100);
-  });
-
-  engine.setVoiceTickHandler((name) => flashVoice(name));
-  engine.setIncidentHitHandler(() => flashIncident());
 
   const poller = createPoller({
-    onFrame(frame, { newIncidents }) {
+    onFrame(frame, info) {
       lastLiveFrame = frame;
+      lastLiveMerged = clone(info.merged);
+      latestDeployment = info.deployment ?? latestDeployment;
+      host.querySelector("[data-demo-mode]").disabled = false;
       if (mode === "live") {
-        renderCurrent();
-        if (newIncidents > 0) engine.queueIncidentHits(newIncidents);
+        applyAndRender(frame);
+        if (info.newIncidents > 0) {
+          engine.queueIncidentAccent(info.newIncidents);
+        }
       }
     },
-    onStatus({ failing }) {
-      root.setAttribute("data-stale", failing ? "1" : "0");
+    onDeployment(deployment) {
+      latestDeployment = deployment;
+      recentDeployment = deployment;
+      engine.queueDeploymentMotif(deployment);
+      flashDeployment(deployment);
     },
   });
 
-  refreshSourceButtons();
+  const initialFrame = computeFrame({ stale: true, services: [] });
+  applyAndRender(initialFrame);
   poller.start();
+
+  window.addEventListener("pagehide", () => {
+    poller.stop();
+    if (waveformAnimation !== null) {
+      window.cancelAnimationFrame(waveformAnimation);
+      waveformAnimation = null;
+    }
+    engine.dispose();
+  }, { once: true });
 }
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initSonify, { once: true });
+  document.addEventListener("DOMContentLoaded", initSystemSymphony, { once: true });
 } else {
-  initSonify();
+  initSystemSymphony();
 }
