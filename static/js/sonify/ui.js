@@ -1,22 +1,22 @@
 /**
  * System SYMPHONY compact widget and full telemetry console.
  *
- * Live mode is inspection-only. Demo mode clones the latest live snapshot and
+ * Live mode is inspection-only. Preview mode clones the latest live snapshot and
  * mutates only local objects; this module never performs a write request.
  */
 
 import {
   DEFAULT_USER_GAIN,
   createEngine,
-} from "./engine.js?v=20260716-system-symphony-rhythm-bed";
-import { createPoller } from "./poller.js?v=20260716-system-symphony-polish";
+} from "./engine.js?v=20260716-system-symphony-cyberpunk";
+import { createPoller } from "./poller.js?v=20260716-system-symphony-cyberpunk";
 import {
   applyDemoProfileToServices,
   buildDependencyGraph,
   computeFrame,
   deriveDemoEstate,
   filterVoices,
-} from "./mapping.js?v=20260716-system-symphony-polish";
+} from "./mapping.js?v=20260716-system-symphony-cyberpunk";
 
 const WIDGET_ID = "system-symphony-widget";
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -39,12 +39,12 @@ const STATUS_LABELS = {
 };
 
 const HELP_ROWS = [
-  ["Overall estate health", "Score state, orchestration, tempo and master intensity"],
-  ["Service status", "Timbre, articulation, density and stability"],
+  ["Overall estate health", "Harmony, tempo, industrial groove and master intensity"],
+  ["Service status", "Synth family, articulation, density and stability"],
   ["Latency", "Low-pass cutoff and spectral openness"],
   ["Uptime / current state", "Brightness"],
   ["Error rate", "Instability, detuning and note confidence"],
-  ["Active incidents", "Persistent critical rhythm and harmonic tension"],
+  ["Active incidents", "Denser critical rhythm and harmonic tension"],
   ["New successful deployment", "One quantised amber hero motif"],
   ["Dependencies", "Topology edges"],
   ["Service identity", "Stable family, motif, register and stereo position"],
@@ -163,11 +163,11 @@ function template() {
             <div class="symphony-source-panel__controls">
               <div class="symphony-segmented" role="group" aria-label="Symphony data source">
                 <button type="button" data-live-mode aria-pressed="true">Live estate</button>
-                <button type="button" data-demo-mode aria-pressed="false" disabled>Demo lab</button>
+                <button type="button" data-demo-mode aria-pressed="false" disabled>Preview states</button>
               </div>
-              <button class="symphony-button" type="button" data-demo-reset hidden>Reset from live</button>
+              <button class="symphony-button" type="button" data-demo-reset hidden>Reset preview from live</button>
               <div class="symphony-demo-profiles" data-demo-profiles hidden>
-                <span>Apply to all</span>
+                <span>Preview all as</span>
                 <div>
                   <button type="button" data-demo-profile="healthy">Healthy</button>
                   <button type="button" data-demo-profile="warning">Warning</button>
@@ -237,8 +237,8 @@ function template() {
                 </div>
 
                 <fieldset class="symphony-demo-editor" data-demo-editor hidden>
-                  <legend>Local demo controls</legend>
-                  <p>These controls change this browser snapshot only.</p>
+                  <legend>Simulated preview controls</legend>
+                  <p>These controls change this browser snapshot only. Live telemetry keeps updating underneath.</p>
                   <label>Status
                     <select data-demo-status>
                       <option value="healthy">Healthy</option>
@@ -350,7 +350,7 @@ export function initSystemSymphony() {
   }
 
   function sourceState(frame = currentFrame) {
-    if (mode === "demo") return { key: "demo", label: "DEMO / LOCAL ONLY" };
+    if (mode === "demo") return { key: "demo", label: "PREVIEW / SIMULATED" };
     if (frame?.stale) return { key: "stale", label: "LIVE DATA STALE" };
     if (lastLiveFrame) return { key: "live", label: "LIVE" };
     return { key: "connecting", label: "CONNECTING" };
@@ -607,7 +607,7 @@ export function initSystemSymphony() {
         presentation.label,
         formatLatency(voice.latency_ms),
         voice.instrumentLabel,
-        voice.demoSimulated ? "demo simulation" : voice.measured ? "measured" : "topology only",
+        voice.demoSimulated ? "preview simulation" : voice.measured ? "measured" : "topology only",
       ];
       values.forEach((value, index) => {
         const cell = document.createElement("td");
@@ -674,12 +674,14 @@ export function initSystemSymphony() {
       [
         "Measurement",
         voice.demoSimulated
-          ? "Local demo simulation"
+          ? "Simulated preview"
           : voice.measured
             ? "Measured by /sonify"
             : "Topology only / unmeasured",
       ],
       ["Evidence", voice.evidence_source ?? "No live evidence source"],
+      ["Health detail", voice.health_detail ?? "No health detail supplied"],
+      ["Measured at", voice.measured_at ? formatTimestamp(voice.measured_at) : "not measured"],
       ["Latency", formatLatency(voice.latency_ms)],
       ["Uptime", formatPercent(voice.uptime_pct, 1)],
       ["Error rate", Number.isFinite(voice.error_rate) ? formatPercent(voice.error_rate * 100, 1) : "not measured"],
@@ -740,7 +742,7 @@ export function initSystemSymphony() {
     host.querySelector("[data-last-update]").textContent = formatTimestamp(frame.lastSuccessfulAt);
     const explanation = host.querySelector("[data-source-explanation]");
     explanation.textContent = mode === "demo"
-      ? "Local demo cloned from the latest live snapshot. No estate data or endpoint is changed."
+      ? "Simulated browser-only preview. Live telemetry continues updating underneath and returns unchanged when you switch back."
       : frame.stale
         ? "The live telemetry request failed. Last-known values remain visible, while the score is explicitly Unknown."
         : "Reading current public telemetry. Live mode is strictly read-only.";
@@ -811,7 +813,10 @@ export function initSystemSymphony() {
     const service = demoMerged.services.find((item) => item.name === selectedName);
     if (!service) return;
     const previousIncidents = demoMerged.estate?.active_incidents ?? 0;
-    Object.assign(service, patch, { demoSimulated: true });
+    Object.assign(service, patch, {
+      demoSimulated: true,
+      health_detail: "Simulated component preview",
+    });
     demoMerged.estate = deriveDemoEstate(demoMerged.services);
     demoMerged.timestamp = new Date().toISOString();
     const frame = currentDemoFrame();

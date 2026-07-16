@@ -5,9 +5,9 @@ import {
   DEMO_PROFILES,
   FAMILY_MIDI_RANGES,
   NEUTRAL_LATENCY_FILTER_HZ,
-  SCALE_DORIAN,
-  SCALE_LYDIAN,
+  SCALE_AEOLIAN,
   SCALE_PHRYGIAN,
+  SCALE_PHRYGIAN_DOMINANT,
   SCALE_UNKNOWN,
   SCORE_STATES,
   applyDemoProfileToServices,
@@ -40,15 +40,16 @@ const payload = (overrides = {}) => ({
   ...overrides,
 });
 
-test("healthy state uses D Lydian at the healthy tempo", () => {
+test("healthy state uses dark D Aeolian at the healthy tempo", () => {
   const frame = computeFrame(payload());
   assert.equal(frame.scoreState, "healthy");
-  assert.deepEqual(frame.scale, SCALE_LYDIAN);
+  assert.deepEqual(frame.scale, SCALE_AEOLIAN);
   assert.equal(frame.bpm, SCORE_STATES.healthy.bpm);
-  assert.equal(frame.mode, "D Lydian");
+  assert.equal(frame.mode, "D Aeolian");
+  assert.equal(frame.persistentRhythm, true);
 });
 
-test("warning state uses D Dorian for degraded service or sub-0.95 health", () => {
+test("warning state uses D Phrygian for degraded service or sub-0.95 health", () => {
   const degraded = computeFrame(payload({
     estate: { overall_health: 1, active_incidents: 0 },
     services: [service("atlas-api-index", { status: "degraded" })],
@@ -58,12 +59,12 @@ test("warning state uses D Dorian for degraded service or sub-0.95 health", () =
   }));
   for (const frame of [degraded, healthThreshold]) {
     assert.equal(frame.scoreState, "warning");
-    assert.deepEqual(frame.scale, SCALE_DORIAN);
-    assert.equal(frame.mode, "D Dorian");
+    assert.deepEqual(frame.scale, SCALE_PHRYGIAN);
+    assert.equal(frame.mode, "D Phrygian");
   }
 });
 
-test("critical state uses D Phrygian and persistent rhythm", () => {
+test("critical state uses D Phrygian dominant and persistent rhythm", () => {
   const cases = [
     payload({ estate: { overall_health: 1, active_incidents: 1 } }),
     payload({ services: [service("atlas-api-index", { status: "down" })] }),
@@ -72,7 +73,7 @@ test("critical state uses D Phrygian and persistent rhythm", () => {
   for (const input of cases) {
     const frame = computeFrame(input);
     assert.equal(frame.scoreState, "critical");
-    assert.deepEqual(frame.scale, SCALE_PHRYGIAN);
+    assert.deepEqual(frame.scale, SCALE_PHRYGIAN_DOMINANT);
     assert.equal(frame.persistentRhythm, true);
     assert.ok(frame.transitionSeconds <= 1);
   }
@@ -117,14 +118,18 @@ test("service identity and motif are deterministic and layer-aware", () => {
   const api = { name: "atlas-api-public", layer: "public-api" };
   const memory = { name: "ramone-memory", layer: "local-ai" };
   assert.deepEqual(deriveServiceIdentity(api), deriveServiceIdentity(api));
-  assert.equal(deriveServiceIdentity(api).instrumentFamily, "woodwinds");
-  assert.equal(deriveServiceIdentity(memory).instrumentFamily, "strings");
+  assert.equal(deriveServiceIdentity(api).instrumentFamily, "data-sequence");
+  assert.equal(deriveServiceIdentity(memory).instrumentFamily, "sub-drone");
   assert.equal(deriveServiceIdentity(api).motif.length, 4);
   assert.ok(deriveServiceIdentity(api).pan >= -0.72);
   assert.ok(deriveServiceIdentity(api).pan <= 0.72);
 });
 
 test("service notes remain within family-safe registers", () => {
+  assert.ok(
+    Object.values(FAMILY_MIDI_RANGES).every((range) => range.maximum <= 62),
+    "recurring service families must stay at or below D4",
+  );
   for (const layer of [
     "surface",
     "public-api",
@@ -185,6 +190,7 @@ test("topology merge keeps measured health authoritative and unknown honest", ()
       service("atlas-api-index", {
         status: "down",
         evidence_source: "atlas-api-public:/v1/stats#estate.components.registry",
+        health_detail: "registry probe returned 503",
         measured_at: "2026-07-16T09:00:00.000Z",
       }),
       service("atlas-corpus"),
@@ -207,6 +213,7 @@ test("topology merge keeps measured health authoritative and unknown honest", ()
     byName.get("atlas-api-index").evidence_source,
     "atlas-api-public:/v1/stats#estate.components.registry",
   );
+  assert.equal(byName.get("atlas-api-index").health_detail, "registry probe returned 503");
   assert.equal(byName.get("atlas-api-index").measured_at, "2026-07-16T09:00:00.000Z");
   assert.equal(byName.get("atlas-corpus").measured, true);
   assert.equal(byName.has("source-only"), false);
@@ -295,6 +302,7 @@ test("bulk demo profiles update every service coherently without mutating input"
     assert.ok(updated.every((item) => item.uptime_pct === profile.uptime_pct));
     assert.ok(updated.every((item) => item.error_rate === profile.error_rate));
     assert.ok(updated.every((item) => item.demoSimulated === true));
+    assert.ok(updated.every((item) => item.health_detail === `Preview profile: ${profile.label}`));
   }
   assert.equal(original[0].status, "healthy");
   assert.equal(original[1].demoSimulated, undefined);

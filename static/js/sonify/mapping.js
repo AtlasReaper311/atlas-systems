@@ -6,64 +6,64 @@
  * produce the same score frame.
  */
 
-export const ROOT_MIDI = 50; // D3
+export const ROOT_MIDI = 38; // D2
 export const MAX_COMPONENTS = 32;
 export const MAX_EXPECTED_LATENCY_MS = 1500;
-export const NEUTRAL_LATENCY_FILTER_HZ = 3600;
+export const NEUTRAL_LATENCY_FILTER_HZ = 2400;
 
-export const SCALE_LYDIAN = [0, 2, 4, 6, 7, 9, 11, 12];
-export const SCALE_DORIAN = [0, 2, 3, 5, 7, 9, 10, 12];
+export const SCALE_AEOLIAN = [0, 2, 3, 5, 7, 8, 10, 12];
 export const SCALE_PHRYGIAN = [0, 1, 3, 5, 7, 8, 10, 12];
-export const SCALE_UNKNOWN = [0, 2, 4, 6, 7, 10, 12, 14];
+export const SCALE_PHRYGIAN_DOMINANT = [0, 1, 4, 5, 7, 8, 10, 12];
+export const SCALE_UNKNOWN = [0, 2, 5, 7, 10, 12];
 
 export const SCORE_STATES = Object.freeze({
   healthy: Object.freeze({
     label: "Healthy",
-    mode: "D Lydian",
-    bpm: 68,
-    scale: SCALE_LYDIAN,
-    density: 0.46,
-    tension: 0.08,
-    masterGainDb: -7,
-    masterFilterHz: 7600,
+    mode: "D Aeolian",
+    bpm: 72,
+    scale: SCALE_AEOLIAN,
+    density: 0.72,
+    tension: 0.12,
+    masterGainDb: -8,
+    masterFilterHz: 4800,
     transitionSeconds: 10,
-    persistentRhythm: false,
+    persistentRhythm: true,
   }),
   warning: Object.freeze({
     label: "Warning",
-    mode: "D Dorian",
-    bpm: 78,
-    scale: SCALE_DORIAN,
-    density: 0.6,
-    tension: 0.38,
-    masterGainDb: -5,
-    masterFilterHz: 4800,
+    mode: "D Phrygian",
+    bpm: 82,
+    scale: SCALE_PHRYGIAN,
+    density: 0.8,
+    tension: 0.44,
+    masterGainDb: -7,
+    masterFilterHz: 4000,
     transitionSeconds: 8,
-    persistentRhythm: false,
+    persistentRhythm: true,
   }),
   critical: Object.freeze({
     label: "Critical",
-    mode: "D Phrygian",
-    bpm: 92,
-    scale: SCALE_PHRYGIAN,
-    density: 0.82,
-    tension: 0.88,
-    masterGainDb: -3,
-    masterFilterHz: 3200,
+    mode: "D Phrygian dominant",
+    bpm: 96,
+    scale: SCALE_PHRYGIAN_DOMINANT,
+    density: 0.9,
+    tension: 0.92,
+    masterGainDb: -5,
+    masterFilterHz: 3300,
     transitionSeconds: 0.8,
     persistentRhythm: true,
   }),
   unknown: Object.freeze({
     label: "Unknown",
-    mode: "D suspended / whole-tone",
-    bpm: 56,
+    mode: "D suspended",
+    bpm: 60,
     scale: SCALE_UNKNOWN,
-    density: 0.27,
-    tension: 0.22,
-    masterGainDb: -10,
-    masterFilterHz: 3900,
+    density: 0.48,
+    tension: 0.28,
+    masterGainDb: -11,
+    masterFilterHz: 2600,
     transitionSeconds: 8,
-    persistentRhythm: false,
+    persistentRhythm: true,
   }),
 });
 
@@ -91,8 +91,8 @@ export const STATUS_PARAMETERS = Object.freeze({
   }),
   unknown: Object.freeze({
     articulation: "suspended",
-    gain: 0.22,
-    density: 0.38,
+    gain: 0.34,
+    density: 0.56,
     stability: 0.5,
     brightnessBias: 0.5,
   }),
@@ -141,33 +141,33 @@ const LAYER_ORDER = [
 ];
 
 const FAMILY_VARIANTS = Object.freeze({
-  strings: ["chamber strings", "viola harmonics", "soft cello"],
-  woodwinds: ["alto flute", "clarinet breath", "bass clarinet"],
-  pulse: ["muted telemetry pulse", "soft frame drum", "restrained mallet"],
-  brass: ["muted horn", "flugelhorn haze", "low brass"],
-  plucked: ["glass harp", "felt piano", "nylon pluck"],
-  "low-strings": ["sub-cello", "contrabass bow", "bass ostinato"],
-  "spectral-bells": ["spectral bells", "glass celesta", "storage chimes"],
+  "analog-pad": ["detuned terminal pad", "CRT phosphor haze", "tape-worn poly pad"],
+  "data-sequence": ["packet sequencer", "modem arpeggio", "protocol pulse"],
+  "industrial-pulse": ["industrial telemetry pulse", "relay percussion", "machine-room knock"],
+  "edge-saw": ["corroded edge saw", "tunnel voltage", "cold gateway lead"],
+  "sub-drone": ["sub-core drone", "memory undertow", "neural power rail"],
+  "relay-bass": ["relay bass", "mainframe low voice", "deployment motor"],
+  "tape-signal": ["tape signal", "terminal carrier", "damaged data tone"],
 });
 
 const FAMILY_REGISTERS = Object.freeze({
-  strings: 45,
-  woodwinds: 57,
-  pulse: 45,
-  brass: 45,
-  plucked: 52,
-  "low-strings": 38,
-  "spectral-bells": 57,
+  "analog-pad": 40,
+  "data-sequence": 45,
+  "industrial-pulse": 38,
+  "edge-saw": 40,
+  "sub-drone": 33,
+  "relay-bass": 33,
+  "tape-signal": 43,
 });
 
 export const FAMILY_MIDI_RANGES = Object.freeze({
-  strings: Object.freeze({ minimum: 38, maximum: 69 }),
-  woodwinds: Object.freeze({ minimum: 45, maximum: 72 }),
-  pulse: Object.freeze({ minimum: 38, maximum: 62 }),
-  brass: Object.freeze({ minimum: 33, maximum: 60 }),
-  plucked: Object.freeze({ minimum: 43, maximum: 69 }),
-  "low-strings": Object.freeze({ minimum: 26, maximum: 50 }),
-  "spectral-bells": Object.freeze({ minimum: 48, maximum: 72 }),
+  "analog-pad": Object.freeze({ minimum: 33, maximum: 57 }),
+  "data-sequence": Object.freeze({ minimum: 38, maximum: 62 }),
+  "industrial-pulse": Object.freeze({ minimum: 33, maximum: 57 }),
+  "edge-saw": Object.freeze({ minimum: 33, maximum: 60 }),
+  "sub-drone": Object.freeze({ minimum: 26, maximum: 50 }),
+  "relay-bass": Object.freeze({ minimum: 28, maximum: 52 }),
+  "tape-signal": Object.freeze({ minimum: 36, maximum: 60 }),
 });
 
 const MOTIF_SHAPES = Object.freeze([
@@ -250,6 +250,7 @@ function measuredRecord(service, topologyComponent = null) {
     measured: true,
     demoSimulated: service?.demoSimulated === true,
     evidence_source: service?.evidence_source ?? null,
+    health_detail: service?.health_detail ?? null,
     measured_at: service?.measured_at ?? null,
     status: canonicalStatus(service?.status),
     latency_ms: finiteOrNull(service?.latency_ms),
@@ -273,6 +274,7 @@ function unknownTopologyRecord(component) {
     measured: false,
     demoSimulated: false,
     evidence_source: null,
+    health_detail: null,
     measured_at: null,
     status: "unknown",
     latency_ms: null,
@@ -392,6 +394,7 @@ export function applyDemoProfileToServices(services = [], profileName) {
     uptime_pct: profile.uptime_pct,
     error_rate: profile.error_rate,
     demoSimulated: true,
+    health_detail: `Preview profile: ${profile.label}`,
   }));
 }
 
@@ -428,18 +431,14 @@ export function deriveScoreState(payload = {}) {
 export function instrumentFamilyFor(service = {}) {
   const name = String(service?.name ?? "").toLowerCase();
   const layer = String(service?.layer ?? inferLayer(name, service?.kind)).toLowerCase();
-  const kind = String(service?.kind ?? "").toLowerCase();
 
-  if (/storage|\bkv\b|database|d1|r2/.test(`${name} ${kind}`)) {
-    return "spectral-bells";
-  }
-  if (layer === "local-ai") return "strings";
-  if (layer === "public-api") return "woodwinds";
-  if (layer === "observability") return "pulse";
-  if (layer === "edge") return "brass";
-  if (layer === "surface" || kind === "site") return "plucked";
-  if (layer === "infra" || kind === "github-actions") return "low-strings";
-  return "woodwinds";
+  if (layer === "surface") return "analog-pad";
+  if (layer === "public-api") return "data-sequence";
+  if (layer === "observability") return "industrial-pulse";
+  if (layer === "edge") return "edge-saw";
+  if (layer === "local-ai") return "sub-drone";
+  if (layer === "infra") return "relay-bass";
+  return "tape-signal";
 }
 
 export function deriveServiceIdentity(service = {}) {
@@ -466,13 +465,13 @@ export function deriveServiceIdentity(service = {}) {
     pan: clamp(pan, -0.72, 0.72),
     registerMidi,
     registerLabel:
-      registerMidi < 45 ? "low" : registerMidi < 59 ? "middle" : "high",
+      registerMidi < 40 ? "low" : registerMidi < 55 ? "middle" : "upper-middle",
   };
 }
 
 export function boundVoiceMidi(params = {}, midi) {
   const range = FAMILY_MIDI_RANGES[params.instrumentFamily]
-    ?? FAMILY_MIDI_RANGES.woodwinds;
+    ?? FAMILY_MIDI_RANGES["tape-signal"];
   return clamp(midi, range.minimum, range.maximum);
 }
 
@@ -488,7 +487,7 @@ export function normalizeLatency(latencyMs) {
 export function latencyToFilterHz(latencyMs) {
   const normalized = normalizeLatency(latencyMs);
   if (normalized === null) return NEUTRAL_LATENCY_FILTER_HZ;
-  return 900 + normalized * 7100;
+  return 550 + normalized * 4650;
 }
 
 export function uptimeToBrightness(uptimePct) {
@@ -540,6 +539,7 @@ export function computeVoiceParams(service, scoreState) {
     measured: Boolean(service?.measured),
     demoSimulated: Boolean(service?.demoSimulated),
     evidence_source: service?.evidence_source ?? null,
+    health_detail: service?.health_detail ?? null,
     measured_at: service?.measured_at ?? null,
     sourceOnly: Boolean(service?.sourceOnly),
     status,
