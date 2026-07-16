@@ -2,16 +2,22 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  DEMO_PROFILES,
+  FAMILY_MIDI_RANGES,
   NEUTRAL_LATENCY_FILTER_HZ,
   SCALE_DORIAN,
   SCALE_LYDIAN,
   SCALE_PHRYGIAN,
   SCALE_UNKNOWN,
   SCORE_STATES,
+  applyDemoProfileToServices,
+  boundVoiceMidi,
+  buildDependencyGraph,
   computeFrame,
   deriveDemoEstate,
   deriveScoreState,
   deriveServiceIdentity,
+  filterVoices,
   latencyToFilterHz,
   mergeTelemetryAndTopology,
 } from "./mapping.js";
@@ -94,6 +100,19 @@ test("one unknown component does not override current known measurements", () =>
   })), "healthy");
 });
 
+test("measured unknown and topology-only unmeasured are counted separately", () => {
+  const frame = computeFrame(payload({
+    services: [
+      service("healthy"),
+      service("measured-unknown", { status: "unknown", measured: true }),
+      service("topology-only", { status: "unknown", measured: false }),
+    ],
+  }));
+  assert.equal(frame.unknownCount, 1);
+  assert.equal(frame.unmeasuredCount, 1);
+  assert.equal(frame.measuredComponents, 2);
+});
+
 test("service identity and motif are deterministic and layer-aware", () => {
   const api = { name: "atlas-api-public", layer: "public-api" };
   const memory = { name: "ramone-memory", layer: "local-ai" };
@@ -103,6 +122,26 @@ test("service identity and motif are deterministic and layer-aware", () => {
   assert.equal(deriveServiceIdentity(api).motif.length, 4);
   assert.ok(deriveServiceIdentity(api).pan >= -0.72);
   assert.ok(deriveServiceIdentity(api).pan <= 0.72);
+});
+
+test("service notes remain within family-safe registers", () => {
+  for (const layer of [
+    "surface",
+    "public-api",
+    "observability",
+    "edge",
+    "local-ai",
+    "infra",
+  ]) {
+    const voice = computeFrame(payload({
+      services: [service(`voice-${layer}`, { layer })],
+    })).voices[0];
+    const range = FAMILY_MIDI_RANGES[voice.instrumentFamily];
+    assert.ok(voice.motifMidi.every((midi) => midi >= range.minimum));
+    assert.ok(voice.motifMidi.every((midi) => midi <= range.maximum));
+    assert.equal(boundVoiceMidi(voice, range.maximum + 24), range.maximum);
+    assert.equal(boundVoiceMidi(voice, range.minimum - 24), range.minimum);
+  }
 });
 
 test("latency controls spectral openness and null uses a neutral default", () => {
@@ -143,7 +182,11 @@ test("topology merge keeps measured health authoritative and unknown honest", ()
     timestamp: "2026-07-16T09:00:00.000Z",
     estate: { overall_health: 1, active_incidents: 0 },
     services: [
-      service("atlas-api-index", { status: "down" }),
+      service("atlas-api-index", {
+        status: "down",
+        evidence_source: "atlas-api-public:/v1/stats#estate.components.registry",
+        measured_at: "2026-07-16T09:00:00.000Z",
+      }),
       service("atlas-corpus"),
       service("measured-only"),
     ],
@@ -160,6 +203,11 @@ test("topology merge keeps measured health authoritative and unknown honest", ()
   const byName = new Map(merged.services.map((item) => [item.name, item]));
   assert.equal(byName.get("atlas-api-index").status, "down");
   assert.equal(byName.get("atlas-api-index").layer, "public-api");
+  assert.equal(
+    byName.get("atlas-api-index").evidence_source,
+    "atlas-api-public:/v1/stats#estate.components.registry",
+  );
+  assert.equal(byName.get("atlas-api-index").measured_at, "2026-07-16T09:00:00.000Z");
   assert.equal(byName.get("atlas-corpus").measured, true);
   assert.equal(byName.has("source-only"), false);
   assert.equal(byName.get("topology-only").status, "unknown");
@@ -190,6 +238,67 @@ test("dynamic score frames support more than the original six voices", () => {
   const frame = computeFrame(mergeTelemetryAndTopology(payload(), topology));
   assert.equal(frame.voices.length, 19);
   assert.ok(frame.voices.length > 6);
+});
+
+test("voice filters preserve order and separate measured from unmeasured", () => {
+  const voices = [
+    service("measured-one", { measured: true }),
+    service("unmeasured", { measured: false }),
+    service("measured-two", { measured: true }),
+  ];
+  assert.deepEqual(filterVoices(voices, "all").map((voice) => voice.name), [
+    "measured-one",
+    "unmeasured",
+    "measured-two",
+  ]);
+  assert.deepEqual(filterVoices(voices, "measured").map((voice) => voice.name), [
+    "measured-one",
+    "measured-two",
+  ]);
+  assert.deepEqual(filterVoices(voices, "unmeasured").map((voice) => voice.name), [
+    "unmeasured",
+  ]);
+});
+
+test("dependency graph keeps visible internal edges and identifies external boundaries", () => {
+  const allVoices = [
+    service("surface", { depends_on: ["api", "cloudflare-pages"] }),
+    service("api", { depends_on: ["registry"] }),
+    service("registry"),
+  ];
+  const graph = buildDependencyGraph(allVoices, allVoices);
+  assert.deepEqual(graph.internalEdges, [
+    { from: "surface", to: "api" },
+    { from: "api", to: "registry" },
+  ]);
+  assert.deepEqual(graph.externalEdges, [
+    { from: "surface", to: "cloudflare-pages" },
+  ]);
+  assert.deepEqual(graph.externalNodes, ["cloudflare-pages"]);
+
+  const filtered = buildDependencyGraph([allVoices[0]], allVoices);
+  assert.deepEqual(filtered.internalEdges, []);
+  assert.deepEqual(filtered.externalEdges, [
+    { from: "surface", to: "cloudflare-pages" },
+  ]);
+  assert.deepEqual(filtered.externalNodes, ["cloudflare-pages"]);
+});
+
+test("bulk demo profiles update every service coherently without mutating input", () => {
+  const original = [service("one"), service("two", { measured: false })];
+  for (const [profileName, profile] of Object.entries(DEMO_PROFILES)) {
+    const updated = applyDemoProfileToServices(original, profileName);
+    assert.notEqual(updated, original);
+    assert.equal(updated.length, original.length);
+    assert.ok(updated.every((item) => item.status === profile.status));
+    assert.ok(updated.every((item) => item.latency_ms === profile.latency_ms));
+    assert.ok(updated.every((item) => item.uptime_pct === profile.uptime_pct));
+    assert.ok(updated.every((item) => item.error_rate === profile.error_rate));
+    assert.ok(updated.every((item) => item.demoSimulated === true));
+  }
+  assert.equal(original[0].status, "healthy");
+  assert.equal(original[1].demoSimulated, undefined);
+  assert.throws(() => applyDemoProfileToServices(original, "not-a-profile"), /unknown demo profile/);
 });
 
 test("demo rollup ignores unknowns and counts down services as incidents", () => {

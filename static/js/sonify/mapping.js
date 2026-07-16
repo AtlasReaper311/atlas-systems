@@ -98,6 +98,37 @@ export const STATUS_PARAMETERS = Object.freeze({
   }),
 });
 
+export const DEMO_PROFILES = Object.freeze({
+  healthy: Object.freeze({
+    label: "All healthy",
+    status: "healthy",
+    latency_ms: 45,
+    uptime_pct: 99.99,
+    error_rate: 0,
+  }),
+  warning: Object.freeze({
+    label: "All warning",
+    status: "degraded",
+    latency_ms: 280,
+    uptime_pct: 99,
+    error_rate: 0.01,
+  }),
+  critical: Object.freeze({
+    label: "All critical",
+    status: "down",
+    latency_ms: null,
+    uptime_pct: 95,
+    error_rate: 0.05,
+  }),
+  unknown: Object.freeze({
+    label: "All unknown",
+    status: "unknown",
+    latency_ms: null,
+    uptime_pct: null,
+    error_rate: null,
+  }),
+});
+
 const LAYER_ORDER = [
   "surface",
   "public-api",
@@ -120,13 +151,23 @@ const FAMILY_VARIANTS = Object.freeze({
 });
 
 const FAMILY_REGISTERS = Object.freeze({
-  strings: 50,
-  woodwinds: 62,
-  pulse: 50,
+  strings: 45,
+  woodwinds: 57,
+  pulse: 45,
   brass: 45,
-  plucked: 57,
+  plucked: 52,
   "low-strings": 38,
-  "spectral-bells": 62,
+  "spectral-bells": 57,
+});
+
+export const FAMILY_MIDI_RANGES = Object.freeze({
+  strings: Object.freeze({ minimum: 38, maximum: 69 }),
+  woodwinds: Object.freeze({ minimum: 45, maximum: 72 }),
+  pulse: Object.freeze({ minimum: 38, maximum: 62 }),
+  brass: Object.freeze({ minimum: 33, maximum: 60 }),
+  plucked: Object.freeze({ minimum: 43, maximum: 69 }),
+  "low-strings": Object.freeze({ minimum: 26, maximum: 50 }),
+  "spectral-bells": Object.freeze({ minimum: 48, maximum: 72 }),
 });
 
 const MOTIF_SHAPES = Object.freeze([
@@ -207,6 +248,9 @@ function measuredRecord(service, topologyComponent = null) {
         : [],
     sourceOnly: topologyComponent?.source_only === true,
     measured: true,
+    demoSimulated: service?.demoSimulated === true,
+    evidence_source: service?.evidence_source ?? null,
+    measured_at: service?.measured_at ?? null,
     status: canonicalStatus(service?.status),
     latency_ms: finiteOrNull(service?.latency_ms),
     uptime_pct: finiteOrNull(service?.uptime_pct),
@@ -227,6 +271,9 @@ function unknownTopologyRecord(component) {
     depends_on: Array.isArray(component?.depends_on) ? [...component.depends_on] : [],
     sourceOnly: component?.source_only === true,
     measured: false,
+    demoSimulated: false,
+    evidence_source: null,
+    measured_at: null,
     status: "unknown",
     latency_ms: null,
     uptime_pct: null,
@@ -293,6 +340,59 @@ export function mergeTelemetryAndTopology(telemetry = {}, topology = null) {
     topologyAvailable: topologyComponents.length > 0,
     services,
   };
+}
+
+export function filterVoices(voices = [], filter = "all") {
+  if (filter === "measured") {
+    return voices.filter((voice) => Boolean(voice?.measured));
+  }
+  if (filter === "unmeasured") {
+    return voices.filter((voice) => !voice?.measured);
+  }
+  return [...voices];
+}
+
+export function buildDependencyGraph(visibleVoices = [], allVoices = visibleVoices) {
+  const visibleNames = new Set(visibleVoices.map((voice) => voice.name));
+  const allNames = new Set(allVoices.map((voice) => voice.name));
+  const internalEdges = [];
+  const externalEdges = [];
+  const externalNodes = new Set();
+  const seen = new Set();
+
+  for (const voice of visibleVoices) {
+    const dependencies = Array.isArray(voice?.depends_on) ? voice.depends_on : [];
+    for (const dependency of dependencies) {
+      const key = `${voice.name}\u0000${dependency}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      if (visibleNames.has(dependency)) {
+        internalEdges.push({ from: voice.name, to: dependency });
+      } else if (!allNames.has(dependency)) {
+        externalEdges.push({ from: voice.name, to: dependency });
+        externalNodes.add(dependency);
+      }
+    }
+  }
+
+  return {
+    internalEdges,
+    externalEdges,
+    externalNodes: [...externalNodes].sort((left, right) => left.localeCompare(right)),
+  };
+}
+
+export function applyDemoProfileToServices(services = [], profileName) {
+  const profile = DEMO_PROFILES[profileName];
+  if (!profile) throw new Error(`system-symphony: unknown demo profile ${profileName}`);
+  return services.map((service) => ({
+    ...service,
+    status: profile.status,
+    latency_ms: profile.latency_ms,
+    uptime_pct: profile.uptime_pct,
+    error_rate: profile.error_rate,
+    demoSimulated: true,
+  }));
 }
 
 export function deriveScoreState(payload = {}) {
@@ -370,6 +470,12 @@ export function deriveServiceIdentity(service = {}) {
   };
 }
 
+export function boundVoiceMidi(params = {}, midi) {
+  const range = FAMILY_MIDI_RANGES[params.instrumentFamily]
+    ?? FAMILY_MIDI_RANGES.woodwinds;
+  return clamp(midi, range.minimum, range.maximum);
+}
+
 export function normalizeLatency(latencyMs) {
   if (!Number.isFinite(latencyMs)) return null;
   const normalized =
@@ -419,10 +525,9 @@ export function computeVoiceParams(service, scoreState) {
   const detuneDirection = identity.hash % 2 === 0 ? 1 : -1;
   const detuneCents = detuneDirection * instability * SCORE_STATES[scoreState].tension * 19;
   const noteConfidence = clamp(1 - instability * 0.7, 0.2, 1);
-  const octaveShift = identity.registerMidi < ROOT_MIDI ? -12 : 0;
   const motifMidi = identity.motif.map((degree) => {
     const scaleOffset = scale[degree % scale.length];
-    return identity.registerMidi + octaveShift + scaleOffset;
+    return boundVoiceMidi(identity, identity.registerMidi + scaleOffset);
   });
 
   return {
@@ -433,6 +538,9 @@ export function computeVoiceParams(service, scoreState) {
     description: service?.description ?? null,
     depends_on: Array.isArray(service?.depends_on) ? [...service.depends_on] : [],
     measured: Boolean(service?.measured),
+    demoSimulated: Boolean(service?.demoSimulated),
+    evidence_source: service?.evidence_source ?? null,
+    measured_at: service?.measured_at ?? null,
     sourceOnly: Boolean(service?.sourceOnly),
     status,
     latency_ms: latency,
@@ -513,7 +621,10 @@ export function computeFrame(payload = {}) {
     measuredComponents: voices.filter((voice) => voice.measured).length,
     warningCount: voices.filter((voice) => voice.status === "degraded").length,
     failureCount: voices.filter((voice) => voice.status === "down").length,
-    unknownCount: voices.filter((voice) => voice.status === "unknown").length,
+    unknownCount: voices.filter(
+      (voice) => voice.measured && voice.status === "unknown",
+    ).length,
+    unmeasuredCount: voices.filter((voice) => !voice.measured).length,
     voices,
   };
 }

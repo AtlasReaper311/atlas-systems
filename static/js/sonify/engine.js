@@ -9,15 +9,19 @@
 
 import {
   MAX_COMPONENTS,
+  boundVoiceMidi,
   midiToFrequencyHz,
   stableHash,
-} from "./mapping.js?v=20260716-system-symphony-v2";
+} from "./mapping.js?v=20260716-system-symphony-polish";
 
 export const DEFAULT_USER_GAIN = 0.62;
 export const MAX_SERVICE_VOICES = MAX_COMPONENTS;
 export const MAX_INCIDENT_ACCENTS = 4;
 export const WAVEFORM_SIZE = 512;
 export const AUDIO_START_TIMEOUT_MS = 8000;
+export const PAD_MEASURE_STEPS = 8;
+export const PAD_ROOT_MIDI = 38; // D2
+export const DRONE_MIDI = Object.freeze([PAD_ROOT_MIDI, 45]); // D2 / A2
 
 const UI_RAMP_SECONDS = 0.25;
 const VOICE_REMOVE_RAMP_SECONDS = 0.5;
@@ -39,9 +43,9 @@ const BASS_STEPS = Object.freeze({
 
 const NOTE_LENGTHS = Object.freeze({
   legato: "2n",
-  tenuto: "4n",
+  tenuto: "2n",
   urgent: "8n",
-  suspended: "2n",
+  suspended: "1m",
 });
 
 function randomUnit(seed) {
@@ -50,6 +54,27 @@ function randomUnit(seed) {
   value = Math.imul(value ^ (value >>> 15), value | 1);
   value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
   return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+}
+
+export function shouldPlayPad(step) {
+  return Number.isInteger(step) && step >= 0 && step % PAD_MEASURE_STEPS === 0;
+}
+
+export function buildPadVoicing(scoreState, scale, measureIndex) {
+  const chords = PAD_CHORDS[scoreState] ?? PAD_CHORDS.unknown;
+  const chord = chords[Math.abs(Math.trunc(measureIndex)) % chords.length];
+  const inversion = Math.floor(Math.abs(Math.trunc(measureIndex)) / chords.length)
+    % chord.length;
+  return chord.map((_, index) => {
+    const degree = chord[(index + inversion) % chord.length];
+    const scaleOffset = scale[degree % scale.length];
+    const octave = index === 0 ? 0 : 12;
+    return Math.min(62, PAD_ROOT_MIDI + scaleOffset + octave);
+  });
+}
+
+export function serviceOctaveDisplacement(seed) {
+  return randomUnit(seed) < 0.06 ? -12 : 0;
 }
 
 function requireTone() {
@@ -104,9 +129,9 @@ function serviceSynth(Tone, family) {
       });
     case "pulse":
       return new Tone.MembraneSynth({
-        pitchDecay: 0.025,
-        octaves: 2,
-        envelope: { attack: 0.002, decay: 0.16, sustain: 0.08, release: 0.35 },
+        pitchDecay: 0.04,
+        octaves: 1.4,
+        envelope: { attack: 0.02, decay: 0.35, sustain: 0.12, release: 0.7 },
         volume: -12,
       });
     case "brass":
@@ -126,9 +151,9 @@ function serviceSynth(Tone, family) {
       });
     case "plucked":
       return new Tone.PluckSynth({
-        attackNoise: 0.7,
-        dampening: 4200,
-        resonance: 0.82,
+        attackNoise: 0.4,
+        dampening: 3200,
+        resonance: 0.75,
         volume: -10,
       });
     case "low-strings":
@@ -161,12 +186,12 @@ function serviceSynth(Tone, family) {
       return new Tone.MonoSynth({
         oscillator: { type: "sine" },
         filter: { type: "lowpass", Q: 3, rolloff: -24 },
-        envelope: { attack: 0.09, decay: 0.24, sustain: 0.58, release: 0.9 },
+        envelope: { attack: 0.16, decay: 0.36, sustain: 0.6, release: 1.6 },
         filterEnvelope: {
-          attack: 0.11,
+          attack: 0.18,
           decay: 0.35,
           sustain: 0.5,
-          release: 0.8,
+          release: 1.4,
           baseFrequency: 260,
           octaves: 3.4,
         },
@@ -198,10 +223,12 @@ export function createEngine() {
   let masterFilter = null;
   let masterVolume = null;
   let serviceBus = null;
+  let droneGain = null;
   let padGain = null;
   let bassGain = null;
   let percussionGain = null;
   let deploymentGain = null;
+  let drone = null;
   let pad = null;
   let bass = null;
   let kick = null;
@@ -277,15 +304,22 @@ export function createEngine() {
     limiter.connect(analyser);
 
     serviceBus = new Tone.Gain(0.82).connect(masterVolume);
+    droneGain = new Tone.Gain(0.22).connect(masterVolume);
     padGain = new Tone.Gain(0.5).connect(masterVolume);
     bassGain = new Tone.Gain(0.3).connect(masterVolume);
     percussionGain = new Tone.Gain(0).connect(masterVolume);
     deploymentGain = new Tone.Gain(0.72).connect(masterVolume);
 
-    pad = new Tone.PolySynth(Tone.Synth, {
+    drone = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: "sine" },
-      envelope: { attack: 1.2, decay: 1.1, sustain: 0.64, release: 4.2 },
-      volume: -14,
+      envelope: { attack: 3.2, decay: 1.8, sustain: 0.82, release: 6.5 },
+      volume: -18,
+    }).connect(droneGain);
+
+    pad = new Tone.PolySynth(Tone.Synth, {
+      oscillator: { type: "triangle" },
+      envelope: { attack: 1.8, decay: 1.3, sustain: 0.7, release: 5.2 },
+      volume: -16,
     }).connect(padGain);
 
     bass = new Tone.MonoSynth({
@@ -333,16 +367,21 @@ export function createEngine() {
   }
 
   function playPad(time, frame, step) {
+    if (!shouldPlayPad(step)) return;
+    const measureIndex = phraseIndex * 4 + step / PAD_MEASURE_STEPS;
+    const notes = buildPadVoicing(frame.scoreState, frame.scale, measureIndex)
+      .map(midiToFrequencyHz);
+    pad.triggerAttackRelease(notes, "1m", time, 0.3);
+  }
+
+  function playDrone(time, step) {
     if (step !== 0) return;
-    const chords = PAD_CHORDS[frame.scoreState];
-    const chord = chords[phraseIndex % chords.length];
-    const inversion = Math.floor(phraseIndex / chords.length) % chord.length;
-    const notes = chord.map((degree, index) => {
-      const scaleOffset = frame.scale[degree % frame.scale.length];
-      const octave = index < inversion ? 24 : 12;
-      return midiToFrequencyHz(50 + scaleOffset + octave);
-    });
-    pad.triggerAttackRelease(notes, frame.scoreState === "unknown" ? "2m" : "1m", time, 0.34);
+    drone.triggerAttackRelease(
+      DRONE_MIDI.map(midiToFrequencyHz),
+      "4m",
+      time,
+      0.26,
+    );
   }
 
   function playBass(time, frame, step) {
@@ -381,9 +420,11 @@ export function createEngine() {
     if (!voice) return;
 
     const motifIndex = (phraseIndex + step + params.hash) % params.motifMidi.length;
-    const displacementChance = randomUnit(params.hash ^ phraseIndex ^ (step << 8));
-    const octave = displacementChance > 0.9 ? 12 : displacementChance < 0.08 ? -12 : 0;
-    const midi = params.motifMidi[motifIndex] + octave;
+    const seed = params.hash ^ phraseIndex ^ (step << 8);
+    const midi = boundVoiceMidi(
+      params,
+      params.motifMidi[motifIndex] + serviceOctaveDisplacement(seed),
+    );
     const frequency = midiToFrequencyHz(midi) * Math.pow(2, params.detuneCents / 1200);
     const duration = NOTE_LENGTHS[params.articulation] ?? "4n";
     const velocity = params.velocity * (params.status === "unknown" ? 0.7 : 1);
@@ -399,6 +440,7 @@ export function createEngine() {
     if (!running || !currentFrame) return;
     const step = stepIndex % PHRASE_STEPS;
     if (step === 0 && stepIndex > 0) phraseIndex += 1;
+    playDrone(time, step);
     playPad(time, currentFrame, step);
     playBass(time, currentFrame, step);
     playPercussion(time, currentFrame, step);
@@ -412,6 +454,11 @@ export function createEngine() {
     safeRamp(transport.bpm, frame.bpm, transition);
     safeRamp(masterVolume.volume, frame.masterGainDb, transition);
     safeRamp(masterFilter.frequency, frame.masterFilterHz, transition);
+    safeRamp(
+      droneGain.gain,
+      frame.scoreState === "critical" ? 0.28 : frame.scoreState === "unknown" ? 0.16 : 0.23,
+      transition,
+    );
     safeRamp(
       padGain.gain,
       frame.scoreState === "unknown" ? 0.3 : frame.scoreState === "warning" ? 0.48 : 0.58,
@@ -457,10 +504,12 @@ export function createEngine() {
       kick,
       bass,
       pad,
+      drone,
       deploymentGain,
       percussionGain,
       bassGain,
       padGain,
+      droneGain,
       serviceBus,
       masterVolume,
       masterFilter,
@@ -522,7 +571,7 @@ export function createEngine() {
       const Tone = requireTone();
       const startAt = transport.nextSubdivision("4n");
       const stepSeconds = Tone.Time("8n").toSeconds();
-      const notes = [62, 69, 76, 78, 74]; // D4, A4, E5, F#5, D5
+      const notes = [50, 57, 64, 66, 62]; // D3, A3, E4, F#4, D4
       notes.forEach((midi, index) => {
         transport.scheduleOnce((time) => {
           deploymentSynth.triggerAttackRelease(
