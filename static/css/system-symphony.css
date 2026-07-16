@@ -443,7 +443,7 @@
 
 .symphony-demo-profiles > div {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 4px;
 }
 
@@ -940,7 +940,7 @@
 .symphony-demo-editor {
   display: grid;
   gap: 12px;
-  margin: 24px 0 0;
+  margin: 14px 0 20px;
   padding: 16px;
   border: 1px solid rgba(245, 166, 35, 0.3);
   background: rgba(245, 166, 35, 0.045);

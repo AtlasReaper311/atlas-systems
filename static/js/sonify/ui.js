@@ -9,14 +9,14 @@ import {
   DEFAULT_USER_GAIN,
   createEngine,
 } from "./engine.js?v=20260716-system-symphony-expanded-library";
-import { createPoller } from "./poller.js?v=20260716-system-symphony-expanded-library";
+import { createPoller } from "./poller.js?v=20260716-system-symphony-demo-ui";
 import {
   applyDemoProfileToServices,
   buildDependencyGraph,
   computeFrame,
   deriveDemoEstate,
   filterVoices,
-} from "./mapping.js?v=20260716-system-symphony-expanded-library";
+} from "./mapping.js?v=20260716-system-symphony-demo-ui";
 import {
   DEFAULT_PERFORMANCE_SEED,
   PERFORMANCE_MACRO_DEFAULTS,
@@ -184,6 +184,7 @@ function template() {
                 <div class="symphony-demo-profiles">
                   <span>Musical scene</span>
                   <div role="group" aria-label="Demo musical scene">
+                    <button type="button" data-demo-profile="custom" aria-pressed="true"><span>Custom</span><strong>Live snapshot</strong></button>
                     <button type="button" data-demo-profile="healthy" aria-pressed="false"><span>Healthy</span><strong>Night Drive</strong></button>
                     <button type="button" data-demo-profile="warning" aria-pressed="false"><span>Warning</span><strong>Grid Pressure</strong></button>
                     <button type="button" data-demo-profile="critical" aria-pressed="false"><span>Critical</span><strong>Redline Protocol</strong></button>
@@ -253,17 +254,6 @@ function template() {
                 <p class="symphony-kicker">Selected voice</p>
                 <h3 id="symphony-inspector-title" data-inspector-name>No component selected</h3>
                 <p class="symphony-inspector__identity" data-inspector-identity>Select a topology node or service row.</p>
-                <p class="symphony-inspector__description" data-inspector-description></p>
-                <dl data-inspector-details></dl>
-                <div class="symphony-dependencies">
-                  <h4>Depends on</h4>
-                  <ul data-inspector-dependencies><li>None declared</li></ul>
-                </div>
-                <div class="symphony-dependencies">
-                  <h4>Used by</h4>
-                  <ul data-inspector-used-by><li>None declared</li></ul>
-                </div>
-
                 <fieldset class="symphony-demo-editor" data-demo-editor hidden>
                   <legend>Simulated preview controls</legend>
                   <p>These controls change this browser snapshot only. Live telemetry keeps updating underneath.</p>
@@ -286,6 +276,16 @@ function template() {
                     <button class="symphony-button" type="button" data-demo-mute aria-pressed="false">Mute voice</button>
                   </div>
                 </fieldset>
+                <p class="symphony-inspector__description" data-inspector-description></p>
+                <dl data-inspector-details></dl>
+                <div class="symphony-dependencies">
+                  <h4>Depends on</h4>
+                  <ul data-inspector-dependencies><li>None declared</li></ul>
+                </div>
+                <div class="symphony-dependencies">
+                  <h4>Used by</h4>
+                  <ul data-inspector-used-by><li>None declared</li></ul>
+                </div>
                 <p class="symphony-live-lock" data-live-lock>Live mode is read-only. Inspection and audio controls only.</p>
               </aside>
             </div>
@@ -354,6 +354,7 @@ export function initSystemSymphony() {
   let performanceSeed = DEFAULT_PERFORMANCE_SEED;
   let performanceMacros = { ...PERFORMANCE_MACRO_DEFAULTS };
   let performanceArrangement = null;
+  let activeDemoProfile = null;
   let performanceStatus = `Seed ${DEFAULT_PERFORMANCE_SEED} ready`;
 
   function presentationForVoice(voice) {
@@ -406,8 +407,13 @@ export function initSystemSymphony() {
     const scene = performanceArrangement?.scoreState === frame.scoreState
       ? performanceArrangement
       : PERFORMANCE_SCENES[frame.scoreState] ?? PERFORMANCE_SCENES.unknown;
+    const sceneName = activeDemoProfile === "custom"
+      ? performanceArrangement
+        ? `Custom / ${scene.sceneName ?? scene.name}`
+        : "Custom snapshot"
+      : scene.sceneName ?? scene.name;
     host.querySelector("[data-performance-scene]").textContent =
-      scene.sceneName ?? scene.name;
+      sceneName;
     const performanceBpm = performanceArrangement
       ? Math.round(performanceArrangement.targetBpm)
       : frame.bpm;
@@ -424,7 +430,7 @@ export function initSystemSymphony() {
     for (const button of host.querySelectorAll("[data-demo-profile]")) {
       button.setAttribute(
         "aria-pressed",
-        String(button.dataset.demoProfile === frame.scoreState),
+        String(button.dataset.demoProfile === activeDemoProfile),
       );
     }
     const palette = resolveSamplePalette(
@@ -565,6 +571,13 @@ export function initSystemSymphony() {
     if (focusInspector) host.querySelector("[data-inspector-name]").focus?.();
   }
 
+  function clearTopologySelection() {
+    if (!topologySelectionActive) return;
+    topologySelectionActive = false;
+    renderServiceTable();
+    applyTopologySelection();
+  }
+
   function applyTopologySelection() {
     const activeSelection = topologySelectionActive && Boolean(selectedName);
     const related = new Set(activeSelection ? [selectedName] : []);
@@ -576,7 +589,7 @@ export function initSystemSymphony() {
         .forEach((voice) => related.add(voice.name));
     }
     for (const [nodeName, node] of topologyNodes) {
-      node.classList.toggle("is-selected", nodeName === selectedName);
+      node.classList.toggle("is-selected", activeSelection && nodeName === selectedName);
       node.classList.toggle("is-dimmed", activeSelection && !related.has(nodeName));
     }
     for (const edge of topologySvg.querySelectorAll(".symphony-edge")) {
@@ -647,7 +660,7 @@ export function initSystemSymphony() {
       const position = positions.get(voice.name);
       const presentation = presentationForVoice(voice);
       const group = svgElement("g", {
-        class: `symphony-node status-${presentation.key}${voice.name === selectedName ? " is-selected" : ""}`,
+        class: `symphony-node status-${presentation.key}${topologySelectionActive && voice.name === selectedName ? " is-selected" : ""}`,
         transform: `translate(${position.x} ${position.y})`,
         tabindex: "0",
         role: "button",
@@ -698,7 +711,7 @@ export function initSystemSymphony() {
     if (!currentFrame) return;
     for (const voice of visibleVoices()) {
       const row = document.createElement("tr");
-      if (voice.name === selectedName) row.classList.add("is-selected");
+      if (topologySelectionActive && voice.name === selectedName) row.classList.add("is-selected");
       const presentation = presentationForVoice(voice);
       row.dataset.status = presentation.key;
       const values = [
@@ -895,9 +908,12 @@ export function initSystemSymphony() {
     demoMerged.estate = deriveDemoEstate(demoMerged.services);
     muted.clear();
     soloed.clear();
+    activeDemoProfile = "custom";
+    performanceArrangement = null;
+    performanceStatus = "Custom live snapshot ready";
+    engine.setPerformance(null, { quantize: false });
     const frame = currentDemoFrame();
     applyAndRender(frame);
-    stagePerformance(frame.scoreState, "Preview reset");
   }
 
   function switchToDemo() {
@@ -911,6 +927,7 @@ export function initSystemSymphony() {
     demoMerged = null;
     muted.clear();
     soloed.clear();
+    activeDemoProfile = null;
     performanceArrangement = null;
     engine.setPerformance(null, { quantize: false });
     if (lastLiveFrame) applyAndRender(lastLiveFrame);
@@ -925,6 +942,7 @@ export function initSystemSymphony() {
       demoSimulated: true,
       health_detail: "Simulated component preview",
     });
+    activeDemoProfile = "custom";
     demoMerged.estate = deriveDemoEstate(demoMerged.services);
     demoMerged.timestamp = new Date().toISOString();
     const frame = currentDemoFrame();
@@ -945,6 +963,7 @@ export function initSystemSymphony() {
       demoMerged.services,
       profileName,
     );
+    activeDemoProfile = profileName;
     demoMerged.estate = deriveDemoEstate(demoMerged.services);
     demoMerged.timestamp = new Date().toISOString();
     muted.clear();
@@ -1122,7 +1141,18 @@ export function initSystemSymphony() {
   host.querySelector("[data-demo-mode]").addEventListener("click", switchToDemo);
   host.querySelector("[data-demo-reset]").addEventListener("click", resetDemoFromLive);
   host.querySelectorAll("[data-demo-profile]").forEach((button) => {
-    button.addEventListener("click", () => applyDemoProfile(button.dataset.demoProfile));
+    button.addEventListener("click", () => {
+      if (button.dataset.demoProfile === "custom") resetDemoFromLive();
+      else applyDemoProfile(button.dataset.demoProfile);
+    });
+  });
+  topologySvg.addEventListener("click", (event) => {
+    if (event.target.closest?.("[data-node]")) return;
+    clearTopologySelection();
+  });
+  topologySvg.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    clearTopologySelection();
   });
   host.querySelector("[data-randomise-score]").addEventListener(
     "click",

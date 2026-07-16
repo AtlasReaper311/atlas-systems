@@ -411,6 +411,9 @@ export function deriveScoreState(payload = {}) {
   const incidents = Number.isFinite(payload?.estate?.active_incidents)
     ? Math.max(0, Math.trunc(payload.estate.active_incidents))
     : 0;
+  const knownServiceRatio = Number.isFinite(payload?.estate?.known_service_ratio)
+    ? clamp(payload.estate.known_service_ratio, 0, 1)
+    : null;
 
   if (
     incidents > 0 ||
@@ -424,6 +427,9 @@ export function deriveScoreState(payload = {}) {
     (health !== null && health < 0.95)
   ) {
     return "warning";
+  }
+  if (knownServiceRatio !== null && knownServiceRatio < 0.5) {
+    return "unknown";
   }
   return "healthy";
 }
@@ -579,6 +585,7 @@ export function deriveDemoEstate(services = []) {
     active_incidents: known.filter(
       (service) => canonicalStatus(service.status) === "down",
     ).length,
+    known_service_ratio: services.length ? known.length / services.length : 0,
   };
 }
 

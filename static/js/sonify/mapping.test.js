@@ -319,7 +319,40 @@ test("demo rollup ignores unknowns and counts down services as incidents", () =>
   assert.equal(estate.active_incidents, 1);
   assert.ok(estate.overall_health < 0.95);
   assert.ok(estate.overall_health > 0);
-  assert.equal(deriveDemoEstate([service("unknown", { status: "unknown" })]).overall_health, null);
+  assert.equal(estate.known_service_ratio, 0.75);
+  const unknownEstate = deriveDemoEstate([service("unknown", { status: "unknown" })]);
+  assert.equal(unknownEstate.overall_health, null);
+  assert.equal(unknownEstate.known_service_ratio, 0);
+});
+
+test("a lone healthy custom voice does not promote an unknown Demo estate", () => {
+  const services = [
+    service("healthy", { status: "healthy" }),
+    service("unknown-one", { status: "unknown" }),
+    service("unknown-two", { status: "unknown" }),
+    service("unknown-three", { status: "unknown" }),
+  ];
+  const frame = computeFrame({
+    services,
+    estate: deriveDemoEstate(services),
+  });
+  assert.equal(frame.scoreState, "unknown");
+  assert.equal(frame.voices[0].status, "healthy");
+  assert.equal(frame.voices[0].articulation, "legato");
+});
+
+test("warning and critical custom voices still escalate an unknown Demo estate", () => {
+  for (const [status, expected] of [["degraded", "warning"], ["down", "critical"]]) {
+    const services = [
+      service("signal", { status }),
+      service("unknown-one", { status: "unknown" }),
+      service("unknown-two", { status: "unknown" }),
+    ];
+    assert.equal(computeFrame({
+      services,
+      estate: deriveDemoEstate(services),
+    }).scoreState, expected);
+  }
 });
 
 test("all numeric score values remain finite while semantic nulls stay null", () => {
