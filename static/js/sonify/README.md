@@ -48,8 +48,8 @@ Tone.js `14.8.49` remains vendored at `/vendor/tone.min.js`. No audio samples or
 
 | State | Grammar | Tempo | Orchestration |
 | --- | --- | ---: | --- |
-| Healthy | D Lydian | 68 BPM | Airy strings, plucks and woodwinds with open harmony and no prominent drums |
-| Warning | D Dorian | 78 BPM | Darker harmony, stronger pulse, reduced brightness and restrained low percussion |
+| Healthy | D Lydian | 68 BPM | Warm low D/A drone, overlapping mid-register pads, soft strings, plucks and woodwinds |
+| Warning | D Dorian | 78 BPM | The same grounded bed with darker harmony, stronger pulse and restrained low percussion |
 | Critical | D Phrygian | 92 BPM | Persistent low rhythm, urgent service articulations, bass and controlled harmonic tension |
 | Unknown | D suspended / restrained whole-tone | 56 BPM | Sparse open intervals, spectral colour and unresolved phrases |
 
@@ -69,11 +69,12 @@ An unknown component does not force the whole score to Unknown while current kno
 `/sonify` is authoritative for the services it measures. `/v1/topology` supplies component identity, kind, layer, description and dependency edges.
 
 - Every measured service is included, even when it is absent from topology.
-- An unmeasured topology component is included as `unknown`.
+- An unmeasured topology component is included as `Unmeasured`; measured services whose current evidence cannot determine health remain `Unknown`.
 - An unmeasured `source_only` repository is excluded because source code is not a live service.
 - A measured service remains included if its topology record is source-only, because the measurement itself proves that the sonification contract represents it.
 - If topology is unavailable, the measured `/sonify` services continue to render and play.
 - Null latency, uptime, error-rate and deploy-age fields remain null in the frame and interface.
+- Additive evidence-source metadata is displayed when `/sonify` supplies it; registry metadata alone never becomes a health claim.
 
 Neutral musical values keep a null voice playable without fabricating telemetry: neutral filter openness, moderate brightness and zero invented error instability.
 
@@ -91,7 +92,7 @@ A stable FNV-1a hash of the component name selects its motif variation, instrume
 | Infrastructure and deployment | Low strings and bass |
 | Storage and KV systems | Spectral bells |
 
-The scheduler rotates across the whole represented estate instead of firing every component together. Phrase index, state grammar, rests, motif order, inversion and controlled octave displacement provide long-form variation without random out-of-key notes.
+The scheduler rotates across the whole represented estate instead of firing every component together. A low D/A drone spans each phrase and an overlapping chord pad refreshes every measure, so sparse Healthy and Warning service notes still sit inside a persistent bed. Family-specific MIDI bounds and downward-only octave variation keep foreground voices out of the alarm-like upper register.
 
 ## Telemetry mappings
 
@@ -104,7 +105,7 @@ The scheduler rotates across the whole represented estate instead of firing ever
 | Error rate | Instability, detuning and note confidence |
 | Active incidents | Persistent critical rhythm and tension until resolved |
 | New successful deployment | One quantised D-centred hero motif |
-| Dependency relationships | Animated topology edges |
+| Dependency relationships | Directed topology edges (`A → B` means A depends on B), external boundary nodes and related-node highlighting |
 | Service identity | Instrument family, motif, register and stereo position |
 
 ## Incidents and deployments
@@ -128,7 +129,7 @@ On telemetry failure, the last raw values remain available for display, the scor
 
 Live mode only permits audio start/stop, volume, inspection, help and console open/close. It exposes no health, mute, solo or deployment simulation controls.
 
-Demo mode clones the latest live merged snapshot in memory. Direct component status, latency, uptime, error rate, solo, mute and deployment controls modify only that local object. Switching to Live, resetting from Live or reloading the page discards demo changes. No mutation endpoint exists in this module.
+Demo mode clones the latest live merged snapshot in memory. Direct component status, latency, uptime, error rate, solo, mute and deployment controls modify only that local object. Coherent bulk profiles apply Healthy, Warning, Critical or Unknown status plus matching metrics to every represented component. All, Measured and Unmeasured filters affect both the graph and service table. Switching to Live, resetting from Live or reloading the page discards demo changes. No mutation endpoint exists in this module.
 
 ## Accessibility
 
@@ -145,7 +146,7 @@ Demo mode clones the latest live merged snapshot in memory. Direct component sta
 
 - Maximum represented components and allocated service voices: `32`.
 - At most one rotating service note starts per eighth-note scheduler tick.
-- Shared pad, bass, ambience, compression and limiter nodes are reused.
+- Shared low drone, overlapping pad, bass, ambience, compression and limiter nodes are reused.
 - Service voices leaving topology fade before disposal.
 - Incident onset accents are capped at four per observed increase.
 - No oscillator, LFO or effect node is created inside the scheduler loop.
@@ -167,7 +168,7 @@ python3 scripts/verify_pages_output.py .
 git diff --check
 ```
 
-The pure tests cover all four score states, stale behavior, mixed known and unknown data, deterministic identities and motifs, finite mappings, latency filtering, topology merge and failure fallback, source-only filtering, incident deltas, deployment baselines, demo rollup, request overlap protection and voice counts beyond six.
+The pure tests cover all four score states, stale behavior, measured Unknown versus Unmeasured counts, deterministic identities and motifs, safe family registers, pad cadence and voicing, topology merge and failure fallback, external dependency graphs, component filters, coherent bulk profiles, incident deltas, deployment baselines, request overlap protection and voice counts beyond six.
 
 Musical quality, speaker translation, clipping margin and two-to-three-minute non-repetition still require a human listening pass because automated tests cannot judge those qualities reliably.
 
@@ -175,7 +176,7 @@ Musical quality, speaker translation, clipping margin and two-to-three-minute no
 
 System SYMPHONY lives inside [`atlas-systems`](https://github.com/AtlasReaper311/atlas-systems) and reads the current public contracts from [`specular-sonify`](https://github.com/AtlasReaper311/specular-sonify), [`atlas-api-public`](https://github.com/AtlasReaper311/atlas-api-public) and [`deploy-watch`](https://github.com/AtlasReaper311/deploy-watch).
 
-It is an audible operational surface: every displayed or musical state traces back to a current public value or an explicit unknown.
+It is an audible operational surface: every displayed or musical state traces back to current public evidence, an explicit measured Unknown, a visible Unmeasured boundary or an explicitly labelled local demo simulation.
 
 ---
 

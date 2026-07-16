@@ -8,12 +8,15 @@
 import {
   DEFAULT_USER_GAIN,
   createEngine,
-} from "./engine.js?v=20260716-system-symphony-v2";
-import { createPoller } from "./poller.js?v=20260716-system-symphony-v2";
+} from "./engine.js?v=20260716-system-symphony-polish";
+import { createPoller } from "./poller.js?v=20260716-system-symphony-polish";
 import {
+  applyDemoProfileToServices,
+  buildDependencyGraph,
   computeFrame,
   deriveDemoEstate,
-} from "./mapping.js?v=20260716-system-symphony-v2";
+  filterVoices,
+} from "./mapping.js?v=20260716-system-symphony-polish";
 
 const WIDGET_ID = "system-symphony-widget";
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -163,6 +166,15 @@ function template() {
                 <button type="button" data-demo-mode aria-pressed="false" disabled>Demo lab</button>
               </div>
               <button class="symphony-button" type="button" data-demo-reset hidden>Reset from live</button>
+              <div class="symphony-demo-profiles" data-demo-profiles hidden>
+                <span>Apply to all</span>
+                <div>
+                  <button type="button" data-demo-profile="healthy">Healthy</button>
+                  <button type="button" data-demo-profile="warning">Warning</button>
+                  <button type="button" data-demo-profile="critical">Critical</button>
+                  <button type="button" data-demo-profile="unknown">Unknown</button>
+                </div>
+              </div>
               <p class="symphony-update-time">Last successful telemetry: <time data-last-update>waiting</time></p>
             </div>
           </section>
@@ -175,13 +187,30 @@ function template() {
             <article><span>Warnings</span><strong data-metric="warnings">0</strong></article>
             <article><span>Failures / incidents</span><strong data-metric="failures">0 / 0</strong></article>
             <article><span>Unknown</span><strong data-metric="unknown">0</strong></article>
+            <article><span>Unmeasured</span><strong data-metric="unmeasured">0</strong></article>
             <article class="symphony-metric-deploy"><span>Recent deployment</span><strong data-metric="deployment">baseline pending</strong></article>
           </section>
 
           <section class="symphony-orchestra" aria-labelledby="symphony-orchestra-title">
             <div class="symphony-section-heading">
               <div><span>02</span><h3 id="symphony-orchestra-title">Estate orchestra</h3></div>
-              <p>Nodes pulse only when their service voice sounds. Lines are live topology dependencies.</p>
+              <div class="symphony-section-heading__tools">
+                <p>Nodes pulse when their voice sounds. Arrows are declared dependencies, not live traffic.</p>
+                <div class="symphony-segmented symphony-filter" role="group" aria-label="Filter estate components">
+                  <button type="button" data-component-filter="all" aria-pressed="true">All</button>
+                  <button type="button" data-component-filter="measured" aria-pressed="false">Measured</button>
+                  <button type="button" data-component-filter="unmeasured" aria-pressed="false">Unmeasured</button>
+                </div>
+              </div>
+            </div>
+            <div class="symphony-legend" aria-label="Topology legend">
+              <span><i class="status-healthy"></i>Healthy</span>
+              <span><i class="status-degraded"></i>Warning</span>
+              <span><i class="status-down"></i>Critical</span>
+              <span><i class="status-unknown"></i>Unknown</span>
+              <span><i class="status-unmeasured"></i>Unmeasured</span>
+              <span class="symphony-legend__edge">A → B means A depends on B</span>
+              <span class="symphony-legend__external">Dashed boundary nodes are external systems</span>
             </div>
             <div class="symphony-orchestra__grid">
               <div class="symphony-visual" data-visual>
@@ -199,8 +228,12 @@ function template() {
                 <p class="symphony-inspector__description" data-inspector-description></p>
                 <dl data-inspector-details></dl>
                 <div class="symphony-dependencies">
-                  <h4>Dependencies</h4>
+                  <h4>Depends on</h4>
                   <ul data-inspector-dependencies><li>None declared</li></ul>
+                </div>
+                <div class="symphony-dependencies">
+                  <h4>Used by</h4>
+                  <ul data-inspector-used-by><li>None declared</li></ul>
                 </div>
 
                 <fieldset class="symphony-demo-editor" data-demo-editor hidden>
@@ -233,7 +266,7 @@ function template() {
           <section class="symphony-service-section" aria-labelledby="symphony-services-title">
             <div class="symphony-section-heading">
               <div><span>03</span><h3 id="symphony-services-title">Service score</h3></div>
-              <p>Measured health is authoritative. Topology-only components remain explicitly unknown.</p>
+              <p>Measured health is authoritative. Topology-only components remain explicitly Unmeasured.</p>
             </div>
             <div class="symphony-table-wrap">
               <table>
@@ -276,11 +309,13 @@ export function initSystemSymphony() {
   const soloed = new Set();
 
   let mode = "live";
+  let componentFilter = "all";
   let currentFrame = null;
   let lastLiveFrame = null;
   let lastLiveMerged = null;
   let demoMerged = null;
   let selectedName = null;
+  let topologySelectionActive = false;
   let latestDeployment = null;
   let recentDeployment = null;
   let dialogOpen = false;
@@ -288,6 +323,20 @@ export function initSystemSymphony() {
   let lastWaveformDraw = 0;
   let lastAnnouncement = "";
   let demoDeploymentCounter = 0;
+
+  function presentationForVoice(voice) {
+    if (!voice.measured && !voice.demoSimulated) {
+      return { key: "unmeasured", label: "Unmeasured" };
+    }
+    return {
+      key: voice.status,
+      label: STATUS_LABELS[voice.status] ?? STATUS_LABELS.unknown,
+    };
+  }
+
+  function visibleVoices(frame = currentFrame) {
+    return frame ? filterVoices(frame.voices, componentFilter) : [];
+  }
 
   const helpRows = host.querySelector("[data-help-rows]");
   for (const [signal, musicalResult] of HELP_ROWS) {
@@ -352,7 +401,17 @@ export function initSystemSymphony() {
     metricValue(host, "measured", String(frame.measuredComponents));
     metricValue(host, "warnings", String(frame.warningCount));
     metricValue(host, "failures", `${frame.failureCount} / ${frame.activeIncidents}`);
-    metricValue(host, "unknown", String(frame.unknownCount));
+    const presentations = frame.voices.map(presentationForVoice);
+    metricValue(
+      host,
+      "unknown",
+      String(presentations.filter((item) => item.key === "unknown").length),
+    );
+    metricValue(
+      host,
+      "unmeasured",
+      String(presentations.filter((item) => item.key === "unmeasured").length),
+    );
     const deploymentText = recentDeployment
       ? `${recentDeployment.commitSha ?? recentDeployment.identity ?? "deployment"} / ${recentDeployment.status ?? "success"}`
       : latestDeployment
@@ -378,7 +437,7 @@ export function initSystemSymphony() {
       const row = groups.get(layer).sort((a, b) => a.name.localeCompare(b.name));
       const y = layers.length === 1
         ? 260
-        : 50 + layerIndex * (420 / (layers.length - 1));
+        : 45 + layerIndex * (390 / (layers.length - 1));
       row.forEach((voice, index) => {
         positions.set(voice.name, {
           x: ((index + 1) * 920) / (row.length + 1) + 20,
@@ -399,52 +458,104 @@ export function initSystemSymphony() {
 
   function selectService(name, focusInspector = false) {
     selectedName = name;
+    topologySelectionActive = true;
     renderInspector();
     renderServiceTable();
-    for (const [nodeName, node] of topologyNodes) {
-      node.classList.toggle("is-selected", nodeName === name);
-    }
+    applyTopologySelection();
     if (focusInspector) host.querySelector("[data-inspector-name]").focus?.();
+  }
+
+  function applyTopologySelection() {
+    const activeSelection = topologySelectionActive && Boolean(selectedName);
+    const related = new Set(activeSelection ? [selectedName] : []);
+    if (activeSelection && currentFrame) {
+      const selected = currentFrame.voices.find((voice) => voice.name === selectedName);
+      selected?.depends_on.forEach((name) => related.add(name));
+      currentFrame.voices
+        .filter((voice) => voice.depends_on.includes(selectedName))
+        .forEach((voice) => related.add(voice.name));
+    }
+    for (const [nodeName, node] of topologyNodes) {
+      node.classList.toggle("is-selected", nodeName === selectedName);
+      node.classList.toggle("is-dimmed", activeSelection && !related.has(nodeName));
+    }
+    for (const edge of topologySvg.querySelectorAll(".symphony-edge")) {
+      const connected = edge.dataset.from === selectedName || edge.dataset.to === selectedName;
+      edge.classList.toggle("is-selected", activeSelection && connected);
+      edge.classList.toggle("is-dimmed", activeSelection && !connected);
+    }
+  }
+
+  function shortenedEdge(from, to, targetRadius = 16) {
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const length = Math.hypot(dx, dy) || 1;
+    return {
+      x1: from.x,
+      y1: from.y,
+      x2: to.x - (dx / length) * targetRadius,
+      y2: to.y - (dy / length) * targetRadius,
+    };
   }
 
   function renderTopology(frame) {
     topologyNodes.clear();
     topologySvg.replaceChildren();
     topologySvg.classList.toggle("is-critical", frame.scoreState === "critical");
-    const positions = layerPositions(frame.voices);
+    const filteredVoices = visibleVoices(frame);
+    const positions = layerPositions(filteredVoices);
+    const graph = buildDependencyGraph(filteredVoices, frame.voices);
+
+    const defs = svgElement("defs");
+    const marker = svgElement("marker", {
+      id: "symphony-arrow",
+      viewBox: "0 0 10 10",
+      refX: "9",
+      refY: "5",
+      markerWidth: "6",
+      markerHeight: "6",
+      orient: "auto-start-reverse",
+    });
+    marker.append(svgElement("path", { d: "M 0 0 L 10 5 L 0 10 z" }));
+    defs.append(marker);
+    topologySvg.append(defs);
+
+    const externalPositions = new Map();
+    graph.externalNodes.forEach((name, index) => {
+      externalPositions.set(name, {
+        x: ((index + 1) * 920) / (graph.externalNodes.length + 1) + 20,
+        y: 497,
+      });
+    });
 
     const edgeGroup = svgElement("g", { class: "symphony-topology__edges" });
-    const nodeNames = new Set(frame.voices.map((voice) => voice.name));
-    for (const voice of frame.voices) {
-      const from = positions.get(voice.name);
-      for (const dependency of voice.depends_on) {
-        if (!nodeNames.has(dependency)) continue;
-        const to = positions.get(dependency);
-        edgeGroup.append(svgElement("line", {
-          x1: from.x,
-          y1: from.y,
-          x2: to.x,
-          y2: to.y,
-          class: "symphony-edge",
-          "data-from": voice.name,
-          "data-to": dependency,
-        }));
-      }
+    for (const edge of [...graph.internalEdges, ...graph.externalEdges]) {
+      const from = positions.get(edge.from);
+      const to = positions.get(edge.to) ?? externalPositions.get(edge.to);
+      if (!from || !to) continue;
+      edgeGroup.append(svgElement("line", {
+        ...shortenedEdge(from, to, graph.externalNodes.includes(edge.to) ? 11 : 17),
+        class: `symphony-edge${graph.externalNodes.includes(edge.to) ? " is-external" : ""}`,
+        "data-from": edge.from,
+        "data-to": edge.to,
+        "marker-end": "url(#symphony-arrow)",
+      }));
     }
     topologySvg.append(edgeGroup);
 
-    for (const voice of frame.voices) {
+    for (const voice of filteredVoices) {
       const position = positions.get(voice.name);
+      const presentation = presentationForVoice(voice);
       const group = svgElement("g", {
-        class: `symphony-node status-${voice.status}${voice.name === selectedName ? " is-selected" : ""}`,
+        class: `symphony-node status-${presentation.key}${voice.name === selectedName ? " is-selected" : ""}`,
         transform: `translate(${position.x} ${position.y})`,
         tabindex: "0",
         role: "button",
-        "aria-label": `${voice.displayName}, ${STATUS_LABELS[voice.status]}, ${voice.instrumentLabel}`,
+        "aria-label": `${voice.displayName}, ${presentation.label}, ${voice.instrumentLabel}`,
       });
       group.dataset.node = voice.name;
       const title = svgElement("title");
-      title.textContent = `${voice.displayName}: ${STATUS_LABELS[voice.status]} / ${voice.instrumentLabel}`;
+      title.textContent = `${voice.displayName}: ${presentation.label} / ${voice.instrumentLabel}`;
       const circle = svgElement("circle", { r: 13 });
       const core = svgElement("circle", { r: 4, class: "symphony-node__core" });
       const label = svgElement("text", { y: 28, "text-anchor": "middle" });
@@ -462,29 +573,47 @@ export function initSystemSymphony() {
       topologySvg.append(group);
       topologyNodes.set(voice.name, group);
     }
+
+    for (const [name, position] of externalPositions) {
+      const group = svgElement("g", {
+        class: "symphony-node symphony-node--external status-unmeasured",
+        transform: `translate(${position.x} ${position.y})`,
+        "aria-label": `${name}, external dependency boundary`,
+      });
+      const title = svgElement("title");
+      title.textContent = `${name}: external dependency (health not measured here)`;
+      const circle = svgElement("circle", { r: 8 });
+      const label = svgElement("text", { y: 22, "text-anchor": "middle" });
+      label.textContent = name.length > 18 ? `${name.slice(0, 16)}…` : name;
+      group.append(title, circle, label);
+      topologySvg.append(group);
+      topologyNodes.set(name, group);
+    }
+    applyTopologySelection();
   }
 
   function renderServiceTable() {
     const body = host.querySelector("[data-service-table]");
     body.replaceChildren();
     if (!currentFrame) return;
-    for (const voice of currentFrame.voices) {
+    for (const voice of visibleVoices()) {
       const row = document.createElement("tr");
       if (voice.name === selectedName) row.classList.add("is-selected");
-      row.dataset.status = voice.status;
+      const presentation = presentationForVoice(voice);
+      row.dataset.status = presentation.key;
       const values = [
         voice.displayName,
         voice.layer,
-        STATUS_LABELS[voice.status],
+        presentation.label,
         formatLatency(voice.latency_ms),
         voice.instrumentLabel,
-        voice.measured ? "measured" : "unknown",
+        voice.demoSimulated ? "demo simulation" : voice.measured ? "measured" : "topology only",
       ];
       values.forEach((value, index) => {
         const cell = document.createElement("td");
         if (index === 2) {
           const status = document.createElement("span");
-          status.className = `symphony-status status-${voice.status}`;
+          status.className = `symphony-status status-${presentation.key}`;
           status.textContent = value;
           cell.append(status);
         } else {
@@ -518,6 +647,7 @@ export function initSystemSymphony() {
     const description = host.querySelector("[data-inspector-description]");
     const details = host.querySelector("[data-inspector-details]");
     const dependencies = host.querySelector("[data-inspector-dependencies]");
+    const usedBy = host.querySelector("[data-inspector-used-by]");
     const editor = host.querySelector("[data-demo-editor]");
     const liveLock = host.querySelector("[data-live-lock]");
 
@@ -527,6 +657,7 @@ export function initSystemSymphony() {
       description.textContent = "";
       details.replaceChildren();
       dependencies.innerHTML = "<li>None declared</li>";
+      usedBy.innerHTML = "<li>None declared</li>";
       editor.hidden = true;
       liveLock.hidden = mode === "demo";
       return;
@@ -536,10 +667,19 @@ export function initSystemSymphony() {
     identity.textContent = `${voice.instrumentLabel} / ${voice.registerLabel} register / pan ${voice.pan.toFixed(2)} / ${voice.motifLabel}`;
     description.textContent = voice.description ?? "No topology description supplied.";
     details.replaceChildren();
+    const presentation = presentationForVoice(voice);
     const detailRows = [
       ["Layer", voice.layer],
-      ["Status", STATUS_LABELS[voice.status]],
-      ["Measurement", voice.measured ? "Measured by /sonify" : "Topology only / unknown"],
+      ["Status", presentation.label],
+      [
+        "Measurement",
+        voice.demoSimulated
+          ? "Local demo simulation"
+          : voice.measured
+            ? "Measured by /sonify"
+            : "Topology only / unmeasured",
+      ],
+      ["Evidence", voice.evidence_source ?? "No live evidence source"],
       ["Latency", formatLatency(voice.latency_ms)],
       ["Uptime", formatPercent(voice.uptime_pct, 1)],
       ["Error rate", Number.isFinite(voice.error_rate) ? formatPercent(voice.error_rate * 100, 1) : "not measured"],
@@ -560,6 +700,16 @@ export function initSystemSymphony() {
       const item = document.createElement("li");
       item.textContent = dependency;
       dependencies.append(item);
+    });
+
+    usedBy.replaceChildren();
+    const consumers = currentFrame.voices
+      .filter((candidate) => candidate.depends_on.includes(voice.name))
+      .map((candidate) => candidate.displayName);
+    (consumers.length ? consumers : ["None declared"]).forEach((consumer) => {
+      const item = document.createElement("li");
+      item.textContent = consumer;
+      usedBy.append(item);
     });
 
     const demoMode = mode === "demo";
@@ -597,6 +747,13 @@ export function initSystemSymphony() {
     host.querySelector("[data-live-mode]").setAttribute("aria-pressed", String(mode === "live"));
     host.querySelector("[data-demo-mode]").setAttribute("aria-pressed", String(mode === "demo"));
     host.querySelector("[data-demo-reset]").hidden = mode !== "demo";
+    host.querySelector("[data-demo-profiles]").hidden = mode !== "demo";
+    for (const button of host.querySelectorAll("[data-component-filter]")) {
+      button.setAttribute(
+        "aria-pressed",
+        String(button.dataset.componentFilter === componentFilter),
+      );
+    }
     renderMetrics(frame);
     renderTopology(frame);
     renderServiceTable();
@@ -605,8 +762,10 @@ export function initSystemSymphony() {
 
   function applyAndRender(frame) {
     currentFrame = frame;
-    if (!selectedName || !frame.voices.some((voice) => voice.name === selectedName)) {
-      selectedName = frame.voices[0]?.name ?? null;
+    const visible = visibleVoices(frame);
+    if (!selectedName || !visible.some((voice) => voice.name === selectedName)) {
+      selectedName = visible[0]?.name ?? null;
+      topologySelectionActive = false;
     }
     const audible = mode === "demo"
       ? maskedFrame(frame, muted, soloed)
@@ -652,11 +811,29 @@ export function initSystemSymphony() {
     const service = demoMerged.services.find((item) => item.name === selectedName);
     if (!service) return;
     const previousIncidents = demoMerged.estate?.active_incidents ?? 0;
-    Object.assign(service, patch);
+    Object.assign(service, patch, { demoSimulated: true });
     demoMerged.estate = deriveDemoEstate(demoMerged.services);
     demoMerged.timestamp = new Date().toISOString();
     const frame = currentDemoFrame();
     applyAndRender(frame);
+    const nextIncidents = demoMerged.estate.active_incidents;
+    if (nextIncidents > previousIncidents) {
+      engine.queueIncidentAccent(nextIncidents - previousIncidents);
+    }
+  }
+
+  function applyDemoProfile(profileName) {
+    if (mode !== "demo" || !demoMerged) return;
+    const previousIncidents = demoMerged.estate?.active_incidents ?? 0;
+    demoMerged.services = applyDemoProfileToServices(
+      demoMerged.services,
+      profileName,
+    );
+    demoMerged.estate = deriveDemoEstate(demoMerged.services);
+    demoMerged.timestamp = new Date().toISOString();
+    muted.clear();
+    soloed.clear();
+    applyAndRender(currentDemoFrame());
     const nextIncidents = demoMerged.estate.active_incidents;
     if (nextIncidents > previousIncidents) {
       engine.queueIncidentAccent(nextIncidents - previousIncidents);
@@ -788,6 +965,15 @@ export function initSystemSymphony() {
   host.querySelector("[data-live-mode]").addEventListener("click", switchToLive);
   host.querySelector("[data-demo-mode]").addEventListener("click", switchToDemo);
   host.querySelector("[data-demo-reset]").addEventListener("click", resetDemoFromLive);
+  host.querySelectorAll("[data-demo-profile]").forEach((button) => {
+    button.addEventListener("click", () => applyDemoProfile(button.dataset.demoProfile));
+  });
+  host.querySelectorAll("[data-component-filter]").forEach((button) => {
+    button.addEventListener("click", () => {
+      componentFilter = button.dataset.componentFilter;
+      if (currentFrame) applyAndRender(currentFrame);
+    });
+  });
 
   host.querySelector("[data-demo-status]").addEventListener("change", (event) => {
     updateSelectedDemo({ status: event.target.value });
