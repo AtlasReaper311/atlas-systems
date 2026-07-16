@@ -1,230 +1,233 @@
-/**
- * mapping.test.js :: run with `node --test static/js/sonify/`
- *
- * Node's built-in runner, node:assert/strict, zero new dependencies.
- * mapping.js is pure, so these tests need no browser, no AudioContext
- * and no mocks; that isolation is the reason the mapping layer exists
- * as its own file. The sibling package.json ({"type":"module"}) is
- * what lets Node parse these .js files as ES modules; browsers never
- * read it.
- *
- * Four cases per the build spec:
- *   1. healthy-estate output
- *   2. degraded-estate output
- *   3. null-field handling for "unknown" status
- *   4. scale-crossfade boundaries at health 0.0 / 0.5 / 1.0
- */
-
 import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
-  BASE_VELOCITY,
-  CALM_FLOOR_DB,
-  FILTER_MAX_HZ,
-  FILTER_MIN_HZ,
-  KNOWN_VOICE_GAIN,
-  NEUTRAL_DEGREE,
-  ROOT_MIDI,
+  NEUTRAL_LATENCY_FILTER_HZ,
+  SCALE_DORIAN,
   SCALE_LYDIAN,
   SCALE_PHRYGIAN,
-  UNKNOWN_VOICE_GAIN,
-  blendScales,
+  SCALE_UNKNOWN,
+  SCORE_STATES,
   computeFrame,
-  computeMasterGainDb,
-  deployAgeToVibratoDepth,
-  latencyToDegree,
-  midiToFrequencyHz,
-  uptimeToFilterHz,
+  deriveDemoEstate,
+  deriveScoreState,
+  deriveServiceIdentity,
+  latencyToFilterHz,
+  mergeTelemetryAndTopology,
 } from "./mapping.js";
 
-/** Build a service record with healthy measurements unless overridden. */
-function service(name, overrides = {}) {
-  return {
-    name,
-    status: "healthy",
-    latency_ms: 40,
-    uptime_pct: 100,
-    error_rate: 0,
-    last_deploy_secs_ago: 7200,
-    ...overrides,
-  };
-}
-
-const CURATED = [
-  "ramone-memory",
-  "atlas-corpus",
-  "specular-telemetry",
-  "atlas-api-index",
-  "ramone-trigger",
-  "specular-edge",
-];
-
-test("healthy estate: pure Lydian, open filters, calm floor", () => {
-  const payload = {
-    timestamp: "2026-07-07T12:00:00.000Z",
-    estate: { overall_health: 1.0, active_incidents: 0 },
-    services: CURATED.map((n) => service(n)),
-  };
-  const frame = computeFrame(payload);
-
-  // Health 1.0 selects the Lydian table exactly (weight 1 blend).
-  assert.deepEqual(frame.scale, SCALE_LYDIAN);
-
-  // Calm-but-not-silent: master rests at the sparse ambient floor.
-  assert.equal(frame.masterGainDb, CALM_FLOOR_DB);
-  assert.equal(frame.voices.length, 6);
-
-  for (const v of frame.voices) {
-    assert.equal(v.audible, true);
-    assert.equal(v.voiceGain, KNOWN_VOICE_GAIN);
-    // 100% uptime opens the lowpass fully.
-    assert.equal(v.filterHz, FILTER_MAX_HZ);
-    // Zero error rate leaves the base velocity untouched.
-    assert.equal(v.velocity, BASE_VELOCITY);
-    // Deploy two hours ago: vibrato fully off, not merely tiny.
-    assert.equal(v.vibratoDepth, 0);
-  }
-
-  // 40ms latency: normalized = 1 - ln(41)/ln(501) ~= 0.4026, degree 3.
-  // Lydian degree 3 is the raised 4th (6 semitones), the mode's
-  // signature note, so a typical healthy latency voices the scale's
-  // identity. MIDI 48 + 6 = 54.
-  const v = frame.voices[0];
-  assert.equal(v.degree, 3);
-  assert.equal(v.midi, ROOT_MIDI + 6);
-  assert.ok(Math.abs(v.frequencyHz - midiToFrequencyHz(54)) < 1e-9);
+const service = (name, overrides = {}) => ({
+  name,
+  status: "healthy",
+  latency_ms: 40,
+  uptime_pct: 99.9,
+  error_rate: 0,
+  last_deploy_secs_ago: null,
+  measured: true,
+  ...overrides,
 });
 
-test("degraded estate: Phrygian-weighted blend, muffle, recession", () => {
-  const payload = {
-    timestamp: "2026-07-07T12:00:10.000Z",
+const payload = (overrides = {}) => ({
+  timestamp: "2026-07-16T09:00:00.000Z",
+  estate: { overall_health: 1, active_incidents: 0 },
+  services: [service("atlas-api-index", { layer: "public-api" })],
+  ...overrides,
+});
+
+test("healthy state uses D Lydian at the healthy tempo", () => {
+  const frame = computeFrame(payload());
+  assert.equal(frame.scoreState, "healthy");
+  assert.deepEqual(frame.scale, SCALE_LYDIAN);
+  assert.equal(frame.bpm, SCORE_STATES.healthy.bpm);
+  assert.equal(frame.mode, "D Lydian");
+});
+
+test("warning state uses D Dorian for degraded service or sub-0.95 health", () => {
+  const degraded = computeFrame(payload({
+    estate: { overall_health: 1, active_incidents: 0 },
+    services: [service("atlas-api-index", { status: "degraded" })],
+  }));
+  const healthThreshold = computeFrame(payload({
+    estate: { overall_health: 0.94, active_incidents: 0 },
+  }));
+  for (const frame of [degraded, healthThreshold]) {
+    assert.equal(frame.scoreState, "warning");
+    assert.deepEqual(frame.scale, SCALE_DORIAN);
+    assert.equal(frame.mode, "D Dorian");
+  }
+});
+
+test("critical state uses D Phrygian and persistent rhythm", () => {
+  const cases = [
+    payload({ estate: { overall_health: 1, active_incidents: 1 } }),
+    payload({ services: [service("atlas-api-index", { status: "down" })] }),
+    payload({ estate: { overall_health: 0.49, active_incidents: 0 } }),
+  ];
+  for (const input of cases) {
+    const frame = computeFrame(input);
+    assert.equal(frame.scoreState, "critical");
+    assert.deepEqual(frame.scale, SCALE_PHRYGIAN);
+    assert.equal(frame.persistentRhythm, true);
+    assert.ok(frame.transitionSeconds <= 1);
+  }
+});
+
+test("unknown has its own sparse score for stale or wholly unknown data", () => {
+  const stale = computeFrame(payload({ stale: true }));
+  const noKnown = computeFrame(payload({
+    estate: { overall_health: 1, active_incidents: 0 },
+    services: [service("atlas-api-index", { status: "unknown" })],
+  }));
+  for (const frame of [stale, noKnown]) {
+    assert.equal(frame.scoreState, "unknown");
+    assert.deepEqual(frame.scale, SCALE_UNKNOWN);
+    assert.ok(frame.density < SCORE_STATES.healthy.density);
+  }
+});
+
+test("one unknown component does not override current known measurements", () => {
+  assert.equal(deriveScoreState(payload({
+    services: [
+      service("atlas-api-index"),
+      service("unmeasured", { status: "unknown", measured: false }),
+    ],
+  })), "healthy");
+});
+
+test("service identity and motif are deterministic and layer-aware", () => {
+  const api = { name: "atlas-api-public", layer: "public-api" };
+  const memory = { name: "ramone-memory", layer: "local-ai" };
+  assert.deepEqual(deriveServiceIdentity(api), deriveServiceIdentity(api));
+  assert.equal(deriveServiceIdentity(api).instrumentFamily, "woodwinds");
+  assert.equal(deriveServiceIdentity(memory).instrumentFamily, "strings");
+  assert.equal(deriveServiceIdentity(api).motif.length, 4);
+  assert.ok(deriveServiceIdentity(api).pan >= -0.72);
+  assert.ok(deriveServiceIdentity(api).pan <= 0.72);
+});
+
+test("latency controls spectral openness and null uses a neutral default", () => {
+  assert.ok(latencyToFilterHz(20) > latencyToFilterHz(500));
+  assert.ok(latencyToFilterHz(500) > latencyToFilterHz(1500));
+  assert.equal(latencyToFilterHz(null), NEUTRAL_LATENCY_FILTER_HZ);
+});
+
+test("status changes articulation, density, stability, and brightness", () => {
+  const frame = computeFrame(payload({
     estate: { overall_health: 0.4, active_incidents: 1 },
     services: [
-      service("ramone-memory"),
-      service("atlas-corpus", { error_rate: 0.5 }),
-      // Down with nulls: the per-status default table must make this
-      // voice recede to zero velocity and floor its filter.
-      service("specular-telemetry", {
-        status: "down",
-        latency_ms: null,
-        uptime_pct: null,
-        error_rate: null,
-        last_deploy_secs_ago: null,
-      }),
-      service("atlas-api-index", { uptime_pct: 91 }),
-      service("ramone-trigger", { status: "degraded", uptime_pct: 85 }),
-      service("specular-edge"),
-    ],
-  };
-  const frame = computeFrame(payload);
-
-  // Health 0.4 favours Phrygian: blended flat-2nd sits at
-  // 2 x 0.4 + 1 x 0.6 = 1.4 semitones, closer to Phrygian's 1 than
-  // Lydian's 2. Fractional on purpose: the table glides, notes don't.
-  assert.ok(Math.abs(frame.scale[1] - 1.4) < 1e-9);
-  assert.ok(Math.abs(frame.scale[1] - SCALE_PHRYGIAN[1]) <
-    Math.abs(frame.scale[1] - SCALE_LYDIAN[1]));
-
-  // An active incident forces the master bus to unity, never the floor.
-  assert.equal(frame.masterGainDb, 0);
-
-  // Errors scale a voice down, never up.
-  const erroring = frame.voices[1];
-  assert.ok(Math.abs(erroring.velocity - BASE_VELOCITY * 0.5) < 1e-9);
-
-  // The down service is audible in principle but fully receded, and
-  // its filter sits on the floor: absence expressed by the spec's own
-  // velocity formula rather than an invented rule.
-  const down = frame.voices[2];
-  assert.equal(down.audible, true);
-  assert.equal(down.velocity, 0);
-  assert.equal(down.filterHz, FILTER_MIN_HZ);
-  assert.equal(down.degree, NEUTRAL_DEGREE);
-
-  // 91% uptime lands under the 1500Hz muffle line: the audible intent
-  // the uptime map exists to satisfy.
-  const wobbling = frame.voices[3];
-  assert.ok(wobbling.filterHz < 1500);
-  assert.ok(wobbling.filterHz > FILTER_MIN_HZ);
-
-  // 85% is below the audible floor entirely.
-  assert.equal(frame.voices[4].filterHz, FILTER_MIN_HZ);
-});
-
-test("unknown status: null fields resolve to a quiet, NaN-free voice", () => {
-  const payload = {
-    timestamp: "2026-07-07T12:00:20.000Z",
-    estate: { overall_health: 0.3, active_incidents: 0 },
-    services: [
-      {
-        name: "ramone-memory",
+      service("healthy"),
+      service("warning", { status: "degraded" }),
+      service("critical", { status: "down" }),
+      service("unknown", {
         status: "unknown",
         latency_ms: null,
         uptime_pct: null,
         error_rate: null,
-        last_deploy_secs_ago: null,
-      },
+        measured: false,
+      }),
     ],
-  };
-  const frame = computeFrame(payload);
-  const v = frame.voices[0];
-
-  // Faint, but shaped healthy so it can fade in cleanly.
-  assert.equal(v.audible, true);
-  assert.equal(v.voiceGain, UNKNOWN_VOICE_GAIN);
-  assert.equal(v.filterHz, FILTER_MAX_HZ);
-  assert.equal(v.velocity, BASE_VELOCITY);
-  assert.equal(v.vibratoDepth, 0);
-
-  // Null latency lands on the crossfade-invariant fifth: both scale
-  // tables hold 7 at index 4, so even at health 0.3 the unmeasured
-  // voice's pitch is exact, not a blend artefact.
-  assert.equal(v.degree, NEUTRAL_DEGREE);
-  assert.equal(v.semitoneOffset, 7);
-  assert.equal(v.midi, ROOT_MIDI + 7);
-
-  // Nothing numeric may be NaN or infinite anywhere in the voice.
-  for (const key of [
-    "degree",
-    "semitoneOffset",
-    "midi",
-    "frequencyHz",
-    "filterHz",
-    "velocity",
-    "vibratoDepth",
-  ]) {
-    assert.ok(Number.isFinite(v[key]), `${key} must be finite`);
-  }
-
-  // Direct null-tolerance of the individual mappers.
-  assert.equal(latencyToDegree(null), NEUTRAL_DEGREE);
-  assert.equal(deployAgeToVibratoDepth(null), 0);
-  assert.ok(Number.isFinite(uptimeToFilterHz(null)));
+  }));
+  const byName = new Map(frame.voices.map((voice) => [voice.name, voice]));
+  assert.equal(byName.get("healthy").articulation, "legato");
+  assert.equal(byName.get("warning").articulation, "tenuto");
+  assert.equal(byName.get("critical").articulation, "urgent");
+  assert.equal(byName.get("unknown").articulation, "suspended");
+  assert.ok(byName.get("critical").density > byName.get("healthy").density);
+  assert.ok(byName.get("critical").stability < byName.get("warning").stability);
+  assert.ok(byName.get("unknown").voiceGain < byName.get("healthy").voiceGain);
+  assert.equal(byName.get("unknown").latency_ms, null);
 });
 
-test("scale crossfade boundaries at exactly 0.0, 0.5, 1.0", () => {
-  // 0.0: pure Phrygian, exact equality (weight arithmetic degenerates
-  // to the raw integer table).
-  assert.deepEqual(blendScales(0.0), SCALE_PHRYGIAN);
+test("topology merge keeps measured health authoritative and unknown honest", () => {
+  const telemetry = {
+    timestamp: "2026-07-16T09:00:00.000Z",
+    estate: { overall_health: 1, active_incidents: 0 },
+    services: [
+      service("atlas-api-index", { status: "down" }),
+      service("atlas-corpus"),
+      service("measured-only"),
+    ],
+  };
+  const topology = {
+    components: [
+      { id: "atlas-api-index", layer: "public-api", kind: "worker", source_only: false },
+      { id: "atlas-corpus", layer: "local-ai", kind: "repository", source_only: true },
+      { id: "source-only", layer: "infra", kind: "repository", source_only: true },
+      { id: "topology-only", layer: "surface", kind: "site", source_only: false },
+    ],
+  };
+  const merged = mergeTelemetryAndTopology(telemetry, topology);
+  const byName = new Map(merged.services.map((item) => [item.name, item]));
+  assert.equal(byName.get("atlas-api-index").status, "down");
+  assert.equal(byName.get("atlas-api-index").layer, "public-api");
+  assert.equal(byName.get("atlas-corpus").measured, true);
+  assert.equal(byName.has("source-only"), false);
+  assert.equal(byName.get("topology-only").status, "unknown");
+  assert.equal(byName.get("topology-only").measured, false);
+  assert.equal(byName.get("measured-only").measured, true);
+});
 
-  // 1.0: pure Lydian, exact.
-  assert.deepEqual(blendScales(1.0), SCALE_LYDIAN);
+test("topology failure falls back to every measured service", () => {
+  const telemetry = payload({
+    services: Array.from({ length: 9 }, (_, index) => service(`service-${index}`)),
+  });
+  const merged = mergeTelemetryAndTopology(telemetry, null);
+  assert.equal(merged.topologyAvailable, false);
+  assert.equal(merged.services.length, 9);
+  assert.equal(merged.services.every((item) => item.measured), true);
+});
 
-  // 0.5: the elementwise midpoint. Multiplying integers by 0.5 is
-  // exact in binary floating point, so strict equality is safe here.
-  const mid = SCALE_LYDIAN.map((lyd, i) => (lyd + SCALE_PHRYGIAN[i]) / 2);
-  assert.deepEqual(blendScales(0.5), mid);
+test("dynamic score frames support more than the original six voices", () => {
+  const topology = {
+    components: Array.from({ length: 18 }, (_, index) => ({
+      id: `component-${index}`,
+      layer: index % 2 ? "observability" : "surface",
+      kind: index % 2 ? "worker" : "site",
+      source_only: false,
+      depends_on: index ? [`component-${index - 1}`] : [],
+    })),
+  };
+  const frame = computeFrame(mergeTelemetryAndTopology(payload(), topology));
+  assert.equal(frame.voices.length, 19);
+  assert.ok(frame.voices.length > 6);
+});
 
-  // The invariant degree holds at every boundary.
-  assert.equal(blendScales(0.0)[NEUTRAL_DEGREE], 7);
-  assert.equal(blendScales(0.5)[NEUTRAL_DEGREE], 7);
-  assert.equal(blendScales(1.0)[NEUTRAL_DEGREE], 7);
+test("demo rollup ignores unknowns and counts down services as incidents", () => {
+  const estate = deriveDemoEstate([
+    service("one"),
+    service("two", { status: "degraded" }),
+    service("three", { status: "down" }),
+    service("four", { status: "unknown" }),
+  ]);
+  assert.equal(estate.active_incidents, 1);
+  assert.ok(estate.overall_health < 0.95);
+  assert.ok(estate.overall_health > 0);
+  assert.equal(deriveDemoEstate([service("unknown", { status: "unknown" })]).overall_health, null);
+});
 
-  // Master gain at the same boundaries: unity at or below 0.5 health,
-  // the calm floor at and above 0.95 when no incidents are active.
-  assert.equal(computeMasterGainDb(0.0, 0), 0);
-  assert.equal(computeMasterGainDb(0.5, 0), 0);
-  assert.equal(computeMasterGainDb(1.0, 0), CALM_FLOOR_DB);
-  assert.equal(computeMasterGainDb(0.95, 0), CALM_FLOOR_DB);
+test("all numeric score values remain finite while semantic nulls stay null", () => {
+  const frame = computeFrame(payload({
+    estate: { overall_health: Number.NaN, active_incidents: Number.POSITIVE_INFINITY },
+    services: [service("null-service", {
+      status: "unknown",
+      latency_ms: null,
+      uptime_pct: null,
+      error_rate: null,
+      last_deploy_secs_ago: null,
+    })],
+  }));
+  const visit = (value, path = "frame") => {
+    if (typeof value === "number") {
+      assert.ok(Number.isFinite(value), `${path} must be finite`);
+    } else if (Array.isArray(value)) {
+      value.forEach((item, index) => visit(item, `${path}[${index}]`));
+    } else if (value && typeof value === "object") {
+      Object.entries(value).forEach(([key, item]) => visit(item, `${path}.${key}`));
+    }
+  };
+  visit(frame);
+  assert.equal(frame.overallHealth, null);
+  assert.equal(frame.voices[0].latency_ms, null);
+  assert.equal(frame.voices[0].uptime_pct, null);
+  assert.equal(frame.voices[0].error_rate, null);
 });

@@ -1,409 +1,576 @@
 /**
- * engine.js :: everything that touches Tone.js lives here.
+ * System SYMPHONY persistent generative orchestra.
  *
- * The one architectural rule this file exists to enforce: notes
- * trigger on the Transport's 8th-note grid, and ONLY there; every
- * other quantity (filter cutoff, voice gain, vibrato depth, master
- * level, the pitch under an already-sounding note) glides continuously
- * via 300ms rampTo calls on each poll tick. Triggering happens inside
- * Transport callbacks using the callback's own `time` argument, never
- * Tone.now(), so a hit can never land off-grid.
- *
- * Tone.js arrives as a vendored classic script (window.Tone), not an
- * import: the site's CSP is script-src 'self' with no CDN loads, and
- * this module reads the global at call time so load order stays
- * forgiving. Pinned version and vendoring command are in the README.
+ * Tone.js stays isolated here. Telemetry updates reshape one continuous
+ * composition; they never restart it. The scheduler triggers at most one
+ * rotating service voice per eighth note, so topology growth does not create
+ * unbounded simultaneous polyphony.
  */
 
 import {
-  CURATED_SERVICES,
-  PARAM_RAMP_SECS,
-  TRANSPORT_BPM,
-  VIBRATO_MAX_DEPTH,
-} from "./mapping.js?v=20260708-drumhit";
+  MAX_COMPONENTS,
+  midiToFrequencyHz,
+  stableHash,
+} from "./mapping.js?v=20260716-system-symphony-v2";
 
-/* ------------------------------------------------------------------ */
-/* Engine-local constants                                              */
-/* ------------------------------------------------------------------ */
+export const DEFAULT_USER_GAIN = 0.62;
+export const MAX_SERVICE_VOICES = MAX_COMPONENTS;
+export const MAX_INCIDENT_ACCENTS = 4;
+export const WAVEFORM_SIZE = 512;
+export const AUDIO_START_TIMEOUT_MS = 8000;
 
-/**
- * DEVIATION NOTE (per spec instruction to flag Tone.js API deviations
- * rather than silently change behaviour): the spec names Tone.Vibrato,
- * but Tone.Vibrato's internal LFO starts at construction and exposes
- * no public stop, so "after one hour, vibrato is off entirely (zero
- * CPU cost)" cannot be honoured with it. Instead each voice gets a
- * Tone.LFO wired into the synth's detune param (cents), with real
- * start()/stop(). The spec's 0..0.15 depth maps onto LFO amplitude
- * with a +/-15 cent range at full depth: audibly the same subtle
- * post-deploy shimmer, but an expired vibrato costs nothing.
- */
-export const VIBRATO_MAX_CENTS = 15;
-export const VIBRATO_RATE_HZ = 5;
+const UI_RAMP_SECONDS = 0.25;
+const VOICE_REMOVE_RAMP_SECONDS = 0.5;
+const PHRASE_STEPS = 32;
 
-/**
- * Round-robin note length. At 72 BPM a half note is ~1.67s and each
- * voice comes around every six 8th notes (2.5s), so successive strikes
- * of a voice never overlap themselves (each FMSynth is monophonic;
- * six mono voices IS the polyphony cap) while release tails from
- * neighbouring voices overlap into a continuous bed.
- */
-export const NOTE_DURATION = "2n";
+const PAD_CHORDS = Object.freeze({
+  healthy: [[0, 2, 4], [3, 5, 7], [4, 6, 1], [1, 3, 5]],
+  warning: [[0, 2, 4], [5, 3, 1], [3, 5, 0], [1, 4, 6]],
+  critical: [[0, 1, 4], [0, 3, 5], [1, 4, 6], [0, 2, 5]],
+  unknown: [[0, 4], [1, 5], [0, 6], [4, 7]],
+});
 
-/** Incident percussion: one low membrane hit per newly seen incident,
- *  through a short reverb, always on a quarter-note boundary. */
-export const INCIDENT_NOTE = "C1";
-export const INCIDENT_DURATION = "8n";
-export const INCIDENT_VELOCITY = 0.9;
-export const REVERB_DECAY_SECS = 1.5;
+const BASS_STEPS = Object.freeze({
+  healthy: new Set([0, 16]),
+  warning: new Set([0, 8, 16, 24]),
+  critical: new Set([0, 4, 8, 12, 16, 20, 24, 28]),
+  unknown: new Set([0, 24]),
+});
 
-/**
- * Incident click: a very short broadband noise burst layered under
- * the membrane hit. C1 (~33Hz) sits at or below the low-end rolloff of
- * most laptop and phone speakers, so the membrane's sustained
- * fundamental can go essentially unheard on exactly the devices a
- * portfolio visitor is most likely using. The click supplies the
- * percussive transient definition a kick drum normally gets from its
- * own noise/attack layer, independent of how much sub bass the output
- * device can actually reproduce. Highpassed so it reads as "snap", not
- * as a second low-frequency layer competing with the membrane.
- */
-export const INCIDENT_CLICK_DECAY_SECS = 0.045;
-export const INCIDENT_CLICK_HIGHPASS_HZ = 1800;
+const NOTE_LENGTHS = Object.freeze({
+  legato: "2n",
+  tenuto: "4n",
+  urgent: "8n",
+  suspended: "2n",
+});
 
-/**
- * The incident layer gets its own gain stage, deliberately separate
- * from the -6dB per-voice headroom on the ambient FMSynths. Without
- * this, a hit fires at the same relative level as the six-voice bed
- * at the exact moment computeMasterGainDb pushes that bed to unity
- * (incidents force the master to 0dB, its loudest point), so the hit
- * had to compete against the loudest the pad ever gets. +4dB tuned by
- * ear: reads as a distinct event over a unity-gain bed without
- * clipping the reverb tail.
- */
-export const INCIDENT_HIT_GAIN_DB = 4;
+function randomUnit(seed) {
+  let value = seed >>> 0;
+  value += 0x6d2b79f5;
+  value = Math.imul(value ^ (value >>> 15), value | 1);
+  value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+  return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+}
 
-/** Default position for the user volume slider (linear gain 0..1). */
-export const DEFAULT_USER_GAIN = 1;
+function requireTone() {
+  const Tone = globalThis.Tone;
+  if (!Tone) {
+    throw new Error(
+      "system-symphony: Tone.js is unavailable; load /vendor/tone.min.js first",
+    );
+  }
+  return Tone;
+}
 
-/** Short ramp for start/stop and slider moves; snappier than the
- *  telemetry ramps because it answers a direct user action. */
-const UI_RAMP_SECS = 0.15;
+export async function startToneWithTimeout(
+  Tone,
+  timeoutMs = AUDIO_START_TIMEOUT_MS,
+) {
+  let timeoutId;
+  try {
+    await Promise.race([
+      Tone.start(),
+      new Promise((_, reject) => {
+        timeoutId = globalThis.setTimeout(() => {
+          reject(new Error("system-symphony: audio context did not start in time"));
+        }, timeoutMs);
+      }),
+    ]);
+  } finally {
+    globalThis.clearTimeout(timeoutId);
+  }
+}
 
-/* ------------------------------------------------------------------ */
-/* Engine                                                              */
-/* ------------------------------------------------------------------ */
+function safeRamp(parameter, value, seconds) {
+  if (!parameter || !Number.isFinite(value)) return;
+  if (typeof parameter.rampTo === "function") {
+    parameter.rampTo(value, Math.max(0.01, seconds));
+  } else {
+    parameter.value = value;
+  }
+}
 
-/**
- * Create the (page-lifetime) audio engine. Nothing here touches the
- * AudioContext until start() runs inside a user gesture; until then
- * applyFrame() just remembers the latest frame so the first audible
- * moment already reflects live data.
- */
+function serviceSynth(Tone, family) {
+  switch (family) {
+    case "strings":
+      return new Tone.FMSynth({
+        harmonicity: 1.01,
+        modulationIndex: 1.3,
+        oscillator: { type: "sine" },
+        modulation: { type: "triangle" },
+        envelope: { attack: 0.18, decay: 0.45, sustain: 0.62, release: 1.8 },
+        modulationEnvelope: { attack: 0.5, decay: 0.4, sustain: 0.35, release: 1.5 },
+        volume: -10,
+      });
+    case "pulse":
+      return new Tone.MembraneSynth({
+        pitchDecay: 0.025,
+        octaves: 2,
+        envelope: { attack: 0.002, decay: 0.16, sustain: 0.08, release: 0.35 },
+        volume: -12,
+      });
+    case "brass":
+      return new Tone.MonoSynth({
+        oscillator: { type: "sawtooth" },
+        filter: { type: "lowpass", Q: 2, rolloff: -24 },
+        envelope: { attack: 0.08, decay: 0.28, sustain: 0.5, release: 0.9 },
+        filterEnvelope: {
+          attack: 0.08,
+          decay: 0.35,
+          sustain: 0.3,
+          release: 0.8,
+          baseFrequency: 180,
+          octaves: 3.2,
+        },
+        volume: -13,
+      });
+    case "plucked":
+      return new Tone.PluckSynth({
+        attackNoise: 0.7,
+        dampening: 4200,
+        resonance: 0.82,
+        volume: -10,
+      });
+    case "low-strings":
+      return new Tone.MonoSynth({
+        oscillator: { type: "triangle" },
+        filter: { type: "lowpass", Q: 1, rolloff: -24 },
+        envelope: { attack: 0.12, decay: 0.45, sustain: 0.7, release: 1.4 },
+        filterEnvelope: {
+          attack: 0.2,
+          decay: 0.5,
+          sustain: 0.42,
+          release: 1.2,
+          baseFrequency: 90,
+          octaves: 2.8,
+        },
+        volume: -12,
+      });
+    case "spectral-bells":
+      return new Tone.FMSynth({
+        harmonicity: 2.01,
+        modulationIndex: 5,
+        oscillator: { type: "sine" },
+        modulation: { type: "sine" },
+        envelope: { attack: 0.005, decay: 1.2, sustain: 0.05, release: 2.2 },
+        modulationEnvelope: { attack: 0.002, decay: 0.9, sustain: 0, release: 1.6 },
+        volume: -15,
+      });
+    case "woodwinds":
+    default:
+      return new Tone.MonoSynth({
+        oscillator: { type: "sine" },
+        filter: { type: "lowpass", Q: 3, rolloff: -24 },
+        envelope: { attack: 0.09, decay: 0.24, sustain: 0.58, release: 0.9 },
+        filterEnvelope: {
+          attack: 0.11,
+          decay: 0.35,
+          sustain: 0.5,
+          release: 0.8,
+          baseFrequency: 260,
+          octaves: 3.4,
+        },
+        volume: -12,
+      });
+  }
+}
+
 export function createEngine() {
   let initialized = false;
   let running = false;
+  let destroyed = false;
   let userVolume = DEFAULT_USER_GAIN;
-
-  /** Latest mapped frame, whether or not audio is live. */
   let currentFrame = null;
-  /** name -> voice params from the latest frame, for the grid tick. */
-  let frameVoices = new Map();
+  let phraseIndex = 0;
+  let stepIndex = 0;
+  let serviceCursor = 0;
 
-  /** name -> { synth, filter, gain, lfo, lfoRunning, lfoStopTimer } */
   const voices = new Map();
+  const voiceParams = new Map();
 
   let transport = null;
+  let schedulerId = null;
   let userGain = null;
-  let healthVolume = null;
-  let membrane = null;
+  let analyser = null;
+  let limiter = null;
+  let compressor = null;
   let reverb = null;
-  let incidentGain = null;
-  let incidentClick = null;
-  let incidentClickFilter = null;
-  let tickIndex = 0;
-  let voiceTickHandler = null;
-  let incidentHitHandler = null;
+  let masterFilter = null;
+  let masterVolume = null;
+  let serviceBus = null;
+  let padGain = null;
+  let bassGain = null;
+  let percussionGain = null;
+  let deploymentGain = null;
+  let pad = null;
+  let bass = null;
+  let kick = null;
+  let noise = null;
+  let noiseFilter = null;
+  let deploymentSynth = null;
+  let voiceHandler = null;
+  let incidentHandler = null;
+  let deploymentHandler = null;
 
-  function requireTone() {
-    const Tone = globalThis.Tone;
-    if (!Tone) {
-      throw new Error(
-        "sonify: window.Tone is missing. Load /vendor/tone.min.js " +
-          "(classic script, before this module) per the README.",
+  function createServiceVoice(params) {
+    const Tone = requireTone();
+    const synth = serviceSynth(Tone, params.instrumentFamily);
+    const filter = new Tone.Filter({
+      type: "lowpass",
+      frequency: 3600,
+      rolloff: -24,
+      Q: 1,
+    });
+    const panner = new Tone.Panner(params.pan);
+    const gain = new Tone.Gain(0);
+    synth.chain(filter, panner, gain, serviceBus);
+    const voice = { synth, filter, panner, gain, removalTimer: null };
+    voices.set(params.name, voice);
+    return voice;
+  }
+
+  function disposeServiceVoice(name, voice) {
+    if (voice.removalTimer !== null) clearTimeout(voice.removalTimer);
+    voice.synth.dispose();
+    voice.filter.dispose();
+    voice.panner.dispose();
+    voice.gain.dispose();
+    voices.delete(name);
+  }
+
+  function syncServiceVoices(frameVoices) {
+    const desired = new Set(
+      frameVoices.slice(0, MAX_SERVICE_VOICES).map((voice) => voice.name),
+    );
+    for (const params of frameVoices.slice(0, MAX_SERVICE_VOICES)) {
+      let voice = voices.get(params.name);
+      if (!voice) voice = createServiceVoice(params);
+      if (voice.removalTimer !== null) {
+        clearTimeout(voice.removalTimer);
+        voice.removalTimer = null;
+      }
+    }
+    for (const [name, voice] of voices) {
+      if (desired.has(name) || voice.removalTimer !== null) continue;
+      safeRamp(voice.gain.gain, 0, VOICE_REMOVE_RAMP_SECONDS);
+      voice.removalTimer = setTimeout(
+        () => disposeServiceVoice(name, voice),
+        (VOICE_REMOVE_RAMP_SECONDS + 0.1) * 1000,
       );
     }
-    return Tone;
   }
 
   function buildGraph(Tone) {
-    // User volume is the outermost stage and starts closed so the
-    // graph can be built and primed without a click; resume() opens it.
     userGain = new Tone.Gain(0).toDestination();
-
-    // The estate's calm floor lives on its own dB-native stage so the
-    // health mapping and the user's slider never fight over one param.
-    healthVolume = new Tone.Volume(0).connect(userGain);
-
-    // Incident percussion joins AFTER the health stage on purpose: an
-    // alert must land at full user volume even while the estate rests
-    // at the -18dB calm floor. The user slider still governs it.
-    reverb = new Tone.Reverb({ decay: REVERB_DECAY_SECS, wet: 0.5 });
-
-    // Incident layer's own gain stage: see INCIDENT_HIT_GAIN_DB above
-    // for why it needs headroom the ambient voices don't get. Linear
-    // gain computed directly from dB rather than via a Tone utility,
-    // so this doesn't depend on which Tone.js version is vendored.
-    incidentGain = new Tone.Gain(Math.pow(10, INCIDENT_HIT_GAIN_DB / 20));
-    incidentGain.connect(userGain);
-    reverb.connect(incidentGain);
-
-    membrane = new Tone.MembraneSynth({
-      octaves: 4,
-      pitchDecay: 0.06,
-      envelope: { attack: 0.001, decay: 0.5, sustain: 0.01, release: 0.6 },
+    analyser = new Tone.Analyser("waveform", WAVEFORM_SIZE);
+    limiter = new Tone.Limiter(-2);
+    compressor = new Tone.Compressor(-18, 3);
+    reverb = new Tone.Reverb({ decay: 3.2, wet: 0.24 });
+    masterFilter = new Tone.Filter({
+      type: "lowpass",
+      frequency: 5200,
+      rolloff: -24,
+      Q: 0.7,
     });
-    membrane.connect(reverb);
+    masterVolume = new Tone.Volume(-12);
+    masterVolume.chain(masterFilter, reverb, compressor, limiter, userGain);
+    limiter.connect(analyser);
 
-    // Broadband click: gives the hit a percussive attack independent
-    // of low-end reproduction. See INCIDENT_CLICK_* above.
-    incidentClick = new Tone.NoiseSynth({
-      noise: { type: "white" },
-      envelope: {
-        attack: 0.001,
-        decay: INCIDENT_CLICK_DECAY_SECS,
-        sustain: 0,
+    serviceBus = new Tone.Gain(0.82).connect(masterVolume);
+    padGain = new Tone.Gain(0.5).connect(masterVolume);
+    bassGain = new Tone.Gain(0.3).connect(masterVolume);
+    percussionGain = new Tone.Gain(0).connect(masterVolume);
+    deploymentGain = new Tone.Gain(0.72).connect(masterVolume);
+
+    pad = new Tone.PolySynth(Tone.Synth, {
+      oscillator: { type: "sine" },
+      envelope: { attack: 1.2, decay: 1.1, sustain: 0.64, release: 4.2 },
+      volume: -14,
+    }).connect(padGain);
+
+    bass = new Tone.MonoSynth({
+      oscillator: { type: "triangle" },
+      filter: { type: "lowpass", Q: 1, rolloff: -24 },
+      envelope: { attack: 0.08, decay: 0.4, sustain: 0.55, release: 1.1 },
+      filterEnvelope: {
+        attack: 0.12,
+        decay: 0.42,
+        sustain: 0.32,
+        release: 0.8,
+        baseFrequency: 65,
+        octaves: 2.4,
       },
+      volume: -12,
+    }).connect(bassGain);
+
+    kick = new Tone.MembraneSynth({
+      pitchDecay: 0.045,
+      octaves: 4,
+      envelope: { attack: 0.001, decay: 0.28, sustain: 0.02, release: 0.35 },
+      volume: -8,
+    }).connect(percussionGain);
+    noise = new Tone.NoiseSynth({
+      noise: { type: "pink" },
+      envelope: { attack: 0.001, decay: 0.055, sustain: 0 },
+      volume: -17,
     });
-    incidentClickFilter = new Tone.Filter({
-      type: "highpass",
-      frequency: INCIDENT_CLICK_HIGHPASS_HZ,
-      rolloff: -12,
+    noiseFilter = new Tone.Filter({
+      type: "bandpass",
+      frequency: 1800,
+      Q: 1.5,
     });
-    incidentClick.chain(incidentClickFilter, incidentGain);
+    noise.chain(noiseFilter, percussionGain);
 
-    for (const name of CURATED_SERVICES) {
-      const synth = new Tone.FMSynth({
-        // Soft ambient patch: near-unity harmonicity for slow beating
-        // warmth, low modulation index to stay far from FM clang, and
-        // -6dB of per-voice headroom so six voices summing never clip.
-        harmonicity: 1.005,
-        modulationIndex: 1.8,
-        oscillator: { type: "sine" },
-        modulation: { type: "sine" },
-        envelope: { attack: 0.06, decay: 0.4, sustain: 0.6, release: 1.4 },
-        modulationEnvelope: {
-          attack: 0.3,
-          decay: 0.5,
-          sustain: 0.4,
-          release: 1.6,
-        },
-        volume: -6,
-      });
+    deploymentSynth = new Tone.PolySynth(Tone.Synth, {
+      oscillator: { type: "triangle" },
+      envelope: { attack: 0.015, decay: 0.22, sustain: 0.35, release: 1.4 },
+      volume: -8,
+    }).connect(deploymentGain);
 
-      // Vibrato LFO into detune (cents). Created stopped, amplitude 0;
-      // applyVibrato() starts it only while a fresh deploy is decaying
-      // and stops it again at zero depth. See VIBRATO_MAX_CENTS note.
-      const lfo = new Tone.LFO({
-        frequency: VIBRATO_RATE_HZ,
-        min: -VIBRATO_MAX_CENTS,
-        max: VIBRATO_MAX_CENTS,
-        amplitude: 0,
-      });
-      lfo.connect(synth.detune);
+    transport = Tone.getTransport();
+    schedulerId = transport.scheduleRepeat(onEighth, "8n");
+    initialized = true;
+  }
 
-      const filter = new Tone.Filter({
-        type: "lowpass",
-        frequency: 8000,
-        rolloff: -24,
-        Q: 1,
-      });
+  function playPad(time, frame, step) {
+    if (step !== 0) return;
+    const chords = PAD_CHORDS[frame.scoreState];
+    const chord = chords[phraseIndex % chords.length];
+    const inversion = Math.floor(phraseIndex / chords.length) % chord.length;
+    const notes = chord.map((degree, index) => {
+      const scaleOffset = frame.scale[degree % frame.scale.length];
+      const octave = index < inversion ? 24 : 12;
+      return midiToFrequencyHz(50 + scaleOffset + octave);
+    });
+    pad.triggerAttackRelease(notes, frame.scoreState === "unknown" ? "2m" : "1m", time, 0.34);
+  }
 
-      // Per-voice gate. Starts closed and fades open on the first
-      // frame; unknown voices hold at a low mapped gain but stay
-      // scheduled, so a service appearing mid-session fades in rather
-      // than pops.
-      const gain = new Tone.Gain(0);
+  function playBass(time, frame, step) {
+    if (!BASS_STEPS[frame.scoreState].has(step)) return;
+    const phraseSeed = stableHash(`${frame.scoreState}:${phraseIndex}:bass`);
+    const degreeChoices = frame.scoreState === "critical" ? [0, 1, 4, 0] : [0, 4, 0, 5];
+    const degree = degreeChoices[(step / 4 + phraseSeed) % degreeChoices.length];
+    const midi = 38 + frame.scale[degree % frame.scale.length];
+    const duration = frame.scoreState === "critical" ? "8n" : "2n";
+    bass.triggerAttackRelease(midiToFrequencyHz(midi), duration, time, 0.42);
+  }
 
-      synth.chain(filter, gain, healthVolume);
-      voices.set(name, {
-        synth,
-        filter,
-        gain,
-        lfo,
-        lfoRunning: false,
-        lfoStopTimer: null,
-      });
+  function playPercussion(time, frame, step) {
+    if (frame.scoreState === "critical") {
+      if (step % 8 === 0 || step === 14 || step === 30) {
+        kick.triggerAttackRelease("D1", "8n", time, step % 8 === 0 ? 0.72 : 0.48);
+      }
+      if ([3, 7, 11, 15, 19, 23, 27, 31].includes(step)) {
+        noise.triggerAttackRelease(0.055, time, step % 8 === 7 ? 0.42 : 0.28);
+      }
+    } else if (frame.scoreState === "warning" && (step === 0 || step === 16)) {
+      kick.triggerAttackRelease("D1", "16n", time, 0.24);
     }
   }
 
-  /**
-   * The 8th-note grid callback. One voice per tick, round-robin across
-   * the curated pool: with six voices each returns every three beats,
-   * a slow arpeggio whose tails weave into a bed. Silent (gated or
-   * zero-velocity) voices are triggered anyway, exactly as the spec
-   * asks, so audibility is purely a gain question and fade-ins are
-   * always mid-phrase clean. `time` comes from the Transport and is
-   * the ONLY clock notes may use.
-   */
-  function onEighth(time) {
-    const name = CURATED_SERVICES[tickIndex % CURATED_SERVICES.length];
-    tickIndex += 1;
-    const params = frameVoices.get(name);
-    const voice = voices.get(name);
-    if (!params || !voice) return;
-    voiceTickHandler?.(name, params);
-    voice.synth.triggerAttackRelease(
-      params.frequencyHz,
-      NOTE_DURATION,
-      time,
-      params.velocity,
+  function playService(time, frame, step) {
+    if (!frame.voices.length) return;
+    const chance = randomUnit(
+      stableHash(`${frame.scoreState}:${phraseIndex}:${step}:service`),
     );
+    if (chance > frame.density) return;
+
+    const params = frame.voices[serviceCursor % frame.voices.length];
+    serviceCursor += 1 + ((phraseIndex + step) % 3 === 0 ? 1 : 0);
+    const voice = voices.get(params.name);
+    if (!voice) return;
+
+    const motifIndex = (phraseIndex + step + params.hash) % params.motifMidi.length;
+    const displacementChance = randomUnit(params.hash ^ phraseIndex ^ (step << 8));
+    const octave = displacementChance > 0.9 ? 12 : displacementChance < 0.08 ? -12 : 0;
+    const midi = params.motifMidi[motifIndex] + octave;
+    const frequency = midiToFrequencyHz(midi) * Math.pow(2, params.detuneCents / 1200);
+    const duration = NOTE_LENGTHS[params.articulation] ?? "4n";
+    const velocity = params.velocity * (params.status === "unknown" ? 0.7 : 1);
+    voice.synth.triggerAttackRelease(frequency, duration, time, velocity);
+
+    const Tone = requireTone();
+    Tone.Draw.schedule(() => {
+      voiceHandler?.(params.name, params);
+    }, time);
   }
 
-  function applyVibrato(voice, depth) {
-    if (depth > 0) {
-      if (voice.lfoStopTimer !== null) {
-        clearTimeout(voice.lfoStopTimer);
-        voice.lfoStopTimer = null;
-      }
-      if (!voice.lfoRunning) {
-        voice.lfo.start();
-        voice.lfoRunning = true;
-      }
-      voice.lfo.amplitude.rampTo(depth / VIBRATO_MAX_DEPTH, PARAM_RAMP_SECS);
-    } else if (voice.lfoRunning && voice.lfoStopTimer === null) {
-      // Ramp to zero first, then genuinely stop the oscillator: an
-      // inaudible LFO still burns cycles, and "off" must mean off.
-      voice.lfo.amplitude.rampTo(0, PARAM_RAMP_SECS);
-      voice.lfoStopTimer = setTimeout(() => {
-        voice.lfo.stop();
-        voice.lfoRunning = false;
-        voice.lfoStopTimer = null;
-      }, PARAM_RAMP_SECS * 1000 + 100);
-    }
+  function onEighth(time) {
+    if (!running || !currentFrame) return;
+    const step = stepIndex % PHRASE_STEPS;
+    if (step === 0 && stepIndex > 0) phraseIndex += 1;
+    playPad(time, currentFrame, step);
+    playBass(time, currentFrame, step);
+    playPercussion(time, currentFrame, step);
+    playService(time, currentFrame, step);
+    stepIndex += 1;
   }
 
   function applyFrameToGraph(frame) {
-    healthVolume.volume.rampTo(frame.masterGainDb, PARAM_RAMP_SECS);
-    for (const v of frame.voices) {
-      const voice = voices.get(v.name);
-      if (!voice) continue; // payload outside the curated pool: ignore
-      voice.filter.frequency.rampTo(v.filterHz, PARAM_RAMP_SECS);
-      voice.gain.gain.rampTo(
-        v.voiceGain ?? (v.audible ? 1 : 0),
-        PARAM_RAMP_SECS,
+    syncServiceVoices(frame.voices);
+    const transition = frame.transitionSeconds;
+    safeRamp(transport.bpm, frame.bpm, transition);
+    safeRamp(masterVolume.volume, frame.masterGainDb, transition);
+    safeRamp(masterFilter.frequency, frame.masterFilterHz, transition);
+    safeRamp(
+      padGain.gain,
+      frame.scoreState === "unknown" ? 0.3 : frame.scoreState === "warning" ? 0.48 : 0.58,
+      transition,
+    );
+    safeRamp(
+      bassGain.gain,
+      frame.scoreState === "critical" ? 0.72 : frame.scoreState === "warning" ? 0.46 : 0.25,
+      transition,
+    );
+    safeRamp(
+      percussionGain.gain,
+      frame.scoreState === "critical" ? 0.84 : frame.scoreState === "warning" ? 0.16 : 0,
+      transition,
+    );
+
+    voiceParams.clear();
+    for (const params of frame.voices) {
+      voiceParams.set(params.name, params);
+      const voice = voices.get(params.name);
+      if (!voice) continue;
+      safeRamp(
+        voice.filter.frequency,
+        Math.max(420, params.filterHz * params.brightness),
+        transition,
       );
-      // Pitch under a sustained note glides too: this is what lets the
-      // scale crossfade bend a held tone instead of waiting for the
-      // next retrigger. New strikes then land on the same value.
-      voice.synth.frequency.rampTo(v.frequencyHz, PARAM_RAMP_SECS);
-      applyVibrato(voice, v.vibratoDepth);
+      safeRamp(voice.gain.gain, params.voiceGain, transition);
+      safeRamp(voice.panner.pan, params.pan, 0.3);
+      if (voice.synth.detune) {
+        safeRamp(voice.synth.detune, params.detuneCents, transition);
+      }
     }
   }
 
+  function disposeGraph() {
+    if (!initialized) return;
+    if (schedulerId !== null) transport.clear(schedulerId);
+    for (const [name, voice] of voices) disposeServiceVoice(name, voice);
+    for (const node of [
+      deploymentSynth,
+      noiseFilter,
+      noise,
+      kick,
+      bass,
+      pad,
+      deploymentGain,
+      percussionGain,
+      bassGain,
+      padGain,
+      serviceBus,
+      masterVolume,
+      masterFilter,
+      reverb,
+      compressor,
+      limiter,
+      analyser,
+      userGain,
+    ]) {
+      node?.dispose?.();
+    }
+    initialized = false;
+  }
+
   return {
-    /**
-     * Initialise (once) and run. MUST be called from a user gesture:
-     * Tone.start() resumes the AudioContext, which browsers only allow
-     * in response to input, and autoplaying telemetry audio would be
-     * hostile UX even where a browser permitted it.
-     */
     async start() {
+      if (destroyed) throw new Error("system-symphony: engine was disposed");
       const Tone = requireTone();
-      await Tone.start();
+      await startToneWithTimeout(Tone);
       if (!initialized) {
         buildGraph(Tone);
-        // Reverb renders its impulse response off-thread; wait so the
-        // first incident hit is wet, not dry-then-suddenly-wet.
         await reverb.generate();
-        transport = Tone.getTransport();
-        transport.bpm.value = TRANSPORT_BPM;
-        transport.scheduleRepeat(onEighth, "8n");
-        initialized = true;
         if (currentFrame) applyFrameToGraph(currentFrame);
       }
-      transport.start();
-      userGain.gain.rampTo(userVolume, UI_RAMP_SECS);
       running = true;
+      if (transport.state !== "started") transport.start();
+      safeRamp(userGain.gain, userVolume, UI_RAMP_SECONDS);
     },
 
-    /** Mute: close the user stage, halt the grid. Release tails fade
-     *  under the closing gain rather than being cut. */
     pause() {
       if (!initialized || !running) return;
-      userGain.gain.rampTo(0, UI_RAMP_SECS);
-      transport.pause();
       running = false;
+      safeRamp(userGain.gain, 0, UI_RAMP_SECONDS);
     },
 
-    /**
-     * Accept a mapped frame from the poller. Always remembered, only
-     * applied when the graph exists; on a muted page this is how the
-     * first unmuted moment already sounds like the live estate.
-     */
     applyFrame(frame) {
       currentFrame = frame;
-      frameVoices = new Map(frame.voices.map((v) => [v.name, v]));
       if (initialized) applyFrameToGraph(frame);
     },
 
-    /**
-     * Schedule `count` membrane + click hits on successive
-     * quarter-note boundaries: never immediately, always quantised,
-     * per spec. The count is bounded by the curated list (six
-     * services), so no cap logic is needed. Hits arriving while muted
-     * are dropped on purpose: they are transient alerts, not a queue
-     * to replay.
-     *
-     * Each hit also schedules a UI callback via Tone.Draw, timed to
-     * the same `time` as the audio: Tone.Draw runs its queue on the
-     * animation frame nearest that scheduled time, so the visual flash
-     * lands in sync with what's actually heard instead of firing
-     * early on the calling stack (which can run up to a poll-tick
-     * ahead of when the Transport plays the note).
-     */
-    queueIncidentHits(count) {
-      if (!initialized || !running || count <= 0) return;
+    queueIncidentAccent(count = 1) {
+      if (!initialized || !running || count <= 0) return false;
       const Tone = requireTone();
-      const quarterSecs = Tone.Time("4n").toSeconds();
-      const firstAt = transport.nextSubdivision("4n");
-      for (let i = 0; i < count; i += 1) {
-        const at = firstAt + i * quarterSecs;
+      const bounded = Math.min(MAX_INCIDENT_ACCENTS, Math.trunc(count));
+      const startAt = transport.nextSubdivision("4n");
+      const stepSeconds = Tone.Time("4n").toSeconds();
+      for (let index = 0; index < bounded; index += 1) {
         transport.scheduleOnce((time) => {
-          membrane.triggerAttackRelease(
-            INCIDENT_NOTE,
-            INCIDENT_DURATION,
-            time,
-            INCIDENT_VELOCITY,
-          );
-          incidentClick.triggerAttackRelease(
-            INCIDENT_CLICK_DECAY_SECS,
-            time,
-            INCIDENT_VELOCITY,
-          );
-          Tone.Draw.schedule(() => {
-            incidentHitHandler?.();
-          }, time);
-        }, at);
+          kick.triggerAttackRelease("D1", "8n", time, 0.88);
+          noise.triggerAttackRelease(0.07, time, 0.56);
+          Tone.Draw.schedule(() => incidentHandler?.(), time);
+        }, startAt + index * stepSeconds);
       }
+      return true;
     },
 
-    /** User volume, linear 0..1. Remembered while muted. */
+    queueDeploymentMotif(deployment = {}) {
+      if (!initialized || !running) return false;
+      const Tone = requireTone();
+      const startAt = transport.nextSubdivision("4n");
+      const stepSeconds = Tone.Time("8n").toSeconds();
+      const notes = [62, 69, 76, 78, 74]; // D4, A4, E5, F#5, D5
+      notes.forEach((midi, index) => {
+        transport.scheduleOnce((time) => {
+          deploymentSynth.triggerAttackRelease(
+            midiToFrequencyHz(midi),
+            index === notes.length - 1 ? "2n" : "8n",
+            time,
+            0.52,
+          );
+          Tone.Draw.schedule(
+            () => deploymentHandler?.(deployment, index === 0),
+            time,
+          );
+        }, startAt + index * stepSeconds);
+      });
+      return true;
+    },
+
     setUserVolume(value) {
       userVolume = Math.min(1, Math.max(0, Number(value) || 0));
       if (initialized && running) {
-        userGain.gain.rampTo(userVolume, 0.05);
+        safeRamp(userGain.gain, userVolume, 0.08);
       }
+    },
+
+    getWaveform() {
+      if (!initialized || !analyser) return new Float32Array(WAVEFORM_SIZE);
+      const value = analyser.getValue();
+      return value instanceof Float32Array
+        ? value
+        : Float32Array.from(value ?? []);
     },
 
     isInitialized: () => initialized,
     isRunning: () => running,
-    setVoiceTickHandler(handler) {
-      voiceTickHandler = typeof handler === "function" ? handler : null;
+    setVoiceHandler(handler) {
+      voiceHandler = typeof handler === "function" ? handler : null;
     },
-    /** Fired once per queued incident hit, in sync with the audio. */
-    setIncidentHitHandler(handler) {
-      incidentHitHandler = typeof handler === "function" ? handler : null;
+    setIncidentHandler(handler) {
+      incidentHandler = typeof handler === "function" ? handler : null;
+    },
+    setDeploymentHandler(handler) {
+      deploymentHandler = typeof handler === "function" ? handler : null;
+    },
+    dispose() {
+      if (destroyed) return;
+      running = false;
+      destroyed = true;
+      disposeGraph();
     },
   };
 }
