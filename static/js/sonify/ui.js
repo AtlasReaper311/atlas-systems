@@ -8,15 +8,15 @@
 import {
   DEFAULT_USER_GAIN,
   createEngine,
-} from "./engine.js?v=20260716-system-symphony-dark-club-arp";
-import { createPoller } from "./poller.js?v=20260716-system-symphony-dark-club-arp";
+} from "./engine.js?v=20260716-system-symphony-expanded-library";
+import { createPoller } from "./poller.js?v=20260716-system-symphony-expanded-library";
 import {
   applyDemoProfileToServices,
   buildDependencyGraph,
   computeFrame,
   deriveDemoEstate,
   filterVoices,
-} from "./mapping.js?v=20260716-system-symphony-dark-club-arp";
+} from "./mapping.js?v=20260716-system-symphony-expanded-library";
 import {
   DEFAULT_PERFORMANCE_SEED,
   PERFORMANCE_MACRO_DEFAULTS,
@@ -24,7 +24,8 @@ import {
   createPerformanceArrangement,
   formatPerformanceSeed,
   normalizePerformanceSeed,
-} from "./performance.js?v=20260716-system-symphony-dark-club-arp";
+} from "./performance.js?v=20260716-system-symphony-expanded-library";
+import { resolveSamplePalette } from "./samples.js?v=20260716-system-symphony-expanded-library";
 
 const WIDGET_ID = "system-symphony-widget";
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -426,7 +427,17 @@ export function initSystemSymphony() {
         String(button.dataset.demoProfile === frame.scoreState),
       );
     }
-    host.querySelector("[data-performance-status]").textContent = performanceStatus;
+    const palette = resolveSamplePalette(
+      frame.scoreState,
+      performanceArrangement,
+      0,
+    );
+    const leadLabel = palette.lead ?? "procedural";
+    const bassLabel = palette.bass?.replace(/^bass-/, "") ?? "procedural";
+    const rhythmLabel = palette.bassLoop ?? "one-shot";
+    const textureLabel = palette.atmosphere ?? "procedural";
+    host.querySelector("[data-performance-status]").textContent =
+      `${performanceStatus} // ${palette.section} // bass ${bassLabel} // rhythm ${rhythmLabel} // lead ${leadLabel} // texture ${textureLabel}`;
   }
 
   function stagePerformance(scoreState, action = "Score", arrangement = null) {
@@ -1069,7 +1080,14 @@ export function initSystemSymphony() {
     buttons.forEach((button) => { button.disabled = true; });
     try {
       if (engine.isRunning()) engine.pause();
-      else await engine.start();
+      else {
+        host.querySelector("[data-important-status]").textContent =
+          "Loading hybrid instrument library…";
+        await engine.start();
+        host.querySelector("[data-important-status]").textContent = engine.isSampleReady()
+          ? "Hybrid drums, bass, lead and atmosphere ready."
+          : "Sample library unavailable. Procedural fallback is active.";
+      }
       setRunningUi();
     } catch (error) {
       console.error("system-symphony: audio failed to start", error);

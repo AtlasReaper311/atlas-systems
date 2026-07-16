@@ -12,7 +12,8 @@ import {
   boundVoiceMidi,
   midiToFrequencyHz,
   stableHash,
-} from "./mapping.js?v=20260716-system-symphony-dark-club-arp";
+} from "./mapping.js?v=20260716-system-symphony-expanded-library";
+import { createHybridSampler } from "./sampler.js?v=20260716-system-symphony-expanded-library";
 
 export const DEFAULT_USER_GAIN = 0.62;
 export const MAX_SERVICE_VOICES = MAX_COMPONENTS;
@@ -21,6 +22,8 @@ export const WAVEFORM_SIZE = 512;
 export const AUDIO_START_TIMEOUT_MS = 8000;
 export const PAD_MEASURE_STEPS = 8;
 export const PAD_ROOT_MIDI = 38; // D2
+export const ARP_ROOT_MIDI = 50; // D3
+export const ARP_MAX_MIDI = 62; // D4
 export const DRONE_MIDI = Object.freeze([26, 33]); // D1 / A1
 export const PERCUSSION_BUS_GAINS = Object.freeze({
   healthy: 0.48,
@@ -67,6 +70,17 @@ const BASS_DEGREES = Object.freeze({
 });
 
 const PERFORMANCE_BASS_PATTERNS = Object.freeze([
+  Object.freeze([0, 2, 4, 6]),
+  Object.freeze([0, 3, 6]),
+  Object.freeze([0, 2, 5]),
+  Object.freeze([0, 3, 5]),
+  Object.freeze([0, 2, 4]),
+  Object.freeze([0, 4, 6]),
+  Object.freeze([0, 3, 6]),
+  Object.freeze([0, 2, 4, 6]),
+]);
+
+const GHOST_BASS_PATTERNS = Object.freeze([
   Object.freeze([0, 2, 3, 5, 7]),
   Object.freeze([0, 1, 3, 4, 6]),
   Object.freeze([0, 2, 4, 5, 7]),
@@ -125,24 +139,24 @@ const TERMINAL_DEGREES = Object.freeze({
 
 const PERFORMANCE_KICK_VARIANTS = Object.freeze([
   Object.freeze([0, 2, 4, 6]),
-  Object.freeze([0, 2, 4, 7]),
-  Object.freeze([0, 3, 4, 6]),
-  Object.freeze([0, 2, 5, 6]),
-  Object.freeze([0, 2, 4, 6, 7]),
-  Object.freeze([0, 3, 4, 7]),
-  Object.freeze([0, 2, 4, 5, 7]),
-  Object.freeze([0, 1, 4, 6]),
+  Object.freeze([0, 2, 5]),
+  Object.freeze([0, 3, 5]),
+  Object.freeze([0, 3, 6]),
+  Object.freeze([0, 2, 4, 6]),
+  Object.freeze([0, 3, 6]),
+  Object.freeze([0, 2, 5]),
+  Object.freeze([0, 4, 6]),
 ]);
 
 const PERFORMANCE_HAT_VARIANTS = Object.freeze([
   Object.freeze([1, 3, 5, 7]),
-  Object.freeze([1, 3, 4, 5, 7]),
-  Object.freeze([1, 2, 3, 5, 7]),
-  Object.freeze([1, 3, 5, 6, 7]),
-  Object.freeze([1, 2, 3, 5, 6, 7]),
-  Object.freeze([0, 1, 3, 5, 7]),
-  Object.freeze([1, 3, 4, 5, 6, 7]),
-  Object.freeze([1, 2, 3, 4, 5, 7]),
+  Object.freeze([0, 2, 4, 6]),
+  Object.freeze([1, 3, 6]),
+  Object.freeze([0, 3, 5]),
+  Object.freeze([1, 3, 5, 7]),
+  Object.freeze([1, 3, 5, 7]),
+  Object.freeze([1, 3, 7]),
+  Object.freeze([1, 5, 7]),
 ]);
 
 const PERFORMANCE_METAL_VARIANTS = Object.freeze([
@@ -150,15 +164,15 @@ const PERFORMANCE_METAL_VARIANTS = Object.freeze([
   Object.freeze([3]),
   Object.freeze([5]),
   Object.freeze([6]),
-  Object.freeze([2, 7]),
-  Object.freeze([4]),
-  Object.freeze([1, 6]),
-  Object.freeze([3, 7]),
+  Object.freeze([7]),
+  Object.freeze([3]),
+  Object.freeze([5]),
+  Object.freeze([7]),
 ]);
 
 const PERFORMANCE_VARIANT_POOLS = Object.freeze({
   healthy: Object.freeze([0, 1, 0, 1]),
-  warning: Object.freeze([2, 3, 5, 6]),
+  warning: Object.freeze([4, 5, 6, 7]),
   critical: Object.freeze([4, 5, 6, 7]),
   unknown: Object.freeze([0, 1, 2, 3]),
 });
@@ -224,9 +238,12 @@ export function bassEventForStep(
 ) {
   const activeSteps = performance
     ? Array.from({ length: PHRASE_STEPS / PAD_MEASURE_STEPS }, (_, measure) => {
-        const pattern = PERFORMANCE_BASS_PATTERNS[
+        const patterns = scoreState === "unknown"
+          ? GHOST_BASS_PATTERNS
+          : PERFORMANCE_BASS_PATTERNS;
+        const pattern = patterns[
           Math.abs(Math.trunc(performance.bassPattern ?? 0))
-            % PERFORMANCE_BASS_PATTERNS.length
+            % patterns.length
         ];
         const activePattern = scoreState === "unknown"
           ? pattern.filter((_, index) => index % 2 === 0)
@@ -361,7 +378,10 @@ export function terminalEventForStep(
         ? 0.58
         : 0.78;
   return {
-    midi: Math.min(55, PAD_ROOT_MIDI + safeScale[degree % safeScale.length] + octave),
+    midi: Math.min(
+      ARP_MAX_MIDI,
+      ARP_ROOT_MIDI + safeScale[degree % safeScale.length] + octave,
+    ),
     duration: scoreState === "unknown"
       ? "8n"
       : performance.motion >= 0.55
@@ -505,13 +525,7 @@ export function percussionEventsForStep(scoreState, step, performance = null) {
   }
   const snareSteps = scoreState === "unknown"
     ? [4]
-    : scoreState === "critical"
-      ? patternVariant % 2 === 0
-        ? [2, 6, 7]
-        : [2, 5, 6]
-      : scoreState === "warning" && patternVariant % 2 === 1
-        ? [3, 6]
-        : [2, 6];
+    : [2, 6];
   if (snareSteps.includes(measureStep)) {
     events.snare = {
       duration: 0.08,
@@ -535,13 +549,12 @@ export function percussionEventsForStep(scoreState, step, performance = null) {
       velocity: (0.08 + performance.grit * 0.13) * stateLevel,
     };
   }
-  if (scoreState === "critical" && base.kick && !events.kick) {
-    events.kick = base.kick;
-  }
-
   const multiplier = performance.drumMultiplier ?? 1;
   for (const event of Object.values(events)) {
-    if (event) event.velocity = Math.min(0.82, event.velocity * multiplier);
+    if (event) {
+      const maximum = scoreState === "critical" ? 0.72 : 0.78;
+      event.velocity = Math.min(maximum, event.velocity * multiplier);
+    }
   }
   return events;
 }
@@ -722,6 +735,8 @@ export function createEngine() {
   let terminalSynth = null;
   let terminalFilter = null;
   let terminalDelay = null;
+  let terminalDelaySend = null;
+  let atmosphericSend = null;
   let kick = null;
   let snare = null;
   let hat = null;
@@ -730,6 +745,7 @@ export function createEngine() {
   let textureNoise = null;
   let textureFilter = null;
   let deploymentSynth = null;
+  let hybridSampler = null;
   let voiceHandler = null;
   let incidentHandler = null;
   let deploymentHandler = null;
@@ -796,7 +812,7 @@ export function createEngine() {
     analyser = new Tone.Analyser("waveform", WAVEFORM_SIZE);
     limiter = new Tone.Limiter(-2);
     compressor = new Tone.Compressor(-20, 3.5);
-    reverb = new Tone.Reverb({ decay: 4.8, wet: 0.3 });
+    reverb = new Tone.Reverb({ decay: 4.8, wet: 1 });
     masterFilter = new Tone.Filter({
       type: "lowpass",
       frequency: 4200,
@@ -804,7 +820,8 @@ export function createEngine() {
       Q: 0.85,
     });
     masterVolume = new Tone.Volume(-12);
-    masterVolume.chain(masterFilter, reverb, compressor, limiter, userGain);
+    masterVolume.chain(masterFilter, compressor, limiter, userGain);
+    reverb.connect(compressor);
     limiter.connect(analyser);
 
     serviceBus = new Tone.Gain(0.86);
@@ -822,18 +839,22 @@ export function createEngine() {
     textureGain = new Tone.Gain(0.012).connect(masterVolume);
     terminalGain = new Tone.Gain(0).connect(masterVolume);
     deploymentGain = new Tone.Gain(0.62).connect(masterVolume);
+    atmosphericSend = new Tone.Gain(0.12).connect(reverb);
+    terminalDelaySend = new Tone.Gain(0.08);
 
     drone = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: "fatsine", count: 3, spread: 8 },
       envelope: { attack: 4.2, decay: 2.2, sustain: 0.86, release: 8.5 },
       volume: -15,
     }).connect(droneGain);
+    droneGain.connect(atmosphericSend);
 
     pad = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: "fatsawtooth", count: 3, spread: 13 },
       envelope: { attack: 2.4, decay: 1.8, sustain: 0.72, release: 6.8 },
       volume: -17,
     }).connect(padGain);
+    padGain.connect(atmosphericSend);
 
     bass = new Tone.MonoSynth({
       oscillator: { type: "square" },
@@ -867,32 +888,29 @@ export function createEngine() {
     });
     counterline.chain(counterlineFilter, counterlineGain);
 
-    terminalSynth = new Tone.MonoSynth({
-      oscillator: { type: "sawtooth" },
-      filter: { type: "lowpass", Q: 4.8, rolloff: -24 },
-      envelope: { attack: 0.008, decay: 0.14, sustain: 0.1, release: 0.34 },
-      filterEnvelope: {
-        attack: 0.004,
-        decay: 0.16,
-        sustain: 0.22,
-        release: 0.3,
-        baseFrequency: 105,
-        octaves: 3.4,
-      },
-      volume: -10,
+    terminalSynth = new Tone.FMSynth({
+      harmonicity: 1.5,
+      modulationIndex: 2.2,
+      oscillator: { type: "sine" },
+      modulation: { type: "triangle" },
+      envelope: { attack: 0.006, decay: 0.16, sustain: 0.16, release: 0.38 },
+      modulationEnvelope: { attack: 0.008, decay: 0.2, sustain: 0.08, release: 0.3 },
+      volume: -8,
     });
     terminalFilter = new Tone.Filter({
       type: "lowpass",
-      frequency: 2100,
+      frequency: 4600,
       rolloff: -24,
-      Q: 2.2,
+      Q: 1.2,
     });
     terminalDelay = new Tone.FeedbackDelay({
       delayTime: "8n",
       feedback: 0.28,
-      wet: 0.08,
+      wet: 1,
     });
-    terminalSynth.chain(terminalFilter, terminalDelay, terminalGain);
+    terminalSynth.chain(terminalFilter, terminalGain);
+    terminalGain.connect(terminalDelaySend);
+    terminalDelaySend.chain(terminalDelay, masterVolume);
 
     kick = new Tone.MembraneSynth({
       pitchDecay: 0.045,
@@ -933,6 +951,7 @@ export function createEngine() {
       Q: 2.4,
     });
     textureNoise.chain(textureFilter, textureGain);
+    textureGain.connect(atmosphericSend);
     textureNoise.start();
 
     deploymentSynth = new Tone.PolySynth(Tone.FMSynth, {
@@ -944,6 +963,12 @@ export function createEngine() {
       modulationEnvelope: { attack: 0.04, decay: 0.25, sustain: 0.1, release: 1.2 },
       volume: -10,
     }).connect(deploymentGain);
+
+    hybridSampler = createHybridSampler(Tone, {
+      output: masterVolume,
+      reverbInput: reverb,
+      delayInput: terminalDelaySend,
+    });
 
     transport = Tone.getTransport();
     schedulerId = transport.scheduleRepeat(onEighth, "8n");
@@ -995,11 +1020,19 @@ export function createEngine() {
       activePerformance,
     );
     if (!event) return;
+    const frequency = midiToFrequencyHz(event.midi);
+    const sampled = hybridSampler?.playBass(
+      time,
+      frame,
+      { ...event, step, frequency },
+      phraseIndex,
+      activePerformance,
+    ) ?? false;
     bass.triggerAttackRelease(
-      midiToFrequencyHz(event.midi),
+      frequency,
       event.duration,
       time,
-      event.velocity,
+      sampled ? Math.min(0.2, event.velocity * 0.22) : event.velocity,
     );
   }
 
@@ -1039,25 +1072,33 @@ export function createEngine() {
 
   function playPercussion(time, frame, step) {
     const events = percussionEventsForStep(frame.scoreState, step, activePerformance);
+    const sampled = hybridSampler?.playDrums(
+      time,
+      frame,
+      step,
+      phraseIndex,
+      events,
+      activePerformance,
+    ) ?? false;
     if (events.kick) {
       kick.triggerAttackRelease(
         "D1",
         events.kick.duration,
         time,
-        events.kick.velocity,
+        sampled ? Math.min(0.18, events.kick.velocity * 0.2) : events.kick.velocity,
       );
     }
-    if (events.snare) {
+    if (!sampled && events.snare) {
       snare.triggerAttackRelease(
         events.snare.duration,
         time,
         events.snare.velocity,
       );
     }
-    if (events.hat) {
+    if (!sampled && events.hat) {
       hat.triggerAttackRelease(events.hat.duration, time, events.hat.velocity);
     }
-    if (events.metal) {
+    if (!sampled && events.metal) {
       metal.triggerAttackRelease(events.metal.duration, time, events.metal.velocity);
     }
   }
@@ -1118,12 +1159,37 @@ export function createEngine() {
       const Tone = requireTone();
       Tone.Draw.schedule(() => performanceHandler?.(activePerformance), time);
     }
+    if (step === 0) {
+      hybridSampler?.applyScene(
+        currentFrame,
+        activePerformance,
+        phraseIndex,
+        1.2,
+      );
+    }
+    if (step % 8 === 0) {
+      hybridSampler?.playBassPhrase(
+        time,
+        currentFrame,
+        step,
+        phraseIndex,
+        activePerformance,
+      );
+    }
     playDrone(time, step);
     playPad(time, currentFrame, step);
     playBass(time, currentFrame, step);
     playCounterline(time, currentFrame, step);
     playPercussion(time, currentFrame, step);
     playService(time, currentFrame, step);
+    if (step === 0) {
+      hybridSampler?.playSectionAccent(
+        time,
+        currentFrame,
+        phraseIndex,
+        activePerformance,
+      );
+    }
     stepIndex += 1;
   }
 
@@ -1132,6 +1198,13 @@ export function createEngine() {
     const step = arpStepIndex % PHRASE_STEPS;
     const arpPhraseIndex = Math.floor(arpStepIndex / PHRASE_STEPS);
     playTerminal(time, currentFrame, step, arpPhraseIndex);
+    hybridSampler?.playLead(
+      time,
+      currentFrame,
+      step,
+      phraseIndex,
+      activePerformance,
+    );
     arpStepIndex += 1;
   }
 
@@ -1229,17 +1302,22 @@ export function createEngine() {
     );
     safeRamp(
       terminalFilter.frequency,
-      performance ? 1350 + performance.grit * 1350 : 1800,
+      performance ? 3200 + performance.grit * 2200 : 4200,
       transition,
     );
-    safeRamp(terminalDelay.wet, performance?.delayWet ?? 0.08, transition);
+    safeRamp(terminalDelaySend.gain, performance?.delayWet ?? 0.08, transition);
     safeRamp(serviceDistortion.wet, performance?.distortionWet ?? 0, transition);
-    safeRamp(reverb.wet, performance?.reverbWet ?? 0.3, transition);
+    safeRamp(
+      atmosphericSend.gain,
+      0.08 + (performance?.reverbWet ?? 0.22) * 0.5,
+      transition,
+    );
     safeRamp(
       textureFilter.frequency,
       performance ? 360 + performance.grit * 440 : 420,
       transition,
     );
+    hybridSampler?.applyScene(frame, performance, phraseIndex, transition);
   }
 
   function applyFrameToGraph(frame) {
@@ -1277,9 +1355,13 @@ export function createEngine() {
     for (const [name, voice] of voices) disposeServiceVoice(name, voice);
     for (const bus of familyBuses.values()) bus.dispose();
     familyBuses.clear();
+    hybridSampler?.dispose?.();
+    hybridSampler = null;
     for (const node of [
       deploymentSynth,
       terminalDelay,
+      terminalDelaySend,
+      atmosphericSend,
       terminalFilter,
       terminalSynth,
       textureFilter,
@@ -1324,7 +1406,10 @@ export function createEngine() {
       await startToneWithTimeout(Tone);
       if (!initialized) {
         buildGraph(Tone);
-        await reverb.generate();
+        await Promise.all([
+          reverb.generate(),
+          hybridSampler?.load(),
+        ]);
         if (currentFrame) applyFrameToGraph(currentFrame);
       }
       running = true;
@@ -1378,8 +1463,12 @@ export function createEngine() {
       const stepSeconds = Tone.Time("4n").toSeconds();
       for (let index = 0; index < bounded; index += 1) {
         transport.scheduleOnce((time) => {
+          hybridSampler?.playAccent("kick-aggressive", time, 0.82);
+          hybridSampler?.playAccent("snare-aggressive", time, 0.64);
           kick.triggerAttackRelease("D1", "8n", time, 0.88);
-          snare.triggerAttackRelease(0.09, time, 0.56);
+          if (!hybridSampler?.isReady()) {
+            snare.triggerAttackRelease(0.09, time, 0.56);
+          }
           Tone.Draw.schedule(() => incidentHandler?.(), time);
         }, startAt + index * stepSeconds);
       }
@@ -1394,6 +1483,7 @@ export function createEngine() {
       const notes = [50, 57, 64, 66, 62]; // D3, A3, E4, F#4, D4
       notes.forEach((midi, index) => {
         transport.scheduleOnce((time) => {
+          if (index === 0) hybridSampler?.playAccent("crash-crisp", time, 0.62);
           deploymentSynth.triggerAttackRelease(
             midiToFrequencyHz(midi),
             index === notes.length - 1 ? "2n" : "8n",
@@ -1426,6 +1516,8 @@ export function createEngine() {
 
     isInitialized: () => initialized,
     isRunning: () => running,
+    isSampleReady: () => hybridSampler?.isReady?.() ?? false,
+    getSamplePalette: () => hybridSampler?.getPalette?.() ?? null,
     setVoiceHandler(handler) {
       voiceHandler = typeof handler === "function" ? handler : null;
     },

@@ -5,7 +5,8 @@
  * Live telemetry never imports these settings into its score frame.
  */
 
-import { stableHash } from "./mapping.js?v=20260716-system-symphony-dark-club-arp";
+import { stableHash } from "./mapping.js?v=20260716-system-symphony-expanded-library";
+import { resolveSamplePalette } from "./samples.js?v=20260716-system-symphony-expanded-library";
 
 export const DEFAULT_PERFORMANCE_SEED = "A71A5";
 
@@ -38,7 +39,7 @@ export const PERFORMANCE_MACRO_DEFAULTS = Object.freeze({
 const BASS_SHIFTS = Object.freeze([0, 1, -1, 0]);
 const PERFORMANCE_SCENE_DYNAMICS = Object.freeze({
   healthy: Object.freeze({
-    bpm: 112,
+    bpm: 102,
     density: [0.92, 0.38],
     drums: [0.95, 0.35],
     bass: [1, 0.35],
@@ -54,7 +55,7 @@ const PERFORMANCE_SCENE_DYNAMICS = Object.freeze({
     reverb: [0.13, 0.19],
   }),
   warning: Object.freeze({
-    bpm: 120,
+    bpm: 108,
     density: [1, 0.45],
     drums: [1.05, 0.42],
     bass: [1.08, 0.4],
@@ -70,7 +71,7 @@ const PERFORMANCE_SCENE_DYNAMICS = Object.freeze({
     reverb: [0.1, 0.15],
   }),
   critical: Object.freeze({
-    bpm: 132,
+    bpm: 114,
     density: [1.08, 0.5],
     drums: [1.16, 0.5],
     bass: [1.16, 0.45],
@@ -86,7 +87,7 @@ const PERFORMANCE_SCENE_DYNAMICS = Object.freeze({
     reverb: [0.07, 0.11],
   }),
   unknown: Object.freeze({
-    bpm: 104,
+    bpm: 84,
     density: [0.78, 0.25],
     drums: [0.42, 0.32],
     bass: [0.58, 0.28],
@@ -184,12 +185,34 @@ export function createPerformanceArrangement(
   const melodyOffset = variation(stateSeed, "melody", 8);
   const terminalPattern = variation(stateSeed, "terminal-pattern", 8);
   const phraseStride = variation(stateSeed, "phrase-stride", 2) === 0 ? 1 : 3;
+  const kickTimbre = variation(stateSeed, "kick-timbre", 8);
+  const snareTimbre = variation(stateSeed, "snare-timbre", 8);
+  const hatTimbre = variation(stateSeed, "hat-timbre", 8);
+  const metalTimbre = variation(stateSeed, "metal-timbre", 8);
+  const bassTimbre = variation(stateSeed, "bass-timbre", 8);
+  const bassLoopTimbre = variation(stateSeed, "bass-loop-timbre", 12);
+  const bassLoopSliceVariant = variation(stateSeed, "bass-loop-slices", 4);
+  const leadTimbre = variation(stateSeed, "lead-timbre", 8);
+  const atmosphereTimbre = variation(stateSeed, "atmosphere-timbre", 8);
+  const leadSliceVariant = variation(stateSeed, "lead-slices", 8);
+  const sectionVariant = variation(stateSeed, "sections", 8);
+  const sampleSignature = resolveSamplePalette(normalizedState, {
+    kickTimbre,
+    snareTimbre,
+    hatTimbre,
+    metalTimbre,
+    bassTimbre,
+    bassLoopTimbre,
+    leadTimbre,
+    atmosphereTimbre,
+    sectionVariant,
+  }, 0).signature;
   const targetBpm = bounded(
     dynamics.bpm
-      + (energy - PERFORMANCE_MACRO_DEFAULTS.energy / 100) * 24
+      + (energy - PERFORMANCE_MACRO_DEFAULTS.energy / 100) * 10
       + tempoJitter * 100,
-    96,
-    138,
+    78,
+    118,
   );
   const patternSignature = [
     chordOffset,
@@ -200,6 +223,10 @@ export function createPerformanceArrangement(
     melodyOffset,
     terminalPattern,
     phraseStride,
+    sampleSignature,
+    normalizedState === "healthy" ? leadSliceVariant : "procedural",
+    bassLoopSliceVariant,
+    sectionVariant,
   ].join("-");
 
   return Object.freeze({
@@ -222,6 +249,18 @@ export function createPerformanceArrangement(
     melodyOffset,
     terminalPattern,
     phraseStride,
+    kickTimbre,
+    snareTimbre,
+    hatTimbre,
+    metalTimbre,
+    bassTimbre,
+    bassLoopTimbre,
+    bassLoopSliceVariant,
+    leadTimbre,
+    atmosphereTimbre,
+    leadSliceVariant,
+    sectionVariant,
+    sampleSignature,
     targetBpm,
     densityMultiplier: bounded(
       dynamics.density[0] + motion * dynamics.density[1],
