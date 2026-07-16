@@ -1,5 +1,5 @@
 /**
- * System SYMPHONY persistent generative orchestra.
+ * System SYMPHONY persistent cyberpunk telemetry composition.
  *
  * Tone.js stays isolated here. Telemetry updates reshape one continuous
  * composition; they never restart it. The scheduler triggers at most one
@@ -12,7 +12,7 @@ import {
   boundVoiceMidi,
   midiToFrequencyHz,
   stableHash,
-} from "./mapping.js?v=20260716-system-symphony-polish";
+} from "./mapping.js?v=20260716-system-symphony-cyberpunk";
 
 export const DEFAULT_USER_GAIN = 0.62;
 export const MAX_SERVICE_VOICES = MAX_COMPONENTS;
@@ -21,12 +21,12 @@ export const WAVEFORM_SIZE = 512;
 export const AUDIO_START_TIMEOUT_MS = 8000;
 export const PAD_MEASURE_STEPS = 8;
 export const PAD_ROOT_MIDI = 38; // D2
-export const DRONE_MIDI = Object.freeze([PAD_ROOT_MIDI, 45]); // D2 / A2
+export const DRONE_MIDI = Object.freeze([26, 33]); // D1 / A1
 export const PERCUSSION_BUS_GAINS = Object.freeze({
-  healthy: 0.28,
-  warning: 0.48,
-  critical: 0.84,
-  unknown: 0,
+  healthy: 0.55,
+  warning: 0.7,
+  critical: 0.9,
+  unknown: 0.22,
 });
 
 const UI_RAMP_SECONDS = 0.25;
@@ -34,24 +34,34 @@ const VOICE_REMOVE_RAMP_SECONDS = 0.5;
 const PHRASE_STEPS = 32;
 
 const PAD_CHORDS = Object.freeze({
-  healthy: [[0, 2, 4], [3, 5, 7], [4, 6, 1], [1, 3, 5]],
-  warning: [[0, 2, 4], [5, 3, 1], [3, 5, 0], [1, 4, 6]],
-  critical: [[0, 1, 4], [0, 3, 5], [1, 4, 6], [0, 2, 5]],
-  unknown: [[0, 4], [1, 5], [0, 6], [4, 7]],
+  healthy: [[0, 2, 4], [0, 3, 5], [4, 6, 1], [0, 2, 5]],
+  warning: [[0, 1, 4], [0, 3, 5], [1, 4, 6], [0, 2, 5]],
+  critical: [[0, 1, 4], [1, 3, 5], [0, 4, 6], [0, 1, 5]],
+  unknown: [[0, 3], [0, 4], [1, 3], [0, 5]],
 });
 
 const BASS_STEPS = Object.freeze({
-  healthy: new Set([0, 16]),
-  warning: new Set([0, 8, 16, 24]),
+  healthy: new Set([0, 6, 8, 14, 16, 22, 24, 30]),
+  warning: new Set([0, 5, 8, 11, 14, 16, 21, 24, 27, 30]),
   critical: new Set([0, 4, 8, 12, 16, 20, 24, 28]),
-  unknown: new Set([0, 24]),
+  unknown: new Set([0, 12, 16, 28]),
 });
 
 const NOTE_LENGTHS = Object.freeze({
-  legato: "2n",
-  tenuto: "2n",
-  urgent: "8n",
+  legato: "1m",
+  tenuto: "2n.",
+  urgent: "4n",
   suspended: "1m",
+});
+
+const FAMILY_BUS_GAINS = Object.freeze({
+  "analog-pad": 0.72,
+  "data-sequence": 0.6,
+  "industrial-pulse": 0.56,
+  "edge-saw": 0.5,
+  "sub-drone": 0.7,
+  "relay-bass": 0.64,
+  "tape-signal": 0.48,
 });
 
 function randomUnit(seed) {
@@ -75,7 +85,7 @@ export function buildPadVoicing(scoreState, scale, measureIndex) {
     const degree = chord[(index + inversion) % chord.length];
     const scaleOffset = scale[degree % scale.length];
     const octave = index === 0 ? 0 : 12;
-    return Math.min(62, PAD_ROOT_MIDI + scaleOffset + octave);
+    return Math.min(57, PAD_ROOT_MIDI + scaleOffset + octave);
   });
 }
 
@@ -85,7 +95,7 @@ export function serviceOctaveDisplacement(seed) {
 
 export function percussionEventsForStep(scoreState, step) {
   if (!Number.isInteger(step) || step < 0 || step >= PHRASE_STEPS) {
-    return { kick: null, noise: null };
+    return { kick: null, snare: null, hat: null, metal: null };
   }
 
   if (scoreState === "critical") {
@@ -93,31 +103,62 @@ export function percussionEventsForStep(scoreState, step) {
       kick: step % 8 === 0 || step === 14 || step === 30
         ? { duration: "8n", velocity: step % 8 === 0 ? 0.72 : 0.48 }
         : null,
-      noise: step % 4 === 3
-        ? { duration: 0.055, velocity: step % 8 === 7 ? 0.42 : 0.28 }
+      snare: step % 8 === 4
+        ? { duration: 0.09, velocity: 0.48 }
+        : null,
+      hat: step % 2 === 1
+        ? { duration: 0.035, velocity: step % 8 === 7 ? 0.3 : 0.2 }
+        : null,
+      metal: step === 15 || step === 31
+        ? { duration: "16n", velocity: 0.24 }
         : null,
     };
   }
 
   if (scoreState === "warning") {
     return {
-      kick: step % 8 === 0 || step === 14 || step === 30
-        ? { duration: "8n", velocity: step % 8 === 0 ? 0.42 : 0.28 }
+      kick: step % 8 === 0 || [6, 14, 22, 30].includes(step)
+        ? { duration: "8n", velocity: step % 8 === 0 ? 0.52 : 0.3 }
         : null,
-      noise: step % 4 === 3
-        ? { duration: 0.05, velocity: step % 8 === 7 ? 0.24 : 0.18 }
+      snare: step % 8 === 4
+        ? { duration: 0.085, velocity: 0.36 }
+        : null,
+      hat: step % 2 === 1
+        ? { duration: 0.032, velocity: step % 8 === 7 ? 0.22 : 0.14 }
+        : null,
+      metal: step === 15 || step === 31
+        ? { duration: "16n", velocity: 0.14 }
         : null,
     };
   }
 
   if (scoreState === "healthy") {
     return {
-      kick: step % 8 === 0 ? { duration: "8n", velocity: 0.3 } : null,
-      noise: step % 8 === 7 ? { duration: 0.04, velocity: 0.12 } : null,
+      kick: step % 8 === 0 ? { duration: "8n", velocity: 0.4 } : null,
+      snare: step % 8 === 4 ? { duration: 0.08, velocity: 0.28 } : null,
+      hat: step % 2 === 1
+        ? { duration: 0.03, velocity: step % 8 === 7 ? 0.16 : 0.1 }
+        : null,
+      metal: step === 15 || step === 31
+        ? { duration: "16n", velocity: 0.09 }
+        : null,
     };
   }
 
-  return { kick: null, noise: null };
+  return {
+    kick: step === 0 || step === 16
+      ? { duration: "8n", velocity: 0.3 }
+      : null,
+    snare: step === 12 || step === 28
+      ? { duration: 0.075, velocity: 0.16 }
+      : null,
+    hat: [3, 7, 11, 19, 23, 31].includes(step)
+      ? { duration: 0.035, velocity: 0.08 }
+      : null,
+    metal: step === 15 || step === 31
+      ? { duration: "16n", velocity: 0.07 }
+      : null,
+  };
 }
 
 function requireTone() {
@@ -160,85 +201,88 @@ function safeRamp(parameter, value, seconds) {
 
 function serviceSynth(Tone, family) {
   switch (family) {
-    case "strings":
+    case "analog-pad":
       return new Tone.FMSynth({
-        harmonicity: 1.01,
-        modulationIndex: 1.3,
+        harmonicity: 0.501,
+        modulationIndex: 1.8,
         oscillator: { type: "sine" },
-        modulation: { type: "triangle" },
-        envelope: { attack: 0.18, decay: 0.45, sustain: 0.62, release: 1.8 },
-        modulationEnvelope: { attack: 0.5, decay: 0.4, sustain: 0.35, release: 1.5 },
-        volume: -10,
+        modulation: { type: "sine" },
+        envelope: { attack: 0.65, decay: 0.8, sustain: 0.68, release: 3.4 },
+        modulationEnvelope: { attack: 1.1, decay: 0.8, sustain: 0.22, release: 2.8 },
+        volume: -13,
       });
-    case "pulse":
+    case "data-sequence":
+      return new Tone.AMSynth({
+        harmonicity: 1.5,
+        oscillator: { type: "triangle" },
+        modulation: { type: "square" },
+        envelope: { attack: 0.035, decay: 0.28, sustain: 0.42, release: 1.25 },
+        modulationEnvelope: { attack: 0.08, decay: 0.22, sustain: 0.18, release: 0.8 },
+        volume: -14,
+      });
+    case "industrial-pulse":
       return new Tone.MembraneSynth({
-        pitchDecay: 0.04,
-        octaves: 1.4,
-        envelope: { attack: 0.02, decay: 0.35, sustain: 0.12, release: 0.7 },
-        volume: -12,
+        pitchDecay: 0.055,
+        octaves: 1.8,
+        oscillator: { type: "sine" },
+        envelope: { attack: 0.008, decay: 0.48, sustain: 0.16, release: 1.1 },
+        volume: -15,
       });
-    case "brass":
+    case "edge-saw":
       return new Tone.MonoSynth({
         oscillator: { type: "sawtooth" },
-        filter: { type: "lowpass", Q: 2, rolloff: -24 },
-        envelope: { attack: 0.08, decay: 0.28, sustain: 0.5, release: 0.9 },
+        filter: { type: "lowpass", Q: 2.8, rolloff: -24 },
+        envelope: { attack: 0.18, decay: 0.42, sustain: 0.48, release: 1.7 },
         filterEnvelope: {
-          attack: 0.08,
-          decay: 0.35,
-          sustain: 0.3,
-          release: 0.8,
-          baseFrequency: 180,
-          octaves: 3.2,
+          attack: 0.22,
+          decay: 0.55,
+          sustain: 0.24,
+          release: 1.3,
+          baseFrequency: 110,
+          octaves: 2.7,
+        },
+        volume: -16,
+      });
+    case "sub-drone":
+      return new Tone.MonoSynth({
+        oscillator: { type: "sine" },
+        filter: { type: "lowpass", Q: 1.2, rolloff: -24 },
+        envelope: { attack: 0.7, decay: 0.65, sustain: 0.76, release: 3.2 },
+        filterEnvelope: {
+          attack: 0.8,
+          decay: 0.7,
+          sustain: 0.35,
+          release: 2.6,
+          baseFrequency: 70,
+          octaves: 2.2,
         },
         volume: -13,
       });
-    case "plucked":
-      return new Tone.PluckSynth({
-        attackNoise: 0.4,
-        dampening: 3200,
-        resonance: 0.75,
-        volume: -10,
-      });
-    case "low-strings":
+    case "relay-bass":
       return new Tone.MonoSynth({
-        oscillator: { type: "triangle" },
-        filter: { type: "lowpass", Q: 1, rolloff: -24 },
-        envelope: { attack: 0.12, decay: 0.45, sustain: 0.7, release: 1.4 },
+        oscillator: { type: "square" },
+        filter: { type: "lowpass", Q: 1.5, rolloff: -24 },
+        envelope: { attack: 0.055, decay: 0.45, sustain: 0.5, release: 1.5 },
         filterEnvelope: {
-          attack: 0.2,
+          attack: 0.08,
           decay: 0.5,
-          sustain: 0.42,
-          release: 1.2,
-          baseFrequency: 90,
-          octaves: 2.8,
+          sustain: 0.24,
+          release: 1.1,
+          baseFrequency: 75,
+          octaves: 2.3,
         },
-        volume: -12,
-      });
-    case "spectral-bells":
-      return new Tone.FMSynth({
-        harmonicity: 2.01,
-        modulationIndex: 5,
-        oscillator: { type: "sine" },
-        modulation: { type: "sine" },
-        envelope: { attack: 0.005, decay: 1.2, sustain: 0.05, release: 2.2 },
-        modulationEnvelope: { attack: 0.002, decay: 0.9, sustain: 0, release: 1.6 },
         volume: -15,
       });
-    case "woodwinds":
+    case "tape-signal":
     default:
-      return new Tone.MonoSynth({
-        oscillator: { type: "sine" },
-        filter: { type: "lowpass", Q: 3, rolloff: -24 },
-        envelope: { attack: 0.16, decay: 0.36, sustain: 0.6, release: 1.6 },
-        filterEnvelope: {
-          attack: 0.18,
-          decay: 0.35,
-          sustain: 0.5,
-          release: 1.4,
-          baseFrequency: 260,
-          octaves: 3.4,
-        },
-        volume: -12,
+      return new Tone.FMSynth({
+        harmonicity: 1.003,
+        modulationIndex: 2.4,
+        oscillator: { type: "triangle" },
+        modulation: { type: "sine" },
+        envelope: { attack: 0.22, decay: 0.6, sustain: 0.42, release: 2.2 },
+        modulationEnvelope: { attack: 0.5, decay: 0.7, sustain: 0.12, release: 1.9 },
+        volume: -16,
       });
   }
 }
@@ -255,6 +299,7 @@ export function createEngine() {
 
   const voices = new Map();
   const voiceParams = new Map();
+  const familyBuses = new Map();
 
   let transport = null;
   let schedulerId = null;
@@ -270,17 +315,30 @@ export function createEngine() {
   let padGain = null;
   let bassGain = null;
   let percussionGain = null;
+  let textureGain = null;
   let deploymentGain = null;
   let drone = null;
   let pad = null;
   let bass = null;
   let kick = null;
-  let noise = null;
-  let noiseFilter = null;
+  let snare = null;
+  let hat = null;
+  let hatFilter = null;
+  let metal = null;
+  let textureNoise = null;
+  let textureFilter = null;
   let deploymentSynth = null;
   let voiceHandler = null;
   let incidentHandler = null;
   let deploymentHandler = null;
+
+  function familyBus(Tone, family) {
+    let bus = familyBuses.get(family);
+    if (bus) return bus;
+    bus = new Tone.Gain(FAMILY_BUS_GAINS[family] ?? 0.5).connect(serviceBus);
+    familyBuses.set(family, bus);
+    return bus;
+  }
 
   function createServiceVoice(params) {
     const Tone = requireTone();
@@ -293,7 +351,7 @@ export function createEngine() {
     });
     const panner = new Tone.Panner(params.pan);
     const gain = new Tone.Gain(0);
-    synth.chain(filter, panner, gain, serviceBus);
+    synth.chain(filter, panner, gain, familyBus(Tone, params.instrumentFamily));
     const voice = { synth, filter, panner, gain, removalTimer: null };
     voices.set(params.name, voice);
     return voice;
@@ -334,50 +392,51 @@ export function createEngine() {
     userGain = new Tone.Gain(0).toDestination();
     analyser = new Tone.Analyser("waveform", WAVEFORM_SIZE);
     limiter = new Tone.Limiter(-2);
-    compressor = new Tone.Compressor(-18, 3);
-    reverb = new Tone.Reverb({ decay: 3.2, wet: 0.24 });
+    compressor = new Tone.Compressor(-20, 3.5);
+    reverb = new Tone.Reverb({ decay: 4.8, wet: 0.3 });
     masterFilter = new Tone.Filter({
       type: "lowpass",
-      frequency: 5200,
+      frequency: 4200,
       rolloff: -24,
-      Q: 0.7,
+      Q: 0.85,
     });
     masterVolume = new Tone.Volume(-12);
     masterVolume.chain(masterFilter, reverb, compressor, limiter, userGain);
     limiter.connect(analyser);
 
-    serviceBus = new Tone.Gain(0.82).connect(masterVolume);
-    droneGain = new Tone.Gain(0.22).connect(masterVolume);
-    padGain = new Tone.Gain(0.5).connect(masterVolume);
-    bassGain = new Tone.Gain(0.3).connect(masterVolume);
+    serviceBus = new Tone.Gain(0.76).connect(masterVolume);
+    droneGain = new Tone.Gain(0.28).connect(masterVolume);
+    padGain = new Tone.Gain(0.64).connect(masterVolume);
+    bassGain = new Tone.Gain(0.4).connect(masterVolume);
     percussionGain = new Tone.Gain(0).connect(masterVolume);
-    deploymentGain = new Tone.Gain(0.72).connect(masterVolume);
+    textureGain = new Tone.Gain(0.012).connect(masterVolume);
+    deploymentGain = new Tone.Gain(0.62).connect(masterVolume);
 
     drone = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: "sine" },
-      envelope: { attack: 3.2, decay: 1.8, sustain: 0.82, release: 6.5 },
-      volume: -18,
+      oscillator: { type: "fatsine", count: 3, spread: 8 },
+      envelope: { attack: 4.2, decay: 2.2, sustain: 0.86, release: 8.5 },
+      volume: -17,
     }).connect(droneGain);
 
     pad = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: "triangle" },
-      envelope: { attack: 1.8, decay: 1.3, sustain: 0.7, release: 5.2 },
-      volume: -16,
+      oscillator: { type: "fatsawtooth", count: 3, spread: 13 },
+      envelope: { attack: 2.4, decay: 1.8, sustain: 0.72, release: 6.8 },
+      volume: -19,
     }).connect(padGain);
 
     bass = new Tone.MonoSynth({
-      oscillator: { type: "triangle" },
-      filter: { type: "lowpass", Q: 1, rolloff: -24 },
-      envelope: { attack: 0.08, decay: 0.4, sustain: 0.55, release: 1.1 },
+      oscillator: { type: "square" },
+      filter: { type: "lowpass", Q: 1.4, rolloff: -24 },
+      envelope: { attack: 0.035, decay: 0.36, sustain: 0.58, release: 0.9 },
       filterEnvelope: {
-        attack: 0.12,
-        decay: 0.42,
-        sustain: 0.32,
-        release: 0.8,
-        baseFrequency: 65,
-        octaves: 2.4,
+        attack: 0.05,
+        decay: 0.38,
+        sustain: 0.28,
+        release: 0.72,
+        baseFrequency: 58,
+        octaves: 2.2,
       },
-      volume: -12,
+      volume: -14,
     }).connect(bassGain);
 
     kick = new Tone.MembraneSynth({
@@ -386,22 +445,49 @@ export function createEngine() {
       envelope: { attack: 0.001, decay: 0.28, sustain: 0.02, release: 0.35 },
       volume: -8,
     }).connect(percussionGain);
-    noise = new Tone.NoiseSynth({
+    snare = new Tone.NoiseSynth({
       noise: { type: "pink" },
-      envelope: { attack: 0.001, decay: 0.055, sustain: 0 },
-      volume: -17,
+      envelope: { attack: 0.001, decay: 0.11, sustain: 0 },
+      volume: -15,
+    }).connect(percussionGain);
+    hat = new Tone.NoiseSynth({
+      noise: { type: "white" },
+      envelope: { attack: 0.001, decay: 0.04, sustain: 0 },
+      volume: -22,
     });
-    noiseFilter = new Tone.Filter({
+    hatFilter = new Tone.Filter({
       type: "bandpass",
-      frequency: 1800,
-      Q: 1.5,
+      frequency: 3600,
+      Q: 1.8,
     });
-    noise.chain(noiseFilter, percussionGain);
+    hat.chain(hatFilter, percussionGain);
+    metal = new Tone.MetalSynth({
+      frequency: 92,
+      envelope: { attack: 0.001, decay: 0.12, release: 0.04 },
+      harmonicity: 3.1,
+      modulationIndex: 11,
+      resonance: 900,
+      octaves: 0.8,
+      volume: -22,
+    }).connect(percussionGain);
 
-    deploymentSynth = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: "triangle" },
-      envelope: { attack: 0.015, decay: 0.22, sustain: 0.35, release: 1.4 },
-      volume: -8,
+    textureNoise = new Tone.Noise("brown");
+    textureFilter = new Tone.Filter({
+      type: "bandpass",
+      frequency: 420,
+      Q: 2.4,
+    });
+    textureNoise.chain(textureFilter, textureGain);
+    textureNoise.start();
+
+    deploymentSynth = new Tone.PolySynth(Tone.FMSynth, {
+      harmonicity: 1.5,
+      modulationIndex: 2.8,
+      oscillator: { type: "sine" },
+      modulation: { type: "triangle" },
+      envelope: { attack: 0.02, decay: 0.28, sustain: 0.3, release: 1.8 },
+      modulationEnvelope: { attack: 0.04, decay: 0.25, sustain: 0.1, release: 1.2 },
+      volume: -10,
     }).connect(deploymentGain);
 
     transport = Tone.getTransport();
@@ -414,7 +500,7 @@ export function createEngine() {
     const measureIndex = phraseIndex * 4 + step / PAD_MEASURE_STEPS;
     const notes = buildPadVoicing(frame.scoreState, frame.scale, measureIndex)
       .map(midiToFrequencyHz);
-    pad.triggerAttackRelease(notes, "1m", time, 0.3);
+    pad.triggerAttackRelease(notes, "1m", time, 0.34);
   }
 
   function playDrone(time, step) {
@@ -423,7 +509,7 @@ export function createEngine() {
       DRONE_MIDI.map(midiToFrequencyHz),
       "4m",
       time,
-      0.26,
+      0.3,
     );
   }
 
@@ -432,9 +518,9 @@ export function createEngine() {
     const phraseSeed = stableHash(`${frame.scoreState}:${phraseIndex}:bass`);
     const degreeChoices = frame.scoreState === "critical" ? [0, 1, 4, 0] : [0, 4, 0, 5];
     const degree = degreeChoices[(step / 4 + phraseSeed) % degreeChoices.length];
-    const midi = 38 + frame.scale[degree % frame.scale.length];
+    const midi = 26 + frame.scale[degree % frame.scale.length];
     const duration = frame.scoreState === "critical" ? "8n" : "2n";
-    bass.triggerAttackRelease(midiToFrequencyHz(midi), duration, time, 0.42);
+    bass.triggerAttackRelease(midiToFrequencyHz(midi), duration, time, 0.48);
   }
 
   function playPercussion(time, frame, step) {
@@ -447,24 +533,31 @@ export function createEngine() {
         events.kick.velocity,
       );
     }
-    if (events.noise) {
-      noise.triggerAttackRelease(
-        events.noise.duration,
+    if (events.snare) {
+      snare.triggerAttackRelease(
+        events.snare.duration,
         time,
-        events.noise.velocity,
+        events.snare.velocity,
       );
+    }
+    if (events.hat) {
+      hat.triggerAttackRelease(events.hat.duration, time, events.hat.velocity);
+    }
+    if (events.metal) {
+      metal.triggerAttackRelease(events.metal.duration, time, events.metal.velocity);
     }
   }
 
   function playService(time, frame, step) {
     if (!frame.voices.length) return;
+    const params = frame.voices[serviceCursor % frame.voices.length];
+    serviceCursor += 1 + ((phraseIndex + step) % 3 === 0 ? 1 : 0);
     const chance = randomUnit(
       stableHash(`${frame.scoreState}:${phraseIndex}:${step}:service`),
     );
-    if (chance > frame.density) return;
+    const voiceDensity = Math.min(1, frame.density * params.density);
+    if (chance > voiceDensity) return;
 
-    const params = frame.voices[serviceCursor % frame.voices.length];
-    serviceCursor += 1 + ((phraseIndex + step) % 3 === 0 ? 1 : 0);
     const voice = voices.get(params.name);
     if (!voice) return;
 
@@ -505,22 +598,39 @@ export function createEngine() {
     safeRamp(masterFilter.frequency, frame.masterFilterHz, transition);
     safeRamp(
       droneGain.gain,
-      frame.scoreState === "critical" ? 0.28 : frame.scoreState === "unknown" ? 0.16 : 0.23,
+      frame.scoreState === "critical" ? 0.34 : frame.scoreState === "unknown" ? 0.22 : 0.3,
       transition,
     );
     safeRamp(
       padGain.gain,
-      frame.scoreState === "unknown" ? 0.3 : frame.scoreState === "warning" ? 0.48 : 0.58,
+      frame.scoreState === "unknown" ? 0.48 : frame.scoreState === "warning" ? 0.64 : 0.72,
       transition,
     );
     safeRamp(
       bassGain.gain,
-      frame.scoreState === "critical" ? 0.72 : frame.scoreState === "warning" ? 0.46 : 0.25,
+      frame.scoreState === "critical"
+        ? 0.78
+        : frame.scoreState === "warning"
+          ? 0.62
+          : frame.scoreState === "unknown"
+            ? 0.3
+            : 0.5,
       transition,
     );
     safeRamp(
       percussionGain.gain,
       PERCUSSION_BUS_GAINS[frame.scoreState] ?? 0,
+      transition,
+    );
+    safeRamp(
+      textureGain.gain,
+      frame.scoreState === "critical"
+        ? 0.024
+        : frame.scoreState === "warning"
+          ? 0.018
+          : frame.scoreState === "unknown"
+            ? 0.02
+            : 0.012,
       transition,
     );
 
@@ -546,15 +656,22 @@ export function createEngine() {
     if (!initialized) return;
     if (schedulerId !== null) transport.clear(schedulerId);
     for (const [name, voice] of voices) disposeServiceVoice(name, voice);
+    for (const bus of familyBuses.values()) bus.dispose();
+    familyBuses.clear();
     for (const node of [
       deploymentSynth,
-      noiseFilter,
-      noise,
+      textureFilter,
+      textureNoise,
+      metal,
+      hatFilter,
+      hat,
+      snare,
       kick,
       bass,
       pad,
       drone,
       deploymentGain,
+      textureGain,
       percussionGain,
       bassGain,
       padGain,
@@ -608,7 +725,7 @@ export function createEngine() {
       for (let index = 0; index < bounded; index += 1) {
         transport.scheduleOnce((time) => {
           kick.triggerAttackRelease("D1", "8n", time, 0.88);
-          noise.triggerAttackRelease(0.07, time, 0.56);
+          snare.triggerAttackRelease(0.09, time, 0.56);
           Tone.Draw.schedule(() => incidentHandler?.(), time);
         }, startAt + index * stepSeconds);
       }
