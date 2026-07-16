@@ -8,15 +8,23 @@
 import {
   DEFAULT_USER_GAIN,
   createEngine,
-} from "./engine.js?v=20260716-system-symphony-persistent-layers";
-import { createPoller } from "./poller.js?v=20260716-system-symphony-persistent-layers";
+} from "./engine.js?v=20260716-system-symphony-performance-console";
+import { createPoller } from "./poller.js?v=20260716-system-symphony-performance-console";
 import {
   applyDemoProfileToServices,
   buildDependencyGraph,
   computeFrame,
   deriveDemoEstate,
   filterVoices,
-} from "./mapping.js?v=20260716-system-symphony-persistent-layers";
+} from "./mapping.js?v=20260716-system-symphony-performance-console";
+import {
+  DEFAULT_PERFORMANCE_SEED,
+  PERFORMANCE_MACRO_DEFAULTS,
+  PERFORMANCE_SCENES,
+  createPerformanceArrangement,
+  formatPerformanceSeed,
+  normalizePerformanceSeed,
+} from "./performance.js?v=20260716-system-symphony-performance-console";
 
 const WIDGET_ID = "system-symphony-widget";
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -46,6 +54,7 @@ const HELP_ROWS = [
   ["Error rate", "Instability, detuning and note confidence"],
   ["Active incidents", "Denser critical rhythm and harmonic tension"],
   ["New successful deployment", "One quantised amber hero motif"],
+  ["Demo performance", "Seeded bass, chords, drums, terminal sequence and effects at the next measure"],
   ["Dependencies", "Topology edges"],
   ["Service identity", "Stable family, motif, register and stereo position"],
 ];
@@ -163,17 +172,35 @@ function template() {
             <div class="symphony-source-panel__controls">
               <div class="symphony-segmented" role="group" aria-label="Symphony data source">
                 <button type="button" data-live-mode aria-pressed="true">Live estate</button>
-                <button type="button" data-demo-mode aria-pressed="false" disabled>Preview states</button>
+                <button type="button" data-demo-mode aria-pressed="false" disabled>Demo performance</button>
               </div>
               <button class="symphony-button" type="button" data-demo-reset hidden>Reset preview from live</button>
-              <div class="symphony-demo-profiles" data-demo-profiles hidden>
-                <span>Preview all as</span>
-                <div>
-                  <button type="button" data-demo-profile="healthy">Healthy</button>
-                  <button type="button" data-demo-profile="warning">Warning</button>
-                  <button type="button" data-demo-profile="critical">Critical</button>
-                  <button type="button" data-demo-profile="unknown">Unknown</button>
+              <div class="symphony-performance" data-performance-panel hidden>
+                <div class="symphony-performance__header">
+                  <span>Demo performance</span>
+                  <strong data-performance-scene>NIGHT DRIVE</strong>
                 </div>
+                <div class="symphony-demo-profiles">
+                  <span>Musical scene</span>
+                  <div role="group" aria-label="Demo musical scene">
+                    <button type="button" data-demo-profile="healthy" aria-pressed="false"><span>Healthy</span><strong>Night Drive</strong></button>
+                    <button type="button" data-demo-profile="warning" aria-pressed="false"><span>Warning</span><strong>Grid Pressure</strong></button>
+                    <button type="button" data-demo-profile="critical" aria-pressed="false"><span>Critical</span><strong>Redline Protocol</strong></button>
+                    <button type="button" data-demo-profile="unknown" aria-pressed="false"><span>Unknown</span><strong>Ghost Signal</strong></button>
+                  </div>
+                </div>
+                <div class="symphony-performance__macros">
+                  <label><span>Energy <output data-performance-output="energy">${PERFORMANCE_MACRO_DEFAULTS.energy}</output></span><input type="range" min="0" max="100" step="1" value="${PERFORMANCE_MACRO_DEFAULTS.energy}" data-performance-macro="energy" /></label>
+                  <label><span>Motion <output data-performance-output="motion">${PERFORMANCE_MACRO_DEFAULTS.motion}</output></span><input type="range" min="0" max="100" step="1" value="${PERFORMANCE_MACRO_DEFAULTS.motion}" data-performance-macro="motion" /></label>
+                  <label><span>Grit <output data-performance-output="grit">${PERFORMANCE_MACRO_DEFAULTS.grit}</output></span><input type="range" min="0" max="100" step="1" value="${PERFORMANCE_MACRO_DEFAULTS.grit}" data-performance-macro="grit" /></label>
+                  <label><span>Space <output data-performance-output="space">${PERFORMANCE_MACRO_DEFAULTS.space}</output></span><input type="range" min="0" max="100" step="1" value="${PERFORMANCE_MACRO_DEFAULTS.space}" data-performance-macro="space" /></label>
+                </div>
+                <div class="symphony-performance__actions">
+                  <button class="symphony-button symphony-button--primary" type="button" data-randomise-score>Randomise score</button>
+                  <label class="symphony-performance__seed"><span>Score seed</span><input type="text" value="${DEFAULT_PERFORMANCE_SEED}" minlength="4" maxlength="8" pattern="[0-9A-Fa-f]{4,8}" spellcheck="false" autocomplete="off" data-performance-seed aria-describedby="symphony-performance-status" /></label>
+                  <button class="symphony-button" type="button" data-replay-seed>Replay seed</button>
+                </div>
+                <p id="symphony-performance-status" class="symphony-performance__status" data-performance-status aria-live="polite">Seed ${DEFAULT_PERFORMANCE_SEED} ready</p>
               </div>
               <p class="symphony-update-time">Last successful telemetry: <time data-last-update>waiting</time></p>
             </div>
@@ -323,6 +350,10 @@ export function initSystemSymphony() {
   let lastWaveformDraw = 0;
   let lastAnnouncement = "";
   let demoDeploymentCounter = 0;
+  let performanceSeed = DEFAULT_PERFORMANCE_SEED;
+  let performanceMacros = { ...PERFORMANCE_MACRO_DEFAULTS };
+  let performanceArrangement = null;
+  let performanceStatus = `Seed ${DEFAULT_PERFORMANCE_SEED} ready`;
 
   function presentationForVoice(voice) {
     if (!voice.measured && !voice.demoSimulated) {
@@ -350,10 +381,68 @@ export function initSystemSymphony() {
   }
 
   function sourceState(frame = currentFrame) {
-    if (mode === "demo") return { key: "demo", label: "PREVIEW / SIMULATED" };
+    if (mode === "demo") return { key: "demo", label: "DEMO / SIMULATED" };
     if (frame?.stale) return { key: "stale", label: "LIVE DATA STALE" };
     if (lastLiveFrame) return { key: "live", label: "LIVE" };
     return { key: "connecting", label: "CONNECTING" };
+  }
+
+  function randomPerformanceSeed() {
+    const values = new Uint32Array(1);
+    if (window.crypto?.getRandomValues) {
+      window.crypto.getRandomValues(values);
+      return formatPerformanceSeed(values[0]);
+    }
+    return formatPerformanceSeed(Date.now() ^ Math.floor(Math.random() * 0xffffffff));
+  }
+
+  function renderPerformance(frame = currentFrame) {
+    const panel = host.querySelector("[data-performance-panel]");
+    const demoMode = mode === "demo";
+    panel.hidden = !demoMode;
+    if (!demoMode || !frame) return;
+
+    const scene = performanceArrangement?.scoreState === frame.scoreState
+      ? performanceArrangement
+      : PERFORMANCE_SCENES[frame.scoreState] ?? PERFORMANCE_SCENES.unknown;
+    host.querySelector("[data-performance-scene]").textContent =
+      scene.sceneName ?? scene.name;
+    const performanceBpm = performanceArrangement
+      ? Math.round(frame.bpm * performanceArrangement.bpmMultiplier)
+      : frame.bpm;
+    host.querySelector("[data-dialog-score]").textContent =
+      `${frame.scoreLabel} // ${scene.sceneName ?? scene.name} / ${frame.mode} / ${performanceBpm} BPM`;
+    const seedInput = host.querySelector("[data-performance-seed]");
+    seedInput.value = performanceSeed;
+    for (const input of host.querySelectorAll("[data-performance-macro]")) {
+      const name = input.dataset.performanceMacro;
+      const value = performanceMacros[name];
+      input.value = String(value);
+      host.querySelector(`[data-performance-output="${name}"]`).textContent = String(value);
+    }
+    for (const button of host.querySelectorAll("[data-demo-profile]")) {
+      button.setAttribute(
+        "aria-pressed",
+        String(button.dataset.demoProfile === frame.scoreState),
+      );
+    }
+    host.querySelector("[data-performance-status]").textContent = performanceStatus;
+  }
+
+  function stagePerformance(scoreState, action = "Score") {
+    if (mode !== "demo") return;
+    performanceArrangement = createPerformanceArrangement(
+      performanceSeed,
+      scoreState,
+      performanceMacros,
+    );
+    const result = engine.setPerformance(performanceArrangement, {
+      quantize: engine.isRunning(),
+    });
+    performanceStatus = result.queued
+      ? `${action} queued for next measure // ${performanceSeed}`
+      : `${action} active // ${performanceSeed}`;
+    renderPerformance(currentFrame);
   }
 
   function announceImportant(frame) {
@@ -738,18 +827,22 @@ export function initSystemSymphony() {
   function renderDialog(frame) {
     const source = sourceState(frame);
     host.querySelector("[data-dialog-source]").textContent = source.label;
-    host.querySelector("[data-dialog-score]").textContent = `${frame.scoreLabel} / ${frame.mode} / ${frame.bpm} BPM`;
+    const performanceLabel = mode === "demo" && performanceArrangement
+      ? ` // ${performanceArrangement.sceneName}`
+      : "";
+    host.querySelector("[data-dialog-score]").textContent =
+      `${frame.scoreLabel}${performanceLabel} / ${frame.mode} / ${frame.bpm} BPM`;
     host.querySelector("[data-last-update]").textContent = formatTimestamp(frame.lastSuccessfulAt);
     const explanation = host.querySelector("[data-source-explanation]");
     explanation.textContent = mode === "demo"
-      ? "Simulated browser-only preview. Live telemetry continues updating underneath and returns unchanged when you switch back."
+      ? "Browser-only performance mode. Scenes, macros and score seeds reshape the local composition while live telemetry continues unchanged underneath."
       : frame.stale
         ? "The live telemetry request failed. Last-known values remain visible, while the score is explicitly Unknown."
         : "Reading current public telemetry. Live mode is strictly read-only.";
     host.querySelector("[data-live-mode]").setAttribute("aria-pressed", String(mode === "live"));
     host.querySelector("[data-demo-mode]").setAttribute("aria-pressed", String(mode === "demo"));
     host.querySelector("[data-demo-reset]").hidden = mode !== "demo";
-    host.querySelector("[data-demo-profiles]").hidden = mode !== "demo";
+    renderPerformance(frame);
     for (const button of host.querySelectorAll("[data-component-filter]")) {
       button.setAttribute(
         "aria-pressed",
@@ -791,7 +884,9 @@ export function initSystemSymphony() {
     demoMerged.estate = deriveDemoEstate(demoMerged.services);
     muted.clear();
     soloed.clear();
-    applyAndRender(currentDemoFrame());
+    const frame = currentDemoFrame();
+    applyAndRender(frame);
+    stagePerformance(frame.scoreState, "Preview reset");
   }
 
   function switchToDemo() {
@@ -805,6 +900,8 @@ export function initSystemSymphony() {
     demoMerged = null;
     muted.clear();
     soloed.clear();
+    performanceArrangement = null;
+    engine.setPerformance(null, { quantize: false });
     if (lastLiveFrame) applyAndRender(lastLiveFrame);
   }
 
@@ -821,6 +918,9 @@ export function initSystemSymphony() {
     demoMerged.timestamp = new Date().toISOString();
     const frame = currentDemoFrame();
     applyAndRender(frame);
+    if (performanceArrangement?.scoreState !== frame.scoreState) {
+      stagePerformance(frame.scoreState, "Scene");
+    }
     const nextIncidents = demoMerged.estate.active_incidents;
     if (nextIncidents > previousIncidents) {
       engine.queueIncidentAccent(nextIncidents - previousIncidents);
@@ -838,10 +938,33 @@ export function initSystemSymphony() {
     demoMerged.timestamp = new Date().toISOString();
     muted.clear();
     soloed.clear();
-    applyAndRender(currentDemoFrame());
+    const frame = currentDemoFrame();
+    applyAndRender(frame);
+    stagePerformance(frame.scoreState, "Scene");
     const nextIncidents = demoMerged.estate.active_incidents;
     if (nextIncidents > previousIncidents) {
       engine.queueIncidentAccent(nextIncidents - previousIncidents);
+    }
+  }
+
+  function randomisePerformance() {
+    if (mode !== "demo" || !currentFrame) return;
+    performanceSeed = randomPerformanceSeed();
+    stagePerformance(currentFrame.scoreState, "Random score");
+  }
+
+  function replayPerformanceSeed() {
+    if (mode !== "demo" || !currentFrame) return;
+    const input = host.querySelector("[data-performance-seed]");
+    try {
+      performanceSeed = normalizePerformanceSeed(input.value);
+      input.setCustomValidity("");
+      stagePerformance(currentFrame.scoreState, "Replay seed");
+    } catch (error) {
+      input.setCustomValidity(error.message);
+      performanceStatus = "Seed must use 4 to 8 hexadecimal characters";
+      renderPerformance(currentFrame);
+      input.reportValidity();
     }
   }
 
@@ -973,6 +1096,36 @@ export function initSystemSymphony() {
   host.querySelectorAll("[data-demo-profile]").forEach((button) => {
     button.addEventListener("click", () => applyDemoProfile(button.dataset.demoProfile));
   });
+  host.querySelector("[data-randomise-score]").addEventListener(
+    "click",
+    randomisePerformance,
+  );
+  host.querySelector("[data-replay-seed]").addEventListener(
+    "click",
+    replayPerformanceSeed,
+  );
+  host.querySelector("[data-performance-seed]").addEventListener("input", (event) => {
+    event.target.value = event.target.value.toUpperCase();
+    event.target.setCustomValidity("");
+  });
+  host.querySelector("[data-performance-seed]").addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    replayPerformanceSeed();
+  });
+  host.querySelectorAll("[data-performance-macro]").forEach((input) => {
+    input.addEventListener("input", () => {
+      const name = input.dataset.performanceMacro;
+      performanceMacros = {
+        ...performanceMacros,
+        [name]: Number(input.value),
+      };
+      host.querySelector(`[data-performance-output="${name}"]`).textContent = input.value;
+      if (mode === "demo" && currentFrame) {
+        stagePerformance(currentFrame.scoreState, `${name} ${input.value}`);
+      }
+    });
+  });
   host.querySelectorAll("[data-component-filter]").forEach((button) => {
     button.addEventListener("click", () => {
       componentFilter = button.dataset.componentFilter;
@@ -1048,6 +1201,12 @@ export function initSystemSymphony() {
   engine.setIncidentHandler(flashIncident);
   engine.setDeploymentHandler((deployment, firstNote) => {
     if (firstNote) flashDeployment(deployment);
+  });
+  engine.setPerformanceHandler((performance) => {
+    if (mode !== "demo" || !performance) return;
+    if (performanceArrangement?.id !== performance.id) return;
+    performanceStatus = `Active // ${performance.sceneName} // ${performance.seed}`;
+    renderPerformance(currentFrame);
   });
 
   const poller = createPoller({

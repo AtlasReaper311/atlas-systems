@@ -38,8 +38,9 @@ GET /deploy-watch/latest -- successful deployment identity --+        |
 
 - `mapping.js` is pure JavaScript. It owns topology merging, state derivation, deterministic service identities, neutral null defaults and telemetry-to-score parameters.
 - `poller.js` is the only network module. It prevents overlapping requests, bounds fetches below the telemetry interval, establishes event baselines and marks failed telemetry stale.
-- `engine.js` is the only Tone.js module. It owns synthesis, family buses, shared effects, bounded scheduling, state ramps, industrial rhythm, deployment motif and analyser data.
-- `ui.js` owns the compact widget, dialog, topology, real waveform, table, inspector, live/preview isolation and accessible controls.
+- `engine.js` is the only Tone.js module. It owns synthesis, family buses, shared effects, bounded scheduling, state ramps, industrial rhythm, quantised Demo arrangements, deployment motif and analyser data.
+- `performance.js` is pure JavaScript. It turns a visible hexadecimal seed plus four macro values into one deterministic curated arrangement without reading or changing telemetry.
+- `ui.js` owns the compact widget, dialog, topology, real waveform, table, inspector, live/Demo isolation and accessible performance controls.
 - `static/css/system-symphony.css` contains the responsive Atlas-branded presentation and reduced-motion rules.
 
 Tone.js `14.8.49` remains vendored at `/vendor/tone.min.js`. No audio samples or licensed third-party assets were added.
@@ -94,7 +95,7 @@ A stable FNV-1a hash of the component name selects its motif variation, instrume
 | Infrastructure and deployment | Relay bass and mainframe low voices |
 | Reusable kits and unmatched roles | Tape signals and damaged data tones |
 
-The scheduler rotates across the whole represented estate instead of firing every component together. A D1/A1 drone spans each phrase, overlapping pads refresh every measure, and a shared low counterline guarantees harmonic motion even when foreground service motifs are sparse. Each score state also reserves service-anchor steps, so deterministic density cannot accidentally remove the orchestra for an entire phrase. Family-specific MIDI bounds hold recurring service notes between D1 and D4, with downward-only octave variation. Only the rare deployment motif can rise to F-sharp 4.
+The scheduler rotates across the whole represented estate instead of firing every component together. A D1/A1 drone spans each phrase, overlapping pads refresh every measure, and a shared low counterline guarantees harmonic motion even when foreground service motifs are sparse. Each score state also reserves service-anchor steps, so deterministic density cannot accidentally remove the orchestra for an entire phrase. Demo mode can add one shared low/mid terminal sequence, but recurring Demo notes remain at or below C4. Family-specific MIDI bounds hold recurring service notes between D1 and D4, with downward-only octave variation. Only the rare deployment motif can rise to F-sharp 4.
 
 ## Telemetry mappings
 
@@ -109,6 +110,8 @@ The scheduler rotates across the whole represented estate instead of firing ever
 | New successful deployment | One quantised D-centred hero motif |
 | Dependency relationships | Directed topology edges (`A → B` means A depends on B), external boundary nodes and related-node highlighting |
 | Service identity | Instrument family, motif, register and stereo position |
+| Demo Energy / Motion / Grit / Space | Tempo pressure, rhythmic movement, industrial saturation and atmospheric depth |
+| Demo score seed | Reproducible chord, bass, percussion, melody and effect variation |
 
 ## Incidents and deployments
 
@@ -127,11 +130,26 @@ The current successful deployment also establishes a baseline and produces no pa
 
 On telemetry failure, the last raw values remain available for display, the score frame becomes stale, the interface says `LIVE DATA STALE`, the last successful timestamp remains visible, and the composition enters Unknown. The next successful poll recovers automatically.
 
-## Live and preview isolation
+## Live and Demo isolation
 
-Live mode only permits audio start/stop, volume, inspection, help and console open/close. It exposes no health, mute, solo or deployment simulation controls.
+Live mode only permits audio start/stop, volume, inspection, help and console open/close. It exposes no health, performance, mute, solo or deployment simulation controls.
 
-Preview mode clones the latest live merged snapshot in memory and is always labelled `PREVIEW / SIMULATED`. Direct component status, latency, uptime, error rate, solo, mute and deployment controls modify only that local object. Coherent bulk profiles apply Healthy, Warning, Critical or Unknown status plus matching metrics to every represented component. The poller continues refreshing the underlying live snapshot, so switching back to Live restores the newest real frame without restarting the composition. All, Measured and Unmeasured filters affect both the graph and service table. Resetting from Live or reloading the page discards preview changes. No mutation endpoint exists in this module.
+Demo mode clones the latest live merged snapshot in memory and is always labelled `DEMO / SIMULATED`. Direct component status, latency, uptime, error rate, solo, mute and deployment controls modify only that local object. Coherent bulk scenes apply Healthy, Warning, Critical or Unknown status plus matching metrics to every represented component. The poller continues refreshing the underlying live snapshot, so switching back to Live restores the newest real frame without restarting the composition. All, Measured and Unmeasured filters affect both the graph and service table. Resetting from Live or reloading the page discards Demo changes. No mutation endpoint exists in this module.
+
+### Demo performance console
+
+The four telemetry states remain the musical foundation and gain secondary performance names:
+
+| State | Demo scene |
+| --- | --- |
+| Healthy | Night Drive |
+| Warning | Grid Pressure |
+| Critical | Redline Protocol |
+| Unknown | Ghost Signal |
+
+`Energy`, `Motion`, `Grit` and `Space` are bounded macro controls rather than raw synthesizer parameters. They reshape tempo, density, drum pressure, terminal-sequence movement, saturation, delay, pad weight and reverb while retaining the selected state's scale and register limits. `Randomise score` generates one visible four-to-eight-character hexadecimal seed. The seed deterministically selects curated chord order, bass syncopation, drum fills, melody rotation and effects variation. Entering a previous value and pressing `Replay seed` restores the same arrangement for the current scene and macro values.
+
+While audio is running, seed and macro changes replace one pending arrangement and activate together at the next measure boundary. This avoids abrupt mid-beat changes. Switching to Live clears the Demo arrangement immediately, including the terminal sequence and performance effects.
 
 ## Accessibility
 
@@ -149,6 +167,7 @@ Preview mode clones the latest live merged snapshot in memory and is always labe
 - Maximum represented components and allocated service voices: `32`.
 - At most one rotating service note starts per eighth-note scheduler tick.
 - Shared low drone, overlapping pad, terminal counterline, relay bass, drum machine, tape texture, compression and limiter nodes are reused.
+- Demo adds one shared terminal synth, feedback delay and service distortion node; all are allocated once when the graph starts and remain neutral in Live mode.
 - Service voices leaving topology fade before disposal.
 - Incident onset accents are capped at four per observed increase.
 - No oscillator, LFO or effect node is created inside the scheduler loop.
@@ -170,7 +189,7 @@ python3 scripts/verify_pages_output.py .
 git diff --check
 ```
 
-The pure tests cover all four score states, stale behavior, measured Unknown versus Unmeasured counts, deterministic identities and motifs, safe family registers, pad cadence and voicing, finite off-grid bass events, eight-phrase non-drum layer persistence, topology merge and failure fallback, external dependency graphs, component filters, coherent bulk profiles, incident deltas, deployment baselines, request overlap protection and voice counts beyond six.
+The pure tests cover all four score states, stale behavior, measured Unknown versus Unmeasured counts, deterministic identities and motifs, safe family registers, pad cadence and voicing, finite off-grid bass events, eight-phrase non-drum layer persistence, deterministic performance seeds, bounded macros, measure-boundary activation, Demo terminal registers, seeded bass and percussion continuity, topology merge and failure fallback, external dependency graphs, component filters, coherent bulk profiles, incident deltas, deployment baselines, request overlap protection and voice counts beyond six.
 
 Musical quality, speaker translation, clipping margin and two-to-three-minute non-repetition still require a human listening pass because automated tests cannot judge those qualities reliably.
 

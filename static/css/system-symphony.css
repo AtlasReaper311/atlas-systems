@@ -397,29 +397,62 @@
   gap: 7px;
 }
 
-.symphony-demo-profiles {
-  display: grid;
-  justify-items: end;
-  gap: 5px;
+.symphony-performance {
+  width: min(760px, 66vw);
+  padding: 12px;
+  border: 1px solid rgba(245, 166, 35, 0.22);
+  background:
+    linear-gradient(135deg, rgba(245, 166, 35, 0.055), transparent 55%),
+    rgba(10, 10, 15, 0.72);
 }
 
-.symphony-demo-profiles > span {
+.symphony-performance__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+}
+
+.symphony-performance__header span,
+.symphony-demo-profiles > span,
+.symphony-performance__seed > span {
   color: var(--text-faint, #555560);
   font-size: 8px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
+.symphony-performance__header strong {
+  color: var(--accent, #f5a623);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.symphony-demo-profiles {
+  display: grid;
+  gap: 5px;
+}
+
+.symphony-demo-profiles > span {
+  display: block;
+}
+
 .symphony-demo-profiles > div {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 4px;
 }
 
 .symphony-demo-profiles button {
-  min-height: 27px;
-  padding: 0 7px;
+  display: grid;
+  min-height: 43px;
+  align-content: center;
+  gap: 4px;
+  padding: 6px 8px;
   border: 1px solid var(--border-hi, rgba(255, 255, 255, 0.16));
   border-radius: 2px;
   background: rgba(245, 166, 35, 0.035);
@@ -427,6 +460,85 @@
   cursor: pointer;
   font: 500 8px/1 var(--mono, "IBM Plex Mono", monospace);
   letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.symphony-demo-profiles button strong {
+  color: var(--text, #e8e8e0);
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.symphony-demo-profiles button[aria-pressed="true"] {
+  border-color: rgba(245, 166, 35, 0.7);
+  background: rgba(245, 166, 35, 0.12);
+  color: var(--accent, #f5a623);
+}
+
+.symphony-performance__macros {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.symphony-performance__macros label {
+  display: grid;
+  gap: 5px;
+}
+
+.symphony-performance__macros label > span {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-dim, #aaa9a0);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.symphony-performance__macros output {
+  color: var(--accent, #f5a623);
+}
+
+.symphony-performance__macros input {
+  width: 100%;
+  accent-color: var(--accent, #f5a623);
+}
+
+.symphony-performance__actions {
+  display: grid;
+  grid-template-columns: auto minmax(130px, 1fr) auto;
+  align-items: end;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.symphony-performance__seed {
+  display: grid;
+  gap: 4px;
+}
+
+.symphony-performance__seed input {
+  width: 100%;
+  height: 32px;
+  border: 1px solid var(--border-hi, rgba(255, 255, 255, 0.16));
+  border-radius: 2px;
+  background: var(--bg, #0a0a0f);
+  color: var(--text, #e8e8e0);
+  font: 500 10px/1 var(--mono, "IBM Plex Mono", monospace);
+  letter-spacing: 0.12em;
+  padding-inline: 9px;
+  text-transform: uppercase;
+}
+
+.symphony-performance__status {
+  min-height: 13px;
+  margin: 7px 0 0;
+  color: var(--text-faint, #555560);
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  text-align: right;
   text-transform: uppercase;
 }
 
@@ -1131,12 +1243,16 @@ body.symphony-console-open {
     justify-items: start;
   }
 
-  .symphony-demo-profiles {
-    justify-items: start;
+  .symphony-performance {
+    width: 100%;
   }
 
   .symphony-demo-profiles > div {
-    justify-content: flex-start;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .symphony-performance__macros {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .symphony-metrics {
@@ -1237,6 +1353,14 @@ body.symphony-console-open {
   .symphony-segmented button {
     min-width: 0;
     flex: 1;
+  }
+
+  .symphony-performance__actions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .symphony-performance__actions > :first-child {
+    grid-column: 1 / -1;
   }
 
   .symphony-orchestra__grid {

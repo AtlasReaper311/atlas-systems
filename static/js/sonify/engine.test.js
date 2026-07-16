@@ -11,13 +11,17 @@ import {
   bassEventForStep,
   buildPadVoicing,
   counterlineEventForStep,
+  createEngine,
   percussionEventsForStep,
   serviceOctaveDisplacement,
+  shouldApplyPendingPerformance,
   shouldPlayServiceVoice,
   shouldPlayPad,
   startToneWithTimeout,
+  terminalEventForStep,
 } from "./engine.js";
-import { SCORE_STATES, STATUS_PARAMETERS } from "./mapping.js";
+import { SCORE_STATES, STATUS_PARAMETERS, computeFrame } from "./mapping.js";
+import { createPerformanceArrangement } from "./performance.js";
 
 test("audio context start resolves normally", async () => {
   await startToneWithTimeout({ start: async () => undefined }, 20);
@@ -155,4 +159,177 @@ test("critical keeps the liked kick pattern inside the fuller drum machine", () 
   assert.equal(percussionEventsForStep("critical", 7).hat.velocity, 0.3);
   assert.equal(percussionEventsForStep("critical", 3).hat.velocity, 0.2);
   assert.equal(percussionEventsForStep("critical", 15).metal.velocity, 0.24);
+});
+
+test("Demo performance changes activate only on measure boundaries", () => {
+  assert.deepEqual(
+    Array.from({ length: 32 }, (_, step) => step).filter(shouldApplyPendingPerformance),
+    [0, 8, 16, 24],
+  );
+  assert.equal(shouldApplyPendingPerformance(-1), false);
+  assert.equal(shouldApplyPendingPerformance(1.5), false);
+});
+
+test("Demo arrangements add a bounded low and mid terminal sequence", () => {
+  for (const [state, score] of Object.entries(SCORE_STATES)) {
+    for (const seed of ["0000", "7F3A", "A71A5", "FFFFFFFF"]) {
+      const performance = createPerformanceArrangement(seed, state);
+      for (let phrase = 0; phrase < 8; phrase += 1) {
+        const events = Array.from({ length: 32 }, (_, step) => (
+          terminalEventForStep(state, score.scale, step, phrase, performance)
+        )).filter(Boolean);
+        assert.ok(events.length >= 7, `${state} ${seed} should keep terminal motion`);
+        assert.ok(events.every((event) => event.midi >= PAD_ROOT_MIDI));
+        assert.ok(events.every((event) => event.midi <= 60));
+        assert.ok(events.every((event) => Number.isFinite(event.velocity)));
+      }
+    }
+  }
+  assert.equal(
+    terminalEventForStep("healthy", SCORE_STATES.healthy.scale, 3, 0, null),
+    null,
+    "Live mode must not add the Demo terminal sequence",
+  );
+});
+
+test("seeded Demo bass and percussion remain finite without losing the state groove", () => {
+  const minimumBassEvents = { healthy: 8, warning: 10, critical: 8, unknown: 4 };
+  for (const [state, score] of Object.entries(SCORE_STATES)) {
+    for (const seed of ["0000", "7F3A", "A71A5", "FFFFFFFF"]) {
+      const performance = createPerformanceArrangement(seed, state);
+      const bassEvents = Array.from({ length: 32 }, (_, step) => (
+        bassEventForStep(state, score.scale, step, 3, performance)
+      )).filter(Boolean);
+      const drumEvents = Array.from({ length: 32 }, (_, step) => (
+        percussionEventsForStep(state, step, performance)
+      ));
+      assert.equal(bassEvents.length, minimumBassEvents[state]);
+      assert.ok(bassEvents.every((event) => Number.isFinite(event.midi)));
+      assert.ok(bassEvents.every((event) => Number.isFinite(event.velocity)));
+      assert.ok(drumEvents.some((events) => events.kick));
+      assert.ok(drumEvents.some((events) => events.hat));
+      for (const events of drumEvents) {
+        for (const event of Object.values(events)) {
+          if (event) assert.ok(Number.isFinite(event.velocity));
+        }
+      }
+    }
+  }
+});
+
+function fakeToneRuntime() {
+  const constructed = [];
+  let scheduledEighth = null;
+  const parameter = (value = 0) => ({
+    value,
+    rampTo(nextValue) {
+      this.value = nextValue;
+    },
+  });
+
+  class FakeNode {
+    constructor(name, input) {
+      constructed.push(name);
+      const options = input && typeof input === "object" ? input : {};
+      const numeric = Number.isFinite(input) ? input : 0;
+      this.gain = parameter(numeric);
+      this.frequency = parameter(options.frequency ?? numeric);
+      this.volume = parameter(numeric);
+      this.wet = parameter(options.wet ?? 0);
+      this.pan = parameter(numeric);
+      this.detune = parameter(0);
+    }
+
+    connect() { return this; }
+    chain() { return this; }
+    toDestination() { return this; }
+    triggerAttackRelease() {}
+    start() { return this; }
+    dispose() {}
+    getValue() { return new Float32Array(512); }
+    async generate() {}
+  }
+
+  const nodeClass = (name) => class extends FakeNode {
+    constructor(...args) {
+      const options = name === "PolySynth" ? args[1] : args[0];
+      super(name, options);
+    }
+  };
+  const transport = {
+    bpm: parameter(72),
+    state: "stopped",
+    scheduleRepeat(callback) {
+      scheduledEighth = callback;
+      return 1;
+    },
+    scheduleOnce() {},
+    nextSubdivision() { return 0; },
+    clear() {},
+    start() { this.state = "started"; },
+  };
+  const Tone = {
+    start: async () => undefined,
+    Gain: nodeClass("Gain"),
+    Analyser: nodeClass("Analyser"),
+    Limiter: nodeClass("Limiter"),
+    Compressor: nodeClass("Compressor"),
+    Reverb: nodeClass("Reverb"),
+    Filter: nodeClass("Filter"),
+    Volume: nodeClass("Volume"),
+    Distortion: nodeClass("Distortion"),
+    PolySynth: nodeClass("PolySynth"),
+    Synth: nodeClass("Synth"),
+    MonoSynth: nodeClass("MonoSynth"),
+    FMSynth: nodeClass("FMSynth"),
+    AMSynth: nodeClass("AMSynth"),
+    MembraneSynth: nodeClass("MembraneSynth"),
+    NoiseSynth: nodeClass("NoiseSynth"),
+    MetalSynth: nodeClass("MetalSynth"),
+    Noise: nodeClass("Noise"),
+    Panner: nodeClass("Panner"),
+    FeedbackDelay: nodeClass("FeedbackDelay"),
+    getTransport: () => transport,
+    Time: () => ({ toSeconds: () => 0.25 }),
+    Draw: { schedule: (callback) => callback() },
+  };
+  return {
+    Tone,
+    constructed,
+    runEighth: (time = 0) => scheduledEighth?.(time),
+  };
+}
+
+test("the browser graph allocates Demo effects once and applies a queued score on beat", async () => {
+  const previousTone = globalThis.Tone;
+  const runtime = fakeToneRuntime();
+  globalThis.Tone = runtime.Tone;
+  const engine = createEngine();
+  const applied = [];
+  try {
+    engine.applyFrame(computeFrame({
+      timestamp: "2026-07-16T12:00:00.000Z",
+      estate: { overall_health: 1, active_incidents: 0 },
+      services: [],
+    }));
+    engine.setPerformanceHandler((performance) => applied.push(performance));
+    await engine.start();
+    assert.ok(runtime.constructed.includes("Distortion"));
+    assert.ok(runtime.constructed.includes("FeedbackDelay"));
+    assert.ok(runtime.constructed.includes("AMSynth"));
+    assert.equal(runtime.constructed.filter((name) => name === "Distortion").length, 1);
+    assert.equal(runtime.constructed.filter((name) => name === "FeedbackDelay").length, 1);
+
+    const performance = createPerformanceArrangement("7F3A", "healthy");
+    const result = engine.setPerformance(performance);
+    assert.equal(result.queued, true);
+    assert.equal(applied.length, 0);
+    runtime.runEighth();
+    assert.equal(applied.length, 1);
+    assert.equal(applied[0].id, performance.id);
+  } finally {
+    engine.dispose();
+    if (previousTone === undefined) delete globalThis.Tone;
+    else globalThis.Tone = previousTone;
+  }
 });
