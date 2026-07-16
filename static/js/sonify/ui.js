@@ -8,15 +8,15 @@
 import {
   DEFAULT_USER_GAIN,
   createEngine,
-} from "./engine.js?v=20260716-system-symphony-cyberpunk";
-import { createPoller } from "./poller.js?v=20260716-system-symphony-cyberpunk";
+} from "./engine.js?v=20260716-system-symphony-persistent-layers";
+import { createPoller } from "./poller.js?v=20260716-system-symphony-persistent-layers";
 import {
   applyDemoProfileToServices,
   buildDependencyGraph,
   computeFrame,
   deriveDemoEstate,
   filterVoices,
-} from "./mapping.js?v=20260716-system-symphony-cyberpunk";
+} from "./mapping.js?v=20260716-system-symphony-persistent-layers";
 
 const WIDGET_ID = "system-symphony-widget";
 const SVG_NS = "http://www.w3.org/2000/svg";

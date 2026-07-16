@@ -48,10 +48,10 @@ Tone.js `14.8.49` remains vendored at `/vendor/tone.min.js`. No audio samples or
 
 | State | Grammar | Tempo | Orchestration |
 | --- | --- | ---: | --- |
-| Healthy | D Aeolian | 72 BPM | Sub-bass D/A power rail, persistent detuned pads, relay bass and a restrained industrial drum machine |
-| Warning | D Phrygian | 82 BPM | The same continuous composition with tighter syncopation, darker filtering and more voltage in the service motifs |
+| Healthy | D Aeolian | 72 BPM | Sub-bass D/A power rail, overlapping detuned pads, a low terminal counterline, relay bass and a restrained industrial drum machine |
+| Warning | D Phrygian | 82 BPM | The same continuous composition with a syncopated counterline, darker filtering and more voltage in the service motifs |
 | Critical | D Phrygian dominant | 96 BPM | The liked critical kick pattern, fuller machine percussion, urgent low voices and controlled harmonic tension |
-| Unknown | D suspended | 60 BPM | A quieter but continuous pad, fragmented drums, tape noise and unresolved low signals |
+| Unknown | D suspended | 60 BPM | A quieter but continuous overlapping pad, low suspended counterline, fragmented drums, tape noise and unresolved signals |
 
 Critical transitions use a sub-second arrangement ramp after the frontend receives the frame. Other state changes use eight-to-ten-second ramps. Sustained audio is not hard-cut except when the user stops playback, when the final user gain fades before the scheduler remains silent.
 
@@ -94,7 +94,7 @@ A stable FNV-1a hash of the component name selects its motif variation, instrume
 | Infrastructure and deployment | Relay bass and mainframe low voices |
 | Reusable kits and unmatched roles | Tape signals and damaged data tones |
 
-The scheduler rotates across the whole represented estate instead of firing every component together. A D1/A1 drone spans each phrase and an overlapping pad refreshes every measure, so only a few foreground motifs need to sound at once. Family-specific MIDI bounds hold recurring service notes between D1 and D4, with downward-only octave variation. Only the rare deployment motif can rise to F-sharp 4.
+The scheduler rotates across the whole represented estate instead of firing every component together. A D1/A1 drone spans each phrase, overlapping pads refresh every measure, and a shared low counterline guarantees harmonic motion even when foreground service motifs are sparse. Each score state also reserves service-anchor steps, so deterministic density cannot accidentally remove the orchestra for an entire phrase. Family-specific MIDI bounds hold recurring service notes between D1 and D4, with downward-only octave variation. Only the rare deployment motif can rise to F-sharp 4.
 
 ## Telemetry mappings
 
@@ -148,7 +148,7 @@ Preview mode clones the latest live merged snapshot in memory and is always labe
 
 - Maximum represented components and allocated service voices: `32`.
 - At most one rotating service note starts per eighth-note scheduler tick.
-- Shared low drone, overlapping pad, relay bass, drum machine, tape texture, compression and limiter nodes are reused.
+- Shared low drone, overlapping pad, terminal counterline, relay bass, drum machine, tape texture, compression and limiter nodes are reused.
 - Service voices leaving topology fade before disposal.
 - Incident onset accents are capped at four per observed increase.
 - No oscillator, LFO or effect node is created inside the scheduler loop.
@@ -170,7 +170,7 @@ python3 scripts/verify_pages_output.py .
 git diff --check
 ```
 
-The pure tests cover all four score states, stale behavior, measured Unknown versus Unmeasured counts, deterministic identities and motifs, safe family registers, pad cadence and voicing, topology merge and failure fallback, external dependency graphs, component filters, coherent bulk profiles, incident deltas, deployment baselines, request overlap protection and voice counts beyond six.
+The pure tests cover all four score states, stale behavior, measured Unknown versus Unmeasured counts, deterministic identities and motifs, safe family registers, pad cadence and voicing, finite off-grid bass events, eight-phrase non-drum layer persistence, topology merge and failure fallback, external dependency graphs, component filters, coherent bulk profiles, incident deltas, deployment baselines, request overlap protection and voice counts beyond six.
 
 Musical quality, speaker translation, clipping margin and two-to-three-minute non-repetition still require a human listening pass because automated tests cannot judge those qualities reliably.
 

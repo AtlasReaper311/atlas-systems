@@ -12,7 +12,7 @@ import {
   boundVoiceMidi,
   midiToFrequencyHz,
   stableHash,
-} from "./mapping.js?v=20260716-system-symphony-cyberpunk";
+} from "./mapping.js?v=20260716-system-symphony-persistent-layers";
 
 export const DEFAULT_USER_GAIN = 0.62;
 export const MAX_SERVICE_VOICES = MAX_COMPONENTS;
@@ -23,10 +23,22 @@ export const PAD_MEASURE_STEPS = 8;
 export const PAD_ROOT_MIDI = 38; // D2
 export const DRONE_MIDI = Object.freeze([26, 33]); // D1 / A1
 export const PERCUSSION_BUS_GAINS = Object.freeze({
-  healthy: 0.55,
-  warning: 0.7,
+  healthy: 0.48,
+  warning: 0.62,
   critical: 0.9,
   unknown: 0.22,
+});
+export const COUNTERLINE_BUS_GAINS = Object.freeze({
+  healthy: 0.3,
+  warning: 0.36,
+  critical: 0.3,
+  unknown: 0.22,
+});
+export const PAD_DURATIONS = Object.freeze({
+  healthy: "2m",
+  warning: "2m",
+  critical: "1m",
+  unknown: "2m",
 });
 
 const UI_RAMP_SECONDS = 0.25;
@@ -45,6 +57,48 @@ const BASS_STEPS = Object.freeze({
   warning: new Set([0, 5, 8, 11, 14, 16, 21, 24, 27, 30]),
   critical: new Set([0, 4, 8, 12, 16, 20, 24, 28]),
   unknown: new Set([0, 12, 16, 28]),
+});
+
+const BASS_DEGREES = Object.freeze({
+  healthy: [0, 4, 5, 4],
+  warning: [0, 1, 4, 5, 0],
+  critical: [0, 1, 4, 0],
+  unknown: [0, 4, 0, 5],
+});
+
+const COUNTERLINE_STEPS = Object.freeze({
+  healthy: [2, 10, 18, 26],
+  warning: [2, 6, 10, 14, 18, 22, 26, 30],
+  critical: [2, 6, 10, 14, 18, 22, 26, 30],
+  unknown: [6, 14, 22, 30],
+});
+
+const COUNTERLINE_DEGREES = Object.freeze({
+  healthy: [0, 4, 2, 5],
+  warning: [0, 1, 4, 3],
+  critical: [0, 1, 4, 1],
+  unknown: [0, 4, 1, 5],
+});
+
+const COUNTERLINE_DURATIONS = Object.freeze({
+  healthy: "2n.",
+  warning: "4n",
+  critical: "8n",
+  unknown: "1m",
+});
+
+const COUNTERLINE_VELOCITIES = Object.freeze({
+  healthy: 0.34,
+  warning: 0.38,
+  critical: 0.34,
+  unknown: 0.26,
+});
+
+const SERVICE_ANCHOR_STEPS = Object.freeze({
+  healthy: new Set([1, 5, 9, 13, 17, 21, 25, 29]),
+  warning: new Set([1, 3, 5, 9, 11, 13, 17, 19, 21, 25, 27, 29]),
+  critical: new Set([1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31]),
+  unknown: new Set([3, 7, 11, 19, 23, 27]),
 });
 
 const NOTE_LENGTHS = Object.freeze({
@@ -87,6 +141,64 @@ export function buildPadVoicing(scoreState, scale, measureIndex) {
     const octave = index === 0 ? 0 : 12;
     return Math.min(57, PAD_ROOT_MIDI + scaleOffset + octave);
   });
+}
+
+export function bassEventForStep(scoreState, scale, step, phraseIndex = 0) {
+  const activeSteps = [...(BASS_STEPS[scoreState] ?? BASS_STEPS.unknown)];
+  const eventIndex = activeSteps.indexOf(step);
+  if (eventIndex === -1) return null;
+
+  const degrees = BASS_DEGREES[scoreState] ?? BASS_DEGREES.unknown;
+  const phraseSeed = stableHash(`${scoreState}:${phraseIndex}:bass`);
+  const degree = degrees[(phraseSeed + eventIndex) % degrees.length];
+  const safeScale = Array.isArray(scale) && scale.length ? scale : [0];
+  const midi = 26 + safeScale[degree % safeScale.length];
+  return {
+    midi,
+    duration: scoreState === "critical"
+      ? "8n"
+      : scoreState === "warning"
+        ? "4n"
+        : scoreState === "unknown"
+          ? "1m"
+          : "2n.",
+    velocity: scoreState === "critical" ? 0.5 : scoreState === "unknown" ? 0.36 : 0.46,
+  };
+}
+
+export function counterlineEventForStep(scoreState, scale, step, phraseIndex = 0) {
+  const activeSteps = COUNTERLINE_STEPS[scoreState] ?? COUNTERLINE_STEPS.unknown;
+  const eventIndex = activeSteps.indexOf(step);
+  if (eventIndex === -1) return null;
+
+  const degrees = COUNTERLINE_DEGREES[scoreState] ?? COUNTERLINE_DEGREES.unknown;
+  const safeScale = Array.isArray(scale) && scale.length ? scale : [0];
+  const degree = degrees[(eventIndex + Math.abs(Math.trunc(phraseIndex))) % degrees.length];
+  return {
+    midi: PAD_ROOT_MIDI + safeScale[degree % safeScale.length],
+    duration: COUNTERLINE_DURATIONS[scoreState] ?? COUNTERLINE_DURATIONS.unknown,
+    velocity: COUNTERLINE_VELOCITIES[scoreState] ?? COUNTERLINE_VELOCITIES.unknown,
+  };
+}
+
+export function shouldPlayServiceVoice(
+  scoreState,
+  phraseIndex,
+  step,
+  scoreDensity,
+  voiceDensity,
+) {
+  if (!Number.isInteger(step) || step < 0 || step >= PHRASE_STEPS) return false;
+  const anchors = SERVICE_ANCHOR_STEPS[scoreState] ?? SERVICE_ANCHOR_STEPS.unknown;
+  if (anchors.has(step)) return true;
+  const chance = randomUnit(
+    stableHash(`${scoreState}:${phraseIndex}:${step}:service`),
+  );
+  const density = Math.min(
+    1,
+    Math.max(0, Number(scoreDensity) || 0) * Math.max(0, Number(voiceDensity) || 0),
+  );
+  return chance <= density;
 }
 
 export function serviceOctaveDisplacement(seed) {
@@ -314,12 +426,15 @@ export function createEngine() {
   let droneGain = null;
   let padGain = null;
   let bassGain = null;
+  let counterlineGain = null;
   let percussionGain = null;
   let textureGain = null;
   let deploymentGain = null;
   let drone = null;
   let pad = null;
   let bass = null;
+  let counterline = null;
+  let counterlineFilter = null;
   let kick = null;
   let snare = null;
   let hat = null;
@@ -404,10 +519,11 @@ export function createEngine() {
     masterVolume.chain(masterFilter, reverb, compressor, limiter, userGain);
     limiter.connect(analyser);
 
-    serviceBus = new Tone.Gain(0.76).connect(masterVolume);
-    droneGain = new Tone.Gain(0.28).connect(masterVolume);
-    padGain = new Tone.Gain(0.64).connect(masterVolume);
-    bassGain = new Tone.Gain(0.4).connect(masterVolume);
+    serviceBus = new Tone.Gain(0.86).connect(masterVolume);
+    droneGain = new Tone.Gain(0.3).connect(masterVolume);
+    padGain = new Tone.Gain(0.72).connect(masterVolume);
+    bassGain = new Tone.Gain(0.5).connect(masterVolume);
+    counterlineGain = new Tone.Gain(0.25).connect(masterVolume);
     percussionGain = new Tone.Gain(0).connect(masterVolume);
     textureGain = new Tone.Gain(0.012).connect(masterVolume);
     deploymentGain = new Tone.Gain(0.62).connect(masterVolume);
@@ -415,13 +531,13 @@ export function createEngine() {
     drone = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: "fatsine", count: 3, spread: 8 },
       envelope: { attack: 4.2, decay: 2.2, sustain: 0.86, release: 8.5 },
-      volume: -17,
+      volume: -15,
     }).connect(droneGain);
 
     pad = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: "fatsawtooth", count: 3, spread: 13 },
       envelope: { attack: 2.4, decay: 1.8, sustain: 0.72, release: 6.8 },
-      volume: -19,
+      volume: -17,
     }).connect(padGain);
 
     bass = new Tone.MonoSynth({
@@ -438,6 +554,23 @@ export function createEngine() {
       },
       volume: -14,
     }).connect(bassGain);
+
+    counterline = new Tone.FMSynth({
+      harmonicity: 0.502,
+      modulationIndex: 2.1,
+      oscillator: { type: "triangle" },
+      modulation: { type: "sine" },
+      envelope: { attack: 0.18, decay: 0.7, sustain: 0.5, release: 2.8 },
+      modulationEnvelope: { attack: 0.3, decay: 0.8, sustain: 0.16, release: 2.2 },
+      volume: -15,
+    });
+    counterlineFilter = new Tone.Filter({
+      type: "lowpass",
+      frequency: 1600,
+      rolloff: -24,
+      Q: 1.6,
+    });
+    counterline.chain(counterlineFilter, counterlineGain);
 
     kick = new Tone.MembraneSynth({
       pitchDecay: 0.045,
@@ -500,7 +633,19 @@ export function createEngine() {
     const measureIndex = phraseIndex * 4 + step / PAD_MEASURE_STEPS;
     const notes = buildPadVoicing(frame.scoreState, frame.scale, measureIndex)
       .map(midiToFrequencyHz);
-    pad.triggerAttackRelease(notes, "1m", time, 0.34);
+    const velocity = frame.scoreState === "healthy"
+      ? 0.42
+      : frame.scoreState === "warning"
+        ? 0.4
+        : frame.scoreState === "unknown"
+          ? 0.34
+          : 0.36;
+    pad.triggerAttackRelease(
+      notes,
+      PAD_DURATIONS[frame.scoreState] ?? PAD_DURATIONS.unknown,
+      time,
+      velocity,
+    );
   }
 
   function playDrone(time, step) {
@@ -514,13 +659,30 @@ export function createEngine() {
   }
 
   function playBass(time, frame, step) {
-    if (!BASS_STEPS[frame.scoreState].has(step)) return;
-    const phraseSeed = stableHash(`${frame.scoreState}:${phraseIndex}:bass`);
-    const degreeChoices = frame.scoreState === "critical" ? [0, 1, 4, 0] : [0, 4, 0, 5];
-    const degree = degreeChoices[(step / 4 + phraseSeed) % degreeChoices.length];
-    const midi = 26 + frame.scale[degree % frame.scale.length];
-    const duration = frame.scoreState === "critical" ? "8n" : "2n";
-    bass.triggerAttackRelease(midiToFrequencyHz(midi), duration, time, 0.48);
+    const event = bassEventForStep(frame.scoreState, frame.scale, step, phraseIndex);
+    if (!event) return;
+    bass.triggerAttackRelease(
+      midiToFrequencyHz(event.midi),
+      event.duration,
+      time,
+      event.velocity,
+    );
+  }
+
+  function playCounterline(time, frame, step) {
+    const event = counterlineEventForStep(
+      frame.scoreState,
+      frame.scale,
+      step,
+      phraseIndex,
+    );
+    if (!event) return;
+    counterline.triggerAttackRelease(
+      midiToFrequencyHz(event.midi),
+      event.duration,
+      time,
+      event.velocity,
+    );
   }
 
   function playPercussion(time, frame, step) {
@@ -552,11 +714,13 @@ export function createEngine() {
     if (!frame.voices.length) return;
     const params = frame.voices[serviceCursor % frame.voices.length];
     serviceCursor += 1 + ((phraseIndex + step) % 3 === 0 ? 1 : 0);
-    const chance = randomUnit(
-      stableHash(`${frame.scoreState}:${phraseIndex}:${step}:service`),
-    );
-    const voiceDensity = Math.min(1, frame.density * params.density);
-    if (chance > voiceDensity) return;
+    if (!shouldPlayServiceVoice(
+      frame.scoreState,
+      phraseIndex,
+      step,
+      frame.density,
+      params.density,
+    )) return;
 
     const voice = voices.get(params.name);
     if (!voice) return;
@@ -585,6 +749,7 @@ export function createEngine() {
     playDrone(time, step);
     playPad(time, currentFrame, step);
     playBass(time, currentFrame, step);
+    playCounterline(time, currentFrame, step);
     playPercussion(time, currentFrame, step);
     playService(time, currentFrame, step);
     stepIndex += 1;
@@ -598,12 +763,24 @@ export function createEngine() {
     safeRamp(masterFilter.frequency, frame.masterFilterHz, transition);
     safeRamp(
       droneGain.gain,
-      frame.scoreState === "critical" ? 0.34 : frame.scoreState === "unknown" ? 0.22 : 0.3,
+      frame.scoreState === "critical"
+        ? 0.34
+        : frame.scoreState === "warning"
+          ? 0.32
+          : frame.scoreState === "unknown"
+            ? 0.27
+            : 0.34,
       transition,
     );
     safeRamp(
       padGain.gain,
-      frame.scoreState === "unknown" ? 0.48 : frame.scoreState === "warning" ? 0.64 : 0.72,
+      frame.scoreState === "unknown"
+        ? 0.6
+        : frame.scoreState === "warning"
+          ? 0.78
+          : frame.scoreState === "critical"
+            ? 0.72
+            : 0.82,
       transition,
     );
     safeRamp(
@@ -613,8 +790,24 @@ export function createEngine() {
         : frame.scoreState === "warning"
           ? 0.62
           : frame.scoreState === "unknown"
-            ? 0.3
-            : 0.5,
+            ? 0.4
+            : 0.6,
+      transition,
+    );
+    safeRamp(
+      counterlineGain.gain,
+      COUNTERLINE_BUS_GAINS[frame.scoreState] ?? COUNTERLINE_BUS_GAINS.unknown,
+      transition,
+    );
+    safeRamp(
+      counterlineFilter.frequency,
+      frame.scoreState === "critical"
+        ? 1200
+        : frame.scoreState === "warning"
+          ? 1450
+          : frame.scoreState === "unknown"
+            ? 900
+            : 1800,
       transition,
     );
     safeRamp(
@@ -667,6 +860,8 @@ export function createEngine() {
       hat,
       snare,
       kick,
+      counterlineFilter,
+      counterline,
       bass,
       pad,
       drone,
@@ -674,6 +869,7 @@ export function createEngine() {
       textureGain,
       percussionGain,
       bassGain,
+      counterlineGain,
       padGain,
       droneGain,
       serviceBus,
