@@ -48,8 +48,8 @@ Tone.js `14.8.49` remains vendored at `/vendor/tone.min.js`. No audio samples or
 
 | State | Grammar | Tempo | Orchestration |
 | --- | --- | ---: | --- |
-| Healthy | D Lydian | 68 BPM | Warm low D/A drone, overlapping mid-register pads, soft strings, plucks and woodwinds |
-| Warning | D Dorian | 78 BPM | The same grounded bed with darker harmony, stronger pulse and restrained low percussion |
+| Healthy | D Lydian | 68 BPM | Warm low D/A drone, overlapping pads, soft voices and a quiet once-per-measure heartbeat with brushed bar endings |
+| Warning | D Dorian | 78 BPM | The same grounded bed with darker harmony, a clearer low pulse and restrained syncopated brush rhythm |
 | Critical | D Phrygian | 92 BPM | Persistent low rhythm, urgent service articulations, bass and controlled harmonic tension |
 | Unknown | D suspended / restrained whole-tone | 56 BPM | Sparse open intervals, spectral colour and unresolved phrases |
 
@@ -103,7 +103,7 @@ The scheduler rotates across the whole represented estate instead of firing ever
 | Latency | Low-pass cutoff and spectral openness |
 | Uptime / current state | Brightness |
 | Error rate | Instability, detuning and note confidence |
-| Active incidents | Persistent critical rhythm and tension until resolved |
+| Score state / active incidents | A shared rhythmic foundation that grows from restrained Healthy pulse to the unchanged persistent Critical groove |
 | New successful deployment | One quantised D-centred hero motif |
 | Dependency relationships | Directed topology edges (`A → B` means A depends on B), external boundary nodes and related-node highlighting |
 | Service identity | Instrument family, motif, register and stereo position |

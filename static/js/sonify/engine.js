@@ -22,6 +22,12 @@ export const AUDIO_START_TIMEOUT_MS = 8000;
 export const PAD_MEASURE_STEPS = 8;
 export const PAD_ROOT_MIDI = 38; // D2
 export const DRONE_MIDI = Object.freeze([PAD_ROOT_MIDI, 45]); // D2 / A2
+export const PERCUSSION_BUS_GAINS = Object.freeze({
+  healthy: 0.28,
+  warning: 0.48,
+  critical: 0.84,
+  unknown: 0,
+});
 
 const UI_RAMP_SECONDS = 0.25;
 const VOICE_REMOVE_RAMP_SECONDS = 0.5;
@@ -75,6 +81,43 @@ export function buildPadVoicing(scoreState, scale, measureIndex) {
 
 export function serviceOctaveDisplacement(seed) {
   return randomUnit(seed) < 0.06 ? -12 : 0;
+}
+
+export function percussionEventsForStep(scoreState, step) {
+  if (!Number.isInteger(step) || step < 0 || step >= PHRASE_STEPS) {
+    return { kick: null, noise: null };
+  }
+
+  if (scoreState === "critical") {
+    return {
+      kick: step % 8 === 0 || step === 14 || step === 30
+        ? { duration: "8n", velocity: step % 8 === 0 ? 0.72 : 0.48 }
+        : null,
+      noise: step % 4 === 3
+        ? { duration: 0.055, velocity: step % 8 === 7 ? 0.42 : 0.28 }
+        : null,
+    };
+  }
+
+  if (scoreState === "warning") {
+    return {
+      kick: step % 8 === 0 || step === 14 || step === 30
+        ? { duration: "8n", velocity: step % 8 === 0 ? 0.42 : 0.28 }
+        : null,
+      noise: step % 4 === 3
+        ? { duration: 0.05, velocity: step % 8 === 7 ? 0.24 : 0.18 }
+        : null,
+    };
+  }
+
+  if (scoreState === "healthy") {
+    return {
+      kick: step % 8 === 0 ? { duration: "8n", velocity: 0.3 } : null,
+      noise: step % 8 === 7 ? { duration: 0.04, velocity: 0.12 } : null,
+    };
+  }
+
+  return { kick: null, noise: null };
 }
 
 function requireTone() {
@@ -395,15 +438,21 @@ export function createEngine() {
   }
 
   function playPercussion(time, frame, step) {
-    if (frame.scoreState === "critical") {
-      if (step % 8 === 0 || step === 14 || step === 30) {
-        kick.triggerAttackRelease("D1", "8n", time, step % 8 === 0 ? 0.72 : 0.48);
-      }
-      if ([3, 7, 11, 15, 19, 23, 27, 31].includes(step)) {
-        noise.triggerAttackRelease(0.055, time, step % 8 === 7 ? 0.42 : 0.28);
-      }
-    } else if (frame.scoreState === "warning" && (step === 0 || step === 16)) {
-      kick.triggerAttackRelease("D1", "16n", time, 0.24);
+    const events = percussionEventsForStep(frame.scoreState, step);
+    if (events.kick) {
+      kick.triggerAttackRelease(
+        "D1",
+        events.kick.duration,
+        time,
+        events.kick.velocity,
+      );
+    }
+    if (events.noise) {
+      noise.triggerAttackRelease(
+        events.noise.duration,
+        time,
+        events.noise.velocity,
+      );
     }
   }
 
@@ -471,7 +520,7 @@ export function createEngine() {
     );
     safeRamp(
       percussionGain.gain,
-      frame.scoreState === "critical" ? 0.84 : frame.scoreState === "warning" ? 0.16 : 0,
+      PERCUSSION_BUS_GAINS[frame.scoreState] ?? 0,
       transition,
     );
 
