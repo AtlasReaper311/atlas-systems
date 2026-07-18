@@ -26,6 +26,7 @@ import {
 
 export const DEFAULT_USER_GAIN = 0.62;
 export const AUDIO_CONTEXT_BLOCKED_CODE = "audio-context-blocked";
+export const SCENE_CROSSFADE_SECONDS = 4;
 export const MAX_SERVICE_VOICES = MAX_COMPONENTS;
 export const MAX_INCIDENT_ACCENTS = 4;
 export const WAVEFORM_SIZE = 512;
@@ -835,6 +836,8 @@ export function createEngine() {
   let activePerformance = null;
   let pendingPerformance = null;
   let pendingPerformanceSet = false;
+  let pendingSceneFrame = null;
+  let pendingSceneTransition = SCENE_CROSSFADE_SECONDS;
   let ghostFocus = false;
   let ghostAudition = null;
 
@@ -1392,12 +1395,24 @@ export function createEngine() {
     if (step === 0 && stepIndex > 0) phraseIndex += 1;
     let performanceChanged = false;
     if (pendingPerformanceSet && shouldApplyPendingPerformance(step)) {
+      const sceneChanged = Boolean(pendingSceneFrame);
+      if (sceneChanged) {
+        currentFrame = pendingSceneFrame;
+        pendingSceneFrame = null;
+        phraseIndex = 0;
+        pad?.releaseAll?.(time);
+      }
       activePerformance = pendingPerformance;
       pendingPerformance = null;
       pendingPerformanceSet = false;
       arpStepIndex = 0;
       performanceChanged = true;
-      applyMixToGraph(currentFrame, 0.35, time);
+      if (sceneChanged) {
+        applyFrameToGraph(currentFrame, pendingSceneTransition, time);
+        pendingSceneTransition = SCENE_CROSSFADE_SECONDS;
+      } else {
+        applyMixToGraph(currentFrame, 0.9, time);
+      }
       const Tone = requireTone();
       Tone.Draw.schedule(() => {
         performanceHandler?.(activePerformance);
@@ -1623,10 +1638,13 @@ export function createEngine() {
     );
   }
 
-  function applyFrameToGraph(frame) {
+  function applyFrameToGraph(
+    frame,
+    transition = frame.transitionSeconds,
+    scheduledTime = undefined,
+  ) {
     syncServiceVoices(frame.voices);
-    const transition = frame.transitionSeconds;
-    applyMixToGraph(frame, transition);
+    applyMixToGraph(frame, transition, scheduledTime);
 
     voiceParams.clear();
     for (const params of frame.voices) {
@@ -1642,17 +1660,24 @@ export function createEngine() {
             * (activePerformance?.serviceFilterMultiplier ?? 1),
         ),
         transition,
+        scheduledTime,
       );
-      safeRamp(voice.gain.gain, params.voiceGain, transition);
-      safeRamp(voice.panner.pan, params.pan, 0.3);
+      safeRamp(voice.gain.gain, params.voiceGain, transition, scheduledTime);
+      safeRamp(voice.panner.pan, params.pan, 0.3, scheduledTime);
       if (voice.synth.detune) {
-        safeRamp(voice.synth.detune, params.detuneCents, transition);
+        safeRamp(
+          voice.synth.detune,
+          params.detuneCents,
+          transition,
+          scheduledTime,
+        );
       }
     }
   }
 
   function disposeGraph() {
     if (!initialized) return;
+    transport?.stop?.();
     if (schedulerId !== null) transport.clear(schedulerId);
     if (arpSchedulerId !== null) transport.clear(arpSchedulerId);
     for (const [name, voice] of voices) disposeServiceVoice(name, voice);
@@ -1759,10 +1784,48 @@ export function createEngine() {
       activePerformance = nextPerformance;
       pendingPerformance = null;
       pendingPerformanceSet = false;
+      pendingSceneFrame = null;
+      pendingSceneTransition = SCENE_CROSSFADE_SECONDS;
       arpStepIndex = 0;
       if (initialized && currentFrame) {
         applyMixToGraph(currentFrame, 0.35);
       }
+      performanceHandler?.(activePerformance);
+      ghostPhaseHandler?.(currentGhostPhase());
+      return { queued: false, unchanged: false };
+    },
+
+    setScene(
+      frame,
+      performance,
+      {
+        quantize = true,
+        transitionSeconds = SCENE_CROSSFADE_SECONDS,
+      } = {},
+    ) {
+      if (!frame) throw new Error("system-symphony: scene frame is required");
+      const nextPerformance = performance ?? null;
+      const boundedTransition = Math.min(
+        8,
+        Math.max(1.5, Number(transitionSeconds) || SCENE_CROSSFADE_SECONDS),
+      );
+      if (quantize && initialized && running) {
+        pendingSceneFrame = frame;
+        pendingPerformance = nextPerformance;
+        pendingPerformanceSet = true;
+        pendingSceneTransition = boundedTransition;
+        return { queued: true, unchanged: false };
+      }
+      currentFrame = frame;
+      activePerformance = nextPerformance;
+      pendingSceneFrame = null;
+      pendingPerformance = null;
+      pendingPerformanceSet = false;
+      pendingSceneTransition = SCENE_CROSSFADE_SECONDS;
+      phraseIndex = 0;
+      stepIndex = 0;
+      arpStepIndex = 0;
+      if (initialized) applyFrameToGraph(frame, boundedTransition);
       performanceHandler?.(activePerformance);
       ghostPhaseHandler?.(currentGhostPhase());
       return { queued: false, unchanged: false };

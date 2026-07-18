@@ -9,7 +9,7 @@ import {
   AUDIO_CONTEXT_BLOCKED_CODE,
   DEFAULT_USER_GAIN,
   createEngine,
-} from "./engine.js?v=20260718-system-symphony-ghost-mix";
+} from "./engine.js?v=20260718-system-symphony-ghost-crossfade";
 import { createPoller } from "./poller.js?v=20260718-system-symphony-ghost-circuit";
 import {
   applyDemoProfileToServices,
@@ -378,6 +378,7 @@ export function initSystemSymphony() {
   let performanceStatus = `Seed ${DEFAULT_PERFORMANCE_SEED} ready`;
   let ghostFocus = false;
   let ghostAudition = null;
+  let sceneTransitionPending = false;
 
   function presentationForVoice(voice) {
     if (!voice.measured && !voice.demoSimulated) {
@@ -507,6 +508,24 @@ export function initSystemSymphony() {
       ? `${action} queued for next measure // ${performanceSeed}`
       : `${action} active // ${performanceSeed}`;
     renderPerformance(currentFrame);
+  }
+
+  function stageScene(frame, action = "Scene") {
+    if (mode !== "demo" || !frame) return;
+    performanceArrangement = createPerformanceArrangement(
+      performanceSeed,
+      frame.scoreState,
+      performanceMacros,
+    );
+    const audible = maskedFrame(frame, muted, soloed);
+    const result = engine.setScene(audible, performanceArrangement, {
+      quantize: engine.isRunning(),
+    });
+    sceneTransitionPending = result.queued;
+    performanceStatus = result.queued
+      ? `${action} queued for next bar // smooth 4-second crossfade // ${performanceSeed}`
+      : `${action} active // ${performanceSeed}`;
+    applyAndRender(frame, { applyAudio: false });
   }
 
   function announceImportant(frame) {
@@ -926,7 +945,7 @@ export function initSystemSymphony() {
     renderInspector();
   }
 
-  function applyAndRender(frame) {
+  function applyAndRender(frame, { applyAudio = true } = {}) {
     currentFrame = frame;
     const visible = visibleVoices(frame);
     if (!selectedName || !visible.some((voice) => voice.name === selectedName)) {
@@ -936,7 +955,7 @@ export function initSystemSymphony() {
     const audible = mode === "demo"
       ? maskedFrame(frame, muted, soloed)
       : frame;
-    engine.applyFrame(audible);
+    if (applyAudio) engine.applyFrame(audible);
     renderCompact(frame);
     renderDialog(frame);
     announceImportant(frame);
@@ -958,6 +977,7 @@ export function initSystemSymphony() {
     activeDemoProfile = "custom";
     performanceArrangement = null;
     performanceStatus = "Custom live snapshot ready";
+    sceneTransitionPending = false;
     resetGhostMixControls();
     engine.setPerformance(null, { quantize: false });
     const frame = currentDemoFrame();
@@ -977,6 +997,7 @@ export function initSystemSymphony() {
     soloed.clear();
     activeDemoProfile = null;
     performanceArrangement = null;
+    sceneTransitionPending = false;
     resetGhostMixControls();
     engine.setPerformance(null, { quantize: false });
     if (lastLiveFrame) applyAndRender(lastLiveFrame);
@@ -995,9 +1016,13 @@ export function initSystemSymphony() {
     demoMerged.estate = deriveDemoEstate(demoMerged.services);
     demoMerged.timestamp = new Date().toISOString();
     const frame = currentDemoFrame();
-    applyAndRender(frame);
-    if (performanceArrangement?.scoreState !== frame.scoreState) {
-      stagePerformance(frame.scoreState, "Scene");
+    if (
+      sceneTransitionPending
+      || performanceArrangement?.scoreState !== frame.scoreState
+    ) {
+      stageScene(frame);
+    } else {
+      applyAndRender(frame);
     }
     const nextIncidents = demoMerged.estate.active_incidents;
     if (nextIncidents > previousIncidents) {
@@ -1007,7 +1032,6 @@ export function initSystemSymphony() {
 
   function applyDemoProfile(profileName) {
     if (mode !== "demo" || !demoMerged) return;
-    const previousIncidents = demoMerged.estate?.active_incidents ?? 0;
     demoMerged.services = applyDemoProfileToServices(
       demoMerged.services,
       profileName,
@@ -1018,12 +1042,7 @@ export function initSystemSymphony() {
     muted.clear();
     soloed.clear();
     const frame = currentDemoFrame();
-    applyAndRender(frame);
-    stagePerformance(frame.scoreState, "Scene");
-    const nextIncidents = demoMerged.estate.active_incidents;
-    if (nextIncidents > previousIncidents) {
-      engine.queueIncidentAccent(nextIncidents - previousIncidents);
-    }
+    stageScene(frame);
   }
 
   function randomisePerformance() {
@@ -1358,6 +1377,7 @@ export function initSystemSymphony() {
   engine.setPerformanceHandler((performance) => {
     if (mode !== "demo" || !performance) return;
     if (performanceArrangement?.id !== performance.id) return;
+    sceneTransitionPending = false;
     performanceStatus = `Active // ${performance.sceneName} // ${performance.seed}`;
     renderPerformance(currentFrame);
   });

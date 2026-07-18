@@ -183,6 +183,16 @@ quiet pad and backing. The console shows the current real Ghost phase across a
 `Boot → Drive → Lift → Drop → Afterglow` timeline; it no longer relies on the
 separate sample-section label to explain the arrangement.
 
+Demo scene changes are staged as one atomic frame-and-arrangement update on the
+next bar. Tempo, master tone, layer buses, sample buses and effects then ramp for
+four seconds while the previous pad enters its existing long release and the
+incoming pad uses its slow attack. Atmospheres retain their four-second true
+crossfade. This keeps Healthy, Warning, Critical and Ghost changes musical and
+prevents the previous half-old/half-new measure. Bulk Demo scene buttons also
+avoid the separate live-incident impact accent, which previously landed ahead
+of the Critical crossfade. Page teardown stops the shared Tone transport before
+disposing the audio graph.
+
 The arrangement permits one tape-stop transition at most once per eight phrases
 and retains the existing bounded crash accents. Effect wet values, riff gain,
 incident accents, service voices and sample voice pools all have explicit caps.
@@ -244,7 +254,7 @@ python3 scripts/verify_pages_output.py .
 git diff --check
 ```
 
-The tests cover all four score states, stale behavior, measured Unknown versus Unmeasured counts, deterministic identities and motifs, safe registers, pad cadence and all voicings, audible bass octave and hat-density changes, arpeggio direction/gate/rotation, Ghost Circuit phase cycles, audibility profiles, single phase attenuation and riff bounds, transition cooldowns, effect ceilings, versioned replay identity, codec retry and timeout, background-load progress, cleanup, topology merge and failure fallback, incident and deployment baselines, request overlap protection and service voice limits.
+The tests cover all four score states, stale behavior, measured Unknown versus Unmeasured counts, deterministic identities and motifs, safe registers, pad cadence and all voicings, audible bass octave and hat-density changes, arpeggio direction/gate/rotation, Ghost Circuit phase cycles, audibility profiles, single phase attenuation and riff bounds, bar-quantised scene crossfades, transport teardown, transition cooldowns, effect ceilings, versioned replay identity, codec retry and timeout, background-load progress, cleanup, topology merge and failure fallback, incident and deployment baselines, request overlap protection and service voice limits.
 
 Musical quality, speaker translation, clipping margin and two-to-three-minute non-repetition still require a human listening pass because automated tests cannot judge those qualities reliably.
 

@@ -11,6 +11,7 @@ import {
   PAD_MEASURE_STEPS,
   PAD_ROOT_MIDI,
   PERCUSSION_BUS_GAINS,
+  SCENE_CROSSFADE_SECONDS,
   bassEventForStep,
   buildPadVoicing,
   counterlineEventForStep,
@@ -478,8 +479,10 @@ test("different Demo seeds create distinct audible phrase signatures", () => {
 function fakeToneRuntime() {
   const constructed = [];
   const triggers = [];
+  const releases = [];
   const scheduledRepeats = new Map();
   const scheduledParameterWrites = [];
+  let transportStopCount = 0;
   const parameter = (value = 0) => ({
     value,
     rampTo(nextValue) {
@@ -487,11 +490,21 @@ function fakeToneRuntime() {
     },
     setValueAtTime(nextValue, time) {
       this.value = nextValue;
-      scheduledParameterWrites.push({ type: "set", nextValue, time });
+      scheduledParameterWrites.push({
+        type: "set",
+        label: this.label ?? null,
+        nextValue,
+        time,
+      });
     },
     linearRampToValueAtTime(nextValue, time) {
       this.value = nextValue;
-      scheduledParameterWrites.push({ type: "ramp", nextValue, time });
+      scheduledParameterWrites.push({
+        type: "ramp",
+        label: this.label ?? null,
+        nextValue,
+        time,
+      });
     },
   });
 
@@ -513,6 +526,7 @@ function fakeToneRuntime() {
     chain() { return this; }
     toDestination() { return this; }
     triggerAttackRelease(...args) { triggers.push({ name: this.name, args }); }
+    releaseAll(time) { releases.push({ name: this.name, time }); }
     start() { return this; }
     stop() { return this; }
     dispose() {}
@@ -537,7 +551,12 @@ function fakeToneRuntime() {
     nextSubdivision() { return 0; },
     clear() {},
     start() { this.state = "started"; },
+    stop() {
+      transportStopCount += 1;
+      this.state = "stopped";
+    },
   };
+  transport.bpm.label = "transport-bpm";
   class ToneAudioBuffer {
     constructor(url, onLoad) {
       this.url = url;
@@ -579,8 +598,11 @@ function fakeToneRuntime() {
     Tone,
     constructed,
     triggers,
+    releases,
     scheduledParameterWrites,
     scheduledRepeats,
+    transportBpm: () => transport.bpm.value,
+    transportStopCount: () => transportStopCount,
     runEighth: (time = 0) => scheduledRepeats.get("8n")?.(time),
     runSixteenth: (time = 0) => scheduledRepeats.get("16n")?.(time),
   };
@@ -635,6 +657,60 @@ test("the browser graph allocates Demo effects once and applies a queued score o
     );
   } finally {
     engine.dispose();
+    if (previousTone === undefined) delete globalThis.Tone;
+    else globalThis.Tone = previousTone;
+  }
+});
+
+test("scene changes wait for a bar and crossfade frame and performance atomically", async () => {
+  const previousTone = globalThis.Tone;
+  const runtime = fakeToneRuntime();
+  globalThis.Tone = runtime.Tone;
+  const engine = createEngine();
+  try {
+    const healthyFrame = computeFrame({
+      timestamp: "2026-07-18T12:00:00.000Z",
+      estate: { overall_health: 1, active_incidents: 0 },
+      services: [],
+    });
+    const criticalFrame = computeFrame({
+      timestamp: "2026-07-18T12:01:00.000Z",
+      estate: { overall_health: 0.4, active_incidents: 1 },
+      services: [{ name: "atlas-api-public", status: "down" }],
+    });
+    const healthyPerformance = createPerformanceArrangement("A71A5", "healthy");
+    const criticalPerformance = createPerformanceArrangement("A71A5", "critical");
+    engine.applyFrame(healthyFrame);
+    engine.setPerformance(healthyPerformance, { quantize: false });
+    await engine.start();
+    const healthyBpm = runtime.transportBpm();
+    runtime.runEighth(0);
+
+    const result = engine.setScene(criticalFrame, criticalPerformance);
+    assert.equal(result.queued, true);
+    for (let step = 1; step < PAD_MEASURE_STEPS; step += 1) {
+      runtime.runEighth(step / 4);
+    }
+    assert.equal(runtime.transportBpm(), healthyBpm);
+    assert.equal(runtime.releases.length, 0);
+
+    const transitionTime = 4;
+    runtime.runEighth(transitionTime);
+    assert.equal(runtime.transportBpm(), criticalPerformance.targetBpm);
+    assert.deepEqual(runtime.releases, [{ name: "PolySynth", time: transitionTime }]);
+    const bpmWrites = runtime.scheduledParameterWrites.filter(
+      ({ label }) => label === "transport-bpm",
+    );
+    assert.deepEqual(
+      bpmWrites.slice(-2).map(({ type, time }) => ({ type, time })),
+      [
+        { type: "set", time: transitionTime },
+        { type: "ramp", time: transitionTime + SCENE_CROSSFADE_SECONDS },
+      ],
+    );
+  } finally {
+    engine.dispose();
+    assert.equal(runtime.transportStopCount(), 1);
     if (previousTone === undefined) delete globalThis.Tone;
     else globalThis.Tone = previousTone;
   }
