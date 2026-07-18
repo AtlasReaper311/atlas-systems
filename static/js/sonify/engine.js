@@ -735,6 +735,21 @@ function safeRamp(parameter, value, seconds, scheduledTime = undefined) {
   }
 }
 
+function safeTransportRamp(parameter, value, seconds) {
+  if (!parameter || !Number.isFinite(value)) return;
+  if (Math.abs((Number(parameter.value) || 0) - value) < 0.01) return;
+  const duration = Math.max(0.01, seconds);
+  if (typeof parameter.rampTo === "function") {
+    // Tone's Transport BPM is a TickSignal rather than a plain audio
+    // parameter. Absolute-time automation can invalidate its internal tick
+    // event cursor while the transport is running, so let TickSignal schedule
+    // its own context-relative glide instead.
+    parameter.rampTo(value, duration);
+  } else {
+    parameter.value = value;
+  }
+}
+
 function serviceSynth(Tone, family) {
   switch (family) {
     case "analog-pad":
@@ -1534,9 +1549,10 @@ export function createEngine() {
           : 0.012;
 
     if (!ghostMixOnly) {
-      ramp(
+      safeTransportRamp(
         transport.bpm,
         performance?.targetBpm ?? frame.bpm,
+        transition,
       );
       ramp(masterVolume.volume, frame.masterGainDb);
       ramp(masterFilter.frequency, frame.masterFilterHz);

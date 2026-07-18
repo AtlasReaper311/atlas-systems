@@ -11,7 +11,6 @@ import {
   PAD_MEASURE_STEPS,
   PAD_ROOT_MIDI,
   PERCUSSION_BUS_GAINS,
-  SCENE_CROSSFADE_SECONDS,
   bassEventForStep,
   buildPadVoicing,
   counterlineEventForStep,
@@ -693,6 +692,7 @@ test("scene changes wait for a bar and crossfade frame and performance atomicall
     engine.setPerformance(healthyPerformance, { quantize: false });
     await engine.start();
     const healthyBpm = runtime.transportBpm();
+    const healthyBpmRampCount = runtime.transportBpmRampCount();
     runtime.runEighth(0);
 
     const result = engine.setScene(criticalFrame, criticalPerformance);
@@ -706,17 +706,12 @@ test("scene changes wait for a bar and crossfade frame and performance atomicall
     const transitionTime = 4;
     runtime.runEighth(transitionTime);
     assert.equal(runtime.transportBpm(), criticalPerformance.targetBpm);
+    assert.equal(runtime.transportBpmRampCount(), healthyBpmRampCount + 1);
     assert.deepEqual(runtime.releases, [{ name: "PolySynth", time: transitionTime }]);
     const bpmWrites = runtime.scheduledParameterWrites.filter(
       ({ label }) => label === "transport-bpm",
     );
-    assert.deepEqual(
-      bpmWrites.slice(-2).map(({ type, time }) => ({ type, time })),
-      [
-        { type: "set", time: transitionTime },
-        { type: "ramp", time: transitionTime + SCENE_CROSSFADE_SECONDS },
-      ],
-    );
+    assert.deepEqual(bpmWrites, []);
   } finally {
     engine.dispose();
     assert.equal(runtime.transportStopCount(), 1);
