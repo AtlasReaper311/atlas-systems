@@ -8,6 +8,7 @@ function fakeToneRuntime({ load = "resolve" } = {}) {
   const constructed = [];
   const starts = [];
   const triggers = [];
+  const disposed = [];
   const parameter = (value = 0) => ({
     value,
     rampTo(nextValue) { this.value = nextValue; },
@@ -29,7 +30,7 @@ function fakeToneRuntime({ load = "resolve" } = {}) {
     start(...args) { starts.push({ name: this.name, args }); return this; }
     stop(...args) { starts.push({ name: `${this.name}:stop`, args }); return this; }
     triggerAttackRelease(...args) { triggers.push({ name: this.name, args }); }
-    dispose() {}
+    dispose() { disposed.push(this.name); }
   }
 
   class ToneAudioBuffer {
@@ -41,7 +42,7 @@ function fakeToneRuntime({ load = "resolve" } = {}) {
       });
     }
     get() { return { url: this.url }; }
-    dispose() {}
+    dispose() { disposed.push("ToneAudioBuffer"); }
   }
 
   const node = (name) => class extends FakeNode {
@@ -64,20 +65,36 @@ function fakeToneRuntime({ load = "resolve" } = {}) {
     constructed,
     starts,
     triggers,
+    disposed,
   };
 }
 
 test("the hybrid sampler loads in tiers and constructs voices only when played", async () => {
   const runtime = fakeToneRuntime();
+  const progress = [];
   const sampler = createHybridSampler(runtime.Tone, {
     output: runtime.output,
     reverbInput: runtime.reverb,
     delayInput: runtime.delay,
+    onLoadProgress: (stats) => progress.push(stats),
   });
   try {
     assert.equal(await sampler.load(), true);
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    assert.equal(sampler.loadStats().loaded, 38);
+    await sampler.waitForBackgroundLoad();
+    assert.deepEqual(sampler.loadStats(), {
+      requested: 38,
+      completed: 38,
+      loaded: 38,
+      failed: 0,
+      fallbacks: 0,
+      totalAssets: 38,
+      stage: "complete",
+      coreReady: true,
+      backgroundComplete: true,
+    });
+    assert.ok(progress.some((stats) => stats.stage === "core"));
+    assert.ok(progress.some((stats) => stats.stage === "background"));
+    assert.equal(progress.at(-1).backgroundComplete, true);
     assert.equal(runtime.constructed.filter(({ name }) => name === "Player").length, 0);
     assert.equal(runtime.constructed.filter(({ name }) => name === "Sampler").length, 0);
     assert.equal(runtime.constructed.filter(({ name }) => name === "GrainPlayer").length, 0);
@@ -101,8 +118,12 @@ test("the hybrid sampler loads in tiers and constructs voices only when played",
       sectionVariant: 0,
     };
     const frame = { scoreState: "healthy", bpm: performance.targetBpm };
-    const palette = sampler.applyScene(frame, performance, 0, 0.1);
+    const palette = sampler.applyScene(frame, performance, 0, 0.1, 3.5);
     assert.equal(typeof palette.signature, "string");
+    assert.ok(
+      runtime.starts.some(({ name, args }) => name === "GrainPlayer" && args[0] === 3.5),
+      "scheduled atmosphere starts must use the transport callback time",
+    );
     assert.deepEqual(sampler.playDrums(0, frame, 0, 0, {
       kick: { velocity: 0.7 },
       snare: { velocity: 0.5 },
@@ -157,6 +178,8 @@ test("the hybrid sampler loads in tiers and constructs voices only when played",
   } finally {
     sampler.dispose();
   }
+  assert.ok(runtime.disposed.filter((name) => name === "ToneAudioBuffer").length >= 38);
+  assert.ok(runtime.disposed.includes("Distortion"));
 });
 
 test("a failed library keeps sample playback silent for synth fallback", async () => {

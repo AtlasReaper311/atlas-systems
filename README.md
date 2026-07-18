@@ -43,7 +43,7 @@ The push event, validation gate, deploy result, and Cloudflare Pages outcome are
 
 ### System SYMPHONY branch preview
 
-The H1-H8 preview branch has an intentionally narrow deployment path. Pushing
+The System SYMPHONY preview branch has an intentionally narrow deployment path. Pushing
 `feat/system-symphony-h1-h8-preview` runs the complete static-site checks, then
 publishes the repository root with Wrangler's non-production `--branch` flag
 under the shorter Pages branch name `system-symphony-h1-h8`.
@@ -58,6 +58,17 @@ run for `main`, does not regenerate or commit the sitemap, does not purge the
 production zone cache, does not refresh the corpus, and does not send a
 production deployment notification. Pushing the named branch is therefore an
 explicit preview-deployment action; local work does not publish anything.
+
+The same branch now carries the H9 Ghost Circuit candidate: seeded arpeggio
+direction and gating, a separate cyberpunk riff voice, five-phase arrangements,
+codec retry and stricter resource bounds. Production remains unchanged until
+the branch is explicitly approved and merged.
+
+The preview alias is not currently on the production `specular-sonify` and
+`deploy-watch` Worker origin allowlists. Demo mode is the complete listening
+surface on the branch preview; live mode deliberately remains stale/Unknown for
+those feeds until a separate, exact-origin Worker change is reviewed and
+approved. The preview workflow does not widen CORS or deploy those Workers.
 
 ## Live data
 

@@ -3,32 +3,37 @@
  *
  * Each asset is loaded independently through ToneAudioBuffer so one missing or
  * undecodable file cannot block the rest of the instrument. Browser format
- * selection is evaluated once and reused for every asset URL.
+ * preference is evaluated once, then each asset retries the remaining supported
+ * formats before yielding to the procedural instrument.
  */
 
 const OPUS_TYPE = 'audio/ogg; codecs="opus"';
 const AAC_TYPE = 'audio/mp4; codecs="mp4a.40.2"';
 const DEFAULT_TIMEOUT_MS = 6500;
 
-let cachedFormat = null;
+let cachedFormats = null;
 
-export function pickAudioFormat() {
-  if (cachedFormat) return cachedFormat;
+function supported(value) {
+  return value === "probably" || value === "maybe";
+}
+
+export function audioFormatCandidates() {
+  if (cachedFormats) return cachedFormats;
   if (typeof Audio === "undefined") {
-    cachedFormat = "wav";
-    return cachedFormat;
+    cachedFormats = Object.freeze(["wav"]);
+    return cachedFormats;
   }
   const probe = new Audio();
-  const opus = probe.canPlayType(OPUS_TYPE);
-  const aac = probe.canPlayType(AAC_TYPE);
-  if (opus === "probably" || opus === "maybe") {
-    cachedFormat = "opus";
-  } else if (aac === "probably" || aac === "maybe") {
-    cachedFormat = "m4a";
-  } else {
-    cachedFormat = "wav";
-  }
-  return cachedFormat;
+  const formats = [];
+  if (supported(probe.canPlayType(OPUS_TYPE))) formats.push("opus");
+  if (supported(probe.canPlayType(AAC_TYPE))) formats.push("m4a");
+  formats.push("wav");
+  cachedFormats = Object.freeze([...new Set(formats)]);
+  return cachedFormats;
+}
+
+export function pickAudioFormat() {
+  return audioFormatCandidates()[0];
 }
 
 export function resolveAssetUrl(template, format = pickAudioFormat()) {
@@ -36,7 +41,12 @@ export function resolveAssetUrl(template, format = pickAudioFormat()) {
   return template.replaceAll("%ext%", format);
 }
 
-function loadOne(Tone, id, url, timeoutMs) {
+export function resolveAssetUrls(template, formats = audioFormatCandidates()) {
+  if (typeof template !== "string") return Object.freeze([]);
+  return Object.freeze(formats.map((format) => resolveAssetUrl(template, format)));
+}
+
+function loadCandidate(Tone, id, url, timeoutMs) {
   return new Promise((resolve) => {
     let settled = false;
     let timer = null;
@@ -78,14 +88,52 @@ function loadOne(Tone, id, url, timeoutMs) {
   });
 }
 
+async function loadOne(Tone, id, urls, timeoutMs) {
+  const candidates = Array.isArray(urls) ? urls.filter(Boolean) : [urls].filter(Boolean);
+  if (candidates.length === 0) {
+    return {
+      id,
+      ok: false,
+      error: new Error(`system-symphony: asset ${id} has no delivery URL`),
+    };
+  }
+  const attemptTimeoutMs = Math.max(1, Math.floor(timeoutMs / candidates.length));
+  const errors = [];
+  for (let index = 0; index < candidates.length; index += 1) {
+    const result = await loadCandidate(Tone, id, candidates[index], attemptTimeoutMs);
+    if (result.ok) {
+      return {
+        ...result,
+        attempts: index + 1,
+        fallback: index > 0,
+        format: candidates[index].split("?")[0].split(".").pop(),
+      };
+    }
+    errors.push(result.error);
+  }
+  return {
+    id,
+    url: candidates.at(-1),
+    buffer: null,
+    ok: false,
+    attempts: candidates.length,
+    error: new AggregateError(
+      errors,
+      `system-symphony: asset ${id} failed all ${candidates.length} delivery formats`,
+    ),
+  };
+}
+
 export function createAssetLoader(Tone, {
   perAssetTimeoutMs = DEFAULT_TIMEOUT_MS,
   onProgress = null,
 } = {}) {
   const buffers = new Map();
   const failures = new Map();
+  const formats = new Map();
   const requested = new Set();
   let totalCompleted = 0;
+  let fallbackCount = 0;
 
   function stats() {
     return Object.freeze({
@@ -93,6 +141,7 @@ export function createAssetLoader(Tone, {
       completed: totalCompleted,
       loaded: buffers.size,
       failed: failures.size,
+      fallbacks: fallbackCount,
     });
   }
 
@@ -111,7 +160,7 @@ export function createAssetLoader(Tone, {
       pending.map((asset) => loadOne(
         Tone,
         asset.id,
-        asset.url,
+        asset.urls ?? asset.url,
         perAssetTimeoutMs,
       )),
     );
@@ -121,6 +170,8 @@ export function createAssetLoader(Tone, {
       totalCompleted += 1;
       if (result.ok) {
         buffers.set(result.id, result.buffer);
+        formats.set(result.id, result.format ?? null);
+        if (result.fallback) fallbackCount += 1;
         tierLoaded += 1;
       } else {
         failures.set(result.id, result.error);
@@ -142,8 +193,10 @@ export function createAssetLoader(Tone, {
     }
     buffers.clear();
     failures.clear();
+    formats.clear();
     requested.clear();
     totalCompleted = 0;
+    fallbackCount = 0;
   }
 
   return {
@@ -151,6 +204,7 @@ export function createAssetLoader(Tone, {
     get: (id) => buffers.get(id) ?? null,
     has: (id) => buffers.has(id),
     failed: (id) => failures.has(id),
+    format: (id) => formats.get(id) ?? null,
     disposeAll,
     stats,
   };

@@ -5,7 +5,7 @@
  * while avoiding one random choice accidentally coupling unrelated layers.
  */
 
-import { stableHash } from "./mapping.js?v=20260718-system-symphony-h1-h8-preview";
+import { stableHash } from "./mapping.js?v=20260718-system-symphony-ghost-circuit";
 
 export const SEED_DIMENSIONS = Object.freeze({
   kickTimbre: 4,
@@ -32,6 +32,11 @@ export const SEED_DIMENSIONS = Object.freeze({
   bassDegreeOffset: 4,
   phraseStride: 3,
   melodyOffset: 4,
+  riffPattern: 8,
+  riffContour: 4,
+  riffTimbre: 3,
+  arpOctaveSpan: 2,
+  arpGate: 4,
 });
 
 export const HAT_DENSITY_MAP = Object.freeze(["sparse", "standard", "dense"]);

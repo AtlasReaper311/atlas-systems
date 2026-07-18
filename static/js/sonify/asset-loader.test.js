@@ -7,14 +7,16 @@ import {
   resolveAssetUrl,
 } from "./asset-loader.js";
 
-function fakeTone(failIds = new Set()) {
+function fakeTone(failIds = new Set(), failExtensions = new Set(), hangExtensions = new Set()) {
   const disposed = [];
   class ToneAudioBuffer {
     constructor(url, onLoad, onError) {
       this.url = url;
       queueMicrotask(() => {
-        const id = new URL(url, "https://preview.invalid").pathname.split("/").pop().split(".")[0];
-        if (failIds.has(id)) onError(new Error(`missing ${id}`));
+        const file = new URL(url, "https://preview.invalid").pathname.split("/").pop();
+        const [id, extension] = file.split(".");
+        if (hangExtensions.has(extension)) return;
+        if (failIds.has(id) || failExtensions.has(extension)) onError(new Error(`missing ${file}`));
         else onLoad();
       });
     }
@@ -32,6 +34,25 @@ test("asset URL templates resolve explicit delivery formats", () => {
   );
   assert.equal(resolveAssetUrl(template, "m4a").includes("%ext%"), false);
   assert.equal(pickAudioFormat(), "wav", "Node falls back to the universally decoded WAV asset");
+});
+
+test("a hanging asset attempt times out and fails closed", async () => {
+  const runtime = fakeTone(new Set(), new Set(), new Set(["opus"]));
+  const loader = createAssetLoader(runtime.Tone, { perAssetTimeoutMs: 20 });
+  const originalWarn = console.warn;
+  console.warn = () => undefined;
+  try {
+    assert.deepEqual(await loader.loadTier([{
+      id: "kick",
+      urls: ["https://preview.invalid/kick.opus"],
+    }]), { loaded: 0, failed: 1 });
+    assert.equal(loader.failed("kick"), true);
+    assert.equal(loader.stats().completed, 1);
+  } finally {
+    console.warn = originalWarn;
+    loader.disposeAll();
+  }
+  assert.equal(runtime.disposed.length, 1);
 });
 
 test("assets load independently and expose bounded progress", async () => {
@@ -56,6 +77,7 @@ test("assets load independently and expose bounded progress", async () => {
       completed: 2,
       loaded: 1,
       failed: 1,
+      fallbacks: 0,
     });
     assert.ok(progress.length >= 3);
   } finally {
@@ -63,6 +85,32 @@ test("assets load independently and expose bounded progress", async () => {
     loader.disposeAll();
   }
   assert.equal(runtime.disposed.length, 2, "failed and retained buffers are disposed");
+});
+
+test("a failed preferred codec retries the next supported asset format", async () => {
+  const runtime = fakeTone(new Set(), new Set(["opus"]));
+  const loader = createAssetLoader(runtime.Tone, { perAssetTimeoutMs: 60 });
+  try {
+    assert.deepEqual(await loader.loadTier([{
+      id: "kick",
+      urls: [
+        "https://preview.invalid/kick.opus",
+        "https://preview.invalid/kick.m4a",
+        "https://preview.invalid/kick.wav",
+      ],
+    }]), { loaded: 1, failed: 0 });
+    assert.equal(loader.format("kick"), "m4a");
+    assert.deepEqual(loader.stats(), {
+      requested: 1,
+      completed: 1,
+      loaded: 1,
+      failed: 0,
+      fallbacks: 1,
+    });
+  } finally {
+    loader.disposeAll();
+  }
+  assert.equal(runtime.disposed.length, 2, "failed Opus and retained AAC buffers are disposed");
 });
 
 test("reloading a tier does not request the same asset twice", async () => {

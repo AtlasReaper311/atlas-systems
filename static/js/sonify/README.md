@@ -33,7 +33,8 @@ GET /deploy-watch/latest -- successful deployment identity --+        |
                                     v                                  v                  v
                               performance.js                       samples.js           ui.js
                                     |                                  |        compact widget, console,
-                                    +----------------+-----------------+        topology and state preview
+                             ghost-circuit.js                          |        topology and state preview
+                                    +----------------+-----------------+
                                                      v
                                                engine.js + sampler.js
                                       persistent hybrid Tone.js composition
@@ -46,10 +47,11 @@ GET /deploy-watch/latest -- successful deployment identity --+        |
 - `samples.js` is pure JavaScript. It owns the versioned thirty-eight-asset manifest, state-specific timbre pools, eight-phrase section cycles and deterministic loop slices.
 - `sampler.js` owns Tone.js `Player`, `Sampler` and `GrainPlayer` nodes, isolated layer buses, parallel effects, lazy decoding and procedural fallback state.
 - `performance.js` is pure JavaScript. It turns a visible hexadecimal seed plus four macro values into one deterministic curated arrangement without reading or changing telemetry.
+- `ghost-circuit.js` is pure JavaScript. It owns the five-phase arrangement director, scale-safe riff grammar, arpeggio ordering, filter motion and bounded transition accents.
 - `ui.js` owns the compact widget, dialog, topology, real waveform, table, inspector, live/Demo isolation and accessible performance controls.
 - `static/css/system-symphony.css` contains the responsive Atlas-branded presentation and reduced-motion rules.
 
-Tone.js `14.8.49` remains vendored at `/vendor/tone.min.js`. Thirty-eight owner-approved delivery assets live under `/static/audio/system-symphony/`: nineteen drum, percussion and transition one-shots; six tuned bass one-shots; six granular lead or synth loops; four measure-sliced rhythmic bass loops; and three atmosphere loops. They are local, query-versioned WAV files, so the feature adds no runtime dependency, account or paid service. The original source library remains outside the repository and unchanged. `static/audio/system-symphony/AUDIT.md` records all forty-one reviewed sources and the three intentional exclusions.
+Tone.js `14.8.49` remains vendored at `/vendor/tone.min.js`. Thirty-eight owner-approved delivery assets live under `/static/audio/system-symphony/`: nineteen drum, percussion and transition one-shots; six tuned bass one-shots; six granular lead or synth loops; four measure-sliced rhythmic bass loops; and three atmosphere loops. They are local and query-versioned. Browsers prefer Opus, retry AAC and then WAV before using the procedural fallback, so the feature adds no runtime dependency, account or paid service. The original source library remains outside the repository and unchanged. `static/audio/system-symphony/AUDIT.md` records all forty-one reviewed sources and the three intentional exclusions.
 
 ## Four score states
 
@@ -101,7 +103,7 @@ A stable FNV-1a hash of the component name selects its motif variation, instrume
 | Infrastructure and deployment | Relay bass and mainframe low voices |
 | Reusable kits and unmatched roles | Tape signals and damaged data tones |
 
-The scheduler rotates across the whole represented estate instead of firing every component together. A D1/A1 drone spans each phrase, overlapping pads refresh every measure, and a shared low counterline guarantees harmonic motion even when foreground service motifs are sparse. Each score state also reserves service-anchor steps, so deterministic density cannot accidentally remove the orchestra for an entire phrase. Demo mode moves the drone and pad into the background and adds one shared low/mid 16th-note arpeggiator; recurring Demo arp notes stay between D3 and D4. Family-specific MIDI bounds hold recurring service notes between D1 and D4, with downward-only octave variation. Only the rare deployment motif can rise to F-sharp 4.
+The scheduler rotates across the whole represented estate instead of firing every component together. A D1/A1 drone spans each phrase, overlapping pads refresh every measure, and a shared low counterline guarantees harmonic motion even when foreground service motifs are sparse. Each score state also reserves service-anchor steps, so deterministic density cannot accidentally remove the orchestra for an entire phrase. Demo mode moves the drone and pad into the background and adds a low/mid pulse arpeggiator plus one sparse scale-safe Ghost Circuit riff voice. Recurring arp notes stay between D3 and D4; riffs may make bounded lifts to A4. Family-specific MIDI bounds hold recurring service notes between D1 and D4, with downward-only octave variation. Only the rare deployment motif can rise outside the recurring service register.
 
 ## Telemetry mappings
 
@@ -153,9 +155,30 @@ The four telemetry states remain the musical foundation and gain secondary perfo
 | Critical | Redline Protocol | ~114 BPM controlled pursuit/combat rhythm, cleanly spaced drums, smoother driven bass and a D Phrygian dominant arpeggio |
 | Unknown | Ghost Signal | ~84 BPM menu/loading-screen pulse, fragmented rhythm, a D-suspended arpeggio and one filtered, root-safe texture |
 
-`Energy`, `Motion`, `Grit` and `Space` are bounded macro controls rather than raw synthesizer parameters. They reshape tempo, density, drum pressure, 16th-note arpeggio movement, saturation, delay, pad weight and reverb while retaining the selected state's scale and register limits. Demo tempo is bounded to `78–118 BPM`; Critical is urgent but deliberately capped instead of becoming a frantic alarm. `Randomise score` generates one visible four-to-eight-character hexadecimal seed. The seed deterministically selects curated chord order, bass rhythm, one coherent kick/snare/hat kit per phrase, a tuned one-shot bass or compatible rhythmic bass source, filtered atmosphere, section offset, arpeggio and effects. Rhythmic bass sources are restarted as deterministic four-beat fragments on measure boundaries rather than free-running, preventing drift against the drums. Healthy can also select one of six D-minor-normalised lead or synth loops and its slice order. Warning and Critical use the procedural arpeggiator because a transposed melodic loop cannot be made strictly Phrygian or Phrygian dominant without remapping its individual notes. Ghost uses procedural bass and texture only, avoiding key ambiguity in its D-suspended grammar. The randomiser compares audible sample choices rather than inactive selectors before accepting a new arrangement. Entering a previous value and pressing `Replay seed` restores the same arrangement and sample palette for the current scene and macro values.
+`Energy`, `Motion`, `Grit` and `Space` are bounded macro controls rather than raw synthesizer parameters. They reshape tempo, density, drum pressure, arpeggio and riff movement, saturation, delay, pad weight and reverb while retaining the selected state's scale and register limits. Demo tempo is bounded to `90–134 BPM`; Critical is urgent but deliberately capped instead of becoming an alarm. `Randomise score` generates one visible four-to-eight-character hexadecimal seed. The seed deterministically selects curated chord order, pad voicing, bass rhythm and octave, hat density, coherent sample palette, filtered atmosphere, arpeggio direction and gate, pattern rotation, riff contour and bounded effects. Rhythmic bass sources are restarted as deterministic four-beat fragments on measure boundaries rather than free-running, preventing drift against the drums. Healthy can also select one of six D-minor-normalised lead or synth loops and its slice order. Warning and Critical keep tonal motion procedural so every note remains mode-correct. Ghost uses procedural bass and texture only, avoiding key ambiguity in its D-suspended grammar. Entering a previous value and pressing `Replay seed` restores the same versioned arrangement and sample palette for the current scene and macro values.
 
 Each state advances through its own eight-phrase section cycle. Healthy alternates drive, lift, break and fill sections; Warning adds pressure; Critical adds pursuit, breach and redline; Unknown moves through drift, signal, space and return. A chosen drum kit and bass voice remain stable for the whole phrase; section boundaries may select the next timbre, crossfade atmosphere and trigger a bounded crash without rebuilding the audio graph. Automatic tape-stops do not land on phrase downbeats. Driving scenes keep their snares on beats two and four, their hats on a consistent subdivision and their bass hits free of adjacent retriggers. Ghost Signal retains its deliberately fragmented rhythm.
+
+### H9 Ghost Circuit
+
+Ghost Circuit adds a second compositional layer without changing telemetry truth.
+Every seeded performance moves through `Boot`, `Drive`, `Lift`, `Drop` and
+`Afterglow` phases. Phase changes are quantised to phrase boundaries and scale
+drums, bass, pads, pulse arp and riff independently, creating contrast instead
+of making every layer continuously louder.
+
+The existing FM terminal voice is the pulse arpeggiator. Seeded direction,
+one/two-octave range, gate length, pattern rotation and four filter-motion modes
+make it evolve over successive phrases. A separate three-timbre riff voice
+plays restrained one-to-two-bar call-and-response motifs. Riffs are generated
+from the active state scale and stay between D3 and A4. Boot can omit the riff;
+Drop exposes it; Ghost Signal leaves longer rests and echoes.
+
+The arrangement permits one tape-stop transition at most once per eight phrases
+and retains the existing bounded crash accents. Effect wet values, riff gain,
+incident accents, service voices and sample voice pools all have explicit caps.
+`PERFORMANCE_SCHEMA_VERSION` is included in each arrangement identity so a
+future grammar change cannot be mistaken for an exact replay of version 2.
 
 While audio is running, seed and macro changes replace one pending arrangement and activate together at the next measure boundary. This avoids abrupt mid-beat changes. Switching to Live clears the Demo arrangement immediately, including the arpeggiator and performance effects.
 
@@ -177,8 +200,8 @@ While audio is running, seed and macro changes replace one pending arrangement a
 - Shared low drone, overlapping pad, terminal counterline, relay bass, drum machine, tape texture, compression and limiter nodes are reused.
 - Sample playback uses nineteen reusable `Player` nodes, six loaded `Sampler` instruments, twenty-four rotating granular lead voices, eight rotating rhythmic-bass voices and three granular atmosphere players. Per-state low-pass filtering and restrained parallel drive keep the more aggressive voices controlled. No sample node is created inside a scheduler callback.
 - Drum, bass, lead, atmosphere and transition layers have isolated buses. Room, lead delay and bass drive are parallel sends, avoiding a single washed-out serial effects chain.
-- Demo adds one shared arpeggiator, feedback delay and service distortion node; all are allocated once when the graph starts and remain neutral in Live mode.
-- The approximately 32 MB sample library is requested only after Start and is cached under immutable query-versioned URLs.
+- Demo adds one shared arpeggiator, three selectable monophonic riff timbres, feedback delay and bounded parallel drive; all are allocated once when the graph starts and remain neutral in Live mode.
+- The preferred compressed library transfers approximately 3–3.5 MB. Fifteen core assets load first; twenty textures and three atmospheres load in background tiers under immutable query-versioned URLs.
 - Service voices leaving topology fade before disposal.
 - Incident onset accents are capped at four per observed increase.
 - No oscillator, LFO or effect node is created inside the scheduler loop.
@@ -186,9 +209,9 @@ While audio is running, seed and macro changes replace one pending arrangement a
 
 ## Audio loading and failure modes
 
-- Audio never autoplays and no WAV is requested during the initial page load.
-- Start unlocks the browser audio context, builds the fixed graph, then decodes the sample library and generates the local reverb impulse in parallel.
-- Sample loading is bounded to twenty seconds. If any required asset cannot load or decode, the sampler reports unavailable and the existing procedural drums, bass, pads, service voices and arpeggio continue instead.
+- Audio never autoplays and no audio asset is requested during the initial page load.
+- Start unlocks the browser audio context, builds the fixed graph, then loads the fifteen-asset core tier and generates the local reverb impulse in parallel. Remaining textures load in background tiers.
+- Each asset has a bounded total retry budget. A preferred Opus failure retries AAC, then WAV; complete failure affects only that asset and leaves its procedural layer active.
 - A failed sample load never changes telemetry state and never labels an unavailable sound as healthy.
 - A browser that cannot unlock Web Audio within eight seconds receives the existing explicit startup error and can retry.
 - Asset files are 44.1 kHz, stereo, 16-bit PCM delivery copies. Source files are not rewritten in place.
@@ -201,6 +224,7 @@ From the repository root:
 npx --yes html-validate@9.7.1 "**/*.html"
 node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
 node --check static/js/sonify/engine.js
+node --check static/js/sonify/ghost-circuit.js
 node --check static/js/sonify/mapping.js
 node --check static/js/sonify/poller.js
 node --check static/js/sonify/sampler.js
@@ -211,7 +235,7 @@ python3 scripts/verify_pages_output.py .
 git diff --check
 ```
 
-The tests cover all four score states, stale behavior, measured Unknown versus Unmeasured counts, deterministic identities and motifs, safe registers, pad cadence and voicing, finite off-grid bass events, eight-phrase layer persistence, broad deterministic seed and sample-palette diversity, bounded macros and tempo, non-adjacent drum triggers, phrase-stable kits, mode-safe tonal-loop selection, measure-boundary activation, the audible arpeggio scheduler, sample allocation and layer routing, loading timeout and synth fallback, topology merge and failure fallback, external dependency graphs, component filters, coherent bulk profiles, incident deltas, deployment baselines, request overlap protection and voice counts beyond six.
+The tests cover all four score states, stale behavior, measured Unknown versus Unmeasured counts, deterministic identities and motifs, safe registers, pad cadence and all voicings, audible bass octave and hat-density changes, arpeggio direction/gate/rotation, Ghost Circuit phase cycles and riff bounds, transition cooldowns, effect ceilings, versioned replay identity, codec retry and timeout, background-load progress, cleanup, topology merge and failure fallback, incident and deployment baselines, request overlap protection and service voice limits.
 
 Musical quality, speaker translation, clipping margin and two-to-three-minute non-repetition still require a human listening pass because automated tests cannot judge those qualities reliably.
 

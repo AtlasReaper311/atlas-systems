@@ -5,11 +5,18 @@
  * Live telemetry never imports these settings into its score frame.
  */
 
-import { stableHash } from "./mapping.js?v=20260718-system-symphony-h1-h8-preview";
-import { deriveDimensions } from "./seed-dimensions.js?v=20260718-system-symphony-h1-h8-preview";
-import { resolveSamplePalette } from "./samples.js?v=20260718-system-symphony-h1-h8-preview";
+import { stableHash } from "./mapping.js?v=20260718-system-symphony-ghost-circuit";
+import { deriveDimensions } from "./seed-dimensions.js?v=20260718-system-symphony-ghost-circuit";
+import { resolveSamplePalette } from "./samples.js?v=20260718-system-symphony-ghost-circuit";
 
 export const DEFAULT_PERFORMANCE_SEED = "A71A5";
+export const PERFORMANCE_SCHEMA_VERSION = 2;
+export const PERFORMANCE_EFFECT_LIMITS = Object.freeze({
+  distortionWet: 0.4,
+  delayWet: 0.36,
+  reverbWet: 0.46,
+  riffGain: 0.52,
+});
 
 export const PERFORMANCE_SCENES = Object.freeze({
   healthy: Object.freeze({
@@ -216,6 +223,7 @@ export function createPerformanceArrangement(
     134,
   );
   const patternSignature = [
+    `v${PERFORMANCE_SCHEMA_VERSION}`,
     chordOffset,
     bassPattern,
     bassShift,
@@ -228,11 +236,23 @@ export function createPerformanceArrangement(
     normalizedState === "healthy" ? leadSliceVariant : "procedural",
     bassLoopSliceVariant,
     sectionVariant,
+    dimensions.hatDensity,
+    dimensions.bassOctaveOffset,
+    dimensions.padVoicing,
+    dimensions.filterAutomation,
+    dimensions.arpDirection,
+    dimensions.patternRotation,
+    dimensions.riffPattern,
+    dimensions.riffContour,
+    dimensions.riffTimbre,
+    dimensions.arpOctaveSpan,
+    dimensions.arpGate,
   ].join("-");
 
   return Object.freeze({
     ...dimensions,
-    id: `${stateSeed}:${macroValues.energy}:${macroValues.motion}:${macroValues.grit}:${macroValues.space}`,
+    id: `v${PERFORMANCE_SCHEMA_VERSION}:${stateSeed}:${macroValues.energy}:${macroValues.motion}:${macroValues.grit}:${macroValues.space}`,
+    schemaVersion: PERFORMANCE_SCHEMA_VERSION,
     seed: normalizedSeed,
     scoreState: normalizedState,
     sceneName: scene.name,
@@ -309,6 +329,11 @@ export function createPerformanceArrangement(
       0.08,
       1,
     ),
+    riffGain: bounded(
+      0.2 + motion * 0.22 + energy * 0.1,
+      0.2,
+      PERFORMANCE_EFFECT_LIMITS.riffGain,
+    ),
     serviceFilterMultiplier: bounded(
       dynamics.filter[0] + grit * dynamics.filter[1] + filterJitter,
       0.64,
@@ -317,7 +342,7 @@ export function createPerformanceArrangement(
     distortionWet: bounded(
       dynamics.distortion[0] + grit * dynamics.distortion[1] + distortionJitter,
       0.02,
-      0.48,
+      PERFORMANCE_EFFECT_LIMITS.distortionWet,
     ),
     delayWet: bounded(
       dynamics.delay[0]
@@ -325,12 +350,12 @@ export function createPerformanceArrangement(
         + space * dynamics.delay[2]
         + delayJitter,
       0.04,
-      0.42,
+      PERFORMANCE_EFFECT_LIMITS.delayWet,
     ),
     reverbWet: bounded(
       dynamics.reverb[0] + space * dynamics.reverb[1] + reverbJitter,
       0.08,
-      0.5,
+      PERFORMANCE_EFFECT_LIMITS.reverbWet,
     ),
   });
 }

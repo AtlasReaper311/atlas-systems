@@ -3,7 +3,9 @@ import test from "node:test";
 
 import {
   DEFAULT_PERFORMANCE_SEED,
+  PERFORMANCE_EFFECT_LIMITS,
   PERFORMANCE_MACRO_DEFAULTS,
+  PERFORMANCE_SCHEMA_VERSION,
   PERFORMANCE_SCENES,
   createPerformanceArrangement,
   formatPerformanceSeed,
@@ -59,6 +61,8 @@ test("the same seed, state and macros always replay the same arrangement", () =>
   assert.deepEqual(replay, first);
   assert.equal(first.sceneName, "NIGHT DRIVE");
   assert.equal(first.seed, "7F3A");
+  assert.equal(first.schemaVersion, PERFORMANCE_SCHEMA_VERSION);
+  assert.match(first.id, new RegExp(`^v${PERFORMANCE_SCHEMA_VERSION}:`));
 });
 
 test("different seeds coherently change the whole arrangement", () => {
@@ -137,8 +141,10 @@ test("all performance controls remain finite and bounded", () => {
         }
       }
       assert.ok(arrangement.targetBpm >= 90 && arrangement.targetBpm <= 134);
-      assert.ok(arrangement.distortionWet <= 0.48);
-      assert.ok(arrangement.reverbWet <= 0.5);
+      assert.ok(arrangement.distortionWet <= PERFORMANCE_EFFECT_LIMITS.distortionWet);
+      assert.ok(arrangement.delayWet <= PERFORMANCE_EFFECT_LIMITS.delayWet);
+      assert.ok(arrangement.reverbWet <= PERFORMANCE_EFFECT_LIMITS.reverbWet);
+      assert.ok(arrangement.riffGain <= PERFORMANCE_EFFECT_LIMITS.riffGain);
     }
   }
 });

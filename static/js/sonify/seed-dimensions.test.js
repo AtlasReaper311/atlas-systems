@@ -15,6 +15,7 @@ test("seed dimensions replay exactly and remain within their cardinalities", () 
     assert.ok(first[label] >= 0 && first[label] < cardinality, label);
   }
   assert.equal(first.seedSource, "A71A5:healthy");
+  assert.equal(Object.keys(SEED_DIMENSIONS).length, 29);
 });
 
 test("different seeds vary many independent musical axes", () => {

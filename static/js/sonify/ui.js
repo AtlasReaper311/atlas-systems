@@ -8,15 +8,15 @@
 import {
   DEFAULT_USER_GAIN,
   createEngine,
-} from "./engine.js?v=20260718-system-symphony-h1-h8-preview";
-import { createPoller } from "./poller.js?v=20260718-system-symphony-h1-h8-preview";
+} from "./engine.js?v=20260718-system-symphony-ghost-circuit";
+import { createPoller } from "./poller.js?v=20260718-system-symphony-ghost-circuit";
 import {
   applyDemoProfileToServices,
   buildDependencyGraph,
   computeFrame,
   deriveDemoEstate,
   filterVoices,
-} from "./mapping.js?v=20260718-system-symphony-h1-h8-preview";
+} from "./mapping.js?v=20260718-system-symphony-ghost-circuit";
 import {
   DEFAULT_PERFORMANCE_SEED,
   PERFORMANCE_MACRO_DEFAULTS,
@@ -24,8 +24,8 @@ import {
   createPerformanceArrangement,
   formatPerformanceSeed,
   normalizePerformanceSeed,
-} from "./performance.js?v=20260718-system-symphony-h1-h8-preview";
-import { resolveSamplePalette } from "./samples.js?v=20260718-system-symphony-h1-h8-preview";
+} from "./performance.js?v=20260718-system-symphony-ghost-circuit";
+import { resolveSamplePalette } from "./samples.js?v=20260718-system-symphony-ghost-circuit";
 
 const WIDGET_ID = "system-symphony-widget";
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -55,7 +55,7 @@ const HELP_ROWS = [
   ["Error rate", "Instability, detuning and note confidence"],
   ["Active incidents", "Denser critical rhythm and harmonic tension"],
   ["New successful deployment", "One quantised amber hero motif"],
-  ["Demo performance", "Seeded club bass, mechanical drums and a low/mid 16th-note arpeggiator"],
+  ["Demo performance", "Ghost Circuit arrangement, dual synth arpeggio/riffs, club bass and mechanical drums"],
   ["Dependencies", "Topology edges"],
   ["Service identity", "Stable family, motif, register and stereo position"],
 ];
@@ -173,12 +173,12 @@ function template() {
             <div class="symphony-source-panel__controls">
               <div class="symphony-segmented" role="group" aria-label="Symphony data source">
                 <button type="button" data-live-mode aria-pressed="true">Live estate</button>
-                <button type="button" data-demo-mode aria-pressed="false" disabled>Demo performance</button>
+                <button type="button" data-demo-mode aria-pressed="false" disabled>Ghost Circuit demo</button>
               </div>
               <button class="symphony-button" type="button" data-demo-reset hidden>Reset preview from live</button>
               <div class="symphony-performance" data-performance-panel hidden>
                 <div class="symphony-performance__header">
-                  <span>Demo performance</span>
+                  <span>Ghost Circuit // performance v2</span>
                   <strong data-performance-scene>NIGHT DRIVE</strong>
                 </div>
                 <div class="symphony-demo-profiles">
@@ -442,8 +442,10 @@ export function initSystemSymphony() {
     const bassLabel = palette.bass?.replace(/^bass-/, "") ?? "procedural";
     const rhythmLabel = palette.bassLoop ?? "one-shot";
     const textureLabel = palette.atmosphere ?? "procedural";
+    const arpLabel = performanceArrangement?.arpDirectionLabel ?? "seeded";
+    const voicingLabel = performanceArrangement?.padVoicingLabel ?? "triad";
     host.querySelector("[data-performance-status]").textContent =
-      `${performanceStatus} // ${palette.section} // bass ${bassLabel} // rhythm ${rhythmLabel} // lead ${leadLabel} // texture ${textureLabel}`;
+      `${performanceStatus} // ${palette.section} // arp ${arpLabel} // ${voicingLabel} pads // bass ${bassLabel} // rhythm ${rhythmLabel} // lead ${leadLabel} // texture ${textureLabel}`;
   }
 
   function stagePerformance(scoreState, action = "Score", arrangement = null) {
@@ -1103,8 +1105,11 @@ export function initSystemSymphony() {
         host.querySelector("[data-important-status]").textContent =
           "Loading hybrid instrument library…";
         await engine.start();
+        const stats = engine.getSampleLoadStats();
         host.querySelector("[data-important-status]").textContent = engine.isSampleReady()
-          ? "Hybrid drums, bass, lead and atmosphere ready."
+          ? stats?.backgroundComplete
+            ? `Full hybrid instrument ready: ${stats.loaded}/${stats.totalAssets} assets.`
+            : "Core hybrid instrument ready. Lead and atmosphere textures are loading."
           : "Sample library unavailable. Procedural fallback is active.";
       }
       setRunningUi();
@@ -1268,10 +1273,20 @@ export function initSystemSymphony() {
   });
   engine.setSampleLoadHandler((stats) => {
     const status = host.querySelector("[data-important-status]");
-    if (!status || engine.isRunning()) return;
-    status.textContent = stats.failed > 0
-      ? `Loading hybrid instrument: ${stats.loaded} ready, ${stats.failed} using fallback.`
-      : `Loading hybrid instrument: ${stats.loaded} / ${stats.requested} ready.`;
+    if (!status) return;
+    if (stats.backgroundComplete) {
+      status.textContent = stats.failed > 0
+        ? `Hybrid instrument ready: ${stats.loaded}/${stats.totalAssets} assets, ${stats.failed} procedural fallbacks.`
+        : stats.fallbacks > 0
+          ? `Full hybrid instrument ready: ${stats.loaded}/${stats.totalAssets} assets, ${stats.fallbacks} codec fallbacks.`
+          : `Full hybrid instrument ready: ${stats.loaded}/${stats.totalAssets} assets.`;
+      return;
+    }
+    status.textContent = stats.coreReady
+      ? `Core hybrid instrument ready. Textures ${stats.completed}/${stats.totalAssets}; ${stats.failed} fallbacks.`
+      : stats.failed > 0
+        ? `Loading core instrument: ${stats.loaded} ready, ${stats.failed} using fallback.`
+        : `Loading core instrument: ${stats.loaded}/${stats.requested} ready.`;
   });
 
   const poller = createPoller({

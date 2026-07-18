@@ -56,6 +56,49 @@ test("the shared pad refreshes every measure with a low grounded voicing", () =>
   }
 });
 
+test("seeded pad, bass, hat and arp dimensions all change audible events", () => {
+  const score = SCORE_STATES.healthy;
+  const performance = createPerformanceArrangement("A71A5", "healthy");
+  const voicings = new Set(
+    ["triad", "sus2", "sus4", "quartal"].map((voicing) => (
+      buildPadVoicing("healthy", score.scale, 0, 0, voicing).join(":")
+    )),
+  );
+  assert.equal(voicings.size, 4);
+
+  const firstBassMidi = (shift) => Array.from({ length: 32 }, (_, step) => (
+    bassEventForStep("healthy", score.scale, step, 0, {
+      ...performance,
+      bassOctaveShift: shift,
+    })
+  )).find(Boolean)?.midi;
+  assert.ok(firstBassMidi(-12) < firstBassMidi(0));
+  assert.ok(firstBassMidi(0) < firstBassMidi(12));
+
+  const hatCounts = ["sparse", "standard", "dense"].map((hatDensityLabel) => (
+    Array.from({ length: 32 }, (_, step) => (
+      percussionEventsForStep("healthy", step, {
+        ...performance,
+        hatDensityLabel,
+      }).hat
+    )).filter(Boolean).length
+  ));
+  assert.ok(hatCounts[0] < hatCounts[1]);
+  assert.ok(hatCounts[1] < hatCounts[2]);
+
+  const arpSignature = (arpDirectionLabel, patternRotation = 0) => JSON.stringify(
+    Array.from({ length: 32 }, (_, step) => (
+      terminalEventForStep("healthy", score.scale, step, 0, {
+        ...performance,
+        arpDirectionLabel,
+        patternRotation,
+      })
+    )),
+  );
+  assert.notEqual(arpSignature("up"), arpSignature("down"));
+  assert.notEqual(arpSignature("up", 0), arpSignature("up", 5));
+});
+
 test("service octave variation is neutral or downward, never an upward alarm jump", () => {
   for (let seed = 0; seed < 500; seed += 1) {
     assert.ok([0, -12].includes(serviceOctaveDisplacement(seed)));
@@ -191,7 +234,7 @@ test("Demo arrangements add a fast bounded low and mid arpeggiator", () => {
         assert.ok(events.every((event) => event.midi >= ARP_ROOT_MIDI));
         assert.ok(events.every((event) => event.midi <= ARP_MAX_MIDI));
         assert.ok(events.every((event) => (
-          event.duration === (state === "unknown" ? "8n" : "16n")
+          ["32n", "16n", "8n", "4n"].includes(event.duration)
         )));
         assert.ok(events.every((event) => Number.isFinite(event.velocity)));
       }
@@ -317,7 +360,7 @@ test("Demo scene rhythms separate night drive, pressure, pursuit and menu states
     bass: 12,
     kicks: 12,
     snares: 8,
-    hats: 12,
+    hats: 16,
     metal: 4,
     arp: 22,
   });
@@ -325,7 +368,7 @@ test("Demo scene rhythms separate night drive, pressure, pursuit and menu states
     bass: 12,
     kicks: 12,
     snares: 8,
-    hats: 16,
+    hats: 8,
     metal: 4,
     arp: 24,
   });
@@ -363,10 +406,19 @@ function fakeToneRuntime() {
   const constructed = [];
   const triggers = [];
   const scheduledRepeats = new Map();
+  const scheduledParameterWrites = [];
   const parameter = (value = 0) => ({
     value,
     rampTo(nextValue) {
       this.value = nextValue;
+    },
+    setValueAtTime(nextValue, time) {
+      this.value = nextValue;
+      scheduledParameterWrites.push({ type: "set", nextValue, time });
+    },
+    linearRampToValueAtTime(nextValue, time) {
+      this.value = nextValue;
+      scheduledParameterWrites.push({ type: "ramp", nextValue, time });
     },
   });
 
@@ -454,6 +506,7 @@ function fakeToneRuntime() {
     Tone,
     constructed,
     triggers,
+    scheduledParameterWrites,
     scheduledRepeats,
     runEighth: (time = 0) => scheduledRepeats.get("8n")?.(time),
     runSixteenth: (time = 0) => scheduledRepeats.get("16n")?.(time),
@@ -478,7 +531,7 @@ test("the browser graph allocates Demo effects once and applies a queued score o
     assert.ok(runtime.constructed.includes("FeedbackDelay"));
     assert.ok(runtime.constructed.filter((name) => name === "MonoSynth").length >= 1);
     assert.ok(runtime.constructed.filter((name) => name === "FMSynth").length >= 2);
-    assert.equal(runtime.constructed.filter((name) => name === "Distortion").length, 2);
+    assert.equal(runtime.constructed.filter((name) => name === "Distortion").length, 3);
     assert.equal(runtime.constructed.filter((name) => name === "FeedbackDelay").length, 1);
     assert.ok(runtime.scheduledRepeats.has("8n"));
     assert.ok(runtime.scheduledRepeats.has("16n"));
@@ -490,6 +543,8 @@ test("the browser graph allocates Demo effects once and applies a queued score o
     runtime.runEighth();
     assert.equal(applied.length, 1);
     assert.equal(applied[0].id, performance.id);
+    assert.ok(runtime.scheduledParameterWrites.length > 0);
+    assert.ok(runtime.scheduledParameterWrites.every(({ time }) => Number.isFinite(time)));
     const triggerCount = runtime.triggers.length;
     for (let step = 0; step < 32; step += 1) runtime.runSixteenth(step / 4);
     assert.ok(

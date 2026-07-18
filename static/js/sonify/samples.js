@@ -10,7 +10,8 @@
 import {
   pickAudioFormat,
   resolveAssetUrl,
-} from "./asset-loader.js?v=20260718-system-symphony-h1-h8-preview";
+  resolveAssetUrls,
+} from "./asset-loader.js?v=20260718-system-symphony-ghost-circuit";
 
 export const SAMPLE_ASSET_VERSION = "20260718-system-symphony-h1-h8-preview";
 export const SAMPLE_ASSET_BASE = "/static/audio/system-symphony/";
@@ -24,6 +25,7 @@ const asset = (id, file, gainDb = 0) => Object.freeze({
   file,
   urlTemplate: assetUrlTemplate(file),
   get url() { return resolveAssetUrl(this.urlTemplate); },
+  get urls() { return resolveAssetUrls(this.urlTemplate); },
   gainDb,
 });
 

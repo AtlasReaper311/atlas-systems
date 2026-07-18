@@ -12,12 +12,14 @@ import {
   BASS_SAMPLES,
   DRUM_SAMPLES,
   LEAD_LOOPS,
+  allSampleAssets,
   leadSliceForStep,
   resolveSamplePalette,
   sampleIdForEvent,
   sectionForPhrase,
-} from "./samples.js?v=20260718-system-symphony-h1-h8-preview";
-import { createAssetLoader } from "./asset-loader.js?v=20260718-system-symphony-h1-h8-preview";
+} from "./samples.js?v=20260718-system-symphony-ghost-circuit";
+import { createAssetLoader } from "./asset-loader.js?v=20260718-system-symphony-ghost-circuit";
+import { arrangementPhaseForPhrase } from "./ghost-circuit.js?v=20260718-system-symphony-ghost-circuit";
 
 const PLAYBACK_RATE_MIN = 0.75;
 const PLAYBACK_RATE_MAX = 1.35;
@@ -30,10 +32,18 @@ const STATE_MIX = Object.freeze({
   unknown: Object.freeze({ drums: 0.32, bass: 0.38, bassLoop: 0, bassFilterHz: 640, lead: 0.22, atmosphere: 0, atmosphereFilterHz: 800, drive: 0.02, room: 0.16, delay: 0.2 }),
 });
 
-function safeRamp(parameter, value, seconds) {
+function safeRamp(parameter, value, seconds, scheduledTime = undefined) {
   if (!parameter || !Number.isFinite(value)) return;
-  if (typeof parameter.rampTo === "function") {
-    parameter.rampTo(value, Math.max(0.01, seconds));
+  const duration = Math.max(0.01, seconds);
+  if (
+    Number.isFinite(scheduledTime)
+    && typeof parameter.setValueAtTime === "function"
+    && typeof parameter.linearRampToValueAtTime === "function"
+  ) {
+    parameter.setValueAtTime(parameter.value, scheduledTime);
+    parameter.linearRampToValueAtTime(value, scheduledTime + duration);
+  } else if (typeof parameter.rampTo === "function") {
+    parameter.rampTo(value, duration);
   } else {
     parameter.value = value;
   }
@@ -77,9 +87,26 @@ export function createHybridSampler(Tone, {
   let bassLoopVoiceCursor = 0;
   let activeAtmosphereId = null;
   let backgroundLoadPromise = null;
+  let loadStage = "idle";
   const atmosphereStopTimers = new Map();
+  const totalAssets = allSampleAssets().length;
 
-  const loader = createAssetLoader(Tone, { onProgress: onLoadProgress });
+  function loadStats() {
+    const stats = loader.stats();
+    return Object.freeze({
+      ...stats,
+      totalAssets,
+      stage: loadStage,
+      coreReady: ready,
+      backgroundComplete: stats.completed === totalAssets,
+    });
+  }
+
+  function emitLoadProgress() {
+    if (typeof onLoadProgress === "function") onLoadProgress(loadStats());
+  }
+
+  const loader = createAssetLoader(Tone, { onProgress: emitLoadProgress });
 
   const drumBus = new Tone.Gain(0).connect(output);
   const bassInput = new Tone.Gain(1);
@@ -221,10 +248,14 @@ export function createHybridSampler(Tone, {
     return entry;
   }
 
-  function stopAtmosphere(id, fadeSeconds = ATMOSPHERE_XFADE_SECONDS) {
+  function stopAtmosphere(
+    id,
+    fadeSeconds = ATMOSPHERE_XFADE_SECONDS,
+    scheduledTime = undefined,
+  ) {
     const entry = atmospherePlayers.get(id);
     if (!entry?.isPlaying) return;
-    safeRamp(entry.gain.gain, 0, fadeSeconds);
+    safeRamp(entry.gain.gain, 0, fadeSeconds, scheduledTime);
     const priorTimer = atmosphereStopTimers.get(id);
     if (priorTimer !== undefined) globalThis.clearTimeout(priorTimer);
     const timer = globalThis.setTimeout(() => {
@@ -239,7 +270,7 @@ export function createHybridSampler(Tone, {
     atmosphereStopTimers.set(id, timer);
   }
 
-  function startAtmosphere(id, frame) {
+  function startAtmosphere(id, frame, scheduledTime = undefined) {
     const entry = ensureAtmosphere(id);
     if (!entry) return false;
     const pendingStop = atmosphereStopTimers.get(id);
@@ -249,7 +280,7 @@ export function createHybridSampler(Tone, {
     }
     if (!entry.isPlaying) {
       try {
-        entry.player.start(undefined, 0);
+        entry.player.start(scheduledTime, 0);
         entry.isPlaying = true;
       } catch (error) {
         console.warn(`system-symphony: atmosphere ${id} could not start`, error);
@@ -260,35 +291,64 @@ export function createHybridSampler(Tone, {
       (frame?.bpm ?? entry.sample.bpm) / entry.sample.bpm,
     );
     setDetune(entry.player, entry.sample.transposeCents);
-    safeRamp(entry.gain.gain, 1, ATMOSPHERE_XFADE_SECONDS);
+    safeRamp(entry.gain.gain, 1, ATMOSPHERE_XFADE_SECONDS, scheduledTime);
     return true;
   }
 
-  function applyScene(frame, performance = null, phraseIndex = 0, transition = 0.5) {
+  function applyScene(
+    frame,
+    performance = null,
+    phraseIndex = 0,
+    transition = 0.5,
+    scheduledTime = undefined,
+  ) {
     const state = normalizedState(frame?.scoreState);
     const mix = STATE_MIX[state];
+    const phaseMix = performance
+      ? arrangementPhaseForPhrase(state, phraseIndex, performance).mix
+      : { drums: 1, bass: 1, pad: 1, arp: 1, riff: 0 };
+    const ramp = (parameter, value) => (
+      safeRamp(parameter, value, transition, scheduledTime)
+    );
     currentPalette = resolveSamplePalette(state, performance, phraseIndex);
     const energy = performance?.energy ?? 0.55;
     const space = performance?.space ?? 0.5;
-    safeRamp(drumBus.gain, mix.drums * (0.78 + energy * 0.32), transition);
-    safeRamp(bassBus.gain, mix.bass * (0.8 + energy * 0.24), transition);
-    safeRamp(bassLoopBus.gain, mix.bassLoop * (0.76 + energy * 0.3), transition);
-    safeRamp(bassFilter.frequency, mix.bassFilterHz, transition);
-    safeRamp(leadBus.gain, mix.lead * (0.76 + (performance?.motion ?? 0.5) * 0.28), transition);
-    safeRamp(atmosphereBus.gain, mix.atmosphere * (0.72 + space * 0.42), transition);
-    safeRamp(atmosphereFilter.frequency, mix.atmosphereFilterHz, transition);
-    safeRamp(bassDriveSend.gain, mix.drive * (0.7 + (performance?.grit ?? 0.45) * 0.6), transition);
-    safeRamp(roomSend.gain, mix.room * (0.7 + space * 0.5), transition);
-    safeRamp(leadDelaySend.gain, mix.delay * (0.8 + space * 0.35), transition);
+    ramp(
+      drumBus.gain,
+      mix.drums * (0.78 + energy * 0.32) * phaseMix.drums,
+    );
+    ramp(
+      bassBus.gain,
+      mix.bass * (0.8 + energy * 0.24) * phaseMix.bass,
+    );
+    ramp(
+      bassLoopBus.gain,
+      mix.bassLoop * (0.76 + energy * 0.3) * phaseMix.bass,
+    );
+    ramp(bassFilter.frequency, mix.bassFilterHz);
+    ramp(
+      leadBus.gain,
+      mix.lead * (0.76 + (performance?.motion ?? 0.5) * 0.28) * phaseMix.arp,
+    );
+    ramp(
+      atmosphereBus.gain,
+      mix.atmosphere * (0.72 + space * 0.42) * phaseMix.pad,
+    );
+    ramp(atmosphereFilter.frequency, mix.atmosphereFilterHz);
+    ramp(bassDriveSend.gain, mix.drive * (0.7 + (performance?.grit ?? 0.45) * 0.6));
+    ramp(roomSend.gain, mix.room * (0.7 + space * 0.5));
+    ramp(leadDelaySend.gain, mix.delay * (0.8 + space * 0.35));
     if (!ready) return currentPalette;
     const desiredAtmosphere = currentPalette.atmosphere;
     if (desiredAtmosphere !== activeAtmosphereId) {
-      if (activeAtmosphereId) stopAtmosphere(activeAtmosphereId);
-      activeAtmosphereId = startAtmosphere(desiredAtmosphere, frame)
+      if (activeAtmosphereId) {
+        stopAtmosphere(activeAtmosphereId, ATMOSPHERE_XFADE_SECONDS, scheduledTime);
+      }
+      activeAtmosphereId = startAtmosphere(desiredAtmosphere, frame, scheduledTime)
         ? desiredAtmosphere
         : null;
     } else if (desiredAtmosphere) {
-      startAtmosphere(desiredAtmosphere, frame);
+      startAtmosphere(desiredAtmosphere, frame, scheduledTime);
     }
     return currentPalette;
   }
@@ -424,6 +484,7 @@ export function createHybridSampler(Tone, {
 
   async function load() {
     if (disposed) return false;
+    loadStage = "core";
     const tier1 = await loader.loadTier(ASSET_TIERS.tier1);
     if (disposed) {
       loader.disposeAll();
@@ -434,6 +495,8 @@ export function createHybridSampler(Tone, {
       return false;
     }
     ready = true;
+    loadStage = "background";
+    emitLoadProgress();
     backgroundLoadPromise = (async () => {
       try {
         await loader.loadTier(ASSET_TIERS.tier2);
@@ -441,7 +504,9 @@ export function createHybridSampler(Tone, {
       } catch (error) {
         console.warn("system-symphony: background tier load raised", error);
       } finally {
+        loadStage = disposed ? "disposed" : "complete";
         if (disposed) loader.disposeAll();
+        else emitLoadProgress();
       }
     })();
     return true;
@@ -451,6 +516,7 @@ export function createHybridSampler(Tone, {
     if (disposed) return;
     disposed = true;
     ready = false;
+    loadStage = "disposed";
     backgroundLoadPromise = null;
     for (const timer of atmosphereStopTimers.values()) {
       globalThis.clearTimeout(timer);
@@ -498,7 +564,8 @@ export function createHybridSampler(Tone, {
     isReady: () => ready,
     isSampleAvailable: (id) => loader.has(id),
     getPalette: () => currentPalette,
-    loadStats: () => loader.stats(),
+    loadStats,
+    waitForBackgroundLoad: () => backgroundLoadPromise ?? Promise.resolve(),
     dispose,
   };
 }
