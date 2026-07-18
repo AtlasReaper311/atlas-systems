@@ -61,8 +61,9 @@ explicit preview-deployment action; local work does not publish anything.
 
 The same branch now carries the H9 Ghost Circuit candidate: seeded arpeggio
 direction and gating, a separate cyberpunk riff voice, five-phase arrangements,
-codec retry and stricter resource bounds. Production remains unchanged until
-the branch is explicitly approved and merged.
+visible phase and audition controls, a focus A/B mix, codec retry and stricter
+resource bounds. Production remains unchanged until the branch is explicitly
+approved and merged.
 
 The preview alias is not currently on the production `specular-sonify` and
 `deploy-watch` Worker origin allowlists. Demo mode is the complete listening

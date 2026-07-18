@@ -155,6 +155,23 @@ test("seeded pad, bass, hat and arp dimensions all change audible events", () =>
   assert.notEqual(arpSignature("up", 0), arpSignature("up", 5));
 });
 
+test("arp note velocity is not attenuated a second time by arrangement phase", () => {
+  const score = SCORE_STATES.healthy;
+  const performance = createPerformanceArrangement("A71A5", "healthy");
+  const phaseVelocities = new Map();
+  for (let phrase = 0; phrase < 8; phrase += 1) {
+    const event = Array.from({ length: 32 }, (_, step) => (
+      terminalEventForStep("healthy", score.scale, step, phrase, performance)
+    )).find(Boolean);
+    if (event) phaseVelocities.set(event.phase, event.velocity);
+  }
+  assert.ok(phaseVelocities.has("boot"));
+  assert.ok(phaseVelocities.has("drive"));
+  assert.ok(phaseVelocities.has("lift"));
+  assert.ok(phaseVelocities.has("drop"));
+  assert.equal(new Set(phaseVelocities.values()).size, 1);
+});
+
 test("service octave variation is neutral or downward, never an upward alarm jump", () => {
   for (let seed = 0; seed < 500; seed += 1) {
     assert.ok([0, -12].includes(serviceOctaveDisplacement(seed)));
@@ -575,6 +592,7 @@ test("the browser graph allocates Demo effects once and applies a queued score o
   globalThis.Tone = runtime.Tone;
   const engine = createEngine();
   const applied = [];
+  const phases = [];
   try {
     engine.applyFrame(computeFrame({
       timestamp: "2026-07-16T12:00:00.000Z",
@@ -582,6 +600,7 @@ test("the browser graph allocates Demo effects once and applies a queued score o
       services: [],
     }));
     engine.setPerformanceHandler((performance) => applied.push(performance));
+    engine.setGhostPhaseHandler((phase) => phases.push(phase?.name ?? null));
     await engine.start();
     assert.ok(runtime.constructed.includes("Distortion"));
     assert.ok(runtime.constructed.includes("FeedbackDelay"));
@@ -599,6 +618,13 @@ test("the browser graph allocates Demo effects once and applies a queued score o
     runtime.runEighth();
     assert.equal(applied.length, 1);
     assert.equal(applied[0].id, performance.id);
+    assert.equal(phases.length, 1);
+    assert.equal(phases[0], engine.getGhostPhase().name);
+    assert.equal(engine.setGhostFocus(true), true);
+    assert.deepEqual(engine.getGhostMixState(), { focus: true, audition: null });
+    assert.equal(engine.setGhostAudition("riff"), "riff");
+    assert.deepEqual(engine.getGhostMixState(), { focus: true, audition: "riff" });
+    assert.equal(engine.setGhostAudition("invalid"), null);
     assert.ok(runtime.scheduledParameterWrites.length > 0);
     assert.ok(runtime.scheduledParameterWrites.every(({ time }) => Number.isFinite(time)));
     const triggerCount = runtime.triggers.length;

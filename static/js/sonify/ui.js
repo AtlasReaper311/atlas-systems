@@ -9,7 +9,7 @@ import {
   AUDIO_CONTEXT_BLOCKED_CODE,
   DEFAULT_USER_GAIN,
   createEngine,
-} from "./engine.js?v=20260718-system-symphony-audio-unlock";
+} from "./engine.js?v=20260718-system-symphony-ghost-mix";
 import { createPoller } from "./poller.js?v=20260718-system-symphony-ghost-circuit";
 import {
   applyDemoProfileToServices,
@@ -198,6 +198,25 @@ function template() {
                   <label><span>Grit <output data-performance-output="grit">${PERFORMANCE_MACRO_DEFAULTS.grit}</output></span><input type="range" min="0" max="100" step="1" value="${PERFORMANCE_MACRO_DEFAULTS.grit}" data-performance-macro="grit" /></label>
                   <label><span>Space <output data-performance-output="space">${PERFORMANCE_MACRO_DEFAULTS.space}</output></span><input type="range" min="0" max="100" step="1" value="${PERFORMANCE_MACRO_DEFAULTS.space}" data-performance-macro="space" /></label>
                 </div>
+                <div class="symphony-ghost-monitor">
+                  <div class="symphony-ghost-monitor__heading">
+                    <span>Ghost phase</span>
+                    <strong data-ghost-phase>STANDBY</strong>
+                  </div>
+                  <ol class="symphony-ghost-phases" aria-label="Ghost Circuit arrangement phases">
+                    <li data-ghost-phase-step="boot">Boot</li>
+                    <li data-ghost-phase-step="drive">Drive</li>
+                    <li data-ghost-phase-step="lift">Lift</li>
+                    <li data-ghost-phase-step="drop">Drop</li>
+                    <li data-ghost-phase-step="afterglow">Afterglow</li>
+                  </ol>
+                  <div class="symphony-ghost-monitor__actions">
+                    <button class="symphony-button" type="button" data-ghost-focus aria-pressed="false">Ghost Circuit focus</button>
+                    <button class="symphony-button" type="button" data-ghost-audition="arp" aria-pressed="false">Hear arp</button>
+                    <button class="symphony-button" type="button" data-ghost-audition="riff" aria-pressed="false">Hear riff</button>
+                  </div>
+                  <p>Focus ducks the backing for A/B listening. Hear arp and Hear riff isolate each Ghost Circuit voice.</p>
+                </div>
                 <div class="symphony-performance__actions">
                   <button class="symphony-button symphony-button--primary" type="button" data-randomise-score>Randomise score</button>
                   <label class="symphony-performance__seed"><span>Score seed</span><input type="text" value="${DEFAULT_PERFORMANCE_SEED}" minlength="4" maxlength="8" pattern="[0-9A-Fa-f]{4,8}" spellcheck="false" autocomplete="off" data-performance-seed aria-describedby="symphony-performance-status" /></label>
@@ -357,6 +376,8 @@ export function initSystemSymphony() {
   let performanceArrangement = null;
   let activeDemoProfile = null;
   let performanceStatus = `Seed ${DEFAULT_PERFORMANCE_SEED} ready`;
+  let ghostFocus = false;
+  let ghostAudition = null;
 
   function presentationForVoice(voice) {
     if (!voice.measured && !voice.demoSimulated) {
@@ -447,6 +468,29 @@ export function initSystemSymphony() {
     const voicingLabel = performanceArrangement?.padVoicingLabel ?? "triad";
     host.querySelector("[data-performance-status]").textContent =
       `${performanceStatus} // ${palette.section} // arp ${arpLabel} // ${voicingLabel} pads // bass ${bassLabel} // rhythm ${rhythmLabel} // lead ${leadLabel} // texture ${textureLabel}`;
+    renderGhostControls();
+  }
+
+  function renderGhostControls(phase = engine.getGhostPhase()) {
+    const phaseName = phase?.name ?? "standby";
+    host.querySelector("[data-ghost-phase]").textContent = phaseName.toUpperCase();
+    for (const item of host.querySelectorAll("[data-ghost-phase-step]")) {
+      if (item.dataset.ghostPhaseStep === phaseName) {
+        item.setAttribute("aria-current", "step");
+      } else {
+        item.removeAttribute("aria-current");
+      }
+    }
+    host.querySelector("[data-ghost-focus]").setAttribute(
+      "aria-pressed",
+      String(ghostFocus),
+    );
+    for (const button of host.querySelectorAll("[data-ghost-audition]")) {
+      button.setAttribute(
+        "aria-pressed",
+        String(button.dataset.ghostAudition === ghostAudition),
+      );
+    }
   }
 
   function stagePerformance(scoreState, action = "Score", arrangement = null) {
@@ -914,6 +958,7 @@ export function initSystemSymphony() {
     activeDemoProfile = "custom";
     performanceArrangement = null;
     performanceStatus = "Custom live snapshot ready";
+    resetGhostMixControls();
     engine.setPerformance(null, { quantize: false });
     const frame = currentDemoFrame();
     applyAndRender(frame);
@@ -932,6 +977,7 @@ export function initSystemSymphony() {
     soloed.clear();
     activeDemoProfile = null;
     performanceArrangement = null;
+    resetGhostMixControls();
     engine.setPerformance(null, { quantize: false });
     if (lastLiveFrame) applyAndRender(lastLiveFrame);
   }
@@ -1009,6 +1055,30 @@ export function initSystemSymphony() {
       renderPerformance(currentFrame);
       input.reportValidity();
     }
+  }
+
+  function toggleGhostFocus() {
+    if (mode !== "demo") return;
+    ghostFocus = engine.setGhostFocus(!ghostFocus);
+    performanceStatus = ghostFocus
+      ? "Ghost Circuit focus active // backing ducked"
+      : "Ghost Circuit focus off // full mix";
+    renderPerformance(currentFrame);
+  }
+
+  function toggleGhostAudition(layer) {
+    if (mode !== "demo") return;
+    const nextLayer = ghostAudition === layer ? null : layer;
+    ghostAudition = engine.setGhostAudition(nextLayer);
+    performanceStatus = ghostAudition
+      ? `${ghostAudition.toUpperCase()} audition active // isolated voice`
+      : "Ghost Circuit audition off // full arrangement";
+    renderPerformance(currentFrame);
+  }
+
+  function resetGhostMixControls() {
+    ghostFocus = engine.setGhostFocus(false);
+    ghostAudition = engine.setGhostAudition(null);
   }
 
   function flashDeployment(deployment) {
@@ -1178,6 +1248,15 @@ export function initSystemSymphony() {
     "click",
     replayPerformanceSeed,
   );
+  host.querySelector("[data-ghost-focus]").addEventListener(
+    "click",
+    toggleGhostFocus,
+  );
+  host.querySelectorAll("[data-ghost-audition]").forEach((button) => {
+    button.addEventListener("click", () => {
+      toggleGhostAudition(button.dataset.ghostAudition);
+    });
+  });
   host.querySelector("[data-performance-seed]").addEventListener("input", (event) => {
     event.target.value = event.target.value.toUpperCase();
     event.target.setCustomValidity("");
@@ -1281,6 +1360,10 @@ export function initSystemSymphony() {
     if (performanceArrangement?.id !== performance.id) return;
     performanceStatus = `Active // ${performance.sceneName} // ${performance.seed}`;
     renderPerformance(currentFrame);
+  });
+  engine.setGhostPhaseHandler((phase) => {
+    if (mode !== "demo") return;
+    renderGhostControls(phase);
   });
   engine.setSampleLoadHandler((stats) => {
     const status = host.querySelector("[data-important-status]");

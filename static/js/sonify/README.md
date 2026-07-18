@@ -150,10 +150,10 @@ The four telemetry states remain the musical foundation and gain secondary perfo
 
 | State | Demo scene | Default identity |
 | --- | --- | --- |
-| Healthy | Night Drive | ~102 BPM nocturnal drive, rounded drums and bass, four D-minor lead fragments per phrase and restrained atmosphere |
-| Warning | Grid Pressure | ~108 BPM syncopated pressure, a coherent harder kit, smoother bass and a mode-correct D Phrygian arpeggio |
-| Critical | Redline Protocol | ~114 BPM controlled pursuit/combat rhythm, cleanly spaced drums, smoother driven bass and a D Phrygian dominant arpeggio |
-| Unknown | Ghost Signal | ~84 BPM menu/loading-screen pulse, fragmented rhythm, a D-suspended arpeggio and one filtered, root-safe texture |
+| Healthy | Night Drive | ~114 BPM nocturnal drive, rounded drums and bass, four D-minor lead fragments per phrase and restrained atmosphere |
+| Warning | Grid Pressure | ~117 BPM syncopated pressure, a coherent harder kit, smoother bass and a mode-correct D Phrygian arpeggio |
+| Critical | Redline Protocol | ~130 BPM controlled pursuit/combat rhythm, cleanly spaced drums, smoother driven bass and a D Phrygian dominant arpeggio |
+| Unknown | Ghost Signal | ~97 BPM menu/loading-screen pulse, fragmented rhythm, a D-suspended arpeggio and one filtered, root-safe texture |
 
 `Energy`, `Motion`, `Grit` and `Space` are bounded macro controls rather than raw synthesizer parameters. They reshape tempo, density, drum pressure, arpeggio and riff movement, saturation, delay, pad weight and reverb while retaining the selected state's scale and register limits. Demo tempo is bounded to `90–134 BPM`; Critical is urgent but deliberately capped instead of becoming an alarm. `Randomise score` generates one visible four-to-eight-character hexadecimal seed. The seed deterministically selects curated chord order, pad voicing, bass rhythm and octave, hat density, coherent sample palette, filtered atmosphere, arpeggio direction and gate, pattern rotation, riff contour and bounded effects. Rhythmic bass sources are restarted as deterministic four-beat fragments on measure boundaries rather than free-running, preventing drift against the drums. Healthy can also select one of six D-minor-normalised lead or synth loops and its slice order. Warning and Critical keep tonal motion procedural so every note remains mode-correct. Ghost uses procedural bass and texture only, avoiding key ambiguity in its D-suspended grammar. Entering a previous value and pressing `Replay seed` restores the same versioned arrangement and sample palette for the current scene and macro values.
 
@@ -170,9 +170,18 @@ of making every layer continuously louder.
 The existing FM terminal voice is the pulse arpeggiator. Seeded direction,
 one/two-octave range, gate length, pattern rotation and four filter-motion modes
 make it evolve over successive phrases. A separate three-timbre riff voice
-plays restrained one-to-two-bar call-and-response motifs. Riffs are generated
+plays one-to-two-bar call-and-response motifs. Riffs are generated
 from the active state scale and stay between D3 and A4. Boot can omit the riff;
 Drop exposes it; Ghost Signal leaves longer rests and echoes.
+
+The audible mix applies phase strength once at the layer bus instead of again
+inside every note velocity. In the normal arrangement the pulse arp and riff
+receive bounded boosts while an active riff ducks the sampled lead by roughly
+2–3 dB. **Ghost Circuit focus** lowers the backing by about 4 dB for A/B
+listening. **Hear arp** and **Hear riff** isolate their target voice over a very
+quiet pad and backing. The console shows the current real Ghost phase across a
+`Boot → Drive → Lift → Drop → Afterglow` timeline; it no longer relies on the
+separate sample-section label to explain the arrangement.
 
 The arrangement permits one tape-stop transition at most once per eight phrases
 and retains the existing bounded crash accents. Effect wet values, riff gain,
@@ -235,7 +244,7 @@ python3 scripts/verify_pages_output.py .
 git diff --check
 ```
 
-The tests cover all four score states, stale behavior, measured Unknown versus Unmeasured counts, deterministic identities and motifs, safe registers, pad cadence and all voicings, audible bass octave and hat-density changes, arpeggio direction/gate/rotation, Ghost Circuit phase cycles and riff bounds, transition cooldowns, effect ceilings, versioned replay identity, codec retry and timeout, background-load progress, cleanup, topology merge and failure fallback, incident and deployment baselines, request overlap protection and service voice limits.
+The tests cover all four score states, stale behavior, measured Unknown versus Unmeasured counts, deterministic identities and motifs, safe registers, pad cadence and all voicings, audible bass octave and hat-density changes, arpeggio direction/gate/rotation, Ghost Circuit phase cycles, audibility profiles, single phase attenuation and riff bounds, transition cooldowns, effect ceilings, versioned replay identity, codec retry and timeout, background-load progress, cleanup, topology merge and failure fallback, incident and deployment baselines, request overlap protection and service voice limits.
 
 Musical quality, speaker translation, clipping margin and two-to-three-minute non-repetition still require a human listening pass because automated tests cannot judge those qualities reliably.
 

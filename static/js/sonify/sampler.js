@@ -19,7 +19,10 @@ import {
   sectionForPhrase,
 } from "./samples.js?v=20260718-system-symphony-ghost-circuit";
 import { createAssetLoader } from "./asset-loader.js?v=20260718-system-symphony-ghost-circuit";
-import { arrangementPhaseForPhrase } from "./ghost-circuit.js?v=20260718-system-symphony-ghost-circuit";
+import {
+  arrangementPhaseForPhrase,
+  ghostLayerMixProfile,
+} from "./ghost-circuit.js?v=20260718-system-symphony-ghost-mix";
 
 const PLAYBACK_RATE_MIN = 0.75;
 const PLAYBACK_RATE_MAX = 1.35;
@@ -301,12 +304,18 @@ export function createHybridSampler(Tone, {
     phraseIndex = 0,
     transition = 0.5,
     scheduledTime = undefined,
+    ghostOptions = {},
   ) {
     const state = normalizedState(frame?.scoreState);
     const mix = STATE_MIX[state];
     const phaseMix = performance
       ? arrangementPhaseForPhrase(state, phraseIndex, performance).mix
       : { drums: 1, bass: 1, pad: 1, arp: 1, riff: 0 };
+    const ghostMix = ghostLayerMixProfile(ghostOptions);
+    const ghostModeActive = Boolean(ghostOptions.focus || ghostOptions.audition);
+    const leadMultiplier = performance && (phaseMix.riff > 0 || ghostModeActive)
+      ? ghostMix.lead
+      : 1;
     const ramp = (parameter, value) => (
       safeRamp(parameter, value, transition, scheduledTime)
     );
@@ -315,24 +324,36 @@ export function createHybridSampler(Tone, {
     const space = performance?.space ?? 0.5;
     ramp(
       drumBus.gain,
-      mix.drums * (0.78 + energy * 0.32) * phaseMix.drums,
+      mix.drums
+        * (0.78 + energy * 0.32)
+        * phaseMix.drums
+        * ghostMix.backing,
     );
     ramp(
       bassBus.gain,
-      mix.bass * (0.8 + energy * 0.24) * phaseMix.bass,
+      mix.bass * (0.8 + energy * 0.24) * phaseMix.bass * ghostMix.backing,
     );
     ramp(
       bassLoopBus.gain,
-      mix.bassLoop * (0.76 + energy * 0.3) * phaseMix.bass,
+      mix.bassLoop
+        * (0.76 + energy * 0.3)
+        * phaseMix.bass
+        * ghostMix.backing,
     );
     ramp(bassFilter.frequency, mix.bassFilterHz);
     ramp(
       leadBus.gain,
-      mix.lead * (0.76 + (performance?.motion ?? 0.5) * 0.28) * phaseMix.arp,
+      mix.lead
+        * (0.76 + (performance?.motion ?? 0.5) * 0.28)
+        * phaseMix.arp
+        * leadMultiplier,
     );
     ramp(
       atmosphereBus.gain,
-      mix.atmosphere * (0.72 + space * 0.42) * phaseMix.pad,
+      mix.atmosphere
+        * (0.72 + space * 0.42)
+        * phaseMix.pad
+        * ghostMix.pad,
     );
     ramp(atmosphereFilter.frequency, mix.atmosphereFilterHz);
     ramp(bassDriveSend.gain, mix.drive * (0.7 + (performance?.grit ?? 0.45) * 0.6));

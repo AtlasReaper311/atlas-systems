@@ -8,6 +8,7 @@ import {
   RIFF_ROOT_MIDI,
   arrangementPhaseForPhrase,
   filterAutomationMultiplier,
+  ghostLayerMixProfile,
   ghostRiffEventForStep,
   orderedDegreeIndex,
   rotatePatternSteps,
@@ -17,7 +18,7 @@ import { SCORE_STATES } from "./mapping.js";
 import { createPerformanceArrangement } from "./performance.js";
 
 test("Ghost Circuit arrangement phases are deterministic and state-specific", () => {
-  assert.equal(GHOST_CIRCUIT_VERSION, 1);
+  assert.equal(GHOST_CIRCUIT_VERSION, 2);
   const signatures = new Set();
   for (const state of Object.keys(ARRANGEMENT_PHASES)) {
     const performance = createPerformanceArrangement("A71A5", state);
@@ -33,6 +34,28 @@ test("Ghost Circuit arrangement phases are deterministic and state-specific", ()
     signatures.add(first.join(":"));
   }
   assert.equal(signatures.size, 4);
+});
+
+test("Ghost Circuit mix profiles make the overlay audible and auditionable", () => {
+  const normal = ghostLayerMixProfile();
+  const focus = ghostLayerMixProfile({ focus: true });
+  const arp = ghostLayerMixProfile({ audition: "arp" });
+  const riff = ghostLayerMixProfile({ audition: "riff" });
+  assert.ok(normal.arp > 1);
+  assert.ok(normal.riff > normal.arp);
+  assert.ok(normal.lead < 0.8 && normal.lead > 0.7);
+  assert.ok(focus.backing < normal.backing);
+  assert.ok(focus.lead < normal.lead);
+  assert.ok(focus.arp > normal.arp);
+  assert.ok(focus.riff > normal.riff);
+  assert.deepEqual(
+    { backing: arp.backing, lead: arp.lead, arp: arp.arp, riff: arp.riff },
+    { backing: 0.1, lead: 0, arp: 1.65, riff: 0 },
+  );
+  assert.deepEqual(
+    { backing: riff.backing, lead: riff.lead, arp: riff.arp, riff: riff.riff },
+    { backing: 0.1, lead: 0, arp: 0, riff: 2.25 },
+  );
 });
 
 test("arp direction and pattern rotation produce bounded distinct sequences", () => {
@@ -82,6 +105,25 @@ test("every scene generates sparse scale-safe Ghost Circuit riffs", () => {
       assert.ok(events.every((event) => ["32n", "16n", "8n"].includes(event.duration)));
     }
   }
+});
+
+test("riff note velocity is not attenuated a second time by arrangement phase", () => {
+  const state = "healthy";
+  const score = SCORE_STATES[state];
+  const performance = createPerformanceArrangement("A71A5", state);
+  const phaseVelocities = new Map();
+  for (let phrase = 0; phrase < 8; phrase += 1) {
+    const phase = arrangementPhaseForPhrase(state, phrase, performance).name;
+    const event = Array.from({ length: 32 }, (_, step) => (
+      ghostRiffEventForStep(state, score.scale, step, phrase, performance)
+    )).find(Boolean);
+    if (event) phaseVelocities.set(phase, event.velocity);
+  }
+  assert.equal(phaseVelocities.has("boot"), false);
+  assert.ok(phaseVelocities.has("drive"));
+  assert.ok(phaseVelocities.has("lift"));
+  assert.ok(phaseVelocities.has("drop"));
+  assert.equal(new Set(phaseVelocities.values()).size, 1);
 });
 
 test("transition ear candy is quantised and has an eight-phrase cooldown", () => {

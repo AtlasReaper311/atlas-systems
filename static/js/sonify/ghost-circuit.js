@@ -6,9 +6,16 @@
  * filter motion, transition accent and riff event.
  */
 
-export const GHOST_CIRCUIT_VERSION = 1;
+export const GHOST_CIRCUIT_VERSION = 2;
 export const RIFF_ROOT_MIDI = 50; // D3
 export const RIFF_MAX_MIDI = 69; // A4
+
+const GHOST_MIX_PROFILES = Object.freeze({
+  normal: Object.freeze({ backing: 1, pad: 1, lead: 0.76, arp: 1.35, riff: 1.8 }),
+  focus: Object.freeze({ backing: 0.62, pad: 0.72, lead: 0.48, arp: 1.55, riff: 2.05 }),
+  arp: Object.freeze({ backing: 0.1, pad: 0.15, lead: 0, arp: 1.65, riff: 0 }),
+  riff: Object.freeze({ backing: 0.1, pad: 0.15, lead: 0, arp: 0, riff: 2.25 }),
+});
 
 export const ARRANGEMENT_PHASES = Object.freeze({
   healthy: Object.freeze([
@@ -95,6 +102,13 @@ export function arrangementPhaseForPhrase(
     cycleLength: cycle.length,
     mix: PHASE_MIX[name],
   });
+}
+
+export function ghostLayerMixProfile({ focus = false, audition = null } = {}) {
+  if (audition === "arp" || audition === "riff") {
+    return GHOST_MIX_PROFILES[audition];
+  }
+  return focus ? GHOST_MIX_PROFILES.focus : GHOST_MIX_PROFILES.normal;
 }
 
 export function rotatePatternSteps(pattern, rotation = 0, length = 32) {
@@ -198,7 +212,7 @@ export function ghostRiffEventForStep(
         : "16n",
     velocity: Math.min(
       0.56,
-      (0.22 + (performance.energy ?? 0.5) * 0.3) * stateGain * phase.mix.riff,
+      (0.22 + (performance.energy ?? 0.5) * 0.3) * stateGain,
     ),
     phase: phase.name,
     timbre: modulo(performance.riffTimbre, 3),
