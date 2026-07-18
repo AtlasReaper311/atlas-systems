@@ -48,7 +48,7 @@ The H1-H8 preview branch has an intentionally narrow deployment path. Pushing
 publishes the repository root with Wrangler's non-production `--branch` flag
 under the shorter Pages branch name `system-symphony-h1-h8`.
 The expected stable alias is
-`https://system-symphony-h1-h8.atlas-systems.pages.dev`. The workflow also
+`https://system-symphony-h1-h8.atlas-systems-44t.pages.dev`. The workflow also
 records Wrangler's immutable deployment URL in the GitHub environment and job
 summary.
 

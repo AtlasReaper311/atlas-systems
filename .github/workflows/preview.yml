@@ -98,7 +98,7 @@ jobs:
       - name: Record branch preview alias
         env:
           ATOMIC_URL: ${{ steps.deploy.outputs.deployment_url }}
-          PREVIEW_URL: https://system-symphony-h1-h8.atlas-systems.pages.dev
+          PREVIEW_URL: https://system-symphony-h1-h8.atlas-systems-44t.pages.dev
         run: |
           set -euo pipefail
           {
