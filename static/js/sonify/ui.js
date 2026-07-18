@@ -6,9 +6,10 @@
  */
 
 import {
+  AUDIO_CONTEXT_BLOCKED_CODE,
   DEFAULT_USER_GAIN,
   createEngine,
-} from "./engine.js?v=20260718-system-symphony-ghost-circuit";
+} from "./engine.js?v=20260718-system-symphony-audio-unlock";
 import { createPoller } from "./poller.js?v=20260718-system-symphony-ghost-circuit";
 import {
   applyDemoProfileToServices,
@@ -1098,13 +1099,15 @@ export function initSystemSymphony() {
 
   async function toggleAudio() {
     const buttons = [...host.querySelectorAll("[data-audio-toggle]")];
+    const shouldStart = !engine.isRunning();
+    const startPromise = shouldStart ? engine.start() : null;
     buttons.forEach((button) => { button.disabled = true; });
     try {
-      if (engine.isRunning()) engine.pause();
+      if (!shouldStart) engine.pause();
       else {
         host.querySelector("[data-important-status]").textContent =
           "Loading hybrid instrument library…";
-        await engine.start();
+        await startPromise;
         const stats = engine.getSampleLoadStats();
         host.querySelector("[data-important-status]").textContent = engine.isSampleReady()
           ? stats?.backgroundComplete
@@ -1115,8 +1118,16 @@ export function initSystemSymphony() {
       setRunningUi();
     } catch (error) {
       console.error("system-symphony: audio failed to start", error);
-      host.querySelector("[data-important-status]").textContent =
-        "Audio could not start. See the browser console for details.";
+      const blocked = error?.code === AUDIO_CONTEXT_BLOCKED_CODE;
+      host.querySelector("[data-important-status]").textContent = blocked
+        ? "Your browser blocked Web Audio. Allow audio/autoplay for this site, then press Retry audio."
+        : "Audio could not start. See the browser console for details.";
+      if (blocked) {
+        buttons.forEach((button) => {
+          button.textContent = "Retry audio";
+          button.setAttribute("aria-label", "Retry System SYMPHONY audio");
+        });
+      }
     } finally {
       buttons.forEach((button) => { button.disabled = false; });
     }

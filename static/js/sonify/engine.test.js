@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  AUDIO_CONTEXT_BLOCKED_CODE,
   ARP_MAX_MIDI,
   ARP_ROOT_MIDI,
   COUNTERLINE_BUS_GAINS,
@@ -35,7 +36,62 @@ test("audio context start resolves normally", async () => {
 test("audio context start fails closed when browser unlock never resolves", async () => {
   await assert.rejects(
     startToneWithTimeout({ start: () => new Promise(() => {}) }, 10),
-    /audio context did not start in time/,
+    (error) => {
+      assert.match(error.message, /audio context did not start in time/);
+      assert.equal(error.code, AUDIO_CONTEXT_BLOCKED_CODE);
+      assert.equal(error.contextState, "unknown");
+      return true;
+    },
+  );
+});
+
+test("audio context start recovers a suspended raw browser context", async () => {
+  const listeners = new Set();
+  let rawResumeCalls = 0;
+  let pulseStarts = 0;
+  const rawContext = {
+    state: "suspended",
+    sampleRate: 48000,
+    destination: {},
+    addEventListener(_name, listener) { listeners.add(listener); },
+    removeEventListener(_name, listener) { listeners.delete(listener); },
+    createBuffer: () => ({}),
+    createBufferSource: () => ({
+      connect() {},
+      disconnect() {},
+      start() { pulseStarts += 1; },
+    }),
+    async resume() {
+      rawResumeCalls += 1;
+      this.state = "running";
+      listeners.forEach((listener) => listener());
+    },
+  };
+  await startToneWithTimeout({
+    start: () => new Promise(() => {}),
+    getContext: () => ({ rawContext }),
+  }, 20);
+  assert.equal(rawResumeCalls, 1);
+  assert.equal(pulseStarts, 1);
+});
+
+test("audio context start identifies a browser-blocked suspended context", async () => {
+  const rawContext = {
+    state: "suspended",
+    addEventListener() {},
+    removeEventListener() {},
+    resume: () => new Promise(() => {}),
+  };
+  await assert.rejects(
+    startToneWithTimeout({
+      start: () => new Promise(() => {}),
+      getContext: () => ({ rawContext }),
+    }, 10),
+    (error) => {
+      assert.equal(error.code, AUDIO_CONTEXT_BLOCKED_CODE);
+      assert.equal(error.contextState, "suspended");
+      return true;
+    },
   );
 });
 

@@ -18,7 +18,7 @@
 
 System SYMPHONY is the Atlas Systems browser instrument for current estate telemetry. It is one persistent dark cyberpunk composition with four score states, not four separate songs. A hybrid engine combines the original procedural score with curated drums, playable bass one-shots, granular lead fragments and selective atmosphere loops. Telemetry updates reshape tempo, harmony, sample palette, arrangement section, density, brightness and tension without restarting the piece.
 
-Audio never autoplays. The graph and scheduler start only after a user presses Start. If a browser does not unlock its audio context within eight seconds, startup fails closed and the controls re-enable instead of hanging.
+Audio never autoplays. The graph and scheduler start only after a user presses Start. Startup asks both Tone and the underlying browser context to resume and sends one silent unlock pulse for browsers that require an immediately scheduled source. If a browser still blocks Web Audio for eight seconds, startup fails closed, the controls re-enable as **Retry audio**, and the status tells the listener to allow audio/autoplay for the site.
 
 ## Architecture
 

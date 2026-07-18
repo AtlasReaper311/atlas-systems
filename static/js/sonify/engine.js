@@ -24,6 +24,7 @@ import {
 } from "./ghost-circuit.js?v=20260718-system-symphony-ghost-circuit";
 
 export const DEFAULT_USER_GAIN = 0.62;
+export const AUDIO_CONTEXT_BLOCKED_CODE = "audio-context-blocked";
 export const MAX_SERVICE_VOICES = MAX_COMPONENTS;
 export const MAX_INCIDENT_ACCENTS = 4;
 export const WAVEFORM_SIZE = 512;
@@ -626,18 +627,90 @@ export async function startToneWithTimeout(
   Tone,
   timeoutMs = AUDIO_START_TIMEOUT_MS,
 ) {
+  const toneContext = typeof Tone.getContext === "function"
+    ? Tone.getContext()
+    : Tone.context ?? null;
+  const rawContext = toneContext?.rawContext ?? toneContext;
+  const hasObservableState = typeof rawContext?.state === "string";
+  let lastError = null;
   let timeoutId;
+  let pollId;
+  let removeStateListener = () => {};
+  let disconnectUnlockPulse = () => {};
+
+  const attempt = (action) => {
+    try {
+      return Promise.resolve(action()).catch((error) => {
+        lastError = error;
+      });
+    } catch (error) {
+      lastError = error;
+      return Promise.resolve();
+    }
+  };
+
+  const toneStart = attempt(() => Tone.start());
+  if (rawContext && rawContext !== toneContext && typeof rawContext.resume === "function") {
+    attempt(() => rawContext.resume());
+  }
+
+  if (
+    rawContext
+    && typeof rawContext.createBuffer === "function"
+    && typeof rawContext.createBufferSource === "function"
+    && rawContext.destination
+  ) {
+    try {
+      const source = rawContext.createBufferSource();
+      source.buffer = rawContext.createBuffer(
+        1,
+        1,
+        Number.isFinite(rawContext.sampleRate) ? rawContext.sampleRate : 44100,
+      );
+      source.connect(rawContext.destination);
+      source.start(0);
+      disconnectUnlockPulse = () => source.disconnect?.();
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  const started = hasObservableState
+    ? new Promise((resolve) => {
+      const checkState = () => {
+        if (rawContext.state === "running") resolve();
+      };
+      rawContext.addEventListener?.("statechange", checkState);
+      removeStateListener = () => rawContext.removeEventListener?.(
+        "statechange",
+        checkState,
+      );
+      pollId = globalThis.setInterval(checkState, 50);
+      checkState();
+    })
+    : toneStart;
+
   try {
     await Promise.race([
-      Tone.start(),
+      started,
       new Promise((_, reject) => {
         timeoutId = globalThis.setTimeout(() => {
-          reject(new Error("system-symphony: audio context did not start in time"));
+          const state = hasObservableState ? rawContext.state : "unknown";
+          const error = new Error(
+            `system-symphony: audio context did not start in time (state: ${state})`,
+            lastError ? { cause: lastError } : undefined,
+          );
+          error.code = AUDIO_CONTEXT_BLOCKED_CODE;
+          error.contextState = state;
+          reject(error);
         }, timeoutMs);
       }),
     ]);
   } finally {
     globalThis.clearTimeout(timeoutId);
+    globalThis.clearInterval(pollId);
+    removeStateListener();
+    disconnectUnlockPulse();
   }
 }
 
