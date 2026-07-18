@@ -45,9 +45,12 @@ The push event, validation gate, deploy result, and Cloudflare Pages outcome are
 
 The H1-H8 preview branch has an intentionally narrow deployment path. Pushing
 `feat/system-symphony-h1-h8-preview` runs the complete static-site checks, then
-publishes the repository root with Wrangler's non-production `--branch` flag.
+publishes the repository root with Wrangler's non-production `--branch` flag
+under the shorter Pages branch name `system-symphony-h1-h8`.
 The expected stable alias is
-`https://feat-system-symphony-h1-h8-preview.atlas-systems.pages.dev`.
+`https://system-symphony-h1-h8.atlas-systems.pages.dev`. The workflow also
+records Wrangler's immutable deployment URL in the GitHub environment and job
+summary.
 
 The preview job uses the `pages-preview` GitHub environment and the existing
 least-privilege `CF_PAGES_DEPLOY_TOKEN` and `CF_ACCOUNT_ID` secrets. It cannot
