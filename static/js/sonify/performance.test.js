@@ -99,8 +99,8 @@ test("Demo scenes have distinct cinematic intensity and atmosphere profiles", ()
   assert.ok(ghost.targetBpm < healthy.targetBpm);
   assert.ok(healthy.targetBpm < warning.targetBpm);
   assert.ok(warning.targetBpm < critical.targetBpm);
-  assert.ok(healthy.targetBpm <= 104, "default Healthy must leave room for the groove");
-  assert.ok(critical.targetBpm <= 116, "default Critical must feel urgent, not frantic");
+  assert.ok(healthy.targetBpm <= 116, "default Healthy stays inside the 112 BPM band");
+  assert.ok(critical.targetBpm <= 134, "default Critical stays inside the 128 BPM band");
   assert.ok(ghost.drumMultiplier < healthy.drumMultiplier);
   assert.ok(healthy.drumMultiplier < warning.drumMultiplier);
   assert.ok(warning.drumMultiplier < critical.drumMultiplier);
@@ -136,7 +136,7 @@ test("all performance controls remain finite and bounded", () => {
           assert.ok(Number.isFinite(value), `${state}.${name} must be finite`);
         }
       }
-      assert.ok(arrangement.targetBpm >= 78 && arrangement.targetBpm <= 118);
+      assert.ok(arrangement.targetBpm >= 90 && arrangement.targetBpm <= 134);
       assert.ok(arrangement.distortionWet <= 0.48);
       assert.ok(arrangement.reverbWet <= 0.5);
     }

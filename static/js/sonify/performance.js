@@ -5,8 +5,9 @@
  * Live telemetry never imports these settings into its score frame.
  */
 
-import { stableHash } from "./mapping.js?v=20260716-system-symphony-expanded-library";
-import { resolveSamplePalette } from "./samples.js?v=20260716-system-symphony-expanded-library";
+import { stableHash } from "./mapping.js?v=20260718-system-symphony-h1-h8-preview";
+import { deriveDimensions } from "./seed-dimensions.js?v=20260718-system-symphony-h1-h8-preview";
+import { resolveSamplePalette } from "./samples.js?v=20260718-system-symphony-h1-h8-preview";
 
 export const DEFAULT_PERFORMANCE_SEED = "A71A5";
 
@@ -39,7 +40,7 @@ export const PERFORMANCE_MACRO_DEFAULTS = Object.freeze({
 const BASS_SHIFTS = Object.freeze([0, 1, -1, 0]);
 const PERFORMANCE_SCENE_DYNAMICS = Object.freeze({
   healthy: Object.freeze({
-    bpm: 102,
+    bpm: 112,
     density: [0.92, 0.38],
     drums: [0.95, 0.35],
     bass: [1, 0.35],
@@ -55,7 +56,7 @@ const PERFORMANCE_SCENE_DYNAMICS = Object.freeze({
     reverb: [0.13, 0.19],
   }),
   warning: Object.freeze({
-    bpm: 108,
+    bpm: 118,
     density: [1, 0.45],
     drums: [1.05, 0.42],
     bass: [1.08, 0.4],
@@ -71,7 +72,7 @@ const PERFORMANCE_SCENE_DYNAMICS = Object.freeze({
     reverb: [0.1, 0.15],
   }),
   critical: Object.freeze({
-    bpm: 114,
+    bpm: 128,
     density: [1.08, 0.5],
     drums: [1.16, 0.5],
     bass: [1.16, 0.45],
@@ -87,7 +88,7 @@ const PERFORMANCE_SCENE_DYNAMICS = Object.freeze({
     reverb: [0.07, 0.11],
   }),
   unknown: Object.freeze({
-    bpm: 84,
+    bpm: 96,
     density: [0.78, 0.25],
     drums: [0.42, 0.32],
     bass: [0.58, 0.28],
@@ -168,34 +169,34 @@ export function createPerformanceArrangement(
   const grit = macroValues.grit / 100;
   const space = macroValues.space / 100;
   const stateSeed = `${normalizedSeed}:${normalizedState}`;
-  const tempoJitter = (variation(stateSeed, "tempo", 9) - 4) / 200;
+  const dimensions = deriveDimensions(stateSeed);
   const filterJitter = (variation(stateSeed, "filter", 9) - 4) / 100;
   const distortionJitter = (variation(stateSeed, "distortion", 7) - 3) / 100;
   const delayJitter = (variation(stateSeed, "delay", 7) - 3) / 100;
   const reverbJitter = (variation(stateSeed, "reverb", 7) - 3) / 100;
   const scene = PERFORMANCE_SCENES[normalizedState];
   const dynamics = PERFORMANCE_SCENE_DYNAMICS[normalizedState];
-  const chordOffset = variation(stateSeed, "chords", 4);
-  const bassPattern = variation(stateSeed, "bass-pattern", 8);
-  const bassShift = BASS_SHIFTS[
-    variation(stateSeed, "bass-shift", BASS_SHIFTS.length)
-  ];
-  const bassDegreeOffset = variation(stateSeed, "bass-degree", 5);
+  const chordOffset = dimensions.chordOffset;
+  const bassPattern = dimensions.bassPattern;
+  const bassShift = BASS_SHIFTS[dimensions.bassShift];
+  const bassDegreeOffset = dimensions.bassDegreeOffset;
   const percussionVariant = variation(stateSeed, "percussion", 8);
-  const melodyOffset = variation(stateSeed, "melody", 8);
+  const melodyOffset = dimensions.melodyOffset;
   const terminalPattern = variation(stateSeed, "terminal-pattern", 8);
-  const phraseStride = variation(stateSeed, "phrase-stride", 2) === 0 ? 1 : 3;
-  const kickTimbre = variation(stateSeed, "kick-timbre", 8);
-  const snareTimbre = variation(stateSeed, "snare-timbre", 8);
-  const hatTimbre = variation(stateSeed, "hat-timbre", 8);
-  const metalTimbre = variation(stateSeed, "metal-timbre", 8);
-  const bassTimbre = variation(stateSeed, "bass-timbre", 8);
-  const bassLoopTimbre = variation(stateSeed, "bass-loop-timbre", 12);
-  const bassLoopSliceVariant = variation(stateSeed, "bass-loop-slices", 4);
-  const leadTimbre = variation(stateSeed, "lead-timbre", 8);
-  const atmosphereTimbre = variation(stateSeed, "atmosphere-timbre", 8);
-  const leadSliceVariant = variation(stateSeed, "lead-slices", 8);
-  const sectionVariant = variation(stateSeed, "sections", 8);
+  const phraseStride = dimensions.phraseStride + 1;
+  const {
+    kickTimbre,
+    snareTimbre,
+    hatTimbre,
+    metalTimbre,
+    bassTimbre,
+    bassLoopTimbre,
+    bassLoopSliceVariant,
+    leadTimbre,
+    atmosphereTimbre,
+    leadSliceVariant,
+    sectionVariant,
+  } = dimensions;
   const sampleSignature = resolveSamplePalette(normalizedState, {
     kickTimbre,
     snareTimbre,
@@ -210,9 +211,9 @@ export function createPerformanceArrangement(
   const targetBpm = bounded(
     dynamics.bpm
       + (energy - PERFORMANCE_MACRO_DEFAULTS.energy / 100) * 10
-      + tempoJitter * 100,
-    78,
-    118,
+      + dimensions.tempoNudgeBpm * 0.5,
+    90,
+    134,
   );
   const patternSignature = [
     chordOffset,
@@ -230,6 +231,7 @@ export function createPerformanceArrangement(
   ].join("-");
 
   return Object.freeze({
+    ...dimensions,
     id: `${stateSeed}:${macroValues.energy}:${macroValues.motion}:${macroValues.grit}:${macroValues.space}`,
     seed: normalizedSeed,
     scoreState: normalizedState,

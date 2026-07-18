@@ -12,8 +12,8 @@ import {
   boundVoiceMidi,
   midiToFrequencyHz,
   stableHash,
-} from "./mapping.js?v=20260716-system-symphony-expanded-library";
-import { createHybridSampler } from "./sampler.js?v=20260716-system-symphony-expanded-library";
+} from "./mapping.js?v=20260718-system-symphony-h1-h8-preview";
+import { createHybridSampler } from "./sampler.js?v=20260718-system-symphony-h1-h8-preview";
 
 export const DEFAULT_USER_GAIN = 0.62;
 export const MAX_SERVICE_VOICES = MAX_COMPONENTS;
@@ -716,6 +716,7 @@ export function createEngine() {
   let compressor = null;
   let reverb = null;
   let masterFilter = null;
+  let masterHighpass = null;
   let masterVolume = null;
   let serviceBus = null;
   let serviceDistortion = null;
@@ -750,6 +751,7 @@ export function createEngine() {
   let incidentHandler = null;
   let deploymentHandler = null;
   let performanceHandler = null;
+  let sampleLoadHandler = null;
 
   function familyBus(Tone, family) {
     let bus = familyBuses.get(family);
@@ -812,15 +814,21 @@ export function createEngine() {
     analyser = new Tone.Analyser("waveform", WAVEFORM_SIZE);
     limiter = new Tone.Limiter(-2);
     compressor = new Tone.Compressor(-20, 3.5);
-    reverb = new Tone.Reverb({ decay: 4.8, wet: 1 });
+    reverb = new Tone.Reverb({ decay: 2.1, wet: 1 });
+    masterHighpass = new Tone.Filter({
+      type: "highpass",
+      frequency: 28,
+      rolloff: -12,
+      Q: 0.6,
+    });
     masterFilter = new Tone.Filter({
       type: "lowpass",
-      frequency: 4200,
+      frequency: 12000,
       rolloff: -24,
       Q: 0.85,
     });
     masterVolume = new Tone.Volume(-12);
-    masterVolume.chain(masterFilter, compressor, limiter, userGain);
+    masterVolume.chain(masterHighpass, masterFilter, compressor, limiter, userGain);
     reverb.connect(compressor);
     limiter.connect(analyser);
 
@@ -968,6 +976,7 @@ export function createEngine() {
       output: masterVolume,
       reverbInput: reverb,
       delayInput: terminalDelaySend,
+      onLoadProgress: (stats) => sampleLoadHandler?.(stats),
     });
 
     transport = Tone.getTransport();
@@ -1079,26 +1088,26 @@ export function createEngine() {
       phraseIndex,
       events,
       activePerformance,
-    ) ?? false;
+    ) ?? {};
     if (events.kick) {
       kick.triggerAttackRelease(
         "D1",
         events.kick.duration,
         time,
-        sampled ? Math.min(0.18, events.kick.velocity * 0.2) : events.kick.velocity,
+        sampled.kick ? Math.min(0.18, events.kick.velocity * 0.2) : events.kick.velocity,
       );
     }
-    if (!sampled && events.snare) {
+    if (!sampled.snare && events.snare) {
       snare.triggerAttackRelease(
         events.snare.duration,
         time,
         events.snare.velocity,
       );
     }
-    if (!sampled && events.hat) {
+    if (!sampled.hat && events.hat) {
       hat.triggerAttackRelease(events.hat.duration, time, events.hat.velocity);
     }
-    if (!sampled && events.metal) {
+    if (!sampled.metal && events.metal) {
       metal.triggerAttackRelease(events.metal.duration, time, events.metal.velocity);
     }
   }
@@ -1253,6 +1262,7 @@ export function createEngine() {
     );
     safeRamp(masterVolume.volume, frame.masterGainDb, transition);
     safeRamp(masterFilter.frequency, frame.masterFilterHz, transition);
+    safeRamp(masterHighpass.frequency, frame.masterHpHz, transition);
     safeRamp(
       droneGain.gain,
       droneBase * (performance?.droneMultiplier ?? 1),
@@ -1387,6 +1397,7 @@ export function createEngine() {
       serviceDistortion,
       serviceBus,
       masterVolume,
+      masterHighpass,
       masterFilter,
       reverb,
       compressor,
@@ -1517,6 +1528,7 @@ export function createEngine() {
     isInitialized: () => initialized,
     isRunning: () => running,
     isSampleReady: () => hybridSampler?.isReady?.() ?? false,
+    getSampleLoadStats: () => hybridSampler?.loadStats?.() ?? null,
     getSamplePalette: () => hybridSampler?.getPalette?.() ?? null,
     setVoiceHandler(handler) {
       voiceHandler = typeof handler === "function" ? handler : null;
@@ -1529,6 +1541,9 @@ export function createEngine() {
     },
     setPerformanceHandler(handler) {
       performanceHandler = typeof handler === "function" ? handler : null;
+    },
+    setSampleLoadHandler(handler) {
+      sampleLoadHandler = typeof handler === "function" ? handler : null;
     },
     dispose() {
       if (destroyed) return;

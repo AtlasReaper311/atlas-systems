@@ -306,7 +306,7 @@ test("Demo scene rhythms separate night drive, pressure, pursuit and menu states
   );
 
   assert.deepEqual(sceneEvents.healthy, {
-    bass: 12,
+    bass: 16,
     kicks: 16,
     snares: 8,
     hats: 16,
@@ -330,7 +330,7 @@ test("Demo scene rhythms separate night drive, pressure, pursuit and menu states
     arp: 24,
   });
   assert.deepEqual(sceneEvents.unknown, {
-    bass: 12,
+    bass: 8,
     kicks: 8,
     snares: 4,
     hats: 8,
@@ -389,6 +389,7 @@ function fakeToneRuntime() {
     toDestination() { return this; }
     triggerAttackRelease(...args) { triggers.push({ name: this.name, args }); }
     start() { return this; }
+    stop() { return this; }
     dispose() {}
     getValue() { return new Float32Array(512); }
     async generate() {}
@@ -412,6 +413,14 @@ function fakeToneRuntime() {
     clear() {},
     start() { this.state = "started"; },
   };
+  class ToneAudioBuffer {
+    constructor(url, onLoad) {
+      this.url = url;
+      queueMicrotask(onLoad);
+    }
+    get() { return { url: this.url }; }
+    dispose() {}
+  }
   const Tone = {
     start: async () => undefined,
     Gain: nodeClass("Gain"),
@@ -436,7 +445,7 @@ function fakeToneRuntime() {
     Player: nodeClass("Player"),
     Sampler: nodeClass("Sampler"),
     GrainPlayer: nodeClass("GrainPlayer"),
-    loaded: async () => undefined,
+    ToneAudioBuffer,
     getTransport: () => transport,
     Time: () => ({ toSeconds: () => 0.25 }),
     Draw: { schedule: (callback) => callback() },

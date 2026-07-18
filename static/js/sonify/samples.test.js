@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
   ATMOSPHERE_LOOPS,
+  ASSET_TIERS,
   BASS_LOOPS,
   BASS_SAMPLES,
   DRUM_SAMPLES,
@@ -19,6 +20,11 @@ import {
 
 test("the hybrid library exposes every prepared audio asset with a versioned URL", () => {
   const assets = allSampleAssets();
+  const manifestUrl = new URL(
+    "../../audio/system-symphony/manifest.json",
+    import.meta.url,
+  );
+  const manifest = JSON.parse(readFileSync(manifestUrl, "utf8"));
   assert.equal(assets.length, 38);
   assert.equal(Object.keys(SAMPLE_LIBRARY).length, 38);
   assert.equal(Object.keys(DRUM_SAMPLES).length, 19);
@@ -27,11 +33,25 @@ test("the hybrid library exposes every prepared audio asset with a versioned URL
   assert.equal(Object.keys(ATMOSPHERE_LOOPS).length, 3);
   assert.equal(Object.keys(BASS_LOOPS).length, 4);
   assert.equal(new Set(assets.map((asset) => asset.id)).size, assets.length);
+  assert.equal(manifest.asset_count, assets.length);
+  assert.equal(manifest.assets.length, assets.length);
+  assert.deepEqual(
+    new Set(manifest.assets.map((asset) => asset.slug)),
+    new Set(assets.map((asset) => asset.file)),
+  );
   for (const asset of assets) {
     assert.match(asset.url, new RegExp(`\\?v=${SAMPLE_ASSET_VERSION}$`));
-    const localAsset = new URL(`../../audio/system-symphony/${asset.file}`, import.meta.url);
-    assert.equal(existsSync(localAsset), true, `${asset.file} must exist`);
+    for (const extension of ["opus", "m4a", "wav"]) {
+      const localAsset = new URL(
+        `../../audio/system-symphony/${asset.file}.${extension}`,
+        import.meta.url,
+      );
+      assert.equal(existsSync(localAsset), true, `${asset.file}.${extension} must exist`);
+    }
   }
+  const tierIds = Object.values(ASSET_TIERS).flat().map((asset) => asset.id);
+  assert.equal(tierIds.length, assets.length);
+  assert.equal(new Set(tierIds).size, assets.length);
 });
 
 test("every score state resolves a complete deterministic sample palette", () => {
@@ -135,17 +155,21 @@ test("every active bass palette uses only the six audited one-shots", () => {
   }
 });
 
-test("tonal loops stay mode-safe and Ghost uses procedural texture", () => {
+test("tonal loops stay inside their declared state compatibility", () => {
+  const unknownLeads = new Set();
   for (let timbre = 0; timbre < 16; timbre += 1) {
-    assert.ok(sampleIdForEvent("lead", "healthy", 0, 0, { leadTimbre: timbre }));
-    for (const state of ["warning", "critical", "unknown"]) {
-      assert.equal(sampleIdForEvent("lead", state, 0, 0, { leadTimbre: timbre }), null);
+    for (const state of ["healthy", "warning", "critical", "unknown"]) {
+      const id = sampleIdForEvent("lead", state, 0, 0, { leadTimbre: timbre });
+      if (id) assert.equal(LEAD_LOOPS[id].stateCompatibility.includes(state), true);
+      if (state === "critical") assert.equal(id, null);
+      if (state === "unknown") unknownLeads.add(id);
     }
     assert.equal(
       sampleIdForEvent("atmosphere", "unknown", 0, 0, { atmosphereTimbre: timbre }),
       null,
     );
   }
+  assert.deepEqual(unknownLeads, new Set([null, "geneticist"]));
 });
 
 test("rhythmic bass loops are curated per state and exclude wobble and siren sources", () => {
@@ -172,7 +196,7 @@ test("rhythmic bass loops are curated per state and exclude wobble and siren sou
 });
 
 test("state section cycles and lead phrases remain distinct", () => {
-  const expectedLeadCounts = { healthy: 4, warning: 0, critical: 0, unknown: 0 };
+  const expectedLeadCounts = { healthy: 4, warning: 2, critical: 0, unknown: 2 };
   const sectionSignatures = new Set();
   for (const state of ["healthy", "warning", "critical", "unknown"]) {
     const sections = Array.from({ length: 8 }, (_, phrase) => (

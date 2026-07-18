@@ -7,9 +7,9 @@ The complete owner-provided folder was re-inventoried after its replacement. It 
 ## Selection rules
 
 - Prefer distinct transients, bass envelopes and tonal identities over using every file.
-- Keep tonal sampled leads in Healthy's D Aeolian grammar after declared transposition.
-- Keep Warning and Critical melodic content procedural so their Phrygian modes cannot be contradicted by fixed melodic loops.
-- Keep Ghost tonal loops disabled because its D-suspended grammar makes minor-third content conspicuous.
+- Keep tonal sampled leads behind explicit state-compatibility declarations after declared transposition.
+- Allow only the background-saws and wobbly-synth palettes in Warning; Critical melodic content remains procedural.
+- Keep Ghost predominantly procedural, with a sparse low-volume Geneticist grain as the only compatible sampled lead option.
 - Trigger rhythmic sources as four-beat, bar-quantised fragments. No rhythmic WAV free-runs against the Tone.js transport.
 - Preserve the procedural score as the bounded fallback if any browser decode fails.
 
@@ -67,3 +67,6 @@ The complete owner-provided folder was re-inventoried after its replacement. It 
 - Burial, Deep and Doom resolve around 32.7 Hz (C1), providing cleaner substitutes for the removed Mothership-style bass material.
 - Eight-beat lead sources wrap their deterministic source-beat selector instead of seeking beyond the end of the buffer.
 - Every rhythmic bass fragment is selected and restarted on a measure boundary, tempo-scaled within a bounded range and double-buffered so adjacent measures do not reuse an active voice.
+- Browser delivery now prefers Opus with AAC and WAV fallbacks. Core rhythm assets load first; later tiers fail independently.
+- Burial trims 0.018 seconds of leading noise. Geneticist ends at 18.160 seconds. Motherboard, Nanotech and New Punks use the reviewed tail trims from the H1-H8 build.
+- Only the selected atmosphere is started; state changes crossfade and stop the prior player instead of idling all three loops.

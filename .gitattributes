@@ -6,6 +6,8 @@
 *.mp3 binary
 *.mp4 binary
 *.wav binary
+*.opus binary
+*.m4a binary
 *.woff binary
 *.woff2 binary
 *.ttf binary

@@ -1,0 +1,462 @@
+{
+  "asset_count": 38,
+  "assets": [
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "trim atmosphere tail",
+      "process_sha256": "30f39f1d5291917f20012ff024fcf89e89759b6743cb8778f347bd38f61be9b8",
+      "slug": "atmos-motherboard-106-d-sharp-min",
+      "source": "Cymatics - Motherboard Pt 2 - 106 BPM D# Min Atmosphere.wav",
+      "source_sha256": "6fea7c1c395279b8c6d7e760b6fe6bd488ac122c3cef4383549f0b09a2e8cd14"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "trim reverb tail",
+      "process_sha256": "d5dd95b42b9d493522a9a3d54c27ca406acf35b0df1f70b2ecd5754e3218817c",
+      "slug": "atmos-nanotech-105-g-min",
+      "source": "Cymatics - Nanotech Pt 2 - 105 BPM G Min Ambience.wav",
+      "source_sha256": "36b487db9e1655df08a6740bb37c5a80da5a5a08086eff4f5e73967022ea507e"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "trim lead-in and tail",
+      "process_sha256": "71e224f807520a8a934b426f11c78a958fe97db4502e01a35cfda580b1ebc0c9",
+      "slug": "atmos-new-punks-100-c-min",
+      "source": "Cymatics - New Punks - 100 BPM C Min Atmosphere.wav",
+      "source_sha256": "bde1353b49d77ad5f4ea310c8ec86ff12a285cf85b3d8c625f9fdfd573e2f741"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "F root plays as D at -300 cents",
+      "process_sha256": "ac72dcf18f65ab1e76e6e30a33fddf9e561e476bb636d6b4ed00cb917e6b5d69",
+      "slug": "bass-angry-d1",
+      "source": "Fm_AngryArpBass_849.wav",
+      "source_sha256": "547ae8667ed797f4e28e9ffd7607ae98ee2257aad020a6557d46c7e8d9b9a806"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "trim leading noise",
+      "process_sha256": "69a78a26c1be10a4e43abe573b5d48119e04c4a1eede1de950628f8d3a541804",
+      "slug": "bass-burial-c1",
+      "source": "Cymatics - BASS Burial - C.wav",
+      "source_sha256": "e7f66a7c5be8f18bb19ca0986ecc30e240a571573370985a433faf618b92e33b"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "c7727cae0eece3a231c33fa06a5e38db12890e9ca7dbaa2e397ac937bf31e1b2",
+      "slug": "bass-deep-c1",
+      "source": "Cymatics - BASS Deep - C.wav",
+      "source_sha256": "22d0809a0000846d99886bfaf40b7f99a24ecba86c1a774b77747aaa00e2c14a"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "c70b47a580817471b83d14017faa869bbf2ac7abb78cab3a6306a34bb1e35048",
+      "slug": "bass-doom-c1",
+      "source": "Cymatics - BASS Doom - C.wav",
+      "source_sha256": "dbbe6751d60f434e6971349634db0d60ce1c01ed76cfda6090640a36645c0608"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "F root plays as D at -100 cents",
+      "process_sha256": "73cc61ba736f1672dc56731e9d0846d48302bedb303b916ee1fe7ec7328d2db0",
+      "slug": "bass-percussive-d-sharp1",
+      "source": "Fm_PercussiveBass_849.wav",
+      "source_sha256": "c09e37a8d60a08a44cdb5e2528e3cc6a1a50267be764ffa69e2176e07e894178"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "A0 sub",
+      "process_sha256": "ab3fbfbb718482aef8e146b512d4edb413b0b99e091c6476c62b344e9f2b66af",
+      "slug": "bass-transformer-a0",
+      "source": "Am_TransformerBass_849.wav",
+      "source_sha256": "1619b17befa8a47ff2786365ee2a397979fbfb814c4a36c05b6874cb7234a573"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "critical only",
+      "process_sha256": "90dbacc9ad40229c1987f4d73ca5260be96e93fb40e0f8ab76ac3c341c6de107",
+      "slug": "bassloop-distorted-guitar-105-f",
+      "source": "105_F_DistortedGuitarBass_849.wav",
+      "source_sha256": "f3cf9193152c6ab97f93e8ea252047d4233a49d6d0fd18b8f12a36b7168f77ac"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "F minor",
+      "process_sha256": "f6d18061756963a4b4b378d3280c066e226c19bfa8934e49d4f3059c8c3f0593",
+      "slug": "bassloop-evil-100-f-min",
+      "source": "100_Fm_EvilBass_02_849.wav",
+      "source_sha256": "9f611864c186905a8186f5d71e2b0fe59a4f1997ef75f3d77a37c6b087f17750"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "root and fifth",
+      "process_sha256": "9a8d08040aff32214db0046041756d1de0b91f8e8b6ab71e3590bb51978839b0",
+      "slug": "bassloop-neo-tokyo-100-f",
+      "source": "100_F_NeoTokyoBass_849.wav",
+      "source_sha256": "cb16426d660d3e22abd80f961b98925a0fb256c5622b2665be2bc3e9a9c3d238"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "F minor",
+      "process_sha256": "e3ee87bba20199b9de4b69a45fa990e5dd4ebe7b527298af15eb0a818ca35452",
+      "slug": "bassloop-sequenced-100-f-min",
+      "source": "100_Fm_SequencedBass_849.wav",
+      "source_sha256": "24674cdd2e693b9bb8df542cfd1a2e81a5480018571e46d7adc433182d073eb5"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "5b51a13bf6ae51e6754c3f4bb1a6935a99b9c9dbfa76b83059771ffe6d247599",
+      "slug": "crash-crisp",
+      "source": "CrispCrash_849.wav",
+      "source_sha256": "1a3d437f9bc5e2bd86c6a0a0bd6a97d5631d3b2c0de918328fdf51cc236b3705"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "d60a098e835433f62054f9bc76911edbed27b32695b7175446e3f9a77d779c8d",
+      "slug": "fx-tapestop",
+      "source": "X_FuturisticTapestop_849.wav",
+      "source_sha256": "e0390a478dfe539cd36899263e9e60e51b1f7f94e485e71eb96049592c566c21"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "7322ecd14ad460f72e3d1d96ae7efce2f862c0538a69c7a1955710e425520d0d",
+      "slug": "hat-aggressive",
+      "source": "AggresiveHat_849.wav",
+      "source_sha256": "553f9df0202eda7e44a9cb931220776615d984322d44f065ee8a584ee8f0adb4"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "8d2ee3d167469aba39ed49e96d4ec9c03775d83dc03ebc7feffda47da7f6d882",
+      "slug": "hat-classic",
+      "source": "ClassicHat_849.wav",
+      "source_sha256": "cd7dc0e59355772cb3465783884c52a6a11dd2be8b7ee0dd168068e600775afb"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "cc5abc9a09a6ca456fe9179cd04e7e5b56c6a71dc24a271f3a017bd3c8d70c38",
+      "slug": "hat-hard",
+      "source": "HardHat_02_849.wav",
+      "source_sha256": "effd05557f8dc294ad37e7a873d0a8a8dd026a7cde28d9d0d6b4d9f098754ba7"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "588afaee3086784aceec292083c3903f5eb81ac675ad138378173994df8a55b2",
+      "slug": "hat-layer",
+      "source": "GoodLayerHat_849.wav",
+      "source_sha256": "c766fcdf7c24c5565e51982f598eca3f9c604da473e97e6cabeedd50d2588cc5"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "8b1d592d9ae9e53d22968530c05ec8a9f5f3719c331efca9776c5a6862b78636",
+      "slug": "hat-subtle",
+      "source": "SubtleHat_849.wav",
+      "source_sha256": "a8035125f7ec5d97a3eb3683fc8736ed4fce38f20445fc99611316ccf2582289"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "81d8cfe7e5eb56f1963db792a91ea17ba0faf010ec69fe6c496e7c1375761ca0",
+      "slug": "kick-aggressive",
+      "source": "AggresiveKick_849.wav",
+      "source_sha256": "9b275d3c2de2c12a2ab118da6f8d8cd01b483710e4cf9968072e0a86cafaa891"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "7f47232c8531061a934435d6fc6b9c18a35934a26111108865956bec7d76a6a8",
+      "slug": "kick-crispy",
+      "source": "CrispyKick_849.wav",
+      "source_sha256": "fff0133f3076c6b767a2eeaaa5bc5cde0c53a332ee5912bbc41ad121d1a5d305"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "3f032c0d3b6274722302464791d0b9ac2b612c8043eedc26c170d6f0b0c0970d",
+      "slug": "kick-punchier",
+      "source": "PunchierKick_849.wav",
+      "source_sha256": "2a68fe17e2811ae5d46c0763398bb1f85eae484ca53713780e7a05a24a46c1e9"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "80855733d48b5ba58c399004986fe5e3492db96e1da174e33bc7253a78bc3b1f",
+      "slug": "kick-subtle",
+      "source": "SubltleKick_849.wav",
+      "source_sha256": "5ec14f195e5a208c0340c80970c7ddc184ee8ff3a6d466279e47ff4285a257b6"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "F minor",
+      "process_sha256": "859610e1697e73bfca8d142b4cdd1f9597aa0cc67d153ffb9a6b13acf2dec74b",
+      "slug": "lead-acid-synth-100-f-min",
+      "source": "100_Fm_AcidSynth_849.wav",
+      "source_sha256": "ddcaf84504b525ad41737a87fa36d16ab327b381728b5bb4ebd51c5e53463355"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "native D minor",
+      "process_sha256": "be4bf12e199750b32ee876538a4a29ea321326e1a9c155d9a2803aa66a355205",
+      "slug": "lead-background-saws-100-d-min",
+      "source": "100_Dm_BackgrndSawsSynth_849.wav",
+      "source_sha256": "6a30afbadbdff9632addba65151a7481109631d97a9edeed986c811942f8e9aa"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "E minor",
+      "process_sha256": "71e2f62a9a8dd06d4fcd2c3f223a04b16680e11518a0f30b176626a9b06ca0ee",
+      "slug": "lead-future-synth-100-e-min",
+      "source": "100_Em_FutureSynth_01_849.wav",
+      "source_sha256": "90b428cc73d1293b6cee6d5207dc6826ca409fae125bc928216a3a18c9bdb77f"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "eight-bar loop trim",
+      "process_sha256": "bf4cb11802bd1b605ce4cbfa020f5df2bc58dff49c34b0e17b0d17a5c50ca4d2",
+      "slug": "lead-geneticist-96-e-min",
+      "source": "Cymatics - Geneticist - 96 BPM E Min Distorted Lead.wav",
+      "source_sha256": "8deeb80cb285041b8e38566cffd19336a0c8d4f015b2d709b2866383c7a17871"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "e0b00a7bbdd8d597e43b0614b1686d60bd37dc48d08d5e5def27152456efefe4",
+      "slug": "lead-no-alternative-100-e-min",
+      "source": "Cymatics - No Alternative - 100 BPM E Min Distorted Lead.wav",
+      "source_sha256": "8d778a00599297e7e4d3b2858f3713458460c8dba4d12a90d4f3fb75fe277bc1"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "D-sharp minor",
+      "process_sha256": "492adbc53eedc53fa90767e36749316b7c03ad4a20a1ccc9c6df767737306372",
+      "slug": "lead-wobbly-synth-104-d-sharp-min",
+      "source": "104_D#m_WobblySynth_849.wav",
+      "source_sha256": "37a7c9cb5768ab68dd20e5e3e74f432a172dc21cd9cacafbc24843d403b178ac"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "b12f26896ff813ec37a79cf84a9e3edeef1e4c714cbd6da8e90e00862eb26431",
+      "slug": "perc-ac-unit-1",
+      "source": "Cymatics - AC Unit Hit 1.wav",
+      "source_sha256": "6d08ad8a3e609f0e37691e00b4bc1528198baccbeb3e1dc8d7efd2766dc8b2fa"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "301fbaaea9bc98a0d08d7270dc92c4f3d44b102c81c1c7cec3367bc5ab84b583",
+      "slug": "perc-ac-unit-3",
+      "source": "Cymatics - AC Unit Hit 3.wav",
+      "source_sha256": "ee6944f68f40b8a3be32517a09909a479ffdaaf8466a32d7808090aa33d171db"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "a48315100935bf38ff8bb30bbe825c16881d9d332a43e515024c47e8371fde60",
+      "slug": "perc-ac-unit-6",
+      "source": "Cymatics - AC Unit Hit 6.wav",
+      "source_sha256": "6925e59c3cc94e3139bf5706560a715ec2f6b067f2ee92c38c070136e224daa3"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "c9f876cf55a3d36a00b99839803ffcdb48e7dec1698a538e771bf72061d3ad36",
+      "slug": "perc-stick",
+      "source": "StickPercussion_849.wav",
+      "source_sha256": "db78f3520d4f0c9768394d6c4585c32fff5651d9d8fae5c7dbcbc090796de81f"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "bfc7c1a95377b632c2b6dfe176ace8b3a7142277a4741aa585eaa55acec6fd9a",
+      "slug": "snare-aggressive",
+      "source": "AggresiveClapSnare_849.wav",
+      "source_sha256": "8222ae889004257e928632385b4bc380f7ad6037792b418cf938c882bbcc0e84"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "0a0a254da1f217771197f562380c28f466019e4134e53deef7961aec3583c057",
+      "slug": "snare-bright",
+      "source": "BrightClapSnare_849.wav",
+      "source_sha256": "cd8a50d3a3a0824d7c1a8e4c6083ba7e66accbd0b681473d34170854d09ddd98"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "82119e77a6cb72a3689b46cb18a97986d34cf44cb99b8fa9cfadfebd1863e598",
+      "slug": "snare-clip",
+      "source": "ClipClapSnare_849.wav",
+      "source_sha256": "fa293058aa44b3944bd137306afb8b9734740f516b00a7b1890618e5ff3fccc6"
+    },
+    {
+      "formats": [
+        "opus",
+        "m4a",
+        "wav"
+      ],
+      "note": "general",
+      "process_sha256": "5c3f97eb5d8713d486cc490dbdcdcbac480f6691bc21ddac39bafd717b931ed0",
+      "slug": "snare-regular",
+      "source": "RegularClapSnare_849.wav",
+      "source_sha256": "437a12295889b90d1b071e24752cbb826fec80642b890258b2dae0bcd2315313"
+    }
+  ],
+  "version": "20260718-system-symphony-h1-h8-preview"
+}

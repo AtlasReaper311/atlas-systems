@@ -8,15 +8,15 @@
 import {
   DEFAULT_USER_GAIN,
   createEngine,
-} from "./engine.js?v=20260716-system-symphony-expanded-library";
-import { createPoller } from "./poller.js?v=20260716-system-symphony-demo-ui";
+} from "./engine.js?v=20260718-system-symphony-h1-h8-preview";
+import { createPoller } from "./poller.js?v=20260718-system-symphony-h1-h8-preview";
 import {
   applyDemoProfileToServices,
   buildDependencyGraph,
   computeFrame,
   deriveDemoEstate,
   filterVoices,
-} from "./mapping.js?v=20260716-system-symphony-demo-ui";
+} from "./mapping.js?v=20260718-system-symphony-h1-h8-preview";
 import {
   DEFAULT_PERFORMANCE_SEED,
   PERFORMANCE_MACRO_DEFAULTS,
@@ -24,8 +24,8 @@ import {
   createPerformanceArrangement,
   formatPerformanceSeed,
   normalizePerformanceSeed,
-} from "./performance.js?v=20260716-system-symphony-expanded-library";
-import { resolveSamplePalette } from "./samples.js?v=20260716-system-symphony-expanded-library";
+} from "./performance.js?v=20260718-system-symphony-h1-h8-preview";
+import { resolveSamplePalette } from "./samples.js?v=20260718-system-symphony-h1-h8-preview";
 
 const WIDGET_ID = "system-symphony-widget";
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -1265,6 +1265,13 @@ export function initSystemSymphony() {
     if (performanceArrangement?.id !== performance.id) return;
     performanceStatus = `Active // ${performance.sceneName} // ${performance.seed}`;
     renderPerformance(currentFrame);
+  });
+  engine.setSampleLoadHandler((stats) => {
+    const status = host.querySelector("[data-important-status]");
+    if (!status || engine.isRunning()) return;
+    status.textContent = stats.failed > 0
+      ? `Loading hybrid instrument: ${stats.loaded} ready, ${stats.failed} using fallback.`
+      : `Loading hybrid instrument: ${stats.loaded} / ${stats.requested} ready.`;
   });
 
   const poller = createPoller({

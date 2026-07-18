@@ -37,8 +37,24 @@ Live source for [atlas-systems.uk](https://atlas-systems.uk). Hand-built HTML, C
 | Notify | `atlas-infra/validate-static.yml` | always | Reports deploy outcome to Discord and the Lab failure log |
 | Corpus refresh | `atlas-corpus/refresh-corpus.yml` | push to `main` | Re-ingests the estate docs into the searchable corpus |
 | Outcome verification | `deploy-watch` | Cloudflare cron | Confirms the actual Pages deployment result from Cloudflare's API |
+| Branch preview | `preview.yml` | push to `feat/system-symphony-h1-h8-preview` | Validates and publishes a non-production `pages.dev` branch preview |
 
 The push event, validation gate, deploy result, and Cloudflare Pages outcome are separate signals. `deploy.yml` handles the build path; `deploy-watch` independently verifies whether Cloudflare actually produced the expected deployment.
+
+### System SYMPHONY branch preview
+
+The H1-H8 preview branch has an intentionally narrow deployment path. Pushing
+`feat/system-symphony-h1-h8-preview` runs the complete static-site checks, then
+publishes the repository root with Wrangler's non-production `--branch` flag.
+The expected stable alias is
+`https://feat-system-symphony-h1-h8-preview.atlas-systems.pages.dev`.
+
+The preview job uses the `pages-preview` GitHub environment and the existing
+least-privilege `CF_PAGES_DEPLOY_TOKEN` and `CF_ACCOUNT_ID` secrets. It cannot
+run for `main`, does not regenerate or commit the sitemap, does not purge the
+production zone cache, does not refresh the corpus, and does not send a
+production deployment notification. Pushing the named branch is therefore an
+explicit preview-deployment action; local work does not publish anything.
 
 ## Live data
 
