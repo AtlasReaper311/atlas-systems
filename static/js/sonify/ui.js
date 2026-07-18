@@ -9,7 +9,7 @@ import {
   AUDIO_CONTEXT_BLOCKED_CODE,
   DEFAULT_USER_GAIN,
   createEngine,
-} from "./engine.js?v=20260718-system-symphony-ghost-crossfade";
+} from "./engine.js?v=20260718-system-symphony-ghost-mix-guard";
 import { createPoller } from "./poller.js?v=20260718-system-symphony-ghost-circuit";
 import {
   applyDemoProfileToServices,

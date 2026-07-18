@@ -305,6 +305,7 @@ export function createHybridSampler(Tone, {
     transition = 0.5,
     scheduledTime = undefined,
     ghostOptions = {},
+    { ghostMixOnly = false } = {},
   ) {
     const state = normalizedState(frame?.scoreState);
     const mix = STATE_MIX[state];
@@ -319,7 +320,9 @@ export function createHybridSampler(Tone, {
     const ramp = (parameter, value) => (
       safeRamp(parameter, value, transition, scheduledTime)
     );
-    currentPalette = resolveSamplePalette(state, performance, phraseIndex);
+    if (!ghostMixOnly) {
+      currentPalette = resolveSamplePalette(state, performance, phraseIndex);
+    }
     const energy = performance?.energy ?? 0.55;
     const space = performance?.space ?? 0.5;
     ramp(
@@ -340,7 +343,7 @@ export function createHybridSampler(Tone, {
         * phaseMix.bass
         * ghostMix.backing,
     );
-    ramp(bassFilter.frequency, mix.bassFilterHz);
+    if (!ghostMixOnly) ramp(bassFilter.frequency, mix.bassFilterHz);
     ramp(
       leadBus.gain,
       mix.lead
@@ -355,10 +358,13 @@ export function createHybridSampler(Tone, {
         * phaseMix.pad
         * ghostMix.pad,
     );
-    ramp(atmosphereFilter.frequency, mix.atmosphereFilterHz);
-    ramp(bassDriveSend.gain, mix.drive * (0.7 + (performance?.grit ?? 0.45) * 0.6));
-    ramp(roomSend.gain, mix.room * (0.7 + space * 0.5));
-    ramp(leadDelaySend.gain, mix.delay * (0.8 + space * 0.35));
+    if (!ghostMixOnly) {
+      ramp(atmosphereFilter.frequency, mix.atmosphereFilterHz);
+      ramp(bassDriveSend.gain, mix.drive * (0.7 + (performance?.grit ?? 0.45) * 0.6));
+      ramp(roomSend.gain, mix.room * (0.7 + space * 0.5));
+      ramp(leadDelaySend.gain, mix.delay * (0.8 + space * 0.35));
+    }
+    if (ghostMixOnly) return currentPalette;
     if (!ready) return currentPalette;
     const desiredAtmosphere = currentPalette.atmosphere;
     if (desiredAtmosphere !== activeAtmosphereId) {

@@ -13,7 +13,7 @@ import {
   midiToFrequencyHz,
   stableHash,
 } from "./mapping.js?v=20260718-system-symphony-ghost-circuit";
-import { createHybridSampler } from "./sampler.js?v=20260718-system-symphony-ghost-mix";
+import { createHybridSampler } from "./sampler.js?v=20260718-system-symphony-ghost-mix-guard";
 import {
   arrangementPhaseForPhrase,
   filterAutomationMultiplier,
@@ -1391,6 +1391,7 @@ export function createEngine() {
 
   function onEighth(time) {
     if (!running || !currentFrame) return;
+    if (!Number.isFinite(time)) return;
     const step = stepIndex % PHRASE_STEPS;
     if (step === 0 && stepIndex > 0) phraseIndex += 1;
     let performanceChanged = false;
@@ -1464,6 +1465,7 @@ export function createEngine() {
 
   function onSixteenth(time) {
     if (!running || !currentFrame || !activePerformance) return;
+    if (!Number.isFinite(time)) return;
     const step = arpStepIndex % PHRASE_STEPS;
     applyGhostFilterMotion(time, currentFrame, step);
     playTerminal(time, currentFrame, step, phraseIndex);
@@ -1482,6 +1484,7 @@ export function createEngine() {
     frame,
     transition = frame.transitionSeconds,
     scheduledTime = undefined,
+    { ghostMixOnly = false } = {},
   ) {
     const performance = activePerformance;
     const phaseMix = performance
@@ -1530,13 +1533,15 @@ export function createEngine() {
           ? 0.02
           : 0.012;
 
-    ramp(
-      transport.bpm,
-      performance?.targetBpm ?? frame.bpm,
-    );
-    ramp(masterVolume.volume, frame.masterGainDb);
-    ramp(masterFilter.frequency, frame.masterFilterHz);
-    ramp(masterHighpass.frequency, frame.masterHpHz);
+    if (!ghostMixOnly) {
+      ramp(
+        transport.bpm,
+        performance?.targetBpm ?? frame.bpm,
+      );
+      ramp(masterVolume.volume, frame.masterGainDb);
+      ramp(masterFilter.frequency, frame.masterFilterHz);
+      ramp(masterHighpass.frequency, frame.masterHpHz);
+    }
     ramp(
       droneGain.gain,
       droneBase * (performance?.droneMultiplier ?? 1) * ghostMix.pad,
@@ -1559,10 +1564,12 @@ export function createEngine() {
         * ghostMix.backing,
     );
     ramp(serviceBus.gain, 0.86 * ghostMix.backing);
-    ramp(
-      counterlineFilter.frequency,
-      counterlineFilterBase * (performance?.serviceFilterMultiplier ?? 1),
-    );
+    if (!ghostMixOnly) {
+      ramp(
+        counterlineFilter.frequency,
+        counterlineFilterBase * (performance?.serviceFilterMultiplier ?? 1),
+      );
+    }
     ramp(
       percussionGain.gain,
       (PERCUSSION_BUS_GAINS[frame.scoreState] ?? 0)
@@ -1596,12 +1603,14 @@ export function createEngine() {
         (performance?.riffGain ?? 0) * phaseMix.riff * ghostMix.riff,
       ),
     );
-    ramp(
-      terminalFilter.frequency,
-      performance ? 3200 + performance.grit * 2200 : 4200,
-    );
-    ramp(terminalDelaySend.gain, performance?.delayWet ?? 0.08);
-    ramp(serviceDistortion.wet, performance?.distortionWet ?? 0);
+    if (!ghostMixOnly) {
+      ramp(
+        terminalFilter.frequency,
+        performance ? 3200 + performance.grit * 2200 : 4200,
+      );
+      ramp(terminalDelaySend.gain, performance?.delayWet ?? 0.08);
+      ramp(serviceDistortion.wet, performance?.distortionWet ?? 0);
+    }
     ramp(
       riffDriveSend.gain,
       performance
@@ -1611,14 +1620,16 @@ export function createEngine() {
         )
         : 0,
     );
-    ramp(
-      atmosphericSend.gain,
-      0.08 + (performance?.reverbWet ?? 0.22) * 0.5,
-    );
-    ramp(
-      textureFilter.frequency,
-      performance ? 360 + performance.grit * 440 : 420,
-    );
+    if (!ghostMixOnly) {
+      ramp(
+        atmosphericSend.gain,
+        0.08 + (performance?.reverbWet ?? 0.22) * 0.5,
+      );
+      ramp(
+        textureFilter.frequency,
+        performance ? 360 + performance.grit * 440 : 420,
+      );
+    }
     hybridSampler?.applyScene(
       frame,
       performance,
@@ -1626,6 +1637,7 @@ export function createEngine() {
       transition,
       scheduledTime,
       { focus: ghostFocus, audition: ghostAudition },
+      { ghostMixOnly },
     );
   }
 
@@ -1833,13 +1845,27 @@ export function createEngine() {
 
     setGhostFocus(enabled) {
       ghostFocus = Boolean(enabled);
-      if (initialized && currentFrame) applyMixToGraph(currentFrame, 0.25);
+      if (initialized && currentFrame) {
+        applyMixToGraph(
+          currentFrame,
+          0.25,
+          undefined,
+          { ghostMixOnly: true },
+        );
+      }
       return ghostFocus;
     },
 
     setGhostAudition(layer) {
       ghostAudition = layer === "arp" || layer === "riff" ? layer : null;
-      if (initialized && currentFrame) applyMixToGraph(currentFrame, 0.18);
+      if (initialized && currentFrame) {
+        applyMixToGraph(
+          currentFrame,
+          0.18,
+          undefined,
+          { ghostMixOnly: true },
+        );
+      }
       return ghostAudition;
     },
 

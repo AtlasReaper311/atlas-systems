@@ -124,6 +124,22 @@ test("the hybrid sampler loads in tiers and constructs voices only when played",
       runtime.starts.some(({ name, args }) => name === "GrainPlayer" && args[0] === 3.5),
       "scheduled atmosphere starts must use the transport callback time",
     );
+    const startsBeforeGhostMix = runtime.starts.length;
+    const focusPalette = sampler.applyScene(
+      frame,
+      performance,
+      0,
+      0.18,
+      undefined,
+      { focus: true },
+      { ghostMixOnly: true },
+    );
+    assert.equal(focusPalette.signature, palette.signature);
+    assert.equal(
+      runtime.starts.length,
+      startsBeforeGhostMix,
+      "listening controls must not restart atmosphere or loop sources",
+    );
     assert.deepEqual(sampler.playDrums(0, frame, 0, 0, {
       kick: { velocity: 0.7 },
       snare: { velocity: 0.5 },

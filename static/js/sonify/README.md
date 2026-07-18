@@ -181,7 +181,9 @@ receive bounded boosts while an active riff ducks the sampled lead by roughly
 listening. **Hear arp** and **Hear riff** isolate their target voice over a very
 quiet pad and backing. The console shows the current real Ghost phase across a
 `Boot → Drive → Lift → Drop → Afterglow` timeline; it no longer relies on the
-separate sample-section label to explain the arrangement.
+separate sample-section label to explain the arrangement. These listening
+controls update layer gains only; they cannot restart samples, reapply scene
+filters or overlap the transport BPM automation.
 
 Demo scene changes are staged as one atomic frame-and-arrangement update on the
 next bar. Tempo, master tone, layer buses, sample buses and effects then ramp for
@@ -191,7 +193,8 @@ crossfade. This keeps Healthy, Warning, Critical and Ghost changes musical and
 prevents the previous half-old/half-new measure. Bulk Demo scene buttons also
 avoid the separate live-incident impact accent, which previously landed ahead
 of the Critical crossfade. Page teardown stops the shared Tone transport before
-disposing the audio graph.
+disposing the audio graph, and both scheduler callbacks reject non-finite times
+before they can reach a Tone audio parameter.
 
 The arrangement permits one tape-stop transition at most once per eight phrases
 and retains the existing bounded crash accents. Effect wet values, riff gain,

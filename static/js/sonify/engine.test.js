@@ -483,10 +483,12 @@ function fakeToneRuntime() {
   const scheduledRepeats = new Map();
   const scheduledParameterWrites = [];
   let transportStopCount = 0;
+  let transportBpmRampCount = 0;
   const parameter = (value = 0) => ({
     value,
     rampTo(nextValue) {
       this.value = nextValue;
+      if (this.label === "transport-bpm") transportBpmRampCount += 1;
     },
     setValueAtTime(nextValue, time) {
       this.value = nextValue;
@@ -602,6 +604,7 @@ function fakeToneRuntime() {
     scheduledParameterWrites,
     scheduledRepeats,
     transportBpm: () => transport.bpm.value,
+    transportBpmRampCount: () => transportBpmRampCount,
     transportStopCount: () => transportStopCount,
     runEighth: (time = 0) => scheduledRepeats.get("8n")?.(time),
     runSixteenth: (time = 0) => scheduledRepeats.get("16n")?.(time),
@@ -642,14 +645,20 @@ test("the browser graph allocates Demo effects once and applies a queued score o
     assert.equal(applied[0].id, performance.id);
     assert.equal(phases.length, 1);
     assert.equal(phases[0], engine.getGhostPhase().name);
+    const bpmRampsBeforeFocus = runtime.transportBpmRampCount();
     assert.equal(engine.setGhostFocus(true), true);
+    assert.equal(runtime.transportBpmRampCount(), bpmRampsBeforeFocus);
     assert.deepEqual(engine.getGhostMixState(), { focus: true, audition: null });
     assert.equal(engine.setGhostAudition("riff"), "riff");
+    assert.equal(runtime.transportBpmRampCount(), bpmRampsBeforeFocus);
     assert.deepEqual(engine.getGhostMixState(), { focus: true, audition: "riff" });
     assert.equal(engine.setGhostAudition("invalid"), null);
     assert.ok(runtime.scheduledParameterWrites.length > 0);
     assert.ok(runtime.scheduledParameterWrites.every(({ time }) => Number.isFinite(time)));
     const triggerCount = runtime.triggers.length;
+    runtime.runEighth(null);
+    runtime.runSixteenth(null);
+    assert.equal(runtime.triggers.length, triggerCount);
     for (let step = 0; step < 32; step += 1) runtime.runSixteenth(step / 4);
     assert.ok(
       runtime.triggers.length >= triggerCount + 18,
