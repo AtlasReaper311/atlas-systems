@@ -1,14 +1,479 @@
-.instrument { display: grid; gap: 1.2rem; }
-.instrument-head { display: flex; justify-content: space-between; align-items: end; gap: 1rem; flex-wrap: wrap; }
-.transport { display: flex; align-items: center; gap: .65rem; flex-wrap: wrap; }
-#scope { height: 260px; }
-.meter-row { display: flex; gap: 1.5rem; flex-wrap: wrap; color: var(--text-faint); font-size: 11px; }
-.meter-row strong { color: var(--text); font-weight: 500; }
-.controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
-.controls .control { display: grid; grid-template-columns: 1fr auto; gap: .45rem; color: var(--text-dim); font-size: 12px; }
-.controls .control label { color: inherit; }
-.controls input { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
-.controls output { color: var(--accent); font-variant-numeric: tabular-nums; }
-.seed-row { display: flex; align-items: center; gap: .65rem; flex-wrap: wrap; }
-.seed-row input { width: 12rem; padding: .6rem; border: 1px solid var(--border-hi); background: var(--bg); color: var(--text); }
-@media (max-width: 760px) { .controls { grid-template-columns: 1fr; } #scope { height: 190px; } }
+.instrument {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.instrument-head,
+.panel-heading,
+.source-panel,
+.mode-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.transport,
+.button-bank,
+.genome-actions,
+.seed-row {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  flex-wrap: wrap;
+}
+
+.garden-stage {
+  position: relative;
+  min-height: 420px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(245, 166, 35, .08), transparent 34%),
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px),
+    var(--bg);
+  background-size: auto, 40px 40px, 40px 40px, auto;
+}
+
+#scope {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.garden-overlay {
+  position: absolute;
+  z-index: 2;
+  left: 1rem;
+  right: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  pointer-events: none;
+  color: var(--text-faint);
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.garden-overlay-top {
+  top: .85rem;
+}
+
+.garden-overlay-top strong {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.garden-overlay-bottom {
+  bottom: .85rem;
+  justify-content: flex-start;
+  gap: 1.5rem;
+}
+
+.meter-row {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  color: var(--text-faint);
+  font-size: 11px;
+}
+
+.meter-row strong {
+  color: var(--text);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.performance-grid,
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.performance-panel,
+.mode-panel,
+.source-panel,
+.advanced-panel,
+.inspector-panel {
+  border: 1px solid var(--border);
+  background: rgba(17, 17, 24, .92);
+  padding: 1.2rem;
+}
+
+.performance-panel h3,
+.mode-panel h3,
+.source-panel h3 {
+  margin-top: .35rem;
+}
+
+.quick-genomes {
+  display: flex;
+  gap: .45rem;
+  flex-wrap: wrap;
+  margin: 1rem 0 .2rem;
+}
+
+.quick-genomes button {
+  padding: .5rem .65rem;
+  font-size: 10px;
+}
+
+.quick-genomes button.active {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.genome-selectors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .8rem;
+  margin: 1rem 0;
+}
+
+.genome-selectors label,
+.wide-control {
+  display: grid;
+  gap: .45rem;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.genome-selectors select,
+.seed-row input[type="number"] {
+  width: 100%;
+  padding: .65rem;
+  border: 1px solid var(--border-hi);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.wide-control {
+  grid-template-columns: 1fr auto;
+  margin-top: .8rem;
+}
+
+.wide-control input {
+  grid-column: 1 / -1;
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.wide-control output {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.genome-actions {
+  margin-top: 1rem;
+}
+
+.macro-panel {
+  display: grid;
+  align-content: start;
+}
+
+.macro-pad {
+  position: relative;
+  min-height: 250px;
+  margin-top: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--border-hi);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(245, 166, 35, .08), transparent 45%),
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
+    var(--bg);
+  background-size: auto, 32px 32px, 32px 32px, auto;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.macro-pad:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.macro-axis {
+  position: absolute;
+  color: var(--text-faint);
+  font-size: 9px;
+  letter-spacing: .12em;
+  pointer-events: none;
+}
+
+.macro-axis-top,
+.macro-axis-bottom {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.macro-axis-top { top: .55rem; }
+.macro-axis-bottom { bottom: .55rem; }
+.macro-axis-left,
+.macro-axis-right {
+  top: 50%;
+  transform: translateY(-50%);
+}
+.macro-axis-left { left: .55rem; }
+.macro-axis-right { right: .55rem; }
+
+.macro-cross {
+  position: absolute;
+  background: rgba(255,255,255,.08);
+  pointer-events: none;
+}
+
+.macro-cross-x {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+}
+
+.macro-cross-y {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+}
+
+.macro-cursor {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 0 8px rgba(245,166,35,.08), 0 0 28px rgba(245,166,35,.22);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.macro-cursor::after {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.macro-readout {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: .65rem;
+  color: var(--text-faint);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.macro-readout strong {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.mode-panel {
+  align-items: flex-start;
+}
+
+.button-bank {
+  justify-content: flex-end;
+}
+
+.button-bank button.active,
+.button-bank button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.source-panel {
+  align-items: stretch;
+}
+
+.source-panel > div:first-child {
+  flex: 1 1 280px;
+}
+
+.drop-zone {
+  display: grid;
+  min-width: min(100%, 320px);
+  flex: 1 1 320px;
+  place-items: center;
+  gap: .2rem;
+  padding: 1rem 1.25rem;
+  border: 1px dashed var(--border-hi);
+  background: var(--bg);
+  color: var(--text-dim);
+  text-align: center;
+  cursor: pointer;
+}
+
+.drop-zone:hover,
+.drop-zone:focus-within,
+.drop-zone.dragging {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.drop-zone strong {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.drop-zone span {
+  color: var(--text-faint);
+  font-size: 10px;
+}
+
+.advanced-panel summary,
+.inspector-panel summary {
+  cursor: pointer;
+  color: var(--text);
+  font-family: var(--serif);
+  font-size: 1.35rem;
+}
+
+.advanced-panel[open] summary,
+.inspector-panel[open] summary {
+  margin-bottom: 1.2rem;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.controls .control {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: .45rem;
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.controls .control label {
+  color: inherit;
+}
+
+.controls input {
+  grid-column: 1 / -1;
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.controls output {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.seed-row {
+  margin-top: 1rem;
+}
+
+.seed-row input[type="number"] {
+  width: 12rem;
+}
+
+.toggle-control {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.toggle-control input {
+  accent-color: var(--accent);
+}
+
+.inspector-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+
+.inspector-grid > div {
+  display: grid;
+  gap: .35rem;
+  min-height: 76px;
+  padding: .8rem;
+  background: var(--bg);
+}
+
+.inspector-grid span {
+  color: var(--text-faint);
+  font-size: 9px;
+  letter-spacing: .1em;
+}
+
+.inspector-grid strong {
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.recording-link {
+  justify-self: start;
+  padding: .65rem .9rem;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  text-decoration: none;
+}
+
+@media (max-width: 900px) {
+  .performance-grid,
+  .mode-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .controls,
+  .inspector-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .garden-stage {
+    min-height: 330px;
+  }
+
+  .garden-overlay-bottom {
+    display: none;
+  }
+
+  .genome-selectors,
+  .controls,
+  .inspector-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .macro-pad {
+    min-height: 220px;
+  }
+
+  .source-panel {
+    align-items: stretch;
+  }
+
+  .drop-zone {
+    min-width: 100%;
+  }
+}
