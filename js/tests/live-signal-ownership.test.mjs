@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const liveSignalUrl = new URL("../live-signal.js", import.meta.url);
+const liveSignalUrl = new URL(
+  "../../static/js/live/home-live-signal.js",
+  import.meta.url,
+);
 const pulseUrl = new URL("../pulse.js", import.meta.url);
 const homeLiveStripUrl = new URL("../home-live-strip.js", import.meta.url);
 
