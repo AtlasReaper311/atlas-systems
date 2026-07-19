@@ -67,6 +67,54 @@ jobs:
       - name: Run regression test
         run: node --test "${{ matrix.test }}"
 
+  discover-lab-tests:
+    name: Discover Lab regression tests
+    runs-on: ubuntu-latest
+    outputs:
+      tests: ${{ steps.tests.outputs.tests }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 1
+          show-progress: false
+
+      - name: Build test matrix
+        id: tests
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          tests = [str(path) for path in sorted(Path("lab/tests").glob("*.test.mjs"))]
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"tests={json.dumps(tests)}\n")
+          PY
+
+  lab-regression-tests:
+    name: Lab regression ${{ matrix.test }}
+    needs: discover-lab-tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        test: ${{ fromJSON(needs.discover-lab-tests.outputs.tests) }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 1
+          show-progress: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+
+      - name: Run regression test
+        run: node --test "${{ matrix.test }}"
+
   static-validation:
     name: Static site validation
     runs-on: ubuntu-latest
@@ -98,9 +146,6 @@ jobs:
 
       - name: Test homepage live-signal ownership
         run: node --test js/tests/live-signal-ownership.test.mjs
-
-      - name: Run Lab JavaScript tests
-        run: node --test lab/tests/*.test.mjs
 
       - name: Run System Symphony tests
         run: node --test static/js/sonify/*.test.js
