@@ -306,11 +306,34 @@
     // First poll immediately
     pollAll();
 
-    // Scheduled polling
-    setInterval(pollAll, POLL_INTERVAL_MS);
 
-    // Countdown ticks every second (cheap — just string update)
-    setInterval(renderCountdown, COUNTDOWN_TICK_MS);
+
+  // Inject the Delta-Tracked Loop:
+  let lastTick = performance.now();
+  let lastPoll = performance.now();
+
+  function systemLoop(timestamp) {
+  const deltaTick = timestamp - lastTick;
+  const deltaPoll = timestamp - lastPoll;
+
+  // 1. Precise 1-second countdown tick
+  if (deltaTick >= COUNTDOWN_TICK_MS) {
+    renderCountdown();
+    // Subtract remainder to prevent mathematical drift over time
+    lastTick = timestamp - (deltaTick % COUNTDOWN_TICK_MS); 
+  }
+
+  // 2. Precise 60-second telemetry poll
+  if (deltaPoll >= POLL_INTERVAL_MS) {
+    pollAll();
+    lastPoll = timestamp - (deltaPoll % POLL_INTERVAL_MS);
+  }
+
+  requestAnimationFrame(systemLoop);
+}
+
+// Initialize loop
+  requestAnimationFrame(systemLoop);
   }
 
   if (document.readyState === 'loading') {
