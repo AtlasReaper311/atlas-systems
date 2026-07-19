@@ -53,6 +53,14 @@
         <span>sample rate <strong id="sample-rate">not started</strong></span>
       </div>
 
+      <div class="seed-row" style="margin-bottom: 1rem;">
+        <span style="color: var(--text-dim); font-size: 12px; margin-right: 1rem;">Genomes:</span>
+        <button class="genome-btn" data-genome="glass-rain" type="button">Glass Rain</button>
+        <button class="genome-btn" data-genome="deep-drone" type="button">Deep Drone</button>
+        <button class="genome-btn" data-genome="swarm" type="button">Anxious Swarm</button>
+        <button class="genome-btn" data-genome="choral" type="button">Choral</button>
+      </div>
+
       <div class="controls" id="controls">
         <div class="control"><label for="density">Density</label><output for="density">0.38</output><input id="density" type="range" min="0.02" max="1" step="0.01" value="0.38"></div>
         <div class="control"><label for="grainSize">Grain duration</label><output for="grainSize">0.22 s</output><input id="grainSize" type="range" min="0.03" max="0.75" step="0.01" value="0.22"></div>
@@ -63,6 +71,10 @@
         <div class="control"><label for="width">Stereo width</label><output for="width">0.70</output><input id="width" type="range" min="0" max="1" step="0.01" value="0.70"></div>
         <div class="control"><label for="feedback">Feedback</label><output for="feedback">0.58</output><input id="feedback" type="range" min="0" max="0.82" step="0.01" value="0.58"></div>
         <div class="control"><label for="evolution">Evolution</label><output for="evolution">0.30</output><input id="evolution" type="range" min="0" max="1" step="0.01" value="0.30"></div>
+        
+        <div class="control"><label for="quantize">Quantize (Scale)</label><output for="quantize">0.80</output><input id="quantize" type="range" min="0" max="1" step="0.01" value="0.80"></div>
+        <div class="control"><label for="lushness">Lushness (Chorus)</label><output for="lushness">0.60</output><input id="lushness" type="range" min="0" max="1" step="0.01" value="0.60"></div>
+        <div class="control"><label for="shape">Env Shape (Perc-Rev)</label><output for="shape">0.50</output><input id="shape" type="range" min="0" max="1" step="0.01" value="0.50"></div>
       </div>
 
       <div class="seed-row">
