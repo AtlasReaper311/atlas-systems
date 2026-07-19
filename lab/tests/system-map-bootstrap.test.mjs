@@ -3,7 +3,7 @@ import fs from "node:fs";
 import test from "node:test";
 
 const boot = fs.readFileSync(
-  new URL("../system-map-bootstrap.js", import.meta.url),
+  new URL("../../static/js/live/lab-system-map-bootstrap.js", import.meta.url),
   "utf8",
 );
 const layout = fs.readFileSync(
