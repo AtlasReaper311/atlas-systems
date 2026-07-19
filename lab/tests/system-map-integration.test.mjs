@@ -30,7 +30,7 @@ const topology = fs.readFileSync(
 test("bootstrap updates the map without reloading the page", () => {
   assert.doesNotMatch(bootstrap, /location\.reload/);
   assert.match(bootstrap, /atlas:system-map-data/);
-  assert.match(bootstrap, /script\.type = "module"/);
+  assert.match(bootstrap, /void import\(MAP_URL\)/);
 });
 
 test("capable desktops select 3D before flat view", () => {
