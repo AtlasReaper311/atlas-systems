@@ -42,7 +42,7 @@ jobs:
                   {name: "Actor", value: $actor, inline: true},
                   {name: "Run", value: ("[witness logs](" + $run_url + ")"), inline: false}
                 ],
-                footer: {text: "Atlas Systems — Pre-deploy signal"}
+                footer: {text: "Atlas Systems - Pre-deploy signal"}
               }]
             }')
 
