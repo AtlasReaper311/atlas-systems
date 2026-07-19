@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Signal Garden: an interactive browser-native granular DSP ecosystem running inside an AudioWorklet, with deterministic genomes, live particle control, local audio seeding, spectral treatments, and adaptive rendering.">
+  <meta name="description" content="Signal Garden: an evolving browser-native generative DSP ecosystem built on AudioWorklet, granular synthesis, modal resonance, deterministic evolution, and interactive performance control.">
   <meta name="theme-color" content="#0a0a0f">
   <title>Signal Garden // Atlas Systems</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/lab/shared/systems.css">
-  <link rel="stylesheet" href="/lab/signal/signal.css">
+  <link rel="stylesheet" href="/lab/signal/signal-v2.css">
 </head>
 <body>
   <nav aria-label="Primary navigation">
@@ -24,252 +24,285 @@
   </nav>
 
   <main>
-    <header>
-      <div class="eyebrow">Signal intelligence // generative browser DSP</div>
+    <header class="hero">
+      <div class="eyebrow">Signal intelligence // generative DSP ecosystem</div>
       <h1>Signal Garden.</h1>
-      <p class="lede">A playable granular ecosystem running on the browser audio thread. Seed it with procedural material or your own sound, cross-pollinate harmonic genomes, pull the grain swarm through space, and let deterministic evolution reshape the system over time.</p>
+      <p class="lede">A browser-native instrument that grows rather than loops. Granular memory, modal resonance, harmonic fields, sparse events, spectral processing, and feedback weather evolve on the audio thread while the interface exposes only the controls needed to shape the ecology.</p>
     </header>
 
     <section class="section instrument" aria-labelledby="instrument-title">
       <div class="instrument-head">
         <div>
-          <h2 id="instrument-title">Living granular engine</h2>
-          <p class="note">Use headphones at a conservative level. Output is bounded in the processor and again at the destination gain.</p>
+          <h2 id="instrument-title">Living signal engine</h2>
+          <p class="note">Start in Autonomous mode and let the ecosystem develop. Switch to Perform when you want direct control. Use headphones at a conservative level.</p>
         </div>
         <div class="transport">
           <button class="primary" id="start-audio" type="button">Start audio</button>
           <button id="stop-audio" type="button" disabled>Stop</button>
-          <button id="record-audio" type="button" disabled>Record</button>
-          <button id="stop-recording" type="button" disabled>Stop recording</button>
           <span class="status" id="audio-status">idle</span>
         </div>
       </div>
 
+      <div class="performance-strip" role="group" aria-label="Primary performance controls">
+        <div class="performance-control volume-control">
+          <div class="control-heading">
+            <label for="master-volume">Volume</label>
+            <output id="master-volume-output" for="master-volume">50%</output>
+          </div>
+          <input id="master-volume" type="range" min="0" max="100" step="1" value="50">
+          <p>Final listening level after makeup gain and safety limiting.</p>
+        </div>
+
+        <div class="performance-control">
+          <span class="control-label">Mode</span>
+          <div class="segmented" role="group" aria-label="Performance mode">
+            <button class="mode-btn active" data-mode="autonomous" type="button">Autonomous</button>
+            <button class="mode-btn" data-mode="perform" type="button">Perform</button>
+          </div>
+          <p id="mode-help">The garden moves through long-form states by itself. Your gestures still influence it without taking over.</p>
+        </div>
+
+        <div class="performance-control">
+          <label class="control-label" for="ecosystem">Ecosystem</label>
+          <select id="ecosystem">
+            <option value="glass-rain">Glass Rain</option>
+            <option value="tidal-memory">Tidal Memory</option>
+            <option value="lichen-choir">Lichen Choir</option>
+            <option value="choral">Choral</option>
+            <option value="deep-drone">Deep Drone</option>
+            <option value="swarm">Anxious Swarm</option>
+          </select>
+          <p id="ecosystem-help">Bright resonant droplets, pentatonic gravity, high spectral dust, and slowly widening space.</p>
+        </div>
+
+        <div class="performance-control character-control">
+          <div class="control-heading">
+            <label for="character">Character</label>
+            <output id="character-output" for="character">70% ambient</output>
+          </div>
+          <input id="character" type="range" min="0" max="100" step="1" value="30">
+          <div class="range-ends"><span>ambient</span><span>experimental</span></div>
+          <p>Biases the autonomous engine toward spacious continuity or stranger, less predictable behaviour.</p>
+        </div>
+      </div>
+
       <div class="garden-stage" id="garden-stage">
-        <canvas id="scope" width="1000" height="420" role="img" aria-label="Interactive particle swarm showing active grains by stereo position, pitch, and envelope age">Interactive grain topology visualization.</canvas>
-        <div class="garden-overlay garden-overlay-top">
-          <span>GRAIN TOPOLOGY // drag to bend the field</span>
-          <strong id="ecosystem-label">GLASS RAIN</strong>
+        <canvas id="scope" width="1200" height="520"></canvas>
+        <div class="stage-overlay stage-overlay-top">
+          <span>drag to attract grains</span>
+          <span>vertical = pitch field</span>
+          <span>horizontal = stereo field</span>
         </div>
-        <div class="garden-overlay garden-overlay-bottom">
-          <span>X stereo gravity</span>
-          <span>Y pitch gravity</span>
-          <span>velocity dispersion</span>
+        <div class="stage-overlay stage-overlay-bottom" aria-live="polite">
+          <span id="stage-state">DORMANT</span>
+          <span id="stage-field">field // glass pentatonic</span>
+          <span id="stage-motion">motion // drifting</span>
         </div>
       </div>
 
-      <div class="meter-row" aria-live="polite">
-        <span>RMS <strong id="rms-meter">-∞ dBFS</strong></span>
-        <span>peak <strong id="peak-meter">-∞ dBFS</strong></span>
-        <span>active grains <strong id="grain-meter">0</strong></span>
-        <span>voice limit <strong id="voice-meter">48</strong></span>
-        <span>render load <strong id="load-meter">0%</strong></span>
-        <span>sample rate <strong id="sample-rate">not started</strong></span>
+      <div class="now-panel" aria-live="polite">
+        <div class="now-primary">
+          <span class="eyebrow">Current ecology</span>
+          <strong id="lifecycle-label">DORMANT</strong>
+          <p id="lifecycle-explanation">The garden is holding energy in long grains and low-density resonance before the next growth cycle.</p>
+        </div>
+        <div class="word-bank" id="layer-bank" role="group" aria-label="Active synthesis layers">
+          <span class="word-chip active" data-layer="harmonic">harmonic bed</span>
+          <span class="word-chip" data-layer="resonator">modal bloom</span>
+          <span class="word-chip" data-layer="transient">rare events</span>
+          <span class="word-chip" data-layer="noise">air</span>
+          <span class="word-chip" data-layer="fm">FM colour</span>
+          <span class="word-chip" data-layer="sub">subharmonic</span>
+        </div>
+        <div class="now-stats">
+          <span>RMS <strong id="rms-meter">-∞ dBFS</strong></span>
+          <span>peak <strong id="peak-meter">-∞ dBFS</strong></span>
+          <span>grains <strong id="grain-meter">0</strong></span>
+          <span>voices <strong id="voice-meter">48</strong></span>
+          <span>DSP <strong id="load-meter">0%</strong></span>
+          <span>sample rate <strong id="sample-rate">not started</strong></span>
+        </div>
       </div>
 
-      <div class="performance-grid">
-        <section class="performance-panel" aria-labelledby="genome-title">
-          <div class="panel-heading">
-            <div>
-              <div class="eyebrow">Genetic topology</div>
-              <h3 id="genome-title">Cross-pollinate ecosystems</h3>
+      <details class="control-drawer">
+        <summary>
+          <span>Shape the ecosystem</span>
+          <small>Cross-pollination, macro movement, weather, spectral veil</small>
+        </summary>
+        <div class="drawer-grid">
+          <section class="drawer-panel" aria-labelledby="genome-title">
+            <div class="panel-title-row">
+              <div>
+                <span class="eyebrow">Harmonic genetics</span>
+                <h3 id="genome-title">Cross-pollinate</h3>
+              </div>
+              <strong id="ecosystem-label">Glass Rain</strong>
             </div>
-            <button id="random-ecosystem" type="button">Mutate</button>
-          </div>
+            <div class="genome-grid">
+              <label>Genome A<select id="genome-a"></select></label>
+              <label>Genome B<select id="genome-b"></select></label>
+              <div class="genome-control"><div><label for="genome-blend">Blend</label><output id="genome-blend-output" for="genome-blend">0.00</output></div><input id="genome-blend" type="range" min="0" max="1" step="0.01" value="0"></div>
+              <div class="genome-control"><div><label for="mutation">Mutation</label><output id="mutation-output" for="mutation">0.14</output></div><input id="mutation" type="range" min="0" max="0.7" step="0.01" value="0.14"></div>
+            </div>
+            <div class="inline-actions">
+              <button id="apply-genome" type="button">Apply hybrid</button>
+              <button id="randomize-ecosystem" type="button">Generate ecosystem</button>
+            </div>
+            <p class="drawer-help">Blend changes the harmonic vocabulary and motion genetics. Mutation introduces bounded deterministic variation while the seed keeps the result reproducible.</p>
+          </section>
 
-          <div class="quick-genomes" role="group" aria-label="Genome snapshots">
-            <button class="genome-quick-btn active" data-genome="glass-rain" type="button">Glass Rain</button>
-            <button class="genome-quick-btn" data-genome="deep-drone" type="button">Deep Drone</button>
-            <button class="genome-quick-btn" data-genome="swarm" type="button">Anxious Swarm</button>
-            <button class="genome-quick-btn" data-genome="choral" type="button">Choral</button>
-            <button class="genome-quick-btn" data-genome="tidal-memory" type="button">Tidal Memory</button>
-            <button class="genome-quick-btn" data-genome="lichen-choir" type="button">Lichen Choir</button>
-          </div>
+          <section class="drawer-panel" aria-labelledby="macro-title">
+            <span class="eyebrow">Performance field</span>
+            <h3 id="macro-title">Macro movement</h3>
+            <div class="macro-pad" id="macro-pad" role="application" aria-label="Two-dimensional macro control">
+              <span class="macro-axis macro-top">volatile</span>
+              <span class="macro-axis macro-bottom">calm</span>
+              <span class="macro-axis macro-left">sparse</span>
+              <span class="macro-axis macro-right">dense</span>
+              <span class="macro-cursor" id="macro-cursor"></span>
+            </div>
+            <p class="macro-readout">density <strong id="macro-x-output">0.50</strong> // volatility <strong id="macro-y-output">0.50</strong></p>
+            <p class="drawer-help">One gesture moves several parameters together. The individual DSP controls remain below for inspection and fine adjustment.</p>
+          </section>
 
-          <div class="genome-selectors">
-            <label>
-              Genome A
-              <select id="genome-a">
-                <option value="glass-rain">Glass Rain</option>
-                <option value="deep-drone">Deep Drone</option>
-                <option value="swarm">Anxious Swarm</option>
-                <option value="choral">Choral</option>
-                <option value="tidal-memory">Tidal Memory</option>
-                <option value="lichen-choir">Lichen Choir</option>
-              </select>
-            </label>
-            <label>
-              Genome B
-              <select id="genome-b">
-                <option value="glass-rain">Glass Rain</option>
-                <option value="deep-drone">Deep Drone</option>
-                <option value="swarm" selected>Anxious Swarm</option>
-                <option value="choral">Choral</option>
-                <option value="tidal-memory">Tidal Memory</option>
-                <option value="lichen-choir">Lichen Choir</option>
-              </select>
-            </label>
-          </div>
-
-          <div class="wide-control">
-            <label for="genome-blend">Cross-pollination</label>
-            <output id="genome-blend-output" for="genome-blend">0.00</output>
-            <input id="genome-blend" type="range" min="0" max="1" step="0.01" value="0">
-          </div>
-          <div class="wide-control">
-            <label for="mutation">Mutation</label>
-            <output id="mutation-output" for="mutation">0.08</output>
-            <input id="mutation" type="range" min="0" max="1" step="0.01" value="0.08">
-          </div>
-
-          <div class="genome-actions">
-            <button class="primary" id="apply-genome" type="button">Grow ecosystem</button>
-            <button id="share-ecosystem" type="button">Copy share link</button>
-          </div>
-          <p class="note" id="share-status" aria-live="polite">The seed, genome blend, macro field, weather, and spectral mode are encoded into the URL.</p>
-        </section>
-
-        <section class="performance-panel macro-panel" aria-labelledby="macro-title">
-          <div class="eyebrow">Macro field</div>
-          <h3 id="macro-title">Shape the ecosystem</h3>
-          <div class="macro-pad" id="macro-pad" role="application" aria-label="Two-dimensional macro controller. Horizontal axis moves from sparse to dense. Vertical axis moves from calm to volatile." tabindex="0">
-            <span class="macro-axis macro-axis-top">VOLATILE</span>
-            <span class="macro-axis macro-axis-right">DENSE</span>
-            <span class="macro-axis macro-axis-bottom">CALM</span>
-            <span class="macro-axis macro-axis-left">SPARSE</span>
-            <span class="macro-cross macro-cross-x"></span>
-            <span class="macro-cross macro-cross-y"></span>
-            <span class="macro-cursor" id="macro-cursor"></span>
-          </div>
-          <div class="macro-readout">
-            <span>density field <strong id="macro-x-output">50%</strong></span>
-            <span>volatility <strong id="macro-y-output">50%</strong></span>
-          </div>
-        </section>
-      </div>
-
-      <div class="mode-grid">
-        <section class="mode-panel" aria-labelledby="weather-title">
-          <div>
-            <div class="eyebrow">Feedback weather</div>
-            <h3 id="weather-title">Atmosphere</h3>
-          </div>
-          <div class="button-bank" id="weather-controls">
-            <button class="weather-btn active" data-weather="clear" type="button" aria-pressed="true">Clear</button>
-            <button class="weather-btn" data-weather="mist" type="button" aria-pressed="false">Mist</button>
-            <button class="weather-btn" data-weather="bloom" type="button" aria-pressed="false">Bloom</button>
-            <button class="weather-btn" data-weather="storm" type="button" aria-pressed="false">Storm</button>
-            <button class="weather-btn" data-weather="void" type="button" aria-pressed="false">Void</button>
-          </div>
-        </section>
-
-        <section class="mode-panel" aria-labelledby="spectral-title">
-          <div>
-            <div class="eyebrow">Spectral veil</div>
-            <h3 id="spectral-title">Transform</h3>
-          </div>
-          <div class="button-bank" id="spectral-controls">
-            <button class="spectral-btn active" data-spectral="off" type="button" aria-pressed="true">Off</button>
-            <button class="spectral-btn" data-spectral="freeze" type="button" aria-pressed="false">Freeze</button>
-            <button class="spectral-btn" data-spectral="blur" type="button" aria-pressed="false">Blur</button>
-            <button class="spectral-btn" data-spectral="shimmer" type="button" aria-pressed="false">Shimmer</button>
-          </div>
-        </section>
-      </div>
-
-      <section class="source-panel" aria-labelledby="source-title">
-        <div>
-          <div class="eyebrow">Source memory</div>
-          <h3 id="source-title">Seed it with sound</h3>
-          <p class="note">Drop an audio file here. It is decoded locally in your browser and transferred directly into the AudioWorklet. Nothing is uploaded.</p>
-        </div>
-        <label class="drop-zone" id="drop-zone">
-          <input class="sr-only" id="audio-file" type="file" accept="audio/*">
-          <strong id="source-label">Procedural source</strong>
-          <span>Drop audio or choose a file</span>
-        </label>
-        <button id="restore-procedural" type="button" disabled>Restore procedural source</button>
-      </section>
-
-      <details class="advanced-panel">
-        <summary>Advanced DSP controls</summary>
-        <div class="controls" id="controls">
-          <div class="control"><label for="density">Density</label><output for="density">0.38</output><input id="density" type="range" min="0.02" max="1" step="0.01" value="0.38"></div>
-          <div class="control"><label for="grainSize">Grain duration</label><output for="grainSize">0.22 s</output><input id="grainSize" type="range" min="0.03" max="0.75" step="0.01" value="0.22"></div>
-          <div class="control"><label for="spread">Dispersion</label><output for="spread">0.45</output><input id="spread" type="range" min="0" max="1" step="0.01" value="0.45"></div>
-          <div class="control"><label for="tone">Tone</label><output for="tone">0.48</output><input id="tone" type="range" min="0" max="1" step="0.01" value="0.48"></div>
-          <div class="control"><label for="tension">Harmonic tension</label><output for="tension">0.28</output><input id="tension" type="range" min="0" max="1" step="0.01" value="0.28"></div>
-          <div class="control"><label for="texture">Texture</label><output for="texture">0.32</output><input id="texture" type="range" min="0" max="1" step="0.01" value="0.32"></div>
-          <div class="control"><label for="width">Stereo width</label><output for="width">0.70</output><input id="width" type="range" min="0" max="1" step="0.01" value="0.70"></div>
-          <div class="control"><label for="feedback">Feedback</label><output for="feedback">0.58</output><input id="feedback" type="range" min="0" max="0.82" step="0.01" value="0.58"></div>
-          <div class="control"><label for="evolution">Evolution</label><output for="evolution">0.30</output><input id="evolution" type="range" min="0" max="1" step="0.01" value="0.30"></div>
-          <div class="control"><label for="quantize">Scale attraction</label><output for="quantize">0.80</output><input id="quantize" type="range" min="0" max="1" step="0.01" value="0.80"></div>
-          <div class="control"><label for="lushness">Lushness</label><output for="lushness">0.60</output><input id="lushness" type="range" min="0" max="1" step="0.01" value="0.60"></div>
-          <div class="control"><label for="shape">Envelope morphology</label><output for="shape">0.50</output><input id="shape" type="range" min="0" max="1" step="0.01" value="0.50"></div>
-        </div>
-
-        <div class="seed-row">
-          <label for="seed">Deterministic seed</label>
-          <input id="seed" type="number" min="1" max="4294967295" value="311">
-          <button id="apply-seed" type="button">Reseed engine</button>
-          <button id="random-seed" type="button">Generate seed</button>
-          <label class="toggle-control">
-            <input id="adaptive-quality" type="checkbox" checked>
-            Adaptive voice budget
-          </label>
+          <section class="drawer-panel" aria-labelledby="environment-title">
+            <span class="eyebrow">Space and transformation</span>
+            <h3 id="environment-title">Environment</h3>
+            <div class="environment-group">
+              <span>Feedback weather</span>
+              <div class="button-bank" id="weather-bank">
+                <button class="bank-btn active" data-weather="clear" type="button">Clear</button>
+                <button class="bank-btn" data-weather="mist" type="button">Mist</button>
+                <button class="bank-btn" data-weather="bloom" type="button">Bloom</button>
+                <button class="bank-btn" data-weather="storm" type="button">Storm</button>
+                <button class="bank-btn" data-weather="void" type="button">Void</button>
+              </div>
+              <p id="weather-help">Balanced feedback with restrained modulation and a clear stereo field.</p>
+            </div>
+            <div class="environment-group">
+              <span>Spectral veil</span>
+              <div class="button-bank" id="spectral-bank">
+                <button class="bank-btn active" data-spectral="off" type="button">Off</button>
+                <button class="bank-btn" data-spectral="freeze" type="button">Freeze</button>
+                <button class="bank-btn" data-spectral="blur" type="button">Blur</button>
+                <button class="bank-btn" data-spectral="shimmer" type="button">Shimmer</button>
+              </div>
+              <p id="spectral-help">The granular signal passes directly into the feedback network.</p>
+            </div>
+          </section>
         </div>
       </details>
 
-      <details class="inspector-panel" open>
-        <summary>Live DSP inspector</summary>
-        <div class="inspector-grid">
-          <div><span>ENGINE</span><strong>AudioWorkletProcessor</strong></div>
-          <div><span>SOURCE</span><strong id="inspect-source">procedural circular buffer</strong></div>
-          <div><span>HARMONIC DNA</span><strong id="inspect-pitch">Glass Rain</strong></div>
-          <div><span>ENVELOPE</span><strong id="inspect-envelope">morphing window</strong></div>
-          <div><span>FEEDBACK</span><strong id="inspect-feedback">Clear // 4-line Hadamard FDN</strong></div>
-          <div><span>SPECTRAL</span><strong id="inspect-spectral">off</strong></div>
-          <div><span>TRANSPORT</span><strong>2-buffer transferable Float32Array // 60 Hz</strong></div>
-          <div><span>QUALITY</span><strong id="inspect-quality">adaptive // full</strong></div>
-          <div><span>OVER-BUDGET QUANTA</span><strong id="inspect-overruns">0</strong></div>
+      <details class="control-drawer">
+        <summary>
+          <span>Source and capture</span>
+          <small>Use your own audio, record the output, share deterministic states</small>
+        </summary>
+        <div class="drawer-grid drawer-grid-three">
+          <section class="drawer-panel">
+            <span class="eyebrow">Local source</span>
+            <h3>Feed the garden</h3>
+            <label class="drop-zone" id="drop-zone" for="audio-file">
+              <strong id="source-label">Procedural source</strong>
+              <span>Drop audio here or choose a file. Processing stays in this browser.</span>
+            </label>
+            <input class="sr-only" id="audio-file" type="file" accept="audio/*">
+            <button id="restore-procedural" type="button" disabled>Restore procedural source</button>
+          </section>
+
+          <section class="drawer-panel">
+            <span class="eyebrow">Capture</span>
+            <h3>Record this ecology</h3>
+            <div class="inline-actions">
+              <button id="record-audio" type="button" disabled>Record</button>
+              <button id="stop-recording" type="button" disabled>Stop recording</button>
+            </div>
+            <a id="recording-link" href="#" download="signal-garden.webm" hidden>Download recording</a>
+            <p class="drawer-help">Recording uses the browser media pipeline after the safety limiter and master-volume stage.</p>
+          </section>
+
+          <section class="drawer-panel">
+            <span class="eyebrow">Determinism</span>
+            <h3>Seed and share</h3>
+            <label>Seed<input id="seed" type="number" min="1" max="4294967295" value="311"></label>
+            <div class="inline-actions">
+              <button id="apply-seed" type="button">Reseed</button>
+              <button id="random-seed" type="button">Random seed</button>
+              <button id="copy-share-link" type="button">Copy state link</button>
+            </div>
+            <p class="drawer-help" id="share-status">The URL can recreate the ecosystem, seed, character, mode, weather, and spectral state.</p>
+          </section>
         </div>
       </details>
 
-      <a class="recording-link" id="recording-link" href="#" download="signal-garden-recording.webm" hidden>Download last recording</a>
+      <details class="control-drawer advanced-drawer">
+        <summary>
+          <span>Advanced DSP</span>
+          <small>Fine controls and live engine telemetry</small>
+        </summary>
+        <div class="advanced-layout">
+          <div class="controls" id="controls">
+            <div class="control"><label for="density">Density</label><output for="density">0.78</output><input id="density" type="range" min="0.02" max="1" step="0.01" value="0.78"></div>
+            <div class="control"><label for="grainSize">Grain duration</label><output for="grainSize">0.07 s</output><input id="grainSize" type="range" min="0.03" max="0.75" step="0.01" value="0.07"></div>
+            <div class="control"><label for="spread">Dispersion</label><output for="spread">0.82</output><input id="spread" type="range" min="0" max="1" step="0.01" value="0.82"></div>
+            <div class="control"><label for="tone">Tone</label><output for="tone">0.88</output><input id="tone" type="range" min="0" max="1" step="0.01" value="0.88"></div>
+            <div class="control"><label for="tension">Harmonic tension</label><output for="tension">0.12</output><input id="tension" type="range" min="0" max="1" step="0.01" value="0.12"></div>
+            <div class="control"><label for="texture">Texture</label><output for="texture">0.28</output><input id="texture" type="range" min="0" max="1" step="0.01" value="0.28"></div>
+            <div class="control"><label for="width">Stereo width</label><output for="width">0.92</output><input id="width" type="range" min="0" max="1" step="0.01" value="0.92"></div>
+            <div class="control"><label for="feedback">Feedback</label><output for="feedback">0.42</output><input id="feedback" type="range" min="0" max="0.82" step="0.01" value="0.42"></div>
+            <div class="control"><label for="evolution">Evolution</label><output for="evolution">0.72</output><input id="evolution" type="range" min="0" max="1" step="0.01" value="0.72"></div>
+            <div class="control"><label for="quantize">Scale attraction</label><output for="quantize">0.96</output><input id="quantize" type="range" min="0" max="1" step="0.01" value="0.96"></div>
+            <div class="control"><label for="lushness">Lushness</label><output for="lushness">0.34</output><input id="lushness" type="range" min="0" max="1" step="0.01" value="0.34"></div>
+            <div class="control"><label for="shape">Envelope shape</label><output for="shape">0.18</output><input id="shape" type="range" min="0" max="1" step="0.01" value="0.18"></div>
+          </div>
+
+          <aside class="inspector" aria-label="Live DSP inspector">
+            <div><span>lifecycle</span><strong id="inspect-lifecycle">dormant</strong></div>
+            <div><span>harmonic field</span><strong id="inspect-field">glass pentatonic</strong></div>
+            <div><span>active layers</span><strong id="inspect-layers">harmonic + air</strong></div>
+            <div><span>source</span><strong id="inspect-source">procedural circular memory</strong></div>
+            <div><span>spectral</span><strong id="inspect-spectral">off</strong></div>
+            <div><span>feedback</span><strong id="inspect-feedback">clear</strong></div>
+            <div><span>quality</span><strong id="inspect-quality">adaptive // 48 voices</strong></div>
+            <div><span>transport</span><strong>dual transferable Float32Array</strong></div>
+            <div><span>over-budget quanta</span><strong id="inspect-overruns">0</strong></div>
+            <label class="toggle-row"><span>Adaptive voice budget</span><input id="adaptive-quality" type="checkbox" checked></label>
+          </aside>
+        </div>
+      </details>
     </section>
 
-    <section class="section grid grid-3" aria-label="Signal chain">
-      <article class="panel"><h3>Generative source memory</h3><p>An evolving harmonic-noise source or a visitor-supplied local sample becomes the grain reservoir. Audio files are decoded in-browser and transferred once into the worklet without a server upload path.</p></article>
-      <article class="panel"><h3>Probabilistic harmonic genomes</h3><p>Each ecosystem carries weighted pitch ratios and motion traits. Scale attraction defines harmonic gravity; tension progressively dissolves that gravity into microtonal instability instead of acting as a second quantize knob.</p></article>
-      <article class="panel"><h3>Living feedback field</h3><p>Four prime-length delays use Hadamard mixing with moving read heads. Feedback weather, slow deterministic evolution, spectral transformation, and adaptive voice limits change the ecology while keeping the render path bounded.</p></article>
+    <section class="section grid grid-3" aria-label="Signal architecture">
+      <article class="panel"><h3>Procedural memory</h3><p>Seven synthesis layers continuously write new material into circular memory: harmonic partials, filtered noise, FM colour, subharmonics, air, sparse events, and a tuned modal resonator bank. Granular voices read that evolving history instead of repeating a fixed oscillator drone.</p></article>
+      <article class="panel"><h3>Four clocks of change</h3><p>Micro, phrase, ecosystem, and epoch modulation operate at different timescales. Short motion changes individual grains; longer processes reshape density, harmonic fields, event probability, and synthesis-layer balance over minutes.</p></article>
+      <article class="panel"><h3>Lifecycle engine</h3><p>Autonomous mode moves through Dormant, Germination, Bloom, Migration, Storm, Decay, and Regeneration states. Each state changes the probability and intensity of sonic behaviours without replacing the underlying ecosystem.</p></article>
     </section>
 
     <section class="section">
       <div class="eyebrow">Browser to game engine</div>
-      <h2>The same idea in UE5 MetaSounds</h2>
+      <h2>The same ownership boundary in UE5 MetaSounds</h2>
       <div class="grid grid-2">
         <div class="panel">
           <table>
             <thead><tr><th>Browser</th><th>MetaSounds</th></tr></thead>
             <tbody>
               <tr><td><code>AudioWorkletProcessor</code></td><td>MetaSound operator graph executing in the audio renderer</td></tr>
-              <tr><td>Seeded genome and grain scheduler</td><td>Trigger-rate generator plus deterministic random stream and weighted pitch table</td></tr>
-              <tr><td>Circular or visitor-supplied source memory</td><td>Wave assets or a custom granulator operator with explicit source ownership</td></tr>
-              <tr><td>Smoothed <code>AudioParam</code> controls and macro gestures</td><td>Graph inputs with interpolation before audio-rate destinations</td></tr>
-              <tr><td>Interactive attractor and grain trajectories</td><td>Gameplay parameters driving per-voice position and pitch trajectories</td></tr>
-              <tr><td>Hadamard FDN plus spectral veil</td><td>Delay network and FFT or submix processing in dedicated operators</td></tr>
-              <tr><td>Adaptive render telemetry</td><td>Voice budgeting and audio-render profiling around bounded operator work</td></tr>
+              <tr><td>Seeded lifecycle and event schedulers</td><td>Deterministic trigger-rate generators and state machines</td></tr>
+              <tr><td>Circular synthesis memory and interpolated grain reads</td><td>Wave assets or a custom granulator operator with explicit voice state</td></tr>
+              <tr><td>Modal resonator bank and harmonic fields</td><td>Resonator operators, filters, and data-driven tuning tables</td></tr>
+              <tr><td>Smoothed <code>AudioParam</code> intent</td><td>Graph inputs with interpolation before audio-rate destinations</td></tr>
+              <tr><td>Bounded feedback and safety limiting</td><td>Explicit feedback clamps, dynamics control, and output protection</td></tr>
             </tbody>
           </table>
         </div>
         <article class="panel panel-deep">
-          <h3>Translation, not porting</h3>
-          <p>The reusable concept is ownership. UI or gameplay code expresses low-rate intent. The audio renderer owns phase, envelopes, grain life cycles, source memory, spectral state, delay memory, and per-sample safety. In a browser that boundary is the worklet message port. In MetaSounds it is the graph input and operator boundary.</p>
-          <p>Deterministic seeds, explicit voice limits, and bounded modulation matter in both environments. The graph changes, but the real-time scheduling problem does not.</p>
+          <h3>Generative systems, not random playback</h3>
+          <p>The reusable idea is layered ownership. The interface chooses intent and exposes state; the audio renderer owns timing, voices, envelopes, resonators, feedback memory, deterministic evolution, and safety. A seed can reproduce the rules of an ecology without forcing every rendered sample to repeat exactly.</p>
+          <p>The same distinction matters in games. Gameplay code should request a mood or state transition; the audio system should decide how that state becomes sound inside a bounded real-time budget.</p>
         </article>
       </div>
     </section>
   </main>
-  <script type="module" src="/lab/signal/signal.js?v=20260719-vnext"></script>
+  <script type="module" src="/lab/signal/signal-v2.js"></script>
 </body>
 </html>
