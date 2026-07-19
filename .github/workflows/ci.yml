@@ -11,6 +11,62 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  discover-homepage-tests:
+    name: Discover homepage regression tests
+    runs-on: ubuntu-latest
+    outputs:
+      tests: ${{ steps.tests.outputs.tests }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 1
+          show-progress: false
+
+      - name: Build test matrix
+        id: tests
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          excluded = {
+              "live-registry-esm.test.mjs",
+              "live-signal-ownership.test.mjs",
+          }
+          tests = [
+              str(path)
+              for path in sorted(Path("js/tests").glob("*.test.mjs"))
+              if path.name not in excluded
+          ]
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"tests={json.dumps(tests)}\n")
+          PY
+
+  homepage-regression-tests:
+    name: Homepage regression ${{ matrix.test }}
+    needs: discover-homepage-tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        test: ${{ fromJSON(needs.discover-homepage-tests.outputs.tests) }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 1
+          show-progress: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+
+      - name: Run regression test
+        run: node --test "${{ matrix.test }}"
+
   static-validation:
     name: Static site validation
     runs-on: ubuntu-latest
@@ -42,16 +98,6 @@ jobs:
 
       - name: Test homepage live-signal ownership
         run: node --test js/tests/live-signal-ownership.test.mjs
-
-      - name: Run remaining homepage JavaScript tests
-        run: |
-          mapfile -t tests < <(find js/tests -maxdepth 1 -name '*.test.mjs' \
-            ! -name 'live-registry-esm.test.mjs' \
-            ! -name 'live-signal-ownership.test.mjs' \
-            -print | sort)
-          if (( ${#tests[@]} )); then
-            node --test "${tests[@]}"
-          fi
 
       - name: Run Lab JavaScript tests
         run: node --test lab/tests/*.test.mjs
