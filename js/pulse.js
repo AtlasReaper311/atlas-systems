@@ -1,26 +1,15 @@
 /**
- * pulse.js — live GitHub data for atlas-systems.uk
+ * pulse.js - live GitHub activity for atlas-systems.uk
  *
- * One fetch to github-pulse (api.atlas-systems.uk/pulse) feeds two
- * places on the homepage:
+ * One fetch to github-pulse populates the homepage GitHub activity section.
+ * Operational deploy, commit, build, backend, navigation-status, and estate-strip
+ * surfaces are owned exclusively by live-signal.js.
  *
- *   1. The Live signal section's deploy/commit cells, which previously
- *      showed placeholder values. "Last deploy" uses the newest commit
- *      to the site repo, because a push to main is what triggers the
- *      Pages deploy.
- *   2. The GitHub pulse section: totals, language bars, recent commits.
- *      It ships hidden and only reveals once data arrives, so an API
- *      outage costs nothing visually.
- *
- * Everything renders via textContent and createElement, never
- * innerHTML: commit messages are externally influenced strings and must
- * not be able to inject markup.
+ * Externally influenced commit strings are rendered with textContent and DOM
+ * creation only. They must never be injected through innerHTML.
  */
 
 const PULSE_ENDPOINT = "https://api.atlas-systems.uk/pulse";
-
-// The repo whose pushes deploy this site; drives the Live signal cells.
-const SITE_REPO = "atlas-systems";
 
 async function initPulse() {
   let data;
@@ -29,32 +18,12 @@ async function initPulse() {
     if (!response.ok) return;
     data = await response.json();
   } catch {
-    return; // Silent failure: placeholders stay, page stays whole.
+    return;
   }
 
-  updateLiveSignal(data);
   updatePulseSection(data);
 }
 
-/** Feed the existing Live signal cells with real values. */
-function updateLiveSignal(data) {
-  const commit =
-    data.recentCommits?.find((c) => c.repo === SITE_REPO) ||
-    data.recentCommits?.[0];
-  if (!commit) return;
-
-  const commitEl = document.getElementById("commit-hash");
-  const deployEl = document.getElementById("last-deploy");
-
-  if (commitEl) commitEl.textContent = commit.sha;
-  if (deployEl && commit.date) {
-    deployEl.textContent =
-      new Date(commit.date).toISOString().replace("T", " ").slice(0, 16) +
-      " UTC";
-  }
-}
-
-/** Populate and reveal the GitHub pulse section. */
 function updatePulseSection(data) {
   const root = document.getElementById("pulse");
   if (!root) return;
@@ -72,58 +41,58 @@ function updatePulseSection(data) {
 }
 
 function setText(root, key, value) {
-  const el = root.querySelector(`[data-pulse="${key}"]`);
-  if (el && value !== undefined && value !== null) {
-    el.textContent = String(value);
+  const element = root.querySelector(`[data-pulse="${key}"]`);
+  if (element && value !== undefined && value !== null) {
+    element.textContent = String(value);
   }
 }
 
-/** Proportional language bars in the brand accent. */
 function renderLanguages(root, languages) {
-  const el = root.querySelector('[data-pulse="languages"]');
-  if (!el || !languages?.length) return;
+  const element = root.querySelector('[data-pulse="languages"]');
+  if (!element || !languages?.length) return;
 
-  el.replaceChildren();
-  for (const lang of languages.slice(0, 5)) {
+  element.replaceChildren();
+  for (const language of languages.slice(0, 5)) {
     const row = document.createElement("div");
     row.className = "pulse-lang";
 
     const head = document.createElement("div");
     head.className = "pulse-lang-head";
+
     const name = document.createElement("span");
-    name.textContent = lang.name;
+    name.textContent = language.name;
+
     const percent = document.createElement("span");
-    percent.textContent = `${lang.percent}%`;
+    percent.textContent = `${language.percent}%`;
+
     head.append(name, percent);
 
     const track = document.createElement("div");
     track.className = "pulse-lang-track";
+
     const bar = document.createElement("div");
     bar.className = "pulse-lang-bar";
     track.appendChild(bar);
 
     row.append(head, track);
-    el.appendChild(row);
+    element.appendChild(row);
 
-    // Width set on the next frame so the CSS transition animates the
-    // bar growing in, instead of it appearing at full width.
-    requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        bar.style.width = `${lang.percent}%`;
-      }),
-    );
+        bar.style.width = `${language.percent}%`;
+      });
+    });
   }
 }
 
-/** Terminal-style commit feed: sha, repo, first line of the message. */
 function renderCommits(root, commits) {
-  const el = root.querySelector('[data-pulse="recent-commits"]');
-  if (!el || !commits?.length) return;
+  const element = root.querySelector('[data-pulse="recent-commits"]');
+  if (!element || !commits?.length) return;
 
-  el.replaceChildren();
+  element.replaceChildren();
   for (const commit of commits.slice(0, 6)) {
-    const li = document.createElement("li");
-    li.className = "pulse-commit";
+    const item = document.createElement("li");
+    item.className = "pulse-commit";
 
     const sha = document.createElement("span");
     sha.className = "pulse-commit-sha";
@@ -137,8 +106,8 @@ function renderCommits(root, commits) {
     message.className = "pulse-commit-msg";
     message.textContent = commit.message;
 
-    li.append(sha, repo, message);
-    el.appendChild(li);
+    item.append(sha, repo, message);
+    element.appendChild(item);
   }
 }
 
