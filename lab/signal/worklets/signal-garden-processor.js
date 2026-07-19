@@ -16,13 +16,17 @@ class DelayLine {
     this.buffer = new Float32Array(length);
     this.index = 0;
   }
-  read() {
-    return this.buffer[this.index];
+  read(offset = 0) {
+    let pos = this.index - offset;
+    while (pos < 0) pos += this.buffer.length;
+    const i = Math.floor(pos);
+    const next = (i + 1) % this.buffer.length;
+    const fraction = pos - i;
+    return this.buffer[i] * (1 - fraction) + this.buffer[next] * fraction;
   }
   write(value) {
     this.buffer[this.index] = value;
-    this.index += 1;
-    if (this.index >= this.buffer.length) this.index = 0;
+    this.index = (this.index + 1) % this.buffer.length;
   }
 }
 
@@ -38,6 +42,9 @@ class SignalGardenProcessor extends AudioWorkletProcessor {
       { name: "width", defaultValue: 0.7, minValue: 0, maxValue: 1, automationRate: "k-rate" },
       { name: "feedback", defaultValue: 0.58, minValue: 0, maxValue: 0.82, automationRate: "k-rate" },
       { name: "evolution", defaultValue: 0.3, minValue: 0, maxValue: 1, automationRate: "k-rate" },
+      { name: "quantize", defaultValue: 0.8, minValue: 0, maxValue: 1, automationRate: "k-rate" },
+      { name: "lushness", defaultValue: 0.6, minValue: 0, maxValue: 1, automationRate: "k-rate" },
+      { name: "shape", defaultValue: 0.5, minValue: 0, maxValue: 1, automationRate: "k-rate" },
     ];
   }
 
@@ -58,10 +65,16 @@ class SignalGardenProcessor extends AudioWorkletProcessor {
     this.meterCount = 0;
     this.meterSum = 0;
     this.meterPeak = 0;
+    
+    this.grainState = null;
+
     this.port.onmessage = (event) => {
       if (event.data?.type === "seed") {
         this.random = new Lcg(Number(event.data.value) || 311);
         this.grains.length = 0;
+      }
+      if (event.data?.type === "sab") {
+        this.grainState = new Float32Array(event.data.buffer);
       }
     };
   }
@@ -86,11 +99,16 @@ class SignalGardenProcessor extends AudioWorkletProcessor {
     this.sourceWrite = (this.sourceWrite + 1) % this.source.length;
   }
 
-  spawnGrain(grainSize, spread, tension) {
+  spawnGrain(grainSize, spread, tension, quantize) {
     if (this.grains.length >= 48) return;
     const length = Math.max(64, Math.floor(grainSize * sampleRate));
     const delay = Math.floor((0.08 + this.random.next() * 3.5) * sampleRate);
-    const ratio = 1 + (this.random.bipolar() * spread * 0.14) + tension * 0.035;
+    
+    const rawRatio = 1 + (this.random.bipolar() * spread * 0.5) + tension * 0.035;
+    const scale = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+    const closest = scale.reduce((a, b) => Math.abs(b - rawRatio) < Math.abs(a - rawRatio) ? b : a);
+    const ratio = rawRatio * (1 - quantize) + closest * quantize;
+
     this.grains.push({
       age: 0,
       length,
@@ -111,9 +129,14 @@ class SignalGardenProcessor extends AudioWorkletProcessor {
     return this.source[index] * (1 - fraction) + this.source[next] * fraction;
   }
 
-  processGrains(width) {
+  processGrains(width, shape) {
     let left = 0;
     let right = 0;
+    
+    if (this.grainState) {
+        for (let i = 0; i < 48; i++) this.grainState[i * 4] = 0;
+    }
+
     for (let index = this.grains.length - 1; index >= 0; index -= 1) {
       const grain = this.grains[index];
       const phase = grain.age / grain.length;
@@ -121,11 +144,22 @@ class SignalGardenProcessor extends AudioWorkletProcessor {
         this.grains.splice(index, 1);
         continue;
       }
-      const window = 0.5 - 0.5 * Math.cos(Math.PI * 2 * phase);
+      
+      const skew = Math.pow(phase, Math.exp((shape - 0.5) * 4));
+      const window = 0.5 - 0.5 * Math.cos(Math.PI * 2 * skew);
       const sample = this.readSource(grain.position + grain.age * grain.ratio) * window * grain.gain;
       const pan = grain.pan * width;
+      
       left += sample * Math.sqrt((1 - pan) * 0.5);
       right += sample * Math.sqrt((1 + pan) * 0.5);
+      
+      if (this.grainState) {
+        this.grainState[index * 4] = 1;
+        this.grainState[index * 4 + 1] = pan;
+        this.grainState[index * 4 + 2] = grain.ratio;
+        this.grainState[index * 4 + 3] = phase;
+      }
+      
       grain.age += 1;
     }
     return [left, right];
@@ -141,21 +175,35 @@ class SignalGardenProcessor extends AudioWorkletProcessor {
     return this.low[channel] * 0.7 + this.band[channel] * tension * 0.45;
   }
 
-  feedbackNetwork(inputLeft, inputRight, feedback, width) {
-    const reads = this.delays.map((delay) => delay.read());
+  feedbackNetwork(inputLeft, inputRight, feedback, width, lushness) {
+    const lfo1 = Math.sin(this.sampleCounter * Math.PI * 2 * 0.17 / sampleRate) * lushness * 40;
+    const lfo2 = Math.sin(this.sampleCounter * Math.PI * 2 * 0.23 / sampleRate) * lushness * 40;
+    const lfo3 = Math.sin(this.sampleCounter * Math.PI * 2 * 0.29 / sampleRate) * lushness * 40;
+    const lfo4 = Math.sin(this.sampleCounter * Math.PI * 2 * 0.31 / sampleRate) * lushness * 40;
+
+    const reads = [
+        this.delays[0].read(lfo1 + 40),
+        this.delays[1].read(lfo2 + 40),
+        this.delays[2].read(lfo3 + 40),
+        this.delays[3].read(lfo4 + 40)
+    ];
+
     const mixed = [
       reads[0] + reads[1] + reads[2] + reads[3],
       reads[0] - reads[1] + reads[2] - reads[3],
       reads[0] + reads[1] - reads[2] - reads[3],
       reads[0] - reads[1] - reads[2] + reads[3],
     ].map((value) => value * 0.5);
+    
     const mono = (inputLeft + inputRight) * 0.5;
     this.delays[0].write(mono * 0.32 + mixed[0] * feedback);
     this.delays[1].write(inputLeft * 0.28 + mixed[1] * feedback);
     this.delays[2].write(inputRight * 0.28 + mixed[2] * feedback);
     this.delays[3].write(mono * 0.24 + mixed[3] * feedback);
+    
     const wetLeft = (reads[0] + reads[2] - reads[3]) * 0.28;
     const wetRight = (reads[1] - reads[2] + reads[3]) * 0.28;
+    
     return [
       inputLeft + wetLeft * width,
       inputRight + wetRight * width,
@@ -173,6 +221,7 @@ class SignalGardenProcessor extends AudioWorkletProcessor {
     const output = outputs[0];
     const left = output[0];
     const right = output[1] || output[0];
+    
     const density = this.parameter(parameters, "density");
     const grainSize = this.parameter(parameters, "grainSize");
     const spread = this.parameter(parameters, "spread");
@@ -182,6 +231,9 @@ class SignalGardenProcessor extends AudioWorkletProcessor {
     const width = this.parameter(parameters, "width");
     const feedback = this.parameter(parameters, "feedback");
     const evolution = this.parameter(parameters, "evolution");
+    const quantize = this.parameter(parameters, "quantize");
+    const lushness = this.parameter(parameters, "lushness");
+    const shape = this.parameter(parameters, "shape");
 
     for (let frame = 0; frame < left.length; frame += 1) {
       this.writeSource(tension, texture, evolution);
@@ -189,15 +241,16 @@ class SignalGardenProcessor extends AudioWorkletProcessor {
       this.spawnPhase += grainsPerSecond / sampleRate;
       if (this.spawnPhase >= 1) {
         this.spawnPhase -= 1;
-        this.spawnGrain(grainSize, spread, tension);
+        this.spawnGrain(grainSize, spread, tension, quantize);
       }
 
-      let [l, r] = this.processGrains(width);
+      let [l, r] = this.processGrains(width, shape);
       l = this.filter(l, 0, tone, tension);
       r = this.filter(r, 1, tone, tension);
-      [l, r] = this.feedbackNetwork(l, r, feedback, width);
+      [l, r] = this.feedbackNetwork(l, r, feedback, width, lushness);
       l = Math.tanh(this.dcBlock(l, 0) * 1.35) * 0.55;
       r = Math.tanh(this.dcBlock(r, 1) * 1.35) * 0.55;
+      
       left[frame] = l;
       right[frame] = r;
 
@@ -206,6 +259,7 @@ class SignalGardenProcessor extends AudioWorkletProcessor {
       this.meterPeak = Math.max(this.meterPeak, absolute);
       this.meterCount += 1;
       this.sampleCounter += 1;
+      
       if (this.meterCount >= 2048) {
         this.port.postMessage({
           type: "meter",
