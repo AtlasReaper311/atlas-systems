@@ -3,7 +3,9 @@ import test from "node:test";
 
 import {
   DEFAULT_PERFORMANCE_SEED,
+  PERFORMANCE_EFFECT_LIMITS,
   PERFORMANCE_MACRO_DEFAULTS,
+  PERFORMANCE_SCHEMA_VERSION,
   PERFORMANCE_SCENES,
   createPerformanceArrangement,
   formatPerformanceSeed,
@@ -59,6 +61,8 @@ test("the same seed, state and macros always replay the same arrangement", () =>
   assert.deepEqual(replay, first);
   assert.equal(first.sceneName, "NIGHT DRIVE");
   assert.equal(first.seed, "7F3A");
+  assert.equal(first.schemaVersion, PERFORMANCE_SCHEMA_VERSION);
+  assert.match(first.id, new RegExp(`^v${PERFORMANCE_SCHEMA_VERSION}:`));
 });
 
 test("different seeds coherently change the whole arrangement", () => {
@@ -99,8 +103,8 @@ test("Demo scenes have distinct cinematic intensity and atmosphere profiles", ()
   assert.ok(ghost.targetBpm < healthy.targetBpm);
   assert.ok(healthy.targetBpm < warning.targetBpm);
   assert.ok(warning.targetBpm < critical.targetBpm);
-  assert.ok(healthy.targetBpm <= 104, "default Healthy must leave room for the groove");
-  assert.ok(critical.targetBpm <= 116, "default Critical must feel urgent, not frantic");
+  assert.ok(healthy.targetBpm <= 116, "default Healthy stays inside the 112 BPM band");
+  assert.ok(critical.targetBpm <= 134, "default Critical stays inside the 128 BPM band");
   assert.ok(ghost.drumMultiplier < healthy.drumMultiplier);
   assert.ok(healthy.drumMultiplier < warning.drumMultiplier);
   assert.ok(warning.drumMultiplier < critical.drumMultiplier);
@@ -136,9 +140,11 @@ test("all performance controls remain finite and bounded", () => {
           assert.ok(Number.isFinite(value), `${state}.${name} must be finite`);
         }
       }
-      assert.ok(arrangement.targetBpm >= 78 && arrangement.targetBpm <= 118);
-      assert.ok(arrangement.distortionWet <= 0.48);
-      assert.ok(arrangement.reverbWet <= 0.5);
+      assert.ok(arrangement.targetBpm >= 90 && arrangement.targetBpm <= 134);
+      assert.ok(arrangement.distortionWet <= PERFORMANCE_EFFECT_LIMITS.distortionWet);
+      assert.ok(arrangement.delayWet <= PERFORMANCE_EFFECT_LIMITS.delayWet);
+      assert.ok(arrangement.reverbWet <= PERFORMANCE_EFFECT_LIMITS.reverbWet);
+      assert.ok(arrangement.riffGain <= PERFORMANCE_EFFECT_LIMITS.riffGain);
     }
   }
 });

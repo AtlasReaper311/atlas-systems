@@ -6,17 +6,18 @@
  */
 
 import {
+  AUDIO_CONTEXT_BLOCKED_CODE,
   DEFAULT_USER_GAIN,
   createEngine,
-} from "./engine.js?v=20260716-system-symphony-expanded-library";
-import { createPoller } from "./poller.js?v=20260716-system-symphony-demo-ui";
+} from "./engine.js?v=20260718-system-symphony-ghost-tempo-guard";
+import { createPoller } from "./poller.js?v=20260718-system-symphony-ghost-circuit";
 import {
   applyDemoProfileToServices,
   buildDependencyGraph,
   computeFrame,
   deriveDemoEstate,
   filterVoices,
-} from "./mapping.js?v=20260716-system-symphony-demo-ui";
+} from "./mapping.js?v=20260718-system-symphony-ghost-circuit";
 import {
   DEFAULT_PERFORMANCE_SEED,
   PERFORMANCE_MACRO_DEFAULTS,
@@ -24,8 +25,8 @@ import {
   createPerformanceArrangement,
   formatPerformanceSeed,
   normalizePerformanceSeed,
-} from "./performance.js?v=20260716-system-symphony-expanded-library";
-import { resolveSamplePalette } from "./samples.js?v=20260716-system-symphony-expanded-library";
+} from "./performance.js?v=20260718-system-symphony-ghost-circuit";
+import { resolveSamplePalette } from "./samples.js?v=20260718-system-symphony-ghost-circuit";
 
 const WIDGET_ID = "system-symphony-widget";
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -55,7 +56,7 @@ const HELP_ROWS = [
   ["Error rate", "Instability, detuning and note confidence"],
   ["Active incidents", "Denser critical rhythm and harmonic tension"],
   ["New successful deployment", "One quantised amber hero motif"],
-  ["Demo performance", "Seeded club bass, mechanical drums and a low/mid 16th-note arpeggiator"],
+  ["Demo performance", "Ghost Circuit arrangement, dual synth arpeggio/riffs, club bass and mechanical drums"],
   ["Dependencies", "Topology edges"],
   ["Service identity", "Stable family, motif, register and stereo position"],
 ];
@@ -173,12 +174,12 @@ function template() {
             <div class="symphony-source-panel__controls">
               <div class="symphony-segmented" role="group" aria-label="Symphony data source">
                 <button type="button" data-live-mode aria-pressed="true">Live estate</button>
-                <button type="button" data-demo-mode aria-pressed="false" disabled>Demo performance</button>
+                <button type="button" data-demo-mode aria-pressed="false" disabled>Ghost Circuit demo</button>
               </div>
               <button class="symphony-button" type="button" data-demo-reset hidden>Reset preview from live</button>
               <div class="symphony-performance" data-performance-panel hidden>
                 <div class="symphony-performance__header">
-                  <span>Demo performance</span>
+                  <span>Ghost Circuit // performance v2</span>
                   <strong data-performance-scene>NIGHT DRIVE</strong>
                 </div>
                 <div class="symphony-demo-profiles">
@@ -196,6 +197,25 @@ function template() {
                   <label><span>Motion <output data-performance-output="motion">${PERFORMANCE_MACRO_DEFAULTS.motion}</output></span><input type="range" min="0" max="100" step="1" value="${PERFORMANCE_MACRO_DEFAULTS.motion}" data-performance-macro="motion" /></label>
                   <label><span>Grit <output data-performance-output="grit">${PERFORMANCE_MACRO_DEFAULTS.grit}</output></span><input type="range" min="0" max="100" step="1" value="${PERFORMANCE_MACRO_DEFAULTS.grit}" data-performance-macro="grit" /></label>
                   <label><span>Space <output data-performance-output="space">${PERFORMANCE_MACRO_DEFAULTS.space}</output></span><input type="range" min="0" max="100" step="1" value="${PERFORMANCE_MACRO_DEFAULTS.space}" data-performance-macro="space" /></label>
+                </div>
+                <div class="symphony-ghost-monitor">
+                  <div class="symphony-ghost-monitor__heading">
+                    <span>Ghost phase</span>
+                    <strong data-ghost-phase>STANDBY</strong>
+                  </div>
+                  <ol class="symphony-ghost-phases" aria-label="Ghost Circuit arrangement phases">
+                    <li data-ghost-phase-step="boot">Boot</li>
+                    <li data-ghost-phase-step="drive">Drive</li>
+                    <li data-ghost-phase-step="lift">Lift</li>
+                    <li data-ghost-phase-step="drop">Drop</li>
+                    <li data-ghost-phase-step="afterglow">Afterglow</li>
+                  </ol>
+                  <div class="symphony-ghost-monitor__actions">
+                    <button class="symphony-button" type="button" data-ghost-focus aria-pressed="false">Ghost Circuit focus</button>
+                    <button class="symphony-button" type="button" data-ghost-audition="arp" aria-pressed="false">Hear arp</button>
+                    <button class="symphony-button" type="button" data-ghost-audition="riff" aria-pressed="false">Hear riff</button>
+                  </div>
+                  <p>Focus ducks the backing for A/B listening. Hear arp and Hear riff isolate each Ghost Circuit voice.</p>
                 </div>
                 <div class="symphony-performance__actions">
                   <button class="symphony-button symphony-button--primary" type="button" data-randomise-score>Randomise score</button>
@@ -356,6 +376,9 @@ export function initSystemSymphony() {
   let performanceArrangement = null;
   let activeDemoProfile = null;
   let performanceStatus = `Seed ${DEFAULT_PERFORMANCE_SEED} ready`;
+  let ghostFocus = false;
+  let ghostAudition = null;
+  let sceneTransitionPending = false;
 
   function presentationForVoice(voice) {
     if (!voice.measured && !voice.demoSimulated) {
@@ -442,8 +465,33 @@ export function initSystemSymphony() {
     const bassLabel = palette.bass?.replace(/^bass-/, "") ?? "procedural";
     const rhythmLabel = palette.bassLoop ?? "one-shot";
     const textureLabel = palette.atmosphere ?? "procedural";
+    const arpLabel = performanceArrangement?.arpDirectionLabel ?? "seeded";
+    const voicingLabel = performanceArrangement?.padVoicingLabel ?? "triad";
     host.querySelector("[data-performance-status]").textContent =
-      `${performanceStatus} // ${palette.section} // bass ${bassLabel} // rhythm ${rhythmLabel} // lead ${leadLabel} // texture ${textureLabel}`;
+      `${performanceStatus} // ${palette.section} // arp ${arpLabel} // ${voicingLabel} pads // bass ${bassLabel} // rhythm ${rhythmLabel} // lead ${leadLabel} // texture ${textureLabel}`;
+    renderGhostControls();
+  }
+
+  function renderGhostControls(phase = engine.getGhostPhase()) {
+    const phaseName = phase?.name ?? "standby";
+    host.querySelector("[data-ghost-phase]").textContent = phaseName.toUpperCase();
+    for (const item of host.querySelectorAll("[data-ghost-phase-step]")) {
+      if (item.dataset.ghostPhaseStep === phaseName) {
+        item.setAttribute("aria-current", "step");
+      } else {
+        item.removeAttribute("aria-current");
+      }
+    }
+    host.querySelector("[data-ghost-focus]").setAttribute(
+      "aria-pressed",
+      String(ghostFocus),
+    );
+    for (const button of host.querySelectorAll("[data-ghost-audition]")) {
+      button.setAttribute(
+        "aria-pressed",
+        String(button.dataset.ghostAudition === ghostAudition),
+      );
+    }
   }
 
   function stagePerformance(scoreState, action = "Score", arrangement = null) {
@@ -460,6 +508,24 @@ export function initSystemSymphony() {
       ? `${action} queued for next measure // ${performanceSeed}`
       : `${action} active // ${performanceSeed}`;
     renderPerformance(currentFrame);
+  }
+
+  function stageScene(frame, action = "Scene") {
+    if (mode !== "demo" || !frame) return;
+    performanceArrangement = createPerformanceArrangement(
+      performanceSeed,
+      frame.scoreState,
+      performanceMacros,
+    );
+    const audible = maskedFrame(frame, muted, soloed);
+    const result = engine.setScene(audible, performanceArrangement, {
+      quantize: engine.isRunning(),
+    });
+    sceneTransitionPending = result.queued;
+    performanceStatus = result.queued
+      ? `${action} queued for next bar // smooth 4-second crossfade // ${performanceSeed}`
+      : `${action} active // ${performanceSeed}`;
+    applyAndRender(frame, { applyAudio: false });
   }
 
   function announceImportant(frame) {
@@ -879,7 +945,7 @@ export function initSystemSymphony() {
     renderInspector();
   }
 
-  function applyAndRender(frame) {
+  function applyAndRender(frame, { applyAudio = true } = {}) {
     currentFrame = frame;
     const visible = visibleVoices(frame);
     if (!selectedName || !visible.some((voice) => voice.name === selectedName)) {
@@ -889,7 +955,7 @@ export function initSystemSymphony() {
     const audible = mode === "demo"
       ? maskedFrame(frame, muted, soloed)
       : frame;
-    engine.applyFrame(audible);
+    if (applyAudio) engine.applyFrame(audible);
     renderCompact(frame);
     renderDialog(frame);
     announceImportant(frame);
@@ -911,6 +977,8 @@ export function initSystemSymphony() {
     activeDemoProfile = "custom";
     performanceArrangement = null;
     performanceStatus = "Custom live snapshot ready";
+    sceneTransitionPending = false;
+    resetGhostMixControls();
     engine.setPerformance(null, { quantize: false });
     const frame = currentDemoFrame();
     applyAndRender(frame);
@@ -929,6 +997,8 @@ export function initSystemSymphony() {
     soloed.clear();
     activeDemoProfile = null;
     performanceArrangement = null;
+    sceneTransitionPending = false;
+    resetGhostMixControls();
     engine.setPerformance(null, { quantize: false });
     if (lastLiveFrame) applyAndRender(lastLiveFrame);
   }
@@ -946,9 +1016,13 @@ export function initSystemSymphony() {
     demoMerged.estate = deriveDemoEstate(demoMerged.services);
     demoMerged.timestamp = new Date().toISOString();
     const frame = currentDemoFrame();
-    applyAndRender(frame);
-    if (performanceArrangement?.scoreState !== frame.scoreState) {
-      stagePerformance(frame.scoreState, "Scene");
+    if (
+      sceneTransitionPending
+      || performanceArrangement?.scoreState !== frame.scoreState
+    ) {
+      stageScene(frame);
+    } else {
+      applyAndRender(frame);
     }
     const nextIncidents = demoMerged.estate.active_incidents;
     if (nextIncidents > previousIncidents) {
@@ -958,7 +1032,6 @@ export function initSystemSymphony() {
 
   function applyDemoProfile(profileName) {
     if (mode !== "demo" || !demoMerged) return;
-    const previousIncidents = demoMerged.estate?.active_incidents ?? 0;
     demoMerged.services = applyDemoProfileToServices(
       demoMerged.services,
       profileName,
@@ -969,12 +1042,7 @@ export function initSystemSymphony() {
     muted.clear();
     soloed.clear();
     const frame = currentDemoFrame();
-    applyAndRender(frame);
-    stagePerformance(frame.scoreState, "Scene");
-    const nextIncidents = demoMerged.estate.active_incidents;
-    if (nextIncidents > previousIncidents) {
-      engine.queueIncidentAccent(nextIncidents - previousIncidents);
-    }
+    stageScene(frame);
   }
 
   function randomisePerformance() {
@@ -1006,6 +1074,30 @@ export function initSystemSymphony() {
       renderPerformance(currentFrame);
       input.reportValidity();
     }
+  }
+
+  function toggleGhostFocus() {
+    if (mode !== "demo") return;
+    ghostFocus = engine.setGhostFocus(!ghostFocus);
+    performanceStatus = ghostFocus
+      ? "Ghost Circuit focus active // backing ducked"
+      : "Ghost Circuit focus off // full mix";
+    renderPerformance(currentFrame);
+  }
+
+  function toggleGhostAudition(layer) {
+    if (mode !== "demo") return;
+    const nextLayer = ghostAudition === layer ? null : layer;
+    ghostAudition = engine.setGhostAudition(nextLayer);
+    performanceStatus = ghostAudition
+      ? `${ghostAudition.toUpperCase()} audition active // isolated voice`
+      : "Ghost Circuit audition off // full arrangement";
+    renderPerformance(currentFrame);
+  }
+
+  function resetGhostMixControls() {
+    ghostFocus = engine.setGhostFocus(false);
+    ghostAudition = engine.setGhostAudition(null);
   }
 
   function flashDeployment(deployment) {
@@ -1096,22 +1188,35 @@ export function initSystemSymphony() {
 
   async function toggleAudio() {
     const buttons = [...host.querySelectorAll("[data-audio-toggle]")];
+    const shouldStart = !engine.isRunning();
+    const startPromise = shouldStart ? engine.start() : null;
     buttons.forEach((button) => { button.disabled = true; });
     try {
-      if (engine.isRunning()) engine.pause();
+      if (!shouldStart) engine.pause();
       else {
         host.querySelector("[data-important-status]").textContent =
           "Loading hybrid instrument library…";
-        await engine.start();
+        await startPromise;
+        const stats = engine.getSampleLoadStats();
         host.querySelector("[data-important-status]").textContent = engine.isSampleReady()
-          ? "Hybrid drums, bass, lead and atmosphere ready."
+          ? stats?.backgroundComplete
+            ? `Full hybrid instrument ready: ${stats.loaded}/${stats.totalAssets} assets.`
+            : "Core hybrid instrument ready. Lead and atmosphere textures are loading."
           : "Sample library unavailable. Procedural fallback is active.";
       }
       setRunningUi();
     } catch (error) {
       console.error("system-symphony: audio failed to start", error);
-      host.querySelector("[data-important-status]").textContent =
-        "Audio could not start. See the browser console for details.";
+      const blocked = error?.code === AUDIO_CONTEXT_BLOCKED_CODE;
+      host.querySelector("[data-important-status]").textContent = blocked
+        ? "Your browser blocked Web Audio. Allow audio/autoplay for this site, then press Retry audio."
+        : "Audio could not start. See the browser console for details.";
+      if (blocked) {
+        buttons.forEach((button) => {
+          button.textContent = "Retry audio";
+          button.setAttribute("aria-label", "Retry System SYMPHONY audio");
+        });
+      }
     } finally {
       buttons.forEach((button) => { button.disabled = false; });
     }
@@ -1162,6 +1267,15 @@ export function initSystemSymphony() {
     "click",
     replayPerformanceSeed,
   );
+  host.querySelector("[data-ghost-focus]").addEventListener(
+    "click",
+    toggleGhostFocus,
+  );
+  host.querySelectorAll("[data-ghost-audition]").forEach((button) => {
+    button.addEventListener("click", () => {
+      toggleGhostAudition(button.dataset.ghostAudition);
+    });
+  });
   host.querySelector("[data-performance-seed]").addEventListener("input", (event) => {
     event.target.value = event.target.value.toUpperCase();
     event.target.setCustomValidity("");
@@ -1263,8 +1377,30 @@ export function initSystemSymphony() {
   engine.setPerformanceHandler((performance) => {
     if (mode !== "demo" || !performance) return;
     if (performanceArrangement?.id !== performance.id) return;
+    sceneTransitionPending = false;
     performanceStatus = `Active // ${performance.sceneName} // ${performance.seed}`;
     renderPerformance(currentFrame);
+  });
+  engine.setGhostPhaseHandler((phase) => {
+    if (mode !== "demo") return;
+    renderGhostControls(phase);
+  });
+  engine.setSampleLoadHandler((stats) => {
+    const status = host.querySelector("[data-important-status]");
+    if (!status) return;
+    if (stats.backgroundComplete) {
+      status.textContent = stats.failed > 0
+        ? `Hybrid instrument ready: ${stats.loaded}/${stats.totalAssets} assets, ${stats.failed} procedural fallbacks.`
+        : stats.fallbacks > 0
+          ? `Full hybrid instrument ready: ${stats.loaded}/${stats.totalAssets} assets, ${stats.fallbacks} codec fallbacks.`
+          : `Full hybrid instrument ready: ${stats.loaded}/${stats.totalAssets} assets.`;
+      return;
+    }
+    status.textContent = stats.coreReady
+      ? `Core hybrid instrument ready. Textures ${stats.completed}/${stats.totalAssets}; ${stats.failed} fallbacks.`
+      : stats.failed > 0
+        ? `Loading core instrument: ${stats.loaded} ready, ${stats.failed} using fallback.`
+        : `Loading core instrument: ${stats.loaded}/${stats.requested} ready.`;
   });
 
   const poller = createPoller({

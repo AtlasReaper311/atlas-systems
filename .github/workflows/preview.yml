@@ -1,0 +1,112 @@
+name: Cloudflare Pages preview
+
+on:
+  push:
+    branches:
+      - feat/system-symphony-h1-h8-preview
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.repository }}-pages-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate preview candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out preview branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22"
+
+      - name: Validate static site and Pages output
+        run: |
+          set -euo pipefail
+          npx --yes html-validate@9.7.1 "**/*.html"
+          node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
+          python3 scripts/generate_sitemap.py --check-only
+          python3 scripts/verify_pages_output.py .
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          for path in sorted(Path(".").rglob("*.json")):
+              if ".git" in path.parts:
+                  continue
+              json.loads(path.read_text(encoding="utf-8"))
+          PY
+
+      - name: Check repository links offline
+        uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411 # v2.8.0
+        with:
+          args: "--offline --no-progress --include-fragments --root-dir ${{ github.workspace }} ."
+          fail: true
+
+  deploy-preview:
+    name: Publish branch preview
+    needs: validate
+    if: github.ref == 'refs/heads/feat/system-symphony-h1-h8-preview'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: pages-preview
+      url: ${{ steps.deploy.outputs.deployment_url }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CF_PAGES_DEPLOY_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      SOURCE_BRANCH: feat/system-symphony-h1-h8-preview
+      PAGES_BRANCH: system-symphony-h1-h8
+      PROJECT_NAME: atlas-systems
+    steps:
+      - name: Check out validated commit
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22"
+
+      - name: Guard production boundary
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "${SOURCE_BRANCH}"
+          test "${SOURCE_BRANCH}" != "main"
+          test "${PAGES_BRANCH}" != "main"
+
+      - name: Deploy preview with Wrangler
+        id: deploy
+        run: |
+          set -euo pipefail
+          output_file="${RUNNER_TEMP}/wrangler-pages-deploy.log"
+          npx --yes wrangler@4.109.0 pages deploy . \
+            --project-name "${PROJECT_NAME}" \
+            --branch "${PAGES_BRANCH}" \
+            --commit-dirty=true 2>&1 | tee "${output_file}"
+          deployment_url="$(grep -Eo 'https://[A-Za-z0-9._-]+\.pages\.dev' "${output_file}" | tail -n 1)"
+          test -n "${deployment_url}"
+          echo "deployment_url=${deployment_url}" >>"${GITHUB_OUTPUT}"
+
+      - name: Record branch preview alias
+        env:
+          ATOMIC_URL: ${{ steps.deploy.outputs.deployment_url }}
+          PREVIEW_URL: https://system-symphony-h1-h8.atlas-systems-44t.pages.dev
+        run: |
+          set -euo pipefail
+          {
+            echo "## Cloudflare Pages preview"
+            echo
+            echo "${PREVIEW_URL}"
+            echo
+            echo "Atomic deployment: ${ATOMIC_URL}"
+            echo
+            echo "This is a non-production branch deployment. atlas-systems.uk is unchanged."
+          } >>"${GITHUB_STEP_SUMMARY}"

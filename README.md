@@ -37,8 +37,41 @@ Live source for [atlas-systems.uk](https://atlas-systems.uk). Hand-built HTML, C
 | Notify | `atlas-infra/validate-static.yml` | always | Reports deploy outcome to Discord and the Lab failure log |
 | Corpus refresh | `atlas-corpus/refresh-corpus.yml` | push to `main` | Re-ingests the estate docs into the searchable corpus |
 | Outcome verification | `deploy-watch` | Cloudflare cron | Confirms the actual Pages deployment result from Cloudflare's API |
+| Branch preview | `preview.yml` | push to `feat/system-symphony-h1-h8-preview` | Validates and publishes a non-production `pages.dev` branch preview |
 
 The push event, validation gate, deploy result, and Cloudflare Pages outcome are separate signals. `deploy.yml` handles the build path; `deploy-watch` independently verifies whether Cloudflare actually produced the expected deployment.
+
+### System SYMPHONY branch preview
+
+The System SYMPHONY preview branch has an intentionally narrow deployment path. Pushing
+`feat/system-symphony-h1-h8-preview` runs the complete static-site checks, then
+publishes the repository root with Wrangler's non-production `--branch` flag
+under the shorter Pages branch name `system-symphony-h1-h8`.
+The expected stable alias is
+`https://system-symphony-h1-h8.atlas-systems-44t.pages.dev`. The workflow also
+records Wrangler's immutable deployment URL in the GitHub environment and job
+summary.
+
+The preview job uses the `pages-preview` GitHub environment and the existing
+least-privilege `CF_PAGES_DEPLOY_TOKEN` and `CF_ACCOUNT_ID` secrets. It cannot
+run for `main`, does not regenerate or commit the sitemap, does not purge the
+production zone cache, does not refresh the corpus, and does not send a
+production deployment notification. Pushing the named branch is therefore an
+explicit preview-deployment action; local work does not publish anything.
+
+The same branch now carries the H9 Ghost Circuit candidate: seeded arpeggio
+direction and gating, a separate cyberpunk riff voice, five-phase arrangements,
+visible phase and audition controls, a focus A/B mix, codec retry and stricter
+resource bounds. Demo scene changes now wait for the next bar and move through a
+four-second crossfade instead of swapping score state and arrangement at
+different times. Production remains unchanged until the branch is explicitly
+approved and merged.
+
+The preview alias is not currently on the production `specular-sonify` and
+`deploy-watch` Worker origin allowlists. Demo mode is the complete listening
+surface on the branch preview; live mode deliberately remains stale/Unknown for
+those feeds until a separate, exact-origin Worker change is reviewed and
+approved. The preview workflow does not widen CORS or deploy those Workers.
 
 ## Live data
 

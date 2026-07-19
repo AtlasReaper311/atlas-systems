@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  AUDIO_CONTEXT_BLOCKED_CODE,
   ARP_MAX_MIDI,
   ARP_ROOT_MIDI,
   COUNTERLINE_BUS_GAINS,
@@ -35,7 +36,62 @@ test("audio context start resolves normally", async () => {
 test("audio context start fails closed when browser unlock never resolves", async () => {
   await assert.rejects(
     startToneWithTimeout({ start: () => new Promise(() => {}) }, 10),
-    /audio context did not start in time/,
+    (error) => {
+      assert.match(error.message, /audio context did not start in time/);
+      assert.equal(error.code, AUDIO_CONTEXT_BLOCKED_CODE);
+      assert.equal(error.contextState, "unknown");
+      return true;
+    },
+  );
+});
+
+test("audio context start recovers a suspended raw browser context", async () => {
+  const listeners = new Set();
+  let rawResumeCalls = 0;
+  let pulseStarts = 0;
+  const rawContext = {
+    state: "suspended",
+    sampleRate: 48000,
+    destination: {},
+    addEventListener(_name, listener) { listeners.add(listener); },
+    removeEventListener(_name, listener) { listeners.delete(listener); },
+    createBuffer: () => ({}),
+    createBufferSource: () => ({
+      connect() {},
+      disconnect() {},
+      start() { pulseStarts += 1; },
+    }),
+    async resume() {
+      rawResumeCalls += 1;
+      this.state = "running";
+      listeners.forEach((listener) => listener());
+    },
+  };
+  await startToneWithTimeout({
+    start: () => new Promise(() => {}),
+    getContext: () => ({ rawContext }),
+  }, 20);
+  assert.equal(rawResumeCalls, 1);
+  assert.equal(pulseStarts, 1);
+});
+
+test("audio context start identifies a browser-blocked suspended context", async () => {
+  const rawContext = {
+    state: "suspended",
+    addEventListener() {},
+    removeEventListener() {},
+    resume: () => new Promise(() => {}),
+  };
+  await assert.rejects(
+    startToneWithTimeout({
+      start: () => new Promise(() => {}),
+      getContext: () => ({ rawContext }),
+    }, 10),
+    (error) => {
+      assert.equal(error.code, AUDIO_CONTEXT_BLOCKED_CODE);
+      assert.equal(error.contextState, "suspended");
+      return true;
+    },
   );
 });
 
@@ -54,6 +110,66 @@ test("the shared pad refreshes every measure with a low grounded voicing", () =>
       assert.ok(Math.max(...notes) <= 57, `${state} pad should stay at or below A3`);
     }
   }
+});
+
+test("seeded pad, bass, hat and arp dimensions all change audible events", () => {
+  const score = SCORE_STATES.healthy;
+  const performance = createPerformanceArrangement("A71A5", "healthy");
+  const voicings = new Set(
+    ["triad", "sus2", "sus4", "quartal"].map((voicing) => (
+      buildPadVoicing("healthy", score.scale, 0, 0, voicing).join(":")
+    )),
+  );
+  assert.equal(voicings.size, 4);
+
+  const firstBassMidi = (shift) => Array.from({ length: 32 }, (_, step) => (
+    bassEventForStep("healthy", score.scale, step, 0, {
+      ...performance,
+      bassOctaveShift: shift,
+    })
+  )).find(Boolean)?.midi;
+  assert.ok(firstBassMidi(-12) < firstBassMidi(0));
+  assert.ok(firstBassMidi(0) < firstBassMidi(12));
+
+  const hatCounts = ["sparse", "standard", "dense"].map((hatDensityLabel) => (
+    Array.from({ length: 32 }, (_, step) => (
+      percussionEventsForStep("healthy", step, {
+        ...performance,
+        hatDensityLabel,
+      }).hat
+    )).filter(Boolean).length
+  ));
+  assert.ok(hatCounts[0] < hatCounts[1]);
+  assert.ok(hatCounts[1] < hatCounts[2]);
+
+  const arpSignature = (arpDirectionLabel, patternRotation = 0) => JSON.stringify(
+    Array.from({ length: 32 }, (_, step) => (
+      terminalEventForStep("healthy", score.scale, step, 0, {
+        ...performance,
+        arpDirectionLabel,
+        patternRotation,
+      })
+    )),
+  );
+  assert.notEqual(arpSignature("up"), arpSignature("down"));
+  assert.notEqual(arpSignature("up", 0), arpSignature("up", 5));
+});
+
+test("arp note velocity is not attenuated a second time by arrangement phase", () => {
+  const score = SCORE_STATES.healthy;
+  const performance = createPerformanceArrangement("A71A5", "healthy");
+  const phaseVelocities = new Map();
+  for (let phrase = 0; phrase < 8; phrase += 1) {
+    const event = Array.from({ length: 32 }, (_, step) => (
+      terminalEventForStep("healthy", score.scale, step, phrase, performance)
+    )).find(Boolean);
+    if (event) phaseVelocities.set(event.phase, event.velocity);
+  }
+  assert.ok(phaseVelocities.has("boot"));
+  assert.ok(phaseVelocities.has("drive"));
+  assert.ok(phaseVelocities.has("lift"));
+  assert.ok(phaseVelocities.has("drop"));
+  assert.equal(new Set(phaseVelocities.values()).size, 1);
 });
 
 test("service octave variation is neutral or downward, never an upward alarm jump", () => {
@@ -191,7 +307,7 @@ test("Demo arrangements add a fast bounded low and mid arpeggiator", () => {
         assert.ok(events.every((event) => event.midi >= ARP_ROOT_MIDI));
         assert.ok(events.every((event) => event.midi <= ARP_MAX_MIDI));
         assert.ok(events.every((event) => (
-          event.duration === (state === "unknown" ? "8n" : "16n")
+          ["32n", "16n", "8n", "4n"].includes(event.duration)
         )));
         assert.ok(events.every((event) => Number.isFinite(event.velocity)));
       }
@@ -306,7 +422,7 @@ test("Demo scene rhythms separate night drive, pressure, pursuit and menu states
   );
 
   assert.deepEqual(sceneEvents.healthy, {
-    bass: 12,
+    bass: 16,
     kicks: 16,
     snares: 8,
     hats: 16,
@@ -317,7 +433,7 @@ test("Demo scene rhythms separate night drive, pressure, pursuit and menu states
     bass: 12,
     kicks: 12,
     snares: 8,
-    hats: 12,
+    hats: 16,
     metal: 4,
     arp: 22,
   });
@@ -325,12 +441,12 @@ test("Demo scene rhythms separate night drive, pressure, pursuit and menu states
     bass: 12,
     kicks: 12,
     snares: 8,
-    hats: 16,
+    hats: 8,
     metal: 4,
     arp: 24,
   });
   assert.deepEqual(sceneEvents.unknown, {
-    bass: 12,
+    bass: 8,
     kicks: 8,
     snares: 4,
     hats: 8,
@@ -362,11 +478,34 @@ test("different Demo seeds create distinct audible phrase signatures", () => {
 function fakeToneRuntime() {
   const constructed = [];
   const triggers = [];
+  const releases = [];
   const scheduledRepeats = new Map();
+  const scheduledParameterWrites = [];
+  let transportStopCount = 0;
+  let transportBpmRampCount = 0;
   const parameter = (value = 0) => ({
     value,
     rampTo(nextValue) {
       this.value = nextValue;
+      if (this.label === "transport-bpm") transportBpmRampCount += 1;
+    },
+    setValueAtTime(nextValue, time) {
+      this.value = nextValue;
+      scheduledParameterWrites.push({
+        type: "set",
+        label: this.label ?? null,
+        nextValue,
+        time,
+      });
+    },
+    linearRampToValueAtTime(nextValue, time) {
+      this.value = nextValue;
+      scheduledParameterWrites.push({
+        type: "ramp",
+        label: this.label ?? null,
+        nextValue,
+        time,
+      });
     },
   });
 
@@ -388,7 +527,9 @@ function fakeToneRuntime() {
     chain() { return this; }
     toDestination() { return this; }
     triggerAttackRelease(...args) { triggers.push({ name: this.name, args }); }
+    releaseAll(time) { releases.push({ name: this.name, time }); }
     start() { return this; }
+    stop() { return this; }
     dispose() {}
     getValue() { return new Float32Array(512); }
     async generate() {}
@@ -411,7 +552,20 @@ function fakeToneRuntime() {
     nextSubdivision() { return 0; },
     clear() {},
     start() { this.state = "started"; },
+    stop() {
+      transportStopCount += 1;
+      this.state = "stopped";
+    },
   };
+  transport.bpm.label = "transport-bpm";
+  class ToneAudioBuffer {
+    constructor(url, onLoad) {
+      this.url = url;
+      queueMicrotask(onLoad);
+    }
+    get() { return { url: this.url }; }
+    dispose() {}
+  }
   const Tone = {
     start: async () => undefined,
     Gain: nodeClass("Gain"),
@@ -436,7 +590,7 @@ function fakeToneRuntime() {
     Player: nodeClass("Player"),
     Sampler: nodeClass("Sampler"),
     GrainPlayer: nodeClass("GrainPlayer"),
-    loaded: async () => undefined,
+    ToneAudioBuffer,
     getTransport: () => transport,
     Time: () => ({ toSeconds: () => 0.25 }),
     Draw: { schedule: (callback) => callback() },
@@ -445,7 +599,12 @@ function fakeToneRuntime() {
     Tone,
     constructed,
     triggers,
+    releases,
+    scheduledParameterWrites,
     scheduledRepeats,
+    transportBpm: () => transport.bpm.value,
+    transportBpmRampCount: () => transportBpmRampCount,
+    transportStopCount: () => transportStopCount,
     runEighth: (time = 0) => scheduledRepeats.get("8n")?.(time),
     runSixteenth: (time = 0) => scheduledRepeats.get("16n")?.(time),
   };
@@ -457,6 +616,7 @@ test("the browser graph allocates Demo effects once and applies a queued score o
   globalThis.Tone = runtime.Tone;
   const engine = createEngine();
   const applied = [];
+  const phases = [];
   try {
     engine.applyFrame(computeFrame({
       timestamp: "2026-07-16T12:00:00.000Z",
@@ -464,12 +624,13 @@ test("the browser graph allocates Demo effects once and applies a queued score o
       services: [],
     }));
     engine.setPerformanceHandler((performance) => applied.push(performance));
+    engine.setGhostPhaseHandler((phase) => phases.push(phase?.name ?? null));
     await engine.start();
     assert.ok(runtime.constructed.includes("Distortion"));
     assert.ok(runtime.constructed.includes("FeedbackDelay"));
     assert.ok(runtime.constructed.filter((name) => name === "MonoSynth").length >= 1);
     assert.ok(runtime.constructed.filter((name) => name === "FMSynth").length >= 2);
-    assert.equal(runtime.constructed.filter((name) => name === "Distortion").length, 2);
+    assert.equal(runtime.constructed.filter((name) => name === "Distortion").length, 3);
     assert.equal(runtime.constructed.filter((name) => name === "FeedbackDelay").length, 1);
     assert.ok(runtime.scheduledRepeats.has("8n"));
     assert.ok(runtime.scheduledRepeats.has("16n"));
@@ -481,7 +642,22 @@ test("the browser graph allocates Demo effects once and applies a queued score o
     runtime.runEighth();
     assert.equal(applied.length, 1);
     assert.equal(applied[0].id, performance.id);
+    assert.equal(phases.length, 1);
+    assert.equal(phases[0], engine.getGhostPhase().name);
+    const bpmRampsBeforeFocus = runtime.transportBpmRampCount();
+    assert.equal(engine.setGhostFocus(true), true);
+    assert.equal(runtime.transportBpmRampCount(), bpmRampsBeforeFocus);
+    assert.deepEqual(engine.getGhostMixState(), { focus: true, audition: null });
+    assert.equal(engine.setGhostAudition("riff"), "riff");
+    assert.equal(runtime.transportBpmRampCount(), bpmRampsBeforeFocus);
+    assert.deepEqual(engine.getGhostMixState(), { focus: true, audition: "riff" });
+    assert.equal(engine.setGhostAudition("invalid"), null);
+    assert.ok(runtime.scheduledParameterWrites.length > 0);
+    assert.ok(runtime.scheduledParameterWrites.every(({ time }) => Number.isFinite(time)));
     const triggerCount = runtime.triggers.length;
+    runtime.runEighth(null);
+    runtime.runSixteenth(null);
+    assert.equal(runtime.triggers.length, triggerCount);
     for (let step = 0; step < 32; step += 1) runtime.runSixteenth(step / 4);
     assert.ok(
       runtime.triggers.length >= triggerCount + 18,
@@ -489,6 +665,56 @@ test("the browser graph allocates Demo effects once and applies a queued score o
     );
   } finally {
     engine.dispose();
+    if (previousTone === undefined) delete globalThis.Tone;
+    else globalThis.Tone = previousTone;
+  }
+});
+
+test("scene changes wait for a bar and crossfade frame and performance atomically", async () => {
+  const previousTone = globalThis.Tone;
+  const runtime = fakeToneRuntime();
+  globalThis.Tone = runtime.Tone;
+  const engine = createEngine();
+  try {
+    const healthyFrame = computeFrame({
+      timestamp: "2026-07-18T12:00:00.000Z",
+      estate: { overall_health: 1, active_incidents: 0 },
+      services: [],
+    });
+    const criticalFrame = computeFrame({
+      timestamp: "2026-07-18T12:01:00.000Z",
+      estate: { overall_health: 0.4, active_incidents: 1 },
+      services: [{ name: "atlas-api-public", status: "down" }],
+    });
+    const healthyPerformance = createPerformanceArrangement("A71A5", "healthy");
+    const criticalPerformance = createPerformanceArrangement("A71A5", "critical");
+    engine.applyFrame(healthyFrame);
+    engine.setPerformance(healthyPerformance, { quantize: false });
+    await engine.start();
+    const healthyBpm = runtime.transportBpm();
+    const healthyBpmRampCount = runtime.transportBpmRampCount();
+    runtime.runEighth(0);
+
+    const result = engine.setScene(criticalFrame, criticalPerformance);
+    assert.equal(result.queued, true);
+    for (let step = 1; step < PAD_MEASURE_STEPS; step += 1) {
+      runtime.runEighth(step / 4);
+    }
+    assert.equal(runtime.transportBpm(), healthyBpm);
+    assert.equal(runtime.releases.length, 0);
+
+    const transitionTime = 4;
+    runtime.runEighth(transitionTime);
+    assert.equal(runtime.transportBpm(), criticalPerformance.targetBpm);
+    assert.equal(runtime.transportBpmRampCount(), healthyBpmRampCount + 1);
+    assert.deepEqual(runtime.releases, [{ name: "PolySynth", time: transitionTime }]);
+    const bpmWrites = runtime.scheduledParameterWrites.filter(
+      ({ label }) => label === "transport-bpm",
+    );
+    assert.deepEqual(bpmWrites, []);
+  } finally {
+    engine.dispose();
+    assert.equal(runtime.transportStopCount(), 1);
     if (previousTone === undefined) delete globalThis.Tone;
     else globalThis.Tone = previousTone;
   }

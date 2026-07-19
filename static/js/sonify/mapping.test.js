@@ -40,6 +40,21 @@ const payload = (overrides = {}) => ({
   ...overrides,
 });
 
+test("score states expose the H1-H8 tempo and master filter bands", () => {
+  assert.deepEqual(
+    Object.fromEntries(Object.entries(SCORE_STATES).map(([state, score]) => [
+      state,
+      [score.bpm, score.masterFilterHz, score.masterHpHz],
+    ])),
+    {
+      healthy: [112, 12000, 28],
+      warning: [118, 10000, 32],
+      critical: [128, 8000, 38],
+      unknown: [96, 6000, 24],
+    },
+  );
+});
+
 test("healthy state uses dark D Aeolian at the healthy tempo", () => {
   const frame = computeFrame(payload());
   assert.equal(frame.scoreState, "healthy");

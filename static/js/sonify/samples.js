@@ -1,187 +1,221 @@
 /**
  * Deterministic sample palette and section grammar for System SYMPHONY.
  *
- * This module is deliberately pure. It owns asset metadata and seeded musical
- * choices, while engine.js remains the only module that constructs Tone.js
- * nodes or starts audio playback.
+ * This module remains pure apart from browser format capability detection.
+ * Asset metadata uses one template for Opus, AAC and WAV delivery variants;
+ * engine.js remains the only module that constructs Tone.js nodes or starts
+ * audio playback.
  */
 
-export const SAMPLE_ASSET_VERSION = "20260716-system-symphony-expanded-library";
+import {
+  pickAudioFormat,
+  resolveAssetUrl,
+  resolveAssetUrls,
+} from "./asset-loader.js?v=20260718-system-symphony-ghost-circuit";
+
+export const SAMPLE_ASSET_VERSION = "20260718-system-symphony-h1-h8-preview";
 export const SAMPLE_ASSET_BASE = "/static/audio/system-symphony/";
 
-const assetUrl = (file) => (
-  `${SAMPLE_ASSET_BASE}${file}?v=${SAMPLE_ASSET_VERSION}`
+const assetUrlTemplate = (file) => (
+  `${SAMPLE_ASSET_BASE}${file}.%ext%?v=${SAMPLE_ASSET_VERSION}`
 );
 
 const asset = (id, file, gainDb = 0) => Object.freeze({
   id,
   file,
-  url: assetUrl(file),
+  urlTemplate: assetUrlTemplate(file),
+  get url() { return resolveAssetUrl(this.urlTemplate); },
+  get urls() { return resolveAssetUrls(this.urlTemplate); },
   gainDb,
 });
 
 export const DRUM_SAMPLES = Object.freeze({
-  "kick-aggressive": asset("kick-aggressive", "kick-aggressive.wav", -2.5),
-  "kick-crispy": asset("kick-crispy", "kick-crispy.wav", -2),
-  "kick-punchier": asset("kick-punchier", "kick-punchier.wav", -2.5),
-  "kick-subtle": asset("kick-subtle", "kick-subtle.wav", -1.5),
-  "snare-aggressive": asset("snare-aggressive", "snare-aggressive.wav", -4),
-  "snare-bright": asset("snare-bright", "snare-bright.wav", -3.5),
-  "snare-clip": asset("snare-clip", "snare-clip.wav", -3),
-  "snare-regular": asset("snare-regular", "snare-regular.wav", -3.5),
-  "hat-aggressive": asset("hat-aggressive", "hat-aggressive.wav", -7),
-  "hat-classic": asset("hat-classic", "hat-classic.wav", -6.5),
-  "hat-hard": asset("hat-hard", "hat-hard.wav", -7),
-  "hat-layer": asset("hat-layer", "hat-layer.wav", -8),
-  "hat-subtle": asset("hat-subtle", "hat-subtle.wav", -6),
-  "perc-ac-unit-1": asset("perc-ac-unit-1", "perc-ac-unit-1.wav", 1.5),
-  "perc-ac-unit-3": asset("perc-ac-unit-3", "perc-ac-unit-3.wav", 0.5),
-  "perc-ac-unit-6": asset("perc-ac-unit-6", "perc-ac-unit-6.wav", 2),
-  "perc-stick": asset("perc-stick", "perc-stick.wav", -5),
-  "crash-crisp": asset("crash-crisp", "crash-crisp.wav", -7),
-  "fx-tapestop": asset("fx-tapestop", "fx-tapestop.wav", -6),
+  "kick-aggressive": asset("kick-aggressive", "kick-aggressive", -2.5),
+  "kick-crispy": asset("kick-crispy", "kick-crispy", -2),
+  "kick-punchier": asset("kick-punchier", "kick-punchier", -2.5),
+  "kick-subtle": asset("kick-subtle", "kick-subtle", -1.5),
+  "snare-aggressive": asset("snare-aggressive", "snare-aggressive", -4),
+  "snare-bright": asset("snare-bright", "snare-bright", -3.5),
+  "snare-clip": asset("snare-clip", "snare-clip", -3),
+  "snare-regular": asset("snare-regular", "snare-regular", -3.5),
+  "hat-aggressive": asset("hat-aggressive", "hat-aggressive", -7),
+  "hat-classic": asset("hat-classic", "hat-classic", -6.5),
+  "hat-hard": asset("hat-hard", "hat-hard", -7),
+  "hat-layer": asset("hat-layer", "hat-layer", -8),
+  "hat-subtle": asset("hat-subtle", "hat-subtle", -6),
+  "perc-ac-unit-1": asset("perc-ac-unit-1", "perc-ac-unit-1", 1.5),
+  "perc-ac-unit-3": asset("perc-ac-unit-3", "perc-ac-unit-3", 0.5),
+  "perc-ac-unit-6": asset("perc-ac-unit-6", "perc-ac-unit-6", 2),
+  "perc-stick": asset("perc-stick", "perc-stick", -5),
+  "crash-crisp": asset("crash-crisp", "crash-crisp", -7),
+  "fx-tapestop": asset("fx-tapestop", "fx-tapestop", -6),
 });
 
 export const BASS_SAMPLES = Object.freeze({
   "bass-transformer": Object.freeze({
-    ...asset("bass-transformer", "bass-transformer-a0.wav", -5),
+    ...asset("bass-transformer", "bass-transformer-a0", -5),
     rootNote: "A0",
   }),
   "bass-angry": Object.freeze({
-    ...asset("bass-angry", "bass-angry-d1.wav", -8),
+    ...asset("bass-angry", "bass-angry-d1", -8),
     rootNote: "D1",
   }),
   "bass-percussive": Object.freeze({
-    ...asset("bass-percussive", "bass-percussive-d-sharp1.wav", -8.5),
+    ...asset("bass-percussive", "bass-percussive-d-sharp1", -8.5),
     rootNote: "D#1",
   }),
   "bass-burial": Object.freeze({
-    ...asset("bass-burial", "bass-burial-c1.wav", -8),
+    ...asset("bass-burial", "bass-burial-c1", -8),
     rootNote: "C1",
   }),
   "bass-deep": Object.freeze({
-    ...asset("bass-deep", "bass-deep-c1.wav", -5.5),
+    ...asset("bass-deep", "bass-deep-c1", -5.5),
     rootNote: "C1",
   }),
   "bass-doom": Object.freeze({
-    ...asset("bass-doom", "bass-doom-c1.wav", -7.5),
+    ...asset("bass-doom", "bass-doom-c1", -7.5),
     rootNote: "C1",
   }),
 });
 
 export const LEAD_LOOPS = Object.freeze({
   geneticist: Object.freeze({
-    ...asset("geneticist", "lead-geneticist-96-e-min.wav", -7),
+    ...asset("geneticist", "lead-geneticist-96-e-min", -7),
     bpm: 96,
     key: "E minor",
     transposeCents: -200,
     durationSeconds: 20,
     playableEndSeconds: 18.16,
     playableBeats: 28,
+    grainSize: 0.14,
+    grainOverlap: 0.07,
+    stateCompatibility: Object.freeze(["healthy", "unknown"]),
   }),
   "no-alternative": Object.freeze({
-    ...asset("no-alternative", "lead-no-alternative-100-e-min.wav", -5),
+    ...asset("no-alternative", "lead-no-alternative-100-e-min", -5),
     bpm: 100,
     key: "E minor",
     transposeCents: -200,
     durationSeconds: 19.2,
     playableEndSeconds: 19.2,
     playableBeats: 32,
+    grainSize: 0.14,
+    grainOverlap: 0.07,
+    stateCompatibility: Object.freeze(["healthy"]),
   }),
   "background-saws": Object.freeze({
-    ...asset("background-saws", "lead-background-saws-100-d-min.wav", -9),
+    ...asset("background-saws", "lead-background-saws-100-d-min", -9),
     bpm: 100,
     key: "D minor",
     transposeCents: 0,
     durationSeconds: 4.8,
     playableEndSeconds: 4.8,
     playableBeats: 8,
+    grainSize: 0.14,
+    grainOverlap: 0.07,
+    stateCompatibility: Object.freeze(["healthy", "warning"]),
   }),
   "future-synth": Object.freeze({
-    ...asset("future-synth", "lead-future-synth-100-e-min.wav", -8),
+    ...asset("future-synth", "lead-future-synth-100-e-min", -8),
     bpm: 100,
     key: "E minor",
     transposeCents: -200,
     durationSeconds: 4.8,
     playableEndSeconds: 4.8,
     playableBeats: 8,
+    grainSize: 0.12,
+    grainOverlap: 0.06,
+    stateCompatibility: Object.freeze(["healthy"]),
   }),
   "acid-synth": Object.freeze({
-    ...asset("acid-synth", "lead-acid-synth-100-f-min.wav", -11),
+    ...asset("acid-synth", "lead-acid-synth-100-f-min", -11),
     bpm: 100,
     key: "F minor",
     transposeCents: -300,
     durationSeconds: 9.6,
     playableEndSeconds: 9.6,
     playableBeats: 16,
+    grainSize: 0.09,
+    grainOverlap: 0.05,
+    stateCompatibility: Object.freeze(["healthy", "warning"]),
   }),
   "wobbly-synth": Object.freeze({
-    ...asset("wobbly-synth", "lead-wobbly-synth-104-d-sharp-min.wav", -7),
+    ...asset("wobbly-synth", "lead-wobbly-synth-104-d-sharp-min", -7),
     bpm: 104,
     key: "D# minor",
     transposeCents: -100,
     durationSeconds: 9.231,
     playableEndSeconds: 9.231,
     playableBeats: 16,
+    grainSize: 0.14,
+    grainOverlap: 0.07,
+    stateCompatibility: Object.freeze(["healthy", "warning"]),
   }),
 });
 
 export const ATMOSPHERE_LOOPS = Object.freeze({
   motherboard: Object.freeze({
-    ...asset("motherboard", "atmos-motherboard-106-d-sharp-min.wav", -3),
+    ...asset("motherboard", "atmos-motherboard-106-d-sharp-min", -3),
     bpm: 106,
     key: "D# minor",
     transposeCents: -100,
-    durationSeconds: 18.113,
+    durationSeconds: 17.587,
+    stateCompatibility: Object.freeze(["warning", "critical"]),
   }),
   nanotech: Object.freeze({
-    ...asset("nanotech", "atmos-nanotech-105-g-min.wav", -7),
+    ...asset("nanotech", "atmos-nanotech-105-g-min", -7),
     bpm: 105,
     key: "G minor",
     transposeCents: -500,
-    durationSeconds: 18.286,
+    durationSeconds: 17.836,
+    stateCompatibility: Object.freeze(["critical"]),
   }),
   "new-punks": Object.freeze({
-    ...asset("new-punks", "atmos-new-punks-100-c-min.wav", -3),
+    ...asset("new-punks", "atmos-new-punks-100-c-min", -3),
     bpm: 100,
     key: "C minor",
     transposeCents: 200,
-    durationSeconds: 19.2,
+    durationSeconds: 18.353,
+    stateCompatibility: Object.freeze(["healthy", "warning"]),
   }),
 });
 
 export const BASS_LOOPS = Object.freeze({
   "neo-tokyo": Object.freeze({
-    ...asset("neo-tokyo", "bassloop-neo-tokyo-100-f.wav", -12),
+    ...asset("neo-tokyo", "bassloop-neo-tokyo-100-f", -12),
     bpm: 100,
     key: "F / D minor compatible",
     transposeCents: 0,
     durationSeconds: 9.6,
     playableBeats: 16,
+    stateCompatibility: Object.freeze(["warning", "critical"]),
   }),
   "sequenced-bass": Object.freeze({
-    ...asset("sequenced-bass", "bassloop-sequenced-100-f-min.wav", -12),
+    ...asset("sequenced-bass", "bassloop-sequenced-100-f-min", -12),
     bpm: 100,
     key: "F minor",
     transposeCents: -300,
     durationSeconds: 9.6,
     playableBeats: 16,
+    stateCompatibility: Object.freeze(["healthy", "warning"]),
   }),
   "evil-bass": Object.freeze({
-    ...asset("evil-bass", "bassloop-evil-100-f-min.wav", -14),
+    ...asset("evil-bass", "bassloop-evil-100-f-min", -14),
     bpm: 100,
     key: "F minor",
     transposeCents: -300,
     durationSeconds: 9.6,
     playableBeats: 16,
+    stateCompatibility: Object.freeze(["healthy", "warning"]),
   }),
   "distorted-guitar": Object.freeze({
-    ...asset("distorted-guitar", "bassloop-distorted-guitar-105-f.wav", -14),
+    ...asset("distorted-guitar", "bassloop-distorted-guitar-105-f", -14),
     bpm: 105,
     key: "F root/fifth",
     transposeCents: -300,
     durationSeconds: 9.143,
     playableBeats: 16,
+    stateCompatibility: Object.freeze(["critical"]),
   }),
 });
 
@@ -193,6 +227,53 @@ export const SAMPLE_LIBRARY = Object.freeze({
   ...BASS_LOOPS,
 });
 
+export const ASSET_TIERS = Object.freeze({
+  tier1: Object.freeze([
+    DRUM_SAMPLES["kick-aggressive"],
+    DRUM_SAMPLES["kick-crispy"],
+    DRUM_SAMPLES["kick-punchier"],
+    DRUM_SAMPLES["kick-subtle"],
+    DRUM_SAMPLES["snare-aggressive"],
+    DRUM_SAMPLES["snare-bright"],
+    DRUM_SAMPLES["snare-clip"],
+    DRUM_SAMPLES["snare-regular"],
+    DRUM_SAMPLES["hat-classic"],
+    DRUM_SAMPLES["hat-hard"],
+    DRUM_SAMPLES["hat-subtle"],
+    DRUM_SAMPLES["crash-crisp"],
+    DRUM_SAMPLES["fx-tapestop"],
+    BASS_SAMPLES["bass-transformer"],
+    BASS_SAMPLES["bass-doom"],
+  ]),
+  tier2: Object.freeze([
+    DRUM_SAMPLES["hat-aggressive"],
+    DRUM_SAMPLES["hat-layer"],
+    DRUM_SAMPLES["perc-ac-unit-1"],
+    DRUM_SAMPLES["perc-ac-unit-3"],
+    DRUM_SAMPLES["perc-ac-unit-6"],
+    DRUM_SAMPLES["perc-stick"],
+    BASS_SAMPLES["bass-angry"],
+    BASS_SAMPLES["bass-percussive"],
+    BASS_SAMPLES["bass-burial"],
+    BASS_SAMPLES["bass-deep"],
+    LEAD_LOOPS.geneticist,
+    LEAD_LOOPS["no-alternative"],
+    LEAD_LOOPS["background-saws"],
+    LEAD_LOOPS["future-synth"],
+    LEAD_LOOPS["acid-synth"],
+    LEAD_LOOPS["wobbly-synth"],
+    BASS_LOOPS["neo-tokyo"],
+    BASS_LOOPS["sequenced-bass"],
+    BASS_LOOPS["evil-bass"],
+    BASS_LOOPS["distorted-guitar"],
+  ]),
+  tier3: Object.freeze([
+    ATMOSPHERE_LOOPS.motherboard,
+    ATMOSPHERE_LOOPS.nanotech,
+    ATMOSPHERE_LOOPS["new-punks"],
+  ]),
+});
+
 const STATE_SAMPLE_POOLS = Object.freeze({
   healthy: Object.freeze({
     kick: Object.freeze(["kick-subtle", "kick-crispy", "kick-punchier"]),
@@ -200,9 +281,9 @@ const STATE_SAMPLE_POOLS = Object.freeze({
     hat: Object.freeze(["hat-subtle", "hat-classic", "hat-layer"]),
     metal: Object.freeze(["perc-stick", "perc-ac-unit-1", "perc-ac-unit-6"]),
     bass: Object.freeze(["bass-transformer", "bass-percussive", "bass-burial", "bass-deep", "bass-doom"]),
-    bassLoop: Object.freeze([null, "neo-tokyo", "sequenced-bass", "evil-bass"]),
-    lead: Object.freeze(["geneticist", "no-alternative", "background-saws", "future-synth", "acid-synth", "wobbly-synth"]),
-    atmosphere: Object.freeze(["new-punks", "motherboard", "nanotech"]),
+    bassLoop: Object.freeze([null, "sequenced-bass", "evil-bass", null]),
+    lead: Object.freeze(["background-saws", "wobbly-synth", "acid-synth", "geneticist", "no-alternative", "future-synth"]),
+    atmosphere: Object.freeze(["new-punks", null]),
   }),
   warning: Object.freeze({
     kick: Object.freeze(["kick-punchier", "kick-crispy", "kick-aggressive"]),
@@ -210,9 +291,9 @@ const STATE_SAMPLE_POOLS = Object.freeze({
     hat: Object.freeze(["hat-classic", "hat-hard", "hat-aggressive"]),
     metal: Object.freeze(["perc-ac-unit-1", "perc-ac-unit-3", "perc-stick"]),
     bass: Object.freeze(["bass-transformer", "bass-percussive", "bass-angry", "bass-deep", "bass-doom"]),
-    bassLoop: Object.freeze([null, "neo-tokyo", null]),
-    lead: Object.freeze([]),
-    atmosphere: Object.freeze(["motherboard", "new-punks", "nanotech"]),
+    bassLoop: Object.freeze([null, "neo-tokyo", null, "sequenced-bass"]),
+    lead: Object.freeze([null, "background-saws", null, "wobbly-synth"]),
+    atmosphere: Object.freeze(["motherboard", "new-punks"]),
   }),
   critical: Object.freeze({
     kick: Object.freeze(["kick-aggressive", "kick-punchier", "kick-crispy"]),
@@ -220,7 +301,7 @@ const STATE_SAMPLE_POOLS = Object.freeze({
     hat: Object.freeze(["hat-hard", "hat-aggressive", "hat-classic"]),
     metal: Object.freeze(["perc-ac-unit-3", "perc-ac-unit-6", "perc-stick"]),
     bass: Object.freeze(["bass-percussive", "bass-angry", "bass-doom", "bass-burial"]),
-    bassLoop: Object.freeze([null, "distorted-guitar", null]),
+    bassLoop: Object.freeze([null, "distorted-guitar", "distorted-guitar", null]),
     lead: Object.freeze([]),
     atmosphere: Object.freeze(["nanotech", "motherboard"]),
   }),
@@ -231,7 +312,7 @@ const STATE_SAMPLE_POOLS = Object.freeze({
     metal: Object.freeze(["perc-ac-unit-6", "perc-stick", "perc-ac-unit-1"]),
     bass: Object.freeze(["bass-transformer", "bass-deep", "bass-burial"]),
     bassLoop: Object.freeze([null]),
-    lead: Object.freeze([]),
+    lead: Object.freeze([null, "geneticist"]),
     atmosphere: Object.freeze([null]),
   }),
 });
@@ -243,11 +324,14 @@ const SECTION_CYCLES = Object.freeze({
   unknown: Object.freeze(["drift", "drift", "signal", "space", "drift", "signal", "space", "return"]),
 });
 
+const HYPER_CYCLES = Object.freeze(["A", "B", "C", "D"]);
+const PHRASES_PER_HYPER_CYCLE = 8;
+
 const LEAD_STEP_PATTERNS = Object.freeze({
-  healthy: Object.freeze([0, 7, 16, 23]),
-  warning: Object.freeze([]),
+  healthy: Object.freeze([0, 8, 16, 24]),
+  warning: Object.freeze([0, 16]),
   critical: Object.freeze([]),
-  unknown: Object.freeze([]),
+  unknown: Object.freeze([0, 16]),
 });
 
 const LEAD_SOURCE_BEATS = Object.freeze([0, 4, 8, 12, 16, 20, 24, 28]);
@@ -274,11 +358,36 @@ function poolIndex(value, length) {
   return ((integer(value) % length) + length) % length;
 }
 
+export function hyperCycleForPhrase(phraseIndex = 0) {
+  const cycle = poolIndex(
+    Math.floor(integer(phraseIndex) / PHRASES_PER_HYPER_CYCLE),
+    HYPER_CYCLES.length,
+  );
+  return HYPER_CYCLES[cycle];
+}
+
 export function sectionForPhrase(scoreState, phraseIndex = 0, performance = null) {
   const state = normalizedState(scoreState);
   const cycle = SECTION_CYCLES[state];
   const offset = integer(performance?.sectionVariant);
   return cycle[poolIndex(integer(phraseIndex) + offset, cycle.length)];
+}
+
+function sampleForKind(kind, id) {
+  if (!id) return null;
+  if (kind === "lead") return LEAD_LOOPS[id] ?? null;
+  if (kind === "bassLoop") return BASS_LOOPS[id] ?? null;
+  if (kind === "atmosphere") return ATMOSPHERE_LOOPS[id] ?? null;
+  if (kind === "bass") return BASS_SAMPLES[id] ?? null;
+  return DRUM_SAMPLES[id] ?? null;
+}
+
+function compatiblePool(kind, state, rawPool) {
+  return rawPool.filter((id) => {
+    if (id === null) return true;
+    const sample = sampleForKind(kind, id);
+    return !sample?.stateCompatibility || sample.stateCompatibility.includes(state);
+  });
 }
 
 export function sampleIdForEvent(
@@ -289,8 +398,10 @@ export function sampleIdForEvent(
   performance = null,
 ) {
   const state = normalizedState(scoreState);
-  const pool = STATE_SAMPLE_POOLS[state][kind];
-  if (!pool?.length) return null;
+  const rawPool = STATE_SAMPLE_POOLS[state][kind];
+  if (!rawPool?.length) return null;
+  const pool = compatiblePool(kind, state, rawPool);
+  if (!pool.length) return null;
   const field = PERFORMANCE_FIELD_FOR_KIND[kind];
   const base = integer(performance?.[field]);
   const section = sectionForPhrase(state, phraseIndex, performance);
@@ -299,7 +410,8 @@ export function sampleIdForEvent(
     : section === "break" || section === "space"
       ? -1
       : 0;
-  return pool[poolIndex(base + sectionShift, pool.length)];
+  const hyperShift = Math.max(0, HYPER_CYCLES.indexOf(hyperCycleForPhrase(phraseIndex)));
+  return pool[poolIndex(base + sectionShift + hyperShift, pool.length)];
 }
 
 export function resolveSamplePalette(scoreState, performance = null, phraseIndex = 0) {
@@ -314,6 +426,7 @@ export function resolveSamplePalette(scoreState, performance = null, phraseIndex
     lead: sampleIdForEvent("lead", state, 0, phraseIndex, performance),
     atmosphere: sampleIdForEvent("atmosphere", state, 0, phraseIndex, performance),
     section: sectionForPhrase(state, phraseIndex, performance),
+    hyperCycle: hyperCycleForPhrase(phraseIndex),
   };
   return Object.freeze({
     ...palette,
@@ -363,3 +476,5 @@ export function leadSliceForStep(
 export function allSampleAssets() {
   return Object.freeze(Object.values(SAMPLE_LIBRARY));
 }
+
+export { pickAudioFormat };
