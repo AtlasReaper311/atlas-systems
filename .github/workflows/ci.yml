@@ -37,8 +37,14 @@ jobs:
       - name: Validate HTML
         run: npx --yes html-validate@9.7.1 "**/*.html"
 
-      - name: Run JavaScript tests
-        run: node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
+      - name: Run homepage JavaScript tests
+        run: node --test js/tests/*.test.mjs
+
+      - name: Run Lab JavaScript tests
+        run: node --test lab/tests/*.test.mjs
+
+      - name: Run System Symphony tests
+        run: node --test static/js/sonify/*.test.js
 
       - name: Validate sitemap
         run: python3 scripts/generate_sitemap.py --check-only
