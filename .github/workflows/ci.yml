@@ -37,8 +37,21 @@ jobs:
       - name: Validate HTML
         run: npx --yes html-validate@9.7.1 "**/*.html"
 
-      - name: Run homepage JavaScript tests
-        run: node --test js/tests/*.test.mjs
+      - name: Test live registry ES module contract
+        run: node --test js/tests/live-registry-esm.test.mjs
+
+      - name: Test homepage live-signal ownership
+        run: node --test js/tests/live-signal-ownership.test.mjs
+
+      - name: Run remaining homepage JavaScript tests
+        run: |
+          mapfile -t tests < <(find js/tests -maxdepth 1 -name '*.test.mjs' \
+            ! -name 'live-registry-esm.test.mjs' \
+            ! -name 'live-signal-ownership.test.mjs' \
+            -print | sort)
+          if (( ${#tests[@]} )); then
+            node --test "${tests[@]}"
+          fi
 
       - name: Run Lab JavaScript tests
         run: node --test lab/tests/*.test.mjs
