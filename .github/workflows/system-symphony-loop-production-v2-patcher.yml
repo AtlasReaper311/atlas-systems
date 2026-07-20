@@ -40,7 +40,7 @@ jobs:
             echo "needs_patch=true" >>"${GITHUB_OUTPUT}"
           fi
 
-      - name: Repair patcher ambiguity guard
+      - name: Normalize stale patcher assumptions
         if: steps.preflight.outputs.needs_patch == 'true'
         run: |
           set -euo pipefail
@@ -49,37 +49,96 @@ jobs:
 
           path = Path("scripts/apply_system_symphony_loop_production_v2.py")
           lines = path.read_text(encoding="utf-8").splitlines()
-          signature_matches = [
-              index for index, line in enumerate(lines)
-              if '"signature chord progression"' in line
-          ]
-          return_matches = [
-              index for index, line in enumerate(lines)
-              if '"return chord progression"' in line
-          ]
-          if len(signature_matches) != 1:
-              raise SystemExit(
-                  f"expected one signature chord progression repair target, found {len(signature_matches)}"
-              )
-          if len(return_matches) != 1:
-              raise SystemExit(
-                  f"expected one return chord progression repair target, found {len(return_matches)}"
-              )
-          lines[signature_matches[0]] = (
+
+          def one(label):
+              matches = [index for index, line in enumerate(lines) if label in line]
+              if len(matches) != 1:
+                  raise SystemExit(f"expected one patcher target for {label}, found {len(matches)}")
+              return matches[0]
+
+          signature_index = one('"signature chord progression"')
+          return_index = one('"return chord progression"')
+          motif_index = one('"motif root retune"')
+
+          lines[signature_index] = (
               "performance = replace_all(performance, "
               "'    chordOffset,\\n    bassPattern,', "
               "'    chordOffset,\\n    chordProgression,\\n    bassPattern,', "
               "\"signature and return chord progression\", minimum=2)"
           )
-          lines[return_matches[0]] = (
-              "# chordProgression was inserted into both matching contexts above."
-          )
+          lines[return_index] = "# chordProgression was inserted into both matching contexts above."
+          lines[motif_index] = "# motif root is normalized against the current director source after patch application."
           path.write_text("\n".join(lines) + "\n", encoding="utf-8")
           PY
 
       - name: Apply loop production v2 patch
         if: steps.preflight.outputs.needs_patch == 'true'
         run: python3 scripts/apply_system_symphony_loop_production_v2.py
+
+      - name: Normalize current live audio policy
+        if: steps.preflight.outputs.needs_patch == 'true'
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          director_path = Path("static/js/sonify/composition-director.js")
+          director = director_path.read_text(encoding="utf-8")
+          old_root = 'const root = plan.state === "unknown" ? 50 : 54;'
+          if old_root in director:
+              director = director.replace(
+                  old_root,
+                  'const root = plan.state === "unknown" ? 53 : 57;',
+                  1,
+              )
+          if 'const root = plan.state === "unknown" ? 53 : 57;' not in director:
+              raise SystemExit("F-centred motif root was not established")
+          director_path.write_text(director, encoding="utf-8")
+
+          samples_path = Path("static/js/sonify/samples.js")
+          samples = samples_path.read_text(encoding="utf-8")
+          samples = samples.replace(
+              'warning: Object.freeze({ bassLoop: "neo-tokyo", lead: "acid-synth", atmosphere: "motherboard" }),',
+              'warning: Object.freeze({ bassLoop: "neo-tokyo", lead: "acid-synth", atmosphere: "new-punks" }),',
+          )
+          samples = samples.replace(
+              'critical: Object.freeze({ bassLoop: "distorted-guitar", lead: null, atmosphere: "nanotech" }),',
+              'critical: Object.freeze({ bassLoop: "distorted-guitar", lead: null, atmosphere: "new-punks" }),',
+          )
+          samples = samples.replace(
+              'unknown: Object.freeze({ bassLoop: null, lead: "geneticist", atmosphere: null }),',
+              'unknown: Object.freeze({ bassLoop: null, lead: null, atmosphere: null }),',
+          )
+          pattern = re.compile(
+              r'  if \(performance\?\.liveDirected\) \{\n'
+              r'(?:    .*\n)+?'
+              r'  \}',
+          )
+          replacement = '''  if (performance?.liveDirected) {
+            const fallback = LIVE_SAMPLE_FALLBACKS[state];
+            palette.bassLoop = palette.bassLoop ?? fallback.bassLoop;
+            palette.lead = fallback.lead;
+            palette.atmosphere = fallback.atmosphere;
+            palette.metal = "perc-stick";
+          }'''
+          samples, count = pattern.subn(replacement, samples, count=1)
+          if count != 1:
+              raise SystemExit(f"expected one live sample policy block, found {count}")
+          samples_path.write_text(samples, encoding="utf-8")
+
+          engine_path = Path("static/js/sonify/engine.js")
+          engine = engine_path.read_text(encoding="utf-8")
+          engine = engine.replace(
+              'const depth = scoreState === "critical" ? 0.48 : scoreState === "warning" ? 0.54 : 0.6;',
+              'const depth = scoreState === "critical" ? 0.62 : scoreState === "warning" ? 0.67 : 0.72;',
+          )
+          engine = engine.replace(
+              'masterClipper = new Tone.Distortion({ distortion: 0.04, oversample: "2x", wet: 0.08 });',
+              'masterClipper = new Tone.Distortion({ distortion: 0.04, oversample: "2x", wet: 0.03 });',
+          )
+          engine_path.write_text(engine, encoding="utf-8")
+          PY
 
       - name: Validate touched JavaScript syntax
         if: steps.preflight.outputs.needs_patch == 'true'
