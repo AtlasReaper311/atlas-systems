@@ -4,72 +4,13 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  pr45-source-cleanup:
-    name: One-shot Lab source cleanup
-    if: github.event.pull_request.head.ref == 'fix/lab-public-pipeline-terminal-v2'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Check out PR head
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          fetch-depth: 0
-
-      - name: Sanitize stale Lab compatibility list
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          path = Path("lab/index.html")
-          text = path.read_text(encoding="utf-8")
-          start = text.index("      const PGRID_REPOS = [")
-          end = text.index("      const PGRID_RECENT_MS", start)
-          replacement = '''      const PGRID_REPOS = [
-                { id: "atlas-api-index", aliases: ["atlas-api-index"] },
-                { id: "atlas-api-public", aliases: ["atlas-api-public"] },
-                { id: "atlas-blackbox", aliases: ["atlas-blackbox"] },
-                { id: "atlas-corpus", aliases: ["atlas-corpus"] },
-                { id: "atlas-daily-digest", aliases: ["atlas-daily-digest"] },
-                { id: "atlas-doc-viewer", aliases: ["atlas-doc-viewer", "cv.atlas-systems.uk"] },
-                { id: "atlas-dora", aliases: ["atlas-dora"] },
-                { id: "atlas-notify", aliases: ["atlas-notify"] },
-                { id: "atlas-quota-watch", aliases: ["atlas-quota-watch"] },
-                { id: "atlas-systems", aliases: ["atlas-systems", "atlas-systems.uk"] },
-                { id: "deploy-watch", aliases: ["deploy-watch"] },
-                { id: "github-pulse", aliases: ["github-pulse"] },
-                { id: "ramone-edge", aliases: ["ramone-edge", "ramone.atlas-systems.uk"] },
-                { id: "ramone-voice-trigger", aliases: ["ramone-voice-trigger", "ramone-trigger"] },
-                { id: "site-pulse", aliases: ["site-pulse"] },
-                { id: "specular-sonify", aliases: ["specular-sonify"] },
-                { id: "specular-telemetry", aliases: ["specular-telemetry", "specular-edge"] },
-                { id: "status", aliases: ["status", "status.atlas-systems.uk"] },
-              ];
-'''
-          path.write_text(text[:start] + replacement + text[end:], encoding="utf-8")
-          PY
-
-      - name: Restore normal CI workflow and remove one-shot workflow
-        run: |
-          git fetch origin main
-          git checkout origin/main -- .github/workflows/ci.yml
-          rm -f .github/workflows/pr45-lab-cleanup.yml
-
-      - name: Commit source cleanup
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add lab/index.html .github/workflows/ci.yml .github/workflows/pr45-lab-cleanup.yml
-          git commit -m "Sanitize legacy Lab pipeline compatibility list"
-          git push origin HEAD:${{ github.event.pull_request.head.ref }}
-
   static-validation:
     name: Static site validation
     runs-on: ubuntu-latest
