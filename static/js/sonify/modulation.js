@@ -279,12 +279,6 @@ export function applyContinuousTelemetryModulation(
   };
 }
 
-function timestampMs(value) {
-  if (typeof value !== "string") return null;
-  const parsed = Date.parse(value);
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
 /**
  * Stateful control-rate coordinator for live mode only. It preserves the last
  * honest score during brief telemetry gaps, smooths continuous pressure with a
@@ -326,7 +320,7 @@ export function createPersistentTelemetryModulator({ now = () => Date.now() } = 
     if (!frame.stale) {
       lastGoodFrame = frame;
       lastGoodPayload = payload;
-      lastGoodAt = timestampMs(frame.lastSuccessfulAt) ?? at;
+      lastGoodAt = at;
     }
 
     const staleAgeMs = frame.stale && lastGoodFrame
