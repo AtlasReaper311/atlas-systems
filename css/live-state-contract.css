@@ -1,0 +1,155 @@
+/* =====================================================================
+   Homepage live-state visual contract
+
+   JavaScript owns semantic state and dynamic text. This stylesheet owns all
+   state-dependent colour, halo, animation, and control presentation. State is
+   intentionally component-scoped so nav health, deployment, backend services,
+   countdown activity, and registry freshness can disagree honestly.
+   ===================================================================== */
+
+:root {
+  --live-state-healthy: #4ade80;
+  --live-state-warning: var(--accent, #f5a623);
+  --live-state-critical: #e24b4a;
+  --live-state-neutral: var(--text-dim, #aaa9a0);
+  --live-state-faint: var(--text-faint, #555560);
+  --live-state-healthy-halo: rgba(74, 222, 128, 0.15);
+  --live-state-warning-halo: rgba(245, 166, 35, 0.15);
+  --live-state-critical-halo: rgba(226, 75, 74, 0.15);
+}
+
+/* ── Navigation operational health ─────────────────────────────────── */
+.status-dot[data-state] {
+  --live-dot-color: var(--live-state-warning);
+  --live-dot-halo: var(--live-state-warning-halo);
+  background: var(--live-dot-color);
+  box-shadow: 0 0 0 3px var(--live-dot-halo);
+  animation: none;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.status-dot[data-state="nominal"] {
+  --live-dot-color: var(--live-state-healthy);
+  --live-dot-halo: var(--live-state-healthy-halo);
+}
+
+.status-dot[data-state="degraded"] {
+  --live-dot-color: var(--live-state-warning);
+  --live-dot-halo: var(--live-state-warning-halo);
+}
+
+.status-dot[data-state="critical"] {
+  --live-dot-color: var(--live-state-critical);
+  --live-dot-halo: var(--live-state-critical-halo);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .status-dot[data-state="nominal"] {
+    animation: live-state-pulse 2.5s ease-in-out infinite;
+  }
+
+  @keyframes live-state-pulse {
+    0%, 100% { box-shadow: 0 0 0 3px var(--live-dot-halo); }
+    50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--live-dot-color) 5%, transparent); }
+  }
+}
+
+/* ── Live-signal refresh controls ──────────────────────────────────── */
+.live-signal-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  margin-bottom: 2rem;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.live-signal-countdown {
+  color: var(--live-state-faint);
+  transition: color 0.15s ease;
+}
+
+.live-signal-countdown[data-state="checking"] {
+  color: var(--live-state-warning);
+}
+
+.live-signal-refresh {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  background: none;
+  color: var(--live-state-neutral);
+  cursor: pointer;
+  font-family: var(--mono, "IBM Plex Mono", monospace);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+
+.live-signal-refresh:hover,
+.live-signal-refresh:focus-visible {
+  border-color: var(--border-hi, rgba(255, 255, 255, 0.16));
+  color: var(--text, #e8e8e0);
+  background: var(--bg-1, #111118);
+}
+
+.live-signal-refresh:focus-visible {
+  outline: 2px solid var(--live-state-warning);
+  outline-offset: 2px;
+}
+
+/* ── Deployment state ──────────────────────────────────────────────── */
+#build-status[data-state="loading"],
+#build-status[data-state="pending"] {
+  color: var(--live-state-warning);
+}
+
+#build-status[data-state="success"] {
+  color: var(--live-state-healthy);
+}
+
+#build-status[data-state="failure"] {
+  color: var(--live-state-critical);
+}
+
+#build-status[data-state="unknown"] {
+  color: var(--live-state-neutral);
+}
+
+.live-signal-commit-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.live-signal-commit-link:hover,
+.live-signal-commit-link:focus-visible {
+  color: var(--text, #e8e8e0);
+}
+
+/* ── Independent backend service state ────────────────────────────── */
+.signal-value[data-state="loading"] {
+  color: var(--live-state-neutral);
+}
+
+.signal-value[data-state="ok"] {
+  color: var(--live-state-healthy);
+}
+
+.signal-value[data-state="error"] {
+  color: var(--live-state-critical);
+}
+
+.signal-cell[data-state="error"] .signal-label {
+  color: var(--text-dim, #aaa9a0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-dot[data-state],
+  .live-signal-countdown,
+  .live-signal-refresh {
+    transition: none;
+    animation: none;
+  }
+}
