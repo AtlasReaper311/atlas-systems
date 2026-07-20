@@ -94,7 +94,7 @@ jobs:
         if: steps.preflight.outputs.needs_patch == 'true'
         run: python3 scripts/apply_system_symphony_loop_production_v2.py
 
-      - name: Normalize current live audio policy
+      - name: Normalize current live audio policy and regression expectations
         if: steps.preflight.outputs.needs_patch == 'true'
         run: |
           set -euo pipefail
@@ -157,6 +157,34 @@ jobs:
               'masterClipper = new Tone.Distortion({ distortion: 0.04, oversample: "2x", wet: 0.03 });',
           )
           engine_path.write_text(engine, encoding="utf-8")
+
+          sampler_test_path = Path("static/js/sonify/sampler.test.js")
+          sampler_test = sampler_test_path.read_text(encoding="utf-8")
+          old_atmosphere_assertion = '''      runtime.starts.some(({ name, args }) => name === "GrainPlayer" && args[0] === 3.5),
+      "scheduled atmosphere starts must use the transport callback time",'''
+          new_atmosphere_assertion = '''      runtime.starts.some(({ name, args }) => ["GrainPlayer", "Player"].includes(name) && args[0] === 3.5),
+      "scheduled atmosphere starts must use the transport callback time regardless of player mode",'''
+          if old_atmosphere_assertion not in sampler_test:
+              raise SystemExit("scheduled atmosphere sampler assertion shape changed")
+          sampler_test = sampler_test.replace(
+              old_atmosphere_assertion,
+              new_atmosphere_assertion,
+              1,
+          )
+          old_measure_restart = '''    assert.equal(
+      sampler.playBassPhrase(0, frame, 8, 0, loopPerformance),
+      true,
+      "the selected four-beat fragment must restart on every measure boundary",
+    );'''
+          new_measure_restart = '''    assert.equal(
+      sampler.playBassPhrase(0, frame, 8, 0, loopPerformance),
+      false,
+      "the selected four-bar loop must not restart on an internal measure boundary",
+    );'''
+          if old_measure_restart not in sampler_test:
+              raise SystemExit("measure restart sampler assertion shape changed")
+          sampler_test = sampler_test.replace(old_measure_restart, new_measure_restart, 1)
+          sampler_test_path.write_text(sampler_test, encoding="utf-8")
           PY
 
       - name: Validate touched JavaScript syntax
@@ -177,7 +205,11 @@ jobs:
         run: |
           set -euo pipefail
           npx --yes html-validate@9.7.1 "**/*.html"
-          node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
+          for test_file in js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js; do
+            echo "::group::${test_file}"
+            node --test "${test_file}"
+            echo "::endgroup::"
+          done
           python3 scripts/generate_sitemap.py --check-only
           python3 scripts/verify_pages_output.py .
           python3 - <<'PY'
@@ -204,6 +236,7 @@ jobs:
           git add static/js/sonify/mapping.test.js
           git add static/js/sonify/samples.js
           git add static/js/sonify/sampler.js
+          git add static/js/sonify/sampler.test.js
           git add static/js/sonify/seed-dimensions.js
           git add static/js/sonify/performance.js
           git add static/js/sonify/composition-director.js
