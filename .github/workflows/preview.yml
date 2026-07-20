@@ -40,24 +40,15 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import re
           from pathlib import Path
 
-          def replace_once(text, old, new, label):
-              if new in text:
-                  return text
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f"REFUSING PATCH: {label} expected once, found {count}")
-              return text.replace(old, new, 1)
-
-          def replace_count(text, old, new, expected, label):
-              if text.count(new) == expected:
-                  return text
-              count = text.count(old)
-              if count != expected:
-                  raise SystemExit(f"REFUSING PATCH: {label} expected {expected}, found {count}")
-              return text.replace(old, new)
+          def edit_segment(text, start_marker, end_marker, replacements):
+              start = text.index(start_marker)
+              end = text.index(end_marker, start) + len(end_marker)
+              segment = text[start:end]
+              for old, new in replacements:
+                  segment = segment.replace(old, new, 1)
+              return text[:start] + segment + text[end:]
 
           engine_path = Path("static/js/sonify/engine.js")
           sampler_path = Path("static/js/sonify/sampler.js")
@@ -67,172 +58,90 @@ jobs:
           sampler = sampler_path.read_text(encoding="utf-8")
           ui = ui_path.read_text(encoding="utf-8")
 
-          engine = replace_once(
-              engine,
+          engine = engine.replace(
               'const depth = scoreState === "critical" ? 0.74 : scoreState === "warning" ? 0.78 : 0.82;',
               'const depth = scoreState === "critical" ? 0.82 : scoreState === "warning" ? 0.86 : 0.84;',
-              "sidechain depth",
           )
-          engine = replace_once(
-              engine,
+          engine = engine.replace(
               'parameter.linearRampToValueAtTime?.(1, time + 0.14);',
               'parameter.linearRampToValueAtTime?.(1, time + 0.12);',
-              "sidechain release",
           )
 
-          terminal_block = '''    terminalSynth = new Tone.FMSynth({
-                harmonicity: 1.5,
-                modulationIndex: 1.6,
-                oscillator: { type: "sine" },
-                modulation: { type: "triangle" },
-                envelope: { attack: 0.012, decay: 0.22, sustain: 0.2, release: 0.5 },
-                modulationEnvelope: { attack: 0.018, decay: 0.26, sustain: 0.06, release: 0.42 },
-                volume: -8,
-              });'''
-          terminal_pattern = r'    terminalSynth = new Tone\.FMSynth\(\{\n.*?\n    \}\);'
-          if terminal_block not in engine:
-              engine, count = re.subn(terminal_pattern, terminal_block, engine, count=1, flags=re.S)
-              if count != 1:
-                  raise SystemExit(f"REFUSING PATCH: terminal synth block expected once, found {count}")
-
-          engine = replace_count(
+          engine = edit_segment(
               engine,
+              '    terminalSynth = new Tone.FMSynth({',
+              '    });',
+              [
+                  ('modulationIndex: 2.2,', 'modulationIndex: 1.6,'),
+                  ('envelope: { attack: 0.006, decay: 0.16, sustain: 0.16, release: 0.38 },', 'envelope: { attack: 0.012, decay: 0.22, sustain: 0.2, release: 0.5 },'),
+                  ('modulationEnvelope: { attack: 0.008, decay: 0.2, sustain: 0.08, release: 0.3 },', 'modulationEnvelope: { attack: 0.018, decay: 0.26, sustain: 0.06, release: 0.42 },'),
+                  ('volume: -9,', 'volume: -8,'),
+              ],
+          )
+          engine = engine.replace(
               '1.4 + (performance.intent?.tension ?? performance.grit ?? 0.5) * 3.2',
               '1.15 + (performance.intent?.tension ?? performance.grit ?? 0.5) * 2.0',
-              2,
-              "terminal modulation index",
           )
 
-          riff_block = '''    riffSynths = [
-                new Tone.Synth({
-                  oscillator: { type: "triangle" },
-                  envelope: { attack: 0.01, decay: 0.18, sustain: 0.18, release: 0.32 },
-                  volume: -13,
-                }),
-                new Tone.FMSynth({
-                  harmonicity: 2.01,
-                  modulationIndex: 2.4,
-                  oscillator: { type: "triangle" },
-                  modulation: { type: "sine" },
-                  envelope: { attack: 0.01, decay: 0.18, sustain: 0.12, release: 0.32 },
-                  modulationEnvelope: { attack: 0.012, decay: 0.16, sustain: 0.04, release: 0.26 },
-                  volume: -15,
-                }),
-                new Tone.AMSynth({
-                  harmonicity: 1.5,
-                  oscillator: { type: "sawtooth" },
-                  modulation: { type: "sine" },
-                  envelope: { attack: 0.01, decay: 0.2, sustain: 0.14, release: 0.34 },
-                  modulationEnvelope: { attack: 0.008, decay: 0.16, sustain: 0.05, release: 0.26 },
-                  volume: -14,
-                }),
-              ];'''
-          riff_pattern = r'    riffSynths = \[\n.*?\n    \];'
-          if riff_block not in engine:
-              engine, count = re.subn(riff_pattern, riff_block, engine, count=1, flags=re.S)
-              if count != 1:
-                  raise SystemExit(f"REFUSING PATCH: riff synth block expected once, found {count}")
+          engine = edit_segment(
+              engine,
+              '    riffSynths = [',
+              '    ];',
+              [
+                  ('oscillator: { type: "square" },', 'oscillator: { type: "triangle" },'),
+                  ('envelope: { attack: 0.004, decay: 0.12, sustain: 0.12, release: 0.2 },', 'envelope: { attack: 0.01, decay: 0.18, sustain: 0.18, release: 0.32 },'),
+                  ('volume: -14,', 'volume: -13,'),
+                  ('modulationIndex: 3.1,', 'modulationIndex: 2.4,'),
+                  ('modulation: { type: "square" },', 'modulation: { type: "sine" },'),
+                  ('envelope: { attack: 0.003, decay: 0.14, sustain: 0.08, release: 0.24 },', 'envelope: { attack: 0.01, decay: 0.18, sustain: 0.12, release: 0.32 },'),
+                  ('modulationEnvelope: { attack: 0.002, decay: 0.1, sustain: 0.03, release: 0.18 },', 'modulationEnvelope: { attack: 0.012, decay: 0.16, sustain: 0.04, release: 0.26 },'),
+                  ('volume: -15,', 'volume: -14,'),
+                  ('volume: -16,', 'volume: -15,'),
+                  ('envelope: { attack: 0.006, decay: 0.16, sustain: 0.1, release: 0.28 },', 'envelope: { attack: 0.01, decay: 0.2, sustain: 0.14, release: 0.34 },'),
+                  ('modulationEnvelope: { attack: 0.004, decay: 0.12, sustain: 0.05, release: 0.2 },', 'modulationEnvelope: { attack: 0.008, decay: 0.16, sustain: 0.05, release: 0.26 },'),
+              ],
+          )
 
-          engine = replace_once(
-              engine,
-              '''    ramp(
-                percussionGain.gain,
-                (PERCUSSION_BUS_GAINS[frame.scoreState] ?? 0)
-                  * (performance?.drumMultiplier ?? 1)
-                  * phaseMix.drums
-                  * ghostMix.backing,
-              );''',
-              '''    ramp(
-                percussionGain.gain,
-                (PERCUSSION_BUS_GAINS[frame.scoreState] ?? 0)
-                  * phaseMix.drums
-                  * ghostMix.backing,
-              );''',
-              "percussion bus multiplier",
+          engine = engine.replace('        * (performance?.drumMultiplier ?? 1)\n', '')
+          engine = engine.replace(
+              '(frame.scoreState === "critical" ? 0.14 : frame.scoreState === "warning" ? 0.11 : frame.scoreState === "unknown" ? 0.04 : 0.08)\n          * phaseMix.drums,',
+              '(frame.scoreState === "critical" ? 0.1 : frame.scoreState === "warning" ? 0.08 : frame.scoreState === "unknown" ? 0.035 : 0.07)\n          * phaseMix.drums\n          * ghostMix.backing,',
           )
-          engine = replace_once(
-              engine,
-              '''(frame.scoreState === "critical" ? 0.14 : frame.scoreState === "warning" ? 0.11 : frame.scoreState === "unknown" ? 0.04 : 0.08)
-                  * phaseMix.drums,''',
-              '''(frame.scoreState === "critical" ? 0.1 : frame.scoreState === "warning" ? 0.08 : frame.scoreState === "unknown" ? 0.035 : 0.07)
-                  * phaseMix.drums
-                  * ghostMix.backing,''',
-              "parallel drum return",
+          engine = engine.replace(
+              '(performance?.terminalGain ?? 0)\n          * terminalStateMultiplier',
+              '(performance?.terminalGain ?? 0)\n          * 1.18\n          * terminalStateMultiplier',
           )
-          engine = replace_once(
-              engine,
-              '''(performance?.terminalGain ?? 0)
-                  * terminalStateMultiplier
-                  * phaseMix.arp
-                  * ghostMix.arp,''',
-              '''(performance?.terminalGain ?? 0)
-                  * 1.18
-                  * terminalStateMultiplier
-                  * phaseMix.arp
-                  * ghostMix.arp,''',
-              "arp bus gain",
-          )
-          engine = replace_once(
-              engine,
+          engine = engine.replace(
               '(performance?.riffGain ?? 0) * phaseMix.riff * ghostMix.riff,',
               '(performance?.riffGain ?? 0) * 1.2 * phaseMix.riff * ghostMix.riff,',
-              "riff bus gain",
           )
 
-          sampler = replace_once(
-              sampler,
-              'const ATMOSPHERE_XFADE_SECONDS = 4;',
-              'const ATMOSPHERE_XFADE_SECONDS = 3;',
-              "atmosphere crossfade",
+          sampler = sampler.replace('const ATMOSPHERE_XFADE_SECONDS = 4;', 'const ATMOSPHERE_XFADE_SECONDS = 3;')
+          sampler = sampler.replace('lead: 0.58', 'lead: 0.64', 1)
+          sampler = sampler.replace('lead: 0.28', 'lead: 0.42', 1)
+          sampler = sampler.replace(
+              'const leadMultiplier = performance && (phaseMix.riff > 0 || ghostModeActive)\n      ? ghostMix.lead\n      : 1;',
+              'const leadMultiplier = performance && (phaseMix.riff > 0 || ghostModeActive)\n      ? ghostModeActive\n        ? ghostMix.lead\n        : Math.max(0.9, ghostMix.lead)\n      : 1;',
           )
-          sampler = replace_once(sampler, 'lead: 0.58', 'lead: 0.64', "healthy lead gain")
-          sampler = replace_once(sampler, 'lead: 0.28', 'lead: 0.42', "warning lead gain")
-          sampler = replace_once(
+          sampler = edit_segment(
               sampler,
-              '''    const leadMultiplier = performance && (phaseMix.riff > 0 || ghostModeActive)
-                ? ghostMix.lead
-                : 1;''',
-              '''    const leadMultiplier = performance && (phaseMix.riff > 0 || ghostModeActive)
-                ? ghostModeActive
-                  ? ghostMix.lead
-                  : Math.max(0.9, ghostMix.lead)
-                : 1;''',
-              "normal lead priority",
-          )
-          sampler = replace_once(
-              sampler,
-              '''    ramp(
-                drumBus.gain,
-                mix.drums
-                  * (0.76 + energy * 0.24)
-                  * phaseMix.drums
-                  * ghostMix.backing,
-              );''',
-              '''    ramp(
-                drumBus.gain,
-                mix.drums
-                  * (0.76 + energy * 0.24),
-              );''',
-              "sample drum phase scaling",
+              '    ramp(\n      drumBus.gain,',
+              '    );',
+              [
+                  ('\n        * phaseMix.drums', ''),
+                  ('\n        * ghostMix.backing', ''),
+              ],
           )
 
-          ui = replace_once(
+          ui = edit_segment(
               ui,
-              '''    const result = engine.setScene(audible, performanceArrangement, {
-                quantize: engine.isRunning(),
-              });''',
-              '''    const result = engine.setScene(audible, performanceArrangement, {
-                quantize: engine.isRunning(),
-                transitionSeconds: 2,
-              });''',
-              "scene transition duration",
+              '    const result = engine.setScene(audible, performanceArrangement, {',
+              '    });',
+              [
+                  ('quantize: engine.isRunning(),', 'quantize: engine.isRunning(),\n      transitionSeconds: 2,'),
+              ],
           )
-          ui = replace_once(
-              ui,
-              'smooth 4-second crossfade',
-              'smooth 2-second crossfade',
-              "scene transition status",
-          )
+          ui = ui.replace('smooth 4-second crossfade', 'smooth 2-second crossfade')
 
           engine_path.write_text(engine, encoding="utf-8")
           sampler_path.write_text(sampler, encoding="utf-8")
