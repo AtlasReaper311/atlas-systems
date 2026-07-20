@@ -149,6 +149,11 @@ export function createAssetLoader(Tone, {
       loaded: buffers.size,
       failed: failures.size,
       fallbacks: fallbackCount,
+    });
+  }
+
+  function diagnostics() {
+    return Object.freeze({
       active: activeLoads,
       peakActive: peakActiveLoads,
       maxConcurrent: concurrency,
@@ -260,5 +265,6 @@ export function createAssetLoader(Tone, {
     format: (id) => formats.get(id) ?? null,
     disposeAll,
     stats,
+    diagnostics,
   };
 }
