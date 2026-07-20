@@ -3,6 +3,8 @@
  *
  * Tone.js construction and playback stay isolated here. Assets load in tiers
  * and fail independently, while sample selection remains pure in samples.js.
+ * Optional stem destinations let procedural and sampled layers meet on the
+ * same engine buses before master processing.
  */
 
 import {
@@ -17,22 +19,22 @@ import {
   resolveSamplePalette,
   sampleIdForEvent,
   sectionForPhrase,
-} from "./samples.js?v=20260718-system-symphony-ghost-circuit";
-import { createAssetLoader } from "./asset-loader.js?v=20260718-system-symphony-ghost-circuit";
+} from "./samples.js?v=20260720-system-symphony-composition-director";
+import { createAssetLoader } from "./asset-loader.js?v=20260720-system-symphony-composition-director";
 import {
   arrangementPhaseForPhrase,
   ghostLayerMixProfile,
-} from "./ghost-circuit.js?v=20260718-system-symphony-ghost-mix";
+} from "./ghost-circuit.js?v=20260720-system-symphony-composition-director";
 
 const PLAYBACK_RATE_MIN = 0.75;
 const PLAYBACK_RATE_MAX = 1.35;
 const ATMOSPHERE_XFADE_SECONDS = 4;
 
-const STATE_MIX = Object.freeze({
-  healthy: Object.freeze({ drums: 0.74, bass: 0.68, bassLoop: 0.42, bassFilterHz: 760, lead: 0.66, atmosphere: 0.23, atmosphereFilterHz: 2200, drive: 0.025, room: 0.07, delay: 0.14 }),
-  warning: Object.freeze({ drums: 0.8, bass: 0.7, bassLoop: 0.36, bassFilterHz: 920, lead: 0.32, atmosphere: 0.14, atmosphereFilterHz: 1050, drive: 0.05, room: 0.05, delay: 0.1 }),
-  critical: Object.freeze({ drums: 0.84, bass: 0.74, bassLoop: 0.4, bassFilterHz: 1080, lead: 0, atmosphere: 0.1, atmosphereFilterHz: 900, drive: 0.08, room: 0.03, delay: 0.07 }),
-  unknown: Object.freeze({ drums: 0.32, bass: 0.38, bassLoop: 0, bassFilterHz: 640, lead: 0.22, atmosphere: 0, atmosphereFilterHz: 800, drive: 0.02, room: 0.16, delay: 0.2 }),
+export const SAMPLE_STATE_MIX = Object.freeze({
+  healthy: Object.freeze({ drums: 0.68, bass: 0.62, bassLoop: 0.32, bassFilterHz: 720, lead: 0.58, atmosphere: 0.2, atmosphereFilterHz: 2300, drive: 0.025, room: 0.08, delay: 0.12 }),
+  warning: Object.freeze({ drums: 0.72, bass: 0.64, bassLoop: 0.18, bassFilterHz: 860, lead: 0.28, atmosphere: 0.14, atmosphereFilterHz: 1150, drive: 0.04, room: 0.08, delay: 0.08 }),
+  critical: Object.freeze({ drums: 0.76, bass: 0.68, bassLoop: 0.28, bassFilterHz: 980, lead: 0, atmosphere: 0.1, atmosphereFilterHz: 920, drive: 0.065, room: 0.06, delay: 0.06 }),
+  unknown: Object.freeze({ drums: 0.28, bass: 0.34, bassLoop: 0, bassFilterHz: 620, lead: 0.2, atmosphere: 0, atmosphereFilterHz: 800, drive: 0.018, room: 0.16, delay: 0.18 }),
 });
 
 function safeRamp(parameter, value, seconds, scheduledTime = undefined) {
@@ -63,7 +65,7 @@ function setVolume(node, gain, baseDb = 0) {
 }
 
 function normalizedState(scoreState) {
-  return STATE_MIX[scoreState] ? scoreState : "unknown";
+  return SAMPLE_STATE_MIX[scoreState] ? scoreState : "unknown";
 }
 
 function clampPlaybackRate(value) {
@@ -79,10 +81,25 @@ function setDetune(voice, cents) {
 
 export function createHybridSampler(Tone, {
   output,
+  drumOutput = null,
+  bassOutput = null,
+  melodicOutput = null,
+  textureOutput = null,
+  fxOutput = null,
   reverbInput = null,
   delayInput = null,
   onLoadProgress = null,
 } = {}) {
+  if (!output) throw new TypeError("system-symphony: hybrid sampler requires an output");
+
+  const destinations = Object.freeze({
+    drums: drumOutput ?? output,
+    bass: bassOutput ?? output,
+    melodic: melodicOutput ?? output,
+    texture: textureOutput ?? output,
+    fx: fxOutput ?? output,
+  });
+
   let ready = false;
   let disposed = false;
   let currentPalette = null;
@@ -111,35 +128,35 @@ export function createHybridSampler(Tone, {
 
   const loader = createAssetLoader(Tone, { onProgress: emitLoadProgress });
 
-  const drumBus = new Tone.Gain(0).connect(output);
+  const drumBus = new Tone.Gain(0).connect(destinations.drums);
   const bassInput = new Tone.Gain(1);
   const bassFilter = new Tone.Filter({
     type: "lowpass",
-    frequency: STATE_MIX.unknown.bassFilterHz,
-    Q: 0.8,
+    frequency: SAMPLE_STATE_MIX.unknown.bassFilterHz,
+    Q: 0.72,
     rolloff: -24,
   });
-  const bassBus = new Tone.Gain(0).connect(output);
+  const bassBus = new Tone.Gain(0).connect(destinations.bass);
   const bassLoopBus = new Tone.Gain(0).connect(bassInput);
   const bassDriveSend = new Tone.Gain(0);
   const bassDrive = new Tone.Distortion({
-    distortion: 0.22,
+    distortion: 0.18,
     oversample: "2x",
     wet: 1,
-  }).connect(output);
+  }).connect(destinations.bass);
   bassInput.connect(bassFilter);
   bassFilter.connect(bassBus);
   bassFilter.connect(bassDriveSend);
   bassDriveSend.connect(bassDrive);
 
-  const leadBus = new Tone.Gain(0).connect(output);
-  const atmosphereBus = new Tone.Gain(0).connect(output);
+  const leadBus = new Tone.Gain(0).connect(destinations.melodic);
+  const atmosphereBus = new Tone.Gain(0).connect(destinations.texture);
   const atmosphereFilter = new Tone.Filter({
     type: "lowpass",
-    frequency: STATE_MIX.unknown.atmosphereFilterHz,
+    frequency: SAMPLE_STATE_MIX.unknown.atmosphereFilterHz,
     Q: 0.7,
   }).connect(atmosphereBus);
-  const fxBus = new Tone.Gain(0.42).connect(output);
+  const fxBus = new Tone.Gain(0.36).connect(destinations.fx);
   const roomSend = new Tone.Gain(0);
   const leadDelaySend = new Tone.Gain(0);
   if (reverbInput) {
@@ -183,7 +200,7 @@ export function createHybridSampler(Tone, {
     const sampler = new Tone.Sampler({
       urls: { [sample.rootNote]: buffer.get() },
       attack: 0.002,
-      release: 0.16,
+      release: 0.14,
       volume: sample.gainDb,
     }).connect(bassInput);
     bassSamplers.set(id, sampler);
@@ -308,11 +325,13 @@ export function createHybridSampler(Tone, {
     { ghostMixOnly = false } = {},
   ) {
     const state = normalizedState(frame?.scoreState);
-    const mix = STATE_MIX[state];
+    const mix = SAMPLE_STATE_MIX[state];
     const phaseMix = performance
       ? arrangementPhaseForPhrase(state, phraseIndex, performance).mix
       : { drums: 1, bass: 1, pad: 1, arp: 1, riff: 0 };
-    const ghostMix = ghostLayerMixProfile(ghostOptions);
+    const ghostMix = performance?.liveDirected
+      ? { backing: 1, pad: 1, lead: 1, arp: 1, riff: 1 }
+      : ghostLayerMixProfile(ghostOptions);
     const ghostModeActive = Boolean(ghostOptions.focus || ghostOptions.audition);
     const leadMultiplier = performance && (phaseMix.riff > 0 || ghostModeActive)
       ? ghostMix.lead
@@ -328,18 +347,18 @@ export function createHybridSampler(Tone, {
     ramp(
       drumBus.gain,
       mix.drums
-        * (0.78 + energy * 0.32)
+        * (0.76 + energy * 0.24)
         * phaseMix.drums
         * ghostMix.backing,
     );
     ramp(
       bassBus.gain,
-      mix.bass * (0.8 + energy * 0.24) * phaseMix.bass * ghostMix.backing,
+      mix.bass * (0.8 + energy * 0.2) * phaseMix.bass * ghostMix.backing,
     );
     ramp(
       bassLoopBus.gain,
       mix.bassLoop
-        * (0.76 + energy * 0.3)
+        * (0.74 + energy * 0.22)
         * phaseMix.bass
         * ghostMix.backing,
     );
@@ -347,22 +366,22 @@ export function createHybridSampler(Tone, {
     ramp(
       leadBus.gain,
       mix.lead
-        * (0.76 + (performance?.motion ?? 0.5) * 0.28)
+        * (0.72 + (performance?.motion ?? 0.5) * 0.22)
         * phaseMix.arp
         * leadMultiplier,
     );
     ramp(
       atmosphereBus.gain,
       mix.atmosphere
-        * (0.72 + space * 0.42)
+        * (0.72 + space * 0.36)
         * phaseMix.pad
         * ghostMix.pad,
     );
     if (!ghostMixOnly) {
       ramp(atmosphereFilter.frequency, mix.atmosphereFilterHz);
-      ramp(bassDriveSend.gain, mix.drive * (0.7 + (performance?.grit ?? 0.45) * 0.6));
-      ramp(roomSend.gain, mix.room * (0.7 + space * 0.5));
-      ramp(leadDelaySend.gain, mix.delay * (0.8 + space * 0.35));
+      ramp(bassDriveSend.gain, mix.drive * (0.68 + (performance?.grit ?? 0.45) * 0.48));
+      ramp(roomSend.gain, mix.room * (0.72 + space * 0.42));
+      ramp(leadDelaySend.gain, mix.delay * (0.78 + space * 0.3));
     }
     if (ghostMixOnly) return currentPalette;
     if (!ready) return currentPalette;
@@ -413,7 +432,7 @@ export function createHybridSampler(Tone, {
       event.frequency,
       event.duration,
       time,
-      Math.min(0.82, event.velocity ?? 0.5),
+      Math.min(0.76, event.velocity ?? 0.5),
     );
     return true;
   }
@@ -436,7 +455,12 @@ export function createHybridSampler(Tone, {
     bassLoopVoiceCursor += 1;
     voice.playbackRate = clampPlaybackRate(targetBpm / sample.bpm);
     setDetune(voice, sample.transposeCents);
-    setVolume(voice, 0.46 + (performance.energy ?? 0.5) * 0.18, sample.gainDb);
+    const liveRestraint = performance.liveDirected ? 0.84 : 1;
+    setVolume(
+      voice,
+      (0.42 + (performance.energy ?? 0.5) * 0.14) * liveRestraint,
+      sample.gainDb,
+    );
     try {
       voice.start(time, sourceOffset, Math.max(0.5, outputDuration));
       return true;
@@ -467,7 +491,8 @@ export function createHybridSampler(Tone, {
       sample.playableEndSeconds - 0.5,
       wrappedSourceBeat * 60 / sample.bpm,
     );
-    const outputDuration = event.durationBeats * 60 / (performance?.targetBpm ?? frame?.bpm ?? sample.bpm);
+    const outputDuration = event.durationBeats * 60
+      / (performance?.targetBpm ?? frame?.bpm ?? sample.bpm);
     try {
       voice.start(time, sourceOffset, Math.max(0.12, outputDuration));
       return true;
@@ -481,10 +506,15 @@ export function createHybridSampler(Tone, {
     if (!ready || phraseIndex <= 0) return false;
     const section = sectionForPhrase(frame?.scoreState, phraseIndex, performance);
     const wantsCrash = section === "lift" || section === "redline" || section === "return";
-    const player = wantsCrash ? ensureDrumPlayer("crash-crisp") : null;
+    const livePhaseCrash = performance?.liveDirected
+      && ["peak", "recover"].includes(performance.phase);
+    const player = wantsCrash || livePhaseCrash ? ensureDrumPlayer("crash-crisp") : null;
     if (!player) return false;
     const sample = DRUM_SAMPLES["crash-crisp"];
-    setVolume(player, frame?.scoreState === "critical" ? 0.72 : 0.52, sample.gainDb);
+    const velocity = performance?.liveDirected
+      ? performance.phase === "peak" ? 0.5 : 0.34
+      : frame?.scoreState === "critical" ? 0.72 : 0.52;
+    setVolume(player, velocity, sample.gainDb);
     try {
       player.start(time);
       return true;
@@ -552,7 +582,7 @@ export function createHybridSampler(Tone, {
     for (const { player } of atmospherePlayers.values()) {
       try {
         player.stop();
-      } catch (error) {
+      } catch {
         // A never-started player does not need stopping.
       }
     }
