@@ -71,17 +71,13 @@ function renderCoverage() {
     ? `Not observed: ${current.missing.join(", ")}`
     : "All declared Workers are observed.";
 
-  for (const id of ["estate-declared-workers", "evidence-declared"]) {
-    setStateText(id, current.declared > 0 ? String(current.declared) : "—", "available");
-  }
-  for (const id of ["estate-observed-workers", "evidence-observed"]) {
-    setStateText(id, current.declared > 0 ? String(current.observed) : "—", semanticState);
-    const element = document.getElementById(id);
-    if (element) element.title = missingText;
-  }
-  for (const id of ["estate-documented-workers", "evidence-documented"]) {
-    setStateText(id, current.declared > 0 ? String(current.documented) : "—", semanticState);
-  }
+  setStateText("evidence-declared", current.declared > 0 ? String(current.declared) : "—", "available");
+
+  setStateText("evidence-observed", current.declared > 0 ? String(current.observed) : "—", semanticState);
+  const observedElement = document.getElementById("evidence-observed");
+  if (observedElement) observedElement.title = missingText;
+
+  setStateText("evidence-documented", current.declared > 0 ? String(current.documented) : "—", semanticState);
 
   setStateText(
     "ops-registry-value",
@@ -90,7 +86,7 @@ function renderCoverage() {
   );
   setStateText(
     "map-preview-state",
-    current.declared > 0 ? `${current.observed}/${current.declared} Workers observed` : "registry unavailable",
+    current.declared > 0 ? `${current.observed}/${current.declared} components observed` : "architecture unavailable",
     semanticState,
   );
 
@@ -104,7 +100,7 @@ function renderCoverage() {
   if (strip && stripText) {
     strip.dataset.state = state.registry?.stale ? "stale" : semanticState;
     stripText.textContent = current.declared > 0
-      ? `${current.declared} declared · ${current.observed} observed · ${current.documented} documented${state.registry?.stale ? " · last snapshot" : ""}`
+      ? `architecture coverage ${current.observed}/${current.declared}${state.registry?.stale ? " · last snapshot" : ""}`
       : "estate coverage unavailable";
     strip.title = missingText;
     strip.hidden = false;
