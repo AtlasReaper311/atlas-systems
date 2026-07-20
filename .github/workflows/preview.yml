@@ -15,154 +15,120 @@ on:
       - "static/js/sonify/**"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ${{ github.repository }}-pages-preview-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
-  apply-listening-tune:
-    name: Apply listening tune
+  validate:
+    name: Validate preview candidate
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'fix/system-symphony-cache-transition-coherence'
+      (startsWith(github.event.pull_request.head.ref, 'feat/system-symphony-') ||
+       startsWith(github.event.pull_request.head.ref, 'fix/system-symphony-'))
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
-      - name: Check out PR branch
+      - name: Check out preview head
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
 
-      - name: Apply listening tune
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+
+      - name: Validate static site and Pages output
         run: |
           set -euo pipefail
+          npx --yes html-validate@9.7.1 "**/*.html"
+          node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
+          python3 scripts/generate_sitemap.py --check-only
+          python3 scripts/verify_pages_output.py .
           python3 - <<'PY'
+          import json
           from pathlib import Path
 
-          def edit_segment(text, start_marker, end_marker, replacements):
-              start = text.index(start_marker)
-              end = text.index(end_marker, start) + len(end_marker)
-              segment = text[start:end]
-              for old, new in replacements:
-                  segment = segment.replace(old, new, 1)
-              return text[:start] + segment + text[end:]
-
-          engine_path = Path("static/js/sonify/engine.js")
-          sampler_path = Path("static/js/sonify/sampler.js")
-          ui_path = Path("static/js/sonify/ui.js")
-
-          engine = engine_path.read_text(encoding="utf-8")
-          sampler = sampler_path.read_text(encoding="utf-8")
-          ui = ui_path.read_text(encoding="utf-8")
-
-          engine = engine.replace(
-              'const depth = scoreState === "critical" ? 0.74 : scoreState === "warning" ? 0.78 : 0.82;',
-              'const depth = scoreState === "critical" ? 0.82 : scoreState === "warning" ? 0.86 : 0.84;',
-          )
-          engine = engine.replace(
-              'parameter.linearRampToValueAtTime?.(1, time + 0.14);',
-              'parameter.linearRampToValueAtTime?.(1, time + 0.12);',
-          )
-
-          engine = edit_segment(
-              engine,
-              '    terminalSynth = new Tone.FMSynth({',
-              '    });',
-              [
-                  ('modulationIndex: 2.2,', 'modulationIndex: 1.6,'),
-                  ('envelope: { attack: 0.006, decay: 0.16, sustain: 0.16, release: 0.38 },', 'envelope: { attack: 0.012, decay: 0.22, sustain: 0.2, release: 0.5 },'),
-                  ('modulationEnvelope: { attack: 0.008, decay: 0.2, sustain: 0.08, release: 0.3 },', 'modulationEnvelope: { attack: 0.018, decay: 0.26, sustain: 0.06, release: 0.42 },'),
-                  ('volume: -9,', 'volume: -8,'),
-              ],
-          )
-          engine = engine.replace(
-              '1.4 + (performance.intent?.tension ?? performance.grit ?? 0.5) * 3.2',
-              '1.15 + (performance.intent?.tension ?? performance.grit ?? 0.5) * 2.0',
-          )
-
-          engine = edit_segment(
-              engine,
-              '    riffSynths = [',
-              '    ];',
-              [
-                  ('oscillator: { type: "square" },', 'oscillator: { type: "triangle" },'),
-                  ('envelope: { attack: 0.004, decay: 0.12, sustain: 0.12, release: 0.2 },', 'envelope: { attack: 0.01, decay: 0.18, sustain: 0.18, release: 0.32 },'),
-                  ('volume: -14,', 'volume: -13,'),
-                  ('modulationIndex: 3.1,', 'modulationIndex: 2.4,'),
-                  ('modulation: { type: "square" },', 'modulation: { type: "sine" },'),
-                  ('envelope: { attack: 0.003, decay: 0.14, sustain: 0.08, release: 0.24 },', 'envelope: { attack: 0.01, decay: 0.18, sustain: 0.12, release: 0.32 },'),
-                  ('modulationEnvelope: { attack: 0.002, decay: 0.1, sustain: 0.03, release: 0.18 },', 'modulationEnvelope: { attack: 0.012, decay: 0.16, sustain: 0.04, release: 0.26 },'),
-                  ('volume: -15,', 'volume: -14,'),
-                  ('volume: -16,', 'volume: -15,'),
-                  ('envelope: { attack: 0.006, decay: 0.16, sustain: 0.1, release: 0.28 },', 'envelope: { attack: 0.01, decay: 0.2, sustain: 0.14, release: 0.34 },'),
-                  ('modulationEnvelope: { attack: 0.004, decay: 0.12, sustain: 0.05, release: 0.2 },', 'modulationEnvelope: { attack: 0.008, decay: 0.16, sustain: 0.05, release: 0.26 },'),
-              ],
-          )
-
-          engine = engine.replace('        * (performance?.drumMultiplier ?? 1)\n', '')
-          engine = engine.replace(
-              '(frame.scoreState === "critical" ? 0.14 : frame.scoreState === "warning" ? 0.11 : frame.scoreState === "unknown" ? 0.04 : 0.08)\n          * phaseMix.drums,',
-              '(frame.scoreState === "critical" ? 0.1 : frame.scoreState === "warning" ? 0.08 : frame.scoreState === "unknown" ? 0.035 : 0.07)\n          * phaseMix.drums\n          * ghostMix.backing,',
-          )
-          engine = engine.replace(
-              '(performance?.terminalGain ?? 0)\n          * terminalStateMultiplier',
-              '(performance?.terminalGain ?? 0)\n          * 1.18\n          * terminalStateMultiplier',
-          )
-          engine = engine.replace(
-              '(performance?.riffGain ?? 0) * phaseMix.riff * ghostMix.riff,',
-              '(performance?.riffGain ?? 0) * 1.2 * phaseMix.riff * ghostMix.riff,',
-          )
-
-          sampler = sampler.replace('const ATMOSPHERE_XFADE_SECONDS = 4;', 'const ATMOSPHERE_XFADE_SECONDS = 3;')
-          sampler = sampler.replace('lead: 0.58', 'lead: 0.64', 1)
-          sampler = sampler.replace('lead: 0.28', 'lead: 0.42', 1)
-          sampler = sampler.replace(
-              'const leadMultiplier = performance && (phaseMix.riff > 0 || ghostModeActive)\n      ? ghostMix.lead\n      : 1;',
-              'const leadMultiplier = performance && (phaseMix.riff > 0 || ghostModeActive)\n      ? ghostModeActive\n        ? ghostMix.lead\n        : Math.max(0.9, ghostMix.lead)\n      : 1;',
-          )
-          sampler = edit_segment(
-              sampler,
-              '    ramp(\n      drumBus.gain,',
-              '    );',
-              [
-                  ('\n        * phaseMix.drums', ''),
-                  ('\n        * ghostMix.backing', ''),
-              ],
-          )
-
-          ui = edit_segment(
-              ui,
-              '    const result = engine.setScene(audible, performanceArrangement, {',
-              '    });',
-              [
-                  ('quantize: engine.isRunning(),', 'quantize: engine.isRunning(),\n      transitionSeconds: 2,'),
-              ],
-          )
-          ui = ui.replace('smooth 4-second crossfade', 'smooth 2-second crossfade')
-
-          engine_path.write_text(engine, encoding="utf-8")
-          sampler_path.write_text(sampler, encoding="utf-8")
-          ui_path.write_text(ui, encoding="utf-8")
+          for path in sorted(Path(".").rglob("*.json")):
+              if ".git" in path.parts:
+                  continue
+              json.loads(path.read_text(encoding="utf-8"))
           PY
 
-          node --check static/js/sonify/engine.js
-          node --check static/js/sonify/sampler.js
-          node --check static/js/sonify/ui.js
-          git diff --check
+      - name: Check repository links offline
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          args: "--offline --no-progress --include-fragments --root-dir ${{ github.workspace }} ."
+          fail: true
 
-          if git diff --quiet; then
-            echo "Listening tune already present; no commit needed."
-            exit 0
-          fi
+  deploy-preview:
+    name: Publish branch preview
+    needs: validate
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (startsWith(github.event.pull_request.head.ref, 'feat/system-symphony-') ||
+       startsWith(github.event.pull_request.head.ref, 'fix/system-symphony-'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: pages-preview
+      url: ${{ steps.deploy.outputs.deployment_url }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CF_PAGES_DEPLOY_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      SOURCE_BRANCH: ${{ github.event.pull_request.head.ref }}
+      PAGES_BRANCH: system-symphony-pr-${{ github.event.pull_request.number }}
+      PROJECT_NAME: atlas-systems
+    steps:
+      - name: Check out validated head
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add static/js/sonify/engine.js
-          git add static/js/sonify/sampler.js
-          git add static/js/sonify/ui.js
-          git diff --cached --check
-          git commit -m "Tune System SYMPHONY mix and Demo transitions"
-          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+
+      - name: Guard production boundary
+        run: |
+          set -euo pipefail
+          case "${SOURCE_BRANCH}" in
+            feat/system-symphony-*|fix/system-symphony-*) ;;
+            *) echo "Refusing unexpected preview source branch: ${SOURCE_BRANCH}" >&2; exit 1 ;;
+          esac
+          test "${SOURCE_BRANCH}" != "main"
+          test "${PAGES_BRANCH}" != "main"
+
+      - name: Deploy preview with Wrangler
+        id: deploy
+        run: |
+          set -euo pipefail
+          output_file="${RUNNER_TEMP}/wrangler-pages-deploy.log"
+          npx --yes wrangler@4.109.0 pages deploy . \
+            --project-name "${PROJECT_NAME}" \
+            --branch "${PAGES_BRANCH}" \
+            --commit-dirty=true 2>&1 | tee "${output_file}"
+          deployment_url="$(grep -Eo 'https://[A-Za-z0-9._-]+\.pages\.dev' "${output_file}" | tail -n 1)"
+          test -n "${deployment_url}"
+          echo "deployment_url=${deployment_url}" >>"${GITHUB_OUTPUT}"
+
+      - name: Record branch preview alias
+        env:
+          ATOMIC_URL: ${{ steps.deploy.outputs.deployment_url }}
+          PREVIEW_URL: https://system-symphony-pr-${{ github.event.pull_request.number }}.atlas-systems-44t.pages.dev
+        run: |
+          set -euo pipefail
+          {
+            echo "## Cloudflare Pages preview"
+            echo
+            echo "${PREVIEW_URL}"
+            echo
+            echo "Atomic deployment: ${ATOMIC_URL}"
+            echo
+            echo "This is a non-production branch deployment. atlas-systems.uk is unchanged."
+          } >>"${GITHUB_STEP_SUMMARY}"
