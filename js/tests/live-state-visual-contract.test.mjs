@@ -53,7 +53,7 @@ test("homepage visual states remain component-scoped", () => {
 });
 
 test("homepage CSS owns state colour, halo, and animation", () => {
-  assert.match(homeLiveSource, /\/css\/live-state-contract\.css\?v=20260720-vector-four/);
+  assert.match(homeLiveSource, /\/css\/live-state-contract\.css\?v=20260720-vector-five/);
   assert.match(homeStateCss, /\.status-dot\[data-state="nominal"\]/);
   assert.match(homeStateCss, /\.status-dot\[data-state="degraded"\]/);
   assert.match(homeStateCss, /\.status-dot\[data-state="critical"\]/);

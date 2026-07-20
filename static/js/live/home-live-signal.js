@@ -3,7 +3,7 @@ import { subscribe as subscribeRegistry } from "./atlas-registry.js?v=20260720-e
 const POLL_INTERVAL_MS = 60_000;
 const COUNTDOWN_TICK_MS = 1_000;
 const DEPLOY_URL = "https://api.atlas-systems.uk/deploy-watch/latest";
-const VISUAL_STATE_STYLESHEET = "/css/live-state-contract.css?v=20260720-vector-four";
+const VISUAL_STATE_STYLESHEET = "/css/live-state-contract.css?v=20260720-vector-five";
 
 const SERVICES = [
   { key: "atlas-notify", name: "atlas-notify", url: "https://api.atlas-systems.uk/notify/health" },
@@ -27,6 +27,7 @@ let renderFrame = null;
 let pollTimer = null;
 let countdownTimer = null;
 let unsubscribeRegistry = null;
+let announcedState = null;
 
 function ensureVisualStateStylesheet() {
   if (document.querySelector(`link[href="${VISUAL_STATE_STYLESHEET}"]`)) return;
@@ -34,6 +35,26 @@ function ensureVisualStateStylesheet() {
   link.rel = "stylesheet";
   link.href = VISUAL_STATE_STYLESHEET;
   document.head.append(link);
+}
+
+function findLiveSignalSection() {
+  return [...document.querySelectorAll(".section")].find((section) =>
+    section.querySelector(".section-label")?.textContent.trim() === "Live signal",
+  ) ?? null;
+}
+
+function ensureStatusAnnouncer() {
+  if (document.getElementById("live-signal-status")) return;
+  const liveSection = findLiveSignalSection();
+  if (!liveSection) return;
+
+  const region = document.createElement("p");
+  region.id = "live-signal-status";
+  region.className = "live-status-announcer";
+  region.setAttribute("role", "status");
+  region.setAttribute("aria-live", "polite");
+  region.setAttribute("aria-atomic", "true");
+  liveSection.append(region);
 }
 
 function scheduleRender() {
@@ -98,6 +119,97 @@ function overallHealth() {
     return { level: "degraded", upCount, total };
   }
   return { level: "critical", upCount, total };
+}
+
+function registryFreshness(snapshot) {
+  if (!snapshot) return "loading";
+  if (snapshot.stale) return "stale";
+  return snapshot.ok ? "ok" : "unknown";
+}
+
+function deploymentIdentity(data) {
+  return data?.commitSha
+    ?? data?.deployId
+    ?? data?.id
+    ?? data?.endedOn
+    ?? data?.createdOn
+    ?? null;
+}
+
+function accessibilitySnapshot() {
+  const health = overallHealth();
+  return {
+    health: health.level,
+    upCount: health.upCount,
+    total: health.total,
+    registry: registryFreshness(state.registry),
+    deployIdentity: deploymentIdentity(state.deploy.data),
+    deployStatus: state.deploy.data?.status ?? state.deploy.status,
+    deployCommit: state.deploy.data?.commitSha ?? null,
+  };
+}
+
+function accessibilitySnapshotReady(snapshot) {
+  return snapshot.health !== "loading"
+    && state.deploy.status !== "loading"
+    && snapshot.registry !== "loading";
+}
+
+function announceMeaningfulTransitions() {
+  const region = document.getElementById("live-signal-status");
+  if (!region) return;
+
+  const current = accessibilitySnapshot();
+  if (!accessibilitySnapshotReady(current)) return;
+
+  if (!announcedState) {
+    announcedState = current;
+    return;
+  }
+
+  const messages = [];
+
+  if (current.health !== announcedState.health) {
+    if (current.health === "degraded") {
+      messages.push(
+        `Atlas Systems status degraded. ${current.upCount} of ${current.total} monitored backend services are operational.`,
+      );
+    } else if (current.health === "critical") {
+      messages.push(
+        `Atlas Systems status unavailable. ${current.upCount} of ${current.total} monitored backend services are operational.`,
+      );
+    } else if (
+      current.health === "nominal"
+      && ["degraded", "critical"].includes(announcedState.health)
+    ) {
+      messages.push(
+        `Atlas Systems status recovered. All ${current.total} monitored backend services are operational.`,
+      );
+    }
+  }
+
+  if (current.registry !== announcedState.registry) {
+    if (current.registry === "stale") {
+      messages.push("Estate registry data is stale. Showing the last successful snapshot.");
+    } else if (
+      current.registry === "ok"
+      && ["stale", "unknown"].includes(announcedState.registry)
+    ) {
+      messages.push("Estate registry data recovered and is current.");
+    }
+  }
+
+  if (
+    current.deployIdentity
+    && current.deployIdentity !== announcedState.deployIdentity
+    && current.deployStatus === "success"
+  ) {
+    const commit = current.deployCommit ? ` for commit ${current.deployCommit}` : "";
+    messages.push(`Deployment succeeded${commit}.`);
+  }
+
+  announcedState = current;
+  if (messages.length) region.textContent = messages.join(" ");
 }
 
 async function fetchDeploy() {
@@ -174,9 +286,7 @@ function ensureBackendGrid() {
 function ensureCountdownControls() {
   if (document.getElementById("signal-countdown")) return;
 
-  const liveSection = [...document.querySelectorAll(".section")].find((section) =>
-    section.querySelector(".section-label")?.textContent.trim() === "Live signal",
-  );
+  const liveSection = findLiveSignalSection();
   const label = liveSection?.querySelector(".section-label");
   if (!label) return;
 
@@ -188,6 +298,7 @@ function ensureCountdownControls() {
   countdown.id = "signal-countdown";
   countdown.className = "live-signal-countdown";
   countdown.dataset.state = "idle";
+  countdown.setAttribute("aria-live", "off");
 
   const button = document.createElement("button");
   button.type = "button";
@@ -215,6 +326,7 @@ function renderNavDot() {
   }[level];
 
   dot.dataset.state = level;
+  dot.setAttribute("aria-hidden", "true");
   dot.closest(".nav-status")?.setAttribute("data-state", level);
   label.textContent = text;
 }
@@ -354,11 +466,13 @@ function renderEstateStrip() {
 function renderAll() {
   ensureBackendGrid();
   ensureCountdownControls();
+  ensureStatusAnnouncer();
   renderNavDot();
   renderDeploy();
   renderBackendGrid();
   renderCountdown();
   renderEstateStrip();
+  announceMeaningfulTransitions();
 }
 
 function handleVisibilityChange() {
@@ -375,6 +489,7 @@ function handleVisibilityChange() {
 
 function init() {
   ensureVisualStateStylesheet();
+  ensureStatusAnnouncer();
 
   unsubscribeRegistry = subscribeRegistry((snapshot) => {
     state.registry = snapshot;
