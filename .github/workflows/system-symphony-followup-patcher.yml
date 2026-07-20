@@ -39,6 +39,17 @@ jobs:
       - name: Apply focused follow-up patch
         run: python3 scripts/apply_system_symphony_followup.py
 
+      - name: Correct generated cache regex escaping
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("static/js/sonify/coherence-cache.test.js")
+          text = path.read_text(encoding="utf-8")
+          text = text.replace(r"`ui\.js\?v=", r"`ui\\.js\\?v=")
+          text = text.replace(r"`engine\.js\?v=", r"`engine\\.js\\?v=")
+          path.write_text(text, encoding="utf-8")
+          PY
+
       - name: Validate static site and System SYMPHONY
         run: |
           set +e
