@@ -4,12 +4,14 @@
  * Each asset is loaded independently through ToneAudioBuffer so one missing or
  * undecodable file cannot block the rest of the instrument. Browser format
  * preference is evaluated once, then each asset retries the remaining supported
- * formats before yielding to the procedural instrument.
+ * formats before yielding to the procedural instrument. Tier priority remains
+ * owned by sampler.js; this loader bounds parallel decode/network pressure.
  */
 
 const OPUS_TYPE = 'audio/ogg; codecs="opus"';
 const AAC_TYPE = 'audio/mp4; codecs="mp4a.40.2"';
 const DEFAULT_TIMEOUT_MS = 6500;
+export const DEFAULT_MAX_CONCURRENT_LOADS = 4;
 
 let cachedFormats = null;
 
@@ -126,14 +128,19 @@ async function loadOne(Tone, id, urls, timeoutMs) {
 
 export function createAssetLoader(Tone, {
   perAssetTimeoutMs = DEFAULT_TIMEOUT_MS,
+  maxConcurrentLoads = DEFAULT_MAX_CONCURRENT_LOADS,
   onProgress = null,
 } = {}) {
   const buffers = new Map();
   const failures = new Map();
   const formats = new Map();
   const requested = new Set();
+  const concurrency = Math.max(1, Math.trunc(maxConcurrentLoads) || 1);
   let totalCompleted = 0;
   let fallbackCount = 0;
+  let activeLoads = 0;
+  let peakActiveLoads = 0;
+  let generation = 0;
 
   function stats() {
     return Object.freeze({
@@ -145,8 +152,39 @@ export function createAssetLoader(Tone, {
     });
   }
 
+  function diagnostics() {
+    return Object.freeze({
+      active: activeLoads,
+      peakActive: peakActiveLoads,
+      maxConcurrent: concurrency,
+    });
+  }
+
   function progress() {
     if (typeof onProgress === "function") onProgress(stats());
+  }
+
+  function disposeResult(result) {
+    if (!result?.buffer) return;
+    try {
+      result.buffer.dispose?.();
+    } catch (error) {
+      console.warn("system-symphony: abandoned buffer dispose failed", error);
+    }
+  }
+
+  function recordResult(result) {
+    totalCompleted += 1;
+    if (result.ok) {
+      buffers.set(result.id, result.buffer);
+      formats.set(result.id, result.format ?? null);
+      failures.delete(result.id);
+      if (result.fallback) fallbackCount += 1;
+      return { loaded: 1, failed: 0 };
+    }
+    failures.set(result.id, result.error);
+    console.warn(`system-symphony: asset ${result.id} failed`, result.error);
+    return { loaded: 0, failed: 1 };
   }
 
   async function loadTier(assets) {
@@ -154,36 +192,55 @@ export function createAssetLoader(Tone, {
       return { loaded: 0, failed: 0 };
     }
     const pending = assets.filter((asset) => asset?.id && !requested.has(asset.id));
+    if (pending.length === 0) return { loaded: 0, failed: 0 };
     pending.forEach((asset) => requested.add(asset.id));
     progress();
-    const results = await Promise.all(
-      pending.map((asset) => loadOne(
-        Tone,
-        asset.id,
-        asset.urls ?? asset.url,
-        perAssetTimeoutMs,
-      )),
-    );
+
+    const loadGeneration = generation;
+    let cursor = 0;
     let tierLoaded = 0;
     let tierFailed = 0;
-    for (const result of results) {
-      totalCompleted += 1;
-      if (result.ok) {
-        buffers.set(result.id, result.buffer);
-        formats.set(result.id, result.format ?? null);
-        if (result.fallback) fallbackCount += 1;
-        tierLoaded += 1;
-      } else {
-        failures.set(result.id, result.error);
-        tierFailed += 1;
-        console.warn(`system-symphony: asset ${result.id} failed`, result.error);
+
+    async function worker() {
+      while (cursor < pending.length) {
+        const index = cursor;
+        cursor += 1;
+        const asset = pending[index];
+        activeLoads += 1;
+        peakActiveLoads = Math.max(peakActiveLoads, activeLoads);
+        progress();
+        let result;
+        try {
+          result = await loadOne(
+            Tone,
+            asset.id,
+            asset.urls ?? asset.url,
+            perAssetTimeoutMs,
+          );
+        } finally {
+          activeLoads = Math.max(0, activeLoads - 1);
+        }
+
+        if (generation !== loadGeneration) {
+          disposeResult(result);
+          progress();
+          continue;
+        }
+
+        const recorded = recordResult(result);
+        tierLoaded += recorded.loaded;
+        tierFailed += recorded.failed;
+        progress();
       }
-      progress();
     }
+
+    const workerCount = Math.min(concurrency, pending.length);
+    await Promise.all(Array.from({ length: workerCount }, () => worker()));
     return { loaded: tierLoaded, failed: tierFailed };
   }
 
   function disposeAll() {
+    generation += 1;
     for (const buffer of buffers.values()) {
       try {
         buffer.dispose();
@@ -197,6 +254,7 @@ export function createAssetLoader(Tone, {
     requested.clear();
     totalCompleted = 0;
     fallbackCount = 0;
+    peakActiveLoads = activeLoads;
   }
 
   return {
@@ -207,5 +265,6 @@ export function createAssetLoader(Tone, {
     format: (id) => formats.get(id) ?? null,
     disposeAll,
     stats,
+    diagnostics,
   };
 }
