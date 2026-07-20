@@ -35,6 +35,14 @@ export const MAX_SERVICE_VOICES = MAX_COMPONENTS;
 export const MAX_INCIDENT_ACCENTS = 4;
 export const WAVEFORM_SIZE = 512;
 export const AUDIO_START_TIMEOUT_MS = 8000;
+export const SYSTEM_SYMPHONY_BUILD_ID = "20260720-system-symphony-coherence-cache-v1";
+export const LIVE_STATE_TRANSITION_SECONDS = 6;
+export const LIVE_STATE_CONFIRMATION_FRAMES = Object.freeze({
+  healthy: 3,
+  warning: 2,
+  critical: 2,
+  unknown: 3,
+});
 export const PAD_MEASURE_STEPS = 8;
 export const PAD_ROOT_MIDI = 38; // D2
 export const ARP_ROOT_MIDI = 50; // D3
@@ -239,6 +247,22 @@ function randomUnit(seed) {
 
 function clamp(value, minimum, maximum) {
   return Math.min(maximum, Math.max(minimum, Number(value) || 0));
+}
+
+export function liveStateConfirmationFrames(currentState, nextState) {
+  if (!currentState || currentState === nextState) return 1;
+  if (nextState === "critical") return LIVE_STATE_CONFIRMATION_FRAMES.critical;
+  if (nextState === "unknown") return LIVE_STATE_CONFIRMATION_FRAMES.unknown;
+  if (currentState === "critical" && nextState === "healthy") {
+    return LIVE_STATE_CONFIRMATION_FRAMES.healthy;
+  }
+  return LIVE_STATE_CONFIRMATION_FRAMES[nextState] ?? 2;
+}
+
+export function canCommitLiveFrameAtStep(step, currentState, nextState) {
+  if (!Number.isInteger(step) || step < 0 || step % PAD_MEASURE_STEPS !== 0) return false;
+  if (!currentState || !nextState || currentState === nextState) return true;
+  return step % PHRASE_STEPS === 0;
 }
 
 export function shouldPlayPad(step) {
@@ -833,6 +857,8 @@ export function createEngine() {
   let userVolume = DEFAULT_USER_GAIN;
   let currentFrame = null;
   let pendingLiveFrame = null;
+  let liveStateCandidate = null;
+  let liveStateCandidateCount = 0;
   let phraseIndex = 0;
   let stepIndex = 0;
   let serviceCursor = 0;
@@ -923,6 +949,30 @@ export function createEngine() {
   let performanceHandler = null;
   let ghostPhaseHandler = null;
   let sampleLoadHandler = null;
+
+  function resetLiveStateCandidate() {
+    liveStateCandidate = null;
+    liveStateCandidateCount = 0;
+  }
+
+  function acceptLiveFrameState(frame) {
+    const currentState = currentFrame?.scoreState ?? null;
+    const nextState = frame?.scoreState ?? "unknown";
+    if (!currentState || currentState === nextState) {
+      resetLiveStateCandidate();
+      return true;
+    }
+    if (liveStateCandidate !== nextState) {
+      liveStateCandidate = nextState;
+      liveStateCandidateCount = 1;
+    } else {
+      liveStateCandidateCount += 1;
+    }
+    const required = liveStateConfirmationFrames(currentState, nextState);
+    if (liveStateCandidateCount < required) return false;
+    resetLiveStateCandidate();
+    return true;
+  }
 
   function effectivePerformance() {
     return demoMode ? activePerformance : livePlan;
@@ -1418,39 +1468,54 @@ export function createEngine() {
     Tone.Draw.schedule(() => voiceHandler?.(params.name, params), time);
   }
 
-  function commitPendingLiveFrame(time) {
+  function commitPendingLiveFrame(time, { allowStateChange = false } = {}) {
     if (demoMode || !pendingLiveFrame) return false;
+    const nextFrame = pendingLiveFrame;
     const previousState = currentFrame?.scoreState;
-    currentFrame = pendingLiveFrame;
+    const stateChanged = Boolean(previousState && previousState !== nextFrame.scoreState);
+    if (stateChanged && !allowStateChange) return false;
+    currentFrame = nextFrame;
     pendingLiveFrame = null;
     liveDirector.observe(currentFrame);
-    const stateChanged = previousState && previousState !== currentFrame.scoreState;
-    if (stateChanged) {
-      livePlan = liveDirector.advancePhrase();
-      pad?.releaseAll?.(time);
-    }
-    applyFrameToGraph(currentFrame, stateChanged ? 1.6 : 0.9, time);
+    if (stateChanged) pad?.releaseAll?.(time);
+    applyFrameToGraph(
+      currentFrame,
+      stateChanged ? LIVE_STATE_TRANSITION_SECONDS : 0.9,
+      time,
+    );
     return stateChanged;
   }
 
-  function advanceLivePhrase(time) {
+  function advanceLivePhrase(time, transitionSeconds = 1.1) {
     if (demoMode || !currentFrame) return;
     liveDirector.observe(currentFrame);
     livePlan = liveDirector.advancePhrase();
-    applyMixToGraph(currentFrame, 1.1, time);
+    applyMixToGraph(currentFrame, transitionSeconds, time);
   }
 
   function onEighth(time) {
     if (!running || !currentFrame || !Number.isFinite(time)) return;
     const step = stepIndex % PHRASE_STEPS;
 
+    let liveStateChanged = false;
     if (!demoMode && shouldApplyPendingPerformance(step)) {
-      commitPendingLiveFrame(time);
+      liveStateChanged = commitPendingLiveFrame(time, {
+        allowStateChange: canCommitLiveFrameAtStep(
+          step,
+          currentFrame?.scoreState,
+          pendingLiveFrame?.scoreState,
+        ),
+      });
     }
 
     if (step === 0 && stepIndex > 0) {
       phraseIndex += 1;
-      if (!demoMode) advanceLivePhrase(time);
+      if (!demoMode) {
+        advanceLivePhrase(
+          time,
+          liveStateChanged ? LIVE_STATE_TRANSITION_SECONDS : 1.1,
+        );
+      }
     }
 
     let performanceChanged = false;
@@ -1806,14 +1871,26 @@ export function createEngine() {
 
     applyFrame(frame) {
       if (!frame || typeof frame !== "object") return;
-      liveDirector.observe(frame);
       if (demoMode || !initialized || !running) {
+        resetLiveStateCandidate();
+        liveDirector.observe(frame);
         currentFrame = frame;
         pendingLiveFrame = null;
         if (!demoMode && !livePlan) livePlan = liveDirector.advancePhrase();
         if (initialized) applyFrameToGraph(frame);
         return;
       }
+      if (!acceptLiveFrameState(frame)) {
+        if (
+          pendingLiveFrame
+          && pendingLiveFrame.scoreState !== currentFrame?.scoreState
+          && pendingLiveFrame.scoreState !== frame.scoreState
+        ) {
+          pendingLiveFrame = null;
+        }
+        return;
+      }
+      liveDirector.observe(frame);
       pendingLiveFrame = frame;
     },
 
@@ -1836,6 +1913,7 @@ export function createEngine() {
         return { queued: false, unchanged: false };
       }
 
+      resetLiveStateCandidate();
       demoMode = true;
       const nextId = nextPerformance.id ?? null;
       const activeId = activePerformance?.id ?? null;
@@ -1885,6 +1963,7 @@ export function createEngine() {
         pendingSceneTransition = boundedTransition;
         return { queued: true, unchanged: false };
       }
+      resetLiveStateCandidate();
       currentFrame = frame;
       activePerformance = nextPerformance;
       pendingSceneFrame = null;
@@ -1988,6 +2067,8 @@ export function createEngine() {
       mode: demoMode ? "ghost-circuit" : "live",
       phraseIndex,
       pendingLiveFrame: Boolean(pendingLiveFrame),
+      liveStateCandidate,
+      liveStateCandidateCount,
       livePlan,
       director: liveDirector.getSnapshot(),
     }),
@@ -2014,6 +2095,7 @@ export function createEngine() {
       destroyed = true;
       running = false;
       disposeGraph();
+      resetLiveStateCandidate();
       liveDirector.reset();
     },
   };

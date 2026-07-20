@@ -428,6 +428,11 @@ export function resolveSamplePalette(scoreState, performance = null, phraseIndex
     section: sectionForPhrase(state, phraseIndex, performance),
     hyperCycle: hyperCycleForPhrase(phraseIndex),
   };
+  if (performance?.liveDirected) {
+    palette.bassLoop = null;
+    palette.metal = "perc-stick";
+    if (palette.lead === "wobbly-synth") palette.lead = "background-saws";
+  }
   return Object.freeze({
     ...palette,
     signature: Object.values(palette).join(":"),

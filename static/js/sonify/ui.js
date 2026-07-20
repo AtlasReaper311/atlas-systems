@@ -8,8 +8,9 @@
 import {
   AUDIO_CONTEXT_BLOCKED_CODE,
   DEFAULT_USER_GAIN,
+  SYSTEM_SYMPHONY_BUILD_ID,
   createEngine,
-} from "./engine.js?v=20260718-system-symphony-ghost-tempo-guard";
+} from "./engine.js?v=20260720-system-symphony-coherence-cache-v1";
 import { createPoller } from "./poller.js?v=20260718-system-symphony-ghost-circuit";
 import {
   applyDemoProfileToServices,
@@ -27,6 +28,13 @@ import {
   normalizePerformanceSeed,
 } from "./performance.js?v=20260718-system-symphony-ghost-circuit";
 import { resolveSamplePalette } from "./samples.js?v=20260718-system-symphony-ghost-circuit";
+
+if (typeof window !== "undefined") {
+  window.__ATLAS_SYSTEM_SYMPHONY_BUILD__ = SYSTEM_SYMPHONY_BUILD_ID;
+}
+if (typeof document !== "undefined") {
+  document.documentElement.dataset.systemSymphonyBuild = SYSTEM_SYMPHONY_BUILD_ID;
+}
 
 const WIDGET_ID = "system-symphony-widget";
 const SVG_NS = "http://www.w3.org/2000/svg";
