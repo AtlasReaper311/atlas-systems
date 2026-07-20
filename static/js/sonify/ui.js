@@ -356,6 +356,16 @@ export function initSystemSymphony() {
   document.body.append(host);
 
   const engine = createEngine();
+  // Development-only: expose the engine for the mute/solo diagnostic when the
+  // page is opened with ?symphonyDebug. Inert in normal use; removed before ship.
+  try {
+    if (typeof window !== "undefined"
+      && new URLSearchParams(window.location.search).has("symphonyDebug")) {
+      window.__symphonyEngine = engine;
+    }
+  } catch {
+    // A missing window or search API just means no debug handle.
+  }
   const overlay = host.querySelector("[data-overlay]");
   const consolePanel = host.querySelector(".symphony-console");
   const openButton = host.querySelector("[data-open-console]");

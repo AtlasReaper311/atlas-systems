@@ -638,6 +638,9 @@ export function createHybridSampler(Tone, {
     playLead,
     playSectionAccent,
     playAccent,
+    // Development-only bus references for the mute/solo diagnostic. Not used by
+    // the shipped UI; exposed only when the debug flag is set.
+    getDebugNodes: () => ({ bassLoopBus, leadBus, atmosphereBus, bassBus, drumBus }),
     isReady: () => ready,
     isSampleAvailable: (id) => loader.has(id),
     getPalette: () => currentPalette,

@@ -280,7 +280,10 @@ export const STATE_SAMPLE_POOLS = Object.freeze({
     snare: Object.freeze(["snare-bright", "snare-regular", "snare-clip"]),
     hat: Object.freeze(["hat-subtle", "hat-classic", "hat-layer"]),
     metal: Object.freeze(["perc-stick", "perc-ac-unit-1", "perc-ac-unit-6"]),
-    bass: Object.freeze(["bass-transformer", "bass-percussive", "bass-burial", "bass-deep", "bass-doom"]),
+    // Clean sub one-shots only. bass-transformer and bass-angry carry a baked-in
+    // amplitude wobble that reads as a "womp" when they play the busy bass pattern
+    // in phrases without a bass loop, so they are held out of the tonal pools.
+    bass: Object.freeze(["bass-deep", "bass-percussive", "bass-burial", "bass-doom"]),
     bassLoop: Object.freeze([null, "sequenced-bass", "evil-bass", null]),
     // Only the native F minor acid-synth is used as the tonal lead. It is a plain
     // Tone.Player at rate 1.0, so it stays in tune with no GrainPlayer warble. The
@@ -295,7 +298,7 @@ export const STATE_SAMPLE_POOLS = Object.freeze({
     snare: Object.freeze(["snare-clip", "snare-bright", "snare-aggressive"]),
     hat: Object.freeze(["hat-classic", "hat-hard", "hat-aggressive"]),
     metal: Object.freeze(["perc-ac-unit-1", "perc-ac-unit-3", "perc-stick"]),
-    bass: Object.freeze(["bass-transformer", "bass-percussive", "bass-angry", "bass-deep", "bass-doom"]),
+    bass: Object.freeze(["bass-percussive", "bass-deep", "bass-doom", "bass-burial"]),
     bassLoop: Object.freeze([null, "neo-tokyo", null, "sequenced-bass"]),
     // Native F minor acid-synth only, for the same reason as Healthy. The nulls
     // keep the deliberate procedural rests that the pool analysis expects.
@@ -307,7 +310,7 @@ export const STATE_SAMPLE_POOLS = Object.freeze({
     snare: Object.freeze(["snare-aggressive", "snare-clip", "snare-bright"]),
     hat: Object.freeze(["hat-hard", "hat-aggressive", "hat-classic"]),
     metal: Object.freeze(["perc-ac-unit-3", "perc-ac-unit-6", "perc-stick"]),
-    bass: Object.freeze(["bass-percussive", "bass-angry", "bass-doom", "bass-burial"]),
+    bass: Object.freeze(["bass-percussive", "bass-doom", "bass-burial", "bass-deep"]),
     // Critical uses the native 100 BPM neo-tokyo loop so the foundation plays at
     // playbackRate 1.0. The 105 BPM distorted-guitar cannot run at native rate on
     // the locked 100 BPM transport and is held out of the live pool for now.
@@ -320,7 +323,7 @@ export const STATE_SAMPLE_POOLS = Object.freeze({
     snare: Object.freeze(["snare-regular", "snare-bright"]),
     hat: Object.freeze(["hat-subtle", "hat-layer", "hat-classic"]),
     metal: Object.freeze(["perc-ac-unit-6", "perc-stick", "perc-ac-unit-1"]),
-    bass: Object.freeze(["bass-transformer", "bass-deep", "bass-burial"]),
+    bass: Object.freeze(["bass-deep", "bass-burial", "bass-doom"]),
     bassLoop: Object.freeze([null]),
     lead: Object.freeze([null, "geneticist"]),
     atmosphere: Object.freeze([null]),

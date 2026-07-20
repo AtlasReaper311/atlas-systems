@@ -1358,11 +1358,15 @@ export function createEngine() {
     if (!PRODUCTION_FEATURES.sidechain) return;
     const parameter = musicDuckGain?.gain;
     if (!parameter || !Number.isFinite(time)) return;
-    const depth = scoreState === "critical" ? 0.62 : scoreState === "warning" ? 0.67 : 0.72;
+    // Moderate sidechain: a clear pump that lets the mix breathe with the kick
+    // without over-pumping the low end. Critical ducks a touch deeper for energy.
+    // Depth and recovery are conservative so the groove reads as a pump, not a
+    // wobble; they are easy to open up further once the mix is settled.
+    const depth = scoreState === "critical" ? 0.74 : scoreState === "warning" ? 0.78 : 0.82;
     parameter.cancelScheduledValues?.(time);
     parameter.setValueAtTime?.(1, time);
     parameter.linearRampToValueAtTime?.(depth, time + 0.005);
-    parameter.linearRampToValueAtTime?.(1, time + 0.18);
+    parameter.linearRampToValueAtTime?.(1, time + 0.14);
   }
 
   function playSubFoundation(time, step, performance) {
@@ -2249,6 +2253,25 @@ export function createEngine() {
     isSampleReady: () => hybridSampler?.isReady?.() ?? false,
     getSampleLoadStats: () => hybridSampler?.loadStats?.() ?? null,
     getSamplePalette: () => hybridSampler?.getPalette?.() ?? null,
+    // Development-only mute/solo diagnostic surface. Returns live bus references
+    // so a debug session can isolate the source of an artefact by ear or by
+    // metering. Not consumed by the shipped UI.
+    getDebugNodes: () => ({
+      percussionGain,
+      bassGain,
+      bassInput,
+      subGain,
+      droneGain,
+      padGain,
+      counterlineGain,
+      motifGain,
+      terminalGain,
+      melodicBus,
+      textureBus,
+      musicDuckGain,
+      proceduralBass: bass,
+      sampler: hybridSampler?.getDebugNodes?.() ?? null,
+    }),
     getGhostPhase: currentGhostPhase,
     getGhostMixState: () => Object.freeze({ focus: ghostFocus, audition: ghostAudition }),
     getCompositionSnapshot: () => Object.freeze({
