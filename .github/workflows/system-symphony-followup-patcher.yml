@@ -41,12 +41,39 @@ jobs:
 
       - name: Validate static site and System SYMPHONY
         run: |
-          set -euo pipefail
-          npx --yes html-validate@9.7.1 "**/*.html"
-          node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
-          python3 scripts/generate_sitemap.py --check-only
-          python3 scripts/verify_pages_output.py .
-          git diff --check
+          set +e
+          {
+            echo "== html-validate =="
+            npx --yes html-validate@9.7.1 "**/*.html"
+            status=$?
+            if [ "$status" -ne 0 ]; then exit "$status"; fi
+            echo "== node tests =="
+            node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
+            status=$?
+            if [ "$status" -ne 0 ]; then exit "$status"; fi
+            echo "== sitemap =="
+            python3 scripts/generate_sitemap.py --check-only
+            status=$?
+            if [ "$status" -ne 0 ]; then exit "$status"; fi
+            echo "== pages output =="
+            python3 scripts/verify_pages_output.py .
+            status=$?
+            if [ "$status" -ne 0 ]; then exit "$status"; fi
+            echo "== diff check =="
+            git diff --check
+          } > validation.log 2>&1
+          status=$?
+          cat validation.log
+          exit "$status"
+
+      - name: Upload validation diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: system-symphony-followup-validation
+          path: validation.log
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Remove one-shot patch machinery
         run: |
