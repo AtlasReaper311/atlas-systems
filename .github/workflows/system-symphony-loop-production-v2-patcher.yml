@@ -48,18 +48,33 @@ jobs:
           from pathlib import Path
 
           path = Path("scripts/apply_system_symphony_loop_production_v2.py")
-          text = path.read_text(encoding="utf-8")
-          old_first = '''performance = replace_once(performance, '    chordOffset,\n    bassPattern,', '    chordOffset,\n    chordProgression,\n    bassPattern,', "signature chord progression")'''
-          new_first = '''performance = replace_all(performance, '    chordOffset,\n    bassPattern,', '    chordOffset,\n    chordProgression,\n    bassPattern,', "signature and return chord progression", minimum=2)'''
-          old_second = '''performance = replace_once(performance, '    chordOffset,\n    bassPattern,\n    bassShift,', '    chordOffset,\n    chordProgression,\n    bassPattern,\n    bassShift,', "return chord progression")'''
-          new_second = '''# chordProgression was inserted into both matching contexts above.'''
-          if old_first not in text:
-              raise SystemExit("expected ambiguous chord progression replacement was not found")
-          if old_second not in text:
-              raise SystemExit("expected second chord progression replacement was not found")
-          text = text.replace(old_first, new_first, 1)
-          text = text.replace(old_second, new_second, 1)
-          path.write_text(text, encoding="utf-8")
+          lines = path.read_text(encoding="utf-8").splitlines()
+          signature_matches = [
+              index for index, line in enumerate(lines)
+              if '"signature chord progression"' in line
+          ]
+          return_matches = [
+              index for index, line in enumerate(lines)
+              if '"return chord progression"' in line
+          ]
+          if len(signature_matches) != 1:
+              raise SystemExit(
+                  f"expected one signature chord progression repair target, found {len(signature_matches)}"
+              )
+          if len(return_matches) != 1:
+              raise SystemExit(
+                  f"expected one return chord progression repair target, found {len(return_matches)}"
+              )
+          lines[signature_matches[0]] = (
+              "performance = replace_all(performance, "
+              "'    chordOffset,\\n    bassPattern,', "
+              "'    chordOffset,\\n    chordProgression,\\n    bassPattern,', "
+              "\"signature and return chord progression\", minimum=2)"
+          )
+          lines[return_matches[0]] = (
+              "# chordProgression was inserted into both matching contexts above."
+          )
+          path.write_text("\n".join(lines) + "\n", encoding="utf-8")
           PY
 
       - name: Apply loop production v2 patch
