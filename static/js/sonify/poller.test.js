@@ -64,8 +64,9 @@ test("deployment detection baselines initial success and emits only a new identi
   assert.equal(failure.nextIdentity, "deploy-b");
 });
 
-test("a telemetry failure preserves last raw values but emits stale Unknown", async () => {
+test("a brief telemetry failure preserves raw values and retains the last honest score", async () => {
   let telemetryCalls = 0;
+  let time = 0;
   const frames = [];
   const infos = [];
   const originalWarn = console.warn;
@@ -103,13 +104,16 @@ test("a telemetry failure preserves last raw values but emits stale Unknown", as
         infos.push(info);
       },
       fetchImpl,
+      now: () => time,
     });
     await poller.pollNow();
+    time = 4000;
     await poller.pollNow();
 
     assert.equal(frames[0].scoreState, "healthy");
-    assert.equal(frames[1].scoreState, "unknown");
+    assert.equal(frames[1].scoreState, "healthy");
     assert.equal(frames[1].stale, true);
+    assert.equal(infos[1].retainedLastGood, true);
     assert.deepEqual(infos[1].raw, healthyTelemetry);
     assert.equal(infos[1].merged.services[0].latency_ms, 30);
     assert.equal(infos[1].lastSuccessfulAt, healthyTelemetry.timestamp);
