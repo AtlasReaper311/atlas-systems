@@ -91,18 +91,12 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-      - name: Remove one-shot patch machinery
-        run: |
-          set -euo pipefail
-          git rm .github/workflows/system-symphony-followup-patcher.yml
-          git rm scripts/apply_system_symphony_followup.py
-
-      - name: Commit validated changes
+      - name: Commit validated source changes
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .github/workflows/preview.yml _headers lab/index.html static/js/sonify/engine.js static/js/sonify/samples.js static/js/sonify/ui.js static/js/sonify/coherence-cache.test.js
+          git add _headers lab/index.html static/js/sonify/engine.js static/js/sonify/samples.js static/js/sonify/ui.js static/js/sonify/coherence-cache.test.js
           git diff --cached --check
           git commit -m "fix: smooth System SYMPHONY transitions and cache refresh"
           git push origin HEAD:fix/system-symphony-cache-transition-coherence
