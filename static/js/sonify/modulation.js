@@ -2,17 +2,16 @@ import {
   MAX_COMPONENTS,
   canonicalStatus,
   clamp,
-  normalizeLatency,
 } from "./mapping.js?v=20260720-vector-three";
 
 /**
  * Continuous live-telemetry modulation for System SYMPHONY.
  *
- * The H1-H8 score remains the musical authority. A perfectly healthy live frame
- * passes through unchanged. As real estate pressure rises this module adds only
- * small, bounded amounts of energy to fields the existing engine already owns.
- * It never changes harmony, mode, sample palette, global low-pass cutoff,
- * detuning or note confidence.
+ * The H1-H8 score remains the musical authority. Healthy live operation inside
+ * normal latency and error-rate deadbands passes through unchanged. As real
+ * estate pressure rises this module adds only small, bounded amounts of energy
+ * to fields the existing engine already owns. It never changes harmony, mode,
+ * sample palette, global low-pass cutoff, detuning or note confidence.
  */
 
 export const DEPLOYMENT_AFTERGLOW_MS = 60_000;
@@ -20,6 +19,9 @@ export const STALE_HOLD_MS = 10_000;
 export const STALE_UNKNOWN_MS = 30_000;
 export const MODULATION_ATTACK_MS = 2_500;
 export const MODULATION_RELEASE_MS = 12_000;
+export const HEALTHY_LATENCY_DEADBAND_MS = 120;
+export const LATENCY_PRESSURE_CEILING_MS = 1500;
+export const HEALTHY_ERROR_RATE_DEADBAND = 0.001;
 
 const SUCCESS_STATUSES = new Set(["success", "passed", "healthy", "ok"]);
 const ACTIVE_STATUSES = new Set([
@@ -102,27 +104,34 @@ export function deriveContinuousModulation(
     : null;
   const coverage = deriveCoverage(payload, services);
 
-  const latencyOpenness = finiteValues(
-    measured.map((service) => normalizeLatency(service?.latency_ms)),
-  );
+  const latencySamples = finiteValues(measured.map((service) => service?.latency_ms));
   const uptimeSamples = finiteValues(measured.map((service) => service?.uptime_pct));
   const errorSamples = finiteValues(measured.map((service) => service?.error_rate));
 
-  const meanLatencyOpenness = average(latencyOpenness);
+  const meanLatencyMs = average(latencySamples);
   const meanUptime = average(uptimeSamples);
   const meanErrorRate = average(errorSamples);
 
   const healthPressure = overallHealth === null ? 0 : 1 - overallHealth;
   const coveragePressure = 1 - coverage;
-  const latencyPressure = meanLatencyOpenness === null
+  const latencyPressure = meanLatencyMs === null
     ? 0
-    : clamp(1 - meanLatencyOpenness, 0, 1);
+    : clamp(
+        (meanLatencyMs - HEALTHY_LATENCY_DEADBAND_MS)
+          / (LATENCY_PRESSURE_CEILING_MS - HEALTHY_LATENCY_DEADBAND_MS),
+        0,
+        1,
+      );
   const uptimePressure = meanUptime === null
     ? 0
     : clamp(1 - meanUptime / 100, 0, 1);
   const errorPressure = meanErrorRate === null
     ? 0
-    : clamp(Math.sqrt(Math.max(0, meanErrorRate)), 0, 1);
+    : clamp(
+        Math.sqrt(Math.max(0, meanErrorRate - HEALTHY_ERROR_RATE_DEADBAND)),
+        0,
+        1,
+      );
   const incidentPressure = Number.isFinite(payload?.estate?.active_incidents)
     ? clamp(Math.max(0, payload.estate.active_incidents) / 4, 0, 1)
     : 0;
