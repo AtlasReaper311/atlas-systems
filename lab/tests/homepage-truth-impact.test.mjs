@@ -15,13 +15,22 @@ test("homepage metadata matches the current portfolio domains and audio speciali
   assert.doesNotMatch(html, /Audio systems, local AI, and infrastructure/i);
 });
 
-test("homepage presents declared, observed, and documented Worker truth separately", () => {
-  assert.match(html, /id="estate-declared-workers"/);
-  assert.match(html, /id="estate-observed-workers"/);
-  assert.match(html, /id="estate-documented-workers"/);
+test("homepage keeps detailed Worker coverage in the evidence cards only", () => {
+  assert.doesNotMatch(html, /id="estate-declared-workers"/);
+  assert.doesNotMatch(html, /id="estate-observed-workers"/);
+  assert.doesNotMatch(html, /id="estate-documented-workers"/);
+  assert.match(html, /id="evidence-declared"/);
+  assert.match(html, /id="evidence-observed"/);
+  assert.match(html, /id="evidence-documented"/);
+  assert.match(html, /Portfolio signal summary/);
+  assert.match(html, /Audio Systems/);
+  assert.match(html, /Control plane evidence/);
+  assert.doesNotMatch(html, /Live estate truth summary/);
   assert.match(truthSource, /const TOPOLOGY_URL = "https:\/\/api\.atlas-systems\.uk\/v1\/topology"/);
   assert.match(truthSource, /missing:|missing,/);
   assert.match(truthSource, /Not observed:/);
+  assert.match(truthSource, /architecture coverage/);
+  assert.doesNotMatch(truthSource, /estate-declared-workers|estate-observed-workers|estate-documented-workers/);
   assert.doesNotMatch(truthSource, /\.style\s*[.=\[]|\bcssText\b/);
 });
 
@@ -58,9 +67,11 @@ test("homepage uses the canonical Atlas Systems text tokens", () => {
   assert.match(baseCss, /--accent:#f5a623/);
 });
 
-test("system map copy describes declared architecture plus observed discovery precisely", () => {
+test("system map copy avoids repeating detailed Worker coverage language", () => {
   assert.match(html, /Declared architecture, enriched by live discovery/);
-  assert.match(html, /public topology provides the declared component graph/);
+  assert.match(html, /source systems, runtime surfaces, dependencies, and evidence routes/);
+  assert.doesNotMatch(html, /public topology provides the declared component graph/);
+  assert.doesNotMatch(html, /runtime registry adds observed Worker presence/);
   assert.doesNotMatch(html, /the system, describing itself/i);
 });
 
