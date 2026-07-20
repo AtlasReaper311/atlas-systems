@@ -10,6 +10,9 @@ import {
   computeFrame,
   mergeTelemetryAndTopology,
 } from "./mapping.js?v=20260718-system-symphony-ghost-circuit";
+import {
+  createPersistentTelemetryModulator,
+} from "./modulation.js?v=20260720-vector-three";
 
 export const SONIFY_URL = "https://api.atlas-systems.uk/sonify";
 export const TOPOLOGY_URL = "https://api.atlas-systems.uk/v1/topology";
@@ -19,6 +22,13 @@ export const POLL_INTERVAL_MS = 4000;
 export const FETCH_TIMEOUT_MS = 3000;
 export const TOPOLOGY_INTERVAL_MS = 5 * 60 * 1000;
 export const DEPLOYMENT_INTERVAL_MS = 12000;
+
+const inspectorModule = typeof window !== "undefined" && typeof document !== "undefined"
+  ? import("./telemetry-inspector.js?v=20260720-vector-three").catch((error) => {
+      console.warn("system-symphony: telemetry inspector unavailable", error);
+      return null;
+    })
+  : null;
 
 function incidentCount(value) {
   return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
@@ -73,6 +83,16 @@ async function fetchJson(fetchImpl, url, timeoutMs) {
   }
 }
 
+function publishTelemetryFrame(frame, info) {
+  if (!inspectorModule || typeof window === "undefined") return;
+  void inspectorModule.then((module) => {
+    if (!module || typeof window.CustomEvent !== "function") return;
+    window.dispatchEvent(new window.CustomEvent(module.TELEMETRY_FRAME_EVENT, {
+      detail: { frame, info },
+    }));
+  });
+}
+
 /**
  * @param {object} options
  * @param {(frame: object, info: object) => void} options.onFrame
@@ -114,6 +134,7 @@ export function createPoller({
   let nextDeploymentAt = 0;
 
   const failureStreaks = new Map();
+  const modulator = createPersistentTelemetryModulator({ now });
 
   function failSource(source, error) {
     const failures = (failureStreaks.get(source) ?? 0) + 1;
@@ -130,14 +151,35 @@ export function createPoller({
     failureStreaks.set(source, 0);
   }
 
-  function emitStale(error) {
+  function emitFrame(baseFrame, info, at) {
+    const modulationResult = modulator.update({
+      frame: baseFrame,
+      payload: info.merged,
+      deployment: info.deployment,
+      deploymentEvent: info.deploymentEvent,
+      at,
+    });
+    const nextInfo = {
+      ...info,
+      baseFrame,
+      modulation: modulationResult.modulation,
+      retainedLastGood: modulationResult.retainedLastGood,
+      staleAgeMs: modulationResult.staleAgeMs,
+      deploymentEnergy: modulationResult.deploymentEnergy,
+    };
+    onFrame(modulationResult.frame, nextInfo);
+    publishTelemetryFrame(modulationResult.frame, nextInfo);
+    return modulationResult.frame;
+  }
+
+  function emitStale(error, at = now()) {
     const failures = failSource("telemetry", error);
     const staleMerged = {
       ...(lastMerged ?? mergeTelemetryAndTopology({}, topology)),
       stale: true,
       lastSuccessfulAt,
     };
-    const frame = computeFrame(staleMerged);
+    const baseFrame = computeFrame(staleMerged);
     onStatus?.({
       source: "telemetry",
       failing: true,
@@ -145,7 +187,7 @@ export function createPoller({
       failures,
       lastSuccessfulAt,
     });
-    onFrame(frame, {
+    emitFrame(baseFrame, {
       raw: lastTelemetry,
       merged: staleMerged,
       topology,
@@ -154,7 +196,7 @@ export function createPoller({
       newIncidents: 0,
       stale: true,
       lastSuccessfulAt,
-    });
+    }, at);
   }
 
   async function pollOnce() {
@@ -209,7 +251,7 @@ export function createPoller({
       }
 
       if (telemetryResult.status === "rejected") {
-        emitStale(telemetryResult.reason);
+        emitStale(telemetryResult.reason, startedAt);
         return true;
       }
 
@@ -227,12 +269,12 @@ export function createPoller({
         },
         topology,
       );
-      const frame = computeFrame(lastMerged);
+      const baseFrame = computeFrame(lastMerged);
       const newIncidents = incidentIncrease(
         previousIncidents,
-        frame.activeIncidents,
+        baseFrame.activeIncidents,
       );
-      previousIncidents = frame.activeIncidents;
+      previousIncidents = baseFrame.activeIncidents;
 
       onStatus?.({
         source: "telemetry",
@@ -241,7 +283,7 @@ export function createPoller({
         failures: 0,
         lastSuccessfulAt,
       });
-      onFrame(frame, {
+      emitFrame(baseFrame, {
         raw: lastTelemetry,
         merged: lastMerged,
         topology,
@@ -250,7 +292,7 @@ export function createPoller({
         newIncidents,
         stale: false,
         lastSuccessfulAt,
-      });
+      }, startedAt);
       return true;
     } finally {
       inFlight = false;
@@ -286,6 +328,7 @@ export function createPoller({
       lastTelemetry,
       lastMerged,
       lastSuccessfulAt,
+      modulation: modulator.getSnapshot(),
     }),
   };
 }
