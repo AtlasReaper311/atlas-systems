@@ -2378,10 +2378,7 @@
         return document.getElementById(id);
       }
       function labDisplayText(value) {
-        return String(value == null ? "" : value).replace(
-          /\bsimple-proxy\b/gi,
-          "legacy utility",
-        );
+        return String(value == null ? "" : value);
       }
       function opsText(id, value) {
         const target = opsEl(id);
@@ -2938,25 +2935,24 @@
       }, 30_000);
 
       const PGRID_REPOS = [
-        { id: "atlas-systems", aliases: ["atlas-systems", "atlas-systems.uk"] },
-        {
-          id: "ramone-edge",
-          aliases: ["ramone-edge", "ramone.atlas-systems.uk"],
-        },
-        {
-          id: "ramone-voice-trigger",
-          aliases: ["ramone-voice-trigger", "ramone-trigger"],
-        },
+        { id: "atlas-api-index", aliases: ["atlas-api-index"] },
+        { id: "atlas-api-public", aliases: ["atlas-api-public"] },
+        { id: "atlas-blackbox", aliases: ["atlas-blackbox"] },
+        { id: "atlas-corpus", aliases: ["atlas-corpus"] },
+        { id: "atlas-daily-digest", aliases: ["atlas-daily-digest"] },
+        { id: "atlas-doc-viewer", aliases: ["atlas-doc-viewer", "cv.atlas-systems.uk"] },
+        { id: "atlas-dora", aliases: ["atlas-dora"] },
         { id: "atlas-notify", aliases: ["atlas-notify"] },
-        { id: "github-pulse", aliases: ["github-pulse"] },
-        { id: "site-pulse", aliases: ["site-pulse"] },
+        { id: "atlas-quota-watch", aliases: ["atlas-quota-watch"] },
+        { id: "atlas-systems", aliases: ["atlas-systems", "atlas-systems.uk"] },
         { id: "deploy-watch", aliases: ["deploy-watch"] },
-        { id: "atlas-vault", aliases: ["atlas-vault"] },
-        { id: "status", aliases: ["status.atlas-systems.uk"] },
-        {
-          id: "atlas-doc-viewer",
-          aliases: ["atlas-doc-viewer", "cv.atlas-systems.uk"],
-        },
+        { id: "github-pulse", aliases: ["github-pulse"] },
+        { id: "ramone-edge", aliases: ["ramone-edge", "ramone.atlas-systems.uk"] },
+        { id: "ramone-voice-trigger", aliases: ["ramone-voice-trigger", "ramone-trigger"] },
+        { id: "site-pulse", aliases: ["site-pulse"] },
+        { id: "specular-sonify", aliases: ["specular-sonify"] },
+        { id: "specular-telemetry", aliases: ["specular-telemetry", "specular-edge"] },
+        { id: "status", aliases: ["status", "status.atlas-systems.uk"] },
       ];
       const PGRID_RECENT_MS = 5 * 60 * 1000;
       const PGRID_STALE_MS = 7 * 24 * 60 * 60 * 1000;
@@ -3340,7 +3336,7 @@
       }
 
       const API_INDEX_URL = "https://api.atlas-systems.uk/";
-      const API_SURFACE_EXCLUDED_WORKERS = new Set(["simple-proxy"]);
+      const API_SURFACE_EXCLUDED_WORKERS = new Set();
 
       function normalizeApiSurface(data) {
         const endpoints = [];
