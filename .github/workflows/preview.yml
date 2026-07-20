@@ -1,26 +1,37 @@
 name: Cloudflare Pages preview
 
 on:
-  push:
+  pull_request:
     branches:
-      - feat/system-symphony-composition-director
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - ".github/workflows/preview.yml"
+      - "static/js/sonify/**"
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.repository }}-pages-preview-${{ github.ref }}
+  group: ${{ github.repository }}-pages-preview-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
   validate:
     name: Validate preview candidate
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'feat/system-symphony-composition-director'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Check out preview branch
+      - name: Check out preview head
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
 
       - name: Set up Node.js
@@ -54,7 +65,9 @@ jobs:
   deploy-preview:
     name: Publish branch preview
     needs: validate
-    if: github.ref == 'refs/heads/feat/system-symphony-composition-director'
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'feat/system-symphony-composition-director'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment:
@@ -67,8 +80,10 @@ jobs:
       PAGES_BRANCH: system-symphony-composition-director
       PROJECT_NAME: atlas-systems
     steps:
-      - name: Check out validated commit
+      - name: Check out validated head
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -78,7 +93,7 @@ jobs:
       - name: Guard production boundary
         run: |
           set -euo pipefail
-          test "${GITHUB_REF_NAME}" = "${SOURCE_BRANCH}"
+          test "${SOURCE_BRANCH}" = "feat/system-symphony-composition-director"
           test "${SOURCE_BRANCH}" != "main"
           test "${PAGES_BRANCH}" != "main"
 
