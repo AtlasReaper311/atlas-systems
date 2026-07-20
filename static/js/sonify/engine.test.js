@@ -96,7 +96,7 @@ test("audio context start identifies a browser-blocked suspended context", async
 });
 
 test("the shared pad refreshes every measure with a low grounded voicing", () => {
-  assert.deepEqual(DRONE_MIDI, [26, 33]);
+  assert.deepEqual(DRONE_MIDI, [29, 36]);
   assert.equal(PAD_MEASURE_STEPS, 8);
   assert.deepEqual(
     Array.from({ length: 32 }, (_, step) => step).filter(shouldPlayPad),
@@ -107,7 +107,7 @@ test("the shared pad refreshes every measure with a low grounded voicing", () =>
       const notes = buildPadVoicing(state, SCORE_STATES[state].scale, measure);
       assert.ok(notes.length >= 2);
       assert.ok(Math.min(...notes) >= PAD_ROOT_MIDI);
-      assert.ok(Math.max(...notes) <= 57, `${state} pad should stay at or below A3`);
+      assert.ok(Math.max(...notes) <= 60, `${state} pad should stay at or below C4`);
     }
   }
 });
@@ -630,7 +630,7 @@ test("the browser graph allocates Demo effects once and applies a queued score o
     assert.ok(runtime.constructed.includes("FeedbackDelay"));
     assert.ok(runtime.constructed.filter((name) => name === "MonoSynth").length >= 1);
     assert.ok(runtime.constructed.filter((name) => name === "FMSynth").length >= 2);
-    assert.equal(runtime.constructed.filter((name) => name === "Distortion").length, 3);
+    assert.equal(runtime.constructed.filter((name) => name === "Distortion").length, 4);
     assert.equal(runtime.constructed.filter((name) => name === "FeedbackDelay").length, 1);
     assert.ok(runtime.scheduledRepeats.has("8n"));
     assert.ok(runtime.scheduledRepeats.has("16n"));

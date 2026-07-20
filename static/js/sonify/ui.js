@@ -10,15 +10,15 @@ import {
   DEFAULT_USER_GAIN,
   SYSTEM_SYMPHONY_BUILD_ID,
   createEngine,
-} from "./engine.js?v=20260720-system-symphony-coherence-cache-v1";
-import { createPoller } from "./poller.js?v=20260718-system-symphony-ghost-circuit";
+} from "./engine.js?v=20260720-system-symphony-loop-production-v2";
+import { createPoller } from "./poller.js?v=20260720-system-symphony-loop-production-v2";
 import {
   applyDemoProfileToServices,
   buildDependencyGraph,
   computeFrame,
   deriveDemoEstate,
   filterVoices,
-} from "./mapping.js?v=20260718-system-symphony-ghost-circuit";
+} from "./mapping.js?v=20260720-system-symphony-loop-production-v2";
 import {
   DEFAULT_PERFORMANCE_SEED,
   PERFORMANCE_MACRO_DEFAULTS,
@@ -26,8 +26,8 @@ import {
   createPerformanceArrangement,
   formatPerformanceSeed,
   normalizePerformanceSeed,
-} from "./performance.js?v=20260718-system-symphony-ghost-circuit";
-import { resolveSamplePalette } from "./samples.js?v=20260718-system-symphony-ghost-circuit";
+} from "./performance.js?v=20260720-system-symphony-loop-production-v2";
+import { resolveSamplePalette } from "./samples.js?v=20260720-system-symphony-loop-production-v2";
 
 if (typeof window !== "undefined") {
   window.__ATLAS_SYSTEM_SYMPHONY_BUILD__ = SYSTEM_SYMPHONY_BUILD_ID;
@@ -272,9 +272,15 @@ function template() {
             <div class="symphony-orchestra__grid">
               <div class="symphony-visual" data-visual>
                 <svg class="symphony-topology" data-topology viewBox="0 0 960 520" role="img" aria-label="Atlas estate topology mapped to musical service voices"></svg>
-                <div class="symphony-waveform-wrap">
-                  <span>Master waveform / real analyser</span>
-                  <canvas data-waveform width="960" height="112" aria-label="Real-time waveform from the System SYMPHONY master analyser"></canvas>
+                <div class="symphony-analyser-grid">
+                  <div class="symphony-waveform-wrap">
+                    <span>Master waveform / real analyser</span>
+                    <canvas data-waveform width="960" height="112" aria-label="Real-time waveform from the System SYMPHONY master analyser"></canvas>
+                  </div>
+                  <div class="symphony-spectrum-wrap">
+                    <span>Master spectrum / 32 bands</span>
+                    <canvas data-spectrum width="960" height="112" aria-label="Real-time 32-band spectrum from the System SYMPHONY master analyser"></canvas>
+                  </div>
                 </div>
               </div>
 
@@ -359,6 +365,8 @@ export function initSystemSymphony() {
   const topologySvg = host.querySelector("[data-topology]");
   const waveformCanvas = host.querySelector("[data-waveform]");
   const waveformContext = waveformCanvas.getContext("2d");
+  const spectrumCanvas = host.querySelector("[data-spectrum]");
+  const spectrumContext = spectrumCanvas.getContext("2d");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const topologyNodes = new Map();
   const muted = new Set();
@@ -1162,6 +1170,33 @@ export function initSystemSymphony() {
         else waveformContext.lineTo(x, y);
       });
       waveformContext.stroke();
+
+      const spectrum = engine.getSpectrum();
+      const spectrumWidth = spectrumCanvas.width;
+      const spectrumHeight = spectrumCanvas.height;
+      spectrumContext.clearRect(0, 0, spectrumWidth, spectrumHeight);
+      spectrumContext.fillStyle = "#09090d";
+      spectrumContext.fillRect(0, 0, spectrumWidth, spectrumHeight);
+      const bandCount = 32;
+      const binStride = Math.max(1, Math.floor(spectrum.length / bandCount));
+      const gap = 3;
+      const barWidth = spectrumWidth / bandCount;
+      for (let band = 0; band < bandCount; band += 1) {
+        const start = band * binStride;
+        const bins = spectrum.slice(start, start + binStride);
+        const db = bins.length
+          ? bins.reduce((sum, value) => sum + (Number.isFinite(value) ? value : -100), 0) / bins.length
+          : -100;
+        const normalized = Math.max(0, Math.min(1, (db + 100) / 100));
+        const barHeight = Math.max(1, normalized * spectrumHeight * 0.92);
+        spectrumContext.fillStyle = engine.isRunning() ? "rgba(245, 166, 35, 0.72)" : "rgba(85, 85, 96, 0.72)";
+        spectrumContext.fillRect(
+          band * barWidth + gap / 2,
+          spectrumHeight - barHeight,
+          Math.max(1, barWidth - gap),
+          barHeight,
+        );
+      }
     }
     waveformAnimation = window.requestAnimationFrame(drawWaveform);
   }

@@ -6,7 +6,7 @@
  * produce the same score frame.
  */
 
-export const ROOT_MIDI = 38; // D2
+export const ROOT_MIDI = 41; // F2
 export const MAX_COMPONENTS = 32;
 export const MAX_EXPECTED_LATENCY_MS = 1500;
 export const NEUTRAL_LATENCY_FILTER_HZ = 2400;
@@ -19,8 +19,8 @@ export const SCALE_UNKNOWN = [0, 2, 5, 7, 10, 12];
 export const SCORE_STATES = Object.freeze({
   healthy: Object.freeze({
     label: "Healthy",
-    mode: "D Aeolian",
-    bpm: 112,
+    mode: "F Aeolian",
+    bpm: 100,
     scale: SCALE_AEOLIAN,
     density: 0.72,
     tension: 0.12,
@@ -32,8 +32,8 @@ export const SCORE_STATES = Object.freeze({
   }),
   warning: Object.freeze({
     label: "Warning",
-    mode: "D Phrygian",
-    bpm: 118,
+    mode: "F Phrygian",
+    bpm: 106,
     scale: SCALE_PHRYGIAN,
     density: 0.8,
     tension: 0.44,
@@ -45,8 +45,8 @@ export const SCORE_STATES = Object.freeze({
   }),
   critical: Object.freeze({
     label: "Critical",
-    mode: "D Phrygian dominant",
-    bpm: 128,
+    mode: "F Phrygian dominant",
+    bpm: 112,
     scale: SCALE_PHRYGIAN_DOMINANT,
     density: 0.9,
     tension: 0.92,
@@ -58,7 +58,7 @@ export const SCORE_STATES = Object.freeze({
   }),
   unknown: Object.freeze({
     label: "Unknown",
-    mode: "D suspended",
+    mode: "F suspended",
     bpm: 96,
     scale: SCALE_UNKNOWN,
     density: 0.6,
@@ -155,23 +155,23 @@ const FAMILY_VARIANTS = Object.freeze({
 });
 
 const FAMILY_REGISTERS = Object.freeze({
-  "analog-pad": 40,
-  "data-sequence": 45,
-  "industrial-pulse": 38,
-  "edge-saw": 40,
-  "sub-drone": 33,
-  "relay-bass": 33,
-  "tape-signal": 43,
+  "analog-pad": 43,
+  "data-sequence": 48,
+  "industrial-pulse": 41,
+  "edge-saw": 43,
+  "sub-drone": 36,
+  "relay-bass": 36,
+  "tape-signal": 46,
 });
 
 export const FAMILY_MIDI_RANGES = Object.freeze({
-  "analog-pad": Object.freeze({ minimum: 33, maximum: 57 }),
-  "data-sequence": Object.freeze({ minimum: 38, maximum: 62 }),
-  "industrial-pulse": Object.freeze({ minimum: 33, maximum: 57 }),
-  "edge-saw": Object.freeze({ minimum: 33, maximum: 60 }),
-  "sub-drone": Object.freeze({ minimum: 26, maximum: 50 }),
-  "relay-bass": Object.freeze({ minimum: 28, maximum: 52 }),
-  "tape-signal": Object.freeze({ minimum: 36, maximum: 60 }),
+  "analog-pad": Object.freeze({ minimum: 36, maximum: 60 }),
+  "data-sequence": Object.freeze({ minimum: 41, maximum: 65 }),
+  "industrial-pulse": Object.freeze({ minimum: 36, maximum: 60 }),
+  "edge-saw": Object.freeze({ minimum: 36, maximum: 63 }),
+  "sub-drone": Object.freeze({ minimum: 29, maximum: 53 }),
+  "relay-bass": Object.freeze({ minimum: 31, maximum: 55 }),
+  "tape-signal": Object.freeze({ minimum: 39, maximum: 63 }),
 });
 
 const MOTIF_SHAPES = Object.freeze([
@@ -471,7 +471,7 @@ export function deriveServiceIdentity(service = {}) {
     instrumentFamily,
     instrumentLabel,
     motif,
-    motifLabel: `degrees ${motif.join("-")} around D`,
+    motifLabel: `degrees ${motif.join("-")} around F`,
     pan: clamp(pan, -0.72, 0.72),
     registerMidi,
     registerLabel:
@@ -624,6 +624,7 @@ export function computeFrame(payload = {}) {
     tension: score.tension,
     masterGainDb: score.masterGainDb,
     masterFilterHz: score.masterFilterHz,
+    masterHpHz: score.masterHpHz,
     transitionSeconds: score.transitionSeconds,
     persistentRhythm: score.persistentRhythm,
     overallHealth,

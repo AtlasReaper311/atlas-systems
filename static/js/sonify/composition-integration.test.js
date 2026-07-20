@@ -58,7 +58,7 @@ test("warning live bass uses tight pulse durations instead of long wobble notes"
   )).filter(Boolean);
   assert.ok(directed.length > 0);
   assert.ok(directed.every((event) => ["16n", "8n"].includes(event.duration)));
-  assert.equal(plan.bassLoopTimbre, 0, "live Warning must default away from bar-sliced bass loops");
+  assert.ok(Number.isInteger(plan.bassLoopTimbre), "live Warning must select a deterministic phrase-loop timbre");
 });
 
 test("live plans drive motif, arp and rhythm as one bounded arrangement", () => {

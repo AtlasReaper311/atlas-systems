@@ -5,12 +5,12 @@
  * Live telemetry never imports these settings into its score frame.
  */
 
-import { stableHash } from "./mapping.js?v=20260718-system-symphony-ghost-circuit";
-import { deriveDimensions } from "./seed-dimensions.js?v=20260718-system-symphony-ghost-circuit";
-import { resolveSamplePalette } from "./samples.js?v=20260718-system-symphony-ghost-circuit";
+import { stableHash } from "./mapping.js?v=20260720-system-symphony-loop-production-v2";
+import { deriveDimensions } from "./seed-dimensions.js?v=20260720-system-symphony-loop-production-v2";
+import { resolveSamplePalette } from "./samples.js?v=20260720-system-symphony-loop-production-v2";
 
 export const DEFAULT_PERFORMANCE_SEED = "A71A5";
-export const PERFORMANCE_SCHEMA_VERSION = 2;
+export const PERFORMANCE_SCHEMA_VERSION = 3;
 export const PERFORMANCE_EFFECT_LIMITS = Object.freeze({
   distortionWet: 0.4,
   delayWet: 0.36,
@@ -47,7 +47,7 @@ export const PERFORMANCE_MACRO_DEFAULTS = Object.freeze({
 const BASS_SHIFTS = Object.freeze([0, 1, -1, 0]);
 const PERFORMANCE_SCENE_DYNAMICS = Object.freeze({
   healthy: Object.freeze({
-    bpm: 112,
+    bpm: 100,
     density: [0.92, 0.38],
     drums: [0.95, 0.35],
     bass: [1, 0.35],
@@ -63,7 +63,7 @@ const PERFORMANCE_SCENE_DYNAMICS = Object.freeze({
     reverb: [0.13, 0.19],
   }),
   warning: Object.freeze({
-    bpm: 118,
+    bpm: 106,
     density: [1, 0.45],
     drums: [1.05, 0.42],
     bass: [1.08, 0.4],
@@ -79,7 +79,7 @@ const PERFORMANCE_SCENE_DYNAMICS = Object.freeze({
     reverb: [0.1, 0.15],
   }),
   critical: Object.freeze({
-    bpm: 128,
+    bpm: 112,
     density: [1.08, 0.5],
     drums: [1.16, 0.5],
     bass: [1.16, 0.45],
@@ -184,6 +184,7 @@ export function createPerformanceArrangement(
   const scene = PERFORMANCE_SCENES[normalizedState];
   const dynamics = PERFORMANCE_SCENE_DYNAMICS[normalizedState];
   const chordOffset = dimensions.chordOffset;
+  const chordProgression = dimensions.chordProgression;
   const bassPattern = dimensions.bassPattern;
   const bassShift = BASS_SHIFTS[dimensions.bassShift];
   const bassDegreeOffset = dimensions.bassDegreeOffset;
@@ -225,6 +226,7 @@ export function createPerformanceArrangement(
   const patternSignature = [
     `v${PERFORMANCE_SCHEMA_VERSION}`,
     chordOffset,
+    chordProgression,
     bassPattern,
     bassShift,
     bassDegreeOffset,
@@ -264,6 +266,7 @@ export function createPerformanceArrangement(
     space,
     patternSignature,
     chordOffset,
+    chordProgression,
     bassPattern,
     bassShift,
     bassDegreeOffset,

@@ -8,9 +8,9 @@ The complete owner-provided folder was re-inventoried after its replacement. It 
 
 - Prefer distinct transients, bass envelopes and tonal identities over using every file.
 - Keep tonal sampled leads behind explicit state-compatibility declarations after declared transposition.
-- Allow only the background-saws and wobbly-synth palettes in Warning; Critical melodic content remains procedural.
+- Live Warning uses the F/Fm-compatible background-saws or acid-synth palettes; Critical melodic lead content remains procedural.
 - Keep Ghost predominantly procedural, with a sparse low-volume Geneticist grain as the only compatible sampled lead option.
-- Trigger rhythmic sources as four-beat, bar-quantised fragments. No rhythmic WAV free-runs against the Tone.js transport.
+- Trigger bass-loop sources as four-bar phrase-quantised foundations. They restart only at phrase boundaries and remain locked to Tone.Transport.
 - Preserve the procedural score as the bounded fallback if any browser decode fails.
 
 ## Complete source decision record
@@ -66,7 +66,12 @@ The complete owner-provided folder was re-inventoried after its replacement. It 
 - Transformer Bass was previously declared as A1 even though its measured fundamental is approximately 27.5 Hz (A0). The manifest and delivery filename now use A0.
 - Burial, Deep and Doom resolve around 32.7 Hz (C1), providing cleaner substitutes for the removed Mothership-style bass material.
 - Eight-beat lead sources wrap their deterministic source-beat selector instead of seeking beyond the end of the buffer.
-- Every rhythmic bass fragment is selected and restarted on a measure boundary, tempo-scaled within a bounded range and double-buffered so adjacent measures do not reuse an active voice.
+- F/Fm bass loops play through non-granular Tone.Player voices at bounded near-native playback rates. Full 16-beat phrases are double-buffered and restart only at phrase boundaries, removing GrainPlayer warble from the low-end foundation.
 - Browser delivery now prefers Opus with AAC and WAV fallbacks. Core rhythm assets load first; later tiers fail independently.
 - Burial trims 0.018 seconds of leading noise. Geneticist ends at 18.160 seconds. Motherboard, Nanotech and New Punks use the reviewed tail trims from the H1-H8 build.
 - Only the selected atmosphere is started; state changes crossfade and stop the prior player instead of idling all three loops.
+
+
+## F-centred production pass
+
+The live score is centred on F so the dominant F/Fm source cluster can run without a three-semitone granular pitch shift. The procedural pads, service registers, sub foundation, deployment motif and state modes are retuned around the same centre. Samples that still require pitch adaptation use smaller intervals and remain behind bounded granular playback. Live palettes always choose a rhythmic bass-loop foundation for Healthy, Warning and Critical; Ghost Circuit keeps its nullable seeded pools for deliberate variation.

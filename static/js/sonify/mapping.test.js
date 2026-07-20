@@ -47,24 +47,24 @@ test("score states expose the H1-H8 tempo and master filter bands", () => {
       [score.bpm, score.masterFilterHz, score.masterHpHz],
     ])),
     {
-      healthy: [112, 12000, 28],
-      warning: [118, 10000, 32],
-      critical: [128, 8000, 38],
+      healthy: [100, 12000, 28],
+      warning: [106, 10000, 32],
+      critical: [112, 8000, 38],
       unknown: [96, 6000, 24],
     },
   );
 });
 
-test("healthy state uses dark D Aeolian at the healthy tempo", () => {
+test("healthy state uses F Aeolian at the healthy tempo", () => {
   const frame = computeFrame(payload());
   assert.equal(frame.scoreState, "healthy");
   assert.deepEqual(frame.scale, SCALE_AEOLIAN);
   assert.equal(frame.bpm, SCORE_STATES.healthy.bpm);
-  assert.equal(frame.mode, "D Aeolian");
+  assert.equal(frame.mode, "F Aeolian");
   assert.equal(frame.persistentRhythm, true);
 });
 
-test("warning state uses D Phrygian for degraded service or sub-0.95 health", () => {
+test("warning state uses F Phrygian for degraded service or sub-0.95 health", () => {
   const degraded = computeFrame(payload({
     estate: { overall_health: 1, active_incidents: 0 },
     services: [service("atlas-api-index", { status: "degraded" })],
@@ -75,11 +75,11 @@ test("warning state uses D Phrygian for degraded service or sub-0.95 health", ()
   for (const frame of [degraded, healthThreshold]) {
     assert.equal(frame.scoreState, "warning");
     assert.deepEqual(frame.scale, SCALE_PHRYGIAN);
-    assert.equal(frame.mode, "D Phrygian");
+    assert.equal(frame.mode, "F Phrygian");
   }
 });
 
-test("critical state uses D Phrygian dominant and persistent rhythm", () => {
+test("critical state uses F Phrygian dominant and persistent rhythm", () => {
   const cases = [
     payload({ estate: { overall_health: 1, active_incidents: 1 } }),
     payload({ services: [service("atlas-api-index", { status: "down" })] }),
@@ -142,8 +142,8 @@ test("service identity and motif are deterministic and layer-aware", () => {
 
 test("service notes remain within family-safe registers", () => {
   assert.ok(
-    Object.values(FAMILY_MIDI_RANGES).every((range) => range.maximum <= 62),
-    "recurring service families must stay at or below D4",
+    Object.values(FAMILY_MIDI_RANGES).every((range) => range.maximum <= 65),
+    "recurring service families must stay at or below F4",
   );
   for (const layer of [
     "surface",

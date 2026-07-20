@@ -5,7 +5,7 @@
  * while avoiding one random choice accidentally coupling unrelated layers.
  */
 
-import { stableHash } from "./mapping.js?v=20260718-system-symphony-ghost-circuit";
+import { stableHash } from "./mapping.js?v=20260720-system-symphony-loop-production-v2";
 
 export const SEED_DIMENSIONS = Object.freeze({
   kickTimbre: 4,
@@ -27,6 +27,7 @@ export const SEED_DIMENSIONS = Object.freeze({
   leadSliceVariant: 4,
   bassLoopSliceVariant: 4,
   chordOffset: 4,
+  chordProgression: 4,
   bassPattern: 8,
   bassShift: 4,
   bassDegreeOffset: 4,

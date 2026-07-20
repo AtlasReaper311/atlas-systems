@@ -25,7 +25,7 @@ test("live state changes commit only at phrase boundaries", () => {
   assert.equal(canCommitLiveFrameAtStep(8, "warning", "warning"), true);
 });
 
-test("live telemetry palette removes bass loops, wobbly lead and AC-unit metal hits", () => {
+test("live telemetry palette keeps loop foundations while removing wobbly lead and AC-unit metal hits", () => {
   const performance = {
     liveDirected: true,
     bassLoopTimbre: 1,
@@ -35,7 +35,7 @@ test("live telemetry palette removes bass loops, wobbly lead and AC-unit metal h
   };
   for (let phrase = 0; phrase < 16; phrase += 1) {
     const palette = resolveSamplePalette("warning", performance, phrase);
-    assert.equal(palette.bassLoop, null);
+    assert.ok(palette.bassLoop);
     assert.notEqual(palette.lead, "wobbly-synth");
     assert.equal(palette.metal, "perc-stick");
   }
@@ -60,7 +60,7 @@ test("cache contract exposes and revalidates the active System SYMPHONY build", 
   const headers = fs.readFileSync("_headers", "utf8");
   const lab = fs.readFileSync("lab/index.html", "utf8");
   const ui = fs.readFileSync("static/js/sonify/ui.js", "utf8");
-  assert.equal(SYSTEM_SYMPHONY_BUILD_ID, "20260720-system-symphony-coherence-cache-v1");
+  assert.equal(SYSTEM_SYMPHONY_BUILD_ID, "20260720-system-symphony-loop-production-v2");
   assert.match(headers, /\/static\/js\/sonify\/\*[\s\S]*Cache-Control: no-cache, max-age=0, must-revalidate/);
   assert.match(headers, new RegExp(`X-Atlas-System-Symphony-Build: ${SYSTEM_SYMPHONY_BUILD_ID}`));
   assert.match(lab, new RegExp(`ui\\.js\\?v=${SYSTEM_SYMPHONY_BUILD_ID}`));

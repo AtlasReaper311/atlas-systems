@@ -21,16 +21,16 @@
 
 /lab
   Cache-Control: no-cache, max-age=0, must-revalidate
-  X-Atlas-System-Symphony-Build: 20260720-system-symphony-coherence-cache-v1
+  X-Atlas-System-Symphony-Build: 20260720-system-symphony-loop-production-v2
 
 /lab/
   Cache-Control: no-cache, max-age=0, must-revalidate
-  X-Atlas-System-Symphony-Build: 20260720-system-symphony-coherence-cache-v1
+  X-Atlas-System-Symphony-Build: 20260720-system-symphony-loop-production-v2
 
 /lab/index.html
   Cache-Control: no-cache, max-age=0, must-revalidate
-  X-Atlas-System-Symphony-Build: 20260720-system-symphony-coherence-cache-v1
+  X-Atlas-System-Symphony-Build: 20260720-system-symphony-loop-production-v2
 
 /static/js/sonify/*
   Cache-Control: no-cache, max-age=0, must-revalidate
-  X-Atlas-System-Symphony-Build: 20260720-system-symphony-coherence-cache-v1
+  X-Atlas-System-Symphony-Build: 20260720-system-symphony-loop-production-v2
