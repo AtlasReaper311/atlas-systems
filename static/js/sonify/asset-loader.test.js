@@ -55,7 +55,7 @@ test("a hanging asset attempt times out and fails closed", async () => {
   assert.equal(runtime.disposed.length, 1);
 });
 
-test("assets load independently and expose bounded progress", async () => {
+test("assets load independently and preserve the public progress contract", async () => {
   const runtime = fakeTone(new Set(["snare"]));
   const progress = [];
   const loader = createAssetLoader(runtime.Tone, {
@@ -78,9 +78,6 @@ test("assets load independently and expose bounded progress", async () => {
       loaded: 1,
       failed: 1,
       fallbacks: 0,
-      active: 0,
-      peakActive: 2,
-      maxConcurrent: 4,
     });
     assert.ok(progress.length >= 3);
   } finally {
@@ -109,9 +106,6 @@ test("a failed preferred codec retries the next supported asset format", async (
       loaded: 1,
       failed: 0,
       fallbacks: 1,
-      active: 0,
-      peakActive: 1,
-      maxConcurrent: 4,
     });
   } finally {
     loader.disposeAll();
@@ -138,9 +132,11 @@ test("large tiers never exceed the configured concurrent decode budget", async (
   }));
   try {
     assert.deepEqual(await loader.loadTier(assets), { loaded: 8, failed: 0 });
-    assert.equal(loader.stats().active, 0);
-    assert.equal(loader.stats().peakActive, 2);
-    assert.equal(loader.stats().maxConcurrent, 2);
+    assert.deepEqual(loader.diagnostics(), {
+      active: 0,
+      peakActive: 2,
+      maxConcurrent: 2,
+    });
   } finally {
     loader.disposeAll();
   }
