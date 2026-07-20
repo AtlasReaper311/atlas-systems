@@ -3,7 +3,7 @@ name: Cloudflare Pages preview
 on:
   push:
     branches:
-      - feat/system-symphony-h1-h8-preview
+      - feat/system-symphony-composition-director
 
 permissions:
   contents: read
@@ -54,7 +54,7 @@ jobs:
   deploy-preview:
     name: Publish branch preview
     needs: validate
-    if: github.ref == 'refs/heads/feat/system-symphony-h1-h8-preview'
+    if: github.ref == 'refs/heads/feat/system-symphony-composition-director'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment:
@@ -63,8 +63,8 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CF_PAGES_DEPLOY_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-      SOURCE_BRANCH: feat/system-symphony-h1-h8-preview
-      PAGES_BRANCH: system-symphony-h1-h8
+      SOURCE_BRANCH: feat/system-symphony-composition-director
+      PAGES_BRANCH: system-symphony-composition-director
       PROJECT_NAME: atlas-systems
     steps:
       - name: Check out validated commit
@@ -98,7 +98,7 @@ jobs:
       - name: Record branch preview alias
         env:
           ATOMIC_URL: ${{ steps.deploy.outputs.deployment_url }}
-          PREVIEW_URL: https://system-symphony-h1-h8.atlas-systems-44t.pages.dev
+          PREVIEW_URL: https://system-symphony-composition-director.atlas-systems-44t.pages.dev
         run: |
           set -euo pipefail
           {
