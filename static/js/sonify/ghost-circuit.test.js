@@ -18,7 +18,7 @@ import { SCORE_STATES } from "./mapping.js";
 import { createPerformanceArrangement } from "./performance.js";
 
 test("Ghost Circuit arrangement phases are deterministic and state-specific", () => {
-  assert.equal(GHOST_CIRCUIT_VERSION, 2);
+  assert.equal(GHOST_CIRCUIT_VERSION, 3);
   const signatures = new Set();
   for (const state of Object.keys(ARRANGEMENT_PHASES)) {
     const performance = createPerformanceArrangement("A71A5", state);
@@ -34,6 +34,39 @@ test("Ghost Circuit arrangement phases are deterministic and state-specific", ()
     signatures.add(first.join(":"));
   }
   assert.equal(signatures.size, 4);
+});
+
+test("live director plans use explicit phases without changing Ghost Circuit cycles", () => {
+  const performance = createPerformanceArrangement("A71A5", "healthy");
+  const demoBefore = Array.from({ length: 8 }, (_, phrase) => (
+    arrangementPhaseForPhrase("healthy", phrase, performance).name
+  ));
+  const livePlan = {
+    liveDirected: true,
+    phase: "recover",
+    phaseMix: {
+      drums: 0.7,
+      bass: 0.8,
+      pad: 1,
+      melody: 0.9,
+      filter: 0.95,
+    },
+  };
+  const livePhase = arrangementPhaseForPhrase("healthy", 99, livePlan);
+  const demoAfter = Array.from({ length: 8 }, (_, phrase) => (
+    arrangementPhaseForPhrase("healthy", phrase, performance).name
+  ));
+
+  assert.equal(livePhase.name, "recover");
+  assert.deepEqual(livePhase.mix, {
+    drums: 0.7,
+    bass: 0.8,
+    pad: 1,
+    arp: 0.9,
+    riff: 0.9,
+    filter: 0.95,
+  });
+  assert.deepEqual(demoAfter, demoBefore);
 });
 
 test("Ghost Circuit mix profiles make the overlay audible and auditionable", () => {

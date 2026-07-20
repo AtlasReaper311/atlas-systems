@@ -3,10 +3,12 @@
  *
  * The module deliberately contains no Tone.js state. A performance seed, score
  * state and phrase position always produce the same phase, arpeggio ordering,
- * filter motion, transition accent and riff event.
+ * filter motion, transition accent and riff event. Live System SYMPHONY plans
+ * may supply an already-bounded phase mix from composition-director.js without
+ * inheriting Ghost Circuit's fixed phase cycle.
  */
 
-export const GHOST_CIRCUIT_VERSION = 2;
+export const GHOST_CIRCUIT_VERSION = 3;
 export const RIFF_ROOT_MIDI = 50; // D3
 export const RIFF_MAX_MIDI = 69; // A4
 
@@ -91,6 +93,21 @@ export function arrangementPhaseForPhrase(
   phraseIndex = 0,
   performance = null,
 ) {
+  if (performance?.liveDirected && performance?.phaseMix) {
+    return Object.freeze({
+      name: performance.phase ?? "develop",
+      cycleIndex: integer(phraseIndex),
+      cycleLength: 1,
+      mix: Object.freeze({
+        drums: performance.phaseMix.drums ?? 1,
+        bass: performance.phaseMix.bass ?? 1,
+        pad: performance.phaseMix.pad ?? 1,
+        arp: performance.phaseMix.melody ?? 1,
+        riff: performance.phaseMix.melody ?? 0.5,
+        filter: performance.phaseMix.filter ?? 1,
+      }),
+    });
+  }
   const state = normalizedState(scoreState);
   const cycle = ARRANGEMENT_PHASES[state];
   const offset = integer(performance?.sectionVariant);
@@ -155,6 +172,15 @@ export function transitionAccentForStep(
   if (step === 0 && phraseIndex > 0 && phase.name === "drop") {
     return Object.freeze({ id: "crash-crisp", velocity: scoreState === "critical" ? 0.68 : 0.52 });
   }
+  if (performance.liveDirected) {
+    if (step === 0 && ["peak", "recover"].includes(phase.name)) {
+      return Object.freeze({
+        id: "crash-crisp",
+        velocity: phase.name === "peak" ? 0.52 : 0.34,
+      });
+    }
+    return null;
+  }
   const offset = integer(performance.sectionVariant);
   if (step === 30 && modulo(phraseIndex + offset, 8) === 6) {
     return Object.freeze({ id: "fx-tapestop", velocity: 0.42 });
@@ -189,7 +215,7 @@ export function ghostRiffEventForStep(
   const safeScale = Array.isArray(scale) && scale.length ? scale : [0];
   const contourIndex = modulo(eventIndex + phraseEvolution, contour.length);
   const degree = contour[contourIndex];
-  const octaveLift = (phase.name === "lift" || phase.name === "drop")
+  const octaveLift = (phase.name === "lift" || phase.name === "drop" || phase.name === "peak")
     && eventIndex % 4 === 3
     ? 12
     : 0;
