@@ -12,6 +12,8 @@ on:
       - ".github/workflows/preview.yml"
       - "_headers"
       - "lab/**"
+      - "scripts/apply_system_symphony_loop_production_v2.py"
+      - "scripts/run_system_symphony_loop_production_v2.py"
       - "static/js/sonify/**"
 
 permissions:
@@ -64,6 +66,55 @@ jobs:
         with:
           args: "--offline --no-progress --include-fragments --root-dir ${{ github.workspace }} ."
           fail: true
+
+  validate-loop-production-v2:
+    name: Validate loop production v2 candidate
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'fix/system-symphony-')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out preview head
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+
+      - name: Prepare loop production v2 candidate
+        run: |
+          set -euo pipefail
+          python3 scripts/run_system_symphony_loop_production_v2.py
+
+      - name: Validate candidate syntax
+        run: |
+          set -euo pipefail
+          node --check static/js/sonify/mapping.js
+          node --check static/js/sonify/samples.js
+          node --check static/js/sonify/sampler.js
+          node --check static/js/sonify/seed-dimensions.js
+          node --check static/js/sonify/performance.js
+          node --check static/js/sonify/composition-director.js
+          node --check static/js/sonify/engine.js
+          node --check static/js/sonify/ui.js
+
+      - name: Validate candidate tests file by file
+        run: |
+          set -euo pipefail
+          npx --yes html-validate@9.7.1 "**/*.html"
+          for test_file in js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js; do
+            echo "::group::${test_file}"
+            node --test "${test_file}"
+            echo "::endgroup::"
+          done
+          python3 scripts/generate_sitemap.py --check-only
+          python3 scripts/verify_pages_output.py .
+          git diff --check
 
   deploy-preview:
     name: Publish branch preview
