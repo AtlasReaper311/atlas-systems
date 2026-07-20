@@ -151,6 +151,28 @@ def normalize_candidate() -> None:
         raise RuntimeError("bass phrase restart assertion was not normalized")
     write(sampler_test_path, sampler_test)
 
+    engine_test_path = "static/js/sonify/engine.test.js"
+    engine_test = read(engine_test_path)
+    engine_test = engine_test.replace(
+        "  assert.deepEqual(DRONE_MIDI, [26, 33]);",
+        "  assert.deepEqual(DRONE_MIDI, [29, 36]);",
+        1,
+    )
+    if "  assert.deepEqual(DRONE_MIDI, [29, 36]);" not in engine_test:
+        raise RuntimeError("F-centred drone expectation was not normalized")
+    write(engine_test_path, engine_test)
+
+    seed_test_path = "static/js/sonify/seed-dimensions.test.js"
+    seed_test = read(seed_test_path)
+    seed_test = seed_test.replace(
+        "  assert.equal(Object.keys(SEED_DIMENSIONS).length, 29);",
+        "  assert.equal(Object.keys(SEED_DIMENSIONS).length, 30);",
+        1,
+    )
+    if "  assert.equal(Object.keys(SEED_DIMENSIONS).length, 30);" not in seed_test:
+        raise RuntimeError("seed dimension cardinality expectation was not normalized")
+    write(seed_test_path, seed_test)
+
 
 if __name__ == "__main__":
     apply_patcher()
