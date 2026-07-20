@@ -40,7 +40,10 @@ const payload = (overrides = {}) => ({
   ...overrides,
 });
 
-test("score states expose the H1-H8 tempo and master filter bands", () => {
+test("every state shares one locked tempo and keeps distinct master filter bands", () => {
+  // The transport is locked to a single BPM for every state. State identity is
+  // carried by the master filter and high-pass bands (and harmony, density and
+  // orchestration elsewhere), never by tempo.
   assert.deepEqual(
     Object.fromEntries(Object.entries(SCORE_STATES).map(([state, score]) => [
       state,
@@ -48,11 +51,13 @@ test("score states expose the H1-H8 tempo and master filter bands", () => {
     ])),
     {
       healthy: [100, 12000, 28],
-      warning: [106, 10000, 32],
-      critical: [112, 8000, 38],
-      unknown: [96, 6000, 24],
+      warning: [100, 10000, 32],
+      critical: [100, 8000, 38],
+      unknown: [100, 6000, 24],
     },
   );
+  const tempos = new Set(Object.values(SCORE_STATES).map((score) => score.bpm));
+  assert.equal(tempos.size, 1, "all states run at one locked tempo");
 });
 
 test("healthy state uses F Aeolian at the healthy tempo", () => {

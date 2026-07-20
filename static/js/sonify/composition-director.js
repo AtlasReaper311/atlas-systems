@@ -12,6 +12,8 @@ import { clamp, stableHash } from "./mapping.js?v=20260720-system-symphony-loop-
 export const COMPOSITION_DIRECTOR_VERSION = 1;
 export const LIVE_COMPOSITION_SEED = "ATLAS-SYSTEMS-LIVE";
 export const PHRASE_STEPS = 32;
+// The live transport runs at one fixed tempo for every state. See livePerformanceFields.
+export const LOCKED_TRANSPORT_BPM = 100;
 export const ATLAS_MOTIF_DEGREES = Object.freeze([0, 2, 4, 1, 5, 4, 2, 0]);
 export const MUSICAL_PHASES = Object.freeze([
   "establish",
@@ -256,13 +258,11 @@ function livePerformanceFields(seed, phraseIndex, state, phase, stateAgePhrases,
   const motion = bounded(intent.rhythmicPressure * 0.68 + intent.instability * 0.32);
   const grit = bounded(intent.harmonicTension * 0.72 + intent.instability * 0.28);
   const space = bounded((1 - intent.density) * 0.52 + intent.confidence * 0.48);
-  const targetBpm = clamp(
-    (state === "critical" ? 112 : state === "warning" ? 106 : state === "unknown" ? 96 : 100)
-      + intent.rhythmicPressure * 1.5
-      + intent.deploymentEnergy,
-    94,
-    116,
-  );
+  // Single locked transport tempo for every live state. The loop foundation is
+  // a set of native 100 BPM F/Fm samples, so a constant 100 BPM keeps them at
+  // playbackRate 1.0 (no pitch shift, no drift). State contrast is carried by
+  // harmony, density, orchestration, filtering and tension, not tempo.
+  const targetBpm = LOCKED_TRANSPORT_BPM;
   const stableEnoughForDrop = state !== "unknown" && stateAgePhrases >= 7;
   const dropCycle = stateAgePhrases % 8;
   const dropStage = stableEnoughForDrop && dropCycle === 7
@@ -294,7 +294,10 @@ function livePerformanceFields(seed, phraseIndex, state, phase, stateAgePhrases,
     delayWet: Number(clamp(0.06 + space * 0.14, 0.05, 0.2).toFixed(4)),
     reverbWet: Number(clamp(0.1 + space * 0.22, 0.08, 0.32).toFixed(4)),
     chordOffset: phraseSeed % 4,
-    chordProgression: (phraseSeed >>> 2) % 4,
+    // Pinned to the PR #38 pad progression (variant 0). Per-phrase progression
+    // switching wandered the harmony and is held back until the core baseline is
+    // approved, then can be reintroduced as a deliberate, listened-to change.
+    chordProgression: 0,
     bassPattern: phraseSeed % 8,
     bassShift: state === "warning" ? 1 : 0,
     bassDegreeOffset: motifVariant,

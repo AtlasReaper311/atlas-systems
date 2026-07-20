@@ -301,7 +301,10 @@ export const STATE_SAMPLE_POOLS = Object.freeze({
     hat: Object.freeze(["hat-hard", "hat-aggressive", "hat-classic"]),
     metal: Object.freeze(["perc-ac-unit-3", "perc-ac-unit-6", "perc-stick"]),
     bass: Object.freeze(["bass-percussive", "bass-angry", "bass-doom", "bass-burial"]),
-    bassLoop: Object.freeze([null, "distorted-guitar", "distorted-guitar", null]),
+    // Critical uses the native 100 BPM neo-tokyo loop so the foundation plays at
+    // playbackRate 1.0. The 105 BPM distorted-guitar cannot run at native rate on
+    // the locked 100 BPM transport and is held out of the live pool for now.
+    bassLoop: Object.freeze([null, "neo-tokyo", "neo-tokyo", null]),
     lead: Object.freeze([]),
     atmosphere: Object.freeze(["nanotech", "motherboard"]),
   }),
@@ -321,7 +324,7 @@ export const STATE_SAMPLE_POOLS = Object.freeze({
 const LIVE_SAMPLE_FALLBACKS = Object.freeze({
   healthy: Object.freeze({ bassLoop: "sequenced-bass", lead: "acid-synth", atmosphere: "new-punks" }),
   warning: Object.freeze({ bassLoop: "neo-tokyo", lead: "acid-synth", atmosphere: "new-punks" }),
-  critical: Object.freeze({ bassLoop: "distorted-guitar", lead: null, atmosphere: "new-punks" }),
+  critical: Object.freeze({ bassLoop: "neo-tokyo", lead: null, atmosphere: "new-punks" }),
   unknown: Object.freeze({ bassLoop: null, lead: null, atmosphere: null }),
 });
 

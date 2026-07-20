@@ -39,24 +39,34 @@ function livePlan(state, phraseCount = 1) {
   return plan;
 }
 
-test("F-centred score keeps loop playback near native rate", () => {
+test("locked-tempo score plays every live loop at native rate with no pitch shift or gap", () => {
   assert.equal(ROOT_MIDI, 41);
   assert.deepEqual(Object.fromEntries(Object.entries(SCORE_STATES).map(([state, score]) => [state, score.bpm])), {
     healthy: 100,
-    warning: 106,
-    critical: 112,
-    unknown: 96,
+    warning: 100,
+    critical: 100,
+    unknown: 100,
   });
   for (const state of ["healthy", "warning", "critical"]) {
     const plan = livePlan(state);
+    assert.equal(plan.targetBpm, 100, `${state} transport is locked to 100 BPM`);
     const palette = resolveSamplePalette(state, plan, 0);
     const sample = BASS_LOOPS[palette.bassLoop];
+    assert.equal(sample.bpm, 100, `${state} live loop is a native 100 BPM source`);
     const playback = bassLoopPlaybackPlan(sample, plan.targetBpm);
     assert.ok(playback);
     assert.equal(playback.playableBeats, 16);
-    assert.ok(playback.playbackRate >= 0.75 && playback.playbackRate <= 1.35);
+    // Native rate means no playbackRate pitch shift.
+    assert.equal(playback.playbackRate, 1);
     assert.equal(playback.rateWasClamped, false);
-    assert.ok(playback.outputDuration >= 16 * 60 / 116);
+    const cents = 1200 * Math.log2(playback.playbackRate);
+    assert.ok(Math.abs(cents) < 1, `${state} loop pitch shift ${cents} cents must be near zero`);
+    // The audible loop length fills the 16-beat phrase exactly: no gap, no overlap.
+    const phraseSeconds = 16 * 60 / plan.targetBpm;
+    assert.ok(
+      Math.abs(playback.audibleDurationSeconds - phraseSeconds) < 1e-9,
+      `${state} audible loop ${playback.audibleDurationSeconds}s must equal phrase ${phraseSeconds}s`,
+    );
   }
 });
 

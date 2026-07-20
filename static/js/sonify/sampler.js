@@ -77,13 +77,21 @@ export function bassLoopPlaybackPlan(sample, targetBpm) {
   if (!sample || !Number.isFinite(sample.bpm) || !Number.isFinite(sample.playableBeats)) return null;
   const requestedRate = Number(targetBpm) / sample.bpm;
   const playbackRate = clampPlaybackRate(requestedRate);
-  const outputDuration = sample.playableBeats * 60 / Math.max(1, Number(targetBpm) || sample.bpm);
+  // Tone.Player.start(time, offset, duration) treats duration as source-buffer
+  // seconds and divides by playbackRate internally (verified in the vendored
+  // Tone.js 14.8.49: Player._start does duration /= this._playbackRate). The
+  // third argument must therefore be the loop's native source length. Computing
+  // it from targetBpm scales tempo twice, truncating the loop and leaving a
+  // silent gap before the next phrase.
+  const sourceDurationSeconds = sample.playableBeats * 60 / sample.bpm;
+  const audibleDurationSeconds = sourceDurationSeconds / playbackRate;
   return Object.freeze({
     requestedRate,
     playbackRate,
     rateWasClamped: Math.abs(playbackRate - requestedRate) > 0.0001,
     sourceOffset: 0,
-    outputDuration,
+    outputDuration: sourceDurationSeconds,
+    audibleDurationSeconds,
     playableBeats: sample.playableBeats,
   });
 }

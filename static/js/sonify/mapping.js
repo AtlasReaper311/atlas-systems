@@ -20,6 +20,10 @@ export const SCORE_STATES = Object.freeze({
   healthy: Object.freeze({
     label: "Healthy",
     mode: "F Aeolian",
+    // Transport is locked to 100 BPM for every state. State identity comes from
+    // harmony, density, filtering, orchestration and tension, not tempo. This
+    // keeps the 100 BPM F/Fm sample loops at native playback rate (rate 1.0),
+    // so they stay in tune and phrase aligned without playbackRate pitch shift.
     bpm: 100,
     scale: SCALE_AEOLIAN,
     density: 0.72,
@@ -33,7 +37,7 @@ export const SCORE_STATES = Object.freeze({
   warning: Object.freeze({
     label: "Warning",
     mode: "F Phrygian",
-    bpm: 106,
+    bpm: 100,
     scale: SCALE_PHRYGIAN,
     density: 0.8,
     tension: 0.44,
@@ -46,7 +50,7 @@ export const SCORE_STATES = Object.freeze({
   critical: Object.freeze({
     label: "Critical",
     mode: "F Phrygian dominant",
-    bpm: 112,
+    bpm: 100,
     scale: SCALE_PHRYGIAN_DOMINANT,
     density: 0.9,
     tension: 0.92,
@@ -59,7 +63,7 @@ export const SCORE_STATES = Object.freeze({
   unknown: Object.freeze({
     label: "Unknown",
     mode: "F suspended",
-    bpm: 96,
+    bpm: 100,
     scale: SCALE_UNKNOWN,
     density: 0.6,
     tension: 0.28,

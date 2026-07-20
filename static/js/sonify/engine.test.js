@@ -719,3 +719,51 @@ test("scene changes wait for a bar and crossfade frame and performance atomicall
     else globalThis.Tone = previousTone;
   }
 });
+
+test("live playback locks the transport to 100 BPM and never ramps tempo on a state change", async () => {
+  const previousTone = globalThis.Tone;
+  const runtime = fakeToneRuntime();
+  globalThis.Tone = runtime.Tone;
+  const engine = createEngine();
+  try {
+    const healthyFrame = computeFrame({
+      timestamp: "2026-07-20T12:00:00.000Z",
+      estate: { overall_health: 1, active_incidents: 0 },
+      services: [{ name: "atlas-api-public", status: "healthy" }],
+    });
+    const warningFrame = computeFrame({
+      timestamp: "2026-07-20T12:00:04.000Z",
+      estate: { overall_health: 0.9, active_incidents: 0 },
+      services: [{ name: "atlas-api-public", status: "degraded" }],
+    });
+    engine.applyFrame(healthyFrame);
+    await engine.start();
+    runtime.runEighth(0);
+    assert.equal(runtime.transportBpm(), 100, "live transport starts at the locked 100 BPM");
+    const lockedRampCount = runtime.transportBpmRampCount();
+
+    // Confirm the state change through the hysteresis, then let it commit at the
+    // next phrase boundary while running a full phrase of eighth-note ticks.
+    engine.applyFrame(warningFrame);
+    engine.applyFrame(warningFrame);
+    for (let step = 1; step <= PAD_MEASURE_STEPS * 4; step += 1) {
+      runtime.runEighth(step / 4);
+    }
+
+    assert.equal(
+      engine.getCompositionSnapshot().director.currentState,
+      "warning",
+      "the state change committed",
+    );
+    assert.equal(runtime.transportBpm(), 100, "the transport stays at 100 BPM after the state change");
+    assert.equal(
+      runtime.transportBpmRampCount(),
+      lockedRampCount,
+      "no tempo ramp is scheduled on a live state change",
+    );
+  } finally {
+    engine.dispose();
+    if (previousTone === undefined) delete globalThis.Tone;
+    else globalThis.Tone = previousTone;
+  }
+});

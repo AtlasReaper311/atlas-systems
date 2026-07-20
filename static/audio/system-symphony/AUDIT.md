@@ -66,7 +66,7 @@ The complete owner-provided folder was re-inventoried after its replacement. It 
 - Transformer Bass was previously declared as A1 even though its measured fundamental is approximately 27.5 Hz (A0). The manifest and delivery filename now use A0.
 - Burial, Deep and Doom resolve around 32.7 Hz (C1), providing cleaner substitutes for the removed Mothership-style bass material.
 - Eight-beat lead sources wrap their deterministic source-beat selector instead of seeking beyond the end of the buffer.
-- F/Fm bass loops play through non-granular Tone.Player voices at bounded near-native playback rates. Full 16-beat phrases are double-buffered and restart only at phrase boundaries, removing GrainPlayer warble from the low-end foundation.
+- F/Fm bass loops play through non-granular Tone.Player voices at exactly native playback rate on the locked 100 BPM transport. Full 16-beat phrases are double-buffered and restart only at phrase boundaries, removing GrainPlayer warble and any playbackRate pitch shift from the low-end foundation.
 - Browser delivery now prefers Opus with AAC and WAV fallbacks. Core rhythm assets load first; later tiers fail independently.
 - Burial trims 0.018 seconds of leading noise. Geneticist ends at 18.160 seconds. Motherboard, Nanotech and New Punks use the reviewed tail trims from the H1-H8 build.
 - Only the selected atmosphere is started; state changes crossfade and stop the prior player instead of idling all three loops.
@@ -75,3 +75,5 @@ The complete owner-provided folder was re-inventoried after its replacement. It 
 ## F-centred production pass
 
 The live score is centred on F so the dominant F/Fm source cluster can run without a three-semitone granular pitch shift. The procedural pads, service registers, sub foundation, deployment motif and state modes are retuned around the same centre. Samples that still require pitch adaptation use smaller intervals and remain behind bounded granular playback. Live palettes always choose a rhythmic bass-loop foundation for Healthy, Warning and Critical; Ghost Circuit keeps its nullable seeded pools for deliberate variation.
+
+The live transport is locked to a single 100 BPM for every state. The 100 BPM F/Fm foundation loops (neo-tokyo, sequenced-bass, evil-bass), the acid-synth lead and the new-punks atmosphere therefore play at exactly native rate, so none of them is pitch shifted by tempo matching. State identity comes from harmony, density, filtering, orchestration and tension rather than tempo. The 105 BPM distorted-guitar loop is held out of the live pool because it cannot play at native rate on a 100 BPM transport.

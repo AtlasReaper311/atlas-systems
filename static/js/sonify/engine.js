@@ -50,6 +50,20 @@ export const ARP_MAX_MIDI = 65; // F4
 export const DRONE_MIDI = Object.freeze([29, 36]); // F1 / C2
 export const SUB_ROOT_MIDI = 29; // F1
 export const SUB_FIFTH_MIDI = 36; // C2
+
+// Optional production layers added after the approved PR #38 composition. During
+// the loop-recovery baseline they are bypassed so the core score plus correctly
+// integrated 100 BPM loops can be judged on their own. Each flag can be enabled
+// and listened to individually once the baseline is approved; the nodes stay in
+// the graph either way so re-enabling is a single flag change with no rewiring.
+export const PRODUCTION_FEATURES = Object.freeze({
+  sidechain: false,
+  subBass: false,
+  masterClipper: false,
+  ghostReverb: false,
+  airTexture: false,
+  dropGestures: false,
+});
 export const PERCUSSION_BUS_GAINS = Object.freeze({
   healthy: 0.42,
   warning: 0.56,
@@ -1074,7 +1088,11 @@ export function createEngine() {
     analyser = new Tone.Analyser("waveform", WAVEFORM_SIZE);
     spectrumAnalyser = new Tone.Analyser("fft", 64);
     limiter = new Tone.Limiter(-2);
-    masterClipper = new Tone.Distortion({ distortion: 0.04, oversample: "2x", wet: 0.03 });
+    masterClipper = new Tone.Distortion({
+      distortion: 0.04,
+      oversample: "2x",
+      wet: PRODUCTION_FEATURES.masterClipper ? 0.03 : 0,
+    });
     masterCompressor = new Tone.Compressor({ threshold: -18, ratio: 2.8, attack: 0.025, release: 0.22 });
     masterHighpass = new Tone.Filter({ type: "highpass", frequency: 28, rolloff: -12, Q: 0.6 });
     masterFilter = new Tone.Filter({ type: "lowpass", frequency: 12000, rolloff: -24, Q: 0.8 });
@@ -1337,6 +1355,7 @@ export function createEngine() {
   }
 
   function triggerSidechainDuck(time, scoreState) {
+    if (!PRODUCTION_FEATURES.sidechain) return;
     const parameter = musicDuckGain?.gain;
     if (!parameter || !Number.isFinite(time)) return;
     const depth = scoreState === "critical" ? 0.62 : scoreState === "warning" ? 0.67 : 0.72;
@@ -1347,7 +1366,7 @@ export function createEngine() {
   }
 
   function playSubFoundation(time, step, performance) {
-    if (!subBass) return;
+    if (!PRODUCTION_FEATURES.subBass || !subBass) return;
     if ([0, 8, 16, 24].includes(step)) {
       subBass.triggerAttackRelease(midiToFrequencyHz(SUB_ROOT_MIDI), "1m", time, 0.3);
       return;
@@ -1358,6 +1377,7 @@ export function createEngine() {
   }
 
   function playDropGesture(time, step, performance) {
+    if (!PRODUCTION_FEATURES.dropGestures) return;
     if (!performance?.liveDirected || !Number.isFinite(time)) return;
     const Tone = requireTone();
     if (performance.dropStage === "build" && step === 28) {
@@ -1388,6 +1408,15 @@ export function createEngine() {
       performance,
     );
     if (!event) return;
+    const activeLoop = hybridSampler?.getPalette?.()?.bassLoop ?? null;
+    const loopFoundationActive = Boolean(activeLoop)
+      && (hybridSampler?.isSampleAvailable?.(activeLoop) ?? false);
+    if (loopFoundationActive) {
+      // The sampled bass loop owns the low-end foundation for this phrase. The
+      // procedural bass is silenced so one fundamental sits in 30 to 150 Hz
+      // instead of two sources doubling and beating against each other.
+      return;
+    }
     const frequency = midiToFrequencyHz(event.midi);
     const sampled = hybridSampler?.playBass(
       time,
@@ -1516,7 +1545,7 @@ export function createEngine() {
     if (events.kick) {
       triggerSidechainDuck(time, frame.scoreState);
       kick.triggerAttackRelease(
-        "D1",
+        "F1",
         events.kick.duration,
         time,
         sampled.kick ? Math.min(0.14, events.kick.velocity * 0.16) : events.kick.velocity,
@@ -1634,13 +1663,18 @@ export function createEngine() {
       if (sceneChanged) {
         currentFrame = pendingSceneFrame;
         pendingSceneFrame = null;
+        // A scene change restarts the shared grid on its downbeat. The band (8n)
+        // and arp (16n) counters reset together so they stay phase locked, with
+        // arpStepIndex always tracking twice stepIndex. A macro only change keeps
+        // the grid running so the beat does not jump on every knob move.
         phraseIndex = 0;
+        stepIndex = 0;
+        arpStepIndex = 0;
         pad?.releaseAll?.(time);
       }
       activePerformance = pendingPerformance;
       pendingPerformance = null;
       pendingPerformanceSet = false;
-      arpStepIndex = 0;
       performanceChanged = true;
       if (sceneChanged) {
         applyFrameToGraph(currentFrame, pendingSceneTransition, time);
@@ -1822,8 +1856,16 @@ export function createEngine() {
           ? "4n"
           : "8n";
       ramp(terminalDelay.delayTime, Tone.Time(delayDivision).toSeconds());
-      ramp(ghostReverbReturn.gain, demoMode ? 0.07 : 0.018);
-      ramp(textureAirGain.gain, frame.scoreState === "unknown" ? 0.0025 : 0.0045);
+      ramp(
+        ghostReverbReturn.gain,
+        PRODUCTION_FEATURES.ghostReverb ? (demoMode ? 0.07 : 0.018) : 0,
+      );
+      ramp(
+        textureAirGain.gain,
+        PRODUCTION_FEATURES.airTexture
+          ? (frame.scoreState === "unknown" ? 0.0025 : 0.0045)
+          : 0,
+      );
       ramp(
         serviceDistortion.wet,
         Math.min(MIX_LIMITS.serviceDriveWet, performance?.distortionWet ?? 0),
@@ -2035,6 +2077,9 @@ export function createEngine() {
         pendingPerformance = null;
         pendingPerformanceSet = false;
         pendingSceneFrame = null;
+        // Returning to live restarts the shared grid so the band and arp
+        // callbacks re-align at step zero together.
+        stepIndex = 0;
         arpStepIndex = 0;
         if (currentFrame) {
           liveDirector.observe(currentFrame);
@@ -2067,6 +2112,8 @@ export function createEngine() {
       pendingPerformanceSet = false;
       pendingSceneFrame = null;
       pendingSceneTransition = SCENE_CROSSFADE_SECONDS;
+      // Immediate (non quantized) scene apply restarts the shared grid too.
+      stepIndex = 0;
       arpStepIndex = 0;
       if (initialized && currentFrame) applyMixToGraph(currentFrame, 0.35);
       performanceHandler?.(activePerformance);
