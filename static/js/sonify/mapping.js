@@ -7,6 +7,11 @@
  */
 
 export const ROOT_MIDI = 41; // F2
+// One locked transport tempo for the whole instrument. Every live state and
+// every Demo scene runs at this BPM so the native 100 BPM F/Fm loops play at
+// playbackRate 1.0. State and scene identity come from harmony, density,
+// filtering, orchestration and tension, never from tempo.
+export const LOCKED_TRANSPORT_BPM = 100;
 export const MAX_COMPONENTS = 32;
 export const MAX_EXPECTED_LATENCY_MS = 1500;
 export const NEUTRAL_LATENCY_FILTER_HZ = 2400;

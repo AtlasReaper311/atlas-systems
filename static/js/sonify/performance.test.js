@@ -100,11 +100,12 @@ test("Demo scenes have distinct cinematic intensity and atmosphere profiles", ()
   const critical = createPerformanceArrangement(DEFAULT_PERFORMANCE_SEED, "critical");
   const ghost = createPerformanceArrangement(DEFAULT_PERFORMANCE_SEED, "unknown");
 
-  assert.ok(ghost.targetBpm < healthy.targetBpm);
-  assert.ok(healthy.targetBpm < warning.targetBpm);
-  assert.ok(warning.targetBpm < critical.targetBpm);
-  assert.ok(healthy.targetBpm <= 116, "default Healthy stays inside the 112 BPM band");
-  assert.ok(critical.targetBpm <= 134, "default Critical stays inside the 128 BPM band");
+  // Every Demo scene shares the single locked transport tempo. Scene intensity
+  // is carried by drums, bass, terminal density and atmosphere below, not tempo.
+  assert.equal(ghost.targetBpm, 100);
+  assert.equal(healthy.targetBpm, 100);
+  assert.equal(warning.targetBpm, 100);
+  assert.equal(critical.targetBpm, 100);
   assert.ok(ghost.drumMultiplier < healthy.drumMultiplier);
   assert.ok(healthy.drumMultiplier < warning.drumMultiplier);
   assert.ok(warning.drumMultiplier < critical.drumMultiplier);

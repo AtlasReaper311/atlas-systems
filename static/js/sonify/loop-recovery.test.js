@@ -17,11 +17,8 @@ import {
   resolveSamplePalette,
 } from "./samples.js";
 import { bassLoopPlaybackPlan } from "./sampler.js";
-import {
-  LOCKED_TRANSPORT_BPM,
-  createCompositionDirector,
-} from "./composition-director.js";
-import { SCORE_STATES } from "./mapping.js";
+import { createCompositionDirector } from "./composition-director.js";
+import { LOCKED_TRANSPORT_BPM, SCORE_STATES } from "./mapping.js";
 import { PRODUCTION_FEATURES } from "./engine.js";
 
 const LIVE_STATES = ["healthy", "warning", "critical", "unknown"];

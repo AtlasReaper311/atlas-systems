@@ -1,4 +1,4 @@
-import { clamp, stableHash } from "./mapping.js?v=20260720-system-symphony-loop-production-v2";
+import { LOCKED_TRANSPORT_BPM, clamp, stableHash } from "./mapping.js?v=20260720-system-symphony-loop-production-v2";
 
 /**
  * Phrase-level musical direction for live System SYMPHONY playback.
@@ -12,8 +12,6 @@ import { clamp, stableHash } from "./mapping.js?v=20260720-system-symphony-loop-
 export const COMPOSITION_DIRECTOR_VERSION = 1;
 export const LIVE_COMPOSITION_SEED = "ATLAS-SYSTEMS-LIVE";
 export const PHRASE_STEPS = 32;
-// The live transport runs at one fixed tempo for every state. See livePerformanceFields.
-export const LOCKED_TRANSPORT_BPM = 100;
 export const ATLAS_MOTIF_DEGREES = Object.freeze([0, 2, 4, 1, 5, 4, 2, 0]);
 export const MUSICAL_PHASES = Object.freeze([
   "establish",

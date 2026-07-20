@@ -706,7 +706,10 @@ test("scene changes wait for a bar and crossfade frame and performance atomicall
     const transitionTime = 4;
     runtime.runEighth(transitionTime);
     assert.equal(runtime.transportBpm(), criticalPerformance.targetBpm);
-    assert.equal(runtime.transportBpmRampCount(), healthyBpmRampCount + 1);
+    // The transport is locked to one tempo, so a Demo scene change crossfades the
+    // arrangement without ramping the tempo. Only the pad release marks the change.
+    assert.equal(runtime.transportBpm(), 100);
+    assert.equal(runtime.transportBpmRampCount(), healthyBpmRampCount);
     assert.deepEqual(runtime.releases, [{ name: "PolySynth", time: transitionTime }]);
     const bpmWrites = runtime.scheduledParameterWrites.filter(
       ({ label }) => label === "transport-bpm",
