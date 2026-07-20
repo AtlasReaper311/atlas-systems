@@ -3,6 +3,7 @@ import { subscribe as subscribeRegistry } from "./atlas-registry.js?v=20260720-e
 const POLL_INTERVAL_MS = 60_000;
 const COUNTDOWN_TICK_MS = 1_000;
 const DEPLOY_URL = "https://api.atlas-systems.uk/deploy-watch/latest";
+const VISUAL_STATE_STYLESHEET = "/css/live-state-contract.css?v=20260720-vector-four";
 
 const SERVICES = [
   { key: "atlas-notify", name: "atlas-notify", url: "https://api.atlas-systems.uk/notify/health" },
@@ -26,6 +27,14 @@ let renderFrame = null;
 let pollTimer = null;
 let countdownTimer = null;
 let unsubscribeRegistry = null;
+
+function ensureVisualStateStylesheet() {
+  if (document.querySelector(`link[href="${VISUAL_STATE_STYLESHEET}"]`)) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = VISUAL_STATE_STYLESHEET;
+  document.head.append(link);
+}
 
 function scheduleRender() {
   if (renderFrame !== null) return;
@@ -142,6 +151,7 @@ function ensureBackendGrid() {
   for (const service of SERVICES) {
     const cell = document.createElement("div");
     cell.className = "signal-cell";
+    cell.dataset.service = service.key;
 
     const label = document.createElement("div");
     label.className = "signal-label";
@@ -150,7 +160,7 @@ function ensureBackendGrid() {
     const value = document.createElement("div");
     value.className = "signal-value mono";
     value.id = `backend-${service.key}`;
-    value.style.color = "var(--text-dim)";
+    value.dataset.state = "loading";
     value.textContent = "checking…";
 
     cell.append(label, value);
@@ -171,34 +181,18 @@ function ensureCountdownControls() {
   if (!label) return;
 
   const row = document.createElement("div");
+  row.className = "live-signal-controls";
   row.dataset.liveSignalControls = "";
-  row.style.cssText = [
-    "font-size:11px",
-    "letter-spacing:0.08em",
-    "margin-top:0.75rem",
-    "margin-bottom:2rem",
-    "display:flex",
-    "align-items:center",
-    "gap:1rem",
-  ].join(";");
 
   const countdown = document.createElement("span");
   countdown.id = "signal-countdown";
-  countdown.style.color = "var(--text-faint)";
+  countdown.className = "live-signal-countdown";
+  countdown.dataset.state = "idle";
 
   const button = document.createElement("button");
   button.type = "button";
+  button.className = "live-signal-refresh";
   button.textContent = "↻ refresh";
-  button.style.cssText = [
-    "font-family:var(--mono)",
-    "font-size:11px",
-    "letter-spacing:0.08em",
-    "color:var(--text-dim)",
-    "background:none",
-    "border:1px solid var(--border)",
-    "padding:0.2rem 0.6rem",
-    "cursor:pointer",
-  ].join(";");
   button.addEventListener("click", () => {
     void pollAll();
   });
@@ -213,19 +207,16 @@ function renderNavDot() {
   if (!dot || !label) return;
 
   const { level, upCount, total } = overallHealth();
-  const config = {
-    loading: { bg: "var(--accent)", shadow: "rgba(245,166,35,0.15)", text: "checking…" },
-    nominal: { bg: "#4ade80", shadow: "rgba(74,222,128,0.15)", text: "systems nominal" },
-    degraded: { bg: "#f5a623", shadow: "rgba(245,166,35,0.15)", text: `${upCount}/${total} operational` },
-    critical: { bg: "#e24b4a", shadow: "rgba(226,75,74,0.15)", text: "major outage" },
+  const text = {
+    loading: "checking…",
+    nominal: "systems nominal",
+    degraded: `${upCount}/${total} operational`,
+    critical: "major outage",
   }[level];
 
-  dot.style.background = config.bg;
-  dot.style.boxShadow = `0 0 0 3px ${config.shadow}`;
-  dot.style.animation = level === "nominal"
-    ? "pulse 2.5s ease-in-out infinite"
-    : "none";
-  label.textContent = config.text;
+  dot.dataset.state = level;
+  dot.closest(".nav-status")?.setAttribute("data-state", level);
+  label.textContent = text;
 }
 
 function renderDeploy() {
@@ -238,14 +229,18 @@ function renderDeploy() {
 
   if (status === "loading") {
     for (const element of [lastDeploy, commit, build]) {
-      if (element) element.textContent = "checking…";
+      if (!element) continue;
+      element.textContent = "checking…";
+      element.dataset.state = "loading";
     }
     return;
   }
 
   if (status === "error" || !data?.commitSha) {
     for (const element of [lastDeploy, commit, build]) {
-      if (element) element.textContent = "—";
+      if (!element) continue;
+      element.textContent = "—";
+      element.dataset.state = "unknown";
     }
     return;
   }
@@ -254,15 +249,16 @@ function renderDeploy() {
   lastDeploy.textContent = when
     ? `${new Date(when).toISOString().slice(0, 16).replace("T", " ")} UTC`
     : "—";
+  lastDeploy.dataset.state = "available";
 
   if (commit) {
+    commit.dataset.state = "available";
     if (data.commitUrl) {
       const link = document.createElement("a");
       link.href = data.commitUrl;
       link.target = "_blank";
       link.rel = "noopener";
-      link.style.color = "inherit";
-      link.style.textDecoration = "underline";
+      link.className = "live-signal-commit-link";
       link.textContent = data.commitSha;
       commit.replaceChildren(link);
     } else {
@@ -272,15 +268,15 @@ function renderDeploy() {
 
   if (build) {
     const config = {
-      success: { text: "passing", color: "#4ade80" },
-      failure: { text: "failing", color: "#e24b4a" },
+      success: { text: "passing", state: "success" },
+      failure: { text: "failing", state: "failure" },
     }[data.status] ?? {
       text: data.status || "—",
-      color: "var(--accent)",
+      state: "pending",
     };
 
     build.textContent = config.text;
-    build.style.color = config.color;
+    build.dataset.state = config.state;
   }
 }
 
@@ -289,14 +285,16 @@ function renderBackendGrid() {
     const element = document.getElementById(`backend-${service.key}`);
     if (!element) continue;
 
-    const config = {
-      loading: { text: "checking…", color: "var(--text-dim)" },
-      ok: { text: "operational", color: "#4ade80" },
-      error: { text: "unreachable", color: "#e24b4a" },
-    }[state.services[service.key].status];
+    const status = state.services[service.key].status;
+    const text = {
+      loading: "checking…",
+      ok: "operational",
+      error: "unreachable",
+    }[status];
 
-    element.textContent = config.text;
-    element.style.color = config.color;
+    element.textContent = text;
+    element.dataset.state = status;
+    element.closest(".signal-cell")?.setAttribute("data-state", status);
   }
 }
 
@@ -306,12 +304,13 @@ function renderCountdown() {
 
   if (state.checking) {
     element.textContent = "checking…";
-    element.style.color = "var(--accent)";
+    element.dataset.state = "checking";
     return;
   }
 
   if (!state.nextCheck || !state.lastChecked) {
     element.textContent = "";
+    element.dataset.state = "idle";
     return;
   }
 
@@ -322,7 +321,7 @@ function renderCountdown() {
   const checkedAt = `${state.lastChecked.toISOString().slice(11, 19)} UTC`;
 
   element.textContent = `last checked ${checkedAt} · next in ${secondsUntil}s`;
-  element.style.color = "var(--text-faint)";
+  element.dataset.state = "idle";
 }
 
 function renderEstateStrip() {
@@ -375,6 +374,8 @@ function handleVisibilityChange() {
 }
 
 function init() {
+  ensureVisualStateStylesheet();
+
   unsubscribeRegistry = subscribeRegistry((snapshot) => {
     state.registry = snapshot;
     scheduleRender();
