@@ -97,11 +97,17 @@ test("mix architecture exposes conservative hard ceilings", () => {
   assert.ok(MIX_LIMITS.masterGainDbMin <= MIX_LIMITS.masterGainDbMax);
 });
 
-test("the sonification layer contains no AudioWorklet telemetry path", () => {
+test("the sonification runtime contains no AudioWorklet telemetry path", () => {
   const directory = dirname(fileURLToPath(import.meta.url));
-  const javascriptFiles = readdirSync(directory).filter((name) => name.endsWith(".js"));
+  const javascriptFiles = readdirSync(directory).filter((name) => (
+    name.endsWith(".js") && !name.endsWith(".test.js")
+  ));
   for (const name of javascriptFiles) {
     const source = readFileSync(join(directory, name), "utf8");
-    assert.equal(/AudioWorkletNode|audioWorklet\.addModule/.test(source), false, `${name} must not create an AudioWorklet telemetry path`);
+    assert.equal(
+      /AudioWorkletNode|audioWorklet\.addModule/.test(source),
+      false,
+      `${name} must not create an AudioWorklet telemetry path`,
+    );
   }
 });
