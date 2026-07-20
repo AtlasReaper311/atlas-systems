@@ -1,0 +1,88 @@
+name: Apply System SYMPHONY loop production v2
+
+on:
+  push:
+    branches:
+      - fix/system-symphony-cache-transition-coherence
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.repository }}-system-symphony-loop-production-v2
+  cancel-in-progress: true
+
+jobs:
+  patch-and-validate:
+    name: Patch and validate loop production v2
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out patch branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: fix/system-symphony-cache-transition-coherence
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+
+      - name: Apply loop production v2 patch
+        run: python3 scripts/apply_system_symphony_loop_production_v2.py
+
+      - name: Validate touched JavaScript syntax
+        run: |
+          set -euo pipefail
+          node --check static/js/sonify/mapping.js
+          node --check static/js/sonify/samples.js
+          node --check static/js/sonify/sampler.js
+          node --check static/js/sonify/seed-dimensions.js
+          node --check static/js/sonify/performance.js
+          node --check static/js/sonify/composition-director.js
+          node --check static/js/sonify/engine.js
+          node --check static/js/sonify/ui.js
+
+      - name: Validate static site and System SYMPHONY
+        run: |
+          set -euo pipefail
+          npx --yes html-validate@9.7.1 "**/*.html"
+          node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
+          python3 scripts/generate_sitemap.py --check-only
+          python3 scripts/verify_pages_output.py .
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          for path in sorted(Path(".").rglob("*.json")):
+              if ".git" in path.parts:
+                  continue
+              json.loads(path.read_text(encoding="utf-8"))
+          PY
+          git diff --check
+
+      - name: Commit validated source changes
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add _headers
+          git add lab/index.html
+          git add static/audio/system-symphony/AUDIT.md
+          git add static/css/system-symphony.css
+          git add static/js/sonify/mapping.js
+          git add static/js/sonify/mapping.test.js
+          git add static/js/sonify/samples.js
+          git add static/js/sonify/sampler.js
+          git add static/js/sonify/seed-dimensions.js
+          git add static/js/sonify/performance.js
+          git add static/js/sonify/composition-director.js
+          git add static/js/sonify/engine.js
+          git add static/js/sonify/engine.test.js
+          git add static/js/sonify/composition-integration.test.js
+          git add static/js/sonify/coherence-cache.test.js
+          git add static/js/sonify/loop-production-v2.test.js
+          git add static/js/sonify/ui.js
+          git diff --cached --check
+          git commit -m "feat: rebuild System SYMPHONY around phrase loops"
+          git push origin HEAD:fix/system-symphony-cache-transition-coherence
