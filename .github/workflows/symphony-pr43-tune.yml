@@ -1,0 +1,265 @@
+name: System SYMPHONY PR43 listening tune
+
+on:
+  push:
+    branches:
+      - fix/system-symphony-cache-transition-coherence
+    paths:
+      - .github/workflows/symphony-pr43-tune.yml
+
+permissions:
+  contents: write
+
+jobs:
+  tune:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Apply listening tune
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_exact(path: Path, old: str, new: str, expected: int = 1) -> None:
+              text = path.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != expected:
+                  raise SystemExit(
+                      f"REFUSING PATCH: expected {expected} occurrence(s) in {path}, found {count}\n"
+                      f"Anchor:\n{old}"
+                  )
+              path.write_text(text.replace(old, new, expected), encoding="utf-8")
+
+          engine = Path("static/js/sonify/engine.js")
+          sampler = Path("static/js/sonify/sampler.js")
+          ui = Path("static/js/sonify/ui.js")
+
+          replace_exact(
+              engine,
+              '    const depth = scoreState === "critical" ? 0.74 : scoreState === "warning" ? 0.78 : 0.82;',
+              '    const depth = scoreState === "critical" ? 0.82 : scoreState === "warning" ? 0.86 : 0.84;',
+          )
+          replace_exact(
+              engine,
+              '    parameter.linearRampToValueAtTime?.(1, time + 0.14);',
+              '    parameter.linearRampToValueAtTime?.(1, time + 0.12);',
+          )
+          replace_exact(
+              engine,
+              '''    terminalSynth = new Tone.FMSynth({
+                harmonicity: 1.5,
+                modulationIndex: 2.2,
+                oscillator: { type: "sine" },
+                modulation: { type: "triangle" },
+                envelope: { attack: 0.006, decay: 0.16, sustain: 0.16, release: 0.38 },
+                modulationEnvelope: { attack: 0.008, decay: 0.2, sustain: 0.08, release: 0.3 },
+                volume: -9,
+              });''',
+              '''    terminalSynth = new Tone.FMSynth({
+                harmonicity: 1.5,
+                modulationIndex: 1.6,
+                oscillator: { type: "sine" },
+                modulation: { type: "triangle" },
+                envelope: { attack: 0.012, decay: 0.22, sustain: 0.2, release: 0.5 },
+                modulationEnvelope: { attack: 0.018, decay: 0.26, sustain: 0.06, release: 0.42 },
+                volume: -8,
+              });''',
+          )
+          replace_exact(
+              engine,
+              '1.4 + (performance.intent?.tension ?? performance.grit ?? 0.5) * 3.2',
+              '1.15 + (performance.intent?.tension ?? performance.grit ?? 0.5) * 2.0',
+              expected=2,
+          )
+          replace_exact(
+              engine,
+              '''    riffSynths = [
+                new Tone.Synth({
+                  oscillator: { type: "square" },
+                  envelope: { attack: 0.004, decay: 0.12, sustain: 0.12, release: 0.2 },
+                  volume: -14,
+                }),
+                new Tone.FMSynth({
+                  harmonicity: 2.01,
+                  modulationIndex: 3.1,
+                  oscillator: { type: "triangle" },
+                  modulation: { type: "square" },
+                  envelope: { attack: 0.003, decay: 0.14, sustain: 0.08, release: 0.24 },
+                  modulationEnvelope: { attack: 0.002, decay: 0.1, sustain: 0.03, release: 0.18 },
+                  volume: -16,
+                }),
+                new Tone.AMSynth({
+                  harmonicity: 1.5,
+                  oscillator: { type: "sawtooth" },
+                  modulation: { type: "sine" },
+                  envelope: { attack: 0.006, decay: 0.16, sustain: 0.1, release: 0.28 },
+                  modulationEnvelope: { attack: 0.004, decay: 0.12, sustain: 0.05, release: 0.2 },
+                  volume: -15,
+                }),
+              ];''',
+              '''    riffSynths = [
+                new Tone.Synth({
+                  oscillator: { type: "triangle" },
+                  envelope: { attack: 0.01, decay: 0.18, sustain: 0.18, release: 0.32 },
+                  volume: -13,
+                }),
+                new Tone.FMSynth({
+                  harmonicity: 2.01,
+                  modulationIndex: 2.4,
+                  oscillator: { type: "triangle" },
+                  modulation: { type: "sine" },
+                  envelope: { attack: 0.01, decay: 0.18, sustain: 0.12, release: 0.32 },
+                  modulationEnvelope: { attack: 0.012, decay: 0.16, sustain: 0.04, release: 0.26 },
+                  volume: -15,
+                }),
+                new Tone.AMSynth({
+                  harmonicity: 1.5,
+                  oscillator: { type: "sawtooth" },
+                  modulation: { type: "sine" },
+                  envelope: { attack: 0.01, decay: 0.2, sustain: 0.14, release: 0.34 },
+                  modulationEnvelope: { attack: 0.008, decay: 0.16, sustain: 0.05, release: 0.26 },
+                  volume: -14,
+                }),
+              ];''',
+          )
+          replace_exact(
+              engine,
+              '''    ramp(
+                percussionGain.gain,
+                (PERCUSSION_BUS_GAINS[frame.scoreState] ?? 0)
+                  * (performance?.drumMultiplier ?? 1)
+                  * phaseMix.drums
+                  * ghostMix.backing,
+              );''',
+              '''    ramp(
+                percussionGain.gain,
+                (PERCUSSION_BUS_GAINS[frame.scoreState] ?? 0)
+                  * phaseMix.drums
+                  * ghostMix.backing,
+              );''',
+          )
+          replace_exact(
+              engine,
+              '''        (frame.scoreState === "critical" ? 0.14 : frame.scoreState === "warning" ? 0.11 : frame.scoreState === "unknown" ? 0.04 : 0.08)
+                  * phaseMix.drums,''',
+              '''        (frame.scoreState === "critical" ? 0.1 : frame.scoreState === "warning" ? 0.08 : frame.scoreState === "unknown" ? 0.035 : 0.07)
+                  * phaseMix.drums
+                  * ghostMix.backing,''',
+          )
+          replace_exact(
+              engine,
+              '''        (performance?.terminalGain ?? 0)
+                  * terminalStateMultiplier
+                  * phaseMix.arp
+                  * ghostMix.arp,''',
+              '''        (performance?.terminalGain ?? 0)
+                  * 1.18
+                  * terminalStateMultiplier
+                  * phaseMix.arp
+                  * ghostMix.arp,''',
+          )
+          replace_exact(
+              engine,
+              '        (performance?.riffGain ?? 0) * phaseMix.riff * ghostMix.riff,',
+              '        (performance?.riffGain ?? 0) * 1.2 * phaseMix.riff * ghostMix.riff,',
+          )
+
+          replace_exact(
+              sampler,
+              'const ATMOSPHERE_XFADE_SECONDS = 4;',
+              'const ATMOSPHERE_XFADE_SECONDS = 3;',
+          )
+          replace_exact(
+              sampler,
+              'healthy: Object.freeze({ drums: 0.68, bass: 0.62, bassLoop: 0.32, bassFilterHz: 720, lead: 0.58, atmosphere: 0.2, atmosphereFilterHz: 2300, drive: 0.025, room: 0.08, delay: 0.12 })',
+              'healthy: Object.freeze({ drums: 0.68, bass: 0.62, bassLoop: 0.32, bassFilterHz: 720, lead: 0.64, atmosphere: 0.2, atmosphereFilterHz: 2300, drive: 0.025, room: 0.08, delay: 0.12 })',
+          )
+          replace_exact(
+              sampler,
+              'warning: Object.freeze({ drums: 0.72, bass: 0.64, bassLoop: 0.18, bassFilterHz: 860, lead: 0.28, atmosphere: 0.14, atmosphereFilterHz: 1150, drive: 0.04, room: 0.08, delay: 0.08 })',
+              'warning: Object.freeze({ drums: 0.72, bass: 0.64, bassLoop: 0.18, bassFilterHz: 860, lead: 0.42, atmosphere: 0.14, atmosphereFilterHz: 1150, drive: 0.04, room: 0.08, delay: 0.08 })',
+          )
+          replace_exact(
+              sampler,
+              '''    const leadMultiplier = performance && (phaseMix.riff > 0 || ghostModeActive)
+                ? ghostMix.lead
+                : 1;''',
+              '''    const leadMultiplier = performance && (phaseMix.riff > 0 || ghostModeActive)
+                ? ghostModeActive
+                  ? ghostMix.lead
+                  : Math.max(0.9, ghostMix.lead)
+                : 1;''',
+          )
+          replace_exact(
+              sampler,
+              '''    ramp(
+                drumBus.gain,
+                mix.drums
+                  * (0.76 + energy * 0.24)
+                  * phaseMix.drums
+                  * ghostMix.backing,
+              );''',
+              '''    ramp(
+                drumBus.gain,
+                mix.drums
+                  * (0.76 + energy * 0.24),
+              );''',
+          )
+
+          replace_exact(
+              ui,
+              '''    const result = engine.setScene(audible, performanceArrangement, {
+                quantize: engine.isRunning(),
+              });''',
+              '''    const result = engine.setScene(audible, performanceArrangement, {
+                quantize: engine.isRunning(),
+                transitionSeconds: 2,
+              });''',
+          )
+          replace_exact(
+              ui,
+              '? `${action} queued for next bar // smooth 4-second crossfade // ${performanceSeed}`',
+              '? `${action} queued for next bar // smooth 2-second crossfade // ${performanceSeed}`',
+          )
+
+          print("PASS: System SYMPHONY listening tune applied")
+          PY
+
+      - name: Validate JavaScript syntax
+        run: |
+          set -euo pipefail
+          node --check static/js/sonify/engine.js
+          node --check static/js/sonify/ghost-circuit.js
+          node --check static/js/sonify/mapping.js
+          node --check static/js/sonify/poller.js
+          node --check static/js/sonify/sampler.js
+          node --check static/js/sonify/samples.js
+          node --check static/js/sonify/ui.js
+
+      - name: Run full System SYMPHONY validation
+        run: |
+          set -euo pipefail
+          npx --yes html-validate@9.7.1 "**/*.html"
+          node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
+          python3 scripts/generate_sitemap.py --check-only
+          python3 scripts/verify_pages_output.py .
+          git diff --check
+
+      - name: Commit tuned source
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/js/sonify/engine.js
+          git add static/js/sonify/sampler.js
+          git add static/js/sonify/ui.js
+          git diff --cached --check
+          git commit -m "Tune System SYMPHONY mix and Demo transitions"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
