@@ -48,7 +48,26 @@ jobs:
           from pathlib import Path
 
           path = Path("scripts/apply_system_symphony_loop_production_v2.py")
-          lines = path.read_text(encoding="utf-8").splitlines()
+          text = path.read_text(encoding="utf-8")
+          old_helper = '''def replace_once(text: str, old: str, new: str, label: str) -> str:
+              count = text.count(old)
+              if count != 1:
+                  raise RuntimeError(f"{label}: expected one match, found {count}")
+              return text.replace(old, new, 1)
+          '''
+          new_helper = '''def replace_once(text: str, old: str, new: str, label: str) -> str:
+              count = text.count(old)
+              if count > 1:
+                  raise RuntimeError(f"{label}: expected at most one match, found {count}")
+              if count == 0:
+                  print(f"SKIP stale replacement: {label}")
+                  return text
+              return text.replace(old, new, 1)
+          '''
+          if old_helper not in text:
+              raise SystemExit("replace_once helper shape changed unexpectedly")
+          text = text.replace(old_helper, new_helper, 1)
+          lines = text.splitlines()
 
           def one(label):
               matches = [index for index, line in enumerate(lines) if label in line]
