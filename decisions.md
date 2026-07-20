@@ -31,8 +31,7 @@ the template propagates everywhere by Git ref resolution at workflow
 queue time.
 
 **Consequences.**
-- Worker repos: `github-pulse`, `site-pulse`, `deploy-watch`, `atlas-vault`,
-  `atlas-notify`.
+- Worker repos: public Worker repositories use the shared deployment workflow; private callers remain source-owned and are not enumerated on public surfaces.
 - Static repos: `atlas-systems`, `status`, `atlas-doc-viewer`.
 - Adding a new repo of either kind is a copy of a 12-line template.
 - A change to the pipeline shape (a new lint step, a different Node
