@@ -3,7 +3,7 @@ import { subscribe as subscribeRegistry } from "./atlas-registry.js?v=20260720-e
 const POLL_INTERVAL_MS = 60_000;
 const COUNTDOWN_TICK_MS = 1_000;
 const DEPLOY_URL = "https://api.atlas-systems.uk/deploy-watch/latest";
-const VISUAL_STATE_STYLESHEET = "/css/live-state-contract.css?v=20260720-vector-four";
+const VISUAL_STATE_STYLESHEET = "/css/live-state-contract.css?v=20260720-vector-five";
 
 const SERVICES = [
   { key: "atlas-notify", name: "atlas-notify", url: "https://api.atlas-systems.uk/notify/health" },
