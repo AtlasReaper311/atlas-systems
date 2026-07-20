@@ -1,0 +1,58 @@
+name: Apply System SYMPHONY follow-up
+
+on:
+  push:
+    branches:
+      - fix/system-symphony-cache-transition-coherence
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.repository }}-system-symphony-followup-patcher
+  cancel-in-progress: false
+
+jobs:
+  patch-and-validate:
+    name: Patch and validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out patch branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: fix/system-symphony-cache-transition-coherence
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+
+      - name: Apply focused follow-up patch
+        run: python3 scripts/apply_system_symphony_followup.py
+
+      - name: Validate static site and System SYMPHONY
+        run: |
+          set -euo pipefail
+          npx --yes html-validate@9.7.1 "**/*.html"
+          node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
+          python3 scripts/generate_sitemap.py --check-only
+          python3 scripts/verify_pages_output.py .
+          git diff --check
+
+      - name: Remove one-shot patch machinery
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/system-symphony-followup-patcher.yml
+          git rm scripts/apply_system_symphony_followup.py
+
+      - name: Commit validated changes
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/workflows/preview.yml _headers lab/index.html static/js/sonify/engine.js static/js/sonify/samples.js static/js/sonify/ui.js static/js/sonify/coherence-cache.test.js
+          git diff --cached --check
+          git commit -m "fix: smooth System SYMPHONY transitions and cache refresh"
+          git push origin HEAD:fix/system-symphony-cache-transition-coherence
