@@ -107,10 +107,15 @@ jobs:
         run: |
           set -euo pipefail
           npx --yes html-validate@9.7.1 "**/*.html"
+          test_log="${RUNNER_TEMP}/system-symphony-v2-test.log"
           for test_file in js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js; do
-            echo "::group::${test_file}"
-            node --test "${test_file}"
-            echo "::endgroup::"
+            if node --test "${test_file}" >"${test_log}" 2>&1; then
+              echo "PASS ${test_file}"
+            else
+              echo "FAIL ${test_file}"
+              cat "${test_log}"
+              exit 1
+            fi
           done
           python3 scripts/generate_sitemap.py --check-only
           python3 scripts/verify_pages_output.py .
@@ -118,7 +123,9 @@ jobs:
 
   deploy-preview:
     name: Publish branch preview
-    needs: validate
+    needs:
+      - validate
+      - validate-loop-production-v2
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
       (startsWith(github.event.pull_request.head.ref, 'feat/system-symphony-') ||
@@ -145,7 +152,7 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Guard production boundary
+      - name: Guard production boundary and candidate identity
         run: |
           set -euo pipefail
           case "${SOURCE_BRANCH}" in
@@ -154,6 +161,8 @@ jobs:
           esac
           test "${SOURCE_BRANCH}" != "main"
           test "${PAGES_BRANCH}" != "main"
+          grep -Fq 'export const ROOT_MIDI = 41; // F2' static/js/sonify/mapping.js
+          grep -Fq '20260720-system-symphony-loop-production-v2' static/js/sonify/engine.js
 
       - name: Deploy preview with Wrangler
         id: deploy
