@@ -3,619 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Three domains. Every system documented. Audio systems, local AI, and infrastructure — built in public.">
+  <meta name="description" content="A live technical portfolio spanning local AI, automation, infrastructure, and real-time audio systems.">
   <meta name="theme-color" content="#0a0a0f">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <title>Atlas Systems</title>
   <link rel="canonical" href="https://atlas-systems.uk/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Atlas Systems">
-  <meta property="og:description" content="Three domains. Every system documented: audio systems, local AI, and infrastructure, built in public.">
+  <meta property="og:description" content="A live technical portfolio spanning local AI, automation, infrastructure, and real-time audio systems.">
   <meta property="og:url" content="https://atlas-systems.uk/">
   <meta property="og:site_name" content="Atlas Systems">
   <meta property="og:image" content="https://atlas-systems.uk/og-default.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Atlas Systems: audio systems, local AI infrastructure, and deployment automation">
+  <meta property="og:image:alt" content="Atlas Systems: local AI, automation, infrastructure, and real-time audio engineering">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Atlas Systems">
-  <meta name="twitter:description" content="Three domains. Every system documented: audio systems, local AI, and infrastructure, built in public.">
+  <meta name="twitter:description" content="A live technical portfolio spanning local AI, automation, infrastructure, and real-time audio systems.">
   <meta name="twitter:image" content="https://atlas-systems.uk/og-default.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=DM+Serif+Display:ital@0;1&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/home-additions.css?v=20260706-ramone">
-  <link rel="stylesheet" href="/css/atlas-terminal-card-v3.css?v=20260705-close-hidden">
-
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:        #0a0a0f;
-      --bg-1:      #111118;
-      --bg-2:      #1a1a24;
-      --border:    rgba(255,255,255,0.08);
-      --border-hi: rgba(255,255,255,0.16);
-      --text:      #e8e8e0;
-      --text-dim:  #888880;
-      --text-faint:#3a3a44;
-      --accent:    #f5a623;
-      --accent-dim:rgba(245,166,35,0.15);
-      --mono:      'IBM Plex Mono', monospace;
-      --serif:     'DM Serif Display', Georgia, serif;
-      --nav-h:     56px;
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--mono);
-      font-size: 14px;
-      line-height: 1.6;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-	.status-dot {
-	  width: 6px; height: 6px;
-	  border-radius: 50%;
-	  background: #4ade80;
-	  box-shadow: 0 0 0 3px rgba(74,222,128,0.15);
-	  animation: pulse 2.5s ease-in-out infinite;
-	}
-
-    /* ── NAV ────────────────────────────────────── */
-    nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: var(--nav-h);
-      background: rgba(10,10,15,0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 clamp(1.5rem, 5vw, 3rem);
-      z-index: 100;
-    }
-
-    .nav-wordmark {
-      font-family: var(--mono);
-      font-weight: 500;
-      font-size: 13px;
-      letter-spacing: 0.12em;
-      color: var(--text);
-      text-decoration: none;
-      text-transform: uppercase;
-    }
-    .nav-wordmark span { color: var(--accent); }
-
-    .nav-links {
-      display: flex;
-      gap: 0;
-      list-style: none;
-    }
-
-    .nav-links a {
-      display: block;
-      padding: 0.35rem 1rem;
-      font-size: 12px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      text-decoration: none;
-      transition: color 0.15s;
-      position: relative;
-    }
-
-    .nav-links a::after {
-      content: '';
-      position: absolute;
-      bottom: -1px; left: 50%; right: 50%;
-      height: 1px;
-      background: var(--accent);
-      transition: left 0.2s, right 0.2s;
-    }
-
-    .nav-links a:hover { color: var(--text); }
-    .nav-links a:hover::after { left: 1rem; right: 1rem; }
-    .nav-links a.active { color: var(--text); }
-    .nav-links a.active::after { left: 1rem; right: 1rem; }
-
-	.nav-status {
-	  	display: flex;
-	 	align-items: center;
-	  	gap: 0.5rem;
-	  	font-size: 11px;
-	 	color: var(--text-dim);
-	  	text-decoration: none;
-	  	position: relative;
-	  	padding-bottom: 2px;
-	}
-	.nav-status::after {
-		content: '';
-		position: absolute;
-		bottom: -1px; left: 50%; right: 50%;
-		height: 1px;
-		background: var(--accent);
-		transition: left 0.2s, right 0.2s;
-	}
-.nav-status:hover { color: var(--text); }
-.nav-status:hover::after { left: 0; right: 0; }
-
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 3px rgba(74,222,128,0.15); }
-      50%       { box-shadow: 0 0 0 6px rgba(74,222,128,0.05); }
-    }
-
-    /* ── MAIN LAYOUT ────────────────────────────── */
-    main {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 clamp(1.5rem, 5vw, 3rem);
-    }
-
-    /* ── HERO ───────────────────────────────────── */
-    .hero {
-      padding-top: calc(var(--nav-h) + 6rem);
-      padding-bottom: 5rem;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .terminal-line {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      font-size: 12px;
-      color: var(--text-dim);
-      margin-bottom: 2.5rem;
-      opacity: 0;
-      transform: translateY(8px);
-      animation: fadeUp 0.4s ease forwards;
-    }
-
-    .terminal-prompt { color: var(--accent); }
-
-    .cursor {
-      display: inline-block;
-      width: 8px; height: 13px;
-      background: var(--accent);
-      vertical-align: middle;
-      animation: blink 1.1s step-end infinite;
-      margin-left: 1px;
-    }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-
-    .hero-heading {
-      font-family: var(--serif);
-      font-size: clamp(2.8rem, 6vw, 5rem);
-      line-height: 1.05;
-      letter-spacing: -0.01em;
-      color: var(--text);
-      margin-bottom: 1.5rem;
-      opacity: 0;
-      transform: translateY(12px);
-      animation: fadeUp 0.5s 0.15s ease forwards;
-    }
-
-    .hero-heading em {
-      font-style: italic;
-      color: var(--accent);
-    }
-
-    .hero-sub {
-      max-width: 540px;
-      font-size: 13px;
-      color: var(--text-dim);
-      line-height: 1.8;
-      margin-bottom: 2.5rem;
-      opacity: 0;
-      transform: translateY(12px);
-      animation: fadeUp 0.5s 0.28s ease forwards;
-    }
-
-    .hero-cta {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      opacity: 0;
-      transform: translateY(12px);
-      animation: fadeUp 0.5s 0.4s ease forwards;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.6rem 1.25rem;
-      font-family: var(--mono);
-      font-size: 12px;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      text-decoration: none;
-      cursor: pointer;
-      transition: all 0.15s;
-      border: none;
-      background: none;
-    }
-
-    .btn-primary {
-      background: var(--accent);
-      color: #0a0a0f;
-      font-weight: 500;
-    }
-    .btn-primary:hover { background: #f7b84a; transform: translateY(-1px); }
-
-    .btn-outline {
-      border: 1px solid var(--border-hi);
-      color: var(--text-dim);
-    }
-    .btn-outline:hover { border-color: var(--border-hi); color: var(--text); background: var(--bg-1); }
-
-    .btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-
-    @keyframes fadeUp {
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ── SECTION SHARED ─────────────────────────── */
-    .section {
-      padding: 5rem 0;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .section-label {
-      font-size: 11px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-    .section-label::before {
-      content: '';
-      display: inline-block;
-      width: 24px;
-      height: 1px;
-      background: var(--accent);
-    }
-
-    /* ── PILLARS GRID ───────────────────────────── */
-    .pillars-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1px;
-      background: var(--border);
-      border: 1px solid var(--border);
-      margin-top: 2rem;
-    }
-
-    .pillar-card {
-      background: var(--bg);
-      padding: 1.75rem 1.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      text-decoration: none;
-      transition: background 0.15s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .pillar-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0;
-      width: 2px; height: 0;
-      background: var(--accent);
-      transition: height 0.25s ease;
-    }
-
-    .pillar-card:hover { background: var(--bg-1); }
-    .pillar-card:hover::before { height: 100%; }
-
-    .pillar-num {
-      font-size: 11px;
-      color: var(--text-faint);
-      letter-spacing: 0.1em;
-    }
-
-    .pillar-title {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text);
-      line-height: 1.4;
-    }
-
-    .pillar-desc {
-      font-size: 12px;
-      color: var(--text-dim);
-      line-height: 1.6;
-      flex: 1;
-    }
-
-    .pillar-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      font-size: 11px;
-      letter-spacing: 0.05em;
-    }
-    .pillar-status-dot {
-      width: 5px; height: 5px;
-      border-radius: 50%;
-    }
-    .status-active .pillar-status-dot { background: #4ade80; }
-    .status-active { color: #4ade80; }
-    .status-building .pillar-status-dot { background: var(--accent); }
-    .status-building { color: var(--accent); }
-    .status-planned .pillar-status-dot { background: var(--text-faint); }
-    .status-planned { color: var(--text-faint); }
-
-    /* ── STACK SECTION ──────────────────────────── */
-    .stack-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 2rem;
-      margin-top: 2rem;
-    }
-
-    .stack-group { }
-
-    .stack-group-title {
-      font-size: 11px;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      margin-bottom: 1rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .stack-items {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-
-    .stack-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .stack-item:last-child { border-bottom: none; }
-
-    .stack-name { font-size: 13px; color: var(--text); }
-    .stack-tag {
-      font-size: 10px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 0.2rem 0.5rem;
-      border: 1px solid var(--border);
-      color: var(--text-dim);
-    }
-    .stack-tag.learning { border-color: rgba(245,166,35,0.3); color: rgba(245,166,35,0.7); }
-    .stack-tag.active   { border-color: rgba(74,222,128,0.3); color: rgba(74,222,128,0.7); }
-
-    /* ── LIVE SIGNAL ────────────────────────────── */
-    .signal-bar {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 1px;
-      background: var(--border);
-      border: 1px solid var(--border);
-      margin-top: 2rem;
-    }
-
-    .signal-cell {
-      background: var(--bg);
-      padding: 1.25rem 1.5rem;
-    }
-
-    .signal-label {
-      font-size: 11px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      margin-bottom: 0.4rem;
-    }
-
-    .signal-value {
-      font-size: 13px;
-      color: var(--text);
-    }
-
-    .signal-value.mono { font-family: var(--mono); }
-
-    /* ── GITHUB PULSE ───────────────────────────── */
-    .pulse-grid {
-      display: grid;
-      grid-template-columns: 1fr 1.4fr;
-      gap: 3rem;
-      margin-top: 2.5rem;
-      min-width: 0;
-    }
-    .pulse-grid > * { min-width: 0; }
-    @media (max-width: 720px) {
-      .pulse-grid { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
-    }
-
-    .pulse-lang { margin-bottom: 0.9rem; max-width: 100%; min-width: 0; }
-    .pulse-lang-head {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      color: var(--text-dim);
-      margin-bottom: 0.35rem;
-    }
-    .pulse-lang-track { height: 4px; background: var(--bg-2); max-width: 100%; }
-    .pulse-lang-bar {
-      height: 4px;
-      background: var(--accent);
-      width: 0;
-      transition: width 0.6s ease;
-    }
-
-    .pulse-commits { list-style: none; }
-    .pulse-commit {
-      display: flex;
-      gap: 0.75rem;
-      align-items: baseline;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 12px;
-    }
-    .pulse-commit:last-child { border-bottom: none; }
-    .pulse-commit-sha  { color: var(--accent); flex-shrink: 0; }
-    .pulse-commit-repo { color: var(--text-faint); flex-shrink: 0; }
-    .pulse-commit-msg  {
-      color: var(--text-dim);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    /* ── FOOTER ─────────────────────────────────── */
-    footer {
-      padding: 2rem 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .footer-left {
-      font-size: 12px;
-      color: var(--text-faint);
-    }
-
-    .footer-links {
-      display: flex;
-      gap: 1.5rem;
-      list-style: none;
-    }
-
-    .footer-links a {
-      font-size: 12px;
-      color: var(--text-dim);
-      text-decoration: none;
-      transition: color 0.15s;
-    }
-    .footer-links a:hover { color: var(--text); }
-
-    /* ── MOBILE NAV ─────────────────────────────── */
-    .mobile-nav {
-      display: none;
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      height: 56px;
-      background: rgba(10,10,15,0.95);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-top: 1px solid var(--border);
-      z-index: 100;
-    }
-
-    .mobile-nav-inner {
-      display: flex;
-      align-items: stretch;
-      height: 100%;
-    }
-
-    .mobile-nav-item {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 3px;
-      text-decoration: none;
-      color: var(--text-dim);
-      font-size: 10px;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      transition: color 0.15s;
-    }
-    .mobile-nav-item:hover, .mobile-nav-item.active { color: var(--accent); }
-
-    .mobile-nav-item svg {
-      width: 18px; height: 18px;
-      stroke: currentColor;
-      fill: none;
-      stroke-width: 1.5;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    /* ── SCAN LINE DECORATION ───────────────────── */
-    .hero::after {
-      content: '';
-      position: absolute;
-      top: 0; right: 0;
-      width: 1px;
-      height: 40%;
-      background: linear-gradient(to bottom, transparent, var(--border), transparent);
-      pointer-events: none;
-    }
-
-    .hero { position: relative; }
-
-    /* ── GRID LINES (ambient) ───────────────────── */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(var(--text-faint) 1px, transparent 1px),
-        linear-gradient(90deg, var(--text-faint) 1px, transparent 1px);
-      background-size: 80px 80px;
-      opacity: 0.03;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    main, nav, footer { position: relative; z-index: 1; }
-
-    /* ── RESPONSIVE ─────────────────────────────── */
-    @media (max-width: 680px) {
-      .nav-links, .nav-status { display: none; }
-      .mobile-nav { display: block; }
-      main { padding-bottom: 56px; }
-      .hero { padding-top: calc(var(--nav-h) + 3.5rem); }
-      .pillars-grid { grid-template-columns: 1fr 1fr; }
-    }
-
-    @media (max-width: 420px) {
-      .pillars-grid { grid-template-columns: 1fr; }
-      .hero-heading { font-size: 2.4rem; }
-    }
-
-    /* ── VISIBLE ON SCROLL ──────────────────────── */
-    .reveal {
-      opacity: 0;
-      transform: translateY(16px);
-      transition: opacity 0.5s ease, transform 0.5s ease;
-    }
-    .reveal.visible {
-      opacity: 1;
-      transform: none;
-    }
-  </style>
+  <link rel="stylesheet" href="/css/home-v2-base.css?v=20260720-truth-impact">
+  <link rel="stylesheet" href="/css/home-v2-components.css?v=20260720-truth-impact">
+  <link rel="stylesheet" href="/css/home-v2-responsive.css?v=20260720-truth-impact">
+  <link rel="stylesheet" href="/css/live-state-contract.css?v=20260720-vector-five">
   <link rel="stylesheet" href="/static/css/estate-search.css">
 </head>
 <body>
-
-  <!-- NAV -->
-  <nav aria-label="Primary navigation">
+  <nav class="site-nav" aria-label="Primary navigation">
     <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
     <ul class="nav-links">
       <li><a href="/work/" class="nav-link">Work</a></li>
@@ -623,567 +39,217 @@
       <li><a href="/lab/" class="nav-link">Lab</a></li>
       <li><a href="/about/" class="nav-link">About</a></li>
       <li>
-        <button type="button" class="es-nav-search" data-estate-search-open
-                aria-label="Search the estate" aria-haspopup="dialog">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="11" cy="11" r="7"></circle>
-            <line x1="21" y1="21" x2="16.2" y2="16.2"></line>
-          </svg>
-          Search
-          <kbd data-estate-search-kbd>ctrl k</kbd>
+        <button type="button" class="es-nav-search" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg>
+          Search <kbd data-estate-search-kbd>ctrl k</kbd>
         </button>
       </li>
     </ul>
     <a href="https://status.atlas-systems.uk" class="nav-status" target="_blank" rel="noopener">
-      <div class="status-dot"></div>
-      <span id="nav-build-status">systems nominal</span>
+      <span class="status-dot" data-state="loading" aria-hidden="true"></span>
+      <span id="nav-build-status">checking…</span>
     </a>
+    <button type="button" class="mobile-search" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg>
+    </button>
   </nav>
 
-  <!-- MAIN -->
   <main>
-
-    <!-- HERO -->
     <section class="hero">
       <div class="terminal-line">
         <span class="terminal-prompt">atlas@SPECULAR-CORE:~$</span>
         <span id="terminal-text"></span>
-        <span class="cursor" id="terminal-cursor"></span>
+        <span class="cursor" id="terminal-cursor" aria-hidden="true"></span>
       </div>
       <div class="terminal-output" id="terminal-output" aria-live="off"></div>
 
-      <h1 class="hero-heading">
-  	Three domains.<br>
-  	Every system <em>documented.</em>
-	</h1>
-
-      <p class="hero-sub">
-        A live technical record of how I design and build; spanning local AI, system automation, and the infrastructure that ties it all together.
-      </p>
+      <h1 class="hero-heading">Three domains.<br>Every system <em>documented.</em></h1>
+      <p class="hero-sub">A live technical record of how I design and build across local AI, automation, and infrastructure, with real-time audio engineering as a specialist thread running through the estate.</p>
 
       <div class="hero-domain-grid" role="group" aria-label="Atlas Systems domains">
         <a href="/lab/index.html#ramone-card" class="domain-lane" data-domain="ai">
           <span class="domain-code">domain / 01</span>
           <span class="domain-title">Local AI</span>
-          <span class="domain-desc">RAG, local models, memory, and voice surfaces that run close to the machine.</span>
-          <span class="domain-signal">active experiments</span>
+          <span class="domain-desc">RAG, local models, memory, evaluation, and voice surfaces running close to the machine.</span>
+          <span class="domain-signal">private intelligence</span>
         </a>
-        <a href="/lab/index.html#system-map" class="domain-lane" data-domain="automation">
+        <a href="/lab/index.html#pipeline-grid-section" class="domain-lane" data-domain="automation">
           <span class="domain-code">domain / 02</span>
           <span class="domain-title">Automation</span>
-          <span class="domain-desc">Workers, actions, triggers, Blackbox, and pipelines that keep the estate moving.</span>
-          <span class="domain-signal">event-driven</span>
+          <span class="domain-desc">Actions, triggers, notifications, assurance, and delivery workflows that keep the estate moving.</span>
+          <span class="domain-signal">event driven</span>
         </a>
-        <a href="/lab/index.html#pipeline-grid-section" class="domain-lane" data-domain="infra">
+        <a href="/lab/index.html#system-map" class="domain-lane" data-domain="infra">
           <span class="domain-code">domain / 03</span>
           <span class="domain-title">Infrastructure</span>
-          <span class="domain-desc">Cloudflare, GitHub, status feeds, deploy logs, and self-documenting system maps.</span>
+          <span class="domain-desc">Cloudflare, GitHub, observability, deployment evidence, and a declared architecture model.</span>
           <span class="domain-signal">live edge</span>
         </a>
       </div>
 
-      <div class="hero-cta">
-        <a href="/work/" class="btn btn-primary">
-          <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-          View work
-        </a>
-        <a href="https://github.com/AtlasReaper311" class="btn btn-outline" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
-          GitHub
-        </a>
+      <div class="hero-actions">
+        <a href="/work/" class="btn btn-primary">View work</a>
+        <a href="/lab/" class="btn">Open the Lab</a>
+        <a href="https://github.com/AtlasReaper311" class="btn" target="_blank" rel="noopener">GitHub</a>
       </div>
 
-      <div class="ops-rail" role="group" aria-label="Operational summary">
-        <a href="/lab/index.html#ramone-card" class="ops-rail-item is-primary">
-          <span class="ops-rail-label">Ramone</span>
-          <span class="ops-rail-value">local AI flagship</span>
-        </a>
-        <a href="/lab/index.html#pipeline-grid-section" class="ops-rail-item">
-          <span class="ops-rail-label">Pipeline</span>
-          <span class="ops-rail-value">deploy feed green</span>
-        </a>
-        <a href="/lab/index.html#blackbox" class="ops-rail-item">
-          <span class="ops-rail-label">Blackbox</span>
-          <span class="ops-rail-value">incident recorder armed</span>
-        </a>
-        <a href="/lab/index.html#system-map" class="ops-rail-item">
-          <span class="ops-rail-label">Registry</span>
-          <span class="ops-rail-value">self-documenting</span>
-        </a>
+      <div class="truth-rail" role="group" aria-label="Live estate truth summary">
+        <div class="truth-cell"><span class="metric-label">Declared Workers</span><strong class="metric-value" id="estate-declared-workers">checking…</strong><span class="metric-detail">architecture contract</span></div>
+        <div class="truth-cell"><span class="metric-label">Observed Workers</span><strong class="metric-value" id="estate-observed-workers">checking…</strong><span class="metric-detail">runtime registry</span></div>
+        <div class="truth-cell"><span class="metric-label">Documented Workers</span><strong class="metric-value" id="estate-documented-workers">checking…</strong><span class="metric-detail">metadata contracts</span></div>
+        <div class="truth-cell"><span class="metric-label">Latest Deploy</span><strong class="metric-value" id="estate-latest-deploy">checking…</strong><span class="metric-detail">deployment evidence</span></div>
       </div>
 
-      <a class="estate-strip" id="estate-strip" href="/lab/index.html#system-map" hidden data-state="">
-        <span class="estate-strip-dot" id="estate-strip-dot" aria-hidden="true"></span>
-        <span class="estate-strip-text" id="estate-strip-text"></span>
-        <span class="estate-strip-cta">view live architecture &rarr;</span>
+      <a class="estate-strip" id="truth-strip" href="/lab/index.html#system-map" hidden data-state="unknown">
+        <span class="estate-strip-dot" aria-hidden="true"></span>
+        <span id="truth-strip-text">estate coverage loading</span>
+        <span class="estate-strip-cta">view live architecture →</span>
       </a>
+      <a id="estate-strip" class="compat-estate-strip" href="/lab/index.html#system-map" hidden aria-hidden="true" tabindex="-1"><span id="estate-strip-dot"></span><span id="estate-strip-text"></span></a>
     </section>
 
-    <!-- ESTATE SEARCH -->
     <section data-estate-search aria-label="Search the Atlas Systems corpus"></section>
 
-    <!-- CONTROL ROOM -->
-    <section class="section control-room reveal" id="start">
+    <section class="section reveal" aria-labelledby="audio-title">
+      <div class="section-label">Specialism / real-time audio</div>
+      <h2 class="section-title" id="audio-title">The portfolio can be listened to, not only read.</h2>
+      <p class="section-copy">Two live browser experiences expose the audio engineering directly: one turns infrastructure telemetry into a score; the other is an evolving generative DSP instrument.</p>
+      <div class="audio-grid">
+        <a href="/lab/index.html#system-symphony" class="audio-card">
+          <span class="card-kicker">Telemetry sonification</span>
+          <span class="audio-title">System SYMPHONY</span>
+          <span class="audio-desc">A live musical layer driven by estate telemetry, deployment state, service pressure, and the H1-H8 scoring system.</span>
+          <span class="audio-cta">Hear the estate →</span>
+        </a>
+        <a href="/lab/signal/" class="audio-card signal">
+          <span class="card-kicker">Generative DSP</span>
+          <span class="audio-title">Signal Garden</span>
+          <span class="audio-desc">A browser-native AudioWorklet instrument built from granular synthesis, modal resonators, spectral processing, feedback networks, and long-form autonomous evolution.</span>
+          <span class="audio-cta">Shape the ecosystem →</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="section reveal" aria-labelledby="start-title">
       <div class="section-label">Start here</div>
-      <h2 class="section-title">Enter through the system, the builds, or the evidence.</h2>
-      <p class="section-copy">
-        The homepage is the front door; the Lab is the live surface. These routes split the estate into practical paths for people who want to understand what exists, what runs, and what was learned while building it.
-      </p>
-
-      <div class="control-grid">
-        <div class="control-stack">
-          <div class="route-grid" role="group" aria-label="Homepage routes">
-            <a href="/lab/" class="route-card">
-              <span class="route-label">route / live</span>
-              <span class="route-title">Open the Lab</span>
-              <span class="route-desc">Pipeline grid, incident console, system map, worker health, and Blackbox events.</span>
-            </a>
-            <a href="/work/" class="route-card">
-              <span class="route-label">route / build</span>
-              <span class="route-title">Browse the Work</span>
-              <span class="route-desc">Projects, case studies, and reusable components across local AI and infrastructure.</span>
-            </a>
-            <a href="/writing/" class="route-card">
-              <span class="route-label">route / notes</span>
-              <span class="route-title">Read the Logs</span>
-              <span class="route-desc">Design notes, technical decisions, postmortems, and build journals from the estate.</span>
-            </a>
-          </div>
-
-          <div class="flagship-grid" role="group" aria-label="Flagship systems">
-            <a href="/lab/index.html#ramone-card" class="flagship-card is-featured">
-              <span class="flagship-label">flagship / ramone</span>
-              <span class="flagship-title">Ramone Local AI</span>
-              <span class="flagship-desc">The live assistant surface: voice, local memory, retrieval, and edge dispatch in one pipeline.</span>
-              <span class="flagship-meta">primary</span>
-            </a>
-            <a href="/lab/index.html#blackbox" class="flagship-card">
-              <span class="flagship-label">flagship / blackbox</span>
-              <span class="flagship-title">Incident Recorder</span>
-              <span class="flagship-desc">Telemetry frames, trigger events, replay context, and sealed failure records.</span>
-              <span class="flagship-meta">recording</span>
-            </a>
-            <a href="/lab/index.html#pipeline-grid-section" class="flagship-card">
-              <span class="flagship-label">flagship / atlas lab</span>
-              <span class="flagship-title">Ops Surface</span>
-              <span class="flagship-desc">Live deploy status, worker registry, status feed, and weekly digest truthing.</span>
-              <span class="flagship-meta">nominal</span>
-            </a>
-          </div>
-        </div>
-
-        <a href="/lab/index.html#system-map" class="map-preview" aria-label="Open the live Atlas system map">
-          <div class="map-preview-title">
-            <span>System map preview</span>
-            <span>live route</span>
-          </div>
-          <svg class="map-preview-svg" viewBox="0 0 260 160" aria-hidden="true">
-            <line class="edge" x1="42" y1="80" x2="102" y2="38"/>
-            <line class="edge" x1="42" y1="80" x2="104" y2="122"/>
-            <line class="edge" x1="42" y1="80" x2="176" y2="80"/>
-            <line class="edge" x1="176" y1="80" x2="220" y2="46"/>
-            <line class="edge" x1="176" y1="80" x2="222" y2="116"/>
-            <path class="flow" d="M42 80 L102 38 M42 80 L176 80 L220 46"/>
-            <circle class="node node-live" cx="42" cy="80" r="11"/>
-            <circle class="node" cx="102" cy="38" r="8"/>
-            <circle class="node" cx="104" cy="122" r="8"/>
-            <rect class="node node-live" x="160" y="67" width="32" height="26" rx="4"/>
-            <rect class="node" x="211" y="37" width="18" height="18" rx="3" transform="rotate(45 220 46)"/>
-            <rect class="node" x="213" y="107" width="18" height="18" rx="3" transform="rotate(45 222 116)"/>
-          </svg>
-          <div class="map-preview-rows">
-            <div class="map-preview-row"><span>Workers</span><strong>edge registry</strong></div>
-            <div class="map-preview-row"><span>Signals</span><strong>notify · deploy · pulse</strong></div>
-            <div class="map-preview-row"><span>State</span><strong>nominal</strong></div>
-          </div>
-        </a>
+      <h2 class="section-title" id="start-title">Choose the live system, the builds, or the evidence.</h2>
+      <p class="section-copy">The homepage is the front door. These routes separate runtime state from project depth and technical rationale.</p>
+      <div class="route-grid">
+        <a href="/lab/" class="route-card"><span class="eyebrow">route / live</span><span class="route-title">Open the Lab</span><span class="route-desc">Live architecture, telemetry, System SYMPHONY, incident surfaces, and operational experiments.</span></a>
+        <a href="/work/" class="route-card"><span class="eyebrow">route / build</span><span class="route-title">Browse the Work</span><span class="route-desc">Projects and case-study entry points across local AI, infrastructure, automation, and audio systems.</span></a>
+        <a href="/writing/" class="route-card"><span class="eyebrow">route / evidence</span><span class="route-title">Read the Writing</span><span class="route-desc">Architecture decisions and case studies published through a scheduled, validated publishing pipeline.</span></a>
       </div>
     </section>
 
-    <!-- PILLARS -->
-    <section class="section reveal">
-      <div class="section-label">Architecture</div>
-
-      <div class="pillars-grid">
-
-        <a href="/work/" class="pillar-card">
-          <span class="pillar-num">P-01</span>
-          <span class="pillar-title">Live Domain</span>
-          <span class="pillar-desc">atlas-systems.uk as a deployed technical environment — docs, dashboard, signal.</span>
-          <span class="pillar-status status-active">
-            <span class="pillar-status-dot"></span>active
-          </span>
-        </a>
-
-        <a href="https://github.com/AtlasReaper311" class="pillar-card" target="_blank" rel="noopener">
-          <span class="pillar-num">P-02</span>
-          <span class="pillar-title">GitHub Library</span>
-          <span class="pillar-desc">Modular boilerplates and Logic Lego components — reusable, documented, production-ready.</span>
-          <span class="pillar-status status-building">
-            <span class="pillar-status-dot"></span>building
-          </span>
-        </a>
-
-        <a href="/work/" class="pillar-card">
-          <span class="pillar-num">P-03</span>
-          <span class="pillar-title">DevOps Core</span>
-          <span class="pillar-desc">Docker, GitHub Actions CI/CD, AWS Cloud Practitioner — the deployment backbone.</span>
-          <span class="pillar-status status-active">
-            <span class="pillar-status-dot"></span>active
-          </span>
-        </a>
-
-        <a href="/work/" class="pillar-card">
-          <span class="pillar-num">P-04</span>
-          <span class="pillar-title">Honours Project</span>
-          <span class="pillar-desc">LLM integration with game audio — RAG pipelines, local inference, Unreal Engine 5.</span>
-          <span class="pillar-status status-planned">
-            <span class="pillar-status-dot"></span>planned
-          </span>
-        </a>
-
-        <a href="/writing/" class="pillar-card">
-          <span class="pillar-num">P-05</span>
-          <span class="pillar-title">Technical Writing</span>
-          <span class="pillar-desc">Monthly articles documenting build decisions, architecture choices, lessons learned.</span>
-          <span class="pillar-status status-building">
-            <span class="pillar-status-dot"></span>building
-          </span>
-        </a>
-
+    <section class="section reveal" aria-labelledby="systems-title">
+      <div class="section-label">Featured systems</div>
+      <h2 class="section-title" id="systems-title">A portfolio that behaves like an estate.</h2>
+      <div class="feature-grid">
+        <a href="/lab/index.html#ramone-card" class="feature-card is-primary"><span class="eyebrow">local AI</span><span class="feature-title">Ramone</span><span class="feature-desc">Private memory, retrieval, local models, voice-triggered automation, and a bounded public edge.</span></a>
+        <a href="/lab/index.html#system-map" class="feature-card"><span class="eyebrow">architecture</span><span class="feature-title">Live System Map</span><span class="feature-desc">Declared architecture enriched with observed Worker discovery and runtime metadata.</span></a>
+        <a href="/lab/index.html#pipeline-grid-section" class="feature-card"><span class="eyebrow">delivery</span><span class="feature-title">Control Plane</span><span class="feature-desc">CI/CD, deployment evidence, dependency assurance, quota monitoring, and estate-wide contracts.</span></a>
+      </div>
+      <div class="ops-rail" role="group" aria-label="Live featured system state">
+        <a href="/lab/index.html#ramone-card" class="ops-rail-item"><span class="ops-rail-label">Ramone edge</span><span class="ops-rail-value" id="ops-ramone-value" data-state="pending">checking registry</span></a>
+        <a href="/lab/index.html#pipeline-grid-section" class="ops-rail-item"><span class="ops-rail-label">Delivery</span><span class="ops-rail-value" id="ops-deploy-value" data-state="pending">checking deploy</span></a>
+        <a href="/lab/index.html#blackbox" class="ops-rail-item"><span class="ops-rail-label">Blackbox</span><span class="ops-rail-value" id="ops-blackbox-value" data-state="pending">checking registry</span></a>
+        <a href="/lab/index.html#system-map" class="ops-rail-item"><span class="ops-rail-label">Registry coverage</span><span class="ops-rail-value" id="ops-registry-value" data-state="pending">checking topology</span></a>
       </div>
     </section>
 
-    <!-- STACK -->
-    <section class="section reveal">
-      <div class="section-label">Stack</div>
-
-      <div class="stack-grid">
-
-        <div class="stack-group">
-          <div class="stack-group-title">Languages</div>
-          <div class="stack-items">
-            <div class="stack-item">
-              <span class="stack-name">Python</span>
-              <span class="stack-tag active">active</span>
-            </div>
-            <div class="stack-item">
-              <span class="stack-name">C++</span>
-              <span class="stack-tag active">active</span>
-            </div>
-            <div class="stack-item">
-              <span class="stack-name">JavaScript</span>
-              <span class="stack-tag active">active</span>
-            </div>
-            <div class="stack-item">
-              <span class="stack-name">HTML / CSS</span>
-              <span class="stack-tag active">active</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="stack-group">
-          <div class="stack-group-title">Infrastructure</div>
-          <div class="stack-items">
-            <div class="stack-item">
-              <span class="stack-name">Docker</span>
-              <span class="stack-tag active">active</span>
-            </div>
-            <div class="stack-item">
-              <span class="stack-name">GitHub Actions</span>
-              <span class="stack-tag active">deployed</span>
-            </div>
-            <div class="stack-item">
-              <span class="stack-name">Cloudflare Pages</span>
-              <span class="stack-tag active">deployed</span>
-            </div>
-            <div class="stack-item">
-              <span class="stack-name">AWS</span>
-              <span class="stack-tag learning">in progress</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="stack-group">
-          <div class="stack-group-title">Domain expertise</div>
-          <div class="stack-items">
-            <div class="stack-item">
-              <span class="stack-name">Unreal Engine 5</span>
-              <span class="stack-tag active">active</span>
-            </div>
-            <div class="stack-item">
-              <span class="stack-name">MetaSounds</span>
-              <span class="stack-tag active">active</span>
-            </div>
-            <div class="stack-item">
-              <span class="stack-name">RAG Pipelines</span>
-              <span class="stack-tag active">deployed</span>
-            </div>
-            <div class="stack-item">
-              <span class="stack-name">Local LLMs</span>
-              <span class="stack-tag active">active</span>
-            </div>
-          </div>
-        </div>
-
+    <section class="section reveal" aria-labelledby="evidence-title">
+      <div class="section-label">Estate at a glance</div>
+      <h2 class="section-title" id="evidence-title">Three truths, kept separate.</h2>
+      <p class="section-copy">The manifest declares what Atlas Systems owns. The registry reports what the edge currently observes. Runtime metadata shows which discovered Workers describe themselves.</p>
+      <div class="evidence-grid">
+        <div class="evidence-card"><span class="evidence-number" id="evidence-declared">—</span><span class="evidence-title">Declared Workers</span><span class="evidence-desc">The intended Worker estate from the public topology contract.</span></div>
+        <div class="evidence-card"><span class="evidence-number" id="evidence-observed">—</span><span class="evidence-title">Observed Workers</span><span class="evidence-desc">Declared Workers currently present in the self-discovering runtime registry.</span></div>
+        <div class="evidence-card"><span class="evidence-number" id="evidence-documented">—</span><span class="evidence-title">Documented Workers</span><span class="evidence-desc">Observed Workers currently answering the estate metadata contract.</span></div>
+        <div class="evidence-card" data-state="ok"><span class="evidence-number">3</span><span class="evidence-title">Truth layers</span><span class="evidence-desc">Declaration, observation, and health stay distinct instead of collapsing into one reassuring number.</span></div>
+      </div>
+      <div class="toolchain" aria-label="Active engineering stack">
+        <span class="stack-chip">Python <span class="stack-state">active</span></span>
+        <span class="stack-chip">C++ <span class="stack-state">active</span></span>
+        <span class="stack-chip">JavaScript <span class="stack-state">active</span></span>
+        <span class="stack-chip">Cloudflare <span class="stack-state">active</span></span>
+        <span class="stack-chip">GitHub Actions <span class="stack-state">active</span></span>
+        <span class="stack-chip">Docker <span class="stack-state">active</span></span>
+        <span class="stack-chip">AWS <span class="stack-state">active</span></span>
+        <span class="stack-chip">Unreal Engine 5 <span class="stack-state">active</span></span>
+        <span class="stack-chip">MetaSounds <span class="stack-state">active</span></span>
+        <span class="stack-chip">RAG <span class="stack-state">active</span></span>
       </div>
     </section>
 
-    <!-- LIVE SIGNAL (merged with GitHub Pulse: same underlying question, "is this real",
-         from two different sources, deploy metadata and GitHub activity. One section,
-         one divider, instead of two, with the GitHub sub-block kept hidden until
-         /js/pulse.js confirms it has real data to show. -->
-    <section class="section reveal">
+    <section class="section reveal" aria-labelledby="live-title">
       <div class="section-label">Live signal</div>
-
-      <div class="stack-group-title">Frontend</div>
-      <div class="signal-bar">
-        <div class="signal-cell">
-          <div class="signal-label">Environment</div>
-          <div class="signal-value">Production</div>
-        </div>
-        <div class="signal-cell">
-          <div class="signal-label">Host</div>
-          <div class="signal-value">Cloudflare Pages</div>
-        </div>
-        <div class="signal-cell">
-          <div class="signal-label">Last deploy</div>
-          <div class="signal-value mono" id="last-deploy">—</div>
-        </div>
-        <div class="signal-cell">
-          <div class="signal-label">Commit</div>
-          <div class="signal-value mono" id="commit-hash">—</div>
-        </div>
-        <div class="signal-cell">
-          <div class="signal-label">Build</div>
-          <div class="signal-value mono" id="build-status">—</div>
-        </div>
-      </div>
-
-      <div class="stack-group-title" style="margin-top: 2.5rem;">Backend</div>
-      <div class="signal-bar" id="backendGrid"></div>
-
-      <div class="stack-group-title" style="margin-top: 2.5rem;">From GitHub</div>
-
-      <div id="pulse" class="reveal" hidden>
-        <div class="signal-bar">
-          <div class="signal-cell">
-            <div class="signal-label">Public repos</div>
-            <div class="signal-value mono" data-pulse="repos">&mdash;</div>
-          </div>
-          <div class="signal-cell">
-            <div class="signal-label">Commits &middot; 90 days</div>
-            <div class="signal-value mono" data-pulse="commits90">&mdash;</div>
-          </div>
-          <div class="signal-cell">
-            <div class="signal-label">Top language</div>
-            <div class="signal-value mono" data-pulse="top-language">&mdash;</div>
+      <h2 class="section-title" id="live-title">Evidence from the systems themselves.</h2>
+      <div class="signal-groups">
+        <div>
+          <div class="stack-group-title">Frontend deployment</div>
+          <div class="signal-bar">
+            <div class="signal-cell"><div class="signal-label">Environment</div><div class="signal-value">Production</div></div>
+            <div class="signal-cell"><div class="signal-label">Host</div><div class="signal-value">Cloudflare Pages</div></div>
+            <div class="signal-cell"><div class="signal-label">Last deploy</div><div class="signal-value mono" id="last-deploy">—</div></div>
+            <div class="signal-cell"><div class="signal-label">Commit</div><div class="signal-value mono" id="commit-hash">—</div></div>
+            <div class="signal-cell"><div class="signal-label">Build</div><div class="signal-value mono" id="build-status">—</div></div>
           </div>
         </div>
-
-        <div class="pulse-grid">
-          <div>
-            <div class="signal-label">Languages</div>
-            <div data-pulse="languages"></div>
+        <div>
+          <div class="stack-group-title">Homepage dependencies</div>
+          <div class="signal-bar" id="backendGrid"></div>
+        </div>
+        <div id="pulse" hidden>
+          <div class="stack-group-title">From GitHub</div>
+          <div class="signal-bar">
+            <div class="signal-cell"><div class="signal-label">Public repos</div><div class="signal-value mono" data-pulse="repos">—</div></div>
+            <div class="signal-cell"><div class="signal-label">Commits · 90 days</div><div class="signal-value mono" data-pulse="commits90">—</div></div>
+            <div class="signal-cell"><div class="signal-label">Top language</div><div class="signal-value mono" data-pulse="top-language">—</div></div>
           </div>
-          <div>
-            <div class="signal-label">Recent commits</div>
-            <ul class="pulse-commits" data-pulse="recent-commits"></ul>
+          <div class="pulse-grid">
+            <div><div class="signal-label">Languages</div><div data-pulse="languages"></div></div>
+            <div><div class="signal-label">Recent commits</div><ul class="pulse-commits" data-pulse="recent-commits"></ul></div>
           </div>
         </div>
       </div>
 
-      <a href="/lab/index.html#system-map" class="map-tease reveal" aria-label="Open the live system map on the Lab page">
+      <a href="/lab/index.html#system-map" class="map-tease" aria-label="Open the live Atlas Systems architecture map">
         <svg class="map-tease-svg" viewBox="0 0 160 96" aria-hidden="true">
-          <!-- schematic constellation: hub, edge workers, tunnel, LAN -->
-          <line class="mt-edge" x1="36" y1="48" x2="66" y2="22"/>
-          <line class="mt-edge" x1="36" y1="48" x2="68" y2="72"/>
-          <line class="mt-edge" x1="36" y1="48" x2="16" y2="24"/>
-          <line class="mt-edge" x1="36" y1="48" x2="18" y2="74"/>
-          <line class="mt-edge" x1="36" y1="48" x2="98" y2="48"/>
-          <line class="mt-tunnel" x1="106" y1="48" x2="134" y2="30"/>
-          <line class="mt-tunnel" x1="106" y1="48" x2="136" y2="66"/>
-          <circle class="mt-halo" cx="36" cy="48" r="6"/>
-          <circle class="mt-node mt-hub" cx="36" cy="48" r="6"/>
-          <circle class="mt-node" cx="66" cy="22" r="4.5"/>
-          <circle class="mt-node" cx="68" cy="72" r="4.5"/>
-          <circle class="mt-node" cx="16" cy="24" r="4"/>
-          <circle class="mt-node" cx="18" cy="74" r="4"/>
-          <rect class="mt-node" x="92" y="43" width="16" height="10" rx="2"/>
-          <rect class="mt-node mt-lan" x="128" y="24" width="11" height="11" rx="2" transform="rotate(45 133.5 29.5)"/>
-          <rect class="mt-node mt-lan" x="130" y="60" width="11" height="11" rx="2" transform="rotate(45 135.5 65.5)"/>
+          <line class="mt-edge" x1="36" y1="48" x2="66" y2="22"></line><line class="mt-edge" x1="36" y1="48" x2="68" y2="72"></line><line class="mt-edge" x1="36" y1="48" x2="98" y2="48"></line><line class="mt-tunnel" x1="106" y1="48" x2="134" y2="30"></line><line class="mt-tunnel" x1="106" y1="48" x2="136" y2="66"></line><circle class="mt-node mt-hub" cx="36" cy="48" r="6"></circle><circle class="mt-node" cx="66" cy="22" r="4.5"></circle><circle class="mt-node" cx="68" cy="72" r="4.5"></circle><rect class="mt-node" x="92" y="43" width="16" height="10" rx="2"></rect><rect class="mt-node" x="128" y="24" width="11" height="11" rx="2" transform="rotate(45 133.5 29.5)"></rect><rect class="mt-node" x="130" y="60" width="11" height="11" rx="2" transform="rotate(45 135.5 65.5)"></rect>
         </svg>
-        <div class="map-tease-body">
-          <div class="map-tease-title">The estate, drawn by itself.</div>
-          <p class="map-tease-desc">Every Worker, every binding, every tunnel, with live status from the registry that discovers them. Not a diagram of the system; the system, describing itself.</p>
-          <span class="map-tease-cta">
-            Open the live map
-            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </span>
+        <div>
+          <div class="map-tease-title">Declared architecture, enriched by live discovery.</div>
+          <p class="map-tease-desc">The public topology provides the declared component graph; the runtime registry adds observed Worker presence and metadata state. The two remain separate so a missing service cannot silently disappear from the architecture.</p>
+          <span class="map-tease-cta" id="map-preview-state" data-state="pending">checking registry</span>
         </div>
       </a>
     </section>
-
   </main>
 
-  <!-- FOOTER -->
-  <footer style="position:relative;z-index:1;padding-left:clamp(1.5rem,5vw,3rem);padding-right:clamp(1.5rem,5vw,3rem);">
-    <div class="footer-left">
-      atlas-systems.uk &mdash; <span id="footer-year"></span>
-    </div>
+  <footer>
+    <div>atlas-systems.uk · <span id="footer-year"></span></div>
     <ul class="footer-links">
       <li><a href="https://github.com/AtlasReaper311" target="_blank" rel="noopener">GitHub</a></li>
-	  <li><a href="https://api.atlas-systems.uk/v1/docs" target="_blank" rel="noopener">API docs ↗</a></li>
+      <li><a href="https://api.atlas-systems.uk/v1/docs" target="_blank" rel="noopener">API docs ↗</a></li>
       <li><a href="https://status.atlas-systems.uk" target="_blank" rel="noopener">Status</a></li>
       <li><a href="/about/">Contact</a></li>
     </ul>
   </footer>
 
-  <!-- MOBILE NAV -->
   <nav class="mobile-nav" aria-label="Mobile navigation">
     <div class="mobile-nav-inner">
-      <a href="/" class="mobile-nav-item active">
-        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        Home
-      </a>
-      <a href="/work/" class="mobile-nav-item">
-        <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-        Work
-      </a>
-      <a href="/lab/" class="mobile-nav-item">
-        <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
-        Lab
-      </a>
-      <a href="/about/" class="mobile-nav-item">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg>
-        About
-      </a>
-      <button type="button" class="mobile-nav-item es-nav-search-mobile"
-              data-estate-search-open aria-label="Search the estate"
-              aria-haspopup="dialog"
-              style="background:transparent;border:none;font-family:inherit;cursor:pointer">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="11" cy="11" r="7"></circle>
-          <line x1="21" y1="21" x2="16.2" y2="16.2"></line>
-        </svg>
-        Search
-      </button>
+      <a href="/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg>Home</a>
+      <a href="/work/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>Work</a>
+      <a href="/writing/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="16" y2="13"></line></svg>Writing</a>
+      <a href="/lab/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V9"></path></svg>Lab</a>
+      <a href="/about/" class="mobile-nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M20 21a8 8 0 10-16 0"></path></svg>About</a>
     </div>
   </nav>
 
-
-  <script>
-    // ── Terminal typewriter ──────────────────────────
-    (function() {
-      const el = document.getElementById('terminal-text');
-      const cursor = document.getElementById('terminal-cursor');
-      const output = document.getElementById('terminal-output');
-      if (!el || !output) return;
-
-      const commands = [
-        {
-          cmd: 'atlas status',
-          out: 'systems nominal · deploy feed green · registry live'
-        },
-        {
-          cmd: 'atlas map --live',
-          out: 'workers, bindings, tunnels, and feeds resolved from the estate'
-        },
-        {
-          cmd: 'blackbox latest',
-          out: 'incident recorder armed · telemetry frames buffered'
-        },
-        {
-          cmd: 'atlas digest --truth',
-          out: 'weekly signal uses commit counts and filters scanner paths'
-        }
-      ];
-      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const delay = ms => new Promise(r => setTimeout(r, ms));
-
-      function setOutput(text) {
-        output.classList.add('is-swapping');
-        window.setTimeout(() => {
-          output.textContent = text;
-          output.classList.remove('is-swapping');
-        }, reduceMotion ? 0 : 120);
-      }
-
-      async function type(text) {
-        el.textContent = '';
-        for (const ch of text) {
-          el.textContent += ch;
-          await delay(42);
-        }
-      }
-
-      async function erase() {
-        while (el.textContent.length) {
-          el.textContent = el.textContent.slice(0, -1);
-          await delay(18);
-        }
-      }
-
-      if (reduceMotion) {
-        el.textContent = commands[0].cmd;
-        output.textContent = commands[0].out;
-        if (cursor) cursor.style.animation = 'none';
-        return;
-      }
-
-      async function run() {
-        await delay(360);
-        let i = 0;
-        while (true) {
-          const item = commands[i % commands.length];
-          await type(item.cmd);
-          setOutput(item.out);
-          await delay(2800);
-          await erase();
-          i += 1;
-          await delay(260);
-        }
-      }
-
-      run().catch(() => {
-        el.textContent = commands[0].cmd;
-        output.textContent = commands[0].out;
-      });
-    })();
-
-    // ── Year in footer ───────────────────────────────
-    document.getElementById('footer-year').textContent = new Date().getFullYear();
-
-    // ── Live signal ──────────────────────────────────
-    // The deploy and commit cells are populated by /js/pulse.js with
-    // real data from api.atlas-systems.uk/pulse. They stay as em dashes
-    // if the API is unreachable; honest placeholders beat fake values.
-
-    // ── Scroll reveal ────────────────────────────────
-    const revealEls = document.querySelectorAll('.reveal');
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.classList.add('visible');
-          observer.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.1 });
-
-    revealEls.forEach(el => observer.observe(el));
-
-    // ── Active nav link ──────────────────────────────
-    const path = window.location.pathname;
-    document.querySelectorAll('.nav-link').forEach(a => {
-      if (path.startsWith(a.getAttribute('href'))) a.classList.add('active');
-    });
-  </script>
-   <script src="/js/atlas-registry.js?v=20260715-public-estate" defer></script>
-   <script src="/js/home-live-strip.js" defer></script>
-   <script src="/js/live-signal.js" defer></script>
+  <script src="/js/live-signal.js?v=20260720-vector-five" defer></script>
   <script src="/js/pulse.js" defer></script>
-  <script src="/js/transitions.js?v=20260706-history"></script>
-  <script src="/js/atlas-terminal-card-v3.js?v=20260715-public-estate" defer></script>
+  <script src="/static/js/homepage-interactions.js?v=20260720-truth-impact" defer></script>
+  <script type="module" src="/static/js/live/homepage-truth.js?v=20260720-truth-impact"></script>
   <script type="module" src="/static/js/estate-search/homepage-widget.js"></script>
   <script type="module" src="/static/js/estate-search/global-search.js"></script>
 </body>
