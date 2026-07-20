@@ -1204,12 +1204,12 @@ export function createEngine() {
 
     terminalSynth = new Tone.FMSynth({
       harmonicity: 1.5,
-      modulationIndex: 2.2,
+      modulationIndex: 1.6,
       oscillator: { type: "sine" },
       modulation: { type: "triangle" },
-      envelope: { attack: 0.006, decay: 0.16, sustain: 0.16, release: 0.38 },
-      modulationEnvelope: { attack: 0.008, decay: 0.2, sustain: 0.08, release: 0.3 },
-      volume: -9,
+      envelope: { attack: 0.012, decay: 0.22, sustain: 0.2, release: 0.5 },
+      modulationEnvelope: { attack: 0.018, decay: 0.26, sustain: 0.06, release: 0.42 },
+      volume: -8,
     });
     terminalFilter = new Tone.Filter({ type: "lowpass", frequency: 4600, rolloff: -24, Q: 1.1 });
     terminalDelay = new Tone.FeedbackDelay({ delayTime: "8n", feedback: 0.24, wet: 1 });
@@ -1220,26 +1220,26 @@ export function createEngine() {
     riffFilter = new Tone.Filter({ type: "lowpass", frequency: 3200, rolloff: -24, Q: 1.5 });
     riffSynths = [
       new Tone.Synth({
-        oscillator: { type: "square" },
-        envelope: { attack: 0.004, decay: 0.12, sustain: 0.12, release: 0.2 },
-        volume: -14,
+        oscillator: { type: "triangle" },
+        envelope: { attack: 0.01, decay: 0.18, sustain: 0.18, release: 0.32 },
+        volume: -13,
       }),
       new Tone.FMSynth({
         harmonicity: 2.01,
-        modulationIndex: 3.1,
+        modulationIndex: 2.4,
         oscillator: { type: "triangle" },
-        modulation: { type: "square" },
-        envelope: { attack: 0.003, decay: 0.14, sustain: 0.08, release: 0.24 },
-        modulationEnvelope: { attack: 0.002, decay: 0.1, sustain: 0.03, release: 0.18 },
-        volume: -16,
+        modulation: { type: "sine" },
+        envelope: { attack: 0.01, decay: 0.18, sustain: 0.12, release: 0.32 },
+        modulationEnvelope: { attack: 0.012, decay: 0.16, sustain: 0.04, release: 0.26 },
+        volume: -15,
       }),
       new Tone.AMSynth({
         harmonicity: 1.5,
         oscillator: { type: "sawtooth" },
         modulation: { type: "sine" },
-        envelope: { attack: 0.006, decay: 0.16, sustain: 0.1, release: 0.28 },
-        modulationEnvelope: { attack: 0.004, decay: 0.12, sustain: 0.05, release: 0.2 },
-        volume: -15,
+        envelope: { attack: 0.01, decay: 0.2, sustain: 0.14, release: 0.34 },
+        modulationEnvelope: { attack: 0.008, decay: 0.16, sustain: 0.05, release: 0.26 },
+        volume: -14,
       }),
     ];
     riffSynths.forEach((synth) => synth.connect(riffFilter));
@@ -1362,11 +1362,11 @@ export function createEngine() {
     // without over-pumping the low end. Critical ducks a touch deeper for energy.
     // Depth and recovery are conservative so the groove reads as a pump, not a
     // wobble; they are easy to open up further once the mix is settled.
-    const depth = scoreState === "critical" ? 0.74 : scoreState === "warning" ? 0.78 : 0.82;
+    const depth = scoreState === "critical" ? 0.82 : scoreState === "warning" ? 0.86 : 0.84;
     parameter.cancelScheduledValues?.(time);
     parameter.setValueAtTime?.(1, time);
     parameter.linearRampToValueAtTime?.(depth, time + 0.005);
-    parameter.linearRampToValueAtTime?.(1, time + 0.14);
+    parameter.linearRampToValueAtTime?.(1, time + 0.12);
   }
 
   function playSubFoundation(time, step, performance) {
@@ -1520,10 +1520,10 @@ export function createEngine() {
       Math.max(1000, (2400 + (performance.intent?.brightness ?? 0.5) * 1800) * phase.mix.filter),
     );
     if (terminalSynth?.modulationIndex?.setValueAtTime) {
-      const fmIndex = 1.4 + (performance.intent?.tension ?? performance.grit ?? 0.5) * 3.2;
+      const fmIndex = 1.15 + (performance.intent?.tension ?? performance.grit ?? 0.5) * 2.0;
       terminalSynth.modulationIndex.setValueAtTime(fmIndex, time);
     } else if (terminalSynth?.modulationIndex?.value !== undefined) {
-      terminalSynth.modulationIndex.value = 1.4 + (performance.intent?.tension ?? performance.grit ?? 0.5) * 3.2;
+      terminalSynth.modulationIndex.value = 1.15 + (performance.intent?.tension ?? performance.grit ?? 0.5) * 2.0;
     }
     if (typeof terminalFilter?.frequency?.setValueAtTime === "function") {
       terminalFilter.frequency.setValueAtTime(terminalHz, time);
@@ -1801,7 +1801,6 @@ export function createEngine() {
     ramp(
       percussionGain.gain,
       (PERCUSSION_BUS_GAINS[frame.scoreState] ?? 0)
-        * (performance?.drumMultiplier ?? 1)
         * phaseMix.drums
         * ghostMix.backing,
     );
@@ -1809,8 +1808,9 @@ export function createEngine() {
       drumParallelGain.gain,
       Math.min(
         MIX_LIMITS.drumParallelGain,
-        (frame.scoreState === "critical" ? 0.14 : frame.scoreState === "warning" ? 0.11 : frame.scoreState === "unknown" ? 0.04 : 0.08)
-          * phaseMix.drums,
+        (frame.scoreState === "critical" ? 0.1 : frame.scoreState === "warning" ? 0.08 : frame.scoreState === "unknown" ? 0.035 : 0.07)
+          * phaseMix.drums
+          * ghostMix.backing,
       ),
     );
     ramp(
@@ -1836,6 +1836,7 @@ export function createEngine() {
       Math.min(
         MAX_GHOST_ARP_BUS_GAIN,
         (performance?.terminalGain ?? 0)
+          * 1.18
           * terminalStateMultiplier
           * phaseMix.arp
           * ghostMix.arp,
@@ -1845,7 +1846,7 @@ export function createEngine() {
       riffGain.gain,
       Math.min(
         MAX_GHOST_RIFF_BUS_GAIN,
-        (performance?.riffGain ?? 0) * phaseMix.riff * ghostMix.riff,
+        (performance?.riffGain ?? 0) * 1.2 * phaseMix.riff * ghostMix.riff,
       ),
     );
 

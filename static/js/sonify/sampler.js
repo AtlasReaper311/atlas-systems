@@ -28,11 +28,11 @@ import {
 
 const PLAYBACK_RATE_MIN = 0.75;
 const PLAYBACK_RATE_MAX = 1.35;
-const ATMOSPHERE_XFADE_SECONDS = 4;
+const ATMOSPHERE_XFADE_SECONDS = 3;
 
 export const SAMPLE_STATE_MIX = Object.freeze({
-  healthy: Object.freeze({ drums: 0.68, bass: 0.62, bassLoop: 0.32, bassFilterHz: 720, lead: 0.58, atmosphere: 0.2, atmosphereFilterHz: 2300, drive: 0.025, room: 0.08, delay: 0.12 }),
-  warning: Object.freeze({ drums: 0.72, bass: 0.64, bassLoop: 0.18, bassFilterHz: 860, lead: 0.28, atmosphere: 0.14, atmosphereFilterHz: 1150, drive: 0.04, room: 0.08, delay: 0.08 }),
+  healthy: Object.freeze({ drums: 0.68, bass: 0.62, bassLoop: 0.32, bassFilterHz: 720, lead: 0.64, atmosphere: 0.2, atmosphereFilterHz: 2300, drive: 0.025, room: 0.08, delay: 0.12 }),
+  warning: Object.freeze({ drums: 0.72, bass: 0.64, bassLoop: 0.18, bassFilterHz: 860, lead: 0.42, atmosphere: 0.14, atmosphereFilterHz: 1150, drive: 0.04, room: 0.08, delay: 0.08 }),
   critical: Object.freeze({ drums: 0.76, bass: 0.68, bassLoop: 0.28, bassFilterHz: 980, lead: 0, atmosphere: 0.1, atmosphereFilterHz: 920, drive: 0.065, room: 0.06, delay: 0.06 }),
   unknown: Object.freeze({ drums: 0.28, bass: 0.34, bassLoop: 0, bassFilterHz: 620, lead: 0.2, atmosphere: 0, atmosphereFilterHz: 800, drive: 0.018, room: 0.16, delay: 0.18 }),
 });
@@ -360,7 +360,9 @@ export function createHybridSampler(Tone, {
       : ghostLayerMixProfile(ghostOptions);
     const ghostModeActive = Boolean(ghostOptions.focus || ghostOptions.audition);
     const leadMultiplier = performance && (phaseMix.riff > 0 || ghostModeActive)
-      ? ghostMix.lead
+      ? ghostModeActive
+        ? ghostMix.lead
+        : Math.max(0.9, ghostMix.lead)
       : 1;
     const ramp = (parameter, value) => (
       safeRamp(parameter, value, transition, scheduledTime)
@@ -373,9 +375,7 @@ export function createHybridSampler(Tone, {
     ramp(
       drumBus.gain,
       mix.drums
-        * (0.76 + energy * 0.24)
-        * phaseMix.drums
-        * ghostMix.backing,
+        * (0.76 + energy * 0.24),
     );
     ramp(
       bassBus.gain,

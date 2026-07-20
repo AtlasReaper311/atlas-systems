@@ -546,10 +546,11 @@ export function initSystemSymphony() {
     const audible = maskedFrame(frame, muted, soloed);
     const result = engine.setScene(audible, performanceArrangement, {
       quantize: engine.isRunning(),
+      transitionSeconds: 2,
     });
     sceneTransitionPending = result.queued;
     performanceStatus = result.queued
-      ? `${action} queued for next bar // smooth 4-second crossfade // ${performanceSeed}`
+      ? `${action} queued for next bar // smooth 2-second crossfade // ${performanceSeed}`
       : `${action} active // ${performanceSeed}`;
     applyAndRender(frame, { applyAudio: false });
   }
