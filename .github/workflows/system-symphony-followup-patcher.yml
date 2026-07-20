@@ -1,20 +1,27 @@
 name: Apply System SYMPHONY follow-up
 
 on:
-  push:
+  pull_request:
     branches:
-      - fix/system-symphony-cache-transition-coherence
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 permissions:
   contents: write
 
 concurrency:
-  group: ${{ github.repository }}-system-symphony-followup-patcher
-  cancel-in-progress: false
+  group: ${{ github.repository }}-system-symphony-followup-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   patch-and-validate:
     name: Patch and validate
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'fix/system-symphony-cache-transition-coherence'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
