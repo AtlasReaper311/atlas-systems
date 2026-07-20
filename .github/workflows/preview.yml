@@ -10,6 +10,8 @@ on:
       - reopened
     paths:
       - ".github/workflows/preview.yml"
+      - "_headers"
+      - "lab/**"
       - "static/js/sonify/**"
 
 permissions:
@@ -24,7 +26,8 @@ jobs:
     name: Validate preview candidate
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'feat/system-symphony-composition-director'
+      (startsWith(github.event.pull_request.head.ref, 'feat/system-symphony-') ||
+       startsWith(github.event.pull_request.head.ref, 'fix/system-symphony-'))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -67,7 +70,8 @@ jobs:
     needs: validate
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'feat/system-symphony-composition-director'
+      (startsWith(github.event.pull_request.head.ref, 'feat/system-symphony-') ||
+       startsWith(github.event.pull_request.head.ref, 'fix/system-symphony-'))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment:
@@ -76,8 +80,8 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CF_PAGES_DEPLOY_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-      SOURCE_BRANCH: feat/system-symphony-composition-director
-      PAGES_BRANCH: system-symphony-composition-director
+      SOURCE_BRANCH: ${{ github.event.pull_request.head.ref }}
+      PAGES_BRANCH: system-symphony-pr-${{ github.event.pull_request.number }}
       PROJECT_NAME: atlas-systems
     steps:
       - name: Check out validated head
@@ -93,7 +97,10 @@ jobs:
       - name: Guard production boundary
         run: |
           set -euo pipefail
-          test "${SOURCE_BRANCH}" = "feat/system-symphony-composition-director"
+          case "${SOURCE_BRANCH}" in
+            feat/system-symphony-*|fix/system-symphony-*) ;;
+            *) echo "Refusing unexpected preview source branch: ${SOURCE_BRANCH}" >&2; exit 1 ;;
+          esac
           test "${SOURCE_BRANCH}" != "main"
           test "${PAGES_BRANCH}" != "main"
 
@@ -113,7 +120,7 @@ jobs:
       - name: Record branch preview alias
         env:
           ATOMIC_URL: ${{ steps.deploy.outputs.deployment_url }}
-          PREVIEW_URL: https://system-symphony-composition-director.atlas-systems-44t.pages.dev
+          PREVIEW_URL: https://system-symphony-pr-${{ github.event.pull_request.number }}.atlas-systems-44t.pages.dev
         run: |
           set -euo pipefail
           {
