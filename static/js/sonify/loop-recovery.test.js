@@ -184,14 +184,14 @@ test("the composition director advances exactly once per call with no skipped ph
   assert.deepEqual(indices, [0, 1, 2, 3, 4, 5, 6, 7]);
 });
 
-test("optional production features are bypassed by default in the recovery baseline", () => {
+test("the production features are enabled on top of the approved baseline", () => {
   assert.deepEqual(PRODUCTION_FEATURES, {
-    sidechain: false,
-    subBass: false,
-    masterClipper: false,
-    ghostReverb: false,
-    airTexture: false,
-    dropGestures: false,
+    sidechain: true,
+    subBass: true,
+    masterClipper: true,
+    ghostReverb: true,
+    airTexture: true,
+    dropGestures: true,
   });
-  assert.ok(Object.values(PRODUCTION_FEATURES).every((value) => value === false));
+  assert.ok(Object.values(PRODUCTION_FEATURES).every((value) => value === true));
 });

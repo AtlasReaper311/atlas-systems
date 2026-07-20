@@ -57,12 +57,12 @@ export const SUB_FIFTH_MIDI = 36; // C2
 // and listened to individually once the baseline is approved; the nodes stay in
 // the graph either way so re-enabling is a single flag change with no rewiring.
 export const PRODUCTION_FEATURES = Object.freeze({
-  sidechain: false,
-  subBass: false,
-  masterClipper: false,
-  ghostReverb: false,
-  airTexture: false,
-  dropGestures: false,
+  sidechain: true,
+  subBass: true,
+  masterClipper: true,
+  ghostReverb: true,
+  airTexture: true,
+  dropGestures: true,
 });
 export const PERCUSSION_BUS_GAINS = Object.freeze({
   healthy: 0.42,

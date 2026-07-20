@@ -282,7 +282,12 @@ export const STATE_SAMPLE_POOLS = Object.freeze({
     metal: Object.freeze(["perc-stick", "perc-ac-unit-1", "perc-ac-unit-6"]),
     bass: Object.freeze(["bass-transformer", "bass-percussive", "bass-burial", "bass-deep", "bass-doom"]),
     bassLoop: Object.freeze([null, "sequenced-bass", "evil-bass", null]),
-    lead: Object.freeze(["background-saws", "wobbly-synth", "acid-synth", "geneticist", "no-alternative", "future-synth"]),
+    // Only the native F minor acid-synth is used as the tonal lead. It is a plain
+    // Tone.Player at rate 1.0, so it stays in tune with no GrainPlayer warble. The
+    // transposed leads (background-saws +300c, wobbly-synth +200c, the E minor
+    // loops +100c) each granulate to reach F and reintroduce the wub, so they are
+    // held out until they are pre-rendered to F for clean plain-player playback.
+    lead: Object.freeze(["acid-synth"]),
     atmosphere: Object.freeze(["new-punks", null]),
   }),
   warning: Object.freeze({
@@ -292,7 +297,9 @@ export const STATE_SAMPLE_POOLS = Object.freeze({
     metal: Object.freeze(["perc-ac-unit-1", "perc-ac-unit-3", "perc-stick"]),
     bass: Object.freeze(["bass-transformer", "bass-percussive", "bass-angry", "bass-deep", "bass-doom"]),
     bassLoop: Object.freeze([null, "neo-tokyo", null, "sequenced-bass"]),
-    lead: Object.freeze([null, "background-saws", null, "acid-synth"]),
+    // Native F minor acid-synth only, for the same reason as Healthy. The nulls
+    // keep the deliberate procedural rests that the pool analysis expects.
+    lead: Object.freeze([null, "acid-synth", null, "acid-synth"]),
     atmosphere: Object.freeze(["motherboard", "new-punks"]),
   }),
   critical: Object.freeze({
