@@ -22,8 +22,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  diagnose:
-    name: Diagnose featured lead tests
+  repair:
+    name: Finalize featured lead experiment
     if: github.event.pull_request.head.ref == 'feat/system-symphony-featured-leads'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -34,42 +34,38 @@ jobs:
           ref: feat/system-symphony-featured-leads
           fetch-depth: 0
 
-      - name: Capture focused test diagnostics
+      - name: Repair palette contract and clean diagnostics
         run: |
           set -euo pipefail
-          log_file="static/js/sonify/experiment-ci.log"
-          if test -f "${log_file}"; then
-            echo "Diagnostic log already captured"
-            exit 0
-          fi
-          set +e
-          {
-            echo "=== samples.test.js ==="
-            node --test static/js/sonify/samples.test.js
-            echo "status=$?"
-            echo
-            echo "=== sampler.test.js ==="
-            node --test static/js/sonify/sampler.test.js
-            echo "status=$?"
-            echo
-            echo "=== loop-recovery.test.js ==="
-            node --test static/js/sonify/loop-recovery.test.js
-            echo "status=$?"
-            echo
-            echo "=== loop-production-v2.test.js ==="
-            node --test static/js/sonify/loop-production-v2.test.js
-            echo "status=$?"
-          } >"${log_file}" 2>&1
-          set -e
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("static/js/sonify/samples.js")
+          text = path.read_text(encoding="utf-8")
+          old = '    atmosphere: Object.freeze([null, "new-punks", null]),'
+          new = '    atmosphere: Object.freeze(["new-punks", null]),'
+          if old in text:
+              path.write_text(text.replace(old, new, 1), encoding="utf-8")
+          elif new not in text:
+              raise SystemExit("Healthy atmosphere pool anchor not found")
+          PY
+
+          rm -f static/js/sonify/experiment-ci.log
+          node --check static/js/sonify/samples.js
+          node --check static/js/sonify/sampler.js
+          node --test static/js/sonify/samples.test.js static/js/sonify/sampler.test.js static/js/sonify/loop-recovery.test.js static/js/sonify/loop-production-v2.test.js
+          git diff --check
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "${log_file}"
-          git commit -m "chore: capture featured lead test diagnostics"
+          git add static/js/sonify/samples.js
+          git add -u static/js/sonify/experiment-ci.log
+          git commit -m "Fix featured lead atmosphere contract"
           git push origin HEAD:feat/system-symphony-featured-leads
 
   validate:
     name: Validate preview candidate
-    needs: diagnose
+    needs: repair
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
       (startsWith(github.event.pull_request.head.ref, 'feat/system-symphony-') ||
