@@ -1,4 +1,4 @@
-name: System SYMPHONY featured lead repair diagnostic
+name: System SYMPHONY featured lead repair
 
 on:
   pull_request:
@@ -10,16 +10,16 @@ on:
       - ".github/workflows/preview.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  diagnose:
-    name: Diagnose featured lead repair script
+  repair:
+    name: Apply featured lead repair
     if: github.event.pull_request.head.ref == 'feat/system-symphony-featured-leads'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Run repair script in disposable clone
+      - name: Apply, validate, and push repair
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -29,3 +29,12 @@ jobs:
           git clone --quiet --branch feat/system-symphony-featured-leads "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" repo
           cd repo
           bash scripts/repair_featured_leads.sh
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/audio/system-symphony
+          git add static/js/sonify/samples.js
+          git add static/js/sonify/sampler.js
+          git add static/js/sonify/performance.js
+          git add static/js/sonify/samples.test.js
+          git commit -m "Fix featured lead timing and Unknown balance"
+          git push origin HEAD:feat/system-symphony-featured-leads
