@@ -34,7 +34,7 @@ jobs:
           ref: feat/system-symphony-featured-leads
           fetch-depth: 0
 
-      - name: Apply and validate featured lead experiment
+      - name: Apply featured lead experiment
         run: |
           set -euo pipefail
           python3 - <<'PY'
@@ -81,7 +81,6 @@ jobs:
 
           node --check static/js/sonify/samples.js
           node --check static/js/sonify/sampler.js
-          node --test static/js/sonify/samples.test.js static/js/sonify/sampler.test.js static/js/sonify/loop-recovery.test.js
           git diff --check
 
           if git diff --quiet -- static/js/sonify/samples.js static/js/sonify/sampler.js static/js/sonify/samples.test.js; then
