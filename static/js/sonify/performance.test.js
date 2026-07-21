@@ -118,9 +118,11 @@ test("Demo scenes have distinct cinematic intensity and atmosphere profiles", ()
   assert.ok(critical.droneMultiplier < warning.droneMultiplier);
   assert.ok(warning.droneMultiplier < healthy.droneMultiplier);
   assert.ok(healthy.droneMultiplier < ghost.droneMultiplier);
-  assert.ok(critical.padMultiplier < warning.padMultiplier);
+  // Ghost keeps a visible pad bed, but the featured No Alternative lead now
+  // shares the foreground instead of sitting beneath the loudest pad profile.
+  assert.ok(critical.padMultiplier < ghost.padMultiplier);
+  assert.ok(ghost.padMultiplier < warning.padMultiplier);
   assert.ok(warning.padMultiplier < healthy.padMultiplier);
-  assert.ok(healthy.padMultiplier < ghost.padMultiplier);
   assert.ok(critical.distortionWet > warning.distortionWet);
   assert.ok(warning.distortionWet > healthy.distortionWet);
   assert.ok(ghost.reverbWet > healthy.reverbWet);
