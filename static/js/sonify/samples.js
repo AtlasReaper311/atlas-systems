@@ -291,7 +291,7 @@ export const STATE_SAMPLE_POOLS = Object.freeze({
     // loops +100c) each granulate to reach F and reintroduce the wub, so they are
     // held out until they are pre-rendered to F for clean plain-player playback.
     lead: Object.freeze(["geneticist"]),
-    atmosphere: Object.freeze([null, "new-punks", null]),
+    atmosphere: Object.freeze(["new-punks", null]),
   }),
   warning: Object.freeze({
     kick: Object.freeze(["kick-punchier", "kick-crispy", "kick-aggressive"]),
