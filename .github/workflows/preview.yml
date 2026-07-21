@@ -1,4 +1,4 @@
-name: System SYMPHONY full validation diagnostic
+name: System SYMPHONY concise validation diagnostic
 
 on:
   pull_request:
@@ -14,41 +14,46 @@ permissions:
 
 jobs:
   diagnose:
-    name: Diagnose full validation
+    name: Diagnose exact validation failure
     if: github.event.pull_request.head.ref == 'feat/system-symphony-featured-leads'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Check out branch
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          ref: feat/system-symphony-featured-leads
-          fetch-depth: 0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: "22"
-
-      - name: Run validation with stage markers
+      - name: Run concise diagnostic
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          echo "VALIDATION 1/5: HTML"
-          npx --yes html-validate@9.7.1 "**/*.html"
-          echo "VALIDATION 2/5: NODE TESTS"
-          node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
-          echo "VALIDATION 3/5: SITEMAP"
-          python3 scripts/generate_sitemap.py --check-only
-          echo "VALIDATION 4/5: PAGES OUTPUT"
-          python3 scripts/verify_pages_output.py .
-          echo "VALIDATION 5/5: JSON"
+          git clone --quiet --branch feat/system-symphony-featured-leads "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" repo
+          cd repo
+
+          run_stage() {
+            label="$1"
+            shift
+            log="${RUNNER_TEMP}/${label}.log"
+            echo "START ${label}"
+            if "$@" >"${log}" 2>&1; then
+              echo "PASS ${label}"
+            else
+              status=$?
+              echo "FAIL ${label} status=${status}"
+              tail -n 80 "${log}"
+              exit "${status}"
+            fi
+          }
+
+          run_stage html npx --yes html-validate@9.7.1 "**/*.html"
+          run_stage tests node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
+          run_stage sitemap python3 scripts/generate_sitemap.py --check-only
+          run_stage pages python3 scripts/verify_pages_output.py .
+
+          echo "START json"
           python3 - <<'PY'
           import json
           from pathlib import Path
-
           for path in sorted(Path(".").rglob("*.json")):
               if ".git" in path.parts:
                   continue
               json.loads(path.read_text(encoding="utf-8"))
           PY
-          echo "VALIDATION COMPLETE"
+          echo "PASS json"
