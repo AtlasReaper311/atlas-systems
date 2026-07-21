@@ -39,7 +39,7 @@ import sys
 
 geneticist_duration = float(sys.argv[1])
 no_alt_duration = float(sys.argv[2])
-if not 18.5 <= geneticist_duration <= 19.5:
+if not 17.2 <= geneticist_duration <= 17.6:
     raise SystemExit(f"Unexpected Geneticist duration: {geneticist_duration}")
 if not 18.5 <= no_alt_duration <= 19.5:
     raise SystemExit(f"Unexpected No Alternative duration: {no_alt_duration}")
@@ -66,7 +66,7 @@ replace_once(
 replace_once(
     samples,
     '...asset("geneticist", "lead-geneticist-96-e-min", -8),\n    bpm: 96,\n    key: "E minor toward F",\n    transposeCents: 100,\n    durationSeconds: 20,\n    playableEndSeconds: 18.16,\n    playableBeats: 28,\n    grainSize: 0.22,\n    grainOverlap: 0.12,',
-    '...asset("geneticist", "lead-geneticist-100-f-min", -8),\n    bpm: 100,\n    key: "F minor",\n    transposeCents: 0,\n    durationSeconds: 19.2,\n    playableEndSeconds: 19.2,\n    playableBeats: 32,\n    grainSize: 0.22,\n    grainOverlap: 0.12,',
+    '...asset("geneticist", "lead-geneticist-100-f-min", -8),\n    bpm: 100,\n    key: "F minor",\n    transposeCents: 0,\n    durationSeconds: 17.425,\n    playableEndSeconds: 17.425,\n    playableBeats: 28,\n    grainSize: 0.22,\n    grainOverlap: 0.12,',
 )
 replace_once(
     samples,
