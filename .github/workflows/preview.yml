@@ -1,4 +1,4 @@
-name: System SYMPHONY featured lead repair diagnostics
+name: System SYMPHONY featured lead repair
 
 on:
   pull_request:
@@ -10,68 +10,125 @@ on:
       - ".github/workflows/preview.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  diagnose:
-    name: Diagnose featured lead repair
+  repair-featured-leads:
+    name: Repair featured lead timing and balance
     if: github.event.pull_request.head.ref == 'feat/system-symphony-featured-leads'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
-      - name: Run concise repair diagnostic
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Check out experiment branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: feat/system-symphony-featured-leads
+          fetch-depth: 0
+
+      - name: Install audio tooling
         run: |
           set -euo pipefail
-          git clone --quiet --branch feat/system-symphony-featured-leads "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" repo
-          cd repo
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
 
-          echo "STEP 1: tools"
-          command -v ffmpeg
-          command -v ffprobe
+      - name: Re-render featured leads and patch arrangement
+        run: |
+          set -euo pipefail
 
-          echo "STEP 2: source files"
-          test -s static/audio/system-symphony/lead-geneticist-96-e-min.wav
-          test -s static/audio/system-symphony/lead-no-alternative-100-e-min.wav
+          audio_dir="static/audio/system-symphony"
+          geneticist_old="${audio_dir}/lead-geneticist-96-e-min"
+          geneticist_new="${audio_dir}/lead-geneticist-100-f-min"
+          no_alt_old="${audio_dir}/lead-no-alternative-100-e-min"
+          no_alt_new="${audio_dir}/lead-no-alternative-100-f-min"
 
-          echo "STEP 3: Geneticist render"
           ffmpeg -hide_banner -loglevel error -y \
-            -i static/audio/system-symphony/lead-geneticist-96-e-min.wav \
+            -i "${geneticist_old}.wav" \
             -af "asetrate=46722.32246124493,aresample=44100,atempo=0.9832024090434307" \
-            -ar 44100 -ac 2 -c:a pcm_s16le /tmp/geneticist.wav
-          ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 /tmp/geneticist.wav
-
-          echo "STEP 4: No Alternative render"
+            -ar 44100 -ac 2 -c:a pcm_s16le "${geneticist_new}.wav"
           ffmpeg -hide_banner -loglevel error -y \
-            -i static/audio/system-symphony/lead-no-alternative-100-e-min.wav \
+            -i "${no_alt_old}.wav" \
             -af "asetrate=46722.32246124493,aresample=44100,atempo=0.9438743126816934" \
-            -ar 44100 -ac 2 -c:a pcm_s16le /tmp/no-alternative.wav
-          ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 /tmp/no-alternative.wav
+            -ar 44100 -ac 2 -c:a pcm_s16le "${no_alt_new}.wav"
+          ffmpeg -hide_banner -loglevel error -y -i "${geneticist_new}.wav" -c:a libopus -b:a 160k "${geneticist_new}.opus"
+          ffmpeg -hide_banner -loglevel error -y -i "${geneticist_new}.wav" -c:a aac -b:a 192k "${geneticist_new}.m4a"
+          ffmpeg -hide_banner -loglevel error -y -i "${no_alt_new}.wav" -c:a libopus -b:a 160k "${no_alt_new}.opus"
+          ffmpeg -hide_banner -loglevel error -y -i "${no_alt_new}.wav" -c:a aac -b:a 192k "${no_alt_new}.m4a"
 
-          echo "STEP 5: encoders"
-          ffmpeg -hide_banner -loglevel error -y -i /tmp/geneticist.wav -c:a libopus -b:a 160k /tmp/geneticist.opus
-          ffmpeg -hide_banner -loglevel error -y -i /tmp/geneticist.wav -c:a aac -b:a 192k /tmp/geneticist.m4a
+          geneticist_duration="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${geneticist_new}.wav")"
+          no_alt_duration="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${no_alt_new}.wav")"
 
-          echo "STEP 6: patch anchors"
-          python3 - <<'PY'
+          python3 - "${geneticist_duration}" "${no_alt_duration}" <<'PY'
+          import hashlib
+          import json
           from pathlib import Path
+          import sys
 
-          checks = [
-              (Path("static/js/sonify/samples.js"), 'export const SAMPLE_ASSET_VERSION = "20260720-system-symphony-loop-production-v2";'),
-              (Path("static/js/sonify/samples.js"), '...asset("geneticist", "lead-geneticist-96-e-min", -8),'),
-              (Path("static/js/sonify/samples.js"), '...asset("no-alternative", "lead-no-alternative-100-e-min", -7),'),
-              (Path("static/js/sonify/samples.js"), '  healthy: Object.freeze([0, 8, 16, 24]),\n  warning: Object.freeze([0, 16]),\n  critical: Object.freeze([0, 8, 16, 24]),\n  unknown: Object.freeze([0, 16]),'),
-              (Path("static/js/sonify/samples.js"), '  const durationBeats = state === "unknown"\n    ? 3\n    : state === "critical"\n      ? 1.25\n      : state === "healthy"\n        ? 2'),
-              (Path("static/js/sonify/sampler.js"), 'unknown: Object.freeze({ drums: 0.22, bass: 0.3, bassLoop: 0, bassFilterHz: 620, lead: 0.42'),
-              (Path("static/js/sonify/performance.js"), '    pad: [0.58, 0.3],'),
-              (Path("static/js/sonify/samples.test.js"), '  const expectedLeadCounts = { healthy: 4, warning: 2, critical: 4, unknown: 2 };'),
-          ]
-          for path, anchor in checks:
-              count = path.read_text(encoding="utf-8").count(anchor)
-              print(f"{path}: {count}: {anchor[:72]}")
+          geneticist_duration = float(sys.argv[1])
+          no_alt_duration = float(sys.argv[2])
+          if not 19.0 <= geneticist_duration <= 19.4:
+              raise SystemExit(f"Unexpected Geneticist duration: {geneticist_duration}")
+          if not 19.0 <= no_alt_duration <= 19.4:
+              raise SystemExit(f"Unexpected No Alternative duration: {no_alt_duration}")
+
+          def replace_once(path, old, new):
+              text = path.read_text(encoding="utf-8")
+              count = text.count(old)
               if count != 1:
-                  raise SystemExit(1)
+                  raise SystemExit(f"Expected one anchor in {path}, found {count}: {old!r}")
+              path.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          samples = Path("static/js/sonify/samples.js")
+          sampler = Path("static/js/sonify/sampler.js")
+          performance = Path("static/js/sonify/performance.js")
+          tests = Path("static/js/sonify/samples.test.js")
+          manifest_path = Path("static/audio/system-symphony/manifest.json")
+
+          replace_once(samples, 'export const SAMPLE_ASSET_VERSION = "20260720-system-symphony-loop-production-v2";', 'export const SAMPLE_ASSET_VERSION = "20260721-system-symphony-featured-leads-v2";')
+          replace_once(samples, '...asset("geneticist", "lead-geneticist-96-e-min", -8),\n    bpm: 96,\n    key: "E minor toward F",\n    transposeCents: 100,\n    durationSeconds: 20,\n    playableEndSeconds: 18.16,\n    playableBeats: 28,\n    grainSize: 0.22,\n    grainOverlap: 0.12,', '...asset("geneticist", "lead-geneticist-100-f-min", -8),\n    bpm: 100,\n    key: "F minor",\n    transposeCents: 0,\n    durationSeconds: 19.2,\n    playableEndSeconds: 19.2,\n    playableBeats: 32,\n    grainSize: 0.22,\n    grainOverlap: 0.12,')
+          replace_once(samples, '...asset("no-alternative", "lead-no-alternative-100-e-min", -7),\n    bpm: 100,\n    key: "E minor toward F",\n    transposeCents: 100,', '...asset("no-alternative", "lead-no-alternative-100-f-min", -7),\n    bpm: 100,\n    key: "F minor",\n    transposeCents: 0,')
+          replace_once(samples, '  healthy: Object.freeze([0, 8, 16, 24]),\n  warning: Object.freeze([0, 16]),\n  critical: Object.freeze([0, 8, 16, 24]),\n  unknown: Object.freeze([0, 16]),', '  healthy: Object.freeze([0]),\n  warning: Object.freeze([0, 16]),\n  critical: Object.freeze([0]),\n  unknown: Object.freeze([0, 16]),')
+          replace_once(samples, '  const sourceBeat = LEAD_SOURCE_BEATS[\n    poolIndex(eventIndex + sliceVariant + integer(phraseIndex), LEAD_SOURCE_BEATS.length)\n  ];\n  const durationBeats = state === "unknown"\n    ? 3\n    : state === "critical"\n      ? 1.25\n      : state === "healthy"\n        ? 2\n        : section === "lift" || section === "fill"\n          ? 1\n          : 1.5;', '  const phraseLead = state === "healthy" || state === "critical";\n  const sourceBeat = phraseLead\n    ? 0\n    : LEAD_SOURCE_BEATS[\n      poolIndex(eventIndex + sliceVariant + integer(phraseIndex), LEAD_SOURCE_BEATS.length)\n    ];\n  const durationBeats = phraseLead\n    ? 16\n    : state === "unknown"\n      ? 4\n      : section === "lift" || section === "fill"\n        ? 1\n        : 1.5;')
+          replace_once(samples, '    : state === "warning"\n      ? 0.58\n      : state === "unknown"\n        ? 0.38\n        : 0.58;', '    : state === "warning"\n      ? 0.58\n      : state === "unknown"\n        ? 0.46\n        : 0.58;')
+          replace_once(sampler, 'unknown: Object.freeze({ drums: 0.22, bass: 0.3, bassLoop: 0, bassFilterHz: 620, lead: 0.42, atmosphere: 0, atmosphereFilterHz: 800, drive: 0.014, room: 0.14, delay: 0.28 }),', 'unknown: Object.freeze({ drums: 0.22, bass: 0.3, bassLoop: 0, bassFilterHz: 620, lead: 0.58, atmosphere: 0, atmosphereFilterHz: 800, drive: 0.014, room: 0.14, delay: 0.24 }),')
+          replace_once(performance, '    pad: [0.58, 0.3],', '    pad: [0.38, 0.18],')
+          replace_once(tests, '  const expectedLeadCounts = { healthy: 4, warning: 2, critical: 4, unknown: 2 };', '  const expectedLeadCounts = { healthy: 1, warning: 2, critical: 1, unknown: 2 };')
+
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          replacements = {
+              "lead-geneticist-96-e-min": ("lead-geneticist-100-f-min", "offline pitch +100 cents and tempo conversion 96 to 100 BPM"),
+              "lead-no-alternative-100-e-min": ("lead-no-alternative-100-f-min", "offline pitch +100 cents at native 100 BPM"),
+          }
+          found = set()
+          for entry in manifest["assets"]:
+              current = entry.get("slug")
+              if current not in replacements:
+                  continue
+              found.add(current)
+              new_slug, note = replacements[current]
+              entry["slug"] = new_slug
+              entry["note"] = note
+              wav = Path("static/audio/system-symphony") / f"{new_slug}.wav"
+              entry["process_sha256"] = hashlib.sha256(wav.read_bytes()).hexdigest()
+          if found != set(replacements):
+              raise SystemExit(f"Manifest lead entries missing: {set(replacements) - found}")
+          manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
           PY
 
-          echo "DIAGNOSTIC PASSED THROUGH ALL PRE-PATCH STAGES"
+          rm -f "${geneticist_old}.wav" "${geneticist_old}.opus" "${geneticist_old}.m4a"
+          rm -f "${no_alt_old}.wav" "${no_alt_old}.opus" "${no_alt_old}.m4a"
+
+          node --check static/js/sonify/samples.js
+          node --check static/js/sonify/sampler.js
+          node --check static/js/sonify/performance.js
+          node --test static/js/sonify/samples.test.js static/js/sonify/sampler.test.js static/js/sonify/loop-recovery.test.js static/js/sonify/loop-production-v2.test.js
+          git diff --check
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/audio/system-symphony static/js/sonify/samples.js static/js/sonify/sampler.js static/js/sonify/performance.js static/js/sonify/samples.test.js
+          git commit -m "Fix featured lead timing and Unknown balance"
+          git push origin HEAD:feat/system-symphony-featured-leads
