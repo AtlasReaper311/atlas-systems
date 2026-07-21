@@ -15,57 +15,15 @@ on:
       - "static/js/sonify/**"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ${{ github.repository }}-pages-preview-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
-  repair:
-    name: Finalize featured lead experiment
-    if: github.event.pull_request.head.ref == 'feat/system-symphony-featured-leads'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Check out experiment branch
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          ref: feat/system-symphony-featured-leads
-          fetch-depth: 0
-
-      - name: Repair palette contract and clean diagnostics
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-
-          path = Path("static/js/sonify/samples.js")
-          text = path.read_text(encoding="utf-8")
-          old = '    atmosphere: Object.freeze([null, "new-punks", null]),'
-          new = '    atmosphere: Object.freeze(["new-punks", null]),'
-          if old in text:
-              path.write_text(text.replace(old, new, 1), encoding="utf-8")
-          elif new not in text:
-              raise SystemExit("Healthy atmosphere pool anchor not found")
-          PY
-
-          rm -f static/js/sonify/experiment-ci.log
-          node --check static/js/sonify/samples.js
-          node --check static/js/sonify/sampler.js
-          node --test static/js/sonify/samples.test.js static/js/sonify/sampler.test.js static/js/sonify/loop-recovery.test.js static/js/sonify/loop-production-v2.test.js
-          git diff --check
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add static/js/sonify/samples.js
-          git add -u static/js/sonify/experiment-ci.log
-          git commit -m "Fix featured lead atmosphere contract"
-          git push origin HEAD:feat/system-symphony-featured-leads
-
   validate:
     name: Validate preview candidate
-    needs: repair
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
       (startsWith(github.event.pull_request.head.ref, 'feat/system-symphony-') ||
