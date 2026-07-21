@@ -161,7 +161,7 @@ test("tonal loops stay inside their declared state compatibility", () => {
     for (const state of ["healthy", "warning", "critical", "unknown"]) {
       const id = sampleIdForEvent("lead", state, 0, 0, { leadTimbre: timbre });
       if (id) assert.equal(LEAD_LOOPS[id].stateCompatibility.includes(state), true);
-      if (state === "critical") assert.equal(id, null);
+      if (state === "critical") assert.equal(id, "geneticist");
       if (state === "unknown") unknownLeads.add(id);
     }
     assert.equal(
@@ -169,7 +169,15 @@ test("tonal loops stay inside their declared state compatibility", () => {
       null,
     );
   }
-  assert.deepEqual(unknownLeads, new Set([null, "geneticist"]));
+  assert.deepEqual(unknownLeads, new Set(["no-alternative"]));
+});
+
+test("featured Demo leads do not replace the production live fallbacks", () => {
+  const live = { liveDirected: true };
+  assert.equal(resolveSamplePalette("healthy", live, 0).lead, "acid-synth");
+  assert.equal(resolveSamplePalette("warning", live, 0).lead, "acid-synth");
+  assert.equal(resolveSamplePalette("critical", live, 0).lead, null);
+  assert.equal(resolveSamplePalette("unknown", live, 0).lead, null);
 });
 
 test("rhythmic bass loops are curated per state and exclude wobble and siren sources", () => {
@@ -196,7 +204,7 @@ test("rhythmic bass loops are curated per state and exclude wobble and siren sou
 });
 
 test("state section cycles and lead phrases remain distinct", () => {
-  const expectedLeadCounts = { healthy: 4, warning: 2, critical: 0, unknown: 2 };
+  const expectedLeadCounts = { healthy: 4, warning: 2, critical: 4, unknown: 2 };
   const sectionSignatures = new Set();
   for (const state of ["healthy", "warning", "critical", "unknown"]) {
     const sections = Array.from({ length: 8 }, (_, phrase) => (

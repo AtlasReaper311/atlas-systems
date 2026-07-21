@@ -87,9 +87,9 @@ export const LEAD_LOOPS = Object.freeze({
     durationSeconds: 20,
     playableEndSeconds: 18.16,
     playableBeats: 28,
-    grainSize: 0.14,
-    grainOverlap: 0.07,
-    stateCompatibility: Object.freeze(["healthy", "unknown"]),
+    grainSize: 0.22,
+    grainOverlap: 0.12,
+    stateCompatibility: Object.freeze(["healthy", "critical"]),
   }),
   "no-alternative": Object.freeze({
     ...asset("no-alternative", "lead-no-alternative-100-e-min", -7),
@@ -99,9 +99,9 @@ export const LEAD_LOOPS = Object.freeze({
     durationSeconds: 19.2,
     playableEndSeconds: 19.2,
     playableBeats: 32,
-    grainSize: 0.14,
-    grainOverlap: 0.07,
-    stateCompatibility: Object.freeze(["healthy"]),
+    grainSize: 0.22,
+    grainOverlap: 0.12,
+    stateCompatibility: Object.freeze(["unknown"]),
   }),
   "background-saws": Object.freeze({
     ...asset("background-saws", "lead-background-saws-100-d-min", -11),
@@ -290,8 +290,8 @@ export const STATE_SAMPLE_POOLS = Object.freeze({
     // transposed leads (background-saws +300c, wobbly-synth +200c, the E minor
     // loops +100c) each granulate to reach F and reintroduce the wub, so they are
     // held out until they are pre-rendered to F for clean plain-player playback.
-    lead: Object.freeze(["acid-synth"]),
-    atmosphere: Object.freeze(["new-punks", null]),
+    lead: Object.freeze(["geneticist"]),
+    atmosphere: Object.freeze([null, "new-punks", null]),
   }),
   warning: Object.freeze({
     kick: Object.freeze(["kick-punchier", "kick-crispy", "kick-aggressive"]),
@@ -315,8 +315,8 @@ export const STATE_SAMPLE_POOLS = Object.freeze({
     // playbackRate 1.0. The 105 BPM distorted-guitar cannot run at native rate on
     // the locked 100 BPM transport and is held out of the live pool for now.
     bassLoop: Object.freeze([null, "neo-tokyo", "neo-tokyo", null]),
-    lead: Object.freeze([]),
-    atmosphere: Object.freeze(["nanotech", "motherboard"]),
+    lead: Object.freeze(["geneticist"]),
+    atmosphere: Object.freeze(["nanotech", null, "motherboard", null]),
   }),
   unknown: Object.freeze({
     kick: Object.freeze(["kick-subtle", "kick-crispy"]),
@@ -325,7 +325,7 @@ export const STATE_SAMPLE_POOLS = Object.freeze({
     metal: Object.freeze(["perc-ac-unit-6", "perc-stick", "perc-ac-unit-1"]),
     bass: Object.freeze(["bass-deep", "bass-burial", "bass-doom"]),
     bassLoop: Object.freeze([null]),
-    lead: Object.freeze([null, "geneticist"]),
+    lead: Object.freeze(["no-alternative"]),
     atmosphere: Object.freeze([null]),
   }),
 });
@@ -370,7 +370,7 @@ const PHRASES_PER_HYPER_CYCLE = 8;
 const LEAD_STEP_PATTERNS = Object.freeze({
   healthy: Object.freeze([0, 8, 16, 24]),
   warning: Object.freeze([0, 16]),
-  critical: Object.freeze([]),
+  critical: Object.freeze([0, 8, 16, 24]),
   unknown: Object.freeze([0, 16]),
 });
 
@@ -499,19 +499,21 @@ export function leadSliceForStep(
     poolIndex(eventIndex + sliceVariant + integer(phraseIndex), LEAD_SOURCE_BEATS.length)
   ];
   const durationBeats = state === "unknown"
-    ? 2
+    ? 3
     : state === "critical"
-      ? 0.75
-      : section === "lift" || section === "fill"
-        ? 1
-        : 1.5;
+      ? 1.25
+      : state === "healthy"
+        ? 2
+        : section === "lift" || section === "fill"
+          ? 1
+          : 1.5;
   const stateVelocity = state === "critical"
-    ? 0.68
+    ? 0.64
     : state === "warning"
       ? 0.58
       : state === "unknown"
-        ? 0.32
-        : 0.5;
+        ? 0.38
+        : 0.58;
   return Object.freeze({
     sourceBeat,
     durationBeats,

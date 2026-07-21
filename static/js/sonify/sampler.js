@@ -31,10 +31,10 @@ const PLAYBACK_RATE_MAX = 1.35;
 const ATMOSPHERE_XFADE_SECONDS = 3;
 
 export const SAMPLE_STATE_MIX = Object.freeze({
-  healthy: Object.freeze({ drums: 0.68, bass: 0.62, bassLoop: 0.32, bassFilterHz: 720, lead: 0.64, atmosphere: 0.2, atmosphereFilterHz: 2300, drive: 0.025, room: 0.08, delay: 0.12 }),
+  healthy: Object.freeze({ drums: 0.6, bass: 0.58, bassLoop: 0.28, bassFilterHz: 720, lead: 0.76, atmosphere: 0.12, atmosphereFilterHz: 2600, drive: 0.02, room: 0.06, delay: 0.18 }),
   warning: Object.freeze({ drums: 0.72, bass: 0.64, bassLoop: 0.18, bassFilterHz: 860, lead: 0.42, atmosphere: 0.14, atmosphereFilterHz: 1150, drive: 0.04, room: 0.08, delay: 0.08 }),
-  critical: Object.freeze({ drums: 0.76, bass: 0.68, bassLoop: 0.28, bassFilterHz: 980, lead: 0, atmosphere: 0.1, atmosphereFilterHz: 920, drive: 0.065, room: 0.06, delay: 0.06 }),
-  unknown: Object.freeze({ drums: 0.28, bass: 0.34, bassLoop: 0, bassFilterHz: 620, lead: 0.2, atmosphere: 0, atmosphereFilterHz: 800, drive: 0.018, room: 0.16, delay: 0.18 }),
+  critical: Object.freeze({ drums: 0.58, bass: 0.62, bassLoop: 0.24, bassFilterHz: 980, lead: 0.68, atmosphere: 0.07, atmosphereFilterHz: 1050, drive: 0.05, room: 0.05, delay: 0.14 }),
+  unknown: Object.freeze({ drums: 0.22, bass: 0.3, bassLoop: 0, bassFilterHz: 620, lead: 0.42, atmosphere: 0, atmosphereFilterHz: 800, drive: 0.014, room: 0.14, delay: 0.28 }),
 });
 
 function safeRamp(parameter, value, seconds, scheduledTime = undefined) {
