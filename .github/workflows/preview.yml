@@ -15,90 +15,15 @@ on:
       - "static/js/sonify/**"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ${{ github.repository }}-pages-preview-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
-  tune:
-    name: Apply featured lead experiment
-    if: github.event.pull_request.head.ref == 'feat/system-symphony-featured-leads'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Check out experiment branch
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          ref: feat/system-symphony-featured-leads
-          fetch-depth: 0
-
-      - name: Apply featured lead experiment
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-
-          samples = Path("static/js/sonify/samples.js")
-          sampler = Path("static/js/sonify/sampler.js")
-          tests = Path("static/js/sonify/samples.test.js")
-
-          def replace_guarded(path, old, new):
-              text = path.read_text(encoding="utf-8")
-              if old in text:
-                  path.write_text(text.replace(old, new, 1), encoding="utf-8")
-                  return
-              if new in text:
-                  return
-              raise SystemExit(f"Missing expected old/new anchor in {path}: {old!r}")
-
-          replace_guarded(samples, '    grainSize: 0.14,\n    grainOverlap: 0.07,\n    stateCompatibility: Object.freeze(["healthy", "unknown"]),', '    grainSize: 0.22,\n    grainOverlap: 0.12,\n    stateCompatibility: Object.freeze(["healthy", "critical"]),')
-          replace_guarded(samples, '    grainSize: 0.14,\n    grainOverlap: 0.07,\n    stateCompatibility: Object.freeze(["healthy"]),', '    grainSize: 0.22,\n    grainOverlap: 0.12,\n    stateCompatibility: Object.freeze(["unknown"]),')
-          replace_guarded(samples, '    lead: Object.freeze(["acid-synth"]),\n    atmosphere: Object.freeze(["new-punks", null]),', '    lead: Object.freeze(["geneticist"]),\n    atmosphere: Object.freeze([null, "new-punks", null]),')
-          replace_guarded(samples, '    lead: Object.freeze([]),\n    atmosphere: Object.freeze(["nanotech", "motherboard"]),', '    lead: Object.freeze(["geneticist"]),\n    atmosphere: Object.freeze(["nanotech", null, "motherboard", null]),')
-          replace_guarded(samples, '    lead: Object.freeze([null, "geneticist"]),\n    atmosphere: Object.freeze([null]),', '    lead: Object.freeze(["no-alternative"]),\n    atmosphere: Object.freeze([null]),')
-          replace_guarded(samples, '  critical: Object.freeze([]),', '  critical: Object.freeze([0, 8, 16, 24]),')
-          replace_guarded(samples, '  const durationBeats = state === "unknown"\n    ? 2\n    : state === "critical"\n      ? 0.75\n      : section === "lift" || section === "fill"\n        ? 1\n        : 1.5;', '  const durationBeats = state === "unknown"\n    ? 3\n    : state === "critical"\n      ? 1.25\n      : state === "healthy"\n        ? 2\n        : section === "lift" || section === "fill"\n          ? 1\n          : 1.5;')
-          replace_guarded(samples, '  const stateVelocity = state === "critical"\n    ? 0.68\n    : state === "warning"\n      ? 0.58\n      : state === "unknown"\n        ? 0.32\n        : 0.5;', '  const stateVelocity = state === "critical"\n    ? 0.64\n    : state === "warning"\n      ? 0.58\n      : state === "unknown"\n        ? 0.38\n        : 0.58;')
-
-          replace_guarded(sampler, '  healthy: Object.freeze({ drums: 0.68, bass: 0.62, bassLoop: 0.32, bassFilterHz: 720, lead: 0.64, atmosphere: 0.2, atmosphereFilterHz: 2300, drive: 0.025, room: 0.08, delay: 0.12 }),', '  healthy: Object.freeze({ drums: 0.6, bass: 0.58, bassLoop: 0.28, bassFilterHz: 720, lead: 0.76, atmosphere: 0.12, atmosphereFilterHz: 2600, drive: 0.02, room: 0.06, delay: 0.18 }),')
-          replace_guarded(sampler, '  critical: Object.freeze({ drums: 0.76, bass: 0.68, bassLoop: 0.28, bassFilterHz: 980, lead: 0, atmosphere: 0.1, atmosphereFilterHz: 920, drive: 0.065, room: 0.06, delay: 0.06 }),', '  critical: Object.freeze({ drums: 0.58, bass: 0.62, bassLoop: 0.24, bassFilterHz: 980, lead: 0.68, atmosphere: 0.07, atmosphereFilterHz: 1050, drive: 0.05, room: 0.05, delay: 0.14 }),')
-          replace_guarded(sampler, '  unknown: Object.freeze({ drums: 0.28, bass: 0.34, bassLoop: 0, bassFilterHz: 620, lead: 0.2, atmosphere: 0, atmosphereFilterHz: 800, drive: 0.018, room: 0.16, delay: 0.18 }),', '  unknown: Object.freeze({ drums: 0.22, bass: 0.3, bassLoop: 0, bassFilterHz: 620, lead: 0.42, atmosphere: 0, atmosphereFilterHz: 800, drive: 0.014, room: 0.14, delay: 0.28 }),')
-
-          replace_guarded(tests, '      if (state === "critical") assert.equal(id, null);\n      if (state === "unknown") unknownLeads.add(id);', '      if (state === "critical") assert.equal(id, "geneticist");\n      if (state === "unknown") unknownLeads.add(id);')
-          replace_guarded(tests, '  assert.deepEqual(unknownLeads, new Set([null, "geneticist"]));', '  assert.deepEqual(unknownLeads, new Set(["no-alternative"]));')
-          replace_guarded(tests, '  const expectedLeadCounts = { healthy: 4, warning: 2, critical: 0, unknown: 2 };', '  const expectedLeadCounts = { healthy: 4, warning: 2, critical: 4, unknown: 2 };')
-
-          anchor = 'test("rhythmic bass loops are curated per state and exclude wobble and siren sources", () => {'
-          extra = '''test("featured Demo leads do not replace the production live fallbacks", () => {\n  const live = { liveDirected: true };\n  assert.equal(resolveSamplePalette("healthy", live, 0).lead, "acid-synth");\n  assert.equal(resolveSamplePalette("warning", live, 0).lead, "acid-synth");\n  assert.equal(resolveSamplePalette("critical", live, 0).lead, null);\n  assert.equal(resolveSamplePalette("unknown", live, 0).lead, null);\n});\n\n'''
-          text = tests.read_text(encoding="utf-8")
-          if extra not in text:
-              if text.count(anchor) != 1:
-                  raise SystemExit("Expected test insertion anchor once")
-              tests.write_text(text.replace(anchor, extra + anchor, 1), encoding="utf-8")
-          PY
-
-          node --check static/js/sonify/samples.js
-          node --check static/js/sonify/sampler.js
-          git diff --check
-
-          if git diff --quiet -- static/js/sonify/samples.js static/js/sonify/sampler.js static/js/sonify/samples.test.js; then
-            echo "Featured lead experiment already applied"
-            exit 0
-          fi
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add static/js/sonify/samples.js
-          git add static/js/sonify/sampler.js
-          git add static/js/sonify/samples.test.js
-          git commit -m "Experiment with featured System SYMPHONY lead identities"
-          git push origin HEAD:feat/system-symphony-featured-leads
-
   validate:
     name: Validate preview candidate
-    needs: tune
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
       (startsWith(github.event.pull_request.head.ref, 'feat/system-symphony-') ||
