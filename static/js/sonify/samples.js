@@ -13,7 +13,7 @@ import {
   resolveAssetUrls,
 } from "./asset-loader.js?v=20260718-system-symphony-ghost-circuit";
 
-export const SAMPLE_ASSET_VERSION = "20260720-system-symphony-loop-production-v2";
+export const SAMPLE_ASSET_VERSION = "20260721-system-symphony-featured-leads-v2";
 export const SAMPLE_ASSET_BASE = "/static/audio/system-symphony/";
 
 const assetUrlTemplate = (file) => (
@@ -80,22 +80,22 @@ export const BASS_SAMPLES = Object.freeze({
 
 export const LEAD_LOOPS = Object.freeze({
   geneticist: Object.freeze({
-    ...asset("geneticist", "lead-geneticist-96-e-min", -8),
-    bpm: 96,
-    key: "E minor toward F",
-    transposeCents: 100,
-    durationSeconds: 20,
-    playableEndSeconds: 18.16,
+    ...asset("geneticist", "lead-geneticist-100-f-min", -8),
+    bpm: 100,
+    key: "F minor",
+    transposeCents: 0,
+    durationSeconds: 17.425,
+    playableEndSeconds: 17.425,
     playableBeats: 28,
     grainSize: 0.22,
     grainOverlap: 0.12,
     stateCompatibility: Object.freeze(["healthy", "critical"]),
   }),
   "no-alternative": Object.freeze({
-    ...asset("no-alternative", "lead-no-alternative-100-e-min", -7),
+    ...asset("no-alternative", "lead-no-alternative-100-f-min", -7),
     bpm: 100,
-    key: "E minor toward F",
-    transposeCents: 100,
+    key: "F minor",
+    transposeCents: 0,
     durationSeconds: 19.2,
     playableEndSeconds: 19.2,
     playableBeats: 32,
@@ -368,9 +368,9 @@ const HYPER_CYCLES = Object.freeze(["A", "B", "C", "D"]);
 const PHRASES_PER_HYPER_CYCLE = 8;
 
 const LEAD_STEP_PATTERNS = Object.freeze({
-  healthy: Object.freeze([0, 8, 16, 24]),
+  healthy: Object.freeze([0]),
   warning: Object.freeze([0, 16]),
-  critical: Object.freeze([0, 8, 16, 24]),
+  critical: Object.freeze([0]),
   unknown: Object.freeze([0, 16]),
 });
 
@@ -495,24 +495,25 @@ export function leadSliceForStep(
   const section = sectionForPhrase(state, phraseIndex, performance);
   if ((section === "break" || section === "space") && eventIndex % 2 === 1) return null;
   const sliceVariant = integer(performance?.leadSliceVariant);
-  const sourceBeat = LEAD_SOURCE_BEATS[
-    poolIndex(eventIndex + sliceVariant + integer(phraseIndex), LEAD_SOURCE_BEATS.length)
-  ];
-  const durationBeats = state === "unknown"
-    ? 3
-    : state === "critical"
-      ? 1.25
-      : state === "healthy"
-        ? 2
-        : section === "lift" || section === "fill"
-          ? 1
-          : 1.5;
+  const phraseLead = state === "healthy" || state === "critical";
+  const sourceBeat = phraseLead
+    ? 0
+    : LEAD_SOURCE_BEATS[
+      poolIndex(eventIndex + sliceVariant + integer(phraseIndex), LEAD_SOURCE_BEATS.length)
+    ];
+  const durationBeats = phraseLead
+    ? 16
+    : state === "unknown"
+      ? 4
+      : section === "lift" || section === "fill"
+        ? 1
+        : 1.5;
   const stateVelocity = state === "critical"
     ? 0.64
     : state === "warning"
       ? 0.58
       : state === "unknown"
-        ? 0.38
+        ? 0.46
         : 0.58;
   return Object.freeze({
     sourceBeat,

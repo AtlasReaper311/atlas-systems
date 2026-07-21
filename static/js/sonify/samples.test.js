@@ -204,7 +204,7 @@ test("rhythmic bass loops are curated per state and exclude wobble and siren sou
 });
 
 test("state section cycles and lead phrases remain distinct", () => {
-  const expectedLeadCounts = { healthy: 4, warning: 2, critical: 4, unknown: 2 };
+  const expectedLeadCounts = { healthy: 1, warning: 2, critical: 1, unknown: 2 };
   const sectionSignatures = new Set();
   for (const state of ["healthy", "warning", "critical", "unknown"]) {
     const sections = Array.from({ length: 8 }, (_, phrase) => (

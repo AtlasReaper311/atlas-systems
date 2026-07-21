@@ -331,9 +331,9 @@
         "m4a",
         "wav"
       ],
-      "note": "eight-bar loop trim",
-      "process_sha256": "bf4cb11802bd1b605ce4cbfa020f5df2bc58dff49c34b0e17b0d17a5c50ca4d2",
-      "slug": "lead-geneticist-96-e-min",
+      "note": "offline pitch +100 cents and tempo conversion 96 to 100 BPM",
+      "process_sha256": "cd6704cddb696dd1ceddff4a1b540f46449030ba632bee45106bc9faf984f175",
+      "slug": "lead-geneticist-100-f-min",
       "source": "Cymatics - Geneticist - 96 BPM E Min Distorted Lead.wav",
       "source_sha256": "8deeb80cb285041b8e38566cffd19336a0c8d4f015b2d709b2866383c7a17871"
     },
@@ -343,9 +343,9 @@
         "m4a",
         "wav"
       ],
-      "note": "general",
-      "process_sha256": "e0b00a7bbdd8d597e43b0614b1686d60bd37dc48d08d5e5def27152456efefe4",
-      "slug": "lead-no-alternative-100-e-min",
+      "note": "offline pitch +100 cents at native 100 BPM",
+      "process_sha256": "0b8e5952990195a7d1a759a7a83426e2a26ab3a9b93a99c1848706c4bcbd3b40",
+      "slug": "lead-no-alternative-100-f-min",
       "source": "Cymatics - No Alternative - 100 BPM E Min Distorted Lead.wav",
       "source_sha256": "8d778a00599297e7e4d3b2858f3713458460c8dba4d12a90d4f3fb75fe277bc1"
     },

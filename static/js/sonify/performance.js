@@ -100,7 +100,7 @@ const PERFORMANCE_SCENE_DYNAMICS = Object.freeze({
     drums: [0.42, 0.32],
     bass: [0.58, 0.28],
     counterline: [0.58, 0.22],
-    pad: [0.58, 0.3],
+    pad: [0.38, 0.18],
     drone: [0.42, 0.22],
     texture: [0.9, 1.15],
     arpGain: [0.22, 0.24],
