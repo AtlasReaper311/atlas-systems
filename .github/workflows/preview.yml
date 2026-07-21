@@ -1,26 +1,16 @@
-name: Cloudflare Pages preview
+name: System SYMPHONY featured lead repair
 
 on:
   pull_request:
     branches:
       - main
     types:
-      - opened
       - synchronize
-      - reopened
     paths:
       - ".github/workflows/preview.yml"
-      - "_headers"
-      - "lab/**"
-      - "static/js/sonify/**"
-      - "static/audio/system-symphony/**"
 
 permissions:
   contents: write
-
-concurrency:
-  group: ${{ github.repository }}-pages-preview-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
 
 jobs:
   repair-featured-leads:
@@ -30,8 +20,6 @@ jobs:
       github.event.pull_request.head.ref == 'feat/system-symphony-featured-leads'
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    outputs:
-      changed: ${{ steps.repair.outputs.changed }}
     steps:
       - name: Check out experiment branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -40,17 +28,8 @@ jobs:
           fetch-depth: 0
 
       - name: Re-render featured leads and patch arrangement
-        id: repair
         run: |
           set -euo pipefail
-
-          if test -f static/audio/system-symphony/lead-geneticist-100-f-min.wav && \
-             test -f static/audio/system-symphony/lead-no-alternative-100-f-min.wav && \
-             grep -q 'lead-geneticist-100-f-min' static/js/sonify/samples.js && \
-             grep -q 'lead-no-alternative-100-f-min' static/js/sonify/samples.js; then
-            echo "changed=false" >>"${GITHUB_OUTPUT}"
-            exit 0
-          fi
 
           command -v ffmpeg
           command -v ffprobe
@@ -87,7 +66,6 @@ jobs:
 
           geneticist_duration = float(sys.argv[1])
           no_alt_duration = float(sys.argv[2])
-
           if not 19.0 <= geneticist_duration <= 19.4:
               raise SystemExit(f"Unexpected Geneticist duration: {geneticist_duration}")
           if not 19.0 <= no_alt_duration <= 19.4:
@@ -104,7 +82,6 @@ jobs:
           sampler = Path("static/js/sonify/sampler.js")
           performance = Path("static/js/sonify/performance.js")
           tests = Path("static/js/sonify/samples.test.js")
-          audit = Path("static/audio/system-symphony/AUDIT.md")
           manifest_path = Path("static/audio/system-symphony/manifest.json")
 
           replace_once(
@@ -129,13 +106,13 @@ jobs:
           )
           replace_once(
               samples,
-              '  const sourceBeat = LEAD_SOURCE_BEATS[\n    poolIndex(eventIndex + sliceVariant + integer(phraseIndex), LEAD_SOURCE_BEATS.length)\n  ];\n  const durationBeats = state === "unknown"\n    ? 2\n    : state === "critical"\n      ? 0.75\n      : section === "lift" || section === "fill"\n        ? 1\n        : 1.5;',
+              '  const sourceBeat = LEAD_SOURCE_BEATS[\n    poolIndex(eventIndex + sliceVariant + integer(phraseIndex), LEAD_SOURCE_BEATS.length)\n  ];\n  const durationBeats = state === "unknown"\n    ? 3\n    : state === "critical"\n      ? 1.25\n      : state === "healthy"\n        ? 2\n        : section === "lift" || section === "fill"\n          ? 1\n          : 1.5;',
               '  const phraseLead = state === "healthy" || state === "critical";\n  const sourceBeat = phraseLead\n    ? 0\n    : LEAD_SOURCE_BEATS[\n      poolIndex(eventIndex + sliceVariant + integer(phraseIndex), LEAD_SOURCE_BEATS.length)\n    ];\n  const durationBeats = phraseLead\n    ? 16\n    : state === "unknown"\n      ? 4\n      : section === "lift" || section === "fill"\n        ? 1\n        : 1.5;',
           )
           replace_once(
               samples,
-              '      ? 0.58\n      : state === "unknown"\n        ? 0.32\n        : 0.5;',
-              '      ? 0.58\n      : state === "unknown"\n        ? 0.4\n        : 0.5;',
+              '    : state === "warning"\n      ? 0.58\n      : state === "unknown"\n        ? 0.38\n        : 0.58;',
+              '    : state === "warning"\n      ? 0.58\n      : state === "unknown"\n        ? 0.46\n        : 0.58;',
           )
 
           replace_once(
@@ -143,34 +120,15 @@ jobs:
               'unknown: Object.freeze({ drums: 0.22, bass: 0.3, bassLoop: 0, bassFilterHz: 620, lead: 0.42, atmosphere: 0, atmosphereFilterHz: 800, drive: 0.014, room: 0.14, delay: 0.28 }),',
               'unknown: Object.freeze({ drums: 0.22, bass: 0.3, bassLoop: 0, bassFilterHz: 620, lead: 0.58, atmosphere: 0, atmosphereFilterHz: 800, drive: 0.014, room: 0.14, delay: 0.24 }),',
           )
-
           replace_once(
               performance,
               '    pad: [0.58, 0.3],',
               '    pad: [0.38, 0.18],',
           )
-
           replace_once(
               tests,
               '  const expectedLeadCounts = { healthy: 4, warning: 2, critical: 4, unknown: 2 };',
               '  const expectedLeadCounts = { healthy: 1, warning: 2, critical: 1, unknown: 2 };',
-          )
-
-          replace_once(
-              audit,
-              '| `Cymatics - Geneticist - 96 BPM E Min Distorted Lead.wav` | Select | Healthy granular lead, shifted from E minor to D minor |',
-              '| `Cymatics - Geneticist - 96 BPM E Min Distorted Lead.wav` | Select | Offline-rendered to native F at 100 BPM for coherent Healthy/Critical four-bar lead phrases |',
-          )
-          replace_once(
-              audit,
-              '| `Cymatics - No Alternative - 100 BPM E Min Distorted Lead.wav` | Select | Healthy granular lead, shifted from E minor to D minor |',
-              '| `Cymatics - No Alternative - 100 BPM E Min Distorted Lead.wav` | Select | Offline-rendered to native F at 100 BPM for the Unknown featured lead |',
-          )
-          audit.write_text(
-              audit.read_text(encoding="utf-8")
-              + "\n## Featured lead listening pass\n\n"
-              + "Geneticist and No Alternative are rendered offline to native F at the locked 100 BPM transport before browser delivery. Geneticist plays as one four-bar phrase in Healthy and Critical instead of short discontinuous GrainPlayer slices. No Alternative remains sparse in Unknown but uses longer phrases and a lower competing pad level so the lead and pad share the foreground. Live telemetry fallbacks are unchanged.\n",
-              encoding="utf-8",
           )
 
           manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -184,15 +142,19 @@ jobs:
                   "offline pitch +100 cents at native 100 BPM",
               ),
           }
+          found = set()
           for entry in manifest["assets"]:
               current = entry.get("slug")
               if current not in replacements:
                   continue
+              found.add(current)
               new_slug, note = replacements[current]
               entry["slug"] = new_slug
               entry["note"] = note
               wav = Path("static/audio/system-symphony") / f"{new_slug}.wav"
               entry["process_sha256"] = hashlib.sha256(wav.read_bytes()).hexdigest()
+          if found != set(replacements):
+              raise SystemExit(f"Manifest lead entries missing: {set(replacements) - found}")
           manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
           PY
 
@@ -210,117 +172,3 @@ jobs:
           git add static/audio/system-symphony static/js/sonify/samples.js static/js/sonify/sampler.js static/js/sonify/performance.js static/js/sonify/samples.test.js
           git commit -m "Fix featured lead timing and Unknown balance"
           git push origin HEAD:feat/system-symphony-featured-leads
-          echo "changed=true" >>"${GITHUB_OUTPUT}"
-
-  validate:
-    name: Validate preview candidate
-    needs: repair-featured-leads
-    if: >-
-      needs.repair-featured-leads.outputs.changed != 'true' &&
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      (startsWith(github.event.pull_request.head.ref, 'feat/system-symphony-') ||
-       startsWith(github.event.pull_request.head.ref, 'fix/system-symphony-'))
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Check out preview head
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: "22"
-
-      - name: Validate static site and Pages output
-        run: |
-          set -euo pipefail
-          npx --yes html-validate@9.7.1 "**/*.html"
-          node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
-          python3 scripts/generate_sitemap.py --check-only
-          python3 scripts/verify_pages_output.py .
-          python3 - <<'PY'
-          import json
-          from pathlib import Path
-
-          for path in sorted(Path(".").rglob("*.json")):
-              if ".git" in path.parts:
-                  continue
-              json.loads(path.read_text(encoding="utf-8"))
-          PY
-
-      - name: Check repository links offline
-        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
-        with:
-          args: "--offline --no-progress --include-fragments --root-dir ${{ github.workspace }} ."
-          fail: true
-
-  deploy-preview:
-    name: Publish branch preview
-    needs: validate
-    if: >-
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      (startsWith(github.event.pull_request.head.ref, 'feat/system-symphony-') ||
-       startsWith(github.event.pull_request.head.ref, 'fix/system-symphony-'))
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    environment:
-      name: pages-preview
-      url: ${{ steps.deploy.outputs.deployment_url }}
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CF_PAGES_DEPLOY_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-      SOURCE_BRANCH: ${{ github.event.pull_request.head.ref }}
-      PAGES_BRANCH: system-symphony-pr-${{ github.event.pull_request.number }}
-      PROJECT_NAME: atlas-systems
-    steps:
-      - name: Check out validated head
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: "22"
-
-      - name: Guard production boundary
-        run: |
-          set -euo pipefail
-          case "${SOURCE_BRANCH}" in
-            feat/system-symphony-*|fix/system-symphony-*) ;;
-            *) echo "Refusing unexpected preview source branch: ${SOURCE_BRANCH}" >&2; exit 1 ;;
-          esac
-          test "${SOURCE_BRANCH}" != "main"
-          test "${PAGES_BRANCH}" != "main"
-
-      - name: Deploy preview with Wrangler
-        id: deploy
-        run: |
-          set -euo pipefail
-          output_file="${RUNNER_TEMP}/wrangler-pages-deploy.log"
-          npx --yes wrangler@4.109.0 pages deploy . \
-            --project-name "${PROJECT_NAME}" \
-            --branch "${PAGES_BRANCH}" \
-            --commit-dirty=true 2>&1 | tee "${output_file}"
-          deployment_url="$(grep -Eo 'https://[A-Za-z0-9._-]+\.pages\.dev' "${output_file}" | tail -n 1)"
-          test -n "${deployment_url}"
-          echo "deployment_url=${deployment_url}" >>"${GITHUB_OUTPUT}"
-
-      - name: Record branch preview alias
-        env:
-          ATOMIC_URL: ${{ steps.deploy.outputs.deployment_url }}
-          PREVIEW_URL: https://system-symphony-pr-${{ github.event.pull_request.number }}.atlas-systems-44t.pages.dev
-        run: |
-          set -euo pipefail
-          {
-            echo "## Cloudflare Pages preview"
-            echo
-            echo "${PREVIEW_URL}"
-            echo
-            echo "Atomic deployment: ${ATOMIC_URL}"
-            echo
-            echo "This is a non-production branch deployment. atlas-systems.uk is unchanged."
-          } >>"${GITHUB_STEP_SUMMARY}"
