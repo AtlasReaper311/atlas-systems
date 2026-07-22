@@ -35,7 +35,20 @@ jobs:
           node-version: "22"
 
       - name: Validate HTML
-        run: npx --yes html-validate@9.7.1 "**/*.html"
+        run: |
+          set +e
+          npx --yes html-validate@9.7.1 "**/*.html" > /tmp/html-validate.log 2>&1
+          HTML_STATUS=$?
+          cat /tmp/html-validate.log
+          exit "$HTML_STATUS"
+
+      - name: Upload failing HTML validation output
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: proof-chain-html-validation
+          path: /tmp/html-validate.log
+          retention-days: 1
 
       - name: Run browser-model tests
         run: node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
