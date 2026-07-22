@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Follow verified Atlas Systems proof chains from a public runtime service back to its source repository and accepted architecture decisions.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Proof Chain // Atlas Systems</title>
+  <link rel="canonical" href="https://atlas-systems.uk/lab/proof-chain/">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/lab/shared/systems.css">
+  <link rel="stylesheet" href="/lab/proof-chain/proof-chain.css">
+</head>
+<body>
+  <nav aria-label="Primary navigation">
+    <a class="wordmark" href="/">Atlas<span>_</span>Systems</a>
+    <div class="nav-links">
+      <a href="/lab/">Lab</a>
+      <a href="/lab/#system-map">System map</a>
+      <a href="/lab/conformance/">Conformance</a>
+      <a href="/lab/reliability/">Reliability</a>
+    </div>
+  </nav>
+
+  <main>
+    <header>
+      <div class="eyebrow">Atlas Trace // public proof chain</div>
+      <h1>Proof, connected.</h1>
+      <p class="lede">
+        Pick an explicitly public runtime service and follow the evidence back to
+        its source repository and accepted architecture decisions. This view does
+        not invent missing edges or expose an arbitrary graph query surface.
+      </p>
+    </header>
+
+    <section class="section" aria-labelledby="trace-state-title">
+      <h2 id="trace-state-title">Trace state</h2>
+      <div class="grid grid-3 proof-metrics">
+        <div class="metric">
+          <span>public services</span>
+          <strong id="proof-service-count">-</strong>
+        </div>
+        <div class="metric">
+          <span>with governing ADRs</span>
+          <strong id="proof-governed-count">-</strong>
+        </div>
+        <div class="metric">
+          <span>live topology evidence</span>
+          <strong id="proof-topology-state">-</strong>
+        </div>
+      </div>
+      <div class="proof-source-state">
+        <span class="status" id="proof-api-status" data-state="watch">contacting public Trace API</span>
+        <span class="proof-fingerprint" id="proof-fingerprint"></span>
+      </div>
+    </section>
+
+    <section class="section proof-workspace" aria-labelledby="proof-workspace-title">
+      <div class="proof-browser panel panel-deep">
+        <div class="proof-browser-head">
+          <div>
+            <div class="proof-kicker">01 // choose subject</div>
+            <h2 id="proof-workspace-title">Public services</h2>
+          </div>
+          <label class="proof-filter-label" for="proof-filter">Filter</label>
+        </div>
+        <input
+          id="proof-filter"
+          class="proof-filter"
+          type="search"
+          autocomplete="off"
+          placeholder="service or repository"
+          aria-controls="proof-service-list"
+        >
+        <div id="proof-service-list" class="proof-service-list" aria-live="polite">
+          <p class="proof-empty">Loading public Trace index.</p>
+        </div>
+      </div>
+
+      <div class="proof-detail panel" id="proof-detail" aria-live="polite">
+        <div class="proof-detail-empty" id="proof-detail-empty">
+          <div class="proof-kicker">02 // inspect evidence</div>
+          <h2>Select a service.</h2>
+          <p>
+            The proof chain will show only verified public source and governance
+            relationships returned by <code>/v1/trace</code>.
+          </p>
+        </div>
+        <div id="proof-detail-content" hidden>
+          <div class="proof-detail-head">
+            <div>
+              <div class="proof-kicker">02 // proof chain</div>
+              <h2 id="proof-service-title"></h2>
+              <p class="proof-service-meta" id="proof-service-meta"></p>
+            </div>
+            <a class="proof-api-link" id="proof-api-link" href="https://api.atlas-systems.uk/v1/trace" target="_blank" rel="noopener noreferrer">open JSON →</a>
+          </div>
+
+          <div class="proof-evidence-banner" id="proof-evidence-banner"></div>
+          <div class="proof-chain" id="proof-chain"></div>
+
+          <div class="proof-provenance">
+            <h3>Evidence sources</h3>
+            <dl id="proof-sources"></dl>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section panel panel-deep proof-boundary" aria-labelledby="proof-boundary-title">
+      <div class="proof-kicker">Boundary</div>
+      <h2 id="proof-boundary-title">Missing evidence stays missing.</h2>
+      <div class="grid grid-2">
+        <p>
+          A service appears here only when the public Atlas classifications and
+          topology already identify it as a public runtime service. Unknown or
+          non-public identifiers are not turned into discoverable records.
+        </p>
+        <p>
+          Cloudflare topology evidence is shown only after the sanitized
+          <code>atlas-resource-audit</code> report is separately published. Until
+          then the interface reports that evidence as unavailable rather than
+          deriving live state from merged source.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/lab/proof-chain/proof-chain.js"></script>
+</body>
+</html>
