@@ -121,61 +121,69 @@
 
     <div class="articles">
 
-      <!-- W-07: Pipeline & Observability, part 3 :: scheduled final chapter -->
-      <a href="#" class="article-entry coming-soon series-upcoming"
-         data-series="pipeline-observability" data-series-part="3"
-         data-series-total="3" data-series-title="Pipeline &amp; Observability"
-         data-series-state="upcoming">
+      <!-- W-07: Atlas Lab — coming soon -->
+      <a href="#" class="article-entry coming-soon" data-series="pipeline-observability" data-series-part="3" data-series-total="3" data-series-title="Pipeline &amp; Observability" data-series-note="3 parts · 26–30 July 2026" data-series-publish-date="2026-07-30">
         <div class="article-meta">
           <span class="article-number">W-07</span>
-          <span class="article-date">Coming September 2026</span>
+          <span class="article-date">Coming July 2026</span>
           <div class="article-tags">
             <span class="tag highlight">DevOps</span>
+            <span class="tag">Cloudflare Workers</span>
+            <span class="tag">CI/CD</span>
             <span class="tag">Observability</span>
-            <span class="tag">Infrastructure</span>
+            <span class="tag">GitHub Actions</span>
           </div>
+          <span class="read-time">~10 min read</span>
         </div>
         <div class="article-body">
-          <!-- TITLE UNCONFIRMED: replace with the real W-07 title on confirmation -->
-          <h2 class="article-title">Pipeline &amp; Observability, Part III</h2>
-          <div class="article-subtitle">Pipeline &amp; Observability — Part III // September</div>
-          <p class="article-summary">The final part of the series. Scheduled for September; the two parts before it set up what this one closes out.</p>
+          <h2 class="article-title">Atlas Lab</h2>
+          <div class="article-subtitle">Live Observability // Coming Soon</div>
+          <p class="article-summary">Pipeline events from all eight repos now write into the same ring buffer the Lab page already reads, alongside a live pipeline status grid and a self-documenting API surface map. None of it required new infrastructure; it required finally looking at infrastructure that already existed.</p>
+          <div class="article-sections">
+            <span class="section-pill">Background</span>
+            <span class="section-pill">The Persist-Only Decision</span>
+            <span class="section-pill">Wiring It Into Every Pipeline</span>
+            <span class="section-pill">Closing the Surface</span>
+          </div>
           <div class="article-cta">
             Coming soon
             <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </div>
         </div>
       </a>
-
-      <!-- W-06: Pipeline & Observability, part 2 :: standard coming soon -->
-      <a href="#" class="article-entry coming-soon"
-         data-series="pipeline-observability" data-series-part="2"
-         data-series-total="3" data-series-title="Pipeline &amp; Observability">
+<!-- W-06: Atlas Systems CI/CD — coming soon -->
+      <a href="#" class="article-entry coming-soon" data-series="pipeline-observability" data-series-part="2" data-series-total="3" data-series-title="Pipeline &amp; Observability" data-series-note="3 parts · 26–30 July 2026" data-series-publish-date="2026-07-28">
         <div class="article-meta">
           <span class="article-number">W-06</span>
-          <!-- MONTH UNCONFIRMED: decisions.md dates W-05 July and W-07 September;
-               August is the inferred slot for part 2. Correct if wrong. -->
-          <span class="article-date">Coming August 2026</span>
+          <span class="article-date">Coming July 2026</span>
           <div class="article-tags">
             <span class="tag highlight">DevOps</span>
+            <span class="tag">GitHub Actions</span>
+            <span class="tag">Cloudflare</span>
             <span class="tag">CI/CD</span>
             <span class="tag">Infrastructure</span>
           </div>
+          <span class="read-time">~12 min read</span>
         </div>
         <div class="article-body">
-          <!-- TITLE UNCONFIRMED: replace with the real W-06 title on confirmation -->
-          <h2 class="article-title">Pipeline &amp; Observability, Part II</h2>
-          <div class="article-subtitle">Pipeline &amp; Observability — Part II // Coming Soon</div>
-          <p class="article-summary">Part two of the series: the middle chapter between the pipeline build and the estate's self-documentation layer.</p>
+          <h2 class="article-title">Atlas Systems CI/CD</h2>
+          <div class="article-subtitle">Reusable Pipelines &amp; Hard Gates // Coming Soon</div>
+          <p class="article-summary">Ten repos brought onto a consistent, gated, observable CI/CD estate. Two reusable GitHub Actions workflows in atlas-infra define the pipeline once; every other repo inherits it through a 12-line caller file, with Cloudflare Pages native integration disconnected so Actions is the only path to production.</p>
+          <div class="article-sections">
+            <span class="section-pill">Background</span>
+            <span class="section-pill">Reusable Workflows as the Architecture</span>
+            <span class="section-pill">Gating atlas-notify Through workflow_run</span>
+            <span class="section-pill">Hard Gate or Soft Gate</span>
+            <span class="section-pill">The Token Model</span>
+          </div>
           <div class="article-cta">
             Coming soon
             <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </div>
         </div>
       </a>
-
-      <!-- W-05: Atlas Pipeline — coming soon -->
-      <a href="#" class="article-entry coming-soon">
+<!-- W-05: Atlas Systems Infrastructure — coming soon -->
+      <a href="#" class="article-entry coming-soon" data-series="pipeline-observability" data-series-part="1" data-series-total="3" data-series-title="Pipeline &amp; Observability" data-series-note="3 parts · 26–30 July 2026" data-series-publish-date="2026-07-26">
         <div class="article-meta">
           <span class="article-number">W-05</span>
           <span class="article-date">NEXT CHAPTER // JULY 2026</span>
@@ -189,15 +197,15 @@
           <span class="read-time">~12 min read</span>
         </div>
         <div class="article-body">
-          <h2 class="article-title">Atlas Pipeline</h2>
-          <div class="article-subtitle">Infrastructure Dashboard &amp; CI/CD // Coming Soon</div>
+          <h2 class="article-title">Atlas Systems Infrastructure</h2>
+          <div class="article-subtitle">Infrastructure Dashboard &amp; Observability // Coming Soon</div>
           <p class="article-summary">Building a live infrastructure dashboard and automated deployment pipeline across ten Cloudflare Workers repos, starting from manual deploys with no audit trail and ending with a self-reporting system that documents its own operation in Discord. A single authenticated event bus accepts three webhook auth dialects, observability Workers proxy GitHub and Cloudflare analytics behind cached endpoints, and identical GitHub Actions workflows deploy every Worker on push, all on free-tier infrastructure at zero cost.</p>
           <div class="article-sections">
             <span class="section-pill">Architecture</span>
             <span class="section-pill">The Event Bus</span>
             <span class="section-pill">Observability Workers</span>
-            <span class="section-pill">Phase I — Worker Route Claiming</span>
-            <span class="section-pill">Phase II — Bot Protection Blocking CI</span>
+            <span class="section-pill">CI/CD Automation</span>
+            <span class="section-pill">Personal Tooling</span>
           </div>
           <div class="article-cta">
             The next chapter
