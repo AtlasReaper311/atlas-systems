@@ -1,128 +1,250 @@
 /**
- * series.js
- * Groups article cards on the Writing page into visible series: a rail
- * down the left edge, a node per part, a "part n / N" chip in the meta
- * column, and a banner above the first card of the group.
+ * Series Navigation v2
  *
- * Data source, in priority order:
- *   1. data-series / data-series-part / data-series-total /
- *      data-series-title / data-series-state attributes on the card.
- *      This is the real contract; build_article.py emits these from the
- *      frontmatter keys documented in series-frontmatter-convention.md.
- *   2. The FALLBACK map below, keyed by W-number. It exists so the
- *      treatment works today, before the generator learns the frontmatter
- *      keys. Delete an entry from it the day that article's card ships
- *      with real attributes; delete the whole map when all do.
- *
- * Scheduler safety: publish_scheduled.py inserts published cards at its
- * marker and rotates coming-soon cards. This script never wraps cards in
- * containers and never moves them; it only classifies what it finds, in
- * document order, at load. Adjacency (which cards share a rail run) is
- * recomputed from the live DOM every page load, so the scheduler can
- * reorder, insert, and retire cards without this file caring.
+ * Reads source-owned data-series attributes from article cards, derives the
+ * live/next/scheduled state from the DOM, and renders a compact navigable
+ * series summary without moving or wrapping scheduler-owned cards.
  */
 (function () {
   "use strict";
 
-  /* Interim source of truth until the generator emits data-series
-     attributes; see header. Keyed by the .article-number text. */
+  /* Compatibility bridge for the first series while the scheduler-generated
+     cards replace the hand-authored W-05/W-06/W-07 teasers. New series must
+     arrive through data-series attributes, not this map. */
   var FALLBACK = {
-    "W-05": { id: "pipeline-observability", part: 1 },
-    "W-06": { id: "pipeline-observability", part: 2 },
-    "W-07": { id: "pipeline-observability", part: 3 }
-  };
-
-  var SERIES_META = {
-    "pipeline-observability": {
-      title: "Pipeline & Observability",
+    "W-05": {
+      id: "pipeline-observability",
+      part: 1,
       total: 3,
-      note: "3 parts · through september 2026"
+      title: "Pipeline & Observability",
+      note: "3 parts · 26–30 July 2026",
+      publishDate: "2026-07-26"
+    },
+    "W-06": {
+      id: "pipeline-observability",
+      part: 2,
+      total: 3,
+      title: "Pipeline & Observability",
+      note: "3 parts · 26–30 July 2026",
+      publishDate: "2026-07-28"
+    },
+    "W-07": {
+      id: "pipeline-observability",
+      part: 3,
+      total: 3,
+      title: "Pipeline & Observability",
+      note: "3 parts · 26–30 July 2026",
+      publishDate: "2026-07-30"
     }
   };
+
+  function text(card, selector) {
+    var node = card.querySelector(selector);
+    return node ? node.textContent.trim() : "";
+  }
 
   function resolve(card) {
     var id = card.getAttribute("data-series");
     if (id) {
       return {
         id: id,
-        part: parseInt(card.getAttribute("data-series-part"), 10) || 0,
-        total: parseInt(card.getAttribute("data-series-total"), 10) || 0,
-        title: card.getAttribute("data-series-title") || (SERIES_META[id] && SERIES_META[id].title) || id,
-        note: (SERIES_META[id] && SERIES_META[id].note) || ""
+        part: Number(card.getAttribute("data-series-part")) || 0,
+        total: Number(card.getAttribute("data-series-total")) || 0,
+        title: card.getAttribute("data-series-title") || id,
+        note: card.getAttribute("data-series-note") || "",
+        publishDate: card.getAttribute("data-series-publish-date") || ""
       };
     }
-    var numEl = card.querySelector(".article-number");
-    var num = numEl ? numEl.textContent.trim() : "";
-    var fb = FALLBACK[num];
-    if (!fb) return null;
-    var meta = SERIES_META[fb.id] || {};
-    return { id: fb.id, part: fb.part, total: meta.total || 0, title: meta.title || fb.id, note: meta.note || "" };
+
+    return FALLBACK[text(card, ".article-number")] || null;
+  }
+
+  function formatDate(value) {
+    if (!value) return "Scheduled";
+    var parts = value.split("-");
+    if (parts.length !== 3) return "Scheduled";
+    var parsed = new Date(Date.UTC(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])));
+    return new Intl.DateTimeFormat("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      timeZone: "UTC"
+    }).format(parsed);
+  }
+
+  function make(tag, className, value) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (value !== undefined) node.textContent = value;
+    return node;
+  }
+
+  function addPartChip(card, info) {
+    var meta = card.querySelector(".article-meta");
+    var number = card.querySelector(".article-number");
+    if (!meta || !number || !info.part || !info.total) return;
+
+    var chip = make("span", "series-chip series-injected", "part " + info.part + " / " + info.total);
+    if (number.nextSibling) meta.insertBefore(chip, number.nextSibling);
+    else meta.appendChild(chip);
+  }
+
+  function setCardState(entry, nextEntry) {
+    var card = entry.card;
+    var upcoming = card.classList.contains("coming-soon");
+    card.classList.remove(
+      "series-upcoming",
+      "series-next",
+      "series-scheduled",
+      "series-live",
+      "series-compact"
+    );
+
+    if (!upcoming) {
+      card.classList.add("series-live");
+      return;
+    }
+
+    card.classList.add("series-compact");
+    if (entry === nextEntry) card.classList.add("series-next");
+    else card.classList.add("series-scheduled");
+
+    var date = card.querySelector(".article-date");
+    if (date && entry.info.publishDate) {
+      var label = formatDate(entry.info.publishDate).toUpperCase();
+      date.textContent = entry === nextEntry ? "NEXT CHAPTER // " + label : label;
+    }
+
+    var cta = card.querySelector(".article-cta");
+    if (cta && cta.firstChild) {
+      cta.firstChild.nodeValue = entry === nextEntry ? "Next chapter " : "Scheduled ";
+    }
+  }
+
+  function bannerPart(entry, nextEntry) {
+    var published = !entry.card.classList.contains("coming-soon");
+    var href = entry.card.getAttribute("href");
+    var control = published && href && href !== "#" ? document.createElement("a") : document.createElement("span");
+    control.className = "series-banner-part";
+    if (published && href && href !== "#") control.href = href;
+    else control.setAttribute("aria-disabled", "true");
+
+    control.appendChild(make("span", "series-banner-part-number", "Part " + entry.info.part));
+    control.appendChild(make("span", "series-banner-part-title", text(entry.card, ".article-title")));
+    control.appendChild(make(
+      "span",
+      "series-banner-part-state",
+      published ? "Live" : (entry === nextEntry ? "Next" : formatDate(entry.info.publishDate))
+    ));
+    return control;
+  }
+
+  function renderBanner(group, nextEntry) {
+    var firstInDom = group.entries.slice().sort(function (a, b) {
+      return a.domIndex - b.domIndex;
+    })[0];
+    var ordered = group.entries.slice().sort(function (a, b) {
+      return a.info.part - b.info.part;
+    });
+    var publishedCount = ordered.filter(function (entry) {
+      return !entry.card.classList.contains("coming-soon");
+    }).length;
+
+    var banner = make("section", "series-banner series-injected");
+    banner.id = "series-" + group.id;
+    banner.style.setProperty("--series-total", String(group.total));
+    banner.setAttribute("aria-label", group.title + " series navigation");
+
+    var header = make("div", "series-banner-header");
+    var identity = make("div", "series-banner-identity");
+    identity.appendChild(make("span", "series-banner-title", group.title));
+    identity.appendChild(make("span", "series-banner-note", group.note));
+    header.appendChild(identity);
+    header.appendChild(make(
+      "span",
+      "series-banner-progress",
+      publishedCount + " of " + group.total + " published"
+    ));
+    banner.appendChild(header);
+
+    var parts = make("div", "series-banner-parts");
+    ordered.forEach(function (entry) {
+      parts.appendChild(bannerPart(entry, nextEntry));
+    });
+    banner.appendChild(parts);
+
+    firstInDom.card.parentNode.insertBefore(banner, firstInDom.card);
+    group.banner = banner;
+  }
+
+  function updateBannerVisibility(group) {
+    if (!group.banner) return;
+    var allHidden = group.entries.every(function (entry) {
+      return entry.card.classList.contains("search-hidden");
+    });
+    group.banner.hidden = allHidden;
   }
 
   function apply() {
-    /* Idempotent: strip anything a previous pass injected, then reapply.
-       Costs nothing at this scale and makes refresh() safe to expose. */
-    document.querySelectorAll(".series-injected").forEach(function (el) { el.remove(); });
-    document.querySelectorAll(".article-entry").forEach(function (c) {
-      c.classList.remove("in-series", "series-first", "series-last");
+    document.querySelectorAll(".series-injected").forEach(function (node) { node.remove(); });
+    document.querySelectorAll(".article-entry").forEach(function (card) {
+      card.classList.remove(
+        "in-series",
+        "series-first",
+        "series-last",
+        "series-next",
+        "series-scheduled",
+        "series-live",
+        "series-compact",
+        "series-upcoming"
+      );
     });
 
     var cards = Array.prototype.slice.call(document.querySelectorAll(".article-entry"));
-    var bannerDone = {};
-    var prevInfo = null;
-    var prevCard = null;
-
-    cards.forEach(function (card) {
+    var groups = {};
+    cards.forEach(function (card, domIndex) {
       var info = resolve(card);
-      if (!info) {
-        /* A non-series card ends any open run; close it before resetting,
-           otherwise the last part of a series followed by ordinary cards
-           never receives its series-last cap (caught by the smoke test). */
-        if (prevCard && prevInfo) prevCard.classList.add("series-last");
-        prevInfo = null; prevCard = null; return;
+      if (!info || !info.id || !info.part || !info.total) return;
+      if (!groups[info.id]) {
+        groups[info.id] = {
+          id: info.id,
+          title: info.title,
+          note: info.note,
+          total: info.total,
+          entries: []
+        };
       }
-
-      card.classList.add("in-series");
-
-      /* Run boundaries: a run starts when the previous sibling card is not
-         the same series. Cards of one series are expected to be adjacent
-         (the page is reverse-chronological and series publish in
-         sequence); if something foreign ever lands between them, each
-         side becomes its own run and the rail breaks cleanly instead of
-         drawing a line through an unrelated card. */
-      var continues = prevInfo && prevInfo.id === info.id && prevCard && prevCard.nextElementSibling === card;
-      if (!continues) {
-        card.classList.add("series-first");
-        if (prevCard && prevInfo) prevCard.classList.add("series-last");
-
-        if (!bannerDone[info.id]) {
-          bannerDone[info.id] = true;
-          var banner = document.createElement("div");
-          banner.className = "series-banner series-injected";
-          banner.innerHTML =
-            '<span class="series-banner-title"></span>' +
-            '<span class="series-banner-note"></span>';
-          banner.querySelector(".series-banner-title").textContent = info.title;
-          banner.querySelector(".series-banner-note").textContent = info.note;
-          card.parentNode.insertBefore(banner, card);
-        }
-      }
-
-      var metaCol = card.querySelector(".article-meta");
-      var numEl = card.querySelector(".article-number");
-      if (metaCol && info.part && info.total) {
-        var chip = document.createElement("span");
-        chip.className = "series-chip series-injected";
-        chip.textContent = "part " + info.part + " / " + info.total;
-        if (numEl && numEl.nextSibling) metaCol.insertBefore(chip, numEl.nextSibling);
-        else metaCol.insertBefore(chip, metaCol.firstChild);
-      }
-
-      prevInfo = info;
-      prevCard = card;
+      groups[info.id].entries.push({ card: card, info: info, domIndex: domIndex });
     });
 
-    if (prevCard && prevInfo) prevCard.classList.add("series-last");
+    Object.keys(groups).forEach(function (id) {
+      var group = groups[id];
+      var orderedByPart = group.entries.slice().sort(function (a, b) {
+        return a.info.part - b.info.part;
+      });
+      var nextEntry = orderedByPart.find(function (entry) {
+        return entry.card.classList.contains("coming-soon");
+      }) || null;
+
+      group.entries.forEach(function (entry) {
+        entry.card.classList.add("in-series");
+        setCardState(entry, nextEntry);
+        addPartChip(entry.card, entry.info);
+      });
+
+      var byDom = group.entries.slice().sort(function (a, b) { return a.domIndex - b.domIndex; });
+      byDom[0].card.classList.add("series-first");
+      byDom[byDom.length - 1].card.classList.add("series-last");
+      renderBanner(group, nextEntry);
+      updateBannerVisibility(group);
+
+      group.entries.forEach(function (entry) {
+        new MutationObserver(function () { updateBannerVisibility(group); }).observe(
+          entry.card,
+          { attributes: true, attributeFilter: ["class"] }
+        );
+      });
+    });
   }
 
   apply();
