@@ -51,22 +51,7 @@ jobs:
           PY
 
       - name: Check repository links offline
-        id: lychee
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         with:
           args: "--offline --no-progress --include-fragments --root-dir ${{ github.workspace }} ."
-          format: markdown
-          output: /tmp/lychee-report.md
-          fail: false
-
-      - name: Upload failing link diagnostics
-        if: steps.lychee.outputs.exit_code != '0'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: proof-chain-link-validation
-          path: /tmp/lychee-report.md
-          retention-days: 1
-
-      - name: Fail on broken offline links
-        if: steps.lychee.outputs.exit_code != '0'
-        run: exit 1
+          fail: true
