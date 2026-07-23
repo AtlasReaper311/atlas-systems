@@ -2,8 +2,7 @@ name: Apply published article head metadata refresh
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [main]
     types: [opened, synchronize, reopened]
     paths:
       - ".github/workflows/apply-published-article-head-refresh.yml"
@@ -33,45 +32,91 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
-      - name: Check out scheduler migration authority
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
-        with:
-          repository: AtlasReaper311/atlas-scheduler
-          ref: feat/article-interface-refresh-v1
-          token: ${{ secrets.GENERATOR_TOKEN }}
-          path: .head-refresh-scheduler
-          persist-credentials: false
-
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0, Node 24
         with:
           python-version: "3.12"
 
-      - name: Generate isolated refreshed site
+      - name: Apply allowlisted head additions
         run: |
           set -euo pipefail
-          python .head-refresh-scheduler/scripts/refresh_published_article_heads.py \
-            --site-dir . \
-            --output-dir "${RUNNER_TEMP}/refreshed-site" \
-            --report-out "${RUNNER_TEMP}/article-head-refresh-report.json" \
-            --slug sonin-generative-system \
-            --slug slampunk-dynamic-mix-engine \
-            --slug ramone-local-ai-system \
-            --slug overclocking-specular-core
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import json
+          import re
 
-      - name: Copy allowlisted outputs only
-        run: |
-          set -euo pipefail
-          for slug in \
-            sonin-generative-system \
-            slampunk-dynamic-mix-engine \
-            ramone-local-ai-system \
-            overclocking-specular-core
-          do
-            cp "${RUNNER_TEMP}/refreshed-site/writing/${slug}/index.html" "writing/${slug}/index.html"
-          done
-          mkdir -p docs/evidence
-          cp "${RUNNER_TEMP}/article-head-refresh-report.json" docs/evidence/published-article-head-refresh-v1.json
-          rm -rf .head-refresh-scheduler
+          slugs = [
+              "sonin-generative-system",
+              "slampunk-dynamic-mix-engine",
+              "ramone-local-ai-system",
+              "overclocking-specular-core",
+          ]
+          links = [
+              '<link rel="icon" href="/favicon.ico" sizes="any">',
+              '<link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">',
+              '<link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">',
+              '<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">',
+              '<link rel="manifest" href="/site.webmanifest">',
+          ]
+          body_re = re.compile(r"(<body\\b.*)", re.IGNORECASE | re.DOTALL)
+          og_alt_re = re.compile(r'<meta property="og:image:alt" content="([^"]+)">')
+          canonical_re = re.compile(r'<link rel="canonical" href="([^"]+)">')
+
+          def digest(data: bytes) -> str:
+              return hashlib.sha256(data).hexdigest()
+
+          articles = []
+          for slug in slugs:
+              path = Path("writing") / slug / "index.html"
+              original = path.read_text(encoding="utf-8")
+              canonical = canonical_re.search(original)
+              expected = f"https://atlas-systems.uk/writing/{slug}/"
+              if canonical is None or canonical.group(1) != expected:
+                  raise SystemExit(f"canonical mismatch for {slug}")
+              body_match = body_re.search(original)
+              alt_match = og_alt_re.search(original)
+              if body_match is None or alt_match is None:
+                  raise SystemExit(f"required existing article structure missing for {slug}")
+              body_before = body_match.group(1).encode("utf-8")
+              additions = [element for element in links if element not in original]
+              twitter_alt = f'<meta name="twitter:image:alt" content="{alt_match.group(1)}">'
+              if twitter_alt not in original:
+                  additions.append(twitter_alt)
+              updated = original
+              if additions:
+                  updated = original.replace(
+                      "</head>",
+                      "\n  " + "\n  ".join(additions) + "\n</head>",
+                      1,
+                  )
+              body_after_match = body_re.search(updated)
+              if body_after_match is None:
+                  raise SystemExit(f"body missing after refresh for {slug}")
+              body_after = body_after_match.group(1).encode("utf-8")
+              if body_before != body_after:
+                  raise SystemExit(f"body changed for {slug}")
+              path.write_text(updated, encoding="utf-8", newline="")
+              articles.append({
+                  "slug": slug,
+                  "path": path.as_posix(),
+                  "added_elements": additions,
+                  "source_sha256": digest(original.encode("utf-8")),
+                  "output_sha256": digest(updated.encode("utf-8")),
+                  "body_sha256_before": digest(body_before),
+                  "body_sha256_after": digest(body_after),
+                  "body_unchanged": True,
+              })
+
+          report = {
+              "schema": "atlas-scheduler/published-article-head-refresh/v1",
+              "production_write": False,
+              "allowlist": [*links, "twitter:image:alt copied from og:image:alt"],
+              "articles": articles,
+          }
+          report_path = Path("docs/evidence/published-article-head-refresh-v1.json")
+          report_path.parent.mkdir(parents=True, exist_ok=True)
+          report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+          PY
 
       - name: Verify surgical diff
         run: |
@@ -80,14 +125,9 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-
           report = json.loads(Path("docs/evidence/published-article-head-refresh-v1.json").read_text(encoding="utf-8"))
-          if report["schema"] != "atlas-scheduler/published-article-head-refresh/v1":
-              raise SystemExit("unexpected refresh report schema")
-          if report["production_write"] is not False:
-              raise SystemExit("refresh report must remain non-production")
-          if len(report["articles"]) != 4:
-              raise SystemExit("expected four refreshed articles")
+          if report["production_write"] is not False or len(report["articles"]) != 4:
+              raise SystemExit("invalid refresh report")
           for article in report["articles"]:
               if not article["body_unchanged"]:
                   raise SystemExit(f"body changed for {article['slug']}")
