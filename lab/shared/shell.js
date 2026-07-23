@@ -11,14 +11,17 @@ const LAB_ROUTES = [
   { label: "Shape Detector", href: "/lab/anomaly/" },
 ];
 
+const PRODUCTION_ORIGIN = "https://atlas-systems.uk";
 const SEARCH_CSS = "/static/css/estate-search.css";
 
 function normalizePath(pathname) {
   if (pathname === "/") return pathname;
-  return pathname.endsWith("/") ? pathname : pathname + "/";
+  return pathname.endsWith("/") ? pathname : `${pathname}/`;
 }
 
-function currentPath() { return normalizePath(window.location.pathname); }
+function currentPath() {
+  return normalizePath(window.location.pathname);
+}
 
 function ensureStylesheet(href) {
   if (document.head.querySelector(`link[href="${href}"]`)) return;
@@ -61,7 +64,9 @@ function installContextNavigation(primary) {
     const link = document.createElement("a");
     link.href = route.href;
     link.textContent = route.label;
-    if (normalizePath(new URL(route.href, window.location.origin).pathname) === currentPath()) link.setAttribute("aria-current", "page");
+    if (normalizePath(new URL(route.href, window.location.origin).pathname) === currentPath()) {
+      link.setAttribute("aria-current", "page");
+    }
     inner.appendChild(link);
   }
   context.appendChild(inner);
@@ -70,12 +75,17 @@ function installContextNavigation(primary) {
 function installFooter() {
   if (document.querySelector("footer.lab-tool-footer")) return;
   const footer = document.createElement("footer");
-  footer.className = "lab-tool-footer";
+  footer.className = "lab-tool-footer atlas-footer";
   footer.setAttribute("aria-label", "Lab footer");
   const identity = document.createElement("span");
   identity.textContent = "Atlas Systems // Lab";
   const links = document.createElement("div");
-  for (const [label, href] of [["Lab home", "/lab/"], ["Systems", "/systems/"], ["Status", "https://status.atlas-systems.uk/"], ["Estate home", "/"]]) {
+  for (const [label, href] of [
+    ["Lab home", "/lab/"],
+    ["Systems", "/systems/"],
+    ["Status", "https://status.atlas-systems.uk/"],
+    ["Estate home", "/"],
+  ]) {
     const link = document.createElement("a");
     link.href = href;
     link.textContent = label;
@@ -87,30 +97,28 @@ function installFooter() {
 
 function ensureMeta(property, content) {
   const attribute = property.startsWith("og:") ? "property" : "name";
-  let meta = document.head.querySelector(`meta[${attribute}="${property}"]`);
-  if (!meta) {
-    meta = document.createElement("meta");
-    meta.setAttribute(attribute, property);
-    document.head.appendChild(meta);
-  }
+  if (document.head.querySelector(`meta[${attribute}="${property}"]`)) return;
+  const meta = document.createElement("meta");
+  meta.setAttribute(attribute, property);
   meta.content = content;
+  document.head.appendChild(meta);
 }
 
 function installMetadata() {
   const title = document.title;
   const description = document.head.querySelector('meta[name="description"]')?.content || "Atlas Systems Lab interface.";
-  const url = window.location.origin + currentPath();
+  const productionUrl = `${PRODUCTION_ORIGIN}${currentPath()}`;
   let canonical = document.head.querySelector('link[rel="canonical"]');
   if (!canonical) {
     canonical = document.createElement("link");
     canonical.rel = "canonical";
+    canonical.href = productionUrl;
     document.head.appendChild(canonical);
   }
-  canonical.href = url;
   ensureMeta("og:type", "website");
   ensureMeta("og:title", title);
   ensureMeta("og:description", description);
-  ensureMeta("og:url", url);
+  ensureMeta("og:url", canonical.href || productionUrl);
   ensureMeta("og:site_name", "Atlas Systems");
   ensureMeta("og:image", "https://atlas-systems.uk/og-default.png");
   ensureMeta("og:image:width", "1200");
