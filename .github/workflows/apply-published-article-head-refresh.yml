@@ -1,9 +1,10 @@
 name: Apply published article head metadata refresh
 
 on:
-  push:
+  pull_request:
     branches:
-      - fix/published-article-head-metadata-v1
+      - feat/public-interface-shell-v1
+    types: [opened, synchronize, reopened]
     paths:
       - ".github/workflows/apply-published-article-head-refresh.yml"
 
@@ -17,6 +18,9 @@ concurrency:
 jobs:
   apply:
     name: Generate head-only article refresh
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'fix/published-article-head-metadata-v1'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
