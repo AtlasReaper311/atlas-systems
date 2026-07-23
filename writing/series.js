@@ -65,8 +65,7 @@
     if (parts.length !== 3) return "Scheduled";
     var parsed = new Date(Date.UTC(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])));
     return new Intl.DateTimeFormat("en-GB", {
-      day: "numeric",
-      month: "short",
+      month: "long",
       year: "numeric",
       timeZone: "UTC"
     }).format(parsed);
@@ -84,7 +83,7 @@
     var number = card.querySelector(".article-number");
     if (!meta || !number || !info.part || !info.total) return;
 
-    var chip = make("span", "series-chip series-injected", "part " + info.part + " / " + info.total);
+    var chip = make("span", "series-chip series-injected", "Part " + info.part + " of " + info.total);
     if (number.nextSibling) meta.insertBefore(chip, number.nextSibling);
     else meta.appendChild(chip);
   }
@@ -158,7 +157,13 @@
     var header = make("div", "series-banner-header");
     var identity = make("div", "series-banner-identity");
     identity.appendChild(make("span", "series-banner-title", group.title));
-    identity.appendChild(make("span", "series-banner-note", group.note));
+    var nextScheduled = ordered.find(function (entry) {
+      return entry.card.classList.contains("coming-soon");
+    });
+    var note = nextScheduled
+      ? group.total + " parts · " + formatDate(nextScheduled.info.publishDate)
+      : group.note;
+    identity.appendChild(make("span", "series-banner-note", note));
     header.appendChild(identity);
     header.appendChild(make(
       "span",
@@ -180,7 +185,9 @@
   function updateBannerVisibility(group) {
     if (!group.banner) return;
     var allHidden = group.entries.every(function (entry) {
-      return entry.card.classList.contains("search-hidden");
+      return entry.card.classList.contains("search-hidden") ||
+        entry.card.classList.contains("filter-hidden") ||
+        entry.card.hidden;
     });
     group.banner.hidden = allHidden;
   }

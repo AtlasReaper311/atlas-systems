@@ -9,12 +9,18 @@ on:
       - "_headers"
       - "404.html"
       - "index.html"
+      - "work/**"
+      - "writing/**"
+      - "about/**"
       - "systems/**"
+      - "css/card-search.css"
       - "static/css/estate-shell.css"
+      - "static/css/editorial-surfaces-v2.css"
       - "static/css/v2-directory-pages.css"
       - "static/vendor/atlas-interface/**"
       - "static/js/estate-shell.js"
       - "static/js/estate-status.js"
+      - "js/card-search.js"
       - "static/js/estate-search/**"
       - "lab/index.html"
       - "lab/console/**"
@@ -41,9 +47,7 @@ concurrency:
 jobs:
   validate:
     name: Validate interface preview candidate
-    if: >-
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'agent/public-interface-system-v2-primary-site'
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -90,9 +94,7 @@ jobs:
   deploy-preview:
     name: Publish non-production interface preview
     needs: validate
-    if: >-
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'agent/public-interface-system-v2-primary-site'
+    if: github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: read
       pull-requests: write
@@ -108,6 +110,7 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
       PROJECT_NAME: atlas-systems
       PAGES_BRANCH: interface-pr-${{ github.event.pull_request.number }}
+      SOURCE_BRANCH: ${{ github.event.pull_request.head.ref }}
     steps:
       - name: Check out interface site branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
@@ -117,7 +120,9 @@ jobs:
       - name: Guard production boundary
         run: |
           set -euo pipefail
-          test "${{ github.event.pull_request.head.ref }}" = "agent/public-interface-system-v2-primary-site"
+          test "${{ github.event.pull_request.base.ref }}" = "main"
+          test "${SOURCE_BRANCH}" != "main"
+          test "${SOURCE_BRANCH}" != "production"
           test "${PAGES_BRANCH}" != "main"
           test "${PAGES_BRANCH}" != "production"
       - name: Publish branch preview
