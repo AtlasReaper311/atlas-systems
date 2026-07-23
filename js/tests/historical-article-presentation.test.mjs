@@ -71,6 +71,8 @@ test("shared article layer carries the long-form accessibility contract", () => 
   assert.match(css, /\.article-subtitle,[\s\S]*font-size:\s*14px/);
   assert.match(css, /min-height:\s*44px/);
   assert.match(css, /overflow-x:\s*auto/);
+  assert.match(css, /\.model-table,[\s\S]*table-layout:\s*fixed/);
+  assert.match(css, /\.prose pre\s*\{[\s\S]*white-space:\s*pre-wrap/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(css, /focus-visible/);
 });

@@ -206,6 +206,38 @@ main {
   .intensity-grid {
     grid-template-columns: 1fr;
   }
+
+  /*
+   * Historical technical articles contain tables and terminal transcripts
+   * whose intrinsic width exceeds a phone viewport. Wrap them at this
+   * breakpoint so the page does not create keyboard-inaccessible horizontal
+   * scroll regions.
+   */
+  .model-table,
+  .data-table {
+    table-layout: fixed;
+    overflow: visible;
+  }
+
+  .model-table th,
+  .model-table td,
+  .data-table th,
+  .data-table td,
+  .model-table code,
+  .data-table code {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .prose pre {
+    overflow-x: visible;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .prose pre code {
+    white-space: inherit;
+  }
 }
 
 @media (max-width: 390px) {
