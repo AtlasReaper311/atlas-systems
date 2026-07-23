@@ -110,6 +110,25 @@ test("Lab route contract uses the dedicated map and operations routes", () => {
   assert.match(landing, /Explore/);
 });
 
+test("Lab and Systems cards carry operation-specific visual identities", () => {
+  const lab = fs.readFileSync("lab/index.html", "utf8");
+  const systems = fs.readFileSync("systems/index.html", "utf8");
+  const directoryCss = fs.readFileSync("static/css/v2-directory-pages.css", "utf8");
+
+  assert.match(lab, /class="card-grid featured-grid"/);
+  assert.match(lab, /class="card-grid directory-grid verify-grid"/);
+  assert.match(lab, /class="card-grid directory-grid explore-grid"/);
+  assert.match(systems, /class="card-grid product-showcase"/);
+  assert.match(systems, /class="card-grid systems-tools-grid"/);
+  assert.ok((lab.match(/data-visual=/g) || []).length >= 15);
+  assert.ok((systems.match(/data-visual=/g) || []).length >= 15);
+
+  for (const visual of ["ramone", "symphony", "signal", "map", "proof", "status", "conformance", "reliability", "api", "anomaly"]) {
+    assert.match(directoryCss, new RegExp(`\\[data-visual="${visual}"\\]`));
+  }
+  assert.match(directoryCss, /prefers-reduced-motion:reduce/);
+});
+
 test("reduced-motion and legacy Lab compatibility stay explicit", () => {
   const transitions = fs.readFileSync("js/transitions.js", "utf8");
   const shell = fs.readFileSync("static/js/estate-shell.js", "utf8");
