@@ -102,6 +102,7 @@ test("About contains the accepted identity, priorities, principles, and reduced-
   assert.match(about, /class="about-topology" aria-hidden="true"/);
   assert.doesNotMatch(about, /Scotland/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
+  assert.match(css, /prefers-reduced-motion:\s*reduce[\s\S]*\.project-entry\s*\{[\s\S]*opacity:\s*1/);
   assert.match(css, /\.about-topology-path[\s\S]*animation:\s*none/);
 });
 
@@ -131,6 +132,7 @@ test("editorial assets remain mutable and preview evidence covers changed surfac
   for (const route of ["/work/", "/writing/", "/about/", "/writing/overclocking-specular-core/", "/404.html"]) {
     assert.ok(capture.includes(`"${route}"`), route);
   }
+  assert.match(capture, /visibleWorkProjectCount/);
 });
 
 test("representative article and 404 evidence targets retain mobile and link accessibility fixes", () => {

@@ -754,6 +754,12 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .project-entry {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
   .about-topology-path {
     animation: none;
     opacity: 0.58;

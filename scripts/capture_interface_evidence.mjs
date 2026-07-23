@@ -149,6 +149,7 @@ async function inspectPage(page) {
     const mobileVisible = Boolean(mobileNav) && getComputedStyle(mobileNav).display !== "none";
     const navHeight = mobileVisible ? mobileNav.getBoundingClientRect().height : 0;
     const bodyPaddingBottom = Number.parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+    const workProjects = [...document.querySelectorAll(".project-entry")];
     return {
       title: document.title,
       width,
@@ -166,6 +167,12 @@ async function inspectPage(page) {
       bodyPaddingBottom,
       canonical: document.querySelector('link[rel="canonical"]')?.href || null,
       fixtureMode: window.__ATLAS_EVIDENCE_MODE__ || null,
+      workProjectCount: workProjects.length,
+      visibleWorkProjectCount: workProjects.filter((project) => {
+        const style = getComputedStyle(project);
+        const rect = project.getBoundingClientRect();
+        return style.display !== "none" && Number.parseFloat(style.opacity) > 0.99 && rect.width > 0 && rect.height > 0;
+      }).length,
     };
   });
 }
@@ -188,6 +195,11 @@ function semanticFailures(evidence, browserName, viewportName, routeName) {
   }
   if (evidence.fixtureMode !== "deterministic-unavailable") values.push(`${prefix}: deterministic fixture mode is missing`);
   if (evidence.canonical && !evidence.canonical.startsWith("https://atlas-systems.uk/")) values.push(`${prefix}: preview hostname entered canonical metadata`);
+  if (routeName === "work" && evidence.visibleWorkProjectCount !== evidence.workProjectCount) {
+    values.push(
+      `${prefix}: visible Work projects ${evidence.visibleWorkProjectCount} != ${evidence.workProjectCount}`,
+    );
+  }
   return values;
 }
 
