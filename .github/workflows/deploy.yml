@@ -13,58 +13,6 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  generate-sitemap:
-    name: Normalize metadata and regenerate sitemap.xml
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    permissions:
-      contents: write
-    outputs:
-      source_changed: ${{ steps.commit.outputs.source_changed }}
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
-        with:
-          # generate_sitemap.py reads each file's real lastmod via
-          # `git log`; a shallow clone would collapse every file to the
-          # same single commit date.
-          fetch-depth: 0
-
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0, Node 24
-        with:
-          python-version: "3.12"
-
-      - name: Normalize source page titles
-        run: python3 scripts/normalize_page_titles.py
-
-      - name: Generate sitemap.xml
-        run: python3 scripts/generate_sitemap.py
-
-      - name: Commit generated source if it changed
-        id: commit
-        run: |
-          set -euo pipefail
-          git add -- '*.html' sitemap.xml
-          if git diff --cached --quiet; then
-            echo "Generated source unchanged, nothing to commit"
-            echo "source_changed=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "Normalize page titles and regenerate sitemap.xml [skip ci]"
-          git push
-          echo "source_changed=true" >> "$GITHUB_OUTPUT"
-
-  deploy:
-    needs: [generate-sitemap, verify-pages-output]
-    if: needs.generate-sitemap.outputs.source_changed != 'true'
-    uses: AtlasReaper311/atlas-infra/.github/workflows/validate-static.yml@093df3f87fa4e068155455f82c9b69bffad76fb6 # atlas-infra main
-    with:
-      project_name: atlas-systems
-      site_label: atlas-systems.uk
-      inject_build_meta: true
-    secrets: inherit
-
   verify-pages-output:
     name: Verify Pages output contract
     runs-on: ubuntu-latest
@@ -75,9 +23,66 @@ jobs:
       - name: Confirm 404 and routing contract
         run: python3 scripts/verify_pages_output.py .
 
+  deploy:
+    needs: [verify-pages-output]
+    uses: AtlasReaper311/atlas-infra/.github/workflows/validate-static.yml@093df3f87fa4e068155455f82c9b69bffad76fb6 # atlas-infra main
+    with:
+      project_name: atlas-systems
+      site_label: atlas-systems.uk
+      inject_build_meta: true
+    secrets: inherit
+
+  verify-production:
+    name: Verify production custom domain
+    needs: [deploy]
+    if: needs.deploy.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Confirm the custom domain serves this commit
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+          SITE_URL: https://atlas-systems.uk
+        run: |
+          set -euo pipefail
+
+          for attempt in $(seq 1 30); do
+            URL="${SITE_URL}/?atlas-deploy=${EXPECTED_SHA}&attempt=${attempt}"
+            BODY="$(curl -fsSL \
+              --connect-timeout 10 \
+              --max-time 20 \
+              -H 'Cache-Control: no-cache' \
+              -H 'Pragma: no-cache' \
+              "$URL" || true)"
+
+            if printf '%s' "$BODY" | grep -Fq "<meta name=\"build-commit\" content=\"${EXPECTED_SHA}\">"; then
+              echo "Custom domain is serving ${EXPECTED_SHA}"
+              exit 0
+            fi
+
+            echo "Attempt ${attempt}/30: custom domain has not exposed ${EXPECTED_SHA} yet"
+            sleep 10
+          done
+
+          echo "::error::atlas-systems.uk did not expose build-commit=${EXPECTED_SHA} within five minutes"
+          exit 1
+
+      - name: Confirm the v2 Systems route is live
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          curl -fsSL \
+            --connect-timeout 10 \
+            --max-time 20 \
+            -H 'Cache-Control: no-cache' \
+            -H 'Pragma: no-cache' \
+            "https://atlas-systems.uk/systems/?atlas-deploy=${EXPECTED_SHA}" \
+            | grep -Fq 'One estate,'
+
   refresh-corpus:
-    needs: [generate-sitemap]
-    if: needs.generate-sitemap.outputs.source_changed != 'true'
+    needs: [deploy, verify-production]
+    if: needs.deploy.result == 'success' && needs.verify-production.result == 'success'
     uses: AtlasReaper311/atlas-corpus/.github/workflows/refresh-corpus.yml@410a0ba16c8461b191edbed257d0271d76bd8369 # atlas-corpus main
     secrets:
       CORPUS_SECRET: ${{ secrets.CORPUS_SECRET }}
