@@ -45,6 +45,7 @@ h2 { font:400 clamp(1.7rem,4vw,2.6rem)/1.08 var(--serif); }
 .product-showcase .product-support { min-height:210px; }
 .explore-grid { grid-template-columns:1fr; }
 .system-card {
+  scroll-margin-top: calc(var(--atlas-header-height, 56px) + 24px);
   --card-accent: var(--accent);
   --visual-image: linear-gradient(transparent,transparent);
   position:relative;

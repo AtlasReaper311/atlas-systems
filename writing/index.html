@@ -77,6 +77,7 @@
     .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
     @media(max-width:680px){.article-entry{grid-template-columns:1fr}.article-meta{border-right:none;border-bottom:1px solid var(--border);flex-direction:row;flex-wrap:wrap;gap:0.75rem;padding:1.25rem}.article-tags{flex-direction:row;margin-top:0}.article-body{padding:1.5rem}.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}}
   </style>
+  <link rel="stylesheet" href="/static/css/editorial-surfaces-v2.css?v=20260723-editorial-v2">
   <link rel="stylesheet" href="/static/css/estate-search.css">
 </head>
 <body>
@@ -104,9 +105,33 @@
   <main>
     <header class="page-header">
       <div class="section-label">Writing</div>
-      <h1 class="page-heading">Case studies &amp; technical writing.</h1>
-      <p class="page-sub">Architecture decisions documented in full. How things were built, why they were built that way, and what the tradeoffs were.</p>
+      <h1 class="page-heading">The engineering record.</h1>
+      <p class="page-sub">Case studies, series, and technical notes about how systems were built, why the architecture took its final shape, and where the evidence stops.</p>
     </header>
+
+    <section class="writing-feature" aria-labelledby="writing-feature-heading">
+      <div class="writing-feature-meta">
+        <div class="section-label">Featured</div>
+        <span class="writing-feature-number">W-04</span>
+        <span class="writing-feature-date">22 June 2026</span>
+      </div>
+      <div class="writing-feature-body">
+        <p class="writing-feature-kicker">Hardware / Case study</p>
+        <h2 id="writing-feature-heading">Pushing the Limits — Overclocking SPECULAR-CORE</h2>
+        <p class="writing-feature-summary">A full system optimisation pass on SPECULAR-CORE: BIOS-level memory and Infinity Fabric synchronisation, a hand-built GPU voltage/frequency curve, cooling tuned around real-time audio noise constraints, and thread scheduling aligned to the 9950X3D dual-CCD layout.</p>
+        <a class="writing-feature-link" href="/writing/overclocking-specular-core/">Read featured case study →</a>
+      </div>
+    </section>
+
+    <section class="writing-controls" aria-label="Writing filters">
+      <div class="section-label">Browse</div>
+      <div class="writing-filter-row" role="group" aria-label="Filter writing by type">
+        <button type="button" class="writing-filter is-active" data-writing-filter="all" aria-pressed="true">All writing</button>
+        <button type="button" class="writing-filter" data-writing-filter="case-study" aria-pressed="false">Case studies</button>
+        <button type="button" class="writing-filter" data-writing-filter="series" aria-pressed="false">Series</button>
+        <button type="button" class="writing-filter" data-writing-filter="upcoming" aria-pressed="false">Upcoming</button>
+      </div>
+    </section>
 
     <div class="card-search">
       <span class="card-search-prompt" aria-hidden="true">&gt;</span>
@@ -122,7 +147,7 @@
     <div class="articles">
 
       <!-- W-07: Atlas Lab — coming soon -->
-      <a href="#" class="article-entry coming-soon" data-series="pipeline-observability" data-series-part="3" data-series-total="3" data-series-title="Pipeline &amp; Observability" data-series-note="3 parts · 26–30 July 2026" data-series-publish-date="2026-07-30">
+      <a href="#" class="article-entry coming-soon" aria-disabled="true" tabindex="-1" data-series="pipeline-observability" data-series-part="3" data-series-total="3" data-series-title="Pipeline &amp; Observability" data-series-note="3 parts · 26–30 July 2026" data-series-publish-date="2026-07-30">
         <div class="article-meta">
           <span class="article-number">W-07</span>
           <span class="article-date">Coming July 2026</span>
@@ -152,7 +177,7 @@
         </div>
       </a>
 <!-- W-06: Atlas Systems CI/CD — coming soon -->
-      <a href="#" class="article-entry coming-soon" data-series="pipeline-observability" data-series-part="2" data-series-total="3" data-series-title="Pipeline &amp; Observability" data-series-note="3 parts · 26–30 July 2026" data-series-publish-date="2026-07-28">
+      <a href="#" class="article-entry coming-soon" aria-disabled="true" tabindex="-1" data-series="pipeline-observability" data-series-part="2" data-series-total="3" data-series-title="Pipeline &amp; Observability" data-series-note="3 parts · 26–30 July 2026" data-series-publish-date="2026-07-28">
         <div class="article-meta">
           <span class="article-number">W-06</span>
           <span class="article-date">Coming July 2026</span>
@@ -183,7 +208,7 @@
         </div>
       </a>
 <!-- W-05: Atlas Systems Infrastructure — coming soon -->
-      <a href="#" class="article-entry coming-soon" data-series="pipeline-observability" data-series-part="1" data-series-total="3" data-series-title="Pipeline &amp; Observability" data-series-note="3 parts · 26–30 July 2026" data-series-publish-date="2026-07-26">
+      <a href="#" class="article-entry coming-soon" aria-disabled="true" tabindex="-1" data-series="pipeline-observability" data-series-part="1" data-series-total="3" data-series-title="Pipeline &amp; Observability" data-series-note="3 parts · 26–30 July 2026" data-series-publish-date="2026-07-26">
         <div class="article-meta">
           <span class="article-number">W-05</span>
           <span class="article-date">NEXT CHAPTER // JULY 2026</span>
@@ -370,6 +395,7 @@
   </script>
   <script src="/js/card-search.js" defer></script>
   <script src="/writing/series.js" defer></script>
+  <script src="/writing/directory.js" defer></script>
   <script src="/js/transitions.js?v=20260706-history"></script>
   <script src="/js/atlas-terminal-card-v3.js" defer></script>
   <script type="module" src="/static/js/estate-search/global-search.js"></script>

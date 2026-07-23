@@ -15,6 +15,8 @@ const routes = [
   ["work", "/work/"],
   ["writing", "/writing/"],
   ["about", "/about/"],
+  ["article", "/writing/overclocking-specular-core/"],
+  ["not-found", "/404.html"],
 ];
 const viewports = [
   ["320", { width: 320, height: 760 }],
@@ -181,7 +183,9 @@ function semanticFailures(evidence, browserName, viewportName, routeName) {
   const mobileExpected = Number(viewportName) < 768;
   if (mobileExpected !== evidence.mobileVisible) values.push(`${prefix}: mobile navigation visibility is incorrect`);
   if (mobileExpected && evidence.bodyPaddingBottom + 1 < evidence.navHeight) values.push(`${prefix}: bottom navigation can obscure content or focus`);
-  if (mobileExpected && routeName !== "home" && evidence.mobileActive !== 1) values.push(`${prefix}: active mobile route is missing`);
+  if (mobileExpected && !["home", "not-found"].includes(routeName) && evidence.mobileActive !== 1) {
+    values.push(`${prefix}: active mobile route is missing`);
+  }
   if (evidence.fixtureMode !== "deterministic-unavailable") values.push(`${prefix}: deterministic fixture mode is missing`);
   if (evidence.canonical && !evidence.canonical.startsWith("https://atlas-systems.uk/")) values.push(`${prefix}: preview hostname entered canonical metadata`);
   return values;
@@ -194,6 +198,14 @@ async function capturePage(context, browserName, viewportName, routeName, route)
   const url = new URL(route, base).toString();
   try {
     await openWithRetry(page, url);
+    await page.evaluate(async () => {
+      for (const element of document.querySelectorAll(".project-entry, .reveal")) {
+        element.scrollIntoView({ block: "center" });
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+      }
+      window.scrollTo(0, 0);
+    });
+    await page.waitForTimeout(100);
     const semantics = await inspectPage(page);
     const accessibility = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])

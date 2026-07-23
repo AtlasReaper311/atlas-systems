@@ -72,6 +72,9 @@
         emptyEl.textContent = "no matches for \u201C" + query + "\u201D \u00B7 esc clears";
       }
     }
+    document.dispatchEvent(new CustomEvent("atlas:card-search", {
+      detail: { query: query, shown: shown, total: cards.length }
+    }));
   }
 
   var debounce = null;
