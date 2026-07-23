@@ -55,3 +55,25 @@ jobs:
         with:
           args: "--offline --no-progress --include-fragments --root-dir ${{ github.workspace }} ."
           fail: true
+
+      - name: Record exact source identity
+        if: always()
+        run: |
+          set -euo pipefail
+          printf '%s\n' "${GITHUB_SHA}" > .atlas-snapshot-head
+          git rev-parse HEAD^{tree} > .atlas-snapshot-tree
+
+      - name: Package exact branch source
+        if: always()
+        run: |
+          set -euo pipefail
+          tar --exclude=.git -czf "${RUNNER_TEMP}/atlas-systems-source.tar.gz" .
+
+      - name: Upload interface source snapshot
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: atlas-systems-interface-source
+          path: ${{ runner.temp }}/atlas-systems-source.tar.gz
+          if-no-files-found: error
+          retention-days: 1
