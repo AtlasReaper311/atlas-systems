@@ -1,31 +1,11 @@
 {
-  "schema_version": "atlas-interface-kit/bundle-manifest/v1",
+  "schema_version": "atlas-interface-kit/vendor-lock/v1",
   "package": "atlas-interface-kit",
   "version": "0.1.0",
+  "source_status": "prepared-locally-repository-creation-pending",
   "files": [
-    {
-      "path": "dist/atlas-interface.css",
-      "bytes": 19899,
-      "sha256": "cde02460dc0069eaf48a2c53ed1acdf6e6654704573ec8401289dab604cca8a7"
-    },
-    {
-      "path": "dist/atlas-interface.js",
-      "bytes": 2686,
-      "sha256": "b0261cb7f645cad8392c627984796242907228a9cfbff4da425967dcc9170e51"
-    },
-    {
-      "path": "dist/tokens.json",
-      "bytes": 2680,
-      "sha256": "bd5a5d289dbaf1c831ce304a0dc7c4371157dcf84e8ee90cc52699d578e1421a"
-    }
-  ],
-  "source_files": [
-    "src/styles/tokens.css",
-    "src/styles/base.css",
-    "src/styles/components.css",
-    "src/styles/utilities.css",
-    "src/runtime/status.mjs",
-    "src/runtime/index.mjs",
-    "src/tokens.json"
+    {"path": "atlas-interface.css", "git_blob_sha": "56d548b2488c773f24f7168a98b5baa60f90caf8"},
+    {"path": "atlas-interface.js", "git_blob_sha": "338df57e7653258f65bcef0130ac2cb9bf132137"},
+    {"path": "tokens.json", "git_blob_sha": "c50013dceb390db23e90d2ba7eea8227920acd8b"}
   ]
 }
