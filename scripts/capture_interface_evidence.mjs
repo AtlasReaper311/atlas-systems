@@ -33,6 +33,7 @@ const fixtureHosts = new Set([
   "ramone.atlas-systems.uk",
 ]);
 const report = [];
+const failures = [];
 
 function summarizeViolation(item) {
   return {
@@ -62,6 +63,7 @@ function writeReport() {
       browsers: browsers.map(([name]) => name),
       viewports: viewports.map(([name]) => Number(name)),
       routes: report,
+      failures,
     }, null, 2)}\n`,
   );
 }
@@ -113,8 +115,8 @@ async function configureContext(context) {
   });
 }
 
-async function inspectPage(page, browserName, viewportName, routeName) {
-  const evidence = await page.evaluate(() => {
+async function inspectPage(page) {
+  return page.evaluate(() => {
     function selectorFor(element) {
       if (!element || element === document.documentElement) return "html";
       if (element.id) return `#${CSS.escape(element.id)}`;
@@ -164,42 +166,72 @@ async function inspectPage(page, browserName, viewportName, routeName) {
       fixtureMode: window.__ATLAS_EVIDENCE_MODE__ || null,
     };
   });
+}
 
+function semanticFailures(evidence, browserName, viewportName, routeName) {
   const prefix = `${browserName}/${viewportName}/${routeName}`;
-  if (!evidence.title.includes("Atlas Systems")) {
-    throw new Error(`${prefix}: title does not include Atlas Systems`);
-  }
-  if (evidence.h1Count !== 1) {
-    throw new Error(`${prefix}: expected one h1, found ${evidence.h1Count}`);
-  }
-  if (evidence.mainCount !== 1) {
-    throw new Error(`${prefix}: expected one main landmark, found ${evidence.mainCount}`);
-  }
-  if (!evidence.systemsLink) {
-    throw new Error(`${prefix}: Systems is missing from desktop navigation`);
-  }
+  const values = [];
+  if (!evidence.title.includes("Atlas Systems")) values.push(`${prefix}: title does not include Atlas Systems`);
+  if (evidence.h1Count !== 1) values.push(`${prefix}: expected one h1, found ${evidence.h1Count}`);
+  if (evidence.mainCount !== 1) values.push(`${prefix}: expected one main landmark, found ${evidence.mainCount}`);
+  if (!evidence.systemsLink) values.push(`${prefix}: Systems is missing from desktop navigation`);
   if (evidence.scrollWidth > evidence.width + 1) {
-    throw new Error(
-      `${prefix}: horizontal overflow ${evidence.scrollWidth} > ${evidence.width}; ${JSON.stringify(evidence.overflow)}`,
-    );
+    values.push(`${prefix}: horizontal overflow ${evidence.scrollWidth} > ${evidence.width}; ${JSON.stringify(evidence.overflow)}`);
   }
   const mobileExpected = Number(viewportName) < 768;
-  if (mobileExpected !== evidence.mobileVisible) {
-    throw new Error(`${prefix}: mobile navigation visibility is incorrect`);
+  if (mobileExpected !== evidence.mobileVisible) values.push(`${prefix}: mobile navigation visibility is incorrect`);
+  if (mobileExpected && evidence.bodyPaddingBottom + 1 < evidence.navHeight) values.push(`${prefix}: bottom navigation can obscure content or focus`);
+  if (mobileExpected && routeName !== "home" && evidence.mobileActive !== 1) values.push(`${prefix}: active mobile route is missing`);
+  if (evidence.fixtureMode !== "deterministic-unavailable") values.push(`${prefix}: deterministic fixture mode is missing`);
+  if (evidence.canonical && !evidence.canonical.startsWith("https://atlas-systems.uk/")) values.push(`${prefix}: preview hostname entered canonical metadata`);
+  return values;
+}
+
+async function capturePage(context, browserName, viewportName, routeName, route) {
+  const page = await context.newPage();
+  const pageErrors = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  const url = new URL(route, base).toString();
+  try {
+    await openWithRetry(page, url);
+    const semantics = await inspectPage(page);
+    const accessibility = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .analyze();
+    const violations = accessibility.violations.map(summarizeViolation);
+    const blocking = violations.filter(
+      (item) => item.impact === "serious" || item.impact === "critical",
+    );
+    const fullPage = `screenshots/${browserName}-${viewportName}-${routeName}-full.png`;
+    await page.screenshot({ path: fullPage, fullPage: true });
+    let viewportShot = null;
+    if (Number(viewportName) < 768) {
+      viewportShot = `screenshots/${browserName}-${viewportName}-${routeName}-viewport.png`;
+      await page.screenshot({ path: viewportShot, fullPage: false });
+    }
+    const pageFailures = semanticFailures(semantics, browserName, viewportName, routeName);
+    if (pageErrors.length) pageFailures.push(`${browserName}/${viewportName}/${routeName}: page errors ${JSON.stringify(pageErrors)}`);
+    if (blocking.length) pageFailures.push(`${browserName}/${viewportName}/${routeName}: serious accessibility findings ${JSON.stringify(blocking)}`);
+    failures.push(...pageFailures);
+    report.push({
+      browser: browserName,
+      viewport: viewportName,
+      route,
+      url,
+      semantics,
+      pageErrors,
+      accessibilityViolations: violations,
+      failures: pageFailures,
+      screenshots: { fullPage, viewport: viewportShot },
+    });
+  } catch (error) {
+    const message = `${browserName}/${viewportName}/${routeName}: ${error.stack || error.message}`;
+    failures.push(message);
+    report.push({ browser: browserName, viewport: viewportName, route, url, failures: [message] });
+  } finally {
+    writeReport();
+    await page.close();
   }
-  if (mobileExpected && evidence.bodyPaddingBottom + 1 < evidence.navHeight) {
-    throw new Error(`${prefix}: bottom navigation can obscure content or focus`);
-  }
-  if (mobileExpected && routeName !== "home" && evidence.mobileActive !== 1) {
-    throw new Error(`${prefix}: active mobile route is missing`);
-  }
-  if (evidence.fixtureMode !== "deterministic-unavailable") {
-    throw new Error(`${prefix}: deterministic fixture mode is missing`);
-  }
-  if (evidence.canonical && !evidence.canonical.startsWith("https://atlas-systems.uk/")) {
-    throw new Error(`${prefix}: preview hostname entered canonical metadata`);
-  }
-  return evidence;
 }
 
 async function run() {
@@ -216,46 +248,7 @@ async function run() {
         await configureContext(context);
         try {
           for (const [routeName, route] of routes) {
-            const page = await context.newPage();
-            const pageErrors = [];
-            page.on("pageerror", (error) => pageErrors.push(error.message));
-            const url = new URL(route, base).toString();
-            await openWithRetry(page, url);
-            const semantics = await inspectPage(page, browserName, viewportName, routeName);
-            const accessibility = await new AxeBuilder({ page })
-              .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
-              .analyze();
-            const violations = accessibility.violations.map(summarizeViolation);
-            const blocking = violations.filter(
-              (item) => item.impact === "serious" || item.impact === "critical",
-            );
-            const fullPage = `screenshots/${browserName}-${viewportName}-${routeName}-full.png`;
-            await page.screenshot({ path: fullPage, fullPage: true });
-            let viewportShot = null;
-            if (Number(viewportName) < 768) {
-              viewportShot = `screenshots/${browserName}-${viewportName}-${routeName}-viewport.png`;
-              await page.screenshot({ path: viewportShot, fullPage: false });
-            }
-            report.push({
-              browser: browserName,
-              viewport: viewportName,
-              route,
-              url,
-              semantics,
-              pageErrors,
-              accessibilityViolations: violations,
-              screenshots: { fullPage, viewport: viewportShot },
-            });
-            writeReport();
-            if (pageErrors.length) {
-              throw new Error(`${browserName}/${viewportName}/${routeName}: page errors ${JSON.stringify(pageErrors)}`);
-            }
-            if (blocking.length) {
-              throw new Error(
-                `${browserName}/${viewportName}/${routeName}: serious accessibility findings ${JSON.stringify(blocking)}`,
-              );
-            }
-            await page.close();
+            await capturePage(context, browserName, viewportName, routeName, route);
           }
         } finally {
           await context.close();
@@ -266,6 +259,9 @@ async function run() {
     }
   }
   writeReport();
+  if (failures.length) {
+    throw new Error(`Interface evidence failed with ${failures.length} findings:\n${failures.join("\n")}`);
+  }
 }
 
 try {
