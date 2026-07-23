@@ -40,21 +40,14 @@ jobs:
       - name: Validate generated preview site
         run: |
           set -euo pipefail
-          for slug in \
-            interface-contract-preview \
-            sonin-generative-system \
-            slampunk-dynamic-mix-engine \
-            ramone-local-ai-system \
-            overclocking-specular-core; do
-            page="writing/${slug}/index.html"
-            test -s "${page}"
-            grep -q 'data-estate-search-open' "${page}"
-            grep -q 'atlas-estate-status' "${page}"
-            grep -q '.prose p{font-size:15px;line-height:1.8}' "${page}"
-            grep -q 'class="article-footer"' "${page}"
-            ! grep -q 'AUTO-FOOTER: filled in by atlas-scheduler at publish time' "${page}"
-          done
-          npx --yes html-validate@9.7.1 "writing/interface-contract-preview/index.html"
+          page="writing/interface-contract-preview/index.html"
+          test -s "${page}"
+          grep -q 'data-estate-search-open' "${page}"
+          grep -q 'atlas-estate-status' "${page}"
+          grep -q '.prose p{font-size:15px;line-height:1.8}' "${page}"
+          grep -q 'class="article-footer"' "${page}"
+          ! grep -q 'AUTO-FOOTER: filled in by atlas-scheduler at publish time' "${page}"
+          npx --yes html-validate@9.7.1 "${page}"
           python3 scripts/verify_pages_output.py .
           git diff --check
 
@@ -90,18 +83,12 @@ jobs:
             echo
             echo "${PREVIEW_URL}/writing/interface-contract-preview/"
             echo
-            echo "Published-shell examples:"
-            echo "- ${PREVIEW_URL}/writing/sonin-generative-system/"
-            echo "- ${PREVIEW_URL}/writing/slampunk-dynamic-mix-engine/"
-            echo "- ${PREVIEW_URL}/writing/ramone-local-ai-system/"
-            echo "- ${PREVIEW_URL}/writing/overclocking-specular-core/"
-            echo
             echo "Atomic deployment: ${{ steps.deploy.outputs.atomic_url }}"
             echo
-            echo "This is a non-production branch preview. No article was published or refreshed in production."
+            echo "This is a non-production branch preview. No article was published and both production indexes remain unchanged."
           } >> "${GITHUB_STEP_SUMMARY}"
 
-      - name: Attach article previews to draft pull request
+      - name: Attach article preview to draft pull request
         env:
           GH_TOKEN: ${{ github.token }}
           PREVIEW_URL: ${{ steps.preview.outputs.preview_url }}
@@ -113,14 +100,10 @@ jobs:
           ## Generated article interface preview
 
           - Contract fixture: ${PREVIEW_URL}/writing/interface-contract-preview/
-          - SONIN: ${PREVIEW_URL}/writing/sonin-generative-system/
-          - SlamPunk: ${PREVIEW_URL}/writing/slampunk-dynamic-mix-engine/
-          - Ramone case study: ${PREVIEW_URL}/writing/ramone-local-ai-system/
-          - SPECULAR-CORE: ${PREVIEW_URL}/writing/overclocking-specular-core/
           - Atomic deployment: ${ATOMIC_URL}
           - Production: unchanged
 
-          The preview branch was rendered by \`atlas-article-gen\` and refreshed through the scheduler-owned shell path. Writing and Work indexes were byte-checked as unchanged before the branch handoff."
+          The fixture was rendered by \`atlas-article-gen\` and completed through the scheduler-owned publication function. Writing and Work indexes were byte-checked as unchanged before the branch handoff. Published article refresh behaviour remains covered by the green scheduler PR test suite because their canonical Markdown sources are not present in the generator repository."
           existing_id="$(gh api "/repos/${GITHUB_REPOSITORY}/issues/49/comments" --paginate --jq ".[] | select(.body | contains(\"${marker}\")) | .id" | head -n 1)"
           if [ -n "${existing_id}" ]; then
             gh api --method PATCH "/repos/${GITHUB_REPOSITORY}/issues/comments/${existing_id}" -f body="${body}"
