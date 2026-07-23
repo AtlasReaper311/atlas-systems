@@ -10,7 +10,7 @@ const processorSource = readFileSync(
 );
 
 const mainSource = readFileSync(
-  new URL("../signal/signal-v2.js", import.meta.url),
+  new URL("../signal/signal-v2-core.js", import.meta.url),
   "utf8",
 );
 
