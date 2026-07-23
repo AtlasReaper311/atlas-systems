@@ -8,7 +8,7 @@ import {
 } from "./estate-status.js";
 
 const STATUS_TIMEOUT_MS = 6_000;
-const KIT_STYLESHEET = "/static/vendor/atlas-interface/v0.1.0/atlas-interface.css";
+const KIT_STYLESHEET = "/static/vendor/atlas-interface/v0.1.0/atlas-interface-kit.css";
 const SHELL_STYLESHEET = "/static/css/estate-shell.css?v=20260723-interface-v2";
 
 const GLOBAL_ROUTES = Object.freeze([
@@ -88,6 +88,7 @@ function normalizeLink(anchor) {
   if (!anchor.hasAttribute("href") || anchor.hasAttribute("download")) return;
   const raw = anchor.getAttribute("href").trim();
   if (!raw || raw.startsWith("#") || raw.startsWith("mailto:") || raw.startsWith("tel:")) return;
+
   let url;
   try {
     url = new URL(anchor.href, window.location.href);
@@ -95,15 +96,18 @@ function normalizeLink(anchor) {
     return;
   }
   if (!isHttpUrl(url)) return;
+
   if (ATLAS_OWNED_HOSTS.has(url.hostname)) {
     anchor.removeAttribute("target");
     const remaining = (anchor.getAttribute("rel") || "")
-      .split(/\s+/).filter(Boolean)
+      .split(/\s+/)
+      .filter(Boolean)
       .filter((value) => value !== "noopener" && value !== "noreferrer");
     if (remaining.length) anchor.setAttribute("rel", remaining.join(" "));
     else anchor.removeAttribute("rel");
     return;
   }
+
   anchor.target = "_blank";
   const relations = new Set((anchor.getAttribute("rel") || "").split(/\s+/).filter(Boolean));
   relations.add("noopener");
@@ -168,11 +172,12 @@ function currentRouteLabel() {
 
 function createRouteNav() {
   const container = document.createElement("div");
-  container.className = "atlas-header__nav";
+  container.className = "atlas-header__nav atlas-global-header__nav";
   container.setAttribute("aria-label", "Atlas Systems sections");
   const current = currentRouteLabel();
   for (const route of GLOBAL_ROUTES) {
     const link = document.createElement("a");
+    link.className = "atlas-global-header__link";
     link.href = route.href;
     link.textContent = route.label;
     if (route.label === current) link.setAttribute("aria-current", "page");
@@ -222,7 +227,11 @@ function preserveHomepageStatus(nav) {
   if (label) {
     label.classList.add("atlas-estate-status-label");
     translateHomepageStatus(label);
-    new MutationObserver(() => translateHomepageStatus(label)).observe(label, { childList: true, characterData: true, subtree: true });
+    new MutationObserver(() => translateHomepageStatus(label)).observe(label, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
   }
   return status;
 }
@@ -249,7 +258,11 @@ async function refreshStatus(chip) {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     setStatus(chip, parseEstateStatus(await response.json()));
   } catch {
-    setStatus(chip, { state: "unknown", label: STATUS_LABELS.unknown, detail: "Status evidence could not be loaded." });
+    setStatus(chip, {
+      state: "unknown",
+      label: STATUS_LABELS.unknown,
+      detail: "Status evidence could not be loaded.",
+    });
   } finally {
     window.clearTimeout(timer);
   }
@@ -258,26 +271,25 @@ async function refreshStatus(chip) {
 function installHeader() {
   const nav = findPrimaryNav();
   if (!nav) return;
-  const isHomepage = window.location.hostname === "atlas-systems.uk" && window.location.pathname === "/";
+  const isHomepage = normalizePath(window.location.pathname) === "/";
   const wordmark = findWordmark(nav) || createWordmark();
   wordmark.classList.add("atlas-wordmark");
   const status = isHomepage ? preserveHomepageStatus(nav) : createAggregateStatus();
-  const existingSearch = nav.querySelector("[data-estate-search-open]");
-  const search = existingSearch || createSearchButton();
+  const search = nav.querySelector("[data-estate-search-open]") || createSearchButton();
   search.classList.add("atlas-search-control");
 
   const inner = document.createElement("div");
   inner.className = "atlas-header__inner";
   const brand = document.createElement("div");
-  brand.className = "atlas-header__brand";
+  brand.className = "atlas-header__brand atlas-global-header__identity";
   brand.append(wordmark, status);
   const actions = document.createElement("div");
-  actions.className = "atlas-header__actions";
+  actions.className = "atlas-header__actions atlas-global-header__actions";
   actions.append(search);
   inner.append(brand, createRouteNav(), actions);
 
   nav.replaceChildren(inner);
-  nav.classList.add("atlas-header", "atlas-nav-shell");
+  nav.classList.add("atlas-header", "atlas-nav-shell", "atlas-global-header");
   nav.removeAttribute("style");
   if (!isHomepage) void refreshStatus(status);
 }
@@ -300,7 +312,8 @@ function installMobileNavigation() {
     nav.setAttribute("aria-label", "Mobile navigation");
     document.body.appendChild(nav);
   }
-  nav.className = "mobile-nav atlas-mobile-nav";
+  document.body.dataset.atlasBottomNav = "true";
+  nav.className = "mobile-nav atlas-mobile-nav atlas-bottom-nav";
   const inner = document.createElement("div");
   inner.className = "mobile-nav-inner atlas-mobile-nav__inner";
   const current = currentRouteLabel();
