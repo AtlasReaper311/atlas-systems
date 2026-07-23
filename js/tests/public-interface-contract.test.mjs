@@ -8,6 +8,7 @@ import {
   STATUS_STALE_AFTER_MS,
   parseEstateStatus,
 } from "../../static/js/estate-status.js";
+import { normalizeAtlasTitle } from "../../static/js/estate-shell.js";
 
 const NOW = Date.parse("2026-07-23T08:00:00Z");
 
@@ -40,6 +41,14 @@ test("missing, impossible, future, and stale evidence remain unknown", () => {
   assert.equal(parseEstateStatus(snapshot(20, 19), NOW).state, "unknown");
   assert.equal(parseEstateStatus(snapshot(19, 19, "2026-07-23T08:05:00Z"), NOW).state, "unknown");
   assert.equal(parseEstateStatus(snapshot(19, 19, "2026-07-23T07:39:59Z"), NOW).state, "unknown");
+});
+
+test("estate page titles use the page-first double-slash convention", () => {
+  assert.equal(normalizeAtlasTitle("Atlas Systems"), "Atlas Systems");
+  assert.equal(normalizeAtlasTitle("Work — Atlas Systems"), "Work // Atlas Systems");
+  assert.equal(normalizeAtlasTitle("Writing - Atlas Systems"), "Writing // Atlas Systems");
+  assert.equal(normalizeAtlasTitle("Atlas Systems // Status"), "Status // Atlas Systems");
+  assert.equal(normalizeAtlasTitle("Proof Chain // Atlas Systems"), "Proof Chain // Atlas Systems");
 });
 
 test("canonical browser icon package is locally deployed", () => {

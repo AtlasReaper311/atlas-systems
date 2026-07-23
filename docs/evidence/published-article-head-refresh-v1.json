@@ -1,0 +1,82 @@
+{
+  "schema": "atlas-scheduler/published-article-head-refresh/v1",
+  "production_write": false,
+  "allowlist": [
+    "<link rel=\"icon\" href=\"/favicon.ico\" sizes=\"any\">",
+    "<link rel=\"icon\" href=\"/favicon-16x16.png\" sizes=\"16x16\" type=\"image/png\">",
+    "<link rel=\"icon\" href=\"/favicon-32x32.png\" sizes=\"32x32\" type=\"image/png\">",
+    "<link rel=\"apple-touch-icon\" href=\"/apple-touch-icon.png\" sizes=\"180x180\">",
+    "<link rel=\"manifest\" href=\"/site.webmanifest\">",
+    "twitter:image:alt copied from og:image:alt"
+  ],
+  "articles": [
+    {
+      "slug": "sonin-generative-system",
+      "path": "writing/sonin-generative-system/index.html",
+      "added_elements": [
+        "<link rel=\"icon\" href=\"/favicon.ico\" sizes=\"any\">",
+        "<link rel=\"icon\" href=\"/favicon-16x16.png\" sizes=\"16x16\" type=\"image/png\">",
+        "<link rel=\"icon\" href=\"/favicon-32x32.png\" sizes=\"32x32\" type=\"image/png\">",
+        "<link rel=\"apple-touch-icon\" href=\"/apple-touch-icon.png\" sizes=\"180x180\">",
+        "<link rel=\"manifest\" href=\"/site.webmanifest\">",
+        "<meta name=\"twitter:image:alt\" content=\"Atlas Systems: audio systems, local AI infrastructure, and deployment automation\">"
+      ],
+      "source_sha256": "c8687ffcae5e26898b60f8d0d694d56e98ff8af6b2f8b22a0de0552b24317cc7",
+      "output_sha256": "6eefaeef05691b747dfa0efc1d037388e544318bf2476f136ef60d95b6ee51b2",
+      "body_sha256_before": "b50ed998a5d67e88536db7b26a2580232c5c79260cbc4d27ab76189b9999ec82",
+      "body_sha256_after": "b50ed998a5d67e88536db7b26a2580232c5c79260cbc4d27ab76189b9999ec82",
+      "body_unchanged": true
+    },
+    {
+      "slug": "slampunk-dynamic-mix-engine",
+      "path": "writing/slampunk-dynamic-mix-engine/index.html",
+      "added_elements": [
+        "<link rel=\"icon\" href=\"/favicon.ico\" sizes=\"any\">",
+        "<link rel=\"icon\" href=\"/favicon-16x16.png\" sizes=\"16x16\" type=\"image/png\">",
+        "<link rel=\"icon\" href=\"/favicon-32x32.png\" sizes=\"32x32\" type=\"image/png\">",
+        "<link rel=\"apple-touch-icon\" href=\"/apple-touch-icon.png\" sizes=\"180x180\">",
+        "<link rel=\"manifest\" href=\"/site.webmanifest\">",
+        "<meta name=\"twitter:image:alt\" content=\"Atlas Systems: audio systems, local AI infrastructure, and deployment automation\">"
+      ],
+      "source_sha256": "93687aabc346cebca89b91bccf5845818dc8f606c91f46044614c37d7c48ffa2",
+      "output_sha256": "1e71c4e8ac748790a863ec786f85f2cc4a267e38c7186f7cba889538fb1679b6",
+      "body_sha256_before": "d67055b9eec303cdf385f4d7121fcfd4e0390d027e0e37d254f31de193395710",
+      "body_sha256_after": "d67055b9eec303cdf385f4d7121fcfd4e0390d027e0e37d254f31de193395710",
+      "body_unchanged": true
+    },
+    {
+      "slug": "ramone-local-ai-system",
+      "path": "writing/ramone-local-ai-system/index.html",
+      "added_elements": [
+        "<link rel=\"icon\" href=\"/favicon.ico\" sizes=\"any\">",
+        "<link rel=\"icon\" href=\"/favicon-16x16.png\" sizes=\"16x16\" type=\"image/png\">",
+        "<link rel=\"icon\" href=\"/favicon-32x32.png\" sizes=\"32x32\" type=\"image/png\">",
+        "<link rel=\"apple-touch-icon\" href=\"/apple-touch-icon.png\" sizes=\"180x180\">",
+        "<link rel=\"manifest\" href=\"/site.webmanifest\">",
+        "<meta name=\"twitter:image:alt\" content=\"Atlas Systems: audio systems, local AI infrastructure, and deployment automation\">"
+      ],
+      "source_sha256": "6b3d373cbb1143fa7e724af205d84ac0f8852e8328c0ca024cc850d8f1d85c0f",
+      "output_sha256": "15f95dbaef0c313647fea33de1216586abb7ca47891690823c410a203c78bcdb",
+      "body_sha256_before": "8c3ef4ff8c3c2c12473b0d70f62fbe1a4c97864915ebbfdbbe2985ea99c6c322",
+      "body_sha256_after": "8c3ef4ff8c3c2c12473b0d70f62fbe1a4c97864915ebbfdbbe2985ea99c6c322",
+      "body_unchanged": true
+    },
+    {
+      "slug": "overclocking-specular-core",
+      "path": "writing/overclocking-specular-core/index.html",
+      "added_elements": [
+        "<link rel=\"icon\" href=\"/favicon.ico\" sizes=\"any\">",
+        "<link rel=\"icon\" href=\"/favicon-16x16.png\" sizes=\"16x16\" type=\"image/png\">",
+        "<link rel=\"icon\" href=\"/favicon-32x32.png\" sizes=\"32x32\" type=\"image/png\">",
+        "<link rel=\"apple-touch-icon\" href=\"/apple-touch-icon.png\" sizes=\"180x180\">",
+        "<link rel=\"manifest\" href=\"/site.webmanifest\">",
+        "<meta name=\"twitter:image:alt\" content=\"Atlas Systems: audio systems, local AI infrastructure, and deployment automation\">"
+      ],
+      "source_sha256": "f17fdcf28060533a79f0aa7600525423787592e6739044c9436835aee8e12f49",
+      "output_sha256": "9646bd0c84d7ed35f9664e4460b3bbbe674852a11eb14624b5cc3ea208998181",
+      "body_sha256_before": "c1dc7b543f9dec76b1e18ca046d3f8031e500e112ce55926a21ec1f889067c7f",
+      "body_sha256_after": "c1dc7b543f9dec76b1e18ca046d3f8031e500e112ce55926a21ec1f889067c7f",
+      "body_unchanged": true
+    }
+  ]
+}
