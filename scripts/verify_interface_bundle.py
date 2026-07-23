@@ -7,7 +7,9 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-BUNDLE_ROOT = ROOT / "static/vendor/atlas-interface/v0.1.0"
+VENDOR_ROOT = ROOT / "static/vendor/atlas-interface"
+VERSION = "0.1.1"
+BUNDLE_ROOT = VENDOR_ROOT / f"v{VERSION}"
 MANIFEST_PATH = BUNDLE_ROOT / "manifest.json"
 EXPECTED_FILES = {
     "atlas-interface-kit.css",
@@ -42,13 +44,22 @@ def require(condition: bool, message: str) -> None:
 
 
 def verify() -> dict[str, Any]:
+    version_directories = {
+        path.name
+        for path in VENDOR_ROOT.iterdir()
+        if path.is_dir()
+    }
+    require(
+        version_directories == {f"v{VERSION}"},
+        f"expected only v{VERSION}; found {sorted(version_directories)}",
+    )
     require(MANIFEST_PATH.is_file(), f"bundle manifest is missing: {MANIFEST_PATH}")
     manifest = load_json(MANIFEST_PATH)
     require(
         manifest.get("schema_version") == "atlas-interface-kit/bundle/v1",
         "unsupported interface bundle schema",
     )
-    require(manifest.get("version") == "0.1.0", "unexpected interface bundle version")
+    require(manifest.get("version") == VERSION, "unexpected interface bundle version")
     require(
         manifest.get("contract_version") == "2.0.0",
         "unexpected public interface contract version",
@@ -92,6 +103,7 @@ def verify() -> dict[str, Any]:
     tokens = load_json(BUNDLE_ROOT / "tokens.json")
     require(tokens.get("version") == manifest["version"], "token version does not match manifest")
     require(tokens.get("contract_version") == manifest["contract_version"], "token contract version does not match manifest")
+    require(tokens.get("colour", {}).get("text_faint") == "#888894", "accessible faint-text token drifted")
     return manifest
 
 
