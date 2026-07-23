@@ -122,11 +122,40 @@ function normalizeLinks(root) {
   root.querySelectorAll("a[href]").forEach(normalizeLink);
 }
 
-function observeLinks() {
+function replaceHeading(element, tagName) {
+  const replacement = document.createElement(tagName);
+  for (const attribute of element.attributes) {
+    replacement.setAttribute(attribute.name, attribute.value);
+  }
+  replacement.append(...element.childNodes);
+  element.replaceWith(replacement);
+  return replacement;
+}
+
+function normalizeLegacySemantics(root = document) {
+  if (!(root instanceof Element || root instanceof Document)) return;
+
+  if (normalizePath(window.location.pathname) === "/lab/console/") {
+    const ramoneHeading = document.getElementById("ramone-greet");
+    if (ramoneHeading?.tagName === "H1") replaceHeading(ramoneHeading, "h2");
+  }
+
+  const maps = [];
+  if (root instanceof Element && root.matches(".smap-city-svg[role='img']")) maps.push(root);
+  maps.push(...root.querySelectorAll(".smap-city-svg[role='img']"));
+  for (const map of maps) {
+    map.setAttribute("role", "group");
+    map.setAttribute("aria-label", "Interactive district map of the Atlas Systems estate");
+  }
+}
+
+function observeDynamicContent() {
   const observer = new MutationObserver((records) => {
     for (const record of records) {
       for (const node of record.addedNodes) {
-        if (node instanceof Element) normalizeLinks(node);
+        if (!(node instanceof Element)) continue;
+        normalizeLinks(node);
+        normalizeLegacySemantics(node);
       }
     }
   });
@@ -340,7 +369,8 @@ function install() {
   installHeader();
   installMobileNavigation();
   normalizeLinks(document);
-  observeLinks();
+  normalizeLegacySemantics(document);
+  observeDynamicContent();
 }
 
 if (typeof document !== "undefined") {
@@ -352,6 +382,7 @@ export {
   ATLAS_OWNED_HOSTS,
   GLOBAL_ROUTES,
   normalizeAtlasTitle,
+  normalizeLegacySemantics,
   normalizeLink,
   normalizeLinks,
   preserveHomepageStatus,
