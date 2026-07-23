@@ -13,13 +13,14 @@ import {
 import { GLOBAL_ROUTES, normalizeAtlasTitle } from "../../static/js/estate-shell.js";
 
 const NOW = Date.parse("2026-07-23T08:00:00Z");
+const BUNDLE_ROOT = "static/vendor/atlas-interface/v0.1.0";
+
 function snapshot(operational, total, checkedAt = "2026-07-23T07:55:00Z") {
   return { estate: { operational, total_components: total, checked_at: checkedAt } };
 }
-function gitBlobSha(path) {
-  const content = fs.readFileSync(path);
-  const header = Buffer.from(`blob ${content.length}\0`);
-  return crypto.createHash("sha1").update(header).update(content).digest("hex");
+
+function sha256(path) {
+  return crypto.createHash("sha256").update(fs.readFileSync(path)).digest("hex");
 }
 
 test("status indicator consumes the bounded aggregate contract", () => {
@@ -49,6 +50,7 @@ test("v2 shell exposes the accepted route order", () => {
   assert.match(shell, /atlas-header__nav/);
   assert.match(shell, /atlas-header__actions/);
   assert.match(shell, /preserveHomepageStatus/);
+  assert.match(shell, /atlas-interface-kit\.css/);
   assert.match(shellCss, /grid-template-columns:\s*repeat\(5,\s*1fr\)/);
 });
 
@@ -58,13 +60,22 @@ test("estate page titles use the page-first double-slash convention", () => {
   assert.equal(normalizeAtlasTitle("Atlas Systems // Status"), "Status // Atlas Systems");
 });
 
-test("interface-kit vendor copy is pinned by deterministic Git blob fingerprints", () => {
-  const root = "static/vendor/atlas-interface/v0.1.0";
-  const manifest = JSON.parse(fs.readFileSync(`${root}/manifest.json`, "utf8"));
+test("interface-kit vendor copy matches the canonical SHA-256 manifest", () => {
+  const manifest = JSON.parse(fs.readFileSync(`${BUNDLE_ROOT}/manifest.json`, "utf8"));
+  assert.equal(manifest.schema_version, "atlas-interface-kit/bundle/v1");
   assert.equal(manifest.version, "0.1.0");
-  assert.equal(manifest.schema_version, "atlas-interface-kit/vendor-lock/v1");
-  for (const entry of manifest.files) {
-    assert.equal(gitBlobSha(`${root}/${entry.path}`), entry.git_blob_sha, entry.path);
+  assert.equal(manifest.contract_version, "2.0.0");
+  assert.equal(manifest.component_role_count, 25);
+  assert.deepEqual(Object.keys(manifest.files).sort(), ["atlas-interface-kit.css", "components.json", "tokens.json"]);
+
+  for (const [name, record] of Object.entries(manifest.files)) {
+    const path = `${BUNDLE_ROOT}/${name}`;
+    assert.equal(fs.statSync(path).size, record.bytes, `${name} byte count`);
+    assert.equal(sha256(path), record.sha256, `${name} SHA-256`);
+  }
+
+  for (const obsolete of ["atlas-interface.css", "atlas-interface.js", "tokens.schema.json"]) {
+    assert.equal(fs.existsSync(`${BUNDLE_ROOT}/${obsolete}`), false, `${obsolete} must not remain`);
   }
 });
 
