@@ -71,14 +71,14 @@ jobs:
       - name: Check repository links offline
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         with:
-          args: "--offline --no-progress --include-fragments --format detailed --output ${{ runner.temp }}/interface-link-report.txt --root-dir ${{ github.workspace }} ."
+          args: "--offline --no-progress --include-fragments --format detailed --output ${{ github.workspace }}/interface-link-report.txt --root-dir ${{ github.workspace }} ."
           fail: true
       - name: Upload interface link report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: interface-link-report
-          path: ${{ runner.temp }}/interface-link-report.txt
+          path: interface-link-report.txt
           if-no-files-found: warn
           retention-days: 7
 
