@@ -50,7 +50,7 @@ function isHttpUrl(url) {
 }
 
 function normalizeLink(anchor) {
-  if (!(anchor instanceof HTMLAnchorElement)) return;
+  if (typeof HTMLAnchorElement === "undefined" || !(anchor instanceof HTMLAnchorElement)) return;
   if (!anchor.hasAttribute("href") || anchor.hasAttribute("download")) return;
   const raw = anchor.getAttribute("href").trim();
   if (!raw || raw.startsWith("#") || raw.startsWith("mailto:") || raw.startsWith("tel:")) return;
@@ -82,7 +82,8 @@ function normalizeLink(anchor) {
 }
 
 function normalizeLinks(root) {
-  if (root instanceof HTMLAnchorElement) normalizeLink(root);
+  if (typeof HTMLAnchorElement !== "undefined" && root instanceof HTMLAnchorElement) normalizeLink(root);
+  if (typeof Element === "undefined" || typeof Document === "undefined") return;
   if (!(root instanceof Element || root instanceof Document)) return;
   root.querySelectorAll("a[href]").forEach(normalizeLink);
 }
@@ -186,10 +187,12 @@ function install() {
   installStatusChip();
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", install, { once: true });
-} else {
-  install();
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", install, { once: true });
+  } else {
+    install();
+  }
 }
 
 export { ATLAS_OWNED_HOSTS, normalizeLink, normalizeLinks };
