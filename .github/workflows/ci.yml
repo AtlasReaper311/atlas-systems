@@ -40,7 +40,7 @@ jobs:
       - name: Run public interface tests
         run: node --test js/tests/public-interface-contract.test.mjs
 
-      - name: Run existing site JavaScript tests
+      - name: Run existing main-site tests
         run: |
           set -euo pipefail
           files=()
@@ -49,7 +49,15 @@ jobs:
               files+=("${path}")
             fi
           done
-          node --test "${files[@]}" lab/tests/*.test.mjs static/js/sonify/*.test.js
+          if [ "${#files[@]}" -gt 0 ]; then
+            node --test "${files[@]}"
+          fi
+
+      - name: Run Lab tests
+        run: node --test lab/tests/*.test.mjs
+
+      - name: Run System SYMPHONY tests
+        run: node --test static/js/sonify/*.test.js
 
       - name: Validate sitemap
         run: python3 scripts/generate_sitemap.py --check-only
