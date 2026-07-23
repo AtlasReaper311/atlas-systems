@@ -129,6 +129,39 @@ test("Lab and Systems cards carry operation-specific visual identities", () => {
   assert.match(directoryCss, /prefers-reduced-motion:reduce/);
 });
 
+test("Lab and Systems explain maturity, data mode, and operation motifs", () => {
+  const lab = fs.readFileSync("lab/index.html", "utf8");
+  const systems = fs.readFileSync("systems/index.html", "utf8");
+  const systemMap = fs.readFileSync("lab/system-map/index.html", "utf8");
+  const directoryCss = fs.readFileSync("static/css/v2-directory-pages.css", "utf8");
+
+  for (const [name, page] of [["Lab", lab], ["Systems", systems]]) {
+    assert.match(page, /<aside class="interface-legend" aria-labelledby="[^"]+">/, `${name} legend`);
+    assert.match(page, /Commitment and data are separate\./, `${name} separation`);
+    for (const maturity of ["Production", "Tool", "Preview", "Experiment"]) {
+      assert.match(page, new RegExp(`>${maturity}<`), `${name} ${maturity}`);
+    }
+    for (const mode of ["live", "replay", "generated", "simulated"]) {
+      assert.match(page, new RegExp(`data-mode-key="${mode}"`), `${name} ${mode}`);
+    }
+
+    const cards = (page.match(/class="system-card/g) || []).length;
+    const motifs = (page.match(/data-motif="/g) || []).length;
+    assert.equal(motifs, cards, `${name} cards must all carry an operation motif`);
+  }
+
+  for (const motif of ["RAG", "WAVE", "DSP", "TOPO", "TRACE", "SLO", "POLICY", "RECOVER", "OPENAPI", "DTW"]) {
+    assert.match(`${lab}\n${systems}`, new RegExp(`data-motif="${motif}"`), motif);
+  }
+  assert.match(directoryCss, /content:attr\(data-motif\)/);
+  assert.match(directoryCss, /\.badge\.preview\s*\{/);
+  assert.match(directoryCss, /\.badge\.experiment\s*\{[^}]*border-style:dashed/);
+  assert.match(directoryCss, /\.mode-key\[data-mode-key="simulated"\]::before\s*\{[^}]*border-style:dashed/);
+  for (const page of [lab, systems, systemMap]) {
+    assert.match(page, /v2-directory-pages\.css\?v=20260723-visual-semantics/);
+  }
+});
+
 test("reduced-motion and legacy Lab compatibility stay explicit", () => {
   const transitions = fs.readFileSync("js/transitions.js", "utf8");
   const shell = fs.readFileSync("static/js/estate-shell.js", "utf8");
