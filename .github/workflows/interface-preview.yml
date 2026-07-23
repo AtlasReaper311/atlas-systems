@@ -229,26 +229,39 @@ jobs:
                 await openWithRetry(page, url);
                 await page.waitForSelector('.atlas-header__brand', { timeout: 15_000 });
                 await page.waitForSelector('.atlas-header__actions', { timeout: 15_000 });
-                const evidence = await page.evaluate(() => ({
-                  title: document.title,
-                  width: document.documentElement.clientWidth,
-                  scrollWidth: document.documentElement.scrollWidth,
-                  systemsLink: Boolean([...document.querySelectorAll('.atlas-header__nav a')].find((link) => link.textContent.trim() === 'Systems')),
-                  mobileNav: getComputedStyle(document.querySelector('.atlas-mobile-nav')).display,
-                }));
-                if (!evidence.title.includes('Atlas Systems')) throw new Error(`${name}: title does not include Atlas Systems`);
-                if (!evidence.systemsLink) throw new Error(`${name}: Systems is missing from desktop navigation`);
-                if (evidence.scrollWidth > evidence.width + 1) throw new Error(`${name}: horizontal overflow ${evidence.scrollWidth} > ${evidence.width}`);
-                if (viewportName === 'mobile' && evidence.mobileNav === 'none') throw new Error(`${name}: mobile navigation is hidden`);
+                const evidence = await page.evaluate(() => {
+                  const width = document.documentElement.clientWidth;
+                  const overflowElements = [...document.querySelectorAll('body *')]
+                    .map((element) => {
+                      const rect = element.getBoundingClientRect();
+                      const className = typeof element.className === 'string' ? element.className.trim().split(/\s+/).filter(Boolean).slice(0, 3).join('.') : '';
+                      const selector = element.id ? `#${element.id}` : `${element.tagName.toLowerCase()}${className ? `.${className}` : ''}`;
+                      return { selector, left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width) };
+                    })
+                    .filter((item) => item.right > width + 1 || item.left < -1)
+                    .slice(0, 20);
+                  return {
+                    title: document.title,
+                    width,
+                    scrollWidth: document.documentElement.scrollWidth,
+                    overflowElements,
+                    systemsLink: Boolean([...document.querySelectorAll('.atlas-header__nav a')].find((link) => link.textContent.trim() === 'Systems')),
+                    mobileNav: getComputedStyle(document.querySelector('.atlas-mobile-nav')).display,
+                  };
+                });
                 const file = `screenshots/${viewportName}-${name}.png`;
                 await page.screenshot({ path: file, fullPage: true });
-                report.push({ viewport: viewportName, route, url, title: evidence.title, pageErrors, screenshot: file });
+                report.push({ viewport: viewportName, route, url, ...evidence, pageErrors, screenshot: file });
+                fs.writeFileSync('evidence.json', JSON.stringify({ preview: base, commit: process.env.GITHUB_SHA, routes: report }, null, 2) + '\n');
+                if (!evidence.title.includes('Atlas Systems')) throw new Error(`${name}: title does not include Atlas Systems`);
+                if (!evidence.systemsLink) throw new Error(`${name}: Systems is missing from desktop navigation`);
+                if (evidence.scrollWidth > evidence.width + 1) throw new Error(`${name}: horizontal overflow ${evidence.scrollWidth} > ${evidence.width}; offenders=${JSON.stringify(evidence.overflowElements)}`);
+                if (viewportName === 'mobile' && evidence.mobileNav === 'none') throw new Error(`${name}: mobile navigation is hidden`);
                 await page.close();
               }
               await context.close();
             }
             await browser.close();
-            fs.writeFileSync('evidence.json', JSON.stringify({ preview: base, commit: process.env.GITHUB_SHA, routes: report }, null, 2) + '\n');
           })();
           JS
       - name: Upload visual evidence
