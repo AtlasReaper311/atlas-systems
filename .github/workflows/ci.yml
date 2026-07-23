@@ -34,12 +34,20 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Validate HTML, scripts, data, sitemap, and Pages output
+      - name: Validate HTML
+        run: npx --yes html-validate@9.7.1 "**/*.html"
+
+      - name: Run JavaScript tests
+        run: node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
+
+      - name: Validate sitemap
+        run: python3 scripts/generate_sitemap.py --check-only
+
+      - name: Validate Pages output
+        run: python3 scripts/verify_pages_output.py .
+
+      - name: Parse committed JSON
         run: |
-          npx --yes html-validate@9.7.1 "**/*.html"
-          node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
-          python3 scripts/generate_sitemap.py --check-only
-          python3 scripts/verify_pages_output.py .
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -49,6 +57,9 @@ jobs:
                   continue
               json.loads(path.read_text(encoding="utf-8"))
           PY
+
+      - name: Check whitespace
+        run: git diff --check
 
       - name: Check repository links offline
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
