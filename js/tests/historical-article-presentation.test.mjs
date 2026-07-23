@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import test from "node:test";
 
@@ -23,7 +24,7 @@ test("historical articles consume one versioned presentation layer", () => {
   }
 });
 
-test("presentation evidence proves all protected bodies are unchanged", () => {
+test("presentation refresh preserved bodies before the approved title normalization", () => {
   const previous = JSON.parse(
     fs.readFileSync(
       "docs/evidence/published-article-head-refresh-v1.json",
@@ -76,6 +77,62 @@ test("shared article layer carries the long-form accessibility contract", () => 
   assert.match(css, /\.prose pre\s*\{[\s\S]*white-space:\s*pre-wrap/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(css, /focus-visible/);
+});
+
+test("SPECULAR-CORE uses the approved colon title without changing other copy", () => {
+  const evidence = JSON.parse(
+    fs.readFileSync(
+      "docs/evidence/specular-core-title-normalization-v1.json",
+      "utf8",
+    ),
+  );
+  const article = fs.readFileSync(
+    "writing/overclocking-specular-core/index.html",
+    "utf8",
+  );
+  const writingIndex = fs.readFileSync("writing/index.html", "utf8");
+  const sha256 = (value) =>
+    crypto.createHash("sha256").update(value).digest("hex");
+
+  assert.equal(
+    evidence.schema,
+    "atlas-systems/specular-core-title-normalization/v1",
+  );
+  assert.equal(evidence.production_write, false);
+  assert.equal(evidence.files[0].after_sha256, sha256(article));
+  assert.equal(evidence.files[1].after_sha256, sha256(writingIndex));
+  assert.match(
+    article,
+    /<title>SPECULAR-CORE: Hardware Tuning \/\/ Atlas Systems<\/title>/,
+  );
+  assert.match(
+    article,
+    /<h1 class="article-title">Pushing the Limits: Overclocking SPECULAR-CORE<\/h1>/,
+  );
+  assert.match(
+    article,
+    /<div class="article-subtitle">SPECULAR-CORE: Hardware Tuning<\/div>/,
+  );
+  assert.match(
+    writingIndex,
+    /<h2 class="article-title">Pushing the Limits: Overclocking SPECULAR-CORE<\/h2>/,
+  );
+  assert.match(
+    writingIndex,
+    /<h2 id="writing-feature-heading">Pushing the Limits: Overclocking SPECULAR-CORE<\/h2>/,
+  );
+  assert.match(
+    writingIndex,
+    /<div class="article-subtitle">SPECULAR-CORE: Hardware Tuning \/\/ Case Study<\/div>/,
+  );
+  assert.doesNotMatch(
+    article,
+    /(?:SPECULAR-CORE|Pushing the Limits) — (?:Hardware Tuning|Overclocking SPECULAR-CORE)/,
+  );
+  assert.doesNotMatch(
+    writingIndex,
+    /(?:SPECULAR-CORE|Pushing the Limits) — (?:Hardware Tuning|Overclocking SPECULAR-CORE)/,
+  );
 });
 
 test("browser evidence matrix covers every changed historical route", () => {
