@@ -95,6 +95,8 @@ jobs:
     environment:
       name: public-interface-preview
       url: ${{ steps.preview.outputs.preview_url }}
+    outputs:
+      preview_url: ${{ steps.preview.outputs.preview_url }}
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CF_PAGES_DEPLOY_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
@@ -152,3 +154,103 @@ jobs:
           else
             gh pr comment "${{ github.event.pull_request.number }}" --body "${body}"
           fi
+
+  capture-evidence:
+    name: Capture representative interface evidence
+    needs: deploy-preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PREVIEW_URL: ${{ needs.deploy-preview.outputs.preview_url }}
+    steps:
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
+        with:
+          node-version: "22"
+      - name: Install pinned browser tooling
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/interface-evidence"
+          cd "${RUNNER_TEMP}/interface-evidence"
+          npm init -y >/dev/null
+          npm install --save-exact playwright@1.54.2
+          npx playwright install --with-deps chromium
+      - name: Capture desktop and mobile routes
+        working-directory: ${{ runner.temp }}/interface-evidence
+        run: |
+          set -euo pipefail
+          mkdir -p screenshots
+          node <<'JS'
+          const { chromium } = require('playwright');
+          const fs = require('node:fs');
+          const base = process.env.PREVIEW_URL;
+          const routes = [
+            ['home', '/'],
+            ['systems', '/systems/'],
+            ['lab', '/lab/'],
+            ['system-map', '/lab/system-map/'],
+            ['console', '/lab/console/'],
+            ['work', '/work/'],
+            ['writing', '/writing/'],
+            ['about', '/about/'],
+          ];
+          const viewports = [
+            ['desktop', { width: 1440, height: 1000 }],
+            ['mobile', { width: 375, height: 812 }],
+          ];
+          const browser = await chromium.launch({ headless: true });
+          const report = [];
+          async function openWithRetry(page, url) {
+            let lastError;
+            for (let attempt = 1; attempt <= 6; attempt += 1) {
+              try {
+                const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+                if (!response || !response.ok()) throw new Error(`HTTP ${response?.status() ?? 'no response'}`);
+                await page.waitForTimeout(1_500);
+                return response;
+              } catch (error) {
+                lastError = error;
+                await page.waitForTimeout(attempt * 1_000);
+              }
+            }
+            throw lastError;
+          }
+          for (const [viewportName, viewport] of viewports) {
+            const context = await browser.newContext({ viewport, reducedMotion: 'reduce' });
+            for (const [name, route] of routes) {
+              const page = await context.newPage();
+              const pageErrors = [];
+              page.on('pageerror', (error) => pageErrors.push(error.message));
+              const url = new URL(route, base).toString();
+              await openWithRetry(page, url);
+              await page.waitForSelector('.atlas-header__brand', { timeout: 15_000 });
+              await page.waitForSelector('.atlas-header__actions', { timeout: 15_000 });
+              const evidence = await page.evaluate(() => ({
+                title: document.title,
+                width: document.documentElement.clientWidth,
+                scrollWidth: document.documentElement.scrollWidth,
+                systemsLink: Boolean([...document.querySelectorAll('.atlas-header__nav a')].find((link) => link.textContent.trim() === 'Systems')),
+                mobileNav: getComputedStyle(document.querySelector('.atlas-mobile-nav')).display,
+              }));
+              if (!evidence.title.includes('Atlas Systems')) throw new Error(`${name}: title does not include Atlas Systems`);
+              if (!evidence.systemsLink) throw new Error(`${name}: Systems is missing from desktop navigation`);
+              if (evidence.scrollWidth > evidence.width + 1) throw new Error(`${name}: horizontal overflow ${evidence.scrollWidth} > ${evidence.width}`);
+              if (viewportName === 'mobile' && evidence.mobileNav === 'none') throw new Error(`${name}: mobile navigation is hidden`);
+              const file = `screenshots/${viewportName}-${name}.png`;
+              await page.screenshot({ path: file, fullPage: true });
+              report.push({ viewport: viewportName, route, url, title: evidence.title, pageErrors, screenshot: file });
+              await page.close();
+            }
+            await context.close();
+          }
+          await browser.close();
+          fs.writeFileSync('evidence.json', JSON.stringify({ preview: base, commit: process.env.GITHUB_SHA, routes: report }, null, 2) + '\n');
+          JS
+      - name: Upload visual evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: public-interface-preview-evidence
+          path: |
+            ${{ runner.temp }}/interface-evidence/evidence.json
+            ${{ runner.temp }}/interface-evidence/screenshots/*.png
+          if-no-files-found: error
+          retention-days: 14
