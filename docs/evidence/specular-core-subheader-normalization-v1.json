@@ -1,0 +1,25 @@
+{
+  "schema": "atlas-systems/specular-core-subheader-normalization/v1",
+  "production_write": false,
+  "reason": "User-approved exception restoring the em dash to SPECULAR-CORE subheaders only",
+  "rule": {
+    "subheader": "SPECULAR-CORE — Hardware Tuning",
+    "title_and_prose_separator": "colon",
+    "scope": [
+      "article subtitle",
+      "Writing card subtitle"
+    ]
+  },
+  "files": [
+    {
+      "path": "writing/overclocking-specular-core/index.html",
+      "before_sha256": "f78b1a945f55822b05ba6938e8e41251844ec77e8c2319ce1d8a35b83853d8ca",
+      "after_sha256": "67c3755be7e413d35477e568b4b8b968ccc474bd4fcca58cc025864093873c5a"
+    },
+    {
+      "path": "writing/index.html",
+      "before_sha256": "0bb57ba870df366b83fad3524696e8a203f21978652d12220ae65136358feb92",
+      "after_sha256": "339e8147b1eacb5edcf3ba4014bce0de5a6bd2e6f902679326b54e03094f38b2"
+    }
+  ]
+}
