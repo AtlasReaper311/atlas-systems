@@ -145,6 +145,11 @@
   max-width: 620px;
 }
 
+.proof-detail-empty[hidden],
+#proof-detail-content[hidden] {
+  display: none;
+}
+
 .proof-detail-empty p {
   max-width: 580px;
 }

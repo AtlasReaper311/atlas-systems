@@ -31,15 +31,26 @@
 
     <section class="section">
       <div class="grid grid-3">
-        <div class="metric"><span>latest verdict</span><strong id="latest-verdict">loading</strong></div>
-        <div class="metric"><span>experiments</span><strong id="experiment-count">-</strong></div>
-        <div class="metric"><span>evidence time</span><strong id="generated-at">-</strong></div>
+        <div class="metric"><span>latest published verdict</span><strong id="latest-verdict">loading</strong></div>
+        <div class="metric"><span>latest experiments</span><strong id="experiment-count">-</strong></div>
+        <div class="metric"><span>latest evidence time</span><strong id="generated-at">-</strong></div>
       </div>
       <p class="status" id="evidence-status">contacting public evidence API</p>
     </section>
 
     <section class="section">
-      <h2>Experiment results</h2>
+      <div class="evidence-section-head">
+        <div>
+          <div class="eyebrow">Historical live evidence</div>
+          <h2>Verified live canary</h2>
+        </div>
+        <p class="status" id="live-evidence-status" data-state="watch">checking public evidence history</p>
+      </div>
+      <div class="experiment-grid grid grid-2" id="live-experiment-grid"></div>
+    </section>
+
+    <section class="section">
+      <h2>Latest assurance run</h2>
       <div class="experiment-grid grid grid-2" id="experiment-grid"></div>
     </section>
 
@@ -61,7 +72,7 @@
     </section>
 
     <section class="section panel panel-deep">
-      <h2>Provenance</h2>
+      <h2>Latest report provenance</h2>
       <dl class="provenance">
         <div><dt>Mode</dt><dd id="report-mode">-</dd></div>
         <div><dt>Source repository</dt><dd id="source-repository">-</dd></div>

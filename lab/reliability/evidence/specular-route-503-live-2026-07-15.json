@@ -1,0 +1,93 @@
+{
+  "experiments": [
+    {
+      "expectations": {
+        "detect_within_seconds": 30,
+        "recover_within_seconds": 60
+      },
+      "experiment_id": "specular-route-503-v1",
+      "experiment_version": "1.0.0",
+      "fault": "status_503",
+      "fingerprint": "de34268549db7592fc06f66c26ed09a5bcfc7c25bb7177ecf8a445b3445189f1",
+      "generated_at": "2026-07-15T22:19:21.431389Z",
+      "mode": "live",
+      "passed": true,
+      "safety": {
+        "allowlisted_target": true,
+        "baseline_healthy": true,
+        "duration_seconds": 45,
+        "lease_ttl_verified": true,
+        "rollback_method": "delete_control_lease",
+        "rollback_verified": true
+      },
+      "schema": "atlas-chaos-report/v1",
+      "source": {
+        "commit": "002934fde190027bd9979d713389ed851c59200b",
+        "repository": "AtlasReaper311/atlas-infra",
+        "run_url": "https://github.com/AtlasReaper311/atlas-infra/actions/runs/29454982522"
+      },
+      "stages": {
+        "detection": {
+          "at": "2026-07-15T22:19:18.834859Z",
+          "detail": "HTTP 503",
+          "latency_ms": 46,
+          "ok": true,
+          "probe_latency_ms": 46,
+          "status": 503
+        },
+        "injection": {
+          "at": "2026-07-15T22:19:18.788906Z",
+          "latency_ms": 209,
+          "lease": {
+            "activated_at": "2026-07-15T22:19:18.606Z",
+            "duration_seconds": 45,
+            "experiment_id": "specular-route-503-v1",
+            "expires_at": "2026-07-15T22:20:03.606Z",
+            "fault": "status_503",
+            "latency_ms": 0,
+            "schema": "atlas-chaos-lease/v1",
+            "target": "specular-edge"
+          },
+          "lease_ttl": {
+            "expires_at": "2026-07-15T22:20:03.606Z",
+            "maximum_seconds": 60,
+            "remaining_seconds": 44.817
+          },
+          "lease_ttl_verified": true,
+          "ok": true
+        },
+        "notification": {
+          "at": "2026-07-15T22:19:21.005413Z",
+          "expected": true,
+          "latency_ms": 2171,
+          "ok": true
+        },
+        "preflight": {
+          "at": "2026-07-15T22:19:18.579757Z",
+          "detail": "control plane is clear and baseline target is healthy",
+          "latency_ms": 554,
+          "ok": true,
+          "probe_latency_ms": 356,
+          "status": 200
+        },
+        "recovery": {
+          "at": "2026-07-15T22:19:21.431357Z",
+          "detail": "HTTP 200",
+          "latency_ms": 128,
+          "ok": true,
+          "rollback_latency_ms": 426
+        }
+      },
+      "target": "specular-edge"
+    }
+  ],
+  "fingerprint": "b1fa0a42aa3853fc8491ed12a651722cf16bd58b99b56403e2e405359dce9ac4",
+  "generated_at": "2026-07-15T22:19:21.431559Z",
+  "passed": true,
+  "schema": "atlas-chaos-report-set/v1",
+  "summary": {
+    "experiments": 1,
+    "failed": 0,
+    "passed": 1
+  }
+}
