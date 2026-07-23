@@ -113,6 +113,9 @@ html[data-atlas-interface] body { font-size: max(15px, 1rem); }
 :where(a,button,input,select,textarea,summary,[tabindex]):focus-visible { outline: 2px solid var(--atlas-focus); outline-offset: 3px; }
 .prose { max-width: 720px; }
 .prose p,.prose li { font-size: 16px; line-height: 1.8; }
+.article-entry,
+.article-meta,
+.article-body { min-width: 0; max-width: 100%; }
 
 @media (max-width: 920px) {
   .atlas-nav-shell .atlas-header__inner { width: min(calc(100% - 32px), 1280px); grid-template-columns: minmax(0,1fr) auto; gap: 12px; }
