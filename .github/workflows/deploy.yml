@@ -83,13 +83,17 @@ jobs:
           EXPECTED_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          curl -fsSL \
+          SYSTEMS_BODY="$(curl -fsSL \
             --connect-timeout 10 \
             --max-time 20 \
             -H 'Cache-Control: no-cache' \
             -H 'Pragma: no-cache' \
-            "https://atlas-systems.uk/systems/?atlas-deploy=${EXPECTED_SHA}" \
-            | grep -Fq 'One estate,'
+            "https://atlas-systems.uk/systems/?atlas-deploy=${EXPECTED_SHA}")"
+
+          if [[ "$SYSTEMS_BODY" != *'One estate,'* ]]; then
+            echo "::error::The production Systems route did not expose the expected v2 content"
+            exit 1
+          fi
 
   refresh-corpus:
     needs: [deploy, verify-production]

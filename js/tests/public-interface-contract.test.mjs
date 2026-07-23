@@ -179,6 +179,14 @@ test("production deployment remains independent from Cloudflare Git integration"
   assert.match(deploy, /needs: \[deploy, verify-production\]/);
 });
 
+test("production route verification cannot fail from a closed grep pipe", () => {
+  const deploy = fs.readFileSync(".github/workflows/deploy.yml", "utf8");
+
+  assert.doesNotMatch(deploy, /\|\s*grep -Fq 'One estate,'/);
+  assert.match(deploy, /SYSTEMS_BODY="\$\(curl -fsSL/);
+  assert.match(deploy, /if \[\[ "\$SYSTEMS_BODY" != \*'One estate,'\* \]\]; then/);
+});
+
 test("mutable site responses revalidate while versioned interface assets stay immutable", () => {
   const headers = fs.readFileSync("_headers", "utf8");
 
