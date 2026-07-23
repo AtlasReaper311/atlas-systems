@@ -114,3 +114,5 @@ jobs:
             writing/overclocking-specular-core/index.html
           git commit -m "fix: refresh published article head metadata"
           git push origin HEAD:fix/published-article-head-metadata-v1
+
+# Temporary executor. Remove after the generated refresh commit lands.
