@@ -19,7 +19,7 @@ const css = fs.readFileSync(
   "utf8",
 );
 const html = fs.readFileSync(
-  new URL("../index.html", import.meta.url),
+  new URL("../system-map/index.html", import.meta.url),
   "utf8",
 );
 const topology = fs.readFileSync(

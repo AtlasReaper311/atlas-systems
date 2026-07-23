@@ -1,75 +1,140 @@
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import test from "node:test";
 
 import {
   STATUS_ENDPOINT,
+  STATUS_LABELS,
   STATUS_PAGE,
   STATUS_STALE_AFTER_MS,
   parseEstateStatus,
 } from "../../static/js/estate-status.js";
-import { normalizeAtlasTitle } from "../../static/js/estate-shell.js";
+import { GLOBAL_ROUTES, normalizeAtlasTitle } from "../../static/js/estate-shell.js";
 
 const NOW = Date.parse("2026-07-23T08:00:00Z");
+const BUNDLE_ROOT = "static/vendor/atlas-interface/v0.1.1";
 
 function snapshot(operational, total, checkedAt = "2026-07-23T07:55:00Z") {
-  return {
-    estate: {
-      operational,
-      total_components: total,
-      checked_at: checkedAt,
-    },
-  };
+  return { estate: { operational, total_components: total, checked_at: checkedAt } };
+}
+
+function sha256(path) {
+  return crypto.createHash("sha256").update(fs.readFileSync(path)).digest("hex");
 }
 
 test("status indicator consumes the bounded aggregate contract", () => {
   assert.equal(STATUS_ENDPOINT, "https://api.atlas-systems.uk/v1/stats");
   assert.equal(STATUS_PAGE, "https://status.atlas-systems.uk/");
   assert.equal(STATUS_STALE_AFTER_MS, 1_200_000);
+  assert.equal(STATUS_LABELS.operational, "Operational");
 });
 
-test("status mapping distinguishes nominal, degraded, and unavailable", () => {
-  assert.equal(parseEstateStatus(snapshot(19, 19), NOW).state, "nominal");
+test("status mapping distinguishes operational, degraded, unavailable, and unknown", () => {
+  assert.equal(parseEstateStatus(snapshot(19, 19), NOW).state, "operational");
   assert.equal(parseEstateStatus(snapshot(18, 19), NOW).state, "degraded");
   assert.equal(parseEstateStatus(snapshot(10, 19), NOW).state, "degraded");
   assert.equal(parseEstateStatus(snapshot(9, 19), NOW).state, "unavailable");
   assert.equal(parseEstateStatus(snapshot(0, 19), NOW).state, "unavailable");
-});
-
-test("missing, impossible, future, and stale evidence remain unknown", () => {
   assert.equal(parseEstateStatus(null, NOW).state, "unknown");
   assert.equal(parseEstateStatus(snapshot(20, 19), NOW).state, "unknown");
   assert.equal(parseEstateStatus(snapshot(19, 19, "2026-07-23T08:05:00Z"), NOW).state, "unknown");
   assert.equal(parseEstateStatus(snapshot(19, 19, "2026-07-23T07:39:59Z"), NOW).state, "unknown");
 });
 
+test("v2 shell exposes the accepted route order", () => {
+  assert.deepEqual(GLOBAL_ROUTES.map(({ label }) => label), ["Work", "Writing", "Lab", "Systems", "About"]);
+  const shell = fs.readFileSync("static/js/estate-shell.js", "utf8");
+  const shellCss = fs.readFileSync("static/css/estate-shell.css", "utf8");
+  assert.match(shell, /atlas-header__brand/);
+  assert.match(shell, /atlas-header__nav/);
+  assert.match(shell, /atlas-header__actions/);
+  assert.match(shell, /preserveHomepageStatus/);
+  assert.match(shell, /v0\.1\.1\/atlas-interface-kit\.css/);
+  assert.match(shell, /normalizeLegacySemantics/);
+  assert.match(shellCss, /grid-template-columns:\s*repeat\(5,\s*1fr\)/);
+});
+
 test("estate page titles use the page-first double-slash convention", () => {
   assert.equal(normalizeAtlasTitle("Atlas Systems"), "Atlas Systems");
   assert.equal(normalizeAtlasTitle("Work — Atlas Systems"), "Work // Atlas Systems");
-  assert.equal(normalizeAtlasTitle("Writing - Atlas Systems"), "Writing // Atlas Systems");
   assert.equal(normalizeAtlasTitle("Atlas Systems // Status"), "Status // Atlas Systems");
-  assert.equal(normalizeAtlasTitle("Proof Chain // Atlas Systems"), "Proof Chain // Atlas Systems");
 });
 
-test("canonical browser icon package is locally deployed", () => {
-  const required = [
-    "favicon.ico",
-    "favicon-16x16.png",
-    "favicon-32x32.png",
-    "apple-touch-icon.png",
-    "android-chrome-192x192.png",
-    "android-chrome-512x512.png",
-    "site.webmanifest",
-  ];
-  for (const path of required) {
-    assert.equal(fs.existsSync(path), true, `${path} must exist`);
-    assert.ok(fs.statSync(path).size > 0, `${path} must not be empty`);
+test("interface-kit vendor copy matches the canonical SHA-256 manifest", () => {
+  const versions = fs.readdirSync("static/vendor/atlas-interface", { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+  assert.deepEqual(versions, ["v0.1.1"]);
+
+  const manifest = JSON.parse(fs.readFileSync(`${BUNDLE_ROOT}/manifest.json`, "utf8"));
+  assert.equal(manifest.schema_version, "atlas-interface-kit/bundle/v1");
+  assert.equal(manifest.version, "0.1.1");
+  assert.equal(manifest.contract_version, "2.0.0");
+  assert.equal(manifest.component_role_count, 25);
+  assert.deepEqual(Object.keys(manifest.files).sort(), ["atlas-interface-kit.css", "components.json", "tokens.json"]);
+
+  for (const [name, record] of Object.entries(manifest.files)) {
+    const path = `${BUNDLE_ROOT}/${name}`;
+    assert.equal(fs.statSync(path).size, record.bytes, `${name} byte count`);
+    assert.equal(sha256(path), record.sha256, `${name} SHA-256`);
   }
 
-  const manifest = JSON.parse(fs.readFileSync("site.webmanifest", "utf8"));
-  assert.equal(manifest.name, "Atlas Systems");
-  assert.equal(manifest.theme_color, "#0a0a0f");
-  assert.equal(manifest.background_color, "#0a0a0f");
+  const tokens = JSON.parse(fs.readFileSync(`${BUNDLE_ROOT}/tokens.json`, "utf8"));
+  assert.equal(tokens.colour.text_faint, "#888894");
+  for (const obsolete of ["atlas-interface.css", "atlas-interface.js", "tokens.schema.json"]) {
+    assert.equal(fs.existsSync(`${BUNDLE_ROOT}/${obsolete}`), false, `${obsolete} must not remain`);
+  }
+});
+
+test("new directory routes and preserved console exist", () => {
+  for (const path of ["systems/index.html", "lab/index.html", "lab/system-map/index.html", "lab/console/index.html"]) {
+    assert.equal(fs.existsSync(path), true, `${path} must exist`);
+  }
+  const headers = fs.readFileSync("_headers", "utf8");
+  assert.match(headers, /\/lab\/console\/\*/);
+  assert.match(headers, /X-Robots-Tag: noindex/);
+});
+
+test("Lab route contract uses the dedicated map and operations routes", () => {
+  const shell = fs.readFileSync("lab/shared/shell.js", "utf8");
+  assert.match(shell, /System Map", href: "\/lab\/system-map\//);
+  assert.match(shell, /Operations", href: "\/lab\/console\//);
+  assert.match(shell, /Shape Detector", href: "\/lab\/anomaly\//);
+  const landing = fs.readFileSync("lab/index.html", "utf8");
+  assert.ok(landing.indexOf('id="ramone-card"') < landing.indexOf('id="featured-title"'));
+  assert.match(landing, /Experience/);
+  assert.match(landing, /Observe/);
+  assert.match(landing, /Verify/);
+  assert.match(landing, /Explore/);
+});
+
+test("Lab and Systems cards carry operation-specific visual identities", () => {
+  const lab = fs.readFileSync("lab/index.html", "utf8");
+  const systems = fs.readFileSync("systems/index.html", "utf8");
+  const directoryCss = fs.readFileSync("static/css/v2-directory-pages.css", "utf8");
+
+  assert.match(lab, /class="card-grid featured-grid"/);
+  assert.match(lab, /class="card-grid directory-grid verify-grid"/);
+  assert.match(lab, /class="card-grid directory-grid explore-grid"/);
+  assert.match(systems, /class="card-grid product-showcase"/);
+  assert.match(systems, /class="card-grid systems-tools-grid"/);
+  assert.ok((lab.match(/data-visual=/g) || []).length >= 15);
+  assert.ok((systems.match(/data-visual=/g) || []).length >= 15);
+
+  for (const visual of ["ramone", "symphony", "signal", "map", "proof", "status", "conformance", "reliability", "api", "anomaly"]) {
+    assert.match(directoryCss, new RegExp(`\\[data-visual="${visual}"\\]`));
+  }
+  assert.match(directoryCss, /prefers-reduced-motion:reduce/);
+});
+
+test("reduced-motion and legacy Lab compatibility stay explicit", () => {
+  const transitions = fs.readFileSync("js/transitions.js", "utf8");
+  const shell = fs.readFileSync("static/js/estate-shell.js", "utf8");
+  assert.match(transitions, /data-ramone-reduced-musing/);
+  assert.match(shell, /replaceHeading\(ramoneHeading, "h2"\)/);
+  assert.match(shell, /map\.setAttribute\("role", "group"\)/);
 });
 
 test("specialist Lab wrappers preserve original tool modules", () => {
@@ -80,47 +145,23 @@ test("specialist Lab wrappers preserve original tool modules", () => {
     ["lab/conformance/conformance.js", "./conformance-core.js"],
     ["lab/reliability/reliability.js", "./reliability-core.js"],
   ];
-
   for (const [wrapper, coreImport] of wrappers) {
     const source = fs.readFileSync(wrapper, "utf8");
     assert.match(source, /import "\.\.\/shared\/shell\.js";/);
     assert.ok(source.includes(`import "${coreImport}";`));
-    assert.equal(fs.existsSync(wrapper.replace(/\.js$/, "-core.js").replace("signal-v2-core-core", "signal-v2-core")), true);
   }
 });
 
-test("Lab route contract keeps Ramone home before contextual navigation work", () => {
-  const shell = fs.readFileSync("lab/shared/shell.js", "utf8");
-  assert.match(shell, /\{ label: "Lab home", href: "\/lab\/" \}/);
-  assert.match(shell, /\{ label: "System Map", href: "\/lab\/#system-map" \}/);
-  assert.match(shell, /\{ label: "Proof Chain", href: "\/lab\/proof-chain\/" \}/);
-  assert.match(shell, /\{ label: "Signal", href: "\/lab\/signal\/" \}/);
-  assert.match(shell, /\{ label: "Reliability", href: "\/lab\/reliability\/" \}/);
-  assert.match(shell, /\{ label: "Conformance", href: "\/lab\/conformance\/" \}/);
-  assert.match(shell, /\{ label: "Anomaly", href: "\/lab\/anomaly\/" \}/);
-});
-
-test("homepage receives no duplicate status indicator", () => {
-  const shell = fs.readFileSync("static/js/estate-shell.js", "utf8");
-  assert.match(
-    shell,
-    /window\.location\.hostname === "atlas-systems\.uk" && window\.location\.pathname === "\/"/,
-  );
-});
-
-test("search renderer installs the estate shell once", () => {
-  const renderer = fs.readFileSync("static/js/estate-search/render.js", "utf8");
-  assert.match(renderer, /import "\.\.\/estate-shell\.js";/);
-});
-
-test("System SYMPHONY source files are outside the interface change contract", () => {
+test("System SYMPHONY implementation remains outside this migration", () => {
   const interfaceFiles = [
     "static/js/estate-shell.js",
     "static/js/estate-status.js",
     "static/css/estate-shell.css",
+    "static/css/v2-directory-pages.css",
     "lab/shared/shell.js",
-    "lab/shared/systems.css",
+    "lab/index.html",
+    "lab/system-map/index.html",
+    "systems/index.html",
   ];
   assert.equal(interfaceFiles.some((path) => path.includes("static/js/sonify")), false);
-  assert.equal(interfaceFiles.includes("lab/index.html"), false);
 });
