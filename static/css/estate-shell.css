@@ -6,7 +6,10 @@
   --atlas-status-unknown: #aaa9a0;
 }
 
-html[data-atlas-interface] { scroll-padding-top: calc(var(--atlas-header-height, 56px) + 24px); }
+html[data-atlas-interface] {
+  --text-faint: #80808b;
+  scroll-padding-top: calc(var(--atlas-header-height, 56px) + 24px);
+}
 html[data-atlas-interface] body { font-size: max(15px, 1rem); }
 
 .atlas-nav-shell.atlas-header {
