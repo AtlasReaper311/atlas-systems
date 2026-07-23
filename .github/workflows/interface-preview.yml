@@ -182,6 +182,10 @@ jobs:
           node <<'JS'
           const { chromium } = require('playwright');
           const fs = require('node:fs');
+          process.on('uncaughtException', (error) => {
+            fs.writeFileSync('capture-error.txt', `${error.stack || error.message}\n`);
+            process.exit(1);
+          });
           const base = process.env.PREVIEW_URL;
           const routes = [
             ['home', '/'],
@@ -197,7 +201,6 @@ jobs:
             ['desktop', { width: 1440, height: 1000 }],
             ['mobile', { width: 375, height: 812 }],
           ];
-          const browser = await chromium.launch({ headless: true });
           const report = [];
           async function openWithRetry(page, url) {
             let lastError;
@@ -214,43 +217,48 @@ jobs:
             }
             throw lastError;
           }
-          for (const [viewportName, viewport] of viewports) {
-            const context = await browser.newContext({ viewport, reducedMotion: 'reduce' });
-            for (const [name, route] of routes) {
-              const page = await context.newPage();
-              const pageErrors = [];
-              page.on('pageerror', (error) => pageErrors.push(error.message));
-              const url = new URL(route, base).toString();
-              await openWithRetry(page, url);
-              await page.waitForSelector('.atlas-header__brand', { timeout: 15_000 });
-              await page.waitForSelector('.atlas-header__actions', { timeout: 15_000 });
-              const evidence = await page.evaluate(() => ({
-                title: document.title,
-                width: document.documentElement.clientWidth,
-                scrollWidth: document.documentElement.scrollWidth,
-                systemsLink: Boolean([...document.querySelectorAll('.atlas-header__nav a')].find((link) => link.textContent.trim() === 'Systems')),
-                mobileNav: getComputedStyle(document.querySelector('.atlas-mobile-nav')).display,
-              }));
-              if (!evidence.title.includes('Atlas Systems')) throw new Error(`${name}: title does not include Atlas Systems`);
-              if (!evidence.systemsLink) throw new Error(`${name}: Systems is missing from desktop navigation`);
-              if (evidence.scrollWidth > evidence.width + 1) throw new Error(`${name}: horizontal overflow ${evidence.scrollWidth} > ${evidence.width}`);
-              if (viewportName === 'mobile' && evidence.mobileNav === 'none') throw new Error(`${name}: mobile navigation is hidden`);
-              const file = `screenshots/${viewportName}-${name}.png`;
-              await page.screenshot({ path: file, fullPage: true });
-              report.push({ viewport: viewportName, route, url, title: evidence.title, pageErrors, screenshot: file });
-              await page.close();
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            for (const [viewportName, viewport] of viewports) {
+              const context = await browser.newContext({ viewport, reducedMotion: 'reduce' });
+              for (const [name, route] of routes) {
+                const page = await context.newPage();
+                const pageErrors = [];
+                page.on('pageerror', (error) => pageErrors.push(error.message));
+                const url = new URL(route, base).toString();
+                await openWithRetry(page, url);
+                await page.waitForSelector('.atlas-header__brand', { timeout: 15_000 });
+                await page.waitForSelector('.atlas-header__actions', { timeout: 15_000 });
+                const evidence = await page.evaluate(() => ({
+                  title: document.title,
+                  width: document.documentElement.clientWidth,
+                  scrollWidth: document.documentElement.scrollWidth,
+                  systemsLink: Boolean([...document.querySelectorAll('.atlas-header__nav a')].find((link) => link.textContent.trim() === 'Systems')),
+                  mobileNav: getComputedStyle(document.querySelector('.atlas-mobile-nav')).display,
+                }));
+                if (!evidence.title.includes('Atlas Systems')) throw new Error(`${name}: title does not include Atlas Systems`);
+                if (!evidence.systemsLink) throw new Error(`${name}: Systems is missing from desktop navigation`);
+                if (evidence.scrollWidth > evidence.width + 1) throw new Error(`${name}: horizontal overflow ${evidence.scrollWidth} > ${evidence.width}`);
+                if (viewportName === 'mobile' && evidence.mobileNav === 'none') throw new Error(`${name}: mobile navigation is hidden`);
+                const file = `screenshots/${viewportName}-${name}.png`;
+                await page.screenshot({ path: file, fullPage: true });
+                report.push({ viewport: viewportName, route, url, title: evidence.title, pageErrors, screenshot: file });
+                await page.close();
+              }
+              await context.close();
             }
-            await context.close();
-          }
-          await browser.close();
-          fs.writeFileSync('evidence.json', JSON.stringify({ preview: base, commit: process.env.GITHUB_SHA, routes: report }, null, 2) + '\n');
+            await browser.close();
+            fs.writeFileSync('evidence.json', JSON.stringify({ preview: base, commit: process.env.GITHUB_SHA, routes: report }, null, 2) + '\n');
+          })();
           JS
       - name: Upload visual evidence
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: public-interface-preview-evidence
           path: |
             ${{ runner.temp }}/interface-evidence/evidence.json
+            ${{ runner.temp }}/interface-evidence/capture-error.txt
             ${{ runner.temp }}/interface-evidence/screenshots/*.png
           if-no-files-found: error
           retention-days: 14
