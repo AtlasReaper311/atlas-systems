@@ -6,6 +6,7 @@
   "files": [
     {"path": "atlas-interface.css", "git_blob_sha": "56d548b2488c773f24f7168a98b5baa60f90caf8"},
     {"path": "atlas-interface.js", "git_blob_sha": "338df57e7653258f65bcef0130ac2cb9bf132137"},
-    {"path": "tokens.json", "git_blob_sha": "c50013dceb390db23e90d2ba7eea8227920acd8b"}
+    {"path": "tokens.json", "git_blob_sha": "c50013dceb390db23e90d2ba7eea8227920acd8b"},
+    {"path": "tokens.schema.json", "git_blob_sha": "1bde07833c2ad051bd2339099121fcfd9febf74a"}
   ]
 }
