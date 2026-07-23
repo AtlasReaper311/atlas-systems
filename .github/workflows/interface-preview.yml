@@ -13,21 +13,17 @@ on:
       - "android-chrome-192x192.png"
       - "android-chrome-512x512.png"
       - "site.webmanifest"
+      - "404.html"
       - "static/css/estate-shell.css"
       - "static/js/estate-shell.js"
       - "static/js/estate-status.js"
-      - "static/js/estate-search/render.js"
+      - "static/js/estate-search/**"
       - "lab/shared/**"
-      - "lab/proof-chain/proof-chain.js"
-      - "lab/proof-chain/proof-chain-core.js"
-      - "lab/signal/signal-v2.js"
-      - "lab/signal/signal-v2-core.js"
-      - "lab/anomaly/anomaly.js"
-      - "lab/anomaly/anomaly-core.js"
-      - "lab/conformance/conformance.js"
-      - "lab/conformance/conformance-core.js"
-      - "lab/reliability/reliability.js"
-      - "lab/reliability/reliability-core.js"
+      - "lab/proof-chain/**"
+      - "lab/signal/**"
+      - "lab/anomaly/**"
+      - "lab/conformance/**"
+      - "lab/reliability/**"
       - "js/tests/public-interface-contract.test.mjs"
 
 permissions:
@@ -87,7 +83,7 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.head.ref == 'feat/public-interface-shell-v1'
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 30
     environment:
       name: public-interface-preview
       url: ${{ steps.preview.outputs.preview_url }}
@@ -96,84 +92,12 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
       PROJECT_NAME: atlas-systems
       PAGES_BRANCH: interface-pr-${{ github.event.pull_request.number }}
-      ARTICLE_GENERATOR_REF: feat/article-interface-contract-v1
     steps:
       - name: Check out interface site branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
-
-      - name: Check out article generator interface branch
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
-        with:
-          repository: AtlasReaper311/atlas-article-gen
-          ref: ${{ env.ARTICLE_GENERATOR_REF }}
-          path: .article-generator
-          persist-credentials: false
-
-      - name: Check out current scheduler preview engine
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
-        with:
-          repository: AtlasReaper311/atlas-scheduler
-          ref: main
-          path: .article-scheduler
-          persist-credentials: false
-
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
-        with:
-          node-version: "22"
-
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0, Node 24
-        with:
-          python-version: "3.12"
-
-      - name: Build article shell through generator and scheduler preview
-        run: |
-          set -euo pipefail
-          python -m pip install -r .article-generator/requirements-dev.txt
-          mkdir -p .article-preview-queue
-          python .article-generator/scripts/build_article.py \
-            .article-generator/tests/fixtures/interface-contract-preview.md \
-            --out .article-preview-queue
-          python .article-scheduler/scripts/preview_selected.py \
-            --scheduled-dir .article-preview-queue \
-            --site-dir . \
-            --output-dir .interface-preview-site \
-            --report-out .article-preview-report.json \
-            --through-w-number 99
-          test -s .interface-preview-site/writing/interface-contract-preview/index.html
-          grep -q 'data-estate-search-open' .interface-preview-site/writing/interface-contract-preview/index.html
-          grep -q 'atlas-estate-status' .interface-preview-site/writing/interface-contract-preview/index.html
-          grep -q '.prose p{font-size:15px;line-height:1.8}' .interface-preview-site/writing/interface-contract-preview/index.html
-          test "$(grep -c 'SCHEDULER_FOOTER_INSERT' .interface-preview-site/writing/interface-contract-preview/index.html)" -eq 1
-          npx --yes html-validate@9.7.1 ".interface-preview-site/**/*.html"
-
-      - name: Smoke-test generated preview routes
-        run: |
-          set -euo pipefail
-          python -m http.server 4173 --bind 127.0.0.1 --directory .interface-preview-site > /tmp/interface-preview-server.log 2>&1 &
-          server_pid=$!
-          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
-          python - <<'PY'
-          import time
-          import urllib.request
-
-          routes = ["/", "/writing/", "/work/", "/writing/interface-contract-preview/"]
-          last_error = None
-          for _ in range(20):
-              try:
-                  for route in routes:
-                      with urllib.request.urlopen("http://127.0.0.1:4173" + route, timeout=5) as response:
-                          if response.status != 200:
-                              raise RuntimeError(f"{route} returned {response.status}")
-                  break
-              except Exception as exc:
-                  last_error = exc
-                  time.sleep(0.25)
-          else:
-              raise SystemExit(f"preview route smoke test failed: {last_error}")
-          PY
 
       - name: Guard production boundary
         run: |
@@ -187,7 +111,7 @@ jobs:
         run: |
           set -euo pipefail
           output_file="${RUNNER_TEMP}/wrangler-pages-deploy.log"
-          npx --yes wrangler@4 pages deploy .interface-preview-site \
+          npx --yes wrangler@4 pages deploy . \
             --project-name "${PROJECT_NAME}" \
             --branch "${PAGES_BRANCH}" \
             --commit-dirty=true 2>&1 | tee "${output_file}"
@@ -207,8 +131,6 @@ jobs:
             echo
             echo "${PREVIEW_URL}"
             echo
-            echo "Article shell: ${PREVIEW_URL}/writing/interface-contract-preview/"
-            echo
             echo "Atomic deployment: ${{ steps.deploy.outputs.atomic_url }}"
             echo
             echo "This is a non-production Cloudflare Pages branch preview. atlas-systems.uk is unchanged."
@@ -226,11 +148,11 @@ jobs:
           ## Live interface preview
 
           - Estate preview: ${PREVIEW_URL}
-          - Generated article: ${PREVIEW_URL}/writing/interface-contract-preview/
           - Atomic deployment: ${ATOMIC_URL}
+          - Commit: \`${{ github.event.pull_request.head.sha }}\`
           - Production: unchanged
 
-          The article route was built by \`atlas-article-gen\` and rendered through the current \`atlas-scheduler\` preview engine. This preview was built from site commit \`${{ github.event.pull_request.head.sha }}\`."
+          This preview contains only the public-site interface branch. Generated article previews remain a separate scheduler-authorised evidence path."
           existing_id="$(gh api "/repos/${GITHUB_REPOSITORY}/issues/${{ github.event.pull_request.number }}/comments" --paginate --jq ".[] | select(.body | contains(\"${marker}\")) | .id" | head -n 1)"
           if [ -n "${existing_id}" ]; then
             gh api --method PATCH "/repos/${GITHUB_REPOSITORY}/issues/comments/${existing_id}" -f body="${body}"
