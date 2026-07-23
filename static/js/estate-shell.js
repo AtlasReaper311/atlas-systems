@@ -1,8 +1,11 @@
 "use strict";
 
-const STATUS_ENDPOINT = "https://api.atlas-systems.uk/v1/stats";
-const STATUS_PAGE = "https://status.atlas-systems.uk/";
-const STATUS_STALE_AFTER_MS = 1_200_000;
+import {
+  STATUS_ENDPOINT,
+  STATUS_PAGE,
+  parseEstateStatus,
+} from "./estate-status.js";
+
 const STATUS_TIMEOUT_MS = 6_000;
 const SHELL_STYLESHEET = "/static/css/estate-shell.css?v=20260723-interface-v1";
 
@@ -104,7 +107,7 @@ function findWordmark(nav) {
   return nav.querySelector(".nav-wordmark, .wordmark, [data-atlas-wordmark]");
 }
 
-function ensureBrandCluster(nav, wordmark) {
+function ensureBrandCluster(wordmark) {
   const existing = wordmark.closest(".atlas-brand-cluster");
   if (existing) return existing;
   const cluster = document.createElement("div");
@@ -145,43 +148,6 @@ function setChipState(chip, state, detail) {
   chip.title = detail || `Atlas Systems status: ${state}`;
 }
 
-function parseStatus(data) {
-  const estate = data && data.estate;
-  const operational = Number(estate && estate.operational);
-  const total = Number(estate && estate.total_components);
-  const checkedAt = Date.parse(estate && estate.checked_at);
-
-  if (!Number.isFinite(operational) || !Number.isFinite(total) || total <= 0 ||
-      !Number.isFinite(checkedAt)) {
-    return { state: "unknown", detail: "Status evidence is unavailable." };
-  }
-
-  const age = Date.now() - checkedAt;
-  if (age < 0 || age > STATUS_STALE_AFTER_MS) {
-    return {
-      state: "unknown",
-      detail: `Status evidence is stale. Last checked ${new Date(checkedAt).toISOString()}.`,
-    };
-  }
-
-  if (operational === total) {
-    return {
-      state: "nominal",
-      detail: `${operational} of ${total} monitored components operational.`,
-    };
-  }
-  if (operational > total / 2) {
-    return {
-      state: "degraded",
-      detail: `${operational} of ${total} monitored components operational.`,
-    };
-  }
-  return {
-    state: "unavailable",
-    detail: `${operational} of ${total} monitored components operational.`,
-  };
-}
-
 async function refreshStatusChip(chip) {
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), STATUS_TIMEOUT_MS);
@@ -192,7 +158,7 @@ async function refreshStatusChip(chip) {
       signal: controller.signal,
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const result = parseStatus(await response.json());
+    const result = parseEstateStatus(await response.json());
     setChipState(chip, result.state, result.detail);
   } catch {
     setChipState(chip, "unknown", "Status evidence could not be loaded.");
@@ -207,7 +173,7 @@ function installStatusChip() {
   if (!nav) return;
   const wordmark = findWordmark(nav);
   if (!wordmark) return;
-  const cluster = ensureBrandCluster(nav, wordmark);
+  const cluster = ensureBrandCluster(wordmark);
   const chip = createStatusChip(cluster);
   void refreshStatusChip(chip);
 }
@@ -226,4 +192,4 @@ if (document.readyState === "loading") {
   install();
 }
 
-export { ATLAS_OWNED_HOSTS, normalizeLink, normalizeLinks, parseStatus };
+export { ATLAS_OWNED_HOSTS, normalizeLink, normalizeLinks };
