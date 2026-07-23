@@ -79,10 +79,16 @@ test("shared article layer carries the long-form accessibility contract", () => 
   assert.match(css, /focus-visible/);
 });
 
-test("SPECULAR-CORE uses the approved colon title without changing other copy", () => {
-  const evidence = JSON.parse(
+test("SPECULAR-CORE uses a colon in titles and an em dash in subheaders", () => {
+  const titleEvidence = JSON.parse(
     fs.readFileSync(
       "docs/evidence/specular-core-title-normalization-v1.json",
+      "utf8",
+    ),
+  );
+  const subheaderEvidence = JSON.parse(
+    fs.readFileSync(
+      "docs/evidence/specular-core-subheader-normalization-v1.json",
       "utf8",
     ),
   );
@@ -95,12 +101,20 @@ test("SPECULAR-CORE uses the approved colon title without changing other copy", 
     crypto.createHash("sha256").update(value).digest("hex");
 
   assert.equal(
-    evidence.schema,
+    titleEvidence.schema,
     "atlas-systems/specular-core-title-normalization/v1",
   );
-  assert.equal(evidence.production_write, false);
-  assert.equal(evidence.files[0].after_sha256, sha256(article));
-  assert.equal(evidence.files[1].after_sha256, sha256(writingIndex));
+  assert.equal(titleEvidence.production_write, false);
+  assert.equal(
+    subheaderEvidence.schema,
+    "atlas-systems/specular-core-subheader-normalization/v1",
+  );
+  assert.equal(subheaderEvidence.production_write, false);
+  assert.equal(subheaderEvidence.files[0].after_sha256, sha256(article));
+  assert.equal(
+    subheaderEvidence.files[1].after_sha256,
+    sha256(writingIndex),
+  );
   assert.match(
     article,
     /<title>SPECULAR-CORE: Hardware Tuning \/\/ Atlas Systems<\/title>/,
@@ -111,7 +125,7 @@ test("SPECULAR-CORE uses the approved colon title without changing other copy", 
   );
   assert.match(
     article,
-    /<div class="article-subtitle">SPECULAR-CORE: Hardware Tuning<\/div>/,
+    /<div class="article-subtitle">SPECULAR-CORE — Hardware Tuning<\/div>/,
   );
   assert.match(
     writingIndex,
@@ -123,15 +137,15 @@ test("SPECULAR-CORE uses the approved colon title without changing other copy", 
   );
   assert.match(
     writingIndex,
-    /<div class="article-subtitle">SPECULAR-CORE: Hardware Tuning \/\/ Case Study<\/div>/,
+    /<div class="article-subtitle">SPECULAR-CORE — Hardware Tuning \/\/ Case Study<\/div>/,
   );
   assert.doesNotMatch(
     article,
-    /(?:SPECULAR-CORE|Pushing the Limits) — (?:Hardware Tuning|Overclocking SPECULAR-CORE)/,
+    /Pushing the Limits — Overclocking SPECULAR-CORE/,
   );
   assert.doesNotMatch(
     writingIndex,
-    /(?:SPECULAR-CORE|Pushing the Limits) — (?:Hardware Tuning|Overclocking SPECULAR-CORE)/,
+    /Pushing the Limits — Overclocking SPECULAR-CORE/,
   );
 });
 
