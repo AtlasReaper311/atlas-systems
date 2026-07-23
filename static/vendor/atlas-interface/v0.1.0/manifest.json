@@ -1,0 +1,31 @@
+{
+  "schema_version": "atlas-interface-kit/bundle-manifest/v1",
+  "package": "atlas-interface-kit",
+  "version": "0.1.0",
+  "files": [
+    {
+      "path": "dist/atlas-interface.css",
+      "bytes": 19899,
+      "sha256": "cde02460dc0069eaf48a2c53ed1acdf6e6654704573ec8401289dab604cca8a7"
+    },
+    {
+      "path": "dist/atlas-interface.js",
+      "bytes": 2686,
+      "sha256": "b0261cb7f645cad8392c627984796242907228a9cfbff4da425967dcc9170e51"
+    },
+    {
+      "path": "dist/tokens.json",
+      "bytes": 2680,
+      "sha256": "bd5a5d289dbaf1c831ce304a0dc7c4371157dcf84e8ee90cc52699d578e1421a"
+    }
+  ],
+  "source_files": [
+    "src/styles/tokens.css",
+    "src/styles/base.css",
+    "src/styles/components.css",
+    "src/styles/utilities.css",
+    "src/runtime/status.mjs",
+    "src/runtime/index.mjs",
+    "src/tokens.json"
+  ]
+}
