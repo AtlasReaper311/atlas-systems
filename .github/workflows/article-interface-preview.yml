@@ -1,0 +1,262 @@
+name: Generated article interface preview
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/article-interface-preview.yml"
+      - ".github/workflows/interface-preview.yml"
+      - "static/css/estate-shell.css"
+      - "static/js/estate-shell.js"
+      - "static/js/estate-status.js"
+      - "static/js/estate-search/**"
+      - "favicon.ico"
+      - "favicon-16x16.png"
+      - "favicon-32x32.png"
+      - "apple-touch-icon.png"
+      - "android-chrome-192x192.png"
+      - "android-chrome-512x512.png"
+      - "site.webmanifest"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.repository }}-article-interface-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    name: Build and publish generated article shell preview
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'feat/public-interface-shell-v1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment:
+      name: article-interface-preview
+      url: ${{ steps.preview.outputs.preview_url }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CF_PAGES_DEPLOY_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      PROJECT_NAME: atlas-systems
+      PAGES_BRANCH: article-shell-pr-${{ github.event.pull_request.number }}
+      GENERATOR_REF: feat/article-interface-contract-v1
+      SCHEDULER_REF: feat/article-interface-refresh-v1
+    steps:
+      - name: Check out interface site branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Check out article generator branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
+        with:
+          repository: AtlasReaper311/atlas-article-gen
+          ref: ${{ env.GENERATOR_REF }}
+          path: .article-generator
+          persist-credentials: false
+
+      - name: Check out scheduler refresh branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
+        with:
+          repository: AtlasReaper311/atlas-scheduler
+          ref: ${{ env.SCHEDULER_REF }}
+          path: .article-scheduler
+          persist-credentials: false
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0, Node 24
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
+        with:
+          node-version: "22"
+
+      - name: Install generator dependencies
+        run: python -m pip install -r .article-generator/requirements-dev.txt
+
+      - name: Validate generator and scheduler changes
+        run: |
+          set -euo pipefail
+          python -m pytest -q .article-generator/tests
+          python -m pytest -q .article-scheduler/tests
+
+      - name: Build dedicated generated article preview
+        run: |
+          set -euo pipefail
+          mkdir -p .article-preview-queue
+          python .article-generator/scripts/build_article.py \
+            .article-generator/tests/fixtures/interface-contract-preview.md \
+            --out .article-preview-queue
+          python .article-scheduler/scripts/preview_selected.py \
+            --scheduled-dir .article-preview-queue \
+            --site-dir . \
+            --output-dir .article-preview-site \
+            --report-out .article-preview-report.json \
+            --through-w-number 99
+          test -s .article-preview-site/writing/interface-contract-preview/index.html
+
+      - name: Build already-published article refresh bundle
+        run: |
+          set -euo pipefail
+          mkdir -p .article-refresh-bundle
+          for slug in \
+            sonin-generative-system \
+            slampunk-dynamic-mix-engine \
+            ramone-local-ai-system \
+            overclocking-specular-core; do
+            source_file="$(grep -RIl --include='*.md' "^slug = \"${slug}\"$" .article-generator/articles | head -n 1)"
+            test -n "${source_file}"
+            python .article-generator/scripts/build_article.py \
+              "${source_file}" \
+              --out .article-refresh-bundle
+          done
+          test "$(find .article-refresh-bundle -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -eq 4
+
+      - name: Refresh published article shells through scheduler authority
+        run: |
+          set -euo pipefail
+          python .article-scheduler/scripts/refresh_article_shells.py \
+            --rendered-dir .article-refresh-bundle \
+            --site-dir .article-preview-site \
+            --output-dir .article-preview-site-refreshed \
+            --report-out .article-refresh-report.json
+          rm -rf .article-preview-site
+          mv .article-preview-site-refreshed .article-preview-site
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path(".article-refresh-report.json").read_text(encoding="utf-8"))
+          assert report["schema_version"] == "atlas-scheduler/article-shell-refresh/v1"
+          assert report["production_write"] is False
+          assert report["writing_index_unchanged"] is True
+          assert report["work_index_unchanged"] is True
+          assert len(report["refreshed"]) == 4
+          PY
+
+      - name: Validate generated preview site
+        run: |
+          set -euo pipefail
+          for slug in \
+            interface-contract-preview \
+            sonin-generative-system \
+            slampunk-dynamic-mix-engine \
+            ramone-local-ai-system \
+            overclocking-specular-core; do
+            page=".article-preview-site/writing/${slug}/index.html"
+            test -s "${page}"
+            grep -q 'data-estate-search-open' "${page}"
+            grep -q 'atlas-estate-status' "${page}"
+            grep -q '.prose p{font-size:15px;line-height:1.8}' "${page}"
+            test "$(grep -c 'SCHEDULER_FOOTER_INSERT' "${page}")" -eq 1
+          done
+          npx --yes html-validate@9.7.1 ".article-preview-site/**/*.html"
+          git diff --check
+
+      - name: Smoke-test article preview routes
+        run: |
+          set -euo pipefail
+          python -m http.server 4173 --bind 127.0.0.1 --directory .article-preview-site > /tmp/article-preview-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          python - <<'PY'
+          import time
+          import urllib.request
+
+          routes = [
+              "/writing/interface-contract-preview/",
+              "/writing/sonin-generative-system/",
+              "/writing/slampunk-dynamic-mix-engine/",
+              "/writing/ramone-local-ai-system/",
+              "/writing/overclocking-specular-core/",
+          ]
+          last_error = None
+          for _ in range(20):
+              try:
+                  for route in routes:
+                      with urllib.request.urlopen("http://127.0.0.1:4173" + route, timeout=5) as response:
+                          if response.status != 200:
+                              raise RuntimeError(f"{route} returned {response.status}")
+                  break
+              except Exception as exc:
+                  last_error = exc
+                  time.sleep(0.25)
+          else:
+              raise SystemExit(f"article preview smoke test failed: {last_error}")
+          PY
+
+      - name: Guard production boundary
+        run: |
+          set -euo pipefail
+          test "${{ github.event.pull_request.head.ref }}" = "feat/public-interface-shell-v1"
+          test "${PAGES_BRANCH}" != "main"
+          test "${PAGES_BRANCH}" != "production"
+          test "$(python -c 'import json; print(json.load(open(".article-refresh-report.json"))["production_write"])')" = "False"
+
+      - name: Publish non-production Pages branch
+        id: deploy
+        run: |
+          set -euo pipefail
+          output_file="${RUNNER_TEMP}/wrangler-pages-deploy.log"
+          npx --yes wrangler@4 pages deploy .article-preview-site \
+            --project-name "${PROJECT_NAME}" \
+            --branch "${PAGES_BRANCH}" \
+            --commit-dirty=true 2>&1 | tee "${output_file}"
+          atomic_url="$(grep -Eo 'https://[A-Za-z0-9._-]+\.pages\.dev' "${output_file}" | tail -n 1)"
+          test -n "${atomic_url}"
+          echo "atomic_url=${atomic_url}" >> "${GITHUB_OUTPUT}"
+
+      - name: Resolve stable preview URL
+        id: preview
+        env:
+          PREVIEW_URL: https://article-shell-pr-${{ github.event.pull_request.number }}.atlas-systems-44t.pages.dev
+        run: |
+          set -euo pipefail
+          echo "preview_url=${PREVIEW_URL}" >> "${GITHUB_OUTPUT}"
+          {
+            echo "## Generated article interface preview"
+            echo
+            echo "${PREVIEW_URL}/writing/interface-contract-preview/"
+            echo
+            echo "Published-shell examples:"
+            echo "- ${PREVIEW_URL}/writing/sonin-generative-system/"
+            echo "- ${PREVIEW_URL}/writing/slampunk-dynamic-mix-engine/"
+            echo "- ${PREVIEW_URL}/writing/ramone-local-ai-system/"
+            echo "- ${PREVIEW_URL}/writing/overclocking-specular-core/"
+            echo
+            echo "Atomic deployment: ${{ steps.deploy.outputs.atomic_url }}"
+            echo
+            echo "This is a non-production branch preview. No article was published or refreshed in production."
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Attach article previews to draft pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREVIEW_URL: ${{ steps.preview.outputs.preview_url }}
+          ATOMIC_URL: ${{ steps.deploy.outputs.atomic_url }}
+        run: |
+          set -euo pipefail
+          marker="<!-- atlas-generated-article-preview -->"
+          body="${marker}
+          ## Generated article interface preview
+
+          - Contract fixture: ${PREVIEW_URL}/writing/interface-contract-preview/
+          - SONIN: ${PREVIEW_URL}/writing/sonin-generative-system/
+          - SlamPunk: ${PREVIEW_URL}/writing/slampunk-dynamic-mix-engine/
+          - Ramone case study: ${PREVIEW_URL}/writing/ramone-local-ai-system/
+          - SPECULAR-CORE: ${PREVIEW_URL}/writing/overclocking-specular-core/
+          - Atomic deployment: ${ATOMIC_URL}
+          - Production: unchanged
+
+          The pages were rendered by \`atlas-article-gen\` and refreshed through the scheduler-owned shell path. Writing and Work indexes were byte-checked as unchanged by the refresh stage."
+          existing_id="$(gh api "/repos/${GITHUB_REPOSITORY}/issues/${{ github.event.pull_request.number }}/comments" --paginate --jq ".[] | select(.body | contains(\"${marker}\")) | .id" | head -n 1)"
+          if [ -n "${existing_id}" ]; then
+            gh api --method PATCH "/repos/${GITHUB_REPOSITORY}/issues/comments/${existing_id}" -f body="${body}"
+          else
+            gh pr comment "${{ github.event.pull_request.number }}" --body "${body}"
+          fi
