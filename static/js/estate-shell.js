@@ -25,6 +25,34 @@ const ICON_LINKS = [
   { rel: "manifest", href: "/site.webmanifest" },
 ];
 
+function normalizeAtlasTitle(value) {
+  const title = String(value || "").trim();
+  if (!title || title === "Atlas Systems") return title;
+  if (title.endsWith(" // Atlas Systems")) return title;
+
+  const atlasFirst = title.match(/^Atlas Systems\s*(?:\/\/|—|-)\s*(.+)$/);
+  if (atlasFirst) return `${atlasFirst[1].trim()} // Atlas Systems`;
+
+  const pageFirst = title.match(/^(.+?)\s*(?:—|-)\s*Atlas Systems$/);
+  if (pageFirst) return `${pageFirst[1].trim()} // Atlas Systems`;
+
+  return title;
+}
+
+function normalizePageMetadata() {
+  const title = normalizeAtlasTitle(document.title);
+  if (!title) return;
+  document.title = title;
+
+  for (const selector of [
+    'meta[property="og:title"]',
+    'meta[name="twitter:title"]',
+  ]) {
+    const meta = document.head.querySelector(selector);
+    if (meta) meta.content = title;
+  }
+}
+
 function ensureStylesheet() {
   if (document.querySelector(`link[href="${SHELL_STYLESHEET}"]`)) return;
   const link = document.createElement("link");
@@ -180,6 +208,7 @@ function installStatusChip() {
 }
 
 function install() {
+  normalizePageMetadata();
   ensureStylesheet();
   ensureIcons();
   normalizeLinks(document);
@@ -195,4 +224,9 @@ if (typeof document !== "undefined") {
   }
 }
 
-export { ATLAS_OWNED_HOSTS, normalizeLink, normalizeLinks };
+export {
+  ATLAS_OWNED_HOSTS,
+  normalizeAtlasTitle,
+  normalizeLink,
+  normalizeLinks,
+};
