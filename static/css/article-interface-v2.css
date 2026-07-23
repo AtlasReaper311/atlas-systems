@@ -17,6 +17,7 @@ body {
 
 main {
   width: min(100%, 1160px);
+  overflow-x: clip;
 }
 
 .article-header {
