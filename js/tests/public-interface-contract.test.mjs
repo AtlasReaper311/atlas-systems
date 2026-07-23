@@ -13,7 +13,7 @@ import {
 import { GLOBAL_ROUTES, normalizeAtlasTitle } from "../../static/js/estate-shell.js";
 
 const NOW = Date.parse("2026-07-23T08:00:00Z");
-const BUNDLE_ROOT = "static/vendor/atlas-interface/v0.1.0";
+const BUNDLE_ROOT = "static/vendor/atlas-interface/v0.1.1";
 
 function snapshot(operational, total, checkedAt = "2026-07-23T07:55:00Z") {
   return { estate: { operational, total_components: total, checked_at: checkedAt } };
@@ -50,7 +50,8 @@ test("v2 shell exposes the accepted route order", () => {
   assert.match(shell, /atlas-header__nav/);
   assert.match(shell, /atlas-header__actions/);
   assert.match(shell, /preserveHomepageStatus/);
-  assert.match(shell, /atlas-interface-kit\.css/);
+  assert.match(shell, /v0\.1\.1\/atlas-interface-kit\.css/);
+  assert.match(shell, /normalizeLegacySemantics/);
   assert.match(shellCss, /grid-template-columns:\s*repeat\(5,\s*1fr\)/);
 });
 
@@ -61,9 +62,15 @@ test("estate page titles use the page-first double-slash convention", () => {
 });
 
 test("interface-kit vendor copy matches the canonical SHA-256 manifest", () => {
+  const versions = fs.readdirSync("static/vendor/atlas-interface", { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+  assert.deepEqual(versions, ["v0.1.1"]);
+
   const manifest = JSON.parse(fs.readFileSync(`${BUNDLE_ROOT}/manifest.json`, "utf8"));
   assert.equal(manifest.schema_version, "atlas-interface-kit/bundle/v1");
-  assert.equal(manifest.version, "0.1.0");
+  assert.equal(manifest.version, "0.1.1");
   assert.equal(manifest.contract_version, "2.0.0");
   assert.equal(manifest.component_role_count, 25);
   assert.deepEqual(Object.keys(manifest.files).sort(), ["atlas-interface-kit.css", "components.json", "tokens.json"]);
@@ -74,6 +81,8 @@ test("interface-kit vendor copy matches the canonical SHA-256 manifest", () => {
     assert.equal(sha256(path), record.sha256, `${name} SHA-256`);
   }
 
+  const tokens = JSON.parse(fs.readFileSync(`${BUNDLE_ROOT}/tokens.json`, "utf8"));
+  assert.equal(tokens.colour.text_faint, "#888894");
   for (const obsolete of ["atlas-interface.css", "atlas-interface.js", "tokens.schema.json"]) {
     assert.equal(fs.existsSync(`${BUNDLE_ROOT}/${obsolete}`), false, `${obsolete} must not remain`);
   }
@@ -99,6 +108,14 @@ test("Lab route contract uses the dedicated map and operations routes", () => {
   assert.match(landing, /Observe/);
   assert.match(landing, /Verify/);
   assert.match(landing, /Explore/);
+});
+
+test("reduced-motion and legacy Lab compatibility stay explicit", () => {
+  const transitions = fs.readFileSync("js/transitions.js", "utf8");
+  const shell = fs.readFileSync("static/js/estate-shell.js", "utf8");
+  assert.match(transitions, /data-ramone-reduced-musing/);
+  assert.match(shell, /replaceHeading\(ramoneHeading, "h2"\)/);
+  assert.match(shell, /map\.setAttribute\("role", "group"\)/);
 });
 
 test("specialist Lab wrappers preserve original tool modules", () => {
