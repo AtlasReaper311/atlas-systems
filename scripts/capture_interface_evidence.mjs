@@ -15,7 +15,10 @@ const routes = [
   ["work", "/work/"],
   ["writing", "/writing/"],
   ["about", "/about/"],
-  ["article", "/writing/overclocking-specular-core/"],
+  ["article-w-01", "/writing/sonin-generative-system/"],
+  ["article-w-02", "/writing/slampunk-dynamic-mix-engine/"],
+  ["article-w-03", "/writing/ramone-local-ai-system/"],
+  ["article-w-04", "/writing/overclocking-specular-core/"],
   ["not-found", "/404.html"],
 ];
 const viewports = [

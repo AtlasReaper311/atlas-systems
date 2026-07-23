@@ -15,6 +15,7 @@ on:
       - "systems/**"
       - "css/card-search.css"
       - "static/css/estate-shell.css"
+      - "static/css/article-interface-v2.css"
       - "static/css/editorial-surfaces-v2.css"
       - "static/css/v2-directory-pages.css"
       - "static/vendor/atlas-interface/**"
