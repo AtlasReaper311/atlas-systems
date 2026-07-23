@@ -44,11 +44,12 @@ test("status mapping distinguishes operational, degraded, unavailable, and unkno
 test("v2 shell exposes the accepted route order", () => {
   assert.deepEqual(GLOBAL_ROUTES.map(({ label }) => label), ["Work", "Writing", "Lab", "Systems", "About"]);
   const shell = fs.readFileSync("static/js/estate-shell.js", "utf8");
+  const shellCss = fs.readFileSync("static/css/estate-shell.css", "utf8");
   assert.match(shell, /atlas-header__brand/);
   assert.match(shell, /atlas-header__nav/);
   assert.match(shell, /atlas-header__actions/);
   assert.match(shell, /preserveHomepageStatus/);
-  assert.match(shell, /repeat\(5,1fr\)/);
+  assert.match(shellCss, /grid-template-columns:\s*repeat\(5,\s*1fr\)/);
 });
 
 test("estate page titles use the page-first double-slash convention", () => {
