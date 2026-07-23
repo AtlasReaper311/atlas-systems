@@ -103,7 +103,11 @@ test("Lab route contract uses the dedicated map and operations routes", () => {
   assert.match(shell, /Operations", href: "\/lab\/console\//);
   assert.match(shell, /Shape Detector", href: "\/lab\/anomaly\//);
   const landing = fs.readFileSync("lab/index.html", "utf8");
-  assert.ok(landing.indexOf('id="ramone-card"') < landing.indexOf('id="featured-title"'));
+  const ramonePosition = landing.indexOf('id="ramone-card"');
+  const legendPosition = landing.indexOf('class="interface-legend"');
+  const featuredPosition = landing.indexOf('id="featured-title"');
+  assert.ok(ramonePosition < legendPosition, "Ramone must remain directly behind the Lab introduction");
+  assert.ok(legendPosition < featuredPosition, "the semantic key must follow Ramone and precede the directory");
   assert.match(landing, /Experience/);
   assert.match(landing, /Observe/);
   assert.match(landing, /Verify/);
