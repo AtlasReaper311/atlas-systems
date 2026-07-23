@@ -34,12 +34,58 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Validate HTML, scripts, data, sitemap, and Pages output
+      - name: Validate HTML
+        run: npx --yes html-validate@9.7.1 "**/*.html"
+
+      - name: Run public interface tests
+        run: node --test js/tests/public-interface-contract.test.mjs
+
+      - name: Run existing main-site tests
         run: |
-          npx --yes html-validate@9.7.1 "**/*.html"
-          node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
-          python3 scripts/generate_sitemap.py --check-only
-          python3 scripts/verify_pages_output.py .
+          set -euo pipefail
+          files=()
+          for path in js/tests/*.test.mjs; do
+            if [ "${path}" != "js/tests/public-interface-contract.test.mjs" ]; then
+              files+=("${path}")
+            fi
+          done
+          if [ "${#files[@]}" -gt 0 ]; then
+            node --test "${files[@]}"
+          fi
+
+      - name: Run Lab tests
+        id: lab
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          node --test lab/tests/*.test.mjs 2>&1 | tee lab-test-report.txt
+
+      - name: Upload Lab test report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: lab-test-report
+          path: lab-test-report.txt
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Enforce Lab test result
+        if: steps.lab.outcome != 'success'
+        run: |
+          cat lab-test-report.txt
+          exit 1
+
+      - name: Run System SYMPHONY tests
+        run: node --test static/js/sonify/*.test.js
+
+      - name: Validate sitemap
+        run: python3 scripts/generate_sitemap.py --check-only
+
+      - name: Validate Pages output
+        run: python3 scripts/verify_pages_output.py .
+
+      - name: Parse committed JSON
+        run: |
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -49,6 +95,9 @@ jobs:
                   continue
               json.loads(path.read_text(encoding="utf-8"))
           PY
+
+      - name: Check whitespace
+        run: git diff --check
 
       - name: Check repository links offline
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
