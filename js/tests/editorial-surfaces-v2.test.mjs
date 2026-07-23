@@ -108,7 +108,7 @@ test("About contains the accepted identity, priorities, principles, and reduced-
 test("Homepage source routes point to canonical Systems and System Map destinations", () => {
   const home = read("index.html");
   assert.match(home, /href="\/systems\/"/);
-  assert.match(home, /href="\/systems\/#ramone"/);
+  assert.match(home, /href="\/systems\/index\.html#ramone"/);
   assert.match(home, /href="\/lab\/system-map\/"/);
   assert.doesNotMatch(home, /href="\/lab\/index\.html#ramone-card"/);
   assert.doesNotMatch(home, /href="\/lab\/index\.html#system-map"/);
