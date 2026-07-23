@@ -7,7 +7,7 @@
 }
 
 html[data-atlas-interface] {
-  --text-faint: #80808b;
+  --text-faint: #858590;
   scroll-padding-top: calc(var(--atlas-header-height, 56px) + 24px);
 }
 html[data-atlas-interface] body { font-size: max(15px, 1rem); }
@@ -119,6 +119,8 @@ html[data-atlas-interface] body { font-size: max(15px, 1rem); }
 .article-entry,
 .article-meta,
 .article-body { min-width: 0; max-width: 100%; }
+.lab-tool-footer > span { color: #858590; }
+.dora-panel .dp-error { color: #e85f5e; }
 
 @media (max-width: 767px) {
   .atlas-nav-shell .atlas-header__inner { width: min(calc(100% - 32px), 1280px); grid-template-columns: minmax(0,1fr) auto; gap: 12px; }
