@@ -4,7 +4,19 @@
   var reduceMotion = window.matchMedia &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  if (reduceMotion) return;
+  if (reduceMotion) {
+    var ramoneMusing = document.getElementById("ramone-musing");
+    if (ramoneMusing) {
+      ramoneMusing.removeAttribute("id");
+      ramoneMusing.setAttribute("data-ramone-reduced-musing", "");
+      document.addEventListener("DOMContentLoaded", function () {
+        ramoneMusing.id = "ramone-musing";
+        ramoneMusing.innerHTML = "How can I assist?<span class=\"ramone-musing-cursor\"></span>";
+        ramoneMusing.classList.add("in");
+      }, { once: true });
+    }
+    return;
+  }
 
   var style = document.createElement("style");
   style.textContent = [
