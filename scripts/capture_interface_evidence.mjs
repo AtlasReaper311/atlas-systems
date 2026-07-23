@@ -34,6 +34,24 @@ const fixtureHosts = new Set([
 ]);
 const report = [];
 
+function summarizeViolation(item) {
+  return {
+    id: item.id,
+    impact: item.impact,
+    help: item.help,
+    nodes: item.nodes.map((node) => ({
+      target: node.target,
+      html: node.html,
+      failureSummary: node.failureSummary,
+      checks: [...node.any, ...node.all, ...node.none].map((check) => ({
+        id: check.id,
+        message: check.message,
+        data: check.data,
+      })),
+    })),
+  };
+}
+
 function writeReport() {
   fs.writeFileSync(
     "evidence.json",
@@ -207,7 +225,8 @@ async function run() {
             const accessibility = await new AxeBuilder({ page })
               .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
               .analyze();
-            const blocking = accessibility.violations.filter(
+            const violations = accessibility.violations.map(summarizeViolation);
+            const blocking = violations.filter(
               (item) => item.impact === "serious" || item.impact === "critical",
             );
             const fullPage = `screenshots/${browserName}-${viewportName}-${routeName}-full.png`;
@@ -224,11 +243,7 @@ async function run() {
               url,
               semantics,
               pageErrors,
-              accessibilityViolations: accessibility.violations.map((item) => ({
-                id: item.id,
-                impact: item.impact,
-                nodes: item.nodes.length,
-              })),
+              accessibilityViolations: violations,
               screenshots: { fullPage, viewport: viewportShot },
             });
             writeReport();
@@ -236,13 +251,8 @@ async function run() {
               throw new Error(`${browserName}/${viewportName}/${routeName}: page errors ${JSON.stringify(pageErrors)}`);
             }
             if (blocking.length) {
-              const summary = blocking.map((item) => ({
-                id: item.id,
-                impact: item.impact,
-                nodes: item.nodes.length,
-              }));
               throw new Error(
-                `${browserName}/${viewportName}/${routeName}: serious accessibility findings ${JSON.stringify(summary)}`,
+                `${browserName}/${viewportName}/${routeName}: serious accessibility findings ${JSON.stringify(blocking)}`,
               );
             }
             await page.close();
