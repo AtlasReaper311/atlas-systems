@@ -54,7 +54,26 @@ jobs:
           fi
 
       - name: Run Lab tests
-        run: node --test lab/tests/*.test.mjs
+        id: lab
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          node --test lab/tests/*.test.mjs 2>&1 | tee lab-test-report.txt
+
+      - name: Upload Lab test report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: lab-test-report
+          path: lab-test-report.txt
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Enforce Lab test result
+        if: steps.lab.outcome != 'success'
+        run: |
+          cat lab-test-report.txt
+          exit 1
 
       - name: Run System SYMPHONY tests
         run: node --test static/js/sonify/*.test.js
