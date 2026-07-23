@@ -117,7 +117,7 @@ html[data-atlas-interface] body { font-size: max(15px, 1rem); }
 .article-meta,
 .article-body { min-width: 0; max-width: 100%; }
 
-@media (max-width: 920px) {
+@media (max-width: 767px) {
   .atlas-nav-shell .atlas-header__inner { width: min(calc(100% - 32px), 1280px); grid-template-columns: minmax(0,1fr) auto; gap: 12px; }
   .atlas-nav-shell .atlas-header__nav { display: none; }
   .atlas-search-control { width: 40px; min-width: 40px; padding: 0 !important; justify-content: center; }
