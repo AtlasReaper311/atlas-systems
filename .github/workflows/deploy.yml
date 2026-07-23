@@ -14,41 +14,50 @@ concurrency:
 
 jobs:
   generate-sitemap:
-    name: Regenerate sitemap.xml
+    name: Normalize metadata and regenerate sitemap.xml
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
       contents: write
+    outputs:
+      source_changed: ${{ steps.commit.outputs.source_changed }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
         with:
           # generate_sitemap.py reads each file's real lastmod via
-          # `git log`; a shallow clone (the default) would collapse
-          # every file to the same single commit date.
+          # `git log`; a shallow clone would collapse every file to the
+          # same single commit date.
           fetch-depth: 0
 
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0, Node 24
         with:
           python-version: "3.12"
 
+      - name: Normalize source page titles
+        run: python3 scripts/normalize_page_titles.py
+
       - name: Generate sitemap.xml
         run: python3 scripts/generate_sitemap.py
 
-      - name: Commit sitemap.xml if it changed
+      - name: Commit generated source if it changed
+        id: commit
         run: |
           set -euo pipefail
-          if git diff --quiet -- sitemap.xml; then
-            echo "sitemap.xml unchanged, nothing to commit"
+          git add -- '*.html' sitemap.xml
+          if git diff --cached --quiet; then
+            echo "Generated source unchanged, nothing to commit"
+            echo "source_changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add sitemap.xml
-          git commit -m "Regenerate sitemap.xml [skip ci]"
+          git commit -m "Normalize page titles and regenerate sitemap.xml [skip ci]"
           git push
+          echo "source_changed=true" >> "$GITHUB_OUTPUT"
 
   deploy:
     needs: [generate-sitemap, verify-pages-output]
+    if: needs.generate-sitemap.outputs.source_changed != 'true'
     uses: AtlasReaper311/atlas-infra/.github/workflows/validate-static.yml@093df3f87fa4e068155455f82c9b69bffad76fb6 # atlas-infra main
     with:
       project_name: atlas-systems
@@ -67,6 +76,8 @@ jobs:
         run: python3 scripts/verify_pages_output.py .
 
   refresh-corpus:
+    needs: [generate-sitemap]
+    if: needs.generate-sitemap.outputs.source_changed != 'true'
     uses: AtlasReaper311/atlas-corpus/.github/workflows/refresh-corpus.yml@410a0ba16c8461b191edbed257d0271d76bd8369 # atlas-corpus main
     secrets:
       CORPUS_SECRET: ${{ secrets.CORPUS_SECRET }}
