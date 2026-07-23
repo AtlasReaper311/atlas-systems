@@ -66,14 +66,14 @@
     .spec-cell{background:var(--bg);padding:1rem 1.25rem}
     .spec-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.3rem}
     .spec-value{font-size:12px;color:var(--text)}
-    .article-body{display:grid;grid-template-columns:200px 1fr;gap:4rem;padding:4rem 0}
+    .article-body{min-width:0;display:grid;grid-template-columns:200px 1fr;gap:4rem;padding:4rem 0}
     .toc{position:sticky;top:calc(var(--nav-h) + 2rem);align-self:start;height:fit-content}
     .toc-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-faint);margin-bottom:1rem}
     .toc-list{list-style:none;display:flex;flex-direction:column;gap:0.1rem}
     .toc-item a{font-size:11px;color:var(--text-faint);text-decoration:none;display:block;padding:0.35rem 0.75rem;border-left:1px solid var(--border);transition:all 0.15s;line-height:1.4}
     .toc-item a:hover{color:var(--text-dim);border-left-color:var(--border-hi)}
     .toc-item a.active{color:var(--accent);border-left-color:var(--accent)}
-    .prose{max-width:var(--content-w)}
+    .prose{width:100%;min-width:0;max-width:var(--content-w);overflow-wrap:anywhere}
     .prose h2{font-family:var(--serif);font-size:1.8rem;line-height:1.1;color:var(--text);margin:3rem 0 1.25rem;padding-top:1rem}
     .prose h2:first-child{margin-top:0}
     .prose h3{font-size:13px;font-weight:500;color:var(--text);letter-spacing:0.06em;text-transform:uppercase;margin:2rem 0 0.75rem;display:flex;align-items:center;gap:0.6rem}
@@ -117,7 +117,7 @@
     .mobile-nav-item:hover,.mobile-nav-item.active{color:var(--accent)}
     .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
     @media(max-width:900px){.article-body{grid-template-columns:1fr}.toc{display:none}.article-header{grid-template-columns:1fr}}
-    @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}.outcomes-grid{grid-template-columns:1fr}}
+    @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}.outcomes-grid{grid-template-columns:1fr}.model-table{display:block;overflow-x:auto}}
   </style>
   <link rel="stylesheet" href="/static/css/estate-search.css">
 

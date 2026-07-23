@@ -132,3 +132,13 @@ test("editorial assets remain mutable and preview evidence covers changed surfac
     assert.ok(capture.includes(`"${route}"`), route);
   }
 });
+
+test("representative article and 404 evidence targets retain mobile and link accessibility fixes", () => {
+  const article = read("writing/overclocking-specular-core/index.html");
+  const notFound = read("404.html");
+  assert.match(article, /\.article-body\{min-width:0/);
+  assert.match(article, /\.prose\{width:100%;min-width:0;/);
+  assert.match(article, /overflow-wrap:anywhere/);
+  assert.match(article, /\.model-table\{display:block;overflow-x:auto\}/);
+  assert.match(notFound, /\.err-hint a\{[^}]*text-decoration:underline/);
+});
