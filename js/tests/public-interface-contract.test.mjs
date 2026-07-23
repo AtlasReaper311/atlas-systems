@@ -165,3 +165,27 @@ test("System SYMPHONY implementation remains outside this migration", () => {
   ];
   assert.equal(interfaceFiles.some((path) => path.includes("static/js/sonify")), false);
 });
+
+test("production deployment remains independent from Cloudflare Git integration", () => {
+  const deploy = fs.readFileSync(".github/workflows/deploy.yml", "utf8");
+
+  assert.doesNotMatch(deploy, /source_changed/);
+  assert.doesNotMatch(deploy, /\[skip ci\]/);
+  assert.doesNotMatch(deploy, /git push/);
+  assert.match(deploy, /wrangler|validate-static\.yml/);
+  assert.match(deploy, /verify-production:/);
+  assert.match(deploy, /build-commit/);
+  assert.match(deploy, /https:\/\/atlas-systems\.uk/);
+  assert.match(deploy, /needs: \[deploy, verify-production\]/);
+});
+
+test("mutable site responses revalidate while versioned interface assets stay immutable", () => {
+  const headers = fs.readFileSync("_headers", "utf8");
+
+  assert.match(headers, /\/\*\n(?:.|\n)*Cache-Control: no-cache, max-age=0, must-revalidate/);
+  assert.match(headers, /\/static\/vendor\/atlas-interface\/\*/);
+  assert.match(headers, /! Cache-Control/);
+  assert.match(headers, /Cache-Control: public, max-age=31536000, immutable/);
+  assert.doesNotMatch(headers, /\/static\/audio\/\*\n\s+Cache-Control: public, max-age=31536000, immutable/);
+  assert.doesNotMatch(headers, /stale-while-revalidate/);
+});
