@@ -3,7 +3,7 @@ name: Apply published article head metadata refresh
 on:
   pull_request:
     branches:
-      - feat/public-interface-shell-v1
+      - main
     types: [opened, synchronize, reopened]
     paths:
       - ".github/workflows/apply-published-article-head-refresh.yml"
@@ -20,14 +20,16 @@ jobs:
     name: Generate head-only article refresh
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'fix/published-article-head-metadata-v1'
+      github.event.pull_request.head.ref == 'feat/public-interface-shell-v1'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - name: Check out stacked site branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
         with:
+          repository: AtlasReaper311/atlas-systems
           ref: fix/published-article-head-metadata-v1
+          token: ${{ github.token }}
           fetch-depth: 0
           persist-credentials: true
 
