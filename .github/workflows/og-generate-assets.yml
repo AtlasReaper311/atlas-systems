@@ -1,0 +1,92 @@
+name: Generate estate social preview assets
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/og/**"
+      - "package.json"
+      - "package-lock.json"
+      - "static/vendor/atlas-interface/v0.2.0/fonts/**"
+      - "lab/**/index.html"
+      - ".github/workflows/og-generate-assets.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.repository }}-og-assets-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    name: Generate deterministic social preview assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact pull request head
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install pinned generator dependencies
+        run: npm ci
+
+      - name: Generate, wire, and verify every card
+        run: npm run og
+
+      - name: Run focused generator tests
+        run: node --test scripts/og/*.test.mjs
+
+      - name: Prove existing cards remain byte-identical
+        run: |
+          set -euo pipefail
+          git diff --exit-code -- \
+            og/home.png \
+            og/work.png \
+            og/writing.png \
+            og/lab.png \
+            og/systems.png \
+            og/about.png \
+            og/system-map.png \
+            og/console.png \
+            og/overclocking-specular-core.png \
+            og/ramone-local-ai-system.png \
+            og/slampunk-dynamic-mix-engine.png \
+            og/sonin-generative-system.png
+
+      - name: Stage generated files for review
+        env:
+          OUTPUT_ROOT: ${{ runner.temp }}/social-preview-output
+        run: |
+          set -euo pipefail
+          mkdir -p "${OUTPUT_ROOT}/repo"
+          cp -R og "${OUTPUT_ROOT}/repo/og"
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          import path from "node:path";
+          import { loadManifest, resolveRoutes } from "./scripts/og/routes.mjs";
+
+          const outputRoot = process.env.OUTPUT_ROOT;
+          for (const entry of resolveRoutes(loadManifest())) {
+            const destination = path.join(outputRoot, "repo", entry.html);
+            fs.mkdirSync(path.dirname(destination), { recursive: true });
+            fs.copyFileSync(entry.html, destination);
+          }
+          NODE
+          git diff --binary > "${OUTPUT_ROOT}/generated-social-previews.patch"
+          git diff --name-status > "${OUTPUT_ROOT}/generated-files.txt"
+
+      - name: Upload generated source and images
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        with:
+          name: estate-social-preview-generated-output
+          path: ${{ runner.temp }}/social-preview-output
+          if-no-files-found: error
+          retention-days: 3
