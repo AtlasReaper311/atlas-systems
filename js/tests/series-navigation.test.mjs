@@ -15,13 +15,31 @@ test("series state is derived rather than hard-coded to one upcoming part", () =
   assert.doesNotMatch(script, /series-upcoming"\)/);
 });
 
-test("writing series UI includes compact cards, progress, and article navigation", () => {
+test("the temporary first-series bridge materializes the scheduler attribute contract", () => {
+  assert.match(script, /function materializeFallback/);
+  for (const attribute of [
+    "data-series",
+    "data-series-part",
+    "data-series-total",
+    "data-series-title",
+    "data-series-note",
+    "data-series-publish-date",
+  ]) {
+    assert.match(script, new RegExp(`setAttribute\\("${attribute}"`));
+  }
+});
+
+test("writing series UI includes compact cards, progress, and contained article navigation", () => {
   assert.match(styles, /series-banner-progress/);
   assert.match(styles, /series-compact/);
   assert.match(styles, /series-next/);
   assert.match(articleStyles, /article-series-parts/);
   assert.match(articleStyles, /is-current/);
   assert.match(articleStyles, /is-live/);
+  assert.match(articleStyles, /is-next/);
+  assert.match(articleStyles, /position:\s*static/);
+  assert.match(articleStyles, /inset:\s*auto/);
+  assert.match(articleStyles, /height:\s*auto/);
   assert.match(articleStyles, /auto-fit/);
 });
 
