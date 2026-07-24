@@ -7,6 +7,8 @@ from pathlib import Path
 def replace_once(path: str, old: str, new: str) -> None:
     file = Path(path)
     source = file.read_text(encoding="utf-8")
+    if new in source:
+        return
     count = source.count(old)
     if count != 1:
         raise SystemExit(f"{path}: expected one patch anchor, found {count}")
@@ -60,6 +62,17 @@ def main() -> None:
     ("/lab/anomaly/", "monthly", "0.6"),
     ("/about/", "monthly", "0.6"),"""
     replace_once("scripts/generate_sitemap.py", routes_old, routes_new)
+
+    replace_once(
+        "js/tests/public-interface-contract.test.mjs",
+        'for (const maturity of ["Production", "Tool", "Preview", "Experiment"]) {',
+        'for (const maturity of ["Production", "Tool", "Preview", "Experiment", "Planned", "Retired"]) {',
+    )
+    replace_once(
+        "js/tests/public-interface-contract.test.mjs",
+        "/v2-directory-pages\\.css\\?v=20260723-visual-semantics/",
+        "/v2-directory-pages\\.css\\?v=20260724-maturity-completion/",
+    )
 
     Path("js/tests/phase3-cleanup.test.mjs").write_text(
         '''import assert from "node:assert/strict";
