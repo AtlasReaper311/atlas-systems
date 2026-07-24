@@ -465,7 +465,7 @@ body {
 
 .about-topology {
   position: relative;
-  min-height: 176px;
+  min-height: 226px;
   overflow: hidden;
   border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.08));
   background:
@@ -490,26 +490,26 @@ body {
 
 .about-topology-node[data-node="systems"] {
   left: 50%;
-  top: 18px;
+  top: 16px;
   transform: translateX(-50%);
   border-color: rgba(245, 166, 35, 0.55);
   color: var(--accent, #f5a623);
 }
 
 .about-topology-node[data-node="software"] {
-  left: 18px;
-  bottom: 18px;
+  left: 12px;
+  bottom: 60px;
 }
 
 .about-topology-node[data-node="audio"] {
   left: 50%;
-  bottom: 18px;
+  bottom: 14px;
   transform: translateX(-50%);
 }
 
 .about-topology-node[data-node="games"] {
-  right: 18px;
-  bottom: 18px;
+  right: 12px;
+  bottom: 60px;
 }
 
 .about-topology-path {
@@ -643,10 +643,6 @@ body {
   .work-featured-card:last-child {
     grid-column: 1 / -1;
   }
-
-  .about-topology {
-    min-height: 192px;
-  }
 }
 
 @media (max-width: 767px) {
@@ -697,14 +693,6 @@ body {
   .gallery-dots {
     display: none;
   }
-
-  .about-topology-node[data-node="software"] {
-    left: 10px;
-  }
-
-  .about-topology-node[data-node="games"] {
-    right: 10px;
-  }
 }
 
 @media (max-width: 390px) {
@@ -728,28 +716,6 @@ body {
 
   .proj-link {
     justify-content: center;
-  }
-
-  .about-topology {
-    min-height: 226px;
-  }
-
-  .about-topology-node[data-node="systems"] {
-    top: 16px;
-  }
-
-  .about-topology-node[data-node="software"] {
-    left: 12px;
-    bottom: 60px;
-  }
-
-  .about-topology-node[data-node="audio"] {
-    bottom: 14px;
-  }
-
-  .about-topology-node[data-node="games"] {
-    right: 12px;
-    bottom: 60px;
   }
 }
 
