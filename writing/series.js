@@ -43,6 +43,17 @@
     return node ? node.textContent.trim() : "";
   }
 
+  function materializeFallback(card, info) {
+    if (!info || card.hasAttribute("data-series")) return info;
+    card.setAttribute("data-series", info.id);
+    card.setAttribute("data-series-part", String(info.part));
+    card.setAttribute("data-series-total", String(info.total));
+    card.setAttribute("data-series-title", info.title);
+    card.setAttribute("data-series-note", info.note);
+    card.setAttribute("data-series-publish-date", info.publishDate);
+    return info;
+  }
+
   function resolve(card) {
     var id = card.getAttribute("data-series");
     if (id) {
@@ -56,7 +67,7 @@
       };
     }
 
-    return FALLBACK[text(card, ".article-number")] || null;
+    return materializeFallback(card, FALLBACK[text(card, ".article-number")] || null);
   }
 
   function formatDate(value) {
