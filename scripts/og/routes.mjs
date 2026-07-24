@@ -16,6 +16,7 @@ export const OUT_DIR = path.join(REPO, "og");
 export const CANVAS = { w: 1200, h: 630 };
 
 export const plain = (line) => line.replace(/[[\]]/g, "");
+export const normalizeRepoPath = (value) => value.replace(/\\/g, "/");
 
 function escapeAttribute(value) {
   return String(value)
@@ -146,11 +147,11 @@ export function deriveArticleEntry(slug, relHtml, html) {
 
 export function resolveRoutes(manifest) {
   const routes = manifest.routes.map((route) => ({ ...route, external: false }));
-  const covered = new Set(routes.map((route) => route.html));
+  const covered = new Set(routes.map((route) => normalizeRepoPath(route.html)));
   const writingDir = path.join(REPO, "writing");
   for (const slug of fs.readdirSync(writingDir).sort()) {
-    const rel = path.join("writing", slug, "index.html");
-    const abs = path.join(REPO, rel);
+    const rel = path.posix.join("writing", slug, "index.html");
+    const abs = path.join(writingDir, slug, "index.html");
     if (covered.has(rel) || !fs.existsSync(abs)) continue;
     const html = fs.readFileSync(abs, "utf8");
     if (metaContent(html, "og:image") === null) continue;
@@ -198,10 +199,11 @@ export function entryIdentityErrors(entries) {
     }
 
     if (!entry.external) {
-      if (htmlFiles.has(entry.html)) {
-        errors.push(`${entry.html}: duplicate local HTML shared with ${htmlFiles.get(entry.html)}`);
+      const html = normalizeRepoPath(entry.html);
+      if (htmlFiles.has(html)) {
+        errors.push(`${html}: duplicate local HTML shared with ${htmlFiles.get(html)}`);
       } else {
-        htmlFiles.set(entry.html, entry.file);
+        htmlFiles.set(html, entry.file);
       }
     }
   }
@@ -219,7 +221,9 @@ export function ogImageHtmlFiles() {
       if (fs.statSync(candidate).isDirectory()) walk(candidate);
       else if (name.endsWith(".html")) {
         const html = fs.readFileSync(candidate, "utf8");
-        if (metaContent(html, "og:image") !== null) found.push(path.relative(REPO, candidate));
+        if (metaContent(html, "og:image") !== null) {
+          found.push(normalizeRepoPath(path.relative(REPO, candidate)));
+        }
       }
     }
   };
