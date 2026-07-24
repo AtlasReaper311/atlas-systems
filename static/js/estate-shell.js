@@ -8,7 +8,7 @@ import {
 } from "./estate-status.js";
 
 const STATUS_TIMEOUT_MS = 6_000;
-const KIT_STYLESHEET = "/static/vendor/atlas-interface/v0.1.1/atlas-interface-kit.css";
+const KIT_STYLESHEET = "/static/vendor/atlas-interface/v0.2.0/atlas-interface-kit.css";
 const SHELL_STYLESHEET = "/static/css/estate-shell.css?v=20260723-interface-v2";
 
 const GLOBAL_ROUTES = Object.freeze([

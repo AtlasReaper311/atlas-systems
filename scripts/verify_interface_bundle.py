@@ -8,12 +8,19 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 VENDOR_ROOT = ROOT / "static/vendor/atlas-interface"
-VERSION = "0.1.1"
+VERSION = "0.2.0"
 BUNDLE_ROOT = VENDOR_ROOT / f"v{VERSION}"
 MANIFEST_PATH = BUNDLE_ROOT / "manifest.json"
 EXPECTED_FILES = {
+    "atlas-fonts.css",
     "atlas-interface-kit.css",
     "components.json",
+    "fonts/dm-serif-display-400-italic.woff2",
+    "fonts/dm-serif-display-400.woff2",
+    "fonts/ibm-plex-mono-400.woff2",
+    "fonts/ibm-plex-mono-500.woff2",
+    "licenses/DM-Serif-Display-OFL.txt",
+    "licenses/IBM-Plex-Mono-OFL.txt",
     "tokens.json",
 }
 OBSOLETE_FILES = {
@@ -74,8 +81,8 @@ def verify() -> dict[str, Any]:
     require(set(files) == EXPECTED_FILES, "interface bundle file set drifted")
 
     actual_files = {
-        path.name
-        for path in BUNDLE_ROOT.iterdir()
+        path.relative_to(BUNDLE_ROOT).as_posix()
+        for path in BUNDLE_ROOT.rglob("*")
         if path.is_file() and path.name != "manifest.json"
     }
     require(actual_files == EXPECTED_FILES, "vendored interface directory contains drift")
@@ -90,9 +97,13 @@ def verify() -> dict[str, Any]:
         require(sha256(path) == record.get("sha256"), f"SHA-256 mismatch: {name}")
 
     css = (BUNDLE_ROOT / "atlas-interface-kit.css").read_text(encoding="utf-8")
+    font_css = (BUNDLE_ROOT / "atlas-fonts.css").read_text(encoding="utf-8")
     require("http://" not in css and "https://" not in css, "bundle CSS has a remote runtime dependency")
+    require("http://" not in font_css and "https://" not in font_css, "font CSS has a remote runtime dependency")
     require(":focus-visible" in css, "bundle CSS is missing visible focus")
     require("prefers-reduced-motion" in css, "bundle CSS is missing reduced-motion handling")
+    require(font_css.count("@font-face") == 4, "font CSS does not declare the approved faces")
+    require(font_css.count("font-display: swap") == 4, "font CSS does not preserve swap rendering")
 
     components = load_json(BUNDLE_ROOT / "components.json")
     roles = components.get("roles")
