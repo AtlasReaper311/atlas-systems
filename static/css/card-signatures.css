@@ -28,6 +28,9 @@
 .system-card .card-top { min-width: 0; align-items: flex-start; }
 .system-card .type-label { min-width: 0; text-wrap: balance; }
 .system-card .badge { flex: none; }
+.badge { gap: 6px; justify-content: center; line-height: 1; white-space: nowrap; }
+.badge::before { box-sizing: border-box; display: block; align-self: center; transform-origin: center; }
+.badge.preview::before { transform: rotate(45deg) scale(.72); }
 .system-card h3 { overflow-wrap: anywhere; text-wrap: balance; }
 .system-card p { margin-bottom: 0; overflow-wrap: anywhere; text-wrap: pretty; }
 .system-card .data-mode { overflow-wrap: anywhere; }

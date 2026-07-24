@@ -15,6 +15,11 @@ STATIC_ROUTES: list[tuple[str, str, str]] = [
     ("/lab/", "monthly", "0.7"),
     ("/systems/", "monthly", "0.7"),
     ("/lab/system-map/", "monthly", "0.6"),
+    ("/lab/proof-chain/", "monthly", "0.6"),
+    ("/lab/signal/", "monthly", "0.6"),
+    ("/lab/reliability/", "monthly", "0.6"),
+    ("/lab/conformance/", "monthly", "0.6"),
+    ("/lab/anomaly/", "monthly", "0.6"),
     ("/about/", "monthly", "0.6"),
 ]
 ARTICLE_CHANGEFREQ = "monthly"

@@ -87,6 +87,9 @@ jobs:
       - name: Validate sitemap
         run: python3 scripts/generate_sitemap.py --check-only
 
+      - name: Validate static performance baseline
+        run: python3 scripts/measure_static_performance.py --check-only
+
       - name: Validate Pages output
         run: python3 scripts/verify_pages_output.py .
 
