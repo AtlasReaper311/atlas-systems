@@ -48,7 +48,7 @@ test("Work keeps scheduler ownership and permanent source anchors", () => {
 test("Work results stay visible while supporting detail is semantic and collapsed", () => {
   const work = read("work/index.html");
   const projects = projectBlocks(work);
-  assert.equal(projects.length, 3);
+  assert.ok(projects.length >= 3, "Work must retain the three source-owned projects and accept scheduler additions");
   for (const project of projects) {
     assert.match(project, /class="project-result"/);
     assert.match(project, /<details class="project-disclosure">/);
