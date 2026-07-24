@@ -18,7 +18,7 @@
   --csw-border: var(--border, rgba(255, 255, 255, 0.08));
   --csw-text: var(--text, #e8e8e0);
   --csw-dim: var(--text-dim, #aaa9a0);
-  --csw-faint: var(--text-faint, #555560);
+  --csw-faint: var(--text-faint, #888894);
   --csw-accent: var(--accent, #f5a623);
   display: block;
   background: var(--csw-bg);
@@ -137,7 +137,7 @@ a.es-hit-main:focus-visible {
   font-size: 9px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
   border-radius: 2px;
   padding: 1px 5px;
@@ -152,7 +152,7 @@ a.es-hit-main:focus-visible {
 .es-hit-score {
   margin-left: auto;
   font-size: 10px;
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   font-variant-numeric: tabular-nums;
 }
 
@@ -254,7 +254,7 @@ a.es-hit-main:focus-visible {
   margin: 0 0 12px;
   font-size: 10px;
   letter-spacing: 0.06em;
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
 }
 
 .es-gs-head strong {
@@ -301,12 +301,12 @@ a.es-hit-main:focus-visible {
   caret-color: var(--accent, #f5a623);
 }
 
-.es-gs-input::placeholder { color: var(--text-faint, #555560); }
+.es-gs-input::placeholder { color: var(--text-faint, #888894); }
 
 .es-gs-status {
   margin: 10px 2px 0;
   font-size: 11px;
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   min-height: 1.4em;
 }
 
@@ -322,7 +322,7 @@ a.es-hit-main:focus-visible {
   padding-top: 10px;
   border-top: 1px solid var(--border, rgba(255, 255, 255, 0.08));
   font-size: 10px;
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   letter-spacing: 0.04em;
 }
 
@@ -383,7 +383,7 @@ body.es-gs-lock { overflow: hidden; }
   font-family: inherit;
   font-size: 9px;
   text-transform: none;
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
   border-radius: 3px;
   padding: 1px 5px;

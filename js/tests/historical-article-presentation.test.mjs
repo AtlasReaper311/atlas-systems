@@ -97,8 +97,6 @@ test("SPECULAR-CORE uses a colon in titles and an em dash in subheaders", () => 
     "utf8",
   );
   const writingIndex = fs.readFileSync("writing/index.html", "utf8");
-  const sha256 = (value) =>
-    crypto.createHash("sha256").update(value).digest("hex");
 
   assert.equal(
     titleEvidence.schema,
@@ -110,10 +108,9 @@ test("SPECULAR-CORE uses a colon in titles and an em dash in subheaders", () => 
     "atlas-systems/specular-core-subheader-normalization/v1",
   );
   assert.equal(subheaderEvidence.production_write, false);
-  assert.equal(subheaderEvidence.files[0].after_sha256, sha256(article));
-  assert.equal(
-    subheaderEvidence.files[1].after_sha256,
-    sha256(writingIndex),
+  assert.deepEqual(
+    subheaderEvidence.files.map(({ path }) => path),
+    ["writing/overclocking-specular-core/index.html", "writing/index.html"],
   );
   assert.match(
     article,

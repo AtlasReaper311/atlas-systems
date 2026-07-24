@@ -401,4 +401,23 @@
 @media (max-width: 600px) {
   .ramone-hero-live { font-size: 10px; }
   .ramone-hero-sysinfo { font-size: 11px; }
+  .ramone-hero-heading {
+    overflow-wrap: anywhere;
+    font-size: min(2.4rem, 15vw);
+  }
+  .ramone-hero-composer-actions {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    display: grid;
+  }
+  .ramone-hero-char-count {
+    grid-column: 1 / -1;
+    margin-right: 0;
+  }
+  .ramone-hero-reset,
+  .ramone-hero-send {
+    min-width: 0;
+    width: 100%;
+    padding-inline: 8px;
+    overflow-wrap: anywhere;
+  }
 }

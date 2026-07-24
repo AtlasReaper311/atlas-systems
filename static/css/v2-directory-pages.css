@@ -236,7 +236,7 @@ h2 { font:400 clamp(1.7rem,4vw,2.6rem)/1.08 var(--serif); }
 .arch-node[data-kind="product"] { box-shadow:inset 0 2px 0 #4ade80; }
 .arch-node[data-kind="control"] { box-shadow:inset 0 2px 0 var(--accent); }
 .arch-node[data-kind="evidence"] { box-shadow:inset 0 2px 0 var(--blue); }
-.lab-context-nav { position:fixed; top:56px; left:0; right:0; z-index:90; border-bottom:1px solid var(--border); background:rgba(10,10,15,.93); backdrop-filter:blur(12px); }
+.lab-context-nav { position:fixed; top:56px; left:0; right:0; z-index:90; overflow-x:hidden; border-bottom:1px solid var(--border); background:rgba(10,10,15,.93); backdrop-filter:blur(12px); }
 .lab-context-nav-inner { width:min(calc(100% - 48px),1180px); margin-inline:auto; display:flex; gap:4px; overflow-x:auto; scrollbar-width:thin; }
 .lab-context-nav a { flex:none; padding:11px 12px; color:var(--text-faint); font-size:10px; letter-spacing:.07em; text-decoration:none; text-transform:uppercase; }
 .lab-context-nav a:hover,.lab-context-nav a[aria-current="page"] { color:var(--accent); }
@@ -277,6 +277,7 @@ body:has(.lab-context-nav) main { padding-top:calc(var(--nav-h) + 104px); }
 @media(max-width:620px){
   main,.lab-context-nav-inner,.lab-tool-footer { width:min(calc(100% - 32px),1180px); }
   .page-intro { padding-top:28px; }
+  .page-intro h1 { overflow-wrap:anywhere; font-size:min(2.8rem,15vw); }
   .card-grid,.card-grid.two,.portfolio-grid,.verify-grid,.systems-tools-grid,.featured-grid,.product-showcase,.architecture { grid-template-columns:1fr; }
   .featured-grid .specimen-card,
   .featured-grid .specimen-card--primary,

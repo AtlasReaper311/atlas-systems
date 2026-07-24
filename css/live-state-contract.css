@@ -12,7 +12,7 @@
   --live-state-warning: var(--accent, #f5a623);
   --live-state-critical: #e24b4a;
   --live-state-neutral: var(--text-dim, #aaa9a0);
-  --live-state-faint: var(--text-faint, #555560);
+  --live-state-faint: var(--text-faint, #888894);
   --live-state-healthy-halo: rgba(74, 222, 128, 0.15);
   --live-state-warning-halo: rgba(245, 166, 35, 0.15);
   --live-state-critical-halo: rgba(226, 75, 74, 0.15);

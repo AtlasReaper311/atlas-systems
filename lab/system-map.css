@@ -299,7 +299,7 @@
 }
 
 .smap-node-status {
-  fill: var(--text-faint, #555560);
+  fill: var(--text-faint, #888894);
   stroke: var(--bg-0, #0a0a0f);
   stroke-width: 1.4;
   vector-effect: non-scaling-stroke;
@@ -346,7 +346,7 @@
 }
 
 .smap-kv-label {
-  fill: var(--text-faint, #555560);
+  fill: var(--text-faint, #888894);
   font: 500 8.5px/1 var(--mono, "IBM Plex Mono", monospace);
   letter-spacing: 0.05em;
   paint-order: stroke;
@@ -392,7 +392,7 @@
 }
 
 .smap-city-detail-meta {
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
 }
 
 .smap-city-detail-status.is-live {
@@ -417,7 +417,7 @@
   z-index: 8;
   display: grid;
   place-items: center;
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   font: 500 10px/1 var(--mono, "IBM Plex Mono", monospace);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -506,7 +506,7 @@
   display: grid;
   gap: 0.75rem;
   margin-top: 1rem;
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   font-size: 10px;
   letter-spacing: 0.045em;
 }
@@ -643,7 +643,7 @@
 
 .smap-note {
   margin-top: 1.25rem;
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   font-size: 11px;
   letter-spacing: 0.035em;
   line-height: 1.7;
@@ -684,7 +684,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--text-faint, #555560);
+  background: var(--text-faint, #888894);
 }
 
 .smap-list-dot.is-live {
@@ -709,7 +709,7 @@
 
 .smap-list-desc {
   overflow: hidden;
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;

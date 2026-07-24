@@ -63,7 +63,7 @@ test("AWS is officially active and Writing remains reachable on mobile", () => {
 
 test("homepage uses the canonical Atlas Systems text tokens", () => {
   assert.match(baseCss, /--text-dim:#aaa9a0/);
-  assert.match(baseCss, /--text-faint:#555560/);
+  assert.match(baseCss, /--text-faint:#888894/);
   assert.match(baseCss, /--accent:#f5a623/);
 });
 

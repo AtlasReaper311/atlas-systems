@@ -72,7 +72,7 @@ body.term-open { overflow: hidden; }
   background: none;
   border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
   border-radius: 4px;
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   font-family: inherit;
   font-size: 14px;
   letter-spacing: 0;
@@ -98,7 +98,7 @@ body.term-open { overflow: hidden; }
   background: rgba(255, 255, 255, 0.025);
 }
 .term-examples-label {
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -132,7 +132,7 @@ body.term-open { overflow: hidden; }
   line-height: 1.75;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: var(--text-faint, #555560) transparent;
+  scrollbar-color: var(--text-faint, #888894) transparent;
 }
 
 .term-line { color: var(--text, #e8e8e0); }
@@ -144,7 +144,7 @@ body.term-open { overflow: hidden; }
 .t-accent { color: var(--accent, #f5a623); }
 .t-cmd    { color: var(--text, #e8e8e0); }
 .t-dim    { color: var(--text-dim, #aaa9a0); }
-.t-faint  { color: var(--text-faint, #555560); }
+.t-faint  { color: var(--text-faint, #888894); }
 .t-ok     { color: #4ade80; }
 .t-warn   { color: var(--accent, #f5a623); }
 .t-err    { color: #e24b4a; }
