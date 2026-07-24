@@ -70,19 +70,6 @@ jobs:
                   raise SystemExit("maturity badge CSS anchor was not found")
               css = css.replace(anchor, anchor + markers)
           css_path.write_text(css, encoding="utf-8")
-
-          ci_path = Path(".github/workflows/ci.yml")
-          ci = ci_path.read_text(encoding="utf-8")
-          anchor = '      - name: Validate Pages output\n        run: python3 scripts/verify_pages_output.py .\n'
-          step = '''      - name: Validate static performance baseline
-          run: python3 scripts/measure_static_performance.py --check-only
-
-          '''
-          if step not in ci:
-              if ci.count(anchor) != 1:
-                  raise SystemExit("CI performance-step anchor was not found")
-              ci = ci.replace(anchor, step + anchor)
-          ci_path.write_text(ci, encoding="utf-8")
           PY
           python3 scripts/generate_sitemap.py
           python3 scripts/measure_static_performance.py
@@ -102,7 +89,7 @@ jobs:
       - name: Commit materialized source
         run: |
           set -euo pipefail
-          git add index.html static/css/v2-directory-pages.css scripts/generate_sitemap.py sitemap.xml data/performance-baseline.json .github/workflows/ci.yml
+          git add index.html static/css/v2-directory-pages.css scripts/generate_sitemap.py sitemap.xml data/performance-baseline.json
           if git diff --cached --quiet
           then
             echo "Phase 3 source is already materialized"
