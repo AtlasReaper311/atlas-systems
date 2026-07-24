@@ -36,11 +36,12 @@ jobs:
 
   deploy:
     needs: [verify-pages-output]
-    uses: AtlasReaper311/atlas-infra/.github/workflows/validate-static.yml@093df3f87fa4e068155455f82c9b69bffad76fb6 # atlas-infra main
+    uses: AtlasReaper311/atlas-infra/.github/workflows/validate-static.yml@d38588a57630368eaea157e01f138bafa14b4a0c # atlas-infra Pages artifact boundary
     with:
       project_name: atlas-systems
       site_label: atlas-systems.uk
       inject_build_meta: true
+      publish_exclude_file: .pagesignore
     secrets: inherit
 
   verify-production:

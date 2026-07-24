@@ -5,7 +5,15 @@
 // Run: npm run og:verify
 import fs from "node:fs";
 import path from "node:path";
-import { REPO, OUT_DIR, CANVAS, loadManifest, resolveRoutes, ogImageHtmlFiles } from "./routes.mjs";
+import {
+  REPO,
+  OUT_DIR,
+  CANVAS,
+  loadManifest,
+  metaContent,
+  resolveRoutes,
+  ogImageHtmlFiles,
+} from "./routes.mjs";
 
 const routes = resolveRoutes(loadManifest());
 const errors = [];
@@ -30,11 +38,8 @@ for (const entry of routes) {
   const html = fs.readFileSync(path.join(REPO, entry.html), "utf8");
   const metas = html.match(/<meta\b[^>]*>/g) || [];
   const wired = (key) =>
-    metas.some(
-      (m) =>
-        new RegExp(`(?:property|name)="${key}"`).test(m) &&
-        new RegExp(`content="[^"]*/og/${entry.file}\\.png"`).test(m),
-    );
+    metas.some((meta) =>
+      metaContent(meta, key)?.endsWith(`/og/${entry.file}.png`));
   if (!wired("og:image")) errors.push(`${entry.html}: og:image does not point at /og/${entry.file}.png`);
   if (!wired("twitter:image")) errors.push(`${entry.html}: twitter:image does not point at /og/${entry.file}.png`);
 }

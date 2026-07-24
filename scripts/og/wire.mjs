@@ -2,9 +2,13 @@
 // route-specific og:image:alt. Idempotent. Run: npm run og:wire
 import fs from "node:fs";
 import path from "node:path";
-import { REPO, loadManifest, resolveRoutes } from "./routes.mjs";
+import {
+  REPO,
+  loadManifest,
+  replaceMetaContent,
+  resolveRoutes,
+} from "./routes.mjs";
 
-const OLD = "https://atlas-systems.uk/og-default.png";
 let changed = 0;
 
 for (const entry of resolveRoutes(loadManifest())) {
@@ -13,11 +17,9 @@ for (const entry of resolveRoutes(loadManifest())) {
   const url = `https://atlas-systems.uk/og/${entry.file}.png`;
   const alt = `${entry.title.map((l) => l.replace(/[[\]]/g, "")).join(" ")} — Atlas Systems`;
 
-  let html = before.split(OLD).join(url);
-  // Update og:image:alt within its meta tag (tolerant of multi-line tags / attr order).
-  html = html.replace(/<meta\b[^>]*property="og:image:alt"[^>]*>/, (tag) =>
-    tag.replace(/content="[^"]*"/, `content="${alt.replace(/"/g, "&quot;")}"`),
-  );
+  let html = replaceMetaContent(before, "og:image", url);
+  html = replaceMetaContent(html, "twitter:image", url);
+  html = replaceMetaContent(html, "og:image:alt", alt);
 
   if (html !== before) {
     fs.writeFileSync(file, html);

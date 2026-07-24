@@ -16,10 +16,34 @@ export const CANVAS = { w: 1200, h: 630 };
 
 export const plain = (line) => line.replace(/[[\]]/g, "");
 
-const attr = (html, re) => {
-  const m = html.match(re);
-  return m ? m[1] : null;
-};
+function tagAttribute(tag, name) {
+  const pattern = new RegExp(`\\b${name}\\s*=\\s*(["'])(.*?)\\1`, "i");
+  return tag.match(pattern)?.[2] ?? null;
+}
+
+export function metaContent(html, key) {
+  for (const match of html.matchAll(/<meta\b[^>]*>/gi)) {
+    const tag = match[0];
+    const identifier = tagAttribute(tag, "property") ?? tagAttribute(tag, "name");
+    if (identifier?.toLowerCase() === key.toLowerCase()) {
+      return tagAttribute(tag, "content");
+    }
+  }
+  return null;
+}
+
+export function replaceMetaContent(html, key, value) {
+  const escaped = value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  return html.replace(/<meta\b[^>]*>/gi, (tag) => {
+    const identifier = tagAttribute(tag, "property") ?? tagAttribute(tag, "name");
+    if (identifier?.toLowerCase() !== key.toLowerCase()) return tag;
+
+    if (/\bcontent\s*=\s*(["']).*?\1/i.test(tag)) {
+      return tag.replace(/\bcontent\s*=\s*(["']).*?\1/i, `content="${escaped}"`);
+    }
+    return tag.replace(/\s*\/?>$/, ` content="${escaped}">`);
+  });
+}
 
 function splitTwoLines(title) {
   const words = title.split(/\s+/);
@@ -42,16 +66,16 @@ function accentLastWord(lines) {
   return out;
 }
 
-function deriveArticleEntry(slug, relHtml, html) {
+export function deriveArticleEntry(slug, relHtml, html) {
   const raw =
-    attr(html, /property="og:title"\s+content="([^"]*)"/) ||
-    attr(html, /<title>([^<]*)<\/title>/) ||
+    metaContent(html, "og:title") ||
+    html.match(/<title>([^<]*)<\/title>/i)?.[1] ||
     slug;
   const title = raw.split("//")[0].split("|")[0].trim();
 
   const desc =
-    attr(html, /name="description"\s+content="([^"]*)"/) ||
-    attr(html, /property="og:description"\s+content="([^"]*)"/) ||
+    metaContent(html, "description") ||
+    metaContent(html, "og:description") ||
     "";
   let tagline = desc.replace(/\s+/g, " ").trim();
   if (tagline.length > 68) tagline = `${tagline.slice(0, 65).replace(/\s+\S*$/, "")}…`;
@@ -76,7 +100,7 @@ export function resolveRoutes(manifest) {
     const abs = path.join(REPO, rel);
     if (covered.has(rel) || !fs.existsSync(abs)) continue;
     const html = fs.readFileSync(abs, "utf8");
-    if (!/property="og:image"/.test(html)) continue;
+    if (metaContent(html, "og:image") === null) continue;
     routes.push(deriveArticleEntry(slug, rel, html));
   }
   return routes;
@@ -90,8 +114,10 @@ export function ogImageHtmlFiles() {
       if (name === "node_modules" || name === ".git" || name.startsWith(".")) continue;
       const p = path.join(dir, name);
       if (fs.statSync(p).isDirectory()) walk(p);
-      else if (name.endsWith(".html") && /property="og:image"/.test(fs.readFileSync(p, "utf8")))
-        found.push(path.relative(REPO, p));
+      else if (name.endsWith(".html")) {
+        const html = fs.readFileSync(p, "utf8");
+        if (metaContent(html, "og:image") !== null) found.push(path.relative(REPO, p));
+      }
     }
   };
   walk(REPO);
