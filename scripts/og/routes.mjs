@@ -95,7 +95,7 @@ export function documentTitle(html) {
 }
 
 export function socialImageAlt(entry) {
-  return `${entry.title.map(plain).join(" ")} — Atlas Systems`;
+  return `${entry.title.map(plain).join(" ")} // Atlas Systems`;
 }
 
 function splitTwoLines(title) {
