@@ -21,7 +21,15 @@ rsync -a \
 
 test -f "${publish_directory}/index.html"
 
-mapfile -t social_cards < <(
+social_card_count=0
+while IFS= read -r card; do
+  test -n "${card}"
+  if [ ! -f "${publish_directory}/${card}" ]; then
+    echo "ERROR: filtered Pages artifact is missing ${card}" >&2
+    exit 1
+  fi
+  social_card_count=$((social_card_count + 1))
+done < <(
   cd "${repo_root}"
   node --input-type=module <<'NODE'
   import { loadManifest, resolveRoutes, resolveSatellites } from "./scripts/og/routes.mjs";
@@ -35,16 +43,9 @@ mapfile -t social_cards < <(
 NODE
 )
 
-test "${#social_cards[@]}" -gt 0
-for card in "${social_cards[@]}"; do
-  if [ ! -f "${publish_directory}/${card}" ]; then
-    echo "ERROR: filtered Pages artifact is missing ${card}" >&2
-    exit 1
-  fi
-done
-
+test "${social_card_count}" -gt 0
 test ! -e "${publish_directory}/package.json"
 test ! -e "${publish_directory}/package-lock.json"
 test ! -e "${publish_directory}/scripts"
 
-echo "Pages publish directory prepared: ${publish_directory} (${#social_cards[@]} social cards)"
+echo "Pages publish directory prepared: ${publish_directory} (${social_card_count} social cards)"
