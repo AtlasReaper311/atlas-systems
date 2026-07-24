@@ -1,5 +1,5 @@
 {
-  "note": "Copy source for route social-preview cards. Square brackets mark the accent word (amber italic). One entry per route that carries og:image. `file` is the output name in /og/<file>.png.",
+  "note": "Copy source for route social-preview cards. Square brackets mark the accent word (amber italic). Local routes are wired in this repository; satellites are rendered here and wired in their owning repositories. `file` is the output name in /og/<file>.png.",
   "routes": [
     {
       "file": "home",
@@ -66,6 +66,46 @@
       "tagline": "The estate's services and status, at the terminal."
     },
     {
+      "file": "proof-chain",
+      "html": "lab/proof-chain/index.html",
+      "route": "/lab/proof-chain/",
+      "kicker": "Verify / Atlas Trace",
+      "title": ["Proof,", "[connected.]"],
+      "tagline": "Follow public services back to source and accepted decisions."
+    },
+    {
+      "file": "signal-garden",
+      "html": "lab/signal/index.html",
+      "route": "/lab/signal/",
+      "kicker": "Experience / Generative DSP",
+      "title": ["Signal [Garden.]"],
+      "tagline": "A browser-native instrument that grows rather than loops."
+    },
+    {
+      "file": "reliability-evidence",
+      "html": "lab/reliability/index.html",
+      "route": "/lab/reliability/",
+      "kicker": "Verify / Reliability",
+      "title": ["Claims under", "[failure.]"],
+      "tagline": "Bounded fault injection, detection, rollback, and recovery."
+    },
+    {
+      "file": "estate-conformance",
+      "html": "lab/conformance/index.html",
+      "route": "/lab/conformance/",
+      "kicker": "Verify / Estate policy",
+      "title": ["Conformance,", "[scored.]"],
+      "tagline": "The complete denominator behind Atlas Systems policy evidence."
+    },
+    {
+      "file": "telemetry-anomaly-detector",
+      "html": "lab/anomaly/index.html",
+      "route": "/lab/anomaly/",
+      "kicker": "Explore / Telemetry",
+      "title": ["Shape before", "[threshold.]"],
+      "tagline": "Trajectory-aware anomaly evidence from SPECULAR-CORE."
+    },
+    {
       "file": "overclocking-specular-core",
       "html": "writing/overclocking-specular-core/index.html",
       "route": "/writing/overclocking-specular-core/",
@@ -96,6 +136,36 @@
       "kicker": "Writing / Case study",
       "title": ["SONIN. A generative", "[audio-visual system.]"],
       "tagline": "An autonomous instrument that listens to itself."
+    }
+  ],
+  "satellites": [
+    {
+      "file": "ramone",
+      "route": "ramone.atlas-systems.uk",
+      "kicker": "Local AI / Chat",
+      "title": ["Ramone.", "Local AI, [self-hosted.]"],
+      "tagline": "A private chat interface over local models."
+    },
+    {
+      "file": "status",
+      "route": "status.atlas-systems.uk",
+      "kicker": "Estate health",
+      "title": ["Live estate [status.]"],
+      "tagline": "Real-time health of every public Atlas Systems service."
+    },
+    {
+      "file": "api-docs",
+      "route": "api.atlas-systems.uk/v1/docs",
+      "kicker": "Public API",
+      "title": ["The Atlas Systems [API.]"],
+      "tagline": "A versioned, evidence-backed public API surface."
+    },
+    {
+      "file": "cv",
+      "route": "cv.atlas-systems.uk",
+      "kicker": "Curriculum vitae",
+      "title": ["Atlas Reaper:", "engineering [CV.]"],
+      "tagline": "Systems, local AI, and real-time audio engineering."
     }
   ]
 }

@@ -1,10 +1,11 @@
 // Route resolution for social-preview cards. Dependency-free (no rasteriser),
 // so the CI verify step can run without `npm install`.
 //
-// Curated routes live in manifest.json. Any writing article NOT in the manifest
-// is auto-discovered and given a card derived from its own metadata, so new
-// monthly posts always get a route-specific preview even before anyone curates
-// the copy. Add a manifest entry later to override the derived version.
+// Curated local routes live in manifest.routes. Curated cross-repository cards
+// live in manifest.satellites and are rendered here without local HTML wiring.
+// Any writing article NOT in the manifest is auto-discovered and given a card
+// derived from its own metadata, so new monthly posts cannot silently keep a
+// shared default image.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,10 +16,22 @@ export const OUT_DIR = path.join(REPO, "og");
 export const CANVAS = { w: 1200, h: 630 };
 
 export const plain = (line) => line.replace(/[[\]]/g, "");
+export const normalizeRepoPath = (value) => value.replace(/\\/g, "/");
+
+function escapeAttribute(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;");
+}
 
 function tagAttribute(tag, name) {
   const pattern = new RegExp(`\\b${name}\\s*=\\s*(["'])(.*?)\\1`, "i");
   return tag.match(pattern)?.[2] ?? null;
+}
+
+function insertBeforeHeadClose(html, tag) {
+  if (!/<\/head>/i.test(html)) return html;
+  return html.replace(/<\/head>/i, `  ${tag}\n</head>`);
 }
 
 export function metaContent(html, key) {
@@ -33,7 +46,7 @@ export function metaContent(html, key) {
 }
 
 export function replaceMetaContent(html, key, value) {
-  const escaped = value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  const escaped = escapeAttribute(value);
   return html.replace(/<meta\b[^>]*>/gi, (tag) => {
     const identifier = tagAttribute(tag, "property") ?? tagAttribute(tag, "name");
     if (identifier?.toLowerCase() !== key.toLowerCase()) return tag;
@@ -43,6 +56,47 @@ export function replaceMetaContent(html, key, value) {
     }
     return tag.replace(/\s*\/?>$/, ` content="${escaped}">`);
   });
+}
+
+export function ensureMetaContent(html, key, value) {
+  if (metaContent(html, key) !== null) return html;
+  const attribute = key.startsWith("og:") ? "property" : "name";
+  return insertBeforeHeadClose(
+    html,
+    `<meta ${attribute}="${key}" content="${escapeAttribute(value)}">`,
+  );
+}
+
+export function upsertMetaContent(html, key, value) {
+  if (metaContent(html, key) === null) return ensureMetaContent(html, key, value);
+  return replaceMetaContent(html, key, value);
+}
+
+export function canonicalHref(html) {
+  for (const match of html.matchAll(/<link\b[^>]*>/gi)) {
+    const tag = match[0];
+    const rel = tagAttribute(tag, "rel");
+    if (rel?.toLowerCase().split(/\s+/).includes("canonical")) {
+      return tagAttribute(tag, "href");
+    }
+  }
+  return null;
+}
+
+export function ensureCanonical(html, href) {
+  if (canonicalHref(html) !== null) return html;
+  return insertBeforeHeadClose(
+    html,
+    `<link rel="canonical" href="${escapeAttribute(href)}">`,
+  );
+}
+
+export function documentTitle(html) {
+  return html.match(/<title>([^<]*)<\/title>/i)?.[1]?.trim() ?? null;
+}
+
+export function socialImageAlt(entry) {
+  return `${entry.title.map(plain).join(" ")} // Atlas Systems`;
 }
 
 function splitTwoLines(title) {
@@ -69,7 +123,7 @@ function accentLastWord(lines) {
 export function deriveArticleEntry(slug, relHtml, html) {
   const raw =
     metaContent(html, "og:title") ||
-    html.match(/<title>([^<]*)<\/title>/i)?.[1] ||
+    documentTitle(html) ||
     slug;
   const title = raw.split("//")[0].split("|")[0].trim();
 
@@ -92,12 +146,12 @@ export function deriveArticleEntry(slug, relHtml, html) {
 }
 
 export function resolveRoutes(manifest) {
-  const routes = manifest.routes.map((r) => ({ ...r }));
-  const covered = new Set(routes.map((r) => r.html));
+  const routes = manifest.routes.map((route) => ({ ...route, external: false }));
+  const covered = new Set(routes.map((route) => normalizeRepoPath(route.html)));
   const writingDir = path.join(REPO, "writing");
   for (const slug of fs.readdirSync(writingDir).sort()) {
-    const rel = path.join("writing", slug, "index.html");
-    const abs = path.join(REPO, rel);
+    const rel = path.posix.join("writing", slug, "index.html");
+    const abs = path.join(writingDir, slug, "index.html");
     if (covered.has(rel) || !fs.existsSync(abs)) continue;
     const html = fs.readFileSync(abs, "utf8");
     if (metaContent(html, "og:image") === null) continue;
@@ -106,17 +160,70 @@ export function resolveRoutes(manifest) {
   return routes;
 }
 
+export function resolveSatellites(manifest) {
+  return (manifest.satellites ?? []).map((entry) => ({
+    ...entry,
+    external: true,
+  }));
+}
+
+export function entryIdentityErrors(entries) {
+  const errors = [];
+  const files = new Map();
+  const routes = new Map();
+  const htmlFiles = new Map();
+
+  for (const entry of entries) {
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(entry.file ?? "")) {
+      errors.push(`${entry.file ?? "<missing>"}: file must be a lowercase kebab-case identifier`);
+    }
+    if (!entry.route) errors.push(`${entry.file ?? "<missing>"}: route is required`);
+    if (!entry.kicker) errors.push(`${entry.file ?? "<missing>"}: kicker is required`);
+    if (!Array.isArray(entry.title) || entry.title.length < 1 || entry.title.length > 2) {
+      errors.push(`${entry.file ?? "<missing>"}: title must contain one or two lines`);
+    }
+    if (!entry.tagline) errors.push(`${entry.file ?? "<missing>"}: tagline is required`);
+    if (entry.external && entry.html) errors.push(`${entry.file}: external entries must not declare html`);
+    if (!entry.external && !entry.html) errors.push(`${entry.file}: local entries must declare html`);
+
+    if (files.has(entry.file)) {
+      errors.push(`${entry.file}: duplicate card file shared with ${files.get(entry.file)}`);
+    } else {
+      files.set(entry.file, entry.route);
+    }
+
+    if (routes.has(entry.route)) {
+      errors.push(`${entry.route}: duplicate route shared with ${routes.get(entry.route)}`);
+    } else {
+      routes.set(entry.route, entry.file);
+    }
+
+    if (!entry.external) {
+      const html = normalizeRepoPath(entry.html);
+      if (htmlFiles.has(html)) {
+        errors.push(`${html}: duplicate local HTML shared with ${htmlFiles.get(html)}`);
+      } else {
+        htmlFiles.set(html, entry.file);
+      }
+    }
+  }
+
+  return errors;
+}
+
 // Every HTML file that declares og:image (for the bidirectional coverage check).
 export function ogImageHtmlFiles() {
   const found = [];
   const walk = (dir) => {
     for (const name of fs.readdirSync(dir)) {
       if (name === "node_modules" || name === ".git" || name.startsWith(".")) continue;
-      const p = path.join(dir, name);
-      if (fs.statSync(p).isDirectory()) walk(p);
+      const candidate = path.join(dir, name);
+      if (fs.statSync(candidate).isDirectory()) walk(candidate);
       else if (name.endsWith(".html")) {
-        const html = fs.readFileSync(p, "utf8");
-        if (metaContent(html, "og:image") !== null) found.push(path.relative(REPO, p));
+        const html = fs.readFileSync(candidate, "utf8");
+        if (metaContent(html, "og:image") !== null) {
+          found.push(normalizeRepoPath(path.relative(REPO, candidate)));
+        }
       }
     }
   };
