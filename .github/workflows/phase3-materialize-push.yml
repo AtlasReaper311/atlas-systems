@@ -1,18 +1,22 @@
 name: Materialize Phase 3 audit closure
 
 on:
-  push:
-    branches: [fix/phase3-audit-closure]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
 
 concurrency:
-  group: ${{ github.repository }}-phase3-materialize
+  group: ${{ github.repository }}-phase3-materialize-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
   materialize:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'fix/phase3-audit-closure'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
