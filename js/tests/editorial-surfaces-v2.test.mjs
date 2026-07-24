@@ -119,10 +119,12 @@ test("primary source remains navigable, branded, and readable without JavaScript
 
   const work = read("work/index.html");
   const writing = read("writing/index.html");
+  const css = read("static/css/editorial-surfaces-v2.css");
   assert.match(work, /\.project-entry\{[^}]*opacity:1;[^}]*transform:none/);
   assert.match(work, /\.js \.project-entry\{[^}]*opacity:0/);
   assert.match(writing, /\.article-entry\{[^}]*opacity:1;[^}]*transform:none/);
   assert.match(writing, /\.js \.article-entry\{[^}]*opacity:0/);
+  assert.match(css, /\.article-tags\s*\{[^}]*flex-wrap:\s*wrap/);
   assert.match(work, /\/static\/js\/enable-enhancements\.js/);
   assert.match(writing, /\/static\/js\/enable-enhancements\.js/);
 });
@@ -224,6 +226,7 @@ test("editorial assets remain mutable and preview evidence covers changed surfac
     assert.ok(capture.includes(`"${route}"`), route);
   }
   assert.match(capture, /visibleWorkProjectCount/);
+  assert.match(capture, /Number\.parseFloat\(style\.opacity\) > 0/);
 });
 
 test("representative article and 404 evidence targets retain mobile and link accessibility fixes", () => {

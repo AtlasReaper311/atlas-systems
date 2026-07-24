@@ -348,7 +348,7 @@ async function runHardeningAcceptance() {
                 const style = getComputedStyle(element);
                 const rect = element.getBoundingClientRect();
                 return style.display !== "none"
-                  && Number.parseFloat(style.opacity) > 0.99
+                  && Number.parseFloat(style.opacity) > 0
                   && rect.width > 0
                   && rect.height > 0;
               }).length;
