@@ -12,7 +12,7 @@ on:
       - ".github/workflows/og-generate-assets.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: ${{ github.repository }}-og-assets-${{ github.event.pull_request.number }}
@@ -28,6 +28,7 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
@@ -61,7 +62,33 @@ jobs:
             og/slampunk-dynamic-mix-engine.png \
             og/sonin-generative-system.png
 
+      - name: Commit generated files to the approved pull request branch
+        if: >-
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          github.event.pull_request.head.ref == 'feat/estate-social-preview-completion'
+        env:
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- og
+          node --input-type=module <<'NODE'
+          import { execFileSync } from "node:child_process";
+          import { loadManifest, resolveRoutes } from "./scripts/og/routes.mjs";
+
+          const htmlFiles = resolveRoutes(loadManifest()).map((entry) => entry.html);
+          execFileSync("git", ["add", "--", ...htmlFiles], { stdio: "inherit" });
+          NODE
+          if git diff --cached --quiet; then
+            echo "Generated files already match the branch"
+            exit 0
+          fi
+          git commit -m "chore: generate estate social preview assets [skip ci]"
+          git push origin "HEAD:${HEAD_BRANCH}"
+
       - name: Stage generated files for review
+        if: always()
         env:
           OUTPUT_ROOT: ${{ runner.temp }}/social-preview-output
         run: |
@@ -80,10 +107,11 @@ jobs:
             fs.copyFileSync(entry.html, destination);
           }
           NODE
-          git diff --binary > "${OUTPUT_ROOT}/generated-social-previews.patch"
-          git diff --name-status > "${OUTPUT_ROOT}/generated-files.txt"
+          git diff --binary HEAD^ HEAD > "${OUTPUT_ROOT}/generated-social-previews.patch" || true
+          git show --name-status --format= HEAD > "${OUTPUT_ROOT}/generated-files.txt"
 
       - name: Upload generated source and images
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
         with:
           name: estate-social-preview-generated-output
