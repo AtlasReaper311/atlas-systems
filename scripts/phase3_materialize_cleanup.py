@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import os
+import subprocess
 from pathlib import Path
+
+
+BRANCH = "fix/phase3-discovery-and-maturity-cleanup"
+EXISTING_CONTRACT = "js/tests/public-interface-contract.test.mjs"
 
 
 def replace_once(path: str, old: str, new: str) -> None:
@@ -13,6 +19,35 @@ def replace_once(path: str, old: str, new: str) -> None:
     if count != 1:
         raise SystemExit(f"{path}: expected one patch anchor, found {count}")
     file.write_text(source.replace(old, new), encoding="utf-8")
+
+
+def persist_existing_contract() -> None:
+    if os.environ.get("GITHUB_ACTIONS") != "true":
+        return
+    status = subprocess.run(
+        ["git", "status", "--porcelain", "--", EXISTING_CONTRACT],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    if not status:
+        return
+    subprocess.run(["git", "config", "user.name", "github-actions[bot]"], check=True)
+    subprocess.run(
+        [
+            "git",
+            "config",
+            "user.email",
+            "41898282+github-actions[bot]@users.noreply.github.com",
+        ],
+        check=True,
+    )
+    subprocess.run(["git", "add", EXISTING_CONTRACT], check=True)
+    subprocess.run(
+        ["git", "commit", "-m", "test: align the maturity interface contract"],
+        check=True,
+    )
+    subprocess.run(["git", "push", "origin", f"HEAD:{BRANCH}"], check=True)
 
 
 def main() -> None:
@@ -64,15 +99,16 @@ def main() -> None:
     replace_once("scripts/generate_sitemap.py", routes_old, routes_new)
 
     replace_once(
-        "js/tests/public-interface-contract.test.mjs",
+        EXISTING_CONTRACT,
         'for (const maturity of ["Production", "Tool", "Preview", "Experiment"]) {',
         'for (const maturity of ["Production", "Tool", "Preview", "Experiment", "Planned", "Retired"]) {',
     )
     replace_once(
-        "js/tests/public-interface-contract.test.mjs",
+        EXISTING_CONTRACT,
         "/v2-directory-pages\\.css\\?v=20260723-visual-semantics/",
         "/v2-directory-pages\\.css\\?v=20260724-maturity-completion/",
     )
+    persist_existing_contract()
 
     Path("js/tests/phase3-cleanup.test.mjs").write_text(
         '''import assert from "node:assert/strict";
