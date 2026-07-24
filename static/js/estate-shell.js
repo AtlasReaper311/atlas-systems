@@ -254,6 +254,8 @@ function preserveHomepageStatus(nav) {
   if (!dot.parentElement) status.prepend(dot);
   const label = status.querySelector("#nav-build-status, [data-atlas-status-label], .atlas-estate-status-label");
   if (label) {
+    label.removeAttribute("id");
+    label.dataset.atlasStatusLabel = "";
     label.classList.add("atlas-estate-status-label");
     translateHomepageStatus(label);
     new MutationObserver(() => translateHomepageStatus(label)).observe(label, {
@@ -320,7 +322,7 @@ function installHeader() {
   nav.replaceChildren(inner);
   nav.classList.add("atlas-header", "atlas-nav-shell", "atlas-global-header");
   nav.removeAttribute("style");
-  if (!isHomepage) void refreshStatus(status);
+  void refreshStatus(status);
 }
 
 function mobileIcon(label) {
