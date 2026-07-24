@@ -26,7 +26,10 @@ function sha256(path) {
 function filesBelow(directory, suffix) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const path = `${directory}/${entry.name}`.replace(/^\.\//, "");
-    if (entry.isDirectory()) return filesBelow(path, suffix);
+    if (entry.isDirectory()) {
+      if (entry.name === ".git" || entry.name === "node_modules") return [];
+      return filesBelow(path, suffix);
+    }
     return path.endsWith(suffix) ? [path] : [];
   });
 }

@@ -33,7 +33,7 @@ Live source for [atlas-systems.uk](https://atlas-systems.uk). Hand-built HTML, C
 |---|---|---|---|
 | Sitemap | `deploy.yml` | push to `main`, manual dispatch | Regenerates `sitemap.xml` from real file history |
 | Static validation | `atlas-infra/validate-static.yml` | called by `deploy.yml` | Runs `html-validate` and offline internal-link checks |
-| Deploy | `atlas-infra/validate-static.yml` | validation success | Publishes to Cloudflare Pages through Wrangler |
+| Deploy | `atlas-infra/validate-static.yml` | validation success | Stages the `.pagesignore`-filtered site artifact, then publishes it to Cloudflare Pages through Wrangler |
 | Notify | `atlas-infra/validate-static.yml` | always | Reports deploy outcome to Discord and the Lab failure log |
 | Corpus refresh | `atlas-corpus/refresh-corpus.yml` | push to `main` | Re-ingests the estate docs into the searchable corpus |
 | Outcome verification | `deploy-watch` | Cloudflare cron | Confirms the actual Pages deployment result from Cloudflare's API |

@@ -1,5 +1,2 @@
-# Files excluded from the Cloudflare Pages upload (build tooling, never site content).
-node_modules
-package.json
-package-lock.json
-scripts/og/.fonts
+# Cloudflare Pages does not consume this file. The production and preview
+# workflows stage their publish directories with .pagesignore instead.
