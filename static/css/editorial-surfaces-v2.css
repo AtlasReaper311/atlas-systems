@@ -300,6 +300,11 @@ body {
 
 /* Writing */
 
+.article-tags {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
 .writing-feature {
   display: grid;
   grid-template-columns: minmax(180px, 0.7fr) minmax(0, 2fr);
