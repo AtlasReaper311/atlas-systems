@@ -186,7 +186,7 @@ test("Lab and Systems explain maturity, data mode, and operation motifs", () => 
   for (const [name, page] of [["Lab", lab], ["Systems", systems]]) {
     assert.match(page, /<aside class="interface-legend" aria-labelledby="[^"]+">/, `${name} legend`);
     assert.match(page, /Commitment and data are separate\./, `${name} separation`);
-    for (const maturity of ["Production", "Tool", "Preview", "Experiment"]) {
+    for (const maturity of ["Production", "Tool", "Preview", "Experiment", "Planned", "Retired"]) {
       assert.match(page, new RegExp(`>${maturity}<`), `${name} ${maturity}`);
     }
     for (const mode of ["live", "replay", "generated", "simulated"]) {
@@ -206,7 +206,7 @@ test("Lab and Systems explain maturity, data mode, and operation motifs", () => 
   assert.match(directoryCss, /\.badge\.experiment\s*\{[^}]*border-style:dashed/);
   assert.match(directoryCss, /\.mode-key\[data-mode-key="simulated"\]::before\s*\{[^}]*border-style:dashed/);
   for (const page of [lab, systems, systemMap]) {
-    assert.match(page, /v2-directory-pages\.css\?v=20260723-visual-semantics/);
+    assert.match(page, /v2-directory-pages\.css\?v=20260724-maturity-completion/);
   }
 });
 
