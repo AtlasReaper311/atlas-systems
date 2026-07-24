@@ -50,6 +50,9 @@ test("v2 shell exposes the accepted route order", () => {
   assert.match(shell, /atlas-header__nav/);
   assert.match(shell, /atlas-header__actions/);
   assert.match(shell, /preserveHomepageStatus/);
+  assert.match(shell, /label\.removeAttribute\("id"\)/);
+  assert.doesNotMatch(shell, /if \(!isHomepage\) void refreshStatus/);
+  assert.match(shell, /void refreshStatus\(status\)/);
   assert.match(shell, /v0\.1\.1\/atlas-interface-kit\.css/);
   assert.match(shell, /normalizeLegacySemantics/);
   assert.match(shellCss, /grid-template-columns:\s*repeat\(5,\s*1fr\)/);
