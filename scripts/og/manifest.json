@@ -1,0 +1,101 @@
+{
+  "note": "Copy source for route social-preview cards. Square brackets mark the accent word (amber italic). One entry per route that carries og:image. `file` is the output name in /og/<file>.png.",
+  "routes": [
+    {
+      "file": "home",
+      "html": "index.html",
+      "route": "/",
+      "kicker": "Local AI / Automation / Infrastructure",
+      "title": ["Three domains.", "Every system [documented.]"],
+      "tagline": "A live technical record of how the estate is built."
+    },
+    {
+      "file": "work",
+      "html": "work/index.html",
+      "route": "/work/",
+      "kicker": "Work",
+      "title": ["Systems with [evidence.]"],
+      "tagline": "Selected engineering work, and the proof behind it."
+    },
+    {
+      "file": "writing",
+      "html": "writing/index.html",
+      "route": "/writing/",
+      "kicker": "Writing",
+      "title": ["The engineering [record.]"],
+      "tagline": "Case studies and technical notes, with the evidence."
+    },
+    {
+      "file": "lab",
+      "html": "lab/index.html",
+      "route": "/lab/",
+      "kicker": "Lab",
+      "title": ["Experience, observe,", "verify, [explore.]"],
+      "tagline": "Interactive experiments and live estate instrumentation."
+    },
+    {
+      "file": "systems",
+      "html": "systems/index.html",
+      "route": "/systems/",
+      "kicker": "Systems",
+      "title": ["One estate,", "[clear entrances.]"],
+      "tagline": "Every public service in the estate, catalogued."
+    },
+    {
+      "file": "about",
+      "html": "about/index.html",
+      "route": "/about/",
+      "kicker": "About",
+      "title": ["Atlas [Reaper.]"],
+      "tagline": "Engineer. Systems, local AI, and real-time audio."
+    },
+    {
+      "file": "system-map",
+      "html": "lab/system-map/index.html",
+      "route": "/lab/system-map/",
+      "kicker": "Observe / Architecture evidence",
+      "title": ["Public topology,", "without [invented edges.]"],
+      "tagline": "Declared architecture plus bounded live registry evidence."
+    },
+    {
+      "file": "console",
+      "html": "lab/console/index.html",
+      "route": "/lab/console/",
+      "kicker": "Lab / Console",
+      "title": ["Live [systems.]"],
+      "tagline": "The estate's services and status, at the terminal."
+    },
+    {
+      "file": "overclocking-specular-core",
+      "html": "writing/overclocking-specular-core/index.html",
+      "route": "/writing/overclocking-specular-core/",
+      "kicker": "Writing / Hardware case study",
+      "title": ["Overclocking", "[SPECULAR-CORE.]"],
+      "tagline": "BIOS, fabric, cooling and scheduling, validated end to end."
+    },
+    {
+      "file": "ramone-local-ai-system",
+      "html": "writing/ramone-local-ai-system/index.html",
+      "route": "/writing/ramone-local-ai-system/",
+      "kicker": "Writing / Case study",
+      "title": ["A private AI system,", "[from scratch.]"],
+      "tagline": "Five local models, zero cloud dependency, fully rebuildable."
+    },
+    {
+      "file": "slampunk-dynamic-mix-engine",
+      "html": "writing/slampunk-dynamic-mix-engine/index.html",
+      "route": "/writing/slampunk-dynamic-mix-engine/",
+      "kicker": "Writing / Audio case study",
+      "title": ["A 15-stem dynamic", "[mix engine.]"],
+      "tagline": "Interactive music that mirrors play in real time."
+    },
+    {
+      "file": "sonin-generative-system",
+      "html": "writing/sonin-generative-system/index.html",
+      "route": "/writing/sonin-generative-system/",
+      "kicker": "Writing / Case study",
+      "title": ["SONIN. A generative", "[audio-visual system.]"],
+      "tagline": "An autonomous instrument that listens to itself."
+    }
+  ]
+}

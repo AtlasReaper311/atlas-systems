@@ -90,6 +90,9 @@ jobs:
       - name: Validate Pages output
         run: python3 scripts/verify_pages_output.py .
 
+      - name: Validate route social previews
+        run: node scripts/og/verify.mjs
+
       - name: Parse committed JSON
         run: |
           python3 - <<'PY'

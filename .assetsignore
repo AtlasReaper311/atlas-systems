@@ -1,0 +1,5 @@
+# Files excluded from the Cloudflare Pages upload (build tooling, never site content).
+node_modules
+package.json
+package-lock.json
+scripts/og/.fonts
