@@ -1,0 +1,18 @@
+{
+  "name": "atlas-systems-site",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Atlas Systems primary site build tooling (not shipped as site content).",
+  "scripts": {
+    "og": "node scripts/og/build.mjs && node scripts/og/wire.mjs && node scripts/og/verify.mjs",
+    "og:build": "node scripts/og/build.mjs",
+    "og:wire": "node scripts/og/wire.mjs",
+    "og:verify": "node scripts/og/verify.mjs"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "fontkit": "^2.0.4",
+    "wawoff2": "^2.0.1"
+  }
+}
