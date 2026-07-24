@@ -97,6 +97,26 @@ async function openWithRetry(page, url) {
   throw lastError;
 }
 
+async function openSourceWithRetry(page, url) {
+  let lastError;
+  for (let attempt = 1; attempt <= 6; attempt += 1) {
+    try {
+      const response = await page.goto(url, {
+        waitUntil: "domcontentloaded",
+        timeout: 30_000,
+      });
+      if (!response || !response.ok()) {
+        throw new Error(`HTTP ${response?.status() ?? "no response"}`);
+      }
+      return;
+    } catch (error) {
+      lastError = error;
+      await page.waitForTimeout(attempt * 1_000);
+    }
+  }
+  throw lastError;
+}
+
 async function configureContext(context) {
   await context.addInitScript(() => {
     Object.defineProperty(window, "__ATLAS_EVIDENCE_MODE__", {
@@ -301,6 +321,144 @@ async function capturePage(context, browserName, viewportName, routeName, route)
   }
 }
 
+async function runHardeningAcceptance() {
+  const browser = await chromium.launch({ channel: "chrome", headless: true });
+  try {
+    for (const [viewportName, viewport] of [
+      ["375", { width: 375, height: 812 }],
+      ["1440", { width: 1440, height: 1000 }],
+    ]) {
+      const noJsContext = await browser.newContext({
+        viewport,
+        javaScriptEnabled: false,
+        serviceWorkers: "block",
+      });
+      try {
+        for (const [routeName, route, itemSelector] of [
+          ["work", "/work/", ".project-entry"],
+          ["writing", "/writing/", ".article-entry"],
+        ]) {
+          const page = await noJsContext.newPage();
+          const prefix = `chrome/${viewportName}/${routeName}/no-js`;
+          try {
+            await openSourceWithRetry(page, new URL(route, base).toString());
+            const evidence = await page.evaluate((selector) => {
+              const items = [...document.querySelectorAll(selector)];
+              const visible = items.filter((element) => {
+                const style = getComputedStyle(element);
+                const rect = element.getBoundingClientRect();
+                return style.display !== "none"
+                  && Number.parseFloat(style.opacity) > 0.99
+                  && rect.width > 0
+                  && rect.height > 0;
+              }).length;
+              return {
+                itemCount: items.length,
+                visible,
+                systemsLink: Boolean(document.querySelector('nav[aria-label="Primary navigation"] a[href="/systems/"]')),
+                iconCount: [
+                  "/favicon.ico",
+                  "/favicon-16x16.png",
+                  "/favicon-32x32.png",
+                  "/apple-touch-icon.png",
+                  "/site.webmanifest",
+                ].filter((href) => document.head.querySelector(`link[href="${href}"]`)).length,
+                width: document.documentElement.clientWidth,
+                scrollWidth: document.documentElement.scrollWidth,
+              };
+            }, itemSelector);
+            const pageFailures = [];
+            if (!evidence.itemCount || evidence.visible !== evidence.itemCount) {
+              pageFailures.push(`${prefix}: visible entries ${evidence.visible} != ${evidence.itemCount}`);
+            }
+            if (!evidence.systemsLink) pageFailures.push(`${prefix}: source navigation omits Systems`);
+            if (evidence.iconCount !== 5) pageFailures.push(`${prefix}: source icon package is incomplete`);
+            if (evidence.scrollWidth > evidence.width + 1) {
+              pageFailures.push(`${prefix}: horizontal overflow ${evidence.scrollWidth} > ${evidence.width}`);
+            }
+            failures.push(...pageFailures);
+            report.push({
+              browser: "chrome",
+              viewport: viewportName,
+              route,
+              scenario: "no-js",
+              semantics: evidence,
+              failures: pageFailures,
+            });
+          } catch (error) {
+            const message = `${prefix}: ${error.stack || error.message}`;
+            failures.push(message);
+            report.push({ browser: "chrome", viewport: viewportName, route, scenario: "no-js", failures: [message] });
+          } finally {
+            writeReport();
+            await page.close();
+          }
+        }
+      } finally {
+        await noJsContext.close();
+      }
+
+      for (const reducedMotion of ["no-preference", "reduce"]) {
+        const context = await browser.newContext({
+          viewport,
+          reducedMotion,
+          serviceWorkers: "block",
+        });
+        await configureContext(context);
+        try {
+          for (const [routeName, route] of [["lab", "/lab/"], ["systems", "/systems/"]]) {
+            const page = await context.newPage();
+            const scenario = `text-200-long-copy-${reducedMotion}`;
+            const prefix = `chrome/${viewportName}/${routeName}/${scenario}`;
+            try {
+              await openWithRetry(page, new URL(route, base).toString());
+              await page.evaluate(() => {
+                document.documentElement.style.fontSize = "200%";
+                const copy = document.querySelector(".system-card p");
+                if (copy) {
+                  copy.textContent = "Long-content fixture: this deliberately expanded description verifies that editorial copy can grow without colliding with the card signature, maturity badge, or destination action.";
+                }
+              });
+              await page.waitForTimeout(100);
+              const evidence = await inspectPage(page);
+              const pageFailures = [];
+              if (evidence.scrollWidth > evidence.width + 1) {
+                pageFailures.push(`${prefix}: horizontal overflow ${evidence.scrollWidth} > ${evidence.width}; ${JSON.stringify(evidence.overflow)}`);
+              }
+              if (evidence.cardLayoutOverlaps.length) {
+                pageFailures.push(`${prefix}: card signature/text overlaps ${JSON.stringify(evidence.cardLayoutOverlaps)}`);
+              }
+              if (evidence.cardRouteOverflows.length) {
+                pageFailures.push(`${prefix}: card CTA overflows ${JSON.stringify(evidence.cardRouteOverflows)}`);
+              }
+              failures.push(...pageFailures);
+              report.push({
+                browser: "chrome",
+                viewport: viewportName,
+                route,
+                scenario,
+                semantics: evidence,
+                failures: pageFailures,
+              });
+            } catch (error) {
+              const message = `${prefix}: ${error.stack || error.message}`;
+              failures.push(message);
+              report.push({ browser: "chrome", viewport: viewportName, route, scenario, failures: [message] });
+            } finally {
+              writeReport();
+              await page.close();
+            }
+          }
+        } finally {
+          await context.close();
+        }
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+}
+
 async function run() {
   fs.mkdirSync("screenshots", { recursive: true });
   for (const [browserName, launch] of browsers) {
@@ -325,6 +483,7 @@ async function run() {
       await browser.close();
     }
   }
+  await runHardeningAcceptance();
   writeReport();
   if (failures.length) {
     throw new Error(`Interface evidence failed with ${failures.length} findings:\n${failures.join("\n")}`);

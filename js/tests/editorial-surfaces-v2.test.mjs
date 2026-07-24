@@ -13,6 +13,21 @@ function projectBlocks(source) {
     .map((match) => match[0]);
 }
 
+function cardContracts(source) {
+  const contracts = new Map();
+  for (const match of source.matchAll(/<a\b([^>]*\bclass="[^"]*\bsystem-card\b[^"]*"[^>]*)>([\s\S]*?)<\/a>/g)) {
+    const attributes = match[1];
+    const href = attributes.match(/\bhref="([^"]+)"/)?.[1];
+    if (!href || contracts.has(href)) continue;
+    contracts.set(href, {
+      visual: attributes.match(/\bdata-visual="([^"]+)"/)?.[1],
+      motif: attributes.match(/\bdata-motif="([^"]+)"/)?.[1],
+      maturity: match[2].match(/<span class="badge [^"]+">([^<]+)<\/span>/)?.[1],
+    });
+  }
+  return contracts;
+}
+
 test("Work keeps scheduler ownership and permanent source anchors", () => {
   const work = read("work/index.html");
   assert.equal((work.match(/<!-- WORK_CARDS_INSERT_POINT -->/g) || []).length, 1);
@@ -75,6 +90,65 @@ test("Writing type filters compose with card search and series visibility", () =
   assert.doesNotMatch(series, /day:\s*"numeric"/);
 });
 
+test("primary source remains navigable, branded, and readable without JavaScript", () => {
+  const primaryPages = [
+    "index.html",
+    "lab/index.html",
+    "systems/index.html",
+    "work/index.html",
+    "writing/index.html",
+    "about/index.html",
+    "404.html",
+  ];
+  const requiredIcons = [
+    "/favicon.ico",
+    "/favicon-16x16.png",
+    "/favicon-32x32.png",
+    "/apple-touch-icon.png",
+    "/site.webmanifest",
+  ];
+  for (const path of primaryPages) {
+    const source = read(path);
+    assert.match(source, /<nav\b[^>]*aria-label="Primary navigation"/, path);
+    assert.match(source, /href="\/systems\/"/, `${path} must expose Systems in source navigation`);
+    assert.match(source, /\/static\/css\/estate-shell\.css/, `${path} must load the source shell stylesheet`);
+    for (const icon of requiredIcons) {
+      assert.ok(source.includes(`href="${icon}"`), `${path} must declare ${icon}`);
+    }
+  }
+
+  const work = read("work/index.html");
+  const writing = read("writing/index.html");
+  assert.match(work, /\.project-entry\{[^}]*opacity:1;[^}]*transform:none/);
+  assert.match(work, /\.js \.project-entry\{[^}]*opacity:0/);
+  assert.match(writing, /\.article-entry\{[^}]*opacity:1;[^}]*transform:none/);
+  assert.match(writing, /\.js \.article-entry\{[^}]*opacity:0/);
+  assert.match(work, /\/static\/js\/enable-enhancements\.js/);
+  assert.match(writing, /\/static\/js\/enable-enhancements\.js/);
+});
+
+test("Lab and Systems shared destinations cannot drift in visual, motif, or maturity", () => {
+  const lab = cardContracts(read("lab/index.html"));
+  const systems = cardContracts(read("systems/index.html"));
+  const shared = [
+    "https://ramone.atlas-systems.uk/",
+    "https://status.atlas-systems.uk/",
+    "https://api.atlas-systems.uk/v1/docs",
+    "/lab/system-map/",
+    "/lab/proof-chain/",
+    "/lab/conformance/",
+    "/lab/reliability/",
+    "/lab/signal/",
+    "/lab/anomaly/",
+    "/lab/console/",
+  ];
+  for (const href of shared) {
+    assert.ok(lab.has(href), `Lab must declare ${href}`);
+    assert.ok(systems.has(href), `Systems must declare ${href}`);
+    assert.deepEqual(systems.get(href), lab.get(href), `${href} card contract drifted`);
+  }
+});
+
 test("About contains the accepted identity, priorities, principles, and reduced-motion topology", () => {
   const about = read("about/index.html");
   const css = read("static/css/editorial-surfaces-v2.css");
@@ -104,6 +178,23 @@ test("About contains the accepted identity, priorities, principles, and reduced-
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(css, /prefers-reduced-motion:\s*reduce[\s\S]*\.project-entry\s*\{[\s\S]*opacity:\s*1/);
   assert.match(css, /\.about-topology-path[\s\S]*animation:\s*none/);
+});
+
+test("active public surfaces use the canonical accessible faint-text token", () => {
+  const paths = [
+    "css/home-v2-base.css",
+    "static/css/estate-shell.css",
+    "static/css/v2-directory-pages.css",
+    "work/index.html",
+    "writing/index.html",
+    "about/index.html",
+    "404.html",
+  ];
+  for (const path of paths) {
+    const source = read(path);
+    assert.match(source, /--text-faint:\s*#888894/);
+    assert.doesNotMatch(source, /#555560|#858590/);
+  }
 });
 
 test("Homepage source routes point to canonical Systems and System Map destinations", () => {

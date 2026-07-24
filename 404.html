@@ -16,10 +16,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=DM+Serif+Display:ital@0;1&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/estate-search.css">
-  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v1">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260724-source-hardening">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    :root{--bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;--border:rgba(255,255,255,.08);--border-hi:rgba(255,255,255,.16);--text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#77776f;--accent:#f5a623;--accent-hover:#f7b84a;--accent-dim:rgba(245,166,35,.12);--mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px}
+    :root{--bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;--border:rgba(255,255,255,.08);--border-hi:rgba(255,255,255,.16);--text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#888894;--accent:#f5a623;--accent-hover:#f7b84a;--accent-dim:rgba(245,166,35,.12);--mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px}
     html{color-scheme:dark}
     body{min-height:100vh;overflow-x:hidden;background:var(--bg);color:var(--text);font:400 14px/1.65 var(--mono)}
     body::before{content:'';position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:80px 80px}
@@ -50,6 +50,7 @@
       <li><a href="/work/">Work</a></li>
       <li><a href="/writing/">Writing</a></li>
       <li><a href="/lab/">Lab</a></li>
+      <li><a href="/systems/">Systems</a></li>
       <li><a href="/about/">About</a></li>
       <li><button type="button" class="es-nav-search" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span>Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button></li>
     </ul>
