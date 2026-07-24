@@ -153,6 +153,33 @@ async function inspectPage(page) {
     const navHeight = mobileVisible ? mobileNav.getBoundingClientRect().height : 0;
     const bodyPaddingBottom = Number.parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
     const workProjects = [...document.querySelectorAll(".project-entry")];
+    const cardLayout = [...document.querySelectorAll(".system-card")].map((card) => {
+      const signature = card.querySelector(":scope > .card-signature");
+      if (!signature) {
+        return {
+          visual: card.dataset.visual || null,
+          signature: false,
+          overlaps: [],
+        };
+      }
+      const signatureRect = signature.getBoundingClientRect();
+      const content = [...card.querySelectorAll(":scope > .card-top, :scope > h3, :scope > p, :scope > .data-mode, :scope > .card-route")];
+      const route = card.querySelector(":scope > .card-route");
+      const overlaps = content
+        .filter((element) => {
+          const rect = element.getBoundingClientRect();
+          const horizontal = Math.min(rect.right, signatureRect.right) - Math.max(rect.left, signatureRect.left);
+          const vertical = Math.min(rect.bottom, signatureRect.bottom) - Math.max(rect.top, signatureRect.top);
+          return horizontal > 1 && vertical > 1;
+        })
+        .map(selectorFor);
+      return {
+        visual: card.dataset.visual || null,
+        signature: true,
+        overlaps,
+        routeOverflow: route ? Math.max(0, route.scrollWidth - route.clientWidth) : 0,
+      };
+    });
     return {
       title: document.title,
       width,
@@ -176,6 +203,10 @@ async function inspectPage(page) {
         const rect = project.getBoundingClientRect();
         return style.display !== "none" && Number.parseFloat(style.opacity) > 0.99 && rect.width > 0 && rect.height > 0;
       }).length,
+      cardCount: cardLayout.length,
+      cardSignatureCount: cardLayout.filter((item) => item.signature).length,
+      cardLayoutOverlaps: cardLayout.filter((item) => item.overlaps.length > 0),
+      cardRouteOverflows: cardLayout.filter((item) => item.routeOverflow > 1),
     };
   });
 }
@@ -202,6 +233,15 @@ function semanticFailures(evidence, browserName, viewportName, routeName) {
     values.push(
       `${prefix}: visible Work projects ${evidence.visibleWorkProjectCount} != ${evidence.workProjectCount}`,
     );
+  }
+  if (["lab", "systems"].includes(routeName) && evidence.cardSignatureCount !== evidence.cardCount) {
+    values.push(`${prefix}: card signatures ${evidence.cardSignatureCount} != cards ${evidence.cardCount}`);
+  }
+  if (evidence.cardLayoutOverlaps.length) {
+    values.push(`${prefix}: card signature/text overlaps ${JSON.stringify(evidence.cardLayoutOverlaps)}`);
+  }
+  if (evidence.cardRouteOverflows.length) {
+    values.push(`${prefix}: card CTA overflows ${JSON.stringify(evidence.cardRouteOverflows)}`);
   }
   return values;
 }

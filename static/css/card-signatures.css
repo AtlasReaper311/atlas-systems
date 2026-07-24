@@ -1,0 +1,148 @@
+:root {
+  --card-signature-directory-width: 150px;
+  --card-signature-directory-height: 113px;
+  --card-signature-directory-gap: 18px;
+  --card-signature-feature-width: min(42%, 320px);
+}
+
+.card-signature {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 0;
+  width: var(--card-signature-directory-width);
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--card-accent) 32%, transparent);
+  border-radius: 7px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--card-accent) 7%, transparent), transparent 62%), rgba(10, 10, 15, .34);
+  color: color-mix(in srgb, var(--card-accent) 82%, var(--text-faint));
+  opacity: .66;
+  pointer-events: none;
+  transform-origin: bottom right;
+  transition: opacity .18s ease, transform .18s ease, border-color .18s ease;
+}
+.card-signature::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 0 76%, rgba(10, 10, 15, .7) 100%); }
+.card-signature__diagram { display: block; width: 100%; height: 100%; overflow: visible; }
+.card-signature__motif { position: absolute; right: 8px; bottom: 7px; z-index: 1; color: currentColor; font: 500 9px/1 var(--mono); letter-spacing: .13em; text-transform: uppercase; }
+.system-card .card-top { min-width: 0; align-items: flex-start; }
+.system-card .type-label { min-width: 0; text-wrap: balance; }
+.system-card .badge { flex: none; }
+.system-card h3 { overflow-wrap: anywhere; text-wrap: balance; }
+.system-card p { margin-bottom: 0; overflow-wrap: anywhere; text-wrap: pretty; }
+.system-card .data-mode { overflow-wrap: anywhere; }
+.system-card .card-route { white-space: nowrap; }
+.system-card[data-card-signature-ready]::before { content: ""; width: 0; height: 0; padding: 0; border: 0; background: none; opacity: 0; }
+.system-card > .card-signature { z-index: 0; }
+.system-card:hover .card-signature, .system-card:focus-visible .card-signature { opacity: .94; transform: translateY(-2px) scale(1.025); border-color: color-mix(in srgb, var(--card-accent) 52%, transparent); }
+.system-card.specimen-card .card-signature { right: 22px; bottom: 22px; width: var(--card-signature-feature-width); min-width: 190px; max-width: 320px; opacity: .72; }
+.system-card.specimen-card:not([data-card-signature-ready]) > h3,
+.system-card.specimen-card:not([data-card-signature-ready]) > p,
+.system-card.specimen-card:not([data-card-signature-ready]) > .data-mode,
+.system-card.specimen-card:not([data-card-signature-ready]) > .card-route {
+  max-width: 50%;
+}
+
+/*
+ * Directory cards retain the bottom-right signature treatment, but their
+ * content box now ends before the visual begins. This keeps descriptions,
+ * data modes, and CTAs aligned without turning the artwork into a watermark.
+ */
+.system-card.directory-card {
+  padding-bottom: calc(16px + var(--card-signature-directory-height) + var(--card-signature-directory-gap));
+}
+.system-card.directory-card .card-route { max-width: none; }
+.system-card.directory-card--wide {
+  --card-signature-directory-height: 143px;
+}
+.system-card.directory-card--wide .card-signature { width: 190px; }
+
+/*
+ * Featured cards give the signature its own final row. Text length can never
+ * expand an internal side rail or push the artwork outside the clipped card.
+ */
+.system-card.specimen-card[data-card-signature-ready] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto auto auto;
+}
+.system-card.specimen-card[data-card-signature-ready] > .card-top {
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+.system-card.specimen-card[data-card-signature-ready] > h3 {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  max-width: none;
+}
+.system-card.specimen-card[data-card-signature-ready] > p {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  max-width: none;
+}
+.system-card.specimen-card[data-card-signature-ready] > .data-mode {
+  grid-column: 1;
+  grid-row: 4;
+  max-width: none;
+}
+.system-card.specimen-card[data-card-signature-ready] > .card-route {
+  grid-column: 1;
+  grid-row: 5;
+  max-width: none;
+}
+.system-card.specimen-card[data-card-signature-ready] > .card-signature {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  grid-column: 1;
+  grid-row: 6;
+  align-self: end;
+  justify-self: end;
+  width: clamp(160px, 52%, 280px);
+  min-width: 0;
+  margin-top: var(--card-signature-directory-gap);
+}
+
+@media (max-width: 620px) {
+  :root {
+    --card-signature-directory-width: 118px;
+    --card-signature-directory-height: 89px;
+  }
+  .system-card.directory-card {
+    padding-bottom: 132px;
+  }
+  .system-card.specimen-card:not([data-card-signature-ready]) {
+    padding-bottom: 132px;
+  }
+  .system-card.specimen-card:not([data-card-signature-ready]) > h3,
+  .system-card.specimen-card:not([data-card-signature-ready]) > p,
+  .system-card.specimen-card:not([data-card-signature-ready]) > .data-mode,
+  .system-card.specimen-card:not([data-card-signature-ready]) > .card-route {
+    max-width: 100%;
+  }
+  .card-signature,
+  .system-card.specimen-card .card-signature,
+  .system-card.directory-card--wide .card-signature {
+    right: 12px;
+    bottom: 12px;
+    width: 118px;
+    min-width: 0;
+    opacity: .44;
+  }
+  .system-card.specimen-card[data-card-signature-ready] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .system-card.specimen-card[data-card-signature-ready] > .card-top,
+  .system-card.specimen-card[data-card-signature-ready] > h3,
+  .system-card.specimen-card[data-card-signature-ready] > p,
+  .system-card.specimen-card[data-card-signature-ready] > .data-mode,
+  .system-card.specimen-card[data-card-signature-ready] > .card-route,
+  .system-card.specimen-card[data-card-signature-ready] > .card-signature {
+    grid-column: 1;
+  }
+  .system-card.specimen-card[data-card-signature-ready] > .card-signature {
+    grid-row: 6;
+  }
+  .card-signature__motif { right: 7px; bottom: 6px; font-size: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { .card-signature { transition: none; } .system-card:hover .card-signature, .system-card:focus-visible .card-signature { transform: none; } }
