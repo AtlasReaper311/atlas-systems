@@ -8,6 +8,7 @@ import {
   ensureMetaContent,
   entryIdentityErrors,
   metaContent,
+  normalizeRepoPath,
   replaceMetaContent,
   resolveSatellites,
   socialImageAlt,
@@ -44,6 +45,17 @@ test("article derivation reads content-first social metadata", () => {
   assert.equal(entry.route, "/writing/ordered-last/");
   assert.deepEqual(entry.title, ["Ordered [Last]"]);
   assert.match(entry.tagline, /^A description discovered/);
+});
+
+test("repository-relative paths remain POSIX-shaped on every host", () => {
+  assert.equal(
+    normalizeRepoPath("writing\\ordered-last\\index.html"),
+    "writing/ordered-last/index.html",
+  );
+  assert.equal(
+    normalizeRepoPath("writing/ordered-last/index.html"),
+    "writing/ordered-last/index.html",
+  );
 });
 
 test("wiring replaces arbitrary stale social-card URLs", () => {
