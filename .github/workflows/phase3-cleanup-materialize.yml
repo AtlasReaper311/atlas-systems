@@ -1,39 +1,28 @@
 name: Prepare Phase 3 discovery cleanup
 
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened]
+  push:
+    branches: [fix/phase3-discovery-and-maturity-cleanup]
     paths:
       - ".github/workflows/phase3-cleanup-materialize.yml"
-      - "index.html"
-      - "lab/index.html"
-      - "systems/index.html"
-      - "lab/system-map/index.html"
-      - "static/css/v2-directory-pages.css"
-      - "scripts/generate_sitemap.py"
-      - "sitemap.xml"
-      - "js/tests/phase3-cleanup.test.mjs"
 
 permissions:
   contents: write
 
 concurrency:
-  group: ${{ github.repository }}-phase3-cleanup-${{ github.event.pull_request.number }}
+  group: ${{ github.repository }}-phase3-cleanup-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   prepare:
-    if: >-
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'fix/phase3-discovery-and-maturity-cleanup'
+    if: github.ref == 'refs/heads/fix/phase3-discovery-and-maturity-cleanup'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: Check out exact branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: fix/phase3-discovery-and-maturity-cleanup
           fetch-depth: 0
 
       - name: Set up Node.js
@@ -197,4 +186,4 @@ test("all approved public Lab tools are generated into the sitemap", () => {
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "fix: complete discovery and maturity contracts"
-          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+          git push origin HEAD:fix/phase3-discovery-and-maturity-cleanup
