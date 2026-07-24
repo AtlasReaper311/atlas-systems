@@ -83,6 +83,11 @@ Chromium and Firefox screenshots, accessibility results, console errors,
 semantic structure, overflow, and mobile-navigation clearance for 14 days.
 Production remains unchanged until a separately approved merge and deployment.
 
+Phase G adds a read-only repository surface declaration and exact-authority
+validation without changing the rendered site. The scope and rollback boundary
+are documented in
+[`docs/PHASE-G-INTERFACE-CONFORMANCE.md`](docs/PHASE-G-INTERFACE-CONFORMANCE.md).
+
 ## Live data
 
 The homepage stops claiming activity and starts showing it. The Live Signal section and GitHub Pulse feed read from real endpoints so the page reflects the estate instead of describing it from memory.
