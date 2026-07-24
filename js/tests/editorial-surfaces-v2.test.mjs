@@ -176,7 +176,7 @@ test("About contains the accepted identity, priorities, principles, and reduced-
   assert.match(about, /class="about-topology" aria-hidden="true"/);
   assert.doesNotMatch(about, /Scotland/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
-  assert.match(css, /prefers-reduced-motion:\s*reduce[\s\S]*\.project-entry\s*\{[\s\S]*opacity:\s*1/);
+  assert.match(css, /prefers-reduced-motion:\s*reduce[\s\S]*\.js \.project-entry[\s\S]*opacity:\s*1/);
   assert.match(css, /\.about-topology-path[\s\S]*animation:\s*none/);
 });
 

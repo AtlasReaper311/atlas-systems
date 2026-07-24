@@ -720,7 +720,10 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .project-entry {
+  .project-entry,
+  .js .project-entry,
+  .article-entry,
+  .js .article-entry {
     opacity: 1;
     transform: none;
     transition: none;
