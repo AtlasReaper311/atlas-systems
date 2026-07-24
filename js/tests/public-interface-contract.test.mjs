@@ -13,7 +13,7 @@ import {
 import { GLOBAL_ROUTES, normalizeAtlasTitle } from "../../static/js/estate-shell.js";
 
 const NOW = Date.parse("2026-07-23T08:00:00Z");
-const BUNDLE_ROOT = "static/vendor/atlas-interface/v0.1.1";
+const BUNDLE_ROOT = "static/vendor/atlas-interface/v0.2.0";
 
 function snapshot(operational, total, checkedAt = "2026-07-23T07:55:00Z") {
   return { estate: { operational, total_components: total, checked_at: checkedAt } };
@@ -21,6 +21,14 @@ function snapshot(operational, total, checkedAt = "2026-07-23T07:55:00Z") {
 
 function sha256(path) {
   return crypto.createHash("sha256").update(fs.readFileSync(path)).digest("hex");
+}
+
+function filesBelow(directory, suffix) {
+  return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = `${directory}/${entry.name}`.replace(/^\.\//, "");
+    if (entry.isDirectory()) return filesBelow(path, suffix);
+    return path.endsWith(suffix) ? [path] : [];
+  });
 }
 
 test("status indicator consumes the bounded aggregate contract", () => {
@@ -53,7 +61,7 @@ test("v2 shell exposes the accepted route order", () => {
   assert.match(shell, /label\.removeAttribute\("id"\)/);
   assert.doesNotMatch(shell, /if \(!isHomepage\) void refreshStatus/);
   assert.match(shell, /void refreshStatus\(status\)/);
-  assert.match(shell, /v0\.1\.1\/atlas-interface-kit\.css/);
+  assert.match(shell, /v0\.2\.0\/atlas-interface-kit\.css/);
   assert.match(shell, /normalizeLegacySemantics/);
   assert.match(shellCss, /grid-template-columns:\s*repeat\(5,\s*1fr\)/);
 });
@@ -69,14 +77,25 @@ test("interface-kit vendor copy matches the canonical SHA-256 manifest", () => {
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
     .sort();
-  assert.deepEqual(versions, ["v0.1.1"]);
+  assert.deepEqual(versions, ["v0.2.0"]);
 
   const manifest = JSON.parse(fs.readFileSync(`${BUNDLE_ROOT}/manifest.json`, "utf8"));
   assert.equal(manifest.schema_version, "atlas-interface-kit/bundle/v1");
-  assert.equal(manifest.version, "0.1.1");
+  assert.equal(manifest.version, "0.2.0");
   assert.equal(manifest.contract_version, "2.0.0");
   assert.equal(manifest.component_role_count, 25);
-  assert.deepEqual(Object.keys(manifest.files).sort(), ["atlas-interface-kit.css", "components.json", "tokens.json"]);
+  assert.deepEqual(Object.keys(manifest.files).sort(), [
+    "atlas-fonts.css",
+    "atlas-interface-kit.css",
+    "components.json",
+    "fonts/dm-serif-display-400-italic.woff2",
+    "fonts/dm-serif-display-400.woff2",
+    "fonts/ibm-plex-mono-400.woff2",
+    "fonts/ibm-plex-mono-500.woff2",
+    "licenses/DM-Serif-Display-OFL.txt",
+    "licenses/IBM-Plex-Mono-OFL.txt",
+    "tokens.json",
+  ]);
 
   for (const [name, record] of Object.entries(manifest.files)) {
     const path = `${BUNDLE_ROOT}/${name}`;
@@ -89,6 +108,25 @@ test("interface-kit vendor copy matches the canonical SHA-256 manifest", () => {
   for (const obsolete of ["atlas-interface.css", "atlas-interface.js", "tokens.schema.json"]) {
     assert.equal(fs.existsSync(`${BUNDLE_ROOT}/${obsolete}`), false, `${obsolete} must not remain`);
   }
+});
+
+test("every HTML route consumes the repository-local font bundle", () => {
+  const publicRoutes = filesBelow(".", ".html").filter(
+    (path) => !path.startsWith("site-snippet/"),
+  );
+  for (const path of publicRoutes) {
+    const source = fs.readFileSync(path, "utf8");
+    assert.doesNotMatch(source, /fonts\.(?:googleapis|gstatic)\.com/, path);
+    assert.match(
+      source,
+      /\/static\/vendor\/atlas-interface\/v0\.2\.0\/atlas-fonts\.css/,
+      path,
+    );
+  }
+
+  const headers = fs.readFileSync("_headers", "utf8");
+  assert.doesNotMatch(headers, /fonts\.(?:googleapis|gstatic)\.com/);
+  assert.match(headers, /font-src 'self'/);
 });
 
 test("new directory routes and preserved console exist", () => {
