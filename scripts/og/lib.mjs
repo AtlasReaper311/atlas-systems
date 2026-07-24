@@ -7,14 +7,12 @@ import { fileURLToPath } from "node:url";
 import { decompress } from "wawoff2";
 import { create as createFont } from "fontkit";
 import { Resvg } from "@resvg/resvg-js";
+import { REPO, OUT_DIR, CANVAS, plain } from "./routes.mjs";
 
+export { REPO, OUT_DIR, CANVAS };
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-export const REPO = path.resolve(HERE, "..", "..");
 export const FONT_SRC = path.join(REPO, "static", "vendor", "atlas-interface", "v0.2.0", "fonts");
-export const OUT_DIR = path.join(REPO, "og");
 export const CACHE = path.join(HERE, ".fonts"); // gitignored TTF cache
-
-export const CANVAS = { w: 1200, h: 630 };
 const PAD_X = 64;
 
 const C = {
@@ -65,8 +63,6 @@ function lineToTspans(line) {
     )
     .join("");
 }
-
-const plain = (line) => line.replace(/[[\]]/g, "");
 
 export function buildSvg(entry, measure) {
   const { w, h } = CANVAS;

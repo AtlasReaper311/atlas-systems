@@ -5,7 +5,9 @@
   "type": "module",
   "description": "Atlas Systems primary site build tooling (not shipped as site content).",
   "scripts": {
+    "og": "node scripts/og/build.mjs && node scripts/og/wire.mjs && node scripts/og/verify.mjs",
     "og:build": "node scripts/og/build.mjs",
+    "og:wire": "node scripts/og/wire.mjs",
     "og:verify": "node scripts/og/verify.mjs"
   },
   "devDependencies": {
