@@ -1,0 +1,293 @@
+name: Prepare Phase 3 audit closure
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/phase3-audit-closure.yml"
+      - "index.html"
+      - "systems/index.html"
+      - "static/css/v2-directory-pages.css"
+      - "scripts/generate_sitemap.py"
+      - "sitemap.xml"
+      - "scripts/measure_static_performance.py"
+      - "docs/performance-baseline.md"
+      - "data/performance-baseline.json"
+      - "js/tests/phase3-audit-closure.test.mjs"
+      - ".github/workflows/ci.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.repository }}-phase3-audit-closure-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'fix/phase3-audit-closure'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Materialize Phase 3 source changes
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          index = Path("index.html")
+          html = index.read_text(encoding="utf-8")
+          old = '<a href="https://status.atlas-systems.uk" class="nav-status" target="_blank" rel="noopener">'
+          new = '<a href="https://status.atlas-systems.uk" class="nav-status">'
+          if old not in html and new not in html:
+              raise SystemExit("homepage Status link anchor was not found")
+          index.write_text(html.replace(old, new), encoding="utf-8")
+
+          sitemap_script = Path("scripts/generate_sitemap.py")
+          source = sitemap_script.read_text(encoding="utf-8")
+          anchor = '    ("/lab/system-map/", "monthly", "0.6"),\n'
+          additions = ''.join([
+              '    ("/lab/proof-chain/", "monthly", "0.6"),\n',
+              '    ("/lab/signal/", "monthly", "0.6"),\n',
+              '    ("/lab/reliability/", "monthly", "0.6"),\n',
+              '    ("/lab/conformance/", "monthly", "0.6"),\n',
+              '    ("/lab/anomaly/", "monthly", "0.6"),\n',
+          ])
+          if additions not in source:
+              if source.count(anchor) != 1:
+                  raise SystemExit("sitemap static-route anchor was not found")
+              source = source.replace(anchor, anchor + additions)
+          sitemap_script.write_text(source, encoding="utf-8")
+
+          css_path = Path("static/css/v2-directory-pages.css")
+          css = css_path.read_text(encoding="utf-8")
+          anchor = '.badge.production { color:#4ade80; border-color:rgba(74,222,128,.3); background:rgba(74,222,128,.08); }\n'
+          marker_css = '''.badge::before { content:""; width:7px; height:7px; flex:none; border:1px solid currentColor; opacity:.9; }
+          .badge.production::before { border-radius:50%; background:currentColor; }
+          .badge.tool::before { border-radius:1px; }
+          .badge.preview::before { transform:rotate(45deg); background:currentColor; }
+          .badge.experiment::before { border-style:dashed; border-radius:50%; }
+          '''
+          if marker_css not in css:
+              if css.count(anchor) != 1:
+                  raise SystemExit("maturity badge CSS anchor was not found")
+              css = css.replace(anchor, anchor + marker_css)
+          css_path.write_text(css, encoding="utf-8")
+
+          ci_path = Path(".github/workflows/ci.yml")
+          ci = ci_path.read_text(encoding="utf-8")
+          ci_anchor = '      - name: Validate Pages output\n        run: python3 scripts/verify_pages_output.py .\n'
+          ci_step = '''      - name: Validate static performance baseline
+          run: python3 scripts/measure_static_performance.py --check-only
+
+          '''
+          if ci_step not in ci:
+              if ci.count(ci_anchor) != 1:
+                  raise SystemExit("CI performance-step anchor was not found")
+              ci = ci.replace(ci_anchor, ci_step + ci_anchor)
+          ci_path.write_text(ci, encoding="utf-8")
+          PY
+
+          mkdir -p docs data js/tests
+          cat > scripts/measure_static_performance.py <<'PY'
+          #!/usr/bin/env python3
+          """Measure deterministic first-party asset weight for representative static routes."""
+          from __future__ import annotations
+
+          import argparse
+          import hashlib
+          import json
+          import re
+          import sys
+          from pathlib import Path
+          from urllib.parse import urlsplit
+
+          ROUTES = [
+              "/",
+              "/systems/",
+              "/lab/",
+              "/lab/signal/",
+              "/writing/",
+          ]
+          ASSET_PATTERN = re.compile(r'''(?:href|src)=["']([^"']+)["']''', re.IGNORECASE)
+          REPORT_PATH = Path("data/performance-baseline.json")
+
+          def route_file(root: Path, route: str) -> Path:
+              return root / "index.html" if route == "/" else root / route.strip("/") / "index.html"
+
+          def local_asset(root: Path, value: str) -> Path | None:
+              parsed = urlsplit(value)
+              if parsed.scheme or parsed.netloc or value.startswith(("#", "mailto:", "data:")):
+                  return None
+              clean = parsed.path
+              if not clean or clean.endswith("/"):
+                  return None
+              candidate = root / clean.lstrip("/")
+              return candidate if candidate.is_file() else None
+
+          def measure(root: Path) -> dict:
+              routes = []
+              for route in ROUTES:
+                  html_path = route_file(root, route)
+                  html = html_path.read_text(encoding="utf-8")
+                  assets = {}
+                  for value in ASSET_PATTERN.findall(html):
+                      asset = local_asset(root, value)
+                      if asset is None:
+                          continue
+                      relative = asset.relative_to(root).as_posix()
+                      assets[relative] = asset.stat().st_size
+                  html_bytes = html_path.stat().st_size
+                  asset_bytes = sum(assets.values())
+                  routes.append({
+                      "route": route,
+                      "html_bytes": html_bytes,
+                      "first_party_request_count": 1 + len(assets),
+                      "referenced_asset_bytes": asset_bytes,
+                      "total_static_bytes": html_bytes + asset_bytes,
+                      "largest_referenced_asset": max(assets.items(), key=lambda item: item[1], default=(None, 0))[0],
+                      "largest_referenced_asset_bytes": max(assets.values(), default=0),
+                  })
+              payload = {
+                  "schema_version": "atlas-systems/static-performance-baseline/v1",
+                  "measurement": "repository-local HTML plus directly referenced first-party assets",
+                  "blocking_thresholds": False,
+                  "routes": routes,
+              }
+              canonical = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+              payload["sha256"] = hashlib.sha256(canonical).hexdigest()
+              return payload
+
+          def main() -> int:
+              parser = argparse.ArgumentParser(description=__doc__)
+              parser.add_argument("--root", type=Path, default=Path("."))
+              parser.add_argument("--check-only", action="store_true")
+              args = parser.parse_args()
+              report = measure(args.root.resolve())
+              rendered = json.dumps(report, indent=2) + "\n"
+              if args.check_only:
+                  if not REPORT_PATH.exists() or REPORT_PATH.read_text(encoding="utf-8") != rendered:
+                      print("static performance baseline is stale; run scripts/measure_static_performance.py", file=sys.stderr)
+                      return 1
+                  print(f"OK  {len(report['routes'])} representative route baselines")
+                  return 0
+              REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
+              REPORT_PATH.write_text(rendered, encoding="utf-8")
+              print(f"Wrote {REPORT_PATH}")
+              return 0
+
+          if __name__ == "__main__":
+              raise SystemExit(main())
+          PY
+
+          cat > docs/performance-baseline.md <<'EOF'
+          # Public interface performance baseline
+
+          `data/performance-baseline.json` records deterministic source-level weight for representative Atlas Systems routes. It counts each route's HTML document and the repository-local assets referenced directly by that document.
+
+          This baseline is evidence, not a blocking budget. It does not claim network latency, browser paint timing, cache behaviour, JavaScript execution cost, dynamic imports, or third-party performance. Those remain browser-run evidence from isolated previews and production verification.
+
+          Regenerate the report with:
+
+          ```bash
+          python3 scripts/measure_static_performance.py
+          ```
+
+          Pull-request CI runs the same script with `--check-only` so source and evidence cannot drift. Blocking thresholds should be introduced only after the measured baseline has been reviewed across representative devices and routes.
+          EOF
+
+          cat > js/tests/phase3-audit-closure.test.mjs <<'EOF'
+          import assert from "node:assert/strict";
+          import fs from "node:fs";
+          import test from "node:test";
+
+          const home = fs.readFileSync("index.html", "utf8");
+          const systems = fs.readFileSync("systems/index.html", "utf8");
+          const directoryCss = fs.readFileSync("static/css/v2-directory-pages.css", "utf8");
+          const sitemap = fs.readFileSync("sitemap.xml", "utf8");
+          const sitemapGenerator = fs.readFileSync("scripts/generate_sitemap.py", "utf8");
+          const robots = fs.readFileSync("robots.txt", "utf8");
+          const security = fs.readFileSync(".well-known/security.txt", "utf8");
+          const performance = JSON.parse(fs.readFileSync("data/performance-baseline.json", "utf8"));
+
+          test("Atlas-owned Status navigation stays in the current tab", () => {
+            const link = home.match(/<a href="https:\/\/status\.atlas-systems\.uk" class="nav-status"[^>]*>/)?.[0];
+            assert.ok(link);
+            assert.doesNotMatch(link, /target=/);
+          });
+
+          test("all approved Lab routes are indexable and sitemap-owned", () => {
+            assert.match(robots, /User-agent: \*/);
+            assert.match(robots, /Allow: \//);
+            for (const route of ["proof-chain", "signal", "reliability", "conformance", "anomaly"]) {
+              const url = `https://atlas-systems.uk/lab/${route}/`;
+              assert.ok(sitemap.includes(`<loc>${url}</loc>`), `${url} missing from sitemap.xml`);
+              assert.ok(sitemapGenerator.includes(`\"/lab/${route}/\"`), `${route} missing from generator authority`);
+            }
+          });
+
+          test("maturity semantics use distinct shapes without replacing existing labels", () => {
+            for (const label of ["Production", "Tool", "Preview", "Experiment"]) {
+              assert.ok(systems.includes(`>${label}</span>`));
+            }
+            assert.match(directoryCss, /\.badge\.production::before/);
+            assert.match(directoryCss, /\.badge\.tool::before/);
+            assert.match(directoryCss, /\.badge\.preview::before/);
+            assert.match(directoryCss, /\.badge\.experiment::before/);
+          });
+
+          test("security contact remains canonical and time-bounded", () => {
+            assert.match(security, /^Contact: mailto:atlas@atlas-systems\.uk$/m);
+            assert.match(security, /^Expires: 2027-07-24T23:59:59Z$/m);
+            assert.match(security, /^Canonical: https:\/\/atlas-systems\.uk\/\.well-known\/security\.txt$/m);
+          });
+
+          test("performance evidence is non-blocking and covers representative routes", () => {
+            assert.equal(performance.schema_version, "atlas-systems/static-performance-baseline/v1");
+            assert.equal(performance.blocking_thresholds, false);
+            assert.deepEqual(performance.routes.map(({ route }) => route), ["/", "/systems/", "/lab/", "/lab/signal/", "/writing/"]);
+            for (const route of performance.routes) {
+              assert.ok(route.html_bytes > 0);
+              assert.ok(route.first_party_request_count > 0);
+              assert.ok(route.total_static_bytes >= route.html_bytes);
+            }
+          });
+          EOF
+
+          python3 scripts/generate_sitemap.py
+          python3 scripts/measure_static_performance.py
+
+      - name: Validate materialized source
+        run: |
+          set -euo pipefail
+          npx --yes html-validate@9.7.1 "**/*.html"
+          node --test js/tests/*.test.mjs
+          node --test lab/tests/*.test.mjs
+          node --test static/js/sonify/*.test.js
+          python3 scripts/generate_sitemap.py --check-only
+          python3 scripts/measure_static_performance.py --check-only
+          python3 scripts/verify_pages_output.py .
+          git diff --check
+
+      - name: Commit exact source changes
+        run: |
+          set -euo pipefail
+          git add index.html systems/index.html static/css/v2-directory-pages.css scripts/generate_sitemap.py sitemap.xml scripts/measure_static_performance.py docs/performance-baseline.md data/performance-baseline.json js/tests/phase3-audit-closure.test.mjs .github/workflows/ci.yml
+          if git diff --cached --quiet
+          then
+            echo "Phase 3 source is already materialized"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "fix: close interface audit findings"
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
