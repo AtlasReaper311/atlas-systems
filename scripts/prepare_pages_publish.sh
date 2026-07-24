@@ -20,9 +20,31 @@ rsync -a \
   "${repo_root}/" "${publish_directory}/"
 
 test -f "${publish_directory}/index.html"
-test -f "${publish_directory}/og/home.png"
+
+mapfile -t social_cards < <(
+  cd "${repo_root}"
+  node --input-type=module <<'NODE'
+  import { loadManifest, resolveRoutes, resolveSatellites } from "./scripts/og/routes.mjs";
+
+  const manifest = loadManifest();
+  const entries = [
+    ...resolveRoutes(manifest),
+    ...resolveSatellites(manifest),
+  ];
+  for (const entry of entries) console.log(`og/${entry.file}.png`);
+NODE
+)
+
+test "${#social_cards[@]}" -gt 0
+for card in "${social_cards[@]}"; do
+  if [ ! -f "${publish_directory}/${card}" ]; then
+    echo "ERROR: filtered Pages artifact is missing ${card}" >&2
+    exit 1
+  fi
+done
+
 test ! -e "${publish_directory}/package.json"
 test ! -e "${publish_directory}/package-lock.json"
 test ! -e "${publish_directory}/scripts"
 
-echo "Pages publish directory prepared: ${publish_directory}"
+echo "Pages publish directory prepared: ${publish_directory} (${#social_cards[@]} social cards)"
