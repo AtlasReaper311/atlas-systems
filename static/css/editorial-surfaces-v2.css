@@ -698,12 +698,26 @@ body {
     display: none;
   }
 
+  .about-topology {
+    min-height: 226px;
+  }
+
+  .about-topology-node[data-node="systems"] {
+    top: 16px;
+  }
+
   .about-topology-node[data-node="software"] {
-    left: 10px;
+    left: 12px;
+    bottom: 60px;
+  }
+
+  .about-topology-node[data-node="audio"] {
+    bottom: 14px;
   }
 
   .about-topology-node[data-node="games"] {
-    right: 10px;
+    right: 12px;
+    bottom: 60px;
   }
 }
 
@@ -728,28 +742,6 @@ body {
 
   .proj-link {
     justify-content: center;
-  }
-
-  .about-topology {
-    min-height: 226px;
-  }
-
-  .about-topology-node[data-node="systems"] {
-    top: 16px;
-  }
-
-  .about-topology-node[data-node="software"] {
-    left: 12px;
-    bottom: 60px;
-  }
-
-  .about-topology-node[data-node="audio"] {
-    bottom: 14px;
-  }
-
-  .about-topology-node[data-node="games"] {
-    right: 12px;
-    bottom: 60px;
   }
 }
 
