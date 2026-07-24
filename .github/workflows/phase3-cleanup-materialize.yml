@@ -1,32 +1,27 @@
 name: Prepare Phase 3 discovery cleanup
 
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened]
+  push:
+    branches: [fix/phase3-discovery-and-maturity-cleanup]
     paths:
       - ".github/workflows/phase3-cleanup-materialize.yml"
-      - "scripts/phase3_materialize_cleanup.py"
 
 permissions:
   contents: write
 
 concurrency:
-  group: ${{ github.repository }}-phase3-cleanup-${{ github.event.pull_request.number }}
+  group: ${{ github.repository }}-phase3-cleanup-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   prepare:
-    if: >-
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'fix/phase3-discovery-and-maturity-cleanup'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: Check out exact branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: fix/phase3-discovery-and-maturity-cleanup
           fetch-depth: 0
 
       - name: Set up Node.js
@@ -40,27 +35,36 @@ jobs:
           python3 scripts/phase3_materialize_cleanup.py
           python3 scripts/generate_sitemap.py
 
-      - name: Validate generated source
+      - name: Validate and record exact result
         run: |
-          set -euo pipefail
-          npx --yes html-validate@9.7.1 "**/*.html"
-          node --test js/tests/*.test.mjs
-          node --test lab/tests/*.test.mjs
-          node --test static/js/sonify/*.test.js
-          python3 scripts/normalize_page_titles.py
-          git diff --exit-code -- '*.html' ':!index.html' ':!lab/index.html' ':!systems/index.html' ':!lab/system-map/index.html'
-          python3 scripts/generate_sitemap.py --check-only
-          python3 scripts/verify_pages_output.py .
-          publish_directory="${RUNNER_TEMP}/pages-publish"
-          bash scripts/prepare_pages_publish.sh "${publish_directory}"
-          python3 scripts/verify_pages_output.py "${publish_directory}"
-          node --test scripts/og/*.test.mjs
-          node scripts/og/verify.mjs
-          git diff --check
-
-      - name: Commit permanent source
-        run: |
-          set -euo pipefail
+          set -uo pipefail
+          set +e
+          (
+            set -euo pipefail
+            npx --yes html-validate@9.7.1 "**/*.html"
+            node --test js/tests/*.test.mjs
+            node --test lab/tests/*.test.mjs
+            node --test static/js/sonify/*.test.js
+            python3 scripts/normalize_page_titles.py
+            git diff --exit-code -- '*.html' ':!index.html' ':!lab/index.html' ':!systems/index.html' ':!lab/system-map/index.html'
+            python3 scripts/generate_sitemap.py --check-only
+            python3 scripts/verify_pages_output.py .
+            publish_directory="${RUNNER_TEMP}/pages-publish"
+            bash scripts/prepare_pages_publish.sh "${publish_directory}"
+            python3 scripts/verify_pages_output.py "${publish_directory}"
+            node --test scripts/og/*.test.mjs
+            node scripts/og/verify.mjs
+            git diff --check
+          ) > .phase3-cleanup-validation.log 2>&1
+          status=$?
+          set -e
+          if [ "${status}" -eq 0 ]
+          then
+            result=pass
+          else
+            result=fail
+          fi
+          printf '{"schema_version":"atlas-systems/phase3-cleanup-validation/v1","result":"%s"}\n' "${result}" > .phase3-cleanup-validation.json
           git add \
             index.html \
             lab/index.html \
@@ -69,8 +73,12 @@ jobs:
             static/css/v2-directory-pages.css \
             scripts/generate_sitemap.py \
             sitemap.xml \
-            js/tests/phase3-cleanup.test.mjs
+            js/tests/phase3-cleanup.test.mjs \
+            .phase3-cleanup-validation.json \
+            .phase3-cleanup-validation.log
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "fix: complete discovery and maturity contracts"
-          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+          git push origin HEAD:fix/phase3-discovery-and-maturity-cleanup
+          cat .phase3-cleanup-validation.log
+          exit "${status}"
