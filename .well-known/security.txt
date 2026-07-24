@@ -1,0 +1,4 @@
+Contact: mailto:atlas@atlas-systems.uk
+Expires: 2027-07-24T23:59:59Z
+Preferred-Languages: en
+Canonical: https://atlas-systems.uk/.well-known/security.txt
