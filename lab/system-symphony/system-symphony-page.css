@@ -1,0 +1,30 @@
+body.symphony-page{overflow-x:hidden}
+.symphony-page-main{max-width:1560px}
+.symphony-page-summary{margin-top:2rem}
+.symphony-page-host{margin-top:2rem;min-height:320px}
+.symphony-page-host>.system-symphony{display:block;position:static;width:100%}
+.symphony-page .symphony-widget{display:none}
+.symphony-page-host .symphony-overlay{backdrop-filter:none;-webkit-backdrop-filter:none;background:transparent;display:block;inset:auto;padding:0;place-items:initial;position:static;z-index:auto}
+.symphony-page-host .symphony-console{box-shadow:none;height:auto;max-height:none;min-width:0;overflow:visible;width:100%}
+.symphony-page-host .symphony-console__scroll{height:auto;overflow:visible;overscroll-behavior:auto}
+.symphony-page-host .symphony-console__header{position:relative}
+.symphony-page-host [data-close-console]{display:none!important}
+.symphony-page-host .symphony-important-status{clip:auto;height:auto;margin:0;padding:.75rem clamp(18px,3vw,42px);position:static;width:auto;white-space:normal}
+.symphony-page-host .symphony-button,.symphony-page-host .symphony-segmented button,.symphony-page-host .symphony-table-action,.symphony-page-host .symphony-demo-profiles button{min-height:44px}
+.symphony-page-host input[type="range"]{min-height:44px}
+.symphony-page-host .symphony-visual{min-width:0;overflow-x:auto}
+.symphony-page-host .symphony-topology,.symphony-page-host [data-waveform]{display:block;min-width:680px;width:100%}
+.symphony-page-host .symphony-table-wrap{overflow-x:auto}
+.symphony-page-host .symphony-table-wrap table{min-width:760px}
+.symphony-page-host .symphony-source-panel,.symphony-page-host .symphony-orchestra,.symphony-page-host .symphony-service-section{scroll-margin-top:80px}
+.symphony-page-explanation{display:grid;gap:1px;grid-template-columns:repeat(3,minmax(0,1fr));background:var(--border);border:1px solid var(--border)}
+.symphony-page-explanation article{background:var(--bg-1);padding:1.25rem}
+.symphony-page-explanation h3{font-size:13px;margin:0 0 .65rem}
+.symphony-page-explanation p{color:var(--text-dim);margin:0}
+.symphony-page-keyboard{columns:2;column-gap:2rem;margin:0;padding-left:1.25rem}
+.symphony-page-keyboard li{break-inside:avoid;color:var(--text-dim);margin:.45rem 0}
+.symphony-page-keyboard kbd{border:1px solid var(--border-hi);color:var(--text);font:500 11px var(--mono);padding:.15rem .35rem}
+@media(max-width:1024px){.symphony-page-host .symphony-console__header{align-items:flex-start;flex-direction:column}.symphony-page-host .symphony-console__header-controls{flex-wrap:wrap;justify-content:flex-start;width:100%}.symphony-page-explanation{grid-template-columns:1fr}.symphony-page-host .symphony-source-panel{grid-template-columns:1fr}.symphony-page-host .symphony-source-panel__controls{justify-items:start}.symphony-page-host .symphony-performance{width:100%}}
+@media(max-width:768px){.symphony-page-host .symphony-console{border-left:0;border-right:0;border-radius:0}.symphony-page-host .symphony-orchestra__grid{grid-template-columns:1fr}.symphony-page-host .symphony-performance__macros{grid-template-columns:repeat(2,minmax(0,1fr))}.symphony-page-host .symphony-demo-profiles>div{grid-template-columns:repeat(2,minmax(0,1fr))}.symphony-page-keyboard{columns:1}}
+@media(max-width:375px){.symphony-page-main{padding-left:.75rem;padding-right:.75rem}.symphony-page-host .symphony-console__header,.symphony-page-host .symphony-source-panel,.symphony-page-host .symphony-orchestra,.symphony-page-host .symphony-service-section{margin-inline:0;padding-left:.75rem;padding-right:.75rem}.symphony-page-host .symphony-console__header-controls,.symphony-page-host .symphony-console__header-controls>*{width:100%}.symphony-page-host .symphony-volume{grid-template-columns:auto minmax(0,1fr)}.symphony-page-host .symphony-performance__macros,.symphony-page-host .symphony-demo-profiles>div{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.symphony-page-host *,.symphony-page-host *::before,.symphony-page-host *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
