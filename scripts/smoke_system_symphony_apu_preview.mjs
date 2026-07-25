@@ -45,6 +45,7 @@ async function collectEvidence() {
     const metric = (name) => root?.querySelector(`[data-metric="${name}"]`)?.textContent?.trim() ?? null;
     const arrangement = globalThis.__ATLAS_APU__?.getArrangement?.() ?? null;
     const timeline = globalThis.__ATLAS_APU__?.getTimeline?.() ?? [];
+    const diagnostics = globalThis.__ATLAS_APU__?.getDiagnostics?.() ?? null;
     return {
       buildId: globalThis.__ATLAS_APU__?.buildId ?? null,
       documentBuild: document.documentElement.dataset.atlasApuBuild ?? null,
@@ -67,6 +68,7 @@ async function collectEvidence() {
       activeTimelineSections: root?.querySelectorAll('[data-form-section][data-active="true"]').length ?? 0,
       timeline,
       arrangement,
+      diagnostics,
       toneState: globalThis.Tone?.getContext?.().state ?? null,
       engineRunning: globalThis.__ATLAS_APU__?.isRunning?.() === true,
     };
@@ -118,10 +120,20 @@ try {
       && globalThis.__ATLAS_APU__?.getArrangement?.()?.section;
   }, null, { timeout: 15_000 });
 
-  await page.waitForTimeout(1800);
+  // The original smoke test stopped after 1.8 seconds, long before the reported
+  // failure at the end of Variation. Run through bars 15-16 so transport,
+  // transition voices and percussion are proven beyond that boundary.
+  await page.waitForFunction(() => {
+    const arrangement = globalThis.__ATLAS_APU__?.getArrangement?.();
+    const diagnostics = globalThis.__ATLAS_APU__?.getDiagnostics?.();
+    return arrangement?.section === "theme-b"
+      && Number(diagnostics?.trackPhraseIndex) >= 7
+      && Number(diagnostics?.stepIndex) > 32 * 7;
+  }, null, { timeout: 55_000, polling: 250 });
+
   evidence = await collectEvidence();
 
-  assert.match(evidence.buildId ?? "", /atlas-apu-track-v1$/);
+  assert.match(evidence.buildId ?? "", /atlas-apu-track-v2$/);
   assert.equal(evidence.documentBuild, evidence.buildId);
   assert.equal(evidence.ready, "true");
   assert.equal(evidence.running, "true");
@@ -136,12 +148,14 @@ try {
   assert.equal(evidence.timeline.length, 10);
   assert.equal(evidence.timeline[0].startBar, 1);
   assert.equal(evidence.timeline.at(-1).endBar, 32);
-  assert.equal(evidence.arrangement.section, "intro");
-  assert.equal(evidence.arrangement.cycleBarStart, 1);
-  assert.equal(evidence.arrangement.cycleBarEnd, 2);
-  assert.equal(evidence.arrangement.mix.drums, 0);
-  assert.equal(evidence.metricSection, "Intro");
-  assert.match(evidence.metricPosition ?? "", /Bars 1-2 \/ 32/);
+  assert.equal(evidence.arrangement.section, "theme-b");
+  assert.equal(evidence.arrangement.cycleBarStart, 15);
+  assert.equal(evidence.arrangement.cycleBarEnd, 16);
+  assert.equal(evidence.metricSection, "Theme B");
+  assert.match(evidence.metricPosition ?? "", /Bars 15-16 \/ 32/);
+  assert.ok(evidence.diagnostics.stepIndex > 32 * 7);
+  assert.ok(evidence.diagnostics.trackPhraseIndex >= 7);
+  assert.deepEqual(evidence.diagnostics.channelFailures, {});
   assert.equal(evidence.toneState, "running");
   assert.equal(evidence.engineRunning, true);
   assert.deepEqual(audioRequests, [], "the APU track preview requested an audio asset");
