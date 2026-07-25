@@ -24,6 +24,8 @@ test("Batch H browser evidence covers every focused destination", () => {
 test("Batch H evidence checks the corrected headers and failure states", () => {
   assert.ok(runner.includes('waitForSelector(".atlas-header__brand"'));
   assert.ok(runner.includes('waitForSelector(".atlas-header__actions"'));
+  assert.ok(runner.includes('waitForSelector(".atlas-search-control"'));
+  assert.ok(runner.includes('document.querySelector(".focus-hero")'));
   assert.ok(runner.includes("header obscures the focused page hero"));
   assert.ok(runner.includes("global search control is missing"));
   assert.ok(runner.includes("unavailable evidence was rendered entirely healthy"));
@@ -38,15 +40,33 @@ test("Batch H evidence verifies keyboard, no-JavaScript, motion, and audio conse
   assert.ok(runner.includes('reducedMotion: "reduce"'));
   assert.ok(runner.includes("audio context was created before user consent"));
   assert.ok(runner.includes('audioToggleText !== "Start"'));
+  assert.ok(runner.includes("activeElementInsideSymphony"));
   assert.ok(runner.includes("Symphony stole focus during page load"));
   assert.ok(runner.includes("Symphony is not embedded as a non-modal page region"));
 });
 
-test("the approved preview workflow runs and retains Batch H evidence", () => {
+test("the approved preview workflow reuses one pinned browser toolchain", () => {
   assert.ok(workflow.includes('contains(github.event.pull_request.labels.*.name, \'interface-preview-approved\')'));
-  assert.ok(workflow.includes("capture-batch-h-evidence:"));
+  assert.ok(!workflow.includes("capture-batch-h-evidence:"));
   assert.ok(workflow.includes("node --check scripts/capture_batch_h_evidence.mjs"));
+  assert.ok(workflow.includes("node capture_interface_evidence.mjs"));
   assert.ok(workflow.includes("node capture_batch_h_evidence.mjs"));
+  assert.equal((workflow.match(/npm install --save-exact playwright@1\.61\.1 @axe-core\/playwright@4\.12\.1/g) || []).length, 1);
   assert.ok(workflow.includes("name: batch-h-preview-evidence"));
   assert.ok(workflow.includes("retention-days: 14"));
+});
+
+test("preview path filters include every Batch H implementation surface", () => {
+  for (const path of [
+    '"systems/**"',
+    '"lab/system-symphony/**"',
+    '"lab/shared/**"',
+    '"static/css/systems-focus.css"',
+    '"static/js/focused-systems-shell.js"',
+    '"static/js/sonify/**"',
+    '"js/tests/batch-h-*.test.mjs"',
+    '"scripts/capture_batch_h_evidence.mjs"',
+  ]) {
+    assert.ok(workflow.includes(path), `missing preview trigger ${path}`);
+  }
 });
