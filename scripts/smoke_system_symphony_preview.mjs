@@ -103,11 +103,11 @@ try {
   assert.equal(stability.preloadFailures, 0, JSON.stringify(stability, null, 2));
   assert.ok(stability.preloadedAssets >= 35, JSON.stringify(stability, null, 2));
   assert.ok(stability.lookAheadSeconds >= 0.12, JSON.stringify(stability, null, 2));
-  assert.ok(stability.meterSamples >= 20, JSON.stringify(stability, null, 2));
-  assert.ok(
-    stability.maximumOutputDb === null || stability.maximumOutputDb <= -3.5,
-    JSON.stringify(stability, null, 2),
-  );
+  assert.ok(stability.destinationTrimDb <= -4, JSON.stringify(stability, null, 2));
+  assert.ok(stability.configuredLimiterCount >= 1, JSON.stringify(stability, null, 2));
+  assert.ok(stability.minimumLimiterThresholdDb <= -4, JSON.stringify(stability, null, 2));
+  assert.ok(stability.sampleNodesTrimmed >= 1, JSON.stringify(stability, null, 2));
+  assert.ok(stability.distortionNodesStabilised >= 1, JSON.stringify(stability, null, 2));
   assert.ok(stability.maximumLateSeconds <= 0.08, JSON.stringify(stability, null, 2));
 
   const fatalConsole = consoleMessages.filter(({ text }) => (
