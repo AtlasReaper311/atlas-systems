@@ -103,10 +103,9 @@ function renderActivity(payload) {
   }
 
   for (const day of days) {
-    const cell = document.createElement("button");
-    cell.type = "button";
+    const cell = document.createElement("span");
+    cell.className = "focus-heatmap-cell";
     cell.dataset.level = String(activityLevel(day.count));
-    cell.tabIndex = -1;
     cell.title = `${day.date}: ${day.count} commit${day.count === 1 ? "" : "s"}`;
     cell.setAttribute("aria-hidden", "true");
     heatmap.appendChild(cell);

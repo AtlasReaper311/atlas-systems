@@ -4,9 +4,10 @@ import test from "node:test";
 
 const page = readFileSync("systems/evidence/index.html", "utf8");
 const script = readFileSync("systems/evidence/evidence.js", "utf8");
+const shell = readFileSync("static/js/focused-systems-shell.js", "utf8");
 
 test("evidence is a focused provenance destination", () => {
-  assert.match(page, /<link rel="canonical" href="https:\/\/atlas-systems\.uk\/systems\/evidence\/">/);
+  assert.ok(page.includes('<link rel="canonical" href="https://atlas-systems.uk/systems/evidence/">'));
   for (const section of [
     "Evidence summary",
     "Ninety days of public commit evidence",
@@ -17,6 +18,16 @@ test("evidence is a focused provenance destination", () => {
   ]) {
     assert.ok(page.includes(section), `missing ${section}`);
   }
+});
+
+test("evidence uses the governed estate header without inline layout overrides", () => {
+  assert.ok(page.includes('<header class="focus-hero">'));
+  assert.ok(page.includes('/static/css/estate-search.css'));
+  assert.ok(page.includes('/static/css/estate-shell.css?v=20260723-interface-v2'));
+  assert.ok(page.includes('/static/js/focused-systems-shell.js?v=20260725-batch-h-fixes'));
+  assert.ok(shell.includes('import "./estate-search/global-search.js"'));
+  assert.ok(page.includes('class="focus-rail focus-rail-spaced"'));
+  assert.ok(!page.includes('style="margin-top:1.5rem"'));
 });
 
 test("evidence consumes fixed public records", () => {
@@ -33,17 +44,20 @@ test("evidence consumes fixed public records", () => {
 });
 
 test("the activity heatmap has a complete non-visual alternative", () => {
-  assert.match(page, /id="activity-heatmap"[^>]*role="img"/);
-  assert.match(page, /id="activity-rows"/);
-  assert.match(page, /complete keyboard and screen-reader alternative/);
-  assert.match(script, /cell\.setAttribute\("aria-hidden", "true"\)/);
-  assert.match(script, /rows\.appendChild\(row\)/);
+  assert.ok(page.includes('id="activity-heatmap" class="focus-heatmap" role="img"'));
+  assert.ok(page.includes('id="activity-rows"'));
+  assert.ok(page.includes("complete keyboard and screen-reader alternative"));
+  assert.ok(script.includes('document.createElement("span")'));
+  assert.ok(script.includes('cell.className = "focus-heatmap-cell"'));
+  assert.ok(script.includes('cell.setAttribute("aria-hidden", "true")'));
+  assert.ok(script.includes("rows.appendChild(row)"));
+  assert.ok(!script.includes('document.createElement("button")'));
 });
 
 test("evidence keeps freshness and failure states independent", () => {
   for (const state of ["stale", "empty", "unknown", "unavailable", "warning", "failure", "healthy"]) {
     assert.ok(script.includes(`\"${state}\"`), `missing ${state}`);
   }
-  assert.match(page, /One fresh source cannot wash a stale or unavailable source green\./);
-  assert.match(page, /Empty evidence is not a successful pipeline\./);
+  assert.ok(page.includes("One fresh source cannot wash a stale or unavailable source green."));
+  assert.ok(page.includes("Empty evidence is not a successful pipeline."));
 });

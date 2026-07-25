@@ -85,8 +85,6 @@ function convertConsoleToRegion(host, pageHost) {
 
   if (previousFocus instanceof HTMLElement && previousFocus !== document.body) {
     previousFocus.focus({ preventScroll: true });
-  } else {
-    byId("symphony-page-title")?.focus({ preventScroll: true });
   }
   installInlineKeyboardBoundary(pageHost, host);
 }
