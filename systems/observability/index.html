@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Current bounded public observations across SPECULAR-CORE, public Workers, incidents, corpus state, and Atlas Systems operations.">
+  <meta name="description" content="Current bounded public observations across SPECULAR-CORE, measured public services, incidents, corpus state, and Atlas Systems operations.">
   <meta name="theme-color" content="#0a0a0f">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
@@ -45,7 +45,7 @@
     <header class="focus-hero">
       <p class="focus-breadcrumb">Systems / observability</p>
       <h1 class="focus-title">What is being observed now?</h1>
-      <p class="focus-lede">A focused read-only view of public telemetry, registry state, incident evidence, corpus activity, and the operations links that support those observations. Missing evidence remains missing. Stale evidence remains stale.</p>
+      <p class="focus-lede">A focused read-only view of public telemetry, service inventory joined to measured health, incident evidence, corpus activity, and the operations links that support those observations. Inventory is not treated as health. Missing evidence remains missing. Stale evidence remains stale.</p>
       <div class="focus-actions">
         <a class="focus-action primary" href="https://status.atlas-systems.uk/">Public status</a>
         <a class="focus-action" href="/systems/reliability/">Reliability evidence</a>
@@ -60,7 +60,7 @@
       </div>
       <div class="focus-grid cols-4">
         <article class="focus-metric"><span>Telemetry source</span><strong id="summary-telemetry">unknown</strong></article>
-        <article class="focus-metric"><span>Public services</span><strong id="summary-services">unknown</strong></article>
+        <article class="focus-metric"><span>Health-covered services</span><strong id="summary-services">unknown</strong></article>
         <article class="focus-metric"><span>Recent failures</span><strong id="summary-failures">unknown</strong></article>
         <article class="focus-metric"><span>Corpus activity</span><strong id="summary-corpus">unknown</strong></article>
       </div>
@@ -82,13 +82,13 @@
 
     <section class="focus-section" aria-labelledby="registry-title">
       <div class="focus-section-head">
-        <div><p class="focus-breadcrumb">Public registry</p><h2 id="registry-title">Observed services</h2></div>
-        <p id="registry-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for the public registry.</p>
+        <div><p class="focus-breadcrumb">Inventory + topology + health</p><h2 id="registry-title">Observed services</h2></div>
+        <p id="registry-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for public inventory, topology, and measured health.</p>
       </div>
       <section class="focus-table-wrap" tabindex="0" aria-label="Observed services table">
         <table class="focus-table">
           <thead><tr><th scope="col">Service</th><th scope="col">Layer</th><th scope="col">Observed state</th><th scope="col">Evidence</th></tr></thead>
-          <tbody id="registry-rows"><tr><td colspan="4">No registry evidence loaded.</td></tr></tbody>
+          <tbody id="registry-rows"><tr><td colspan="4">No composed service evidence loaded.</td></tr></tbody>
         </table>
       </section>
     </section>
@@ -104,7 +104,7 @@
     <section class="focus-section" aria-labelledby="infra-title">
       <div class="focus-section-head">
         <div><p class="focus-breadcrumb">Local AI boundary</p><h2 id="infra-title">Infrastructure and corpus state</h2></div>
-        <p>Only aggregate public state is rendered. Terms and IPs are not rendered. Private repositories and provider credentials are outside this surface.</p>
+        <p>Only aggregate public state is rendered. Activity counts and current health are labelled separately. Terms and IPs are not rendered. Private repositories and provider credentials are outside this surface.</p>
       </div>
       <div class="focus-grid cols-2">
         <article class="focus-panel">
@@ -127,7 +127,9 @@
       </div>
       <div class="focus-rail">
         <a href="https://api.atlas-systems.uk/specular"><strong>SPECULAR telemetry</strong><span>/specular</span></a>
-        <a href="https://api.atlas-systems.uk/v1/registry"><strong>Service registry</strong><span>/v1/registry</span></a>
+        <a href="https://api.atlas-systems.uk/v1/registry"><strong>Service inventory</strong><span>/v1/registry</span></a>
+        <a href="https://api.atlas-systems.uk/sonify"><strong>Service health</strong><span>/sonify</span></a>
+        <a href="https://api.atlas-systems.uk/v1/topology"><strong>Public topology</strong><span>/v1/topology</span></a>
         <a href="https://api.atlas-systems.uk/v1/infra/status"><strong>Infra status</strong><span>/v1/infra/status</span></a>
         <a href="https://api.atlas-systems.uk/v1/rag/stats"><strong>Corpus statistics</strong><span>/v1/rag/stats</span></a>
         <a href="https://api.atlas-systems.uk/notify/recent"><strong>Recent events</strong><span>/notify/recent</span></a>
@@ -137,6 +139,6 @@
     </section>
   </main>
   <script type="module" src="/static/js/focused-systems-shell.js?v=20260725-batch-h-fixes"></script>
-  <script type="module" src="/systems/observability/observability.js?v=20260725-batch-h"></script>
+  <script type="module" src="/systems/observability/observability.js?v=20260725-observability-contracts"></script>
 </body>
 </html>
