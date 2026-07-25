@@ -42,11 +42,11 @@ test("the public sitemap contains focused routes and excludes the compatibility 
     assert.ok(sitemap.includes(`https://atlas-systems.uk${route}`), `sitemap missing ${route}`);
     assert.ok(sitemapGenerator.includes(`("${route}", "monthly", "0.7")`), `generator missing ${route}`);
   }
-  assert.doesNotMatch(sitemap, /https:\/\/atlas-systems\.uk\/lab\/reliability\//);
-  assert.doesNotMatch(sitemapGenerator, /\("\/lab\/reliability\/"/);
+  assert.ok(!sitemap.includes("https://atlas-systems.uk/lab/reliability/"));
+  assert.ok(!sitemapGenerator.includes('("/lab/reliability/"'));
 });
 
 test("focused routes do not replace the production status surface", () => {
-  assert.match(lab, /https:\/\/status\.atlas-systems\.uk\//);
-  assert.match(systems, /https:\/\/status\.atlas-systems\.uk\//);
+  assert.ok(lab.includes("https://status.atlas-systems.uk/"));
+  assert.ok(systems.includes("https://status.atlas-systems.uk/"));
 });

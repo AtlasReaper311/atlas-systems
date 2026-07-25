@@ -36,8 +36,8 @@ test("approved public Lab and focused Systems routes are sitemap-owned", () => {
     assert.ok(sitemap.includes(`<loc>${url}</loc>`), `${url} missing from sitemap.xml`);
     assert.ok(sitemapGenerator.includes(`"${route}"`), `${route} missing from generator authority`);
   }
-  assert.doesNotMatch(sitemap, /https:\/\/atlas-systems\.uk\/lab\/reliability\//);
-  assert.doesNotMatch(sitemapGenerator, /\("\/lab\/reliability\/"/);
+  assert.ok(!sitemap.includes("https://atlas-systems.uk/lab/reliability/"));
+  assert.ok(!sitemapGenerator.includes('("/lab/reliability/"'));
 });
 
 test("maturity semantics use distinct shapes without replacing labels", () => {
