@@ -24,6 +24,7 @@ const consoleErrors = [];
 const pageErrors = [];
 const audioRequests = [];
 const failedRequests = [];
+const transitionEvidence = [];
 let evidence = null;
 
 page.on("console", (message) => {
@@ -61,6 +62,7 @@ async function collectEvidence() {
       metricSection: metric("section"),
       metricPosition: metric("position"),
       metricPhase: metric("phase"),
+      metricBpm: metric("bpm"),
       metricComponents: metric("components"),
       serviceRows: root?.querySelectorAll("[data-service]").length ?? 0,
       channelCards: root?.querySelectorAll("[data-channel]").length ?? 0,
@@ -75,6 +77,36 @@ async function collectEvidence() {
   });
 }
 
+async function chooseState(label, expectedState, expectedTransitionMode) {
+  const before = await collectEvidence();
+  await page.getByRole("button", { name: label, exact: true }).click();
+  await page.waitForFunction(
+    ({ state, transitionMode, priorCount }) => {
+      const diagnostics = globalThis.__ATLAS_APU__?.getDiagnostics?.();
+      return diagnostics?.currentState === state
+        && diagnostics?.transitionMode === transitionMode
+        && Number(diagnostics?.stateTransitionCount) > priorCount;
+    },
+    {
+      state: expectedState,
+      transitionMode: expectedTransitionMode,
+      priorCount: Number(before.diagnostics?.stateTransitionCount ?? 0),
+    },
+    { timeout: 8_000, polling: 100 },
+  );
+  const after = await collectEvidence();
+  transitionEvidence.push({
+    requested: expectedState,
+    before: before.diagnostics,
+    after: after.diagnostics,
+    arrangement: after.arrangement,
+  });
+  assert.equal(after.diagnostics.logicalChannelCount, 6);
+  assert.equal(after.metricBpm, "100 BPM");
+  assert.equal(after.arrangement.scoreState, expectedState);
+  return after;
+}
+
 async function writeBundle(fileName, error = null) {
   try {
     evidence = evidence ?? await collectEvidence();
@@ -83,7 +115,7 @@ async function writeBundle(fileName, error = null) {
   }
   try {
     await page.screenshot({
-      path: path.join(outputDirectory, "atlas-apu-track-preview.png"),
+      path: path.join(outputDirectory, "atlas-apu-state-identities-preview.png"),
       fullPage: true,
     });
   } catch (screenshotError) {
@@ -95,6 +127,7 @@ async function writeBundle(fileName, error = null) {
       route,
       error: error ? { name: error.name, message: error.message, stack: error.stack } : null,
       evidence,
+      transitionEvidence,
       audioRequests,
       failedRequests,
       consoleErrors,
@@ -120,26 +153,44 @@ try {
       && globalThis.__ATLAS_APU__?.getArrangement?.()?.section;
   }, null, { timeout: 15_000 });
 
-  // The original smoke test stopped after 1.8 seconds, long before the reported
-  // failure at the end of Variation. Run through bars 15-16 so transport,
-  // transition voices and percussion are proven beyond that boundary.
+  const initial = await collectEvidence();
+  if (initial.diagnostics?.currentState === "critical") {
+    await chooseState("Healthy", "healthy", "bar-crossfade");
+  }
+
+  const critical = await chooseState("Critical", "critical", "hard-choke");
+  assert.match(critical.arrangement.stateIdentity.roles.memory, /sub-bass/);
+  assert.match(critical.arrangement.stateIdentity.roles.accent, /impact/);
+
+  const unknown = await chooseState("Unknown", "unknown", "one-bar-dissolve");
+  assert.match(unknown.arrangement.stateIdentity.roles.memory, /carrier/);
+  assert.match(unknown.arrangement.stateIdentity.roles.accent, /telemetry-hum/);
+
+  await chooseState("Healthy", "healthy", "bar-crossfade");
+  await chooseState("Warning", "warning", "bar-crossfade");
+  await chooseState("Healthy", "healthy", "bar-crossfade");
+
+  // Continue through the former Variation boundary and prove Theme B still runs
+  // after multiple bar-quantised state changes.
   await page.waitForFunction(() => {
     const arrangement = globalThis.__ATLAS_APU__?.getArrangement?.();
     const diagnostics = globalThis.__ATLAS_APU__?.getDiagnostics?.();
     return arrangement?.section === "theme-b"
       && Number(diagnostics?.trackPhraseIndex) >= 7
       && Number(diagnostics?.stepIndex) > 32 * 7;
-  }, null, { timeout: 55_000, polling: 250 });
+  }, null, { timeout: 65_000, polling: 250 });
 
   evidence = await collectEvidence();
 
-  assert.match(evidence.buildId ?? "", /atlas-apu-track-v2$/);
+  assert.match(evidence.buildId ?? "", /state-identities-v1$/);
   assert.equal(evidence.documentBuild, evidence.buildId);
   assert.equal(evidence.ready, "true");
   assert.equal(evidence.running, "true");
   assert.equal(evidence.noSamples, "true");
-  assert.equal(evidence.source, "preview");
-  assert.notEqual(evidence.metricState, "Unknown");
+  assert.equal(evidence.source, "simulated");
+  assert.equal(evidence.metricState, "Healthy");
+  assert.equal(evidence.metricScene, "Explorer");
+  assert.equal(evidence.metricBpm, "100 BPM");
   assert.ok(Number.parseInt(evidence.metricComponents ?? "0", 10) > 0);
   assert.ok(evidence.serviceRows > 0);
   assert.equal(evidence.channelCards, 6);
@@ -155,6 +206,8 @@ try {
   assert.match(evidence.metricPosition ?? "", /Bars 15-16 \/ 32/);
   assert.ok(evidence.diagnostics.stepIndex > 32 * 7);
   assert.ok(evidence.diagnostics.trackPhraseIndex >= 7);
+  assert.ok(evidence.diagnostics.stateTransitionCount >= 5);
+  assert.equal(evidence.diagnostics.logicalChannelCount, 6);
   assert.deepEqual(evidence.diagnostics.channelFailures, {});
   assert.equal(evidence.toneState, "running");
   assert.equal(evidence.engineRunning, true);
