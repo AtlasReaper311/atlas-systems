@@ -139,10 +139,12 @@ test("Lab and Systems shared destinations cannot drift in visual, motif, or matu
     "/lab/system-map/",
     "/lab/proof-chain/",
     "/lab/conformance/",
-    "/lab/reliability/",
+    "/systems/observability/",
+    "/systems/reliability/",
+    "/systems/evidence/",
+    "/lab/system-symphony/",
     "/lab/signal/",
     "/lab/anomaly/",
-    "/lab/console/",
   ];
   for (const href of shared) {
     assert.ok(lab.has(href), `Lab must declare ${href}`);
