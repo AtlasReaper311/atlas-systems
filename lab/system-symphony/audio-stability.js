@@ -22,8 +22,12 @@
     preloadFailures: 0,
     lateScheduleCount: 0,
     maximumLateSeconds: 0,
-    maximumOutputDb: -Infinity,
-    meterSamples: 0,
+    destinationTrimDb: null,
+    configuredLimiterCount: 0,
+    minimumLimiterThresholdDb: null,
+    sampleNodesTrimmed: 0,
+    distortionNodesStabilised: 0,
+    reverbNodesStabilised: 0,
     outputCeilingDb: OUTPUT_CEILING_DB,
     sampleTrimDb: SAMPLE_TRIM_DB,
     lookAheadSeconds: null,
@@ -50,32 +54,22 @@
   }
 
   function installOutputSafety() {
-    const nodePrototype = Tone.ToneAudioNode?.prototype;
-    const nativeToDestination = nodePrototype?.toDestination;
-    if (typeof nativeToDestination !== "function") return;
-
-    const safetyLimiter = new Tone.Limiter(OUTPUT_CEILING_DB);
-    nativeToDestination.call(safetyLimiter);
-
-    const meter = typeof Tone.Meter === "function"
-      ? new Tone.Meter({ normalRange: false, smoothing: 0.72 })
-      : null;
-    if (meter) safetyLimiter.connect(meter);
-
-    nodePrototype.toDestination = function toStableDestination() {
-      this.connect(safetyLimiter);
-      return this;
-    };
-
-    window.setInterval(() => {
-      if (!meter) return;
-      const reading = meter.getValue();
-      const values = Array.isArray(reading) ? reading : [reading];
-      const finite = values.filter(Number.isFinite);
-      if (!finite.length) return;
-      diagnostics.maximumOutputDb = Math.max(diagnostics.maximumOutputDb, ...finite);
-      diagnostics.meterSamples += 1;
-    }, 100);
+    const destination = typeof Tone.getDestination === "function"
+      ? Tone.getDestination()
+      : Tone.Destination;
+    const parameter = destination?.volume;
+    if (!parameter) return;
+    const current = Number(parameter.value);
+    const target = Number.isFinite(current)
+      ? Math.min(current, OUTPUT_CEILING_DB)
+      : OUTPUT_CEILING_DB;
+    const time = toneNow();
+    if (typeof parameter.setValueAtTime === "function") {
+      parameter.setValueAtTime(target, time);
+    } else {
+      parameter.value = target;
+    }
+    diagnostics.destinationTrimDb = target;
   }
 
   function wrapConnect(Constructor, stabilise) {
@@ -110,6 +104,7 @@
       const distortion = Number(node.distortion);
       const wet = distortion <= 0.05 ? 0 : Math.min(0.025, Number.isFinite(requested) ? requested : 0);
       setParamValue(node.wet, wet);
+      diagnostics.distortionNodesStabilised += 1;
       try {
         node.oversample = "none";
       } catch {
@@ -119,21 +114,29 @@
 
     wrapConnect(Tone.Limiter, (node) => {
       const current = Number(node.threshold?.value);
-      setParamValue(
-        node.threshold,
-        Number.isFinite(current) ? Math.min(current, OUTPUT_CEILING_DB) : OUTPUT_CEILING_DB,
-      );
+      const target = Number.isFinite(current)
+        ? Math.min(current, OUTPUT_CEILING_DB)
+        : OUTPUT_CEILING_DB;
+      setParamValue(node.threshold, target);
+      diagnostics.configuredLimiterCount += 1;
+      diagnostics.minimumLimiterThresholdDb = diagnostics.minimumLimiterThresholdDb === null
+        ? target
+        : Math.min(diagnostics.minimumLimiterThresholdDb, target);
     });
 
     for (const Constructor of [Tone.Player, Tone.GrainPlayer, Tone.Sampler]) {
       wrapConnect(Constructor, (node) => {
         const current = Number(node.volume?.value);
-        if (Number.isFinite(current)) setParamValue(node.volume, current + SAMPLE_TRIM_DB);
+        if (Number.isFinite(current)) {
+          setParamValue(node.volume, current + SAMPLE_TRIM_DB);
+          diagnostics.sampleNodesTrimmed += 1;
+        }
       });
     }
 
     wrapConnect(Tone.Reverb, (node) => {
       if (Number.isFinite(node.decay)) node.decay = Math.min(node.decay, 1.35);
+      diagnostics.reverbNodesStabilised += 1;
     });
   }
 
@@ -263,9 +266,6 @@
     getSnapshot() {
       return {
         ...diagnostics,
-        maximumOutputDb: Number.isFinite(diagnostics.maximumOutputDb)
-          ? diagnostics.maximumOutputDb
-          : null,
       };
     },
   };
