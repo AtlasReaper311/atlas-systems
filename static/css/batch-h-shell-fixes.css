@@ -1,0 +1,44 @@
+@media (max-width: 767px) {
+  .atlas-mobile-nav.atlas-bottom-nav {
+    min-height: 0;
+    height: calc(64px + env(safe-area-inset-bottom));
+    padding: 0 0 env(safe-area-inset-bottom);
+    display: block;
+    grid-template-columns: none;
+  }
+
+  .atlas-mobile-nav.atlas-bottom-nav .atlas-mobile-nav__inner {
+    width: 100%;
+    height: 64px;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .atlas-mobile-nav.atlas-bottom-nav .atlas-mobile-nav__item {
+    min-width: 0;
+    min-height: 64px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    font: 9px/1.2 var(--mono, var(--atlas-font-body));
+    letter-spacing: 0.04em;
+    text-align: center;
+  }
+
+  .atlas-mobile-nav.atlas-bottom-nav .atlas-mobile-nav__item svg {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+  }
+
+  .atlas-mobile-nav.atlas-bottom-nav .atlas-mobile-nav__item span {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
