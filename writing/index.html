@@ -5,30 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Writing — Atlas Systems technical case studies and engineering articles.">
   <meta name="theme-color" content="#0a0a0f">
-  <title>Writing — Atlas Systems</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
+  <title>Writing // Atlas Systems</title>
   <link rel="canonical" href="https://atlas-systems.uk/writing/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Writing // Atlas Systems">
   <meta property="og:description" content="Case studies and technical writing: architecture decisions, the problems hit along the way, and how each was resolved.">
   <meta property="og:url" content="https://atlas-systems.uk/writing/">
   <meta property="og:site_name" content="Atlas Systems">
-  <meta property="og:image" content="https://atlas-systems.uk/og-default.png">
+  <meta property="og:image" content="https://atlas-systems.uk/og/writing.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Atlas Systems: audio systems, local AI infrastructure, and deployment automation">
+  <meta property="og:image:alt" content="The engineering record. // Atlas Systems">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Writing // Atlas Systems">
   <meta name="twitter:description" content="Case studies and technical writing: architecture decisions, the problems hit along the way, and how each was resolved.">
-  <meta name="twitter:image" content="https://atlas-systems.uk/og-default.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=DM+Serif+Display:ital@0;1&amp;display=swap" rel="stylesheet">
+  <meta name="twitter:image" content="https://atlas-systems.uk/og/writing.png">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/css/card-search.css">
   <link rel="stylesheet" href="/writing/series.css?v=20260704-fade-upcoming">
   <link rel="stylesheet" href="/css/atlas-terminal-card-v3.css?v=20260705-close-hidden">
+  <script src="/static/js/enable-enhancements.js"></script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    :root{--bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;--border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);--text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;--accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);--mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px}
+    :root{--bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;--border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);--text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#888894;--accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);--mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px}
     html{scroll-behavior:smooth}
     body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
     body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
@@ -49,11 +53,12 @@
     .page-sub{font-size:13px;color:var(--text-dim);max-width:520px;line-height:1.8;opacity:0;transform:translateY(10px);animation:fadeUp 0.5s 0.22s ease forwards}
     @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
     .articles{padding:3rem 0}
-    .article-entry{display:grid;grid-template-columns:1fr 2fr;gap:0;border:1px solid var(--border);margin-bottom:1px;opacity:0;transform:translateY(12px);transition:opacity 0.4s ease,transform 0.4s ease,border-color 0.2s;text-decoration:none;color:inherit}
+    .article-entry{display:grid;grid-template-columns:1fr 2fr;gap:0;border:1px solid var(--border);margin-bottom:1px;opacity:1;transform:none;transition:opacity 0.4s ease,transform 0.4s ease,border-color 0.2s;text-decoration:none;color:inherit}
+    .js .article-entry{opacity:0;transform:translateY(12px)}
     .article-entry:hover{border-color:var(--border-hi)}
-    .article-entry.visible{opacity:1;transform:translateY(0)}
+    .js .article-entry.visible{opacity:1;transform:translateY(0)}
     .article-entry.coming-soon{opacity:0.4;pointer-events:none}
-    .article-entry.coming-soon.visible{opacity:0.4}
+    .js .article-entry.coming-soon.visible{opacity:0.4}
     .article-meta{padding:2rem;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:1rem;background:var(--bg-1)}
     .article-number{font-size:11px;color:var(--text-faint);letter-spacing:0.1em}
     .article-date{font-size:11px;color:var(--text-dim);letter-spacing:0.06em}
@@ -75,9 +80,12 @@
     .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.15s}
     .mobile-nav-item:hover,.mobile-nav-item.active{color:var(--accent)}
     .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-    @media(max-width:680px){.article-entry{grid-template-columns:1fr}.article-meta{border-right:none;border-bottom:1px solid var(--border);flex-direction:row;flex-wrap:wrap;gap:0.75rem;padding:1.25rem}.article-tags{flex-direction:row;margin-top:0}.article-body{padding:1.5rem}.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}}
+    @media(max-width:680px){.article-entry{grid-template-columns:1fr}.article-meta{border-right:none;border-bottom:1px solid var(--border);flex-direction:row;flex-wrap:wrap;gap:0.75rem;padding:1.25rem}.article-tags{flex-direction:row;flex-wrap:wrap;margin-top:0}.article-body{padding:1.5rem}.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}}
   </style>
+  <link rel="stylesheet" href="/static/css/editorial-surfaces-v2.css?v=20260723-editorial-v2">
   <link rel="stylesheet" href="/static/css/estate-search.css">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260724-source-hardening">
+  <meta name="twitter:image:alt" content="The engineering record. // Atlas Systems">
 </head>
 <body>
   <nav aria-label="Primary navigation">
@@ -86,6 +94,7 @@
       <li><a href="/work/" class="nav-link">Work</a></li>
       <li><a href="/writing/" class="nav-link">Writing</a></li>
       <li><a href="/lab/" class="nav-link">Lab</a></li>
+      <li><a href="/systems/" class="nav-link">Systems</a></li>
       <li><a href="/about/" class="nav-link">About</a></li>
       <li>
         <button type="button" class="es-nav-search" data-estate-search-open
@@ -104,9 +113,33 @@
   <main>
     <header class="page-header">
       <div class="section-label">Writing</div>
-      <h1 class="page-heading">Case studies &amp; technical writing.</h1>
-      <p class="page-sub">Architecture decisions documented in full. How things were built, why they were built that way, and what the tradeoffs were.</p>
+      <h1 class="page-heading">The engineering record.</h1>
+      <p class="page-sub">Case studies, series, and technical notes about how systems were built, why the architecture took its final shape, and where the evidence stops.</p>
     </header>
+
+    <section class="writing-feature" aria-labelledby="writing-feature-heading">
+      <div class="writing-feature-meta">
+        <div class="section-label">Featured</div>
+        <span class="writing-feature-number">W-04</span>
+        <span class="writing-feature-date">22 June 2026</span>
+      </div>
+      <div class="writing-feature-body">
+        <p class="writing-feature-kicker">Hardware / Case study</p>
+        <h2 id="writing-feature-heading">Pushing the Limits: Overclocking SPECULAR-CORE</h2>
+        <p class="writing-feature-summary">A full system optimisation pass on SPECULAR-CORE: BIOS-level memory and Infinity Fabric synchronisation, a hand-built GPU voltage/frequency curve, cooling tuned around real-time audio noise constraints, and thread scheduling aligned to the 9950X3D dual-CCD layout.</p>
+        <a class="writing-feature-link" href="/writing/overclocking-specular-core/">Read featured case study →</a>
+      </div>
+    </section>
+
+    <section class="writing-controls" aria-label="Writing filters">
+      <div class="section-label">Browse</div>
+      <div class="writing-filter-row" role="group" aria-label="Filter writing by type">
+        <button type="button" class="writing-filter is-active" data-writing-filter="all" aria-pressed="true">All writing</button>
+        <button type="button" class="writing-filter" data-writing-filter="case-study" aria-pressed="false">Case studies</button>
+        <button type="button" class="writing-filter" data-writing-filter="series" aria-pressed="false">Series</button>
+        <button type="button" class="writing-filter" data-writing-filter="upcoming" aria-pressed="false">Upcoming</button>
+      </div>
+    </section>
 
     <div class="card-search">
       <span class="card-search-prompt" aria-hidden="true">&gt;</span>
@@ -121,61 +154,69 @@
 
     <div class="articles">
 
-      <!-- W-07: Pipeline & Observability, part 3 :: scheduled final chapter -->
-      <a href="#" class="article-entry coming-soon series-upcoming"
-         data-series="pipeline-observability" data-series-part="3"
-         data-series-total="3" data-series-title="Pipeline &amp; Observability"
-         data-series-state="upcoming">
+      <!-- W-07: Atlas Lab — coming soon -->
+      <a href="#" class="article-entry coming-soon" aria-disabled="true" tabindex="-1" data-series="pipeline-observability" data-series-part="3" data-series-total="3" data-series-title="Pipeline &amp; Observability" data-series-note="3 parts · 26–30 July 2026" data-series-publish-date="2026-07-30">
         <div class="article-meta">
           <span class="article-number">W-07</span>
-          <span class="article-date">Coming September 2026</span>
+          <span class="article-date">Coming July 2026</span>
           <div class="article-tags">
             <span class="tag highlight">DevOps</span>
+            <span class="tag">Cloudflare Workers</span>
+            <span class="tag">CI/CD</span>
             <span class="tag">Observability</span>
-            <span class="tag">Infrastructure</span>
+            <span class="tag">GitHub Actions</span>
           </div>
+          <span class="read-time">~10 min read</span>
         </div>
         <div class="article-body">
-          <!-- TITLE UNCONFIRMED: replace with the real W-07 title on confirmation -->
-          <h2 class="article-title">Pipeline &amp; Observability, Part III</h2>
-          <div class="article-subtitle">Pipeline &amp; Observability — Part III // September</div>
-          <p class="article-summary">The final part of the series. Scheduled for September; the two parts before it set up what this one closes out.</p>
+          <h2 class="article-title">Atlas Lab</h2>
+          <div class="article-subtitle">Live Observability // Coming Soon</div>
+          <p class="article-summary">Pipeline events from all eight repos now write into the same ring buffer the Lab page already reads, alongside a live pipeline status grid and a self-documenting API surface map. None of it required new infrastructure; it required finally looking at infrastructure that already existed.</p>
+          <div class="article-sections">
+            <span class="section-pill">Background</span>
+            <span class="section-pill">The Persist-Only Decision</span>
+            <span class="section-pill">Wiring It Into Every Pipeline</span>
+            <span class="section-pill">Closing the Surface</span>
+          </div>
           <div class="article-cta">
             Coming soon
             <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </div>
         </div>
       </a>
-
-      <!-- W-06: Pipeline & Observability, part 2 :: standard coming soon -->
-      <a href="#" class="article-entry coming-soon"
-         data-series="pipeline-observability" data-series-part="2"
-         data-series-total="3" data-series-title="Pipeline &amp; Observability">
+<!-- W-06: Atlas Systems CI/CD — coming soon -->
+      <a href="#" class="article-entry coming-soon" aria-disabled="true" tabindex="-1" data-series="pipeline-observability" data-series-part="2" data-series-total="3" data-series-title="Pipeline &amp; Observability" data-series-note="3 parts · 26–30 July 2026" data-series-publish-date="2026-07-28">
         <div class="article-meta">
           <span class="article-number">W-06</span>
-          <!-- MONTH UNCONFIRMED: decisions.md dates W-05 July and W-07 September;
-               August is the inferred slot for part 2. Correct if wrong. -->
-          <span class="article-date">Coming August 2026</span>
+          <span class="article-date">Coming July 2026</span>
           <div class="article-tags">
             <span class="tag highlight">DevOps</span>
+            <span class="tag">GitHub Actions</span>
+            <span class="tag">Cloudflare</span>
             <span class="tag">CI/CD</span>
             <span class="tag">Infrastructure</span>
           </div>
+          <span class="read-time">~12 min read</span>
         </div>
         <div class="article-body">
-          <!-- TITLE UNCONFIRMED: replace with the real W-06 title on confirmation -->
-          <h2 class="article-title">Pipeline &amp; Observability, Part II</h2>
-          <div class="article-subtitle">Pipeline &amp; Observability — Part II // Coming Soon</div>
-          <p class="article-summary">Part two of the series: the middle chapter between the pipeline build and the estate's self-documentation layer.</p>
+          <h2 class="article-title">Atlas Systems CI/CD</h2>
+          <div class="article-subtitle">Reusable Pipelines &amp; Hard Gates // Coming Soon</div>
+          <p class="article-summary">Ten repos brought onto a consistent, gated, observable CI/CD estate. Two reusable GitHub Actions workflows in atlas-infra define the pipeline once; every other repo inherits it through a 12-line caller file, with Cloudflare Pages native integration disconnected so Actions is the only path to production.</p>
+          <div class="article-sections">
+            <span class="section-pill">Background</span>
+            <span class="section-pill">Reusable Workflows as the Architecture</span>
+            <span class="section-pill">Gating atlas-notify Through workflow_run</span>
+            <span class="section-pill">Hard Gate or Soft Gate</span>
+            <span class="section-pill">The Token Model</span>
+          </div>
           <div class="article-cta">
             Coming soon
             <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </div>
         </div>
       </a>
-
-      <!-- W-05: Atlas Pipeline — coming soon -->
-      <a href="#" class="article-entry coming-soon">
+<!-- W-05: Atlas Systems Infrastructure — coming soon -->
+      <a href="#" class="article-entry coming-soon" aria-disabled="true" tabindex="-1" data-series="pipeline-observability" data-series-part="1" data-series-total="3" data-series-title="Pipeline &amp; Observability" data-series-note="3 parts · 26–30 July 2026" data-series-publish-date="2026-07-26">
         <div class="article-meta">
           <span class="article-number">W-05</span>
           <span class="article-date">NEXT CHAPTER // JULY 2026</span>
@@ -189,15 +230,15 @@
           <span class="read-time">~12 min read</span>
         </div>
         <div class="article-body">
-          <h2 class="article-title">Atlas Pipeline</h2>
-          <div class="article-subtitle">Infrastructure Dashboard &amp; CI/CD // Coming Soon</div>
+          <h2 class="article-title">Atlas Systems Infrastructure</h2>
+          <div class="article-subtitle">Infrastructure Dashboard &amp; Observability // Coming Soon</div>
           <p class="article-summary">Building a live infrastructure dashboard and automated deployment pipeline across ten Cloudflare Workers repos, starting from manual deploys with no audit trail and ending with a self-reporting system that documents its own operation in Discord. A single authenticated event bus accepts three webhook auth dialects, observability Workers proxy GitHub and Cloudflare analytics behind cached endpoints, and identical GitHub Actions workflows deploy every Worker on push, all on free-tier infrastructure at zero cost.</p>
           <div class="article-sections">
             <span class="section-pill">Architecture</span>
             <span class="section-pill">The Event Bus</span>
             <span class="section-pill">Observability Workers</span>
-            <span class="section-pill">Phase I — Worker Route Claiming</span>
-            <span class="section-pill">Phase II — Bot Protection Blocking CI</span>
+            <span class="section-pill">CI/CD Automation</span>
+            <span class="section-pill">Personal Tooling</span>
           </div>
           <div class="article-cta">
             The next chapter
@@ -207,7 +248,7 @@
       </a>
 
       <!-- ARTICLES_INSERT_POINT -->
-      <!-- W-04: Pushing the Limits — Overclocking SPECULAR-CORE -->
+      <!-- W-04: Pushing the Limits: Overclocking SPECULAR-CORE -->
       <a href="/writing/overclocking-specular-core/" class="article-entry">
         <div class="article-meta">
           <span class="article-number">W-04</span>
@@ -221,7 +262,7 @@
           <span class="read-time">~13 min read</span>
         </div>
         <div class="article-body">
-          <h2 class="article-title">Pushing the Limits — Overclocking SPECULAR-CORE</h2>
+          <h2 class="article-title">Pushing the Limits: Overclocking SPECULAR-CORE</h2>
           <div class="article-subtitle">SPECULAR-CORE — Hardware Tuning // Case Study</div>
           <p class="article-summary">A full system optimisation pass on SPECULAR-CORE: BIOS-level memory and Infinity Fabric synchronisation, a GPU voltage/frequency curve built by hand after a beta tool's batch editor failed, AIO and case cooling tuned around real-time audio noise constraints, and Process Lasso thread scheduling that finally gives Windows architectural awareness of the 9950X3D's dual-CCD layout. Validated through a full overnight stress test with zero crashes, zero thermal events.</p>
           <div class="article-sections">
@@ -362,6 +403,7 @@
   </script>
   <script src="/js/card-search.js" defer></script>
   <script src="/writing/series.js" defer></script>
+  <script src="/writing/directory.js" defer></script>
   <script src="/js/transitions.js?v=20260706-history"></script>
   <script src="/js/atlas-terminal-card-v3.js" defer></script>
   <script type="module" src="/static/js/estate-search/global-search.js"></script>

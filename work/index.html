@@ -5,29 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Work — Atlas Systems project portfolio.">
   <meta name="theme-color" content="#0a0a0f">
-  <title>Work — Atlas Systems</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
+  <title>Work // Atlas Systems</title>
   <link rel="canonical" href="https://atlas-systems.uk/work/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Work // Atlas Systems">
   <meta property="og:description" content="Selected projects: audio systems, local AI infrastructure, and deployment automation, documented in full.">
   <meta property="og:url" content="https://atlas-systems.uk/work/">
   <meta property="og:site_name" content="Atlas Systems">
-  <meta property="og:image" content="https://atlas-systems.uk/og-default.png">
+  <meta property="og:image" content="https://atlas-systems.uk/og/work.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Atlas Systems: audio systems, local AI infrastructure, and deployment automation">
+  <meta property="og:image:alt" content="Systems with evidence. // Atlas Systems">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Work // Atlas Systems">
   <meta name="twitter:description" content="Selected projects: audio systems, local AI infrastructure, and deployment automation, documented in full.">
-  <meta name="twitter:image" content="https://atlas-systems.uk/og-default.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=DM+Serif+Display:ital@0;1&amp;display=swap" rel="stylesheet">
+  <meta name="twitter:image" content="https://atlas-systems.uk/og/work.png">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/css/card-search.css">
   <link rel="stylesheet" href="/css/atlas-terminal-card-v3.css?v=20260705-close-hidden">
+  <script src="/static/js/enable-enhancements.js"></script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    :root{--bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;--border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);--text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;--accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);--mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px}
+    :root{--bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;--border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);--text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#888894;--accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);--mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px}
     html{scroll-behavior:smooth}
     body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
     body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
@@ -52,8 +56,9 @@
     .filter-btn:hover{border-color:var(--border-hi);color:var(--text)}
     .filter-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
     .projects{padding:3rem 0}
-    .project-entry{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);margin-bottom:1px;opacity:0;transform:translateY(12px);transition:opacity 0.4s ease,transform 0.4s ease,border-color 0.2s}
-    .project-entry.visible{opacity:1;transform:translateY(0)}
+    .project-entry{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);margin-bottom:1px;opacity:1;transform:none;transition:opacity 0.4s ease,transform 0.4s ease,border-color 0.2s}
+    .js .project-entry{opacity:0;transform:translateY(12px)}
+    .js .project-entry.visible{opacity:1;transform:translateY(0)}
     .project-entry:hover{border-color:var(--border-hi)}
     .project-entry.hidden{display:none}
     .project-media{background:var(--bg-1);border-right:1px solid var(--border);min-height:320px;display:flex;flex-direction:column;position:relative;overflow:hidden}
@@ -126,7 +131,10 @@
     .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
     @media(max-width:780px){.project-entry{grid-template-columns:1fr}.project-media{border-right:none;border-bottom:1px solid var(--border);min-height:220px}.project-info{padding:1.5rem}.spec-grid{grid-template-columns:1fr}.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}}
   </style>
+  <link rel="stylesheet" href="/static/css/editorial-surfaces-v2.css?v=20260723-editorial-v2">
   <link rel="stylesheet" href="/static/css/estate-search.css">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260724-source-hardening">
+  <meta name="twitter:image:alt" content="Systems with evidence. // Atlas Systems">
 </head>
 <body>
   <nav aria-label="Primary navigation">
@@ -135,6 +143,7 @@
       <li><a href="/work/" class="nav-link">Work</a></li>
       <li><a href="/writing/" class="nav-link">Writing</a></li>
       <li><a href="/lab/" class="nav-link">Lab</a></li>
+      <li><a href="/systems/" class="nav-link">Systems</a></li>
       <li><a href="/about/" class="nav-link">About</a></li>
       <li>
         <button type="button" class="es-nav-search" data-estate-search-open
@@ -153,17 +162,43 @@
   <main>
     <header class="page-header">
       <div class="section-label">Work</div>
-      <h1 class="page-heading">Selected projects.</h1>
-      <p class="page-sub">Systems built to spec, documented in full. Each project is an exercise in architecture decisions, not just implementation.</p>
+      <h1 class="page-heading">Systems with evidence.</h1>
+      <p class="page-sub">Three flagship builds across local AI, generative audio, and real-time game systems. The result comes first; implementation depth stays available without overwhelming the initial scan.</p>
     </header>
 
-    <div class="filter-bar">
+    <section class="work-featured" aria-labelledby="work-featured-heading">
+      <div class="editorial-section-heading">
+        <div>
+          <div class="section-label">Featured work</div>
+          <h2 id="work-featured-heading">Three operating domains.</h2>
+        </div>
+        <p>Start with the system closest to your interests, then open its implementation detail or full case study.</p>
+      </div>
+      <div class="work-featured-grid">
+        <a href="#ramone" class="work-featured-card" data-domain="ai">
+          <span class="work-featured-index">P-01 / Local AI</span>
+          <strong>Ramone</strong>
+          <span>Private intelligence infrastructure with local inference, retrieval, and bounded public edges.</span>
+        </a>
+        <a href="#sonin" class="work-featured-card" data-domain="audio">
+          <span class="work-featured-index">P-03 / Generative audio</span>
+          <strong>SONIN</strong>
+          <span>An autonomous audio-visual instrument built around dual engines and an analysis feedback loop.</span>
+        </a>
+        <a href="#slampunk" class="work-featured-card" data-domain="game">
+          <span class="work-featured-index">P-02 / Game audio</span>
+          <strong>SlamPunk</strong>
+          <span>A real-time dynamic mix engine that responds to competitive play without masking gameplay cues.</span>
+        </a>
+      </div>
+    </section>
+
+    <div class="filter-bar atlas-filter-bar" role="group" aria-label="Filter projects">
       <button type="button" class="filter-btn active" data-filter="all">All</button>
+      <button type="button" class="filter-btn" data-filter="ai">AI Systems</button>
+      <button type="button" class="filter-btn" data-filter="devops">Infrastructure</button>
       <button type="button" class="filter-btn" data-filter="audio">Audio Systems</button>
-      <button type="button" class="filter-btn" data-filter="generative">Generative</button>
-      <button type="button" class="filter-btn" data-filter="ai">AI / LLMs</button>
-      <button type="button" class="filter-btn" data-filter="devops">DevOps</button>
-      <button type="button" class="filter-btn" data-filter="gamedev">Game Dev</button>
+      <button type="button" class="filter-btn" data-filter="gamedev">Game Development</button>
     </div>
 
     <div class="card-search">
@@ -177,10 +212,17 @@
     </div>
     <p class="card-search-empty" id="card-search-empty" hidden></p>
 
-    <div class="projects">
+    <section class="work-directory" aria-labelledby="work-directory-heading">
+      <div class="editorial-directory-heading">
+        <div class="section-label">All projects</div>
+        <h2 id="work-directory-heading">The full build record.</h2>
+        <p>Media, role, result, and primary links stay visible. Specs, tools, and supporting outcomes open on demand.</p>
+      </div>
+      <div class="projects">
 
       <!-- P-01: Ramone -->
-      <article class="project-entry" id="local-ai" data-tags="ai devops">
+      <span class="legacy-anchor" id="local-ai" aria-hidden="true"></span>
+      <article class="project-entry" id="ramone" data-project-id="ramone" data-project-section="featured" data-tags="ai devops">
         <div class="project-media">
           <div class="gallery" id="ramone-gallery" onclick="openLightbox(getCurrentGalleryImg('ramone-gallery'),'ramone-gallery')">
             <img class="gallery-img active" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909877/atlas-boot_xqryln.png" alt="ATLAS boot sequence">
@@ -216,13 +258,20 @@
           <h2 class="project-title">Ramone — Local AI System</h2>
           <div class="project-role">Architect &amp; Systems Engineer</div>
           <p class="project-desc">A fully self-hosted private AI infrastructure — zero cloud dependency, zero data egress. Five LLMs served via Ollama on local hardware, wrapped in Docker, accessed through Open WebUI with ten specialised workbots backed by RAG knowledge bases. Everything lives on a dedicated NVMe drive: portable, rebuildable in under 30 minutes.</p>
-          <div class="spec-grid">
+          <div class="project-result">
+            <span class="project-result-label">Result</span>
+            <p>Five local models and ten specialised workbots run without cloud inference or data egress, and the stack remains portable enough to rebuild in under 30 minutes.</p>
+          </div>
+          <details class="project-disclosure">
+            <summary><span>Technical detail</span><span aria-hidden="true">expand</span></summary>
+            <div class="project-disclosure-body">
+              <div class="spec-grid">
             <div class="spec-cell"><div class="spec-label">GPU</div><div class="spec-value">RTX 5070 — 12GB VRAM</div></div>
             <div class="spec-cell"><div class="spec-label">RAM</div><div class="spec-value">64GB DDR5</div></div>
             <div class="spec-cell"><div class="spec-label">Models</div><div class="spec-value">5 LLMs / 3b–32b params</div></div>
             <div class="spec-cell"><div class="spec-label">Workbots</div><div class="spec-value">10 specialised agents</div></div>
-          </div>
-          <div class="tech-stack">
+              </div>
+              <div class="tech-stack">
             <span class="tech-pill">Ollama</span>
             <span class="tech-pill">Docker</span>
             <span class="tech-pill">WSL2</span>
@@ -230,19 +279,21 @@
             <span class="tech-pill">Open WebUI</span>
             <span class="tech-pill">RAG Pipelines</span>
             <span class="tech-pill">Windows Batch</span>
-          </div>
-          <div class="achievements">
+              </div>
+              <div class="achievements">
             <div class="achievement">Full data sovereignty — conversations, documents, and RAG knowledge bases never leave local hardware</div>
             <div class="achievement">Custom ATLAS_BOOTSTRAP.bat auto-starts full stack on boot — Docker, Ollama, Open WebUI with live health checks</div>
             <div class="achievement">RAG knowledge bases built from chunked university lecture PDFs — Academic Vector Index grounded in real course material</div>
             <div class="achievement">Hardware portable — entire system on L:\ NVMe, rebuildable on new hardware in under 30 minutes</div>
             <div class="achievement">Model selection matched to task profile: 3b for speed, 32b for deep reasoning and RAG retrieval</div>
-          </div>
+              </div>
+            </div>
+          </details>
           <div class="project-links">
             <a href="/writing/ramone-local-ai-system/" class="proj-link primary">
               <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Case Study
             </a>
-            <a href="https://github.com/AtlasReaper311" class="proj-link" target="_blank" rel="noopener">
+            <a href="https://github.com/AtlasReaper311/ramone-edge" class="proj-link" target="_blank" rel="noopener">
               <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>GitHub
             </a>
           </div>
@@ -250,7 +301,7 @@
       </article>
 
       <!-- P-02: SlamPunk -->
-      <article class="project-entry" data-tags="audio gamedev">
+      <article class="project-entry" id="slampunk" data-project-id="slampunk" data-project-section="featured" data-tags="audio gamedev">
         <div class="project-media">
           <div class="gallery" id="slampunk-gallery" onclick="openLightbox(getCurrentGalleryImg('slampunk-gallery'),'slampunk-gallery')">
             <img class="gallery-img active" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779909415/slampunk-graph_tizmj4.png" alt="Full MetaSound graph overview">
@@ -290,40 +341,46 @@
           <h2 class="project-title">SlamPunk — Dynamic Mix Engine</h2>
           <div class="project-role">Lead Audio Systems Designer &amp; Music Producer</div>
           <p class="project-desc">A logic-driven dynamic audio engine for SlamPunk — a competitive future-sport game blending tag and basketball. Engineered a 15-stem interactive music system that mirrors player performance in real time, escalating from a minimal atmospheric floor to a dense triumphant climax while maintaining surgical clarity for competitive gameplay cues.</p>
-          <div class="spec-grid">
+          <div class="project-result">
+            <span class="project-result-label">Result</span>
+            <p>A 15-stem music system moves across three intensity layers on a locked 140 BPM grid while preserving gameplay cues through sidechain ducking and spectral carving.</p>
+          </div>
+          <details class="project-disclosure">
+            <summary><span>Technical detail</span><span aria-hidden="true">expand</span></summary>
+            <div class="project-disclosure-body">
+              <div class="spec-grid">
             <div class="spec-cell"><div class="spec-label">Timeline</div><div class="spec-value">14 weeks / ~600hrs</div></div>
             <div class="spec-cell"><div class="spec-label">Grade</div><div class="spec-value">100% — Grade A</div></div>
             <div class="spec-cell"><div class="spec-label">Architecture</div><div class="spec-value">15-stem / 3 intensity layers</div></div>
             <div class="spec-cell"><div class="spec-label">BPM Grid</div><div class="spec-value">140 BPM locked</div></div>
-          </div>
-          <div class="tech-stack">
+              </div>
+              <div class="tech-stack">
             <span class="tech-pill">Unreal Engine 5</span>
             <span class="tech-pill">MetaSounds</span>
             <span class="tech-pill">Blueprints</span>
             <span class="tech-pill">FL Studio 24</span>
             <span class="tech-pill">REAPER v7</span>
             <span class="tech-pill">Vital (Wavetable)</span>
-          </div>
-          <div class="achievements">
+              </div>
+              <div class="achievements">
             <div class="achievement">15-stem dynamic music system split across 3 match intensities and 5 discrete instrument busses</div>
             <div class="achievement">Real-time sidechain ducking — music stems duck dynamically when parkour SFX or commentator lines trigger</div>
             <div class="achievement">Hierarchical submix tree with spectral carving — Data Bus hard high-passed at 200Hz to preserve low-end headroom</div>
             <div class="achievement">Global Music Manager Blueprint locks all transitions to 140 BPM grid — zero rhythmic stutter on intensity escalation</div>
             <div class="achievement">Fully modular pipeline — new arenas and themes hot-swap into established mix framework without breaking thresholds</div>
-          </div>
+              </div>
+            </div>
+          </details>
           <div class="project-links">
             <a href="/writing/slampunk-dynamic-mix-engine/" class="proj-link primary">
               <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Case Study
-            </a>
-            <a href="https://github.com/AtlasReaper311" class="proj-link" target="_blank" rel="noopener">
-              <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>GitHub
             </a>
           </div>
         </div>
       </article>
 
       <!-- P-03: SONIN -->
-      <article class="project-entry" data-tags="audio generative">
+      <article class="project-entry" id="sonin" data-project-id="sonin" data-project-section="featured" data-tags="audio generative">
         <div class="project-media">
           <div class="gallery" id="sonin-gallery" onclick="openLightbox(getCurrentGalleryImg('sonin-gallery'),'sonin-gallery')">
             <img class="gallery-img active" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1779970550/atlas-sonin_my4ymh.png" alt="SONIN — full system running">
@@ -365,27 +422,36 @@
           <h2 class="project-title">SONIN — Generative Audio-Visual System</h2>
           <div class="project-role">Designer &amp; DSP Engineer</div>
           <p class="project-desc">An autonomous digital instrument built in Max/MSP that composes its own evolving music and visuals in real time by continuously listening and reacting to the sounds it creates. A dual-engine architecture (melodic and granular) connected by an internal audio feedback loop; the system analyses its own output and routes that data back into its own generative parameters.</p>
-          <div class="spec-grid">
+          <div class="project-result">
+            <span class="project-result-label">Result</span>
+            <p>Two generative engines remain musically stable through an internal analysis feedback loop while GPU-rendered visuals leave the audio thread unaffected.</p>
+          </div>
+          <details class="project-disclosure">
+            <summary><span>Technical detail</span><span aria-hidden="true">expand</span></summary>
+            <div class="project-disclosure-body">
+              <div class="spec-grid">
             <div class="spec-cell"><div class="spec-label">Timeline</div><div class="spec-value">Sept – Dec 2025</div></div>
             <div class="spec-cell"><div class="spec-label">Grade</div><div class="spec-value">100%</div></div>
             <div class="spec-cell"><div class="spec-label">Architecture</div><div class="spec-value">Dual-engine + feedback loop</div></div>
             <div class="spec-cell"><div class="spec-label">Visual</div><div class="spec-value">GPU pipeline via Jitter</div></div>
-          </div>
-          <div class="tech-stack">
+              </div>
+              <div class="tech-stack">
             <span class="tech-pill">Max/MSP</span>
             <span class="tech-pill">Jitter</span>
             <span class="tech-pill">poly~</span>
             <span class="tech-pill">pfft~</span>
             <span class="tech-pill">pattrstorage</span>
             <span class="tech-pill">jit.gl.slab</span>
-          </div>
-          <div class="achievements">
+              </div>
+              <div class="achievements">
             <div class="achievement">Scale-constrained melodic engine using coll lookup tables — infinite variation that never leaves the key</div>
             <div class="achievement">Granular engine with dynamic micro-fade voice management — runs at maximum density without DSP artifacts</div>
             <div class="achievement">Internal RMS and spectral brightness feedback loop creates genuine cause-and-effect between engines</div>
             <div class="achievement">Non-linear logarithmic scaling prevents feedback runaway — system settles into stable evolving states</div>
             <div class="achievement">Full GPU visual pipeline via jit.gl.* — pixel math offloaded to graphics card, audio thread unaffected</div>
-          </div>
+              </div>
+            </div>
+          </details>
           <div class="project-links">
             <a href="/writing/sonin-generative-system/" class="proj-link primary">
               <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Case Study
@@ -399,7 +465,8 @@
 
       <!-- WORK_CARDS_INSERT_POINT -->
 
-    </div>
+      </div>
+    </section>
   </main>
 
   <div class="lightbox" id="lightbox" onclick="closeLightbox()">

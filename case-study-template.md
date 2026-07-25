@@ -143,7 +143,7 @@ Every article must include:
 
 ## Google Fonts import (required)
 ```html
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
 ```
 
 ---

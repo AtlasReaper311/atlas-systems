@@ -104,12 +104,17 @@ jobs:
           test "${SOURCE_BRANCH}" != "main"
           test "${PAGES_BRANCH}" != "main"
 
+      - name: Prepare filtered Pages publish artifact
+        run: bash scripts/prepare_pages_publish.sh "${RUNNER_TEMP}/pages-publish"
+
       - name: Deploy preview with Wrangler
         id: deploy
+        env:
+          PUBLISH_DIRECTORY: ${{ runner.temp }}/pages-publish
         run: |
           set -euo pipefail
           output_file="${RUNNER_TEMP}/wrangler-pages-deploy.log"
-          npx --yes wrangler@4.109.0 pages deploy . \
+          npx --yes wrangler@4.109.0 pages deploy "${PUBLISH_DIRECTORY}" \
             --project-name "${PROJECT_NAME}" \
             --branch "${PAGES_BRANCH}" \
             --commit-dirty=true 2>&1 | tee "${output_file}"

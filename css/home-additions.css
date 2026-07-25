@@ -29,7 +29,7 @@
 .estate-strip-dot {
   width: 7px; height: 7px;
   border-radius: 50%;
-  background: var(--text-faint, #555560);
+  background: var(--text-faint, #888894);
   flex: none;
   transition: background 0.3s, box-shadow 0.3s;
 }
@@ -50,7 +50,7 @@
 .estate-strip-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .estate-strip-cta {
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   white-space: nowrap;
   transition: color 0.15s;
 }
@@ -239,7 +239,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -280,7 +280,7 @@
 .ops-rail-label {
   display: block;
   margin-bottom: 0.35rem;
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;

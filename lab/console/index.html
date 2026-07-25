@@ -1,0 +1,3624 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Lab — Atlas Systems. Live commit activity, recent stack events, and experiments in progress."
+    />
+    <meta name="theme-color" content="#0a0a0f" />
+    <title>Lab // Atlas Systems</title>
+    <link rel="canonical" href="https://atlas-systems.uk/lab/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Lab // Atlas Systems" />
+    <meta
+      property="og:description"
+      content="Live commit activity, recent stack events, and experiments in progress across the Atlas Systems estate."
+    />
+    <meta property="og:url" content="https://atlas-systems.uk/lab/" />
+    <meta property="og:site_name" content="Atlas Systems" />
+    <meta
+      property="og:image"
+      content="https://atlas-systems.uk/og/console.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Live systems. // Atlas Systems"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Lab // Atlas Systems" />
+    <meta
+      name="twitter:description"
+      content="Live commit activity, recent stack events, and experiments in progress across the Atlas Systems estate."
+    />
+    <meta
+      name="twitter:image"
+      content="https://atlas-systems.uk/og/console.png"
+    />
+    <link
+      rel="stylesheet"
+      href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css"
+    />
+    <link rel="stylesheet" href="/lab/lab-card.css?v=20260707-lab-cache" />
+    <link rel="stylesheet" href="/lab/system-map.css?v=20260715-route-clarity" />
+    <link
+      rel="stylesheet"
+      href="/lab/blackbox-timeline.css?v=20260707-lab-cache"
+    />
+    <link rel="stylesheet" href="/lab/live-section.css?v=20260707-corpus-ask" />
+    <link rel="stylesheet" href="/lab/live-infra.css?v=20260706-live-infra" />
+    <link
+      rel="stylesheet"
+      href="/lab/ops-console.css?v=20260705-ops-console-v2"
+    />
+    <link
+      rel="stylesheet"
+      href="/css/atlas-terminal-card-v3.css?v=20260705-close-hidden"
+    />
+    <link
+      rel="stylesheet"
+      href="/static/css/system-symphony.css?v=20260718-system-symphony-ghost-mix"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --bg: #0a0a0f;
+        --bg-1: #111118;
+        --bg-2: #1a1a24;
+        --border: rgba(255, 255, 255, 0.08);
+        --border-hi: rgba(255, 255, 255, 0.16);
+        --text: #e8e8e0;
+        --text-dim: #aaa9a0;
+        --text-faint: #888894;
+        --accent: #f5a623;
+        --accent-dim: rgba(245, 166, 35, 0.12);
+        --mono: "IBM Plex Mono", monospace;
+        --serif: "DM Serif Display", Georgia, serif;
+        --nav-h: 56px;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--mono);
+        font-size: 14px;
+        line-height: 1.6;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 80px 80px;
+        pointer-events: none;
+        z-index: 0;
+      }
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: var(--nav-h);
+        background: rgba(10, 10, 15, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 clamp(1.5rem, 5vw, 3rem);
+        z-index: 100;
+      }
+      .nav-wordmark {
+        font-family: var(--mono);
+        font-weight: 500;
+        font-size: 13px;
+        letter-spacing: 0.12em;
+        color: var(--text);
+        text-decoration: none;
+        text-transform: uppercase;
+      }
+      .nav-wordmark span {
+        color: var(--accent);
+      }
+      .nav-links {
+        display: flex;
+        list-style: none;
+      }
+      .nav-links a {
+        display: block;
+        padding: 0.35rem 1rem;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        text-decoration: none;
+        transition: color 0.15s;
+        position: relative;
+      }
+      .nav-links a::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        left: 50%;
+        right: 50%;
+        height: 1px;
+        background: var(--accent);
+        transition:
+          left 0.2s,
+          right 0.2s;
+      }
+      .nav-links a:hover {
+        color: var(--text);
+      }
+      .nav-links a:hover::after,
+      .nav-links a.active::after {
+        left: 1rem;
+        right: 1rem;
+      }
+      .nav-links a.active {
+        color: var(--text);
+      }
+      main {
+        max-width: 1420px;
+        margin: 0 auto;
+        padding: 0 clamp(1.5rem, 5vw, 3rem);
+        position: relative;
+        z-index: 1;
+      }
+      .page-header {
+        padding-top: calc(var(--nav-h) + 5rem);
+        padding-bottom: 4rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .section-label {
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .section-label::before {
+        content: "";
+        display: inline-block;
+        width: 24px;
+        height: 1px;
+        background: var(--accent);
+      }
+      .page-heading {
+        font-family: var(--serif);
+        font-size: clamp(2.2rem, 5vw, 3.8rem);
+        line-height: 1.05;
+        color: var(--text);
+        margin-bottom: 1.25rem;
+        opacity: 0;
+        transform: translateY(10px);
+        animation: fadeUp 0.5s 0.1s ease forwards;
+      }
+      .page-sub {
+        font-size: 13px;
+        color: var(--text-dim);
+        max-width: 520px;
+        line-height: 1.8;
+        opacity: 0;
+        transform: translateY(10px);
+        animation: fadeUp 0.5s 0.22s ease forwards;
+      }
+      @keyframes fadeUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .section {
+        padding: 5rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .heatmap-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.75rem;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+      .heatmap-stats {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+      }
+      .heatmap-stat {
+        font-size: 12px;
+        color: var(--text-dim);
+      }
+      .heatmap-stat strong {
+        color: var(--text);
+        font-weight: 500;
+      }
+      .heatmap-legend {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 10px;
+        color: var(--text-faint);
+        letter-spacing: 0.06em;
+      }
+      .heatmap-legend-cells {
+        display: flex;
+        gap: 3px;
+        align-items: center;
+      }
+      .heatmap-legend-cell {
+        width: 11px;
+        height: 11px;
+        border-radius: 2px;
+      }
+      .heatmap-outer {
+        display: flex;
+        gap: 6px;
+        align-items: flex-start;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+      }
+      .heatmap-left {
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        padding-top: 18px;
+      }
+      .heatmap-day-label {
+        font-size: 9px;
+        color: var(--text-faint);
+        line-height: 11px;
+        height: 11px;
+        display: flex;
+        align-items: center;
+        letter-spacing: 0.04em;
+        margin-bottom: 3px;
+      }
+      .heatmap-day-label:last-child {
+        margin-bottom: 0;
+      }
+      .heatmap-right {
+        display: flex;
+        flex-direction: column;
+      }
+      .heatmap-month-row {
+        display: flex;
+        height: 16px;
+        margin-bottom: 4px;
+        position: relative;
+      }
+      .heatmap-month-label {
+        font-size: 10px;
+        color: var(--text-faint);
+        letter-spacing: 0.06em;
+        position: absolute;
+        white-space: nowrap;
+      }
+      .heatmap-grid {
+        display: grid;
+        grid-template-rows: repeat(7, 11px);
+        grid-auto-flow: column;
+        gap: 3px;
+      }
+      .heatmap-cell {
+        width: 11px;
+        height: 11px;
+        border-radius: 2px;
+        background: var(--bg-2);
+        transition: opacity 0.1s;
+      }
+      .heatmap-cell.empty {
+        visibility: hidden;
+      }
+      .heatmap-cell:not(.empty) {
+        cursor: pointer;
+      }
+      .heatmap-cell:not(.empty):hover {
+        opacity: 0.75;
+      }
+      .heatmap-cell[data-level="1"] {
+        background: rgba(245, 166, 35, 0.18);
+      }
+      .heatmap-cell[data-level="2"] {
+        background: rgba(245, 166, 35, 0.38);
+      }
+      .heatmap-cell[data-level="3"] {
+        background: rgba(245, 166, 35, 0.62);
+      }
+      .heatmap-cell[data-level="4"] {
+        background: var(--accent);
+      }
+      .heatmap-note {
+        font-size: 11px;
+        color: var(--text-faint);
+        margin-top: 1.25rem;
+        letter-spacing: 0.04em;
+      }
+      #heatmap-tooltip {
+        position: fixed;
+        background: var(--bg-1);
+        border: 1px solid var(--border-hi);
+        padding: 0.4rem 0.75rem;
+        font-size: 11px;
+        color: var(--text-dim);
+        pointer-events: none;
+        z-index: 500;
+        display: none;
+        white-space: nowrap;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      }
+      #heatmap-tooltip strong {
+        color: var(--text);
+        display: block;
+        font-size: 12px;
+        margin-bottom: 1px;
+      }
+      .lab-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+      }
+      .flog-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 1.25rem;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+      .flog-meta {
+        font-size: 12px;
+        color: var(--text-dim);
+      }
+      .flog-meta strong {
+        color: var(--text);
+        font-weight: 500;
+      }
+      .flog-filters {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+      }
+      .flog-chip {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        background: none;
+        border: 1px solid var(--border);
+        padding: 0.2rem 0.6rem;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .flog-chip:hover {
+        color: var(--text-dim);
+        border-color: var(--border-hi);
+      }
+      .flog-chip.active {
+        color: var(--text);
+        border-color: rgba(245, 166, 35, 0.5);
+      }
+      .flog-chip .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .flog-chip .dot.success {
+        background: #4ade80;
+      }
+      .flog-chip .dot.warning {
+        background: var(--accent);
+      }
+      .flog-chip .dot.failure {
+        background: #e24b4a;
+      }
+      .flog-chip .dot.info {
+        background: #888;
+      }
+      .flog-chip .count {
+        color: var(--text-faint);
+        font-variant-numeric: tabular-nums;
+      }
+      .flog-refresh {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        background: none;
+        border: 1px solid var(--border);
+        padding: 0.2rem 0.6rem;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .flog-refresh:hover {
+        color: var(--text-dim);
+        border-color: var(--border-hi);
+      }
+      .flog-list {
+        display: flex;
+        flex-direction: column;
+        max-height: 420px;
+        overflow-y: auto;
+        border: 1px solid var(--border);
+      }
+      .flog-list::-webkit-scrollbar {
+        width: 3px;
+      }
+      .flog-list::-webkit-scrollbar-track {
+        background: var(--bg-1);
+      }
+      .flog-list::-webkit-scrollbar-thumb {
+        background: var(--border-hi);
+      }
+      .flog-entry {
+        display: grid;
+        grid-template-columns: 20px 1fr auto;
+        gap: 0.75rem;
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid var(--border);
+        align-items: start;
+      }
+      .flog-entry:last-child {
+        border-bottom: none;
+      }
+      .flog-entry:first-child {
+        background: var(--bg-1);
+      }
+      .flog-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-top: 5px;
+        flex-shrink: 0;
+      }
+      .flog-dot.success {
+        background: #4ade80;
+        box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.12);
+      }
+      .flog-dot.info {
+        background: #888;
+        box-shadow: 0 0 0 3px rgba(136, 136, 136, 0.12);
+      }
+      .flog-dot.warning {
+        background: var(--accent);
+        box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.12);
+      }
+      .flog-dot.failure {
+        background: #e24b4a;
+        box-shadow: 0 0 0 3px rgba(226, 75, 74, 0.12);
+      }
+      .flog-body {
+        min-width: 0;
+      }
+      .flog-source {
+        font-size: 10px;
+        color: var(--accent);
+        letter-spacing: 0.06em;
+        margin-bottom: 3px;
+        text-transform: uppercase;
+      }
+      .flog-badge {
+        display: inline-block;
+        font-size: 9px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        padding: 1px 6px;
+        border-radius: 2px;
+        margin-left: 6px;
+        vertical-align: 1px;
+        font-family: var(--mono);
+      }
+      .flog-badge.cicd {
+        color: var(--accent);
+        background: rgba(245, 166, 35, 0.12);
+        border: 1px solid rgba(245, 166, 35, 0.3);
+      }
+      .flog-badge.runtime {
+        color: var(--text-faint);
+        background: rgba(136, 136, 136, 0.1);
+        border: 1px solid var(--border);
+      }
+      .flog-title {
+        font-size: 12px;
+        color: var(--text);
+        line-height: 1.4;
+        margin-bottom: 2px;
+        word-wrap: break-word;
+        overflow-wrap: anywhere;
+      }
+      .flog-msg {
+        font-size: 11px;
+        color: var(--text-dim);
+        line-height: 1.55;
+        word-wrap: break-word;
+        overflow-wrap: anywhere;
+      }
+      .flog-when {
+        font-size: 10px;
+        color: var(--text-faint);
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+        text-align: right;
+        padding-top: 1px;
+      }
+      .flog-empty {
+        padding: 2rem 1rem;
+        font-size: 12px;
+        color: var(--text-faint);
+        text-align: center;
+      }
+      .flog-loading {
+        padding: 2rem 1rem;
+        font-size: 12px;
+        color: var(--text-faint);
+        text-align: center;
+      }
+      .flog-note {
+        font-size: 11px;
+        color: var(--text-faint);
+        margin-top: 1rem;
+        letter-spacing: 0.04em;
+      }
+      .pgrid-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+      .pgrid-meta {
+        font-size: 12px;
+        color: var(--text-dim);
+      }
+      .pgrid-meta strong {
+        color: var(--text);
+        font-weight: 500;
+      }
+      .pgrid-legend {
+        display: flex;
+        gap: 1rem;
+        font-size: 10px;
+        color: var(--text-faint);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .pgrid-legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .pgrid-legend .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+      }
+      .pgrid-legend .dot.success {
+        background: #4ade80;
+      }
+      .pgrid-legend .dot.activity {
+        background: var(--accent);
+      }
+      .pgrid-legend .dot.failure {
+        background: #e24b4a;
+      }
+      .pgrid-legend .dot.info {
+        background: #38bdf8;
+      }
+      .pgrid-legend .dot.none {
+        background: none;
+        border: 1px solid var(--text-faint);
+      }
+      .pgrid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+      }
+      .pgrid-tile {
+        background: var(--bg);
+        padding: 1.1rem 1.15rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        position: relative;
+        min-height: 118px;
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .pgrid-tile:hover {
+        background: var(--bg-1);
+      }
+      .pgrid-tile.idle {
+        background: rgba(17, 17, 24, 0.36);
+      }
+      .pgrid-tile.stale {
+        background: var(--bg);
+      }
+      .pgrid-tile.registry-live {
+        background: rgba(13, 20, 23, 0.9);
+      }
+      .pgrid-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+      .pgrid-repo {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--text);
+        letter-spacing: 0.02em;
+        line-height: 1.2;
+        word-break: break-all;
+      }
+      .pgrid-tile.idle .pgrid-repo {
+        color: var(--text-faint);
+      }
+      .pgrid-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .pgrid-dot.success {
+        background: #4ade80;
+        box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.14);
+      }
+      .pgrid-dot.activity {
+        background: var(--accent);
+        box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.14);
+      }
+      .pgrid-dot.warning {
+        background: var(--accent);
+        box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.14);
+      }
+      .pgrid-dot.failure {
+        background: #e24b4a;
+        box-shadow: 0 0 0 3px rgba(226, 75, 74, 0.14);
+      }
+      .pgrid-dot.info {
+        background: #38bdf8;
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.14);
+      }
+      .pgrid-dot.none {
+        background: transparent;
+        border: 1px solid rgba(232, 232, 224, 0.35);
+        box-shadow: none;
+      }
+      .pgrid-meta-line {
+        font-size: 10px;
+        color: var(--text-faint);
+        letter-spacing: 0.04em;
+        font-variant-numeric: tabular-nums;
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      .pgrid-sha {
+        color: var(--text-dim);
+      }
+      .pgrid-sep {
+        color: var(--text-faint);
+      }
+      .pgrid-stale-tag {
+        color: var(--text-faint);
+        text-transform: uppercase;
+        font-size: 9px;
+        letter-spacing: 0.06em;
+      }
+      .pgrid-summary {
+        font-size: 11px;
+        color: var(--text-dim);
+        line-height: 1.45;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+      .pgrid-tile.idle .pgrid-summary {
+        color: var(--text-faint);
+      }
+      .pgrid-pulse {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 1px;
+        background: var(--border);
+        overflow: hidden;
+      }
+      .pgrid-tile.recent .pgrid-pulse::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -30%;
+        width: 30%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--accent),
+          transparent
+        );
+        animation: pgridSweep 6s linear infinite;
+      }
+      @keyframes pgridSweep {
+        0% {
+          left: -30%;
+        }
+        100% {
+          left: 100%;
+        }
+      }
+      .pgrid-stats {
+        display: flex;
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-bottom: none;
+      }
+      .pgrid-stat-chip {
+        flex: 1;
+        background: var(--bg);
+        padding: 0.75rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        min-width: 0;
+      }
+      .pgrid-stat-val {
+        font-family: var(--mono);
+        font-size: 16px;
+        color: var(--text);
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .pgrid-stat-val.good {
+        color: #4ade80;
+      }
+      .pgrid-stat-val.warn {
+        color: var(--accent);
+      }
+      .pgrid-stat-val.bad {
+        color: #e24b4a;
+      }
+      .pgrid-stat-label {
+        font-size: 10px;
+        color: var(--text-faint);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      @media (max-width: 600px) {
+        .pgrid-stats {
+          flex-wrap: wrap;
+        }
+        .pgrid-stat-chip {
+          flex: 1 0 45%;
+        }
+      }
+      .health-strip {
+        display: flex;
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-top: none;
+        margin-bottom: 1rem;
+      }
+      .health-chip {
+        flex: 1;
+        background: var(--bg);
+        padding: 0.65rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        min-width: 0;
+      }
+      .health-chip-name {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--text-faint);
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .health-chip-row {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+      }
+      .health-chip-latency {
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--text);
+        font-variant-numeric: tabular-nums;
+      }
+      .health-chip-latency.fast {
+        color: #4ade80;
+      }
+      .health-chip-latency.medium {
+        color: var(--accent);
+      }
+      .health-chip-latency.slow {
+        color: var(--accent);
+      }
+      .health-chip-latency.err {
+        color: var(--text-faint);
+        font-size: 11px;
+      }
+      .health-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .health-dot.up {
+        background: #4ade80;
+        box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.14);
+      }
+      .health-dot.degraded {
+        background: var(--accent);
+        box-shadow: 0 0 0 2px rgba(245, 166, 35, 0.14);
+      }
+      .health-dot.down {
+        background: #e24b4a;
+        box-shadow: 0 0 0 2px rgba(226, 75, 74, 0.14);
+      }
+      .health-loading {
+        font-size: 11px;
+        color: var(--text-faint);
+        padding: 0.75rem 1rem;
+        font-family: var(--mono);
+      }
+      @media (max-width: 600px) {
+        .health-strip {
+          flex-wrap: wrap;
+        }
+        .health-chip {
+          flex: 1 0 45%;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .pgrid-tile.recent .pgrid-pulse::after {
+          animation: none;
+          opacity: 0;
+        }
+      }
+      @media (max-width: 880px) {
+        .pgrid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 420px) {
+        .pgrid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .api-surface-summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        margin-bottom: 0.9rem;
+      }
+      .api-surface-stat {
+        background: rgba(10, 10, 15, 0.92);
+        padding: 0.85rem 1rem;
+      }
+      .api-surface-stat strong {
+        display: block;
+        font-family: var(--mono);
+        font-size: 18px;
+        color: var(--text);
+        font-variant-numeric: tabular-nums;
+      }
+      .api-surface-stat span {
+        display: block;
+        margin-top: 0.2rem;
+        font-size: 10px;
+        color: var(--text-faint);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .api-surface-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 12px;
+      }
+      .api-worker-card {
+        background: rgba(10, 10, 15, 0.9);
+        border: 1px solid var(--border);
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        min-width: 0;
+      }
+      .api-worker-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 0.75rem;
+      }
+      .api-worker-name {
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--text);
+        letter-spacing: 0.02em;
+      }
+      .api-worker-link {
+        font-size: 10px;
+        color: var(--text-faint);
+        text-decoration: none;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+        transition: color 0.15s;
+      }
+      .api-worker-link:hover {
+        color: var(--accent);
+      }
+      .api-endpoint-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+      }
+      .api-endpoint-row {
+        padding-top: 0.7rem;
+        border-top: 1px solid var(--border);
+      }
+      .api-endpoint-row:first-child {
+        padding-top: 0;
+        border-top: none;
+      }
+      .api-endpoint-top {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .api-method {
+        font-family: var(--mono);
+        font-size: 9px;
+        letter-spacing: 0.04em;
+        padding: 1px 6px;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+      .api-method.get {
+        color: var(--text-dim);
+        background: rgba(136, 136, 136, 0.1);
+        border: 1px solid var(--border-hi);
+      }
+      .api-method.post {
+        color: var(--accent);
+        background: rgba(245, 166, 35, 0.12);
+        border: 1px solid rgba(245, 166, 35, 0.3);
+      }
+      .api-path {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--text-dim);
+        word-break: break-all;
+      }
+      .api-auth-tag {
+        font-size: 9px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        border: 1px solid var(--border-hi);
+        padding: 1px 5px;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+      .api-desc {
+        font-size: 11px;
+        color: var(--text-faint);
+        line-height: 1.5;
+        margin-top: 0.35rem;
+      }
+      .api-more {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--text-faint);
+        padding-top: 0.55rem;
+        border-top: 1px solid var(--border);
+        letter-spacing: 0.04em;
+      }
+      .api-surface-note {
+        font-size: 11px;
+        color: var(--text-faint);
+        margin-top: 1.25rem;
+        letter-spacing: 0.04em;
+      }
+      .api-loading {
+        padding: 2rem 1rem;
+        font-size: 12px;
+        color: var(--text-faint);
+        text-align: center;
+        grid-column: 1/-1;
+      }
+      .dora-panel {
+        --dp-bg: var(--bg-nested, #1a1a24);
+        --dp-bg-deep: var(--bg-alt, #111118);
+        --dp-text: var(--text, #e8e8e0);
+        --dp-dim: var(--text-dim, #aaa9a0);
+        --dp-faint: var(--text-faint, #888894);
+        --dp-accent: var(--accent, #f5a623);
+        --dp-good: var(--status-green, #4ade80);
+        --dp-bad: var(--status-red, #e24b4a);
+        width: min(720px, 100%);
+        box-sizing: border-box;
+        margin: 0 auto;
+        background: var(--dp-bg-deep);
+        border: 1px solid var(--dp-faint);
+        padding: 1.25rem 1.5rem 1rem;
+        font-family: "IBM Plex Mono", monospace;
+        color: var(--dp-text);
+      }
+      .dora-panel h2 {
+        font-family: "DM Serif Display", serif;
+        font-weight: 400;
+        font-size: 1.4rem;
+        margin: 0 0 0.25rem;
+        color: var(--dp-accent);
+      }
+      .dora-panel .dp-sub {
+        color: var(--dp-faint);
+        font-size: 0.72rem;
+        margin: 0 0 1rem;
+      }
+      .dora-panel .dp-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 0.75rem;
+      }
+      .dora-panel .dp-card {
+        background: var(--dp-bg);
+        border: 1px solid var(--dp-faint);
+        padding: 0.85rem 1rem;
+      }
+      .dora-panel .dp-label {
+        color: var(--dp-dim);
+        font-size: 0.7rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .dora-panel .dp-value {
+        font-size: 1.7rem;
+        font-weight: 500;
+        margin: 0.3rem 0 0.15rem;
+        color: var(--dp-text);
+      }
+      .dora-panel .dp-trend {
+        font-size: 0.75rem;
+      }
+      .dora-panel .dp-trend.good {
+        color: var(--dp-good);
+      }
+      .dora-panel .dp-trend.bad {
+        color: var(--dp-bad);
+      }
+      .dora-panel .dp-trend.flat {
+        color: var(--dp-faint);
+      }
+      .dora-panel .dp-basis {
+        color: var(--dp-faint);
+        font-size: 0.68rem;
+        margin-top: 0.35rem;
+        line-height: 1.5;
+      }
+      .dora-panel .dp-degraded {
+        display: none;
+        color: var(--dp-accent);
+        font-size: 0.72rem;
+        margin-top: 0.85rem;
+        line-height: 1.5;
+      }
+      .dora-panel .dp-error {
+        display: none;
+        color: var(--dp-bad);
+        background: var(--dp-bg);
+        border: 1px solid var(--dp-bad);
+        padding: 0.75rem 1rem;
+        font-size: 0.78rem;
+        margin-top: 0.85rem;
+        line-height: 1.5;
+        word-break: break-word;
+      }
+      .dora-panel footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+        padding-top: 0.6rem;
+        border-top: 1px solid var(--dp-faint);
+        color: var(--dp-faint);
+        font-size: 0.68rem;
+      }
+      .mobile-nav {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 56px;
+        background: rgba(10, 10, 15, 0.95);
+        backdrop-filter: blur(12px);
+        border-top: 1px solid var(--border);
+        z-index: 100;
+      }
+      .mobile-nav-inner {
+        display: flex;
+        align-items: stretch;
+        height: 100%;
+      }
+      .mobile-nav-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        text-decoration: none;
+        color: var(--text-dim);
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        transition: color 0.15s;
+      }
+      .mobile-nav-item:hover,
+      .mobile-nav-item.active {
+        color: var(--accent);
+      }
+      .mobile-nav-item svg {
+        width: 18px;
+        height: 18px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      @media (max-width: 780px) {
+        .lab-grid {
+          grid-template-columns: 1fr;
+        }
+        .heatmap-stats {
+          gap: 1rem;
+        }
+      }
+      @media (max-width: 600px) {
+        .api-surface-summary {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 680px) {
+        .nav-links {
+          display: none;
+        }
+        .mobile-nav {
+          display: block;
+        }
+        main {
+          padding-bottom: 56px;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="/static/css/estate-search.css">
+    <!-- atlas-signal-reliability-landing-css -->
+    <link rel="stylesheet" href="/lab/shared/landing-systems.css?v=20260715-ramone-first-rack" />
+  <meta name="twitter:image:alt" content="Live systems. // Atlas Systems">
+</head>
+  <body>
+    <nav aria-label="Primary navigation">
+      <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
+      <ul class="nav-links">
+        <li><a href="/work/" class="nav-link">Work</a></li>
+        <li><a href="/writing/" class="nav-link">Writing</a></li>
+        <li><a href="/lab/" class="nav-link">Lab</a></li>
+        <li><a href="#dora-metrics" class="nav-link">Delivery</a></li>
+        <li><a href="/about/" class="nav-link">About</a></li>
+        <li>
+          <button type="button" class="es-nav-search" data-estate-search-open
+                  aria-label="Search the estate" aria-haspopup="dialog">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"></circle>
+              <line x1="21" y1="21" x2="16.2" y2="16.2"></line>
+            </svg>
+            Search
+            <kbd data-estate-search-kbd>ctrl k</kbd>
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <div id="heatmap-tooltip"><strong></strong><span></span></div>
+
+    <main>
+      <header class="page-header">
+        <div class="section-label">Lab</div>
+        <h1 class="page-heading">Live systems.</h1>
+        <p class="page-sub">
+          Real data from the Atlas Systems stack — commit activity, recent stack
+          events, and experiments in progress.
+        </p>
+      </header>
+
+
+      <!--
+  Drop-in Ramone hero block.
+  In your existing index.html, find the current Ramone section
+  (the one with id="ramone-card" / "ASK MY INFRASTRUCTURE")
+  and replace it ENTIRELY with the <section> below.
+
+  Requires: lab-card.css and ramone-hero.js (linked from index.html).
+  Uses the same CSS variables already defined in your <style> block
+  (--bg, --accent, --mono, --serif, etc) — nothing extra to add.
+-->
+
+      <section class="ramone-hero">
+        <div class="ramone-card awake" id="ramone-card">
+          <!-- title bar -->
+          <div class="ramone-hero-topbar">
+            <div class="ramone-lights"><i></i><i></i><i></i></div>
+            <div class="ramone-hero-sysinfo">
+              <strong>atlas-systems</strong>
+              <span class="rh-sep">//</span>
+              <strong>ramone</strong>
+            </div>
+            <div class="ramone-hero-live">
+              <span class="ramone-dot"></span>
+              <span id="ramone-state-label">connecting</span>
+            </div>
+          </div>
+
+          <!-- screen -->
+          <div class="ramone-hero-center">
+            <!-- typed boot log -->
+            <div class="ramone-boot" id="ramone-boot" aria-hidden="true"></div>
+
+            <!-- greeting headline (types "Hi, I'm Ramone.") -->
+            <h1 class="ramone-hero-heading is-pre" id="ramone-greet">
+              Hi, I'm <em>Ramone.</em><span class="ramone-caret"></span>
+            </h1>
+
+            <!-- self-talk musing line -->
+            <p class="ramone-musing" id="ramone-musing">
+              <span class="ramone-musing-cursor"></span>
+            </p>
+
+            <!-- composer -->
+            <div class="ramone-hero-composer" id="ramone-hero-composer">
+              <div class="ramone-hero-composer-prompt">
+                <span class="blip">▍</span> ask ramone
+              </div>
+              <div class="ramone-input-wrap">
+                <span class="ps1">&gt;</span>
+                <textarea
+                  id="ramone-mini-input"
+                  class="ramone-hero-input"
+                  rows="1"
+                  placeholder="type a question and press enter, or shift+enter for a new line"
+                ></textarea>
+              </div>
+              <div class="ramone-hero-composer-actions">
+                <span class="ramone-hero-char-count" id="ramone-hero-char-count"
+                  >0 / 2000</span
+                >
+                <button
+                  class="ramone-hero-reset"
+                  id="ramone-mini-reset"
+                  type="button"
+                >
+                  new conversation
+                </button>
+                <button class="ramone-hero-send" id="ramone-mini-send" disabled>
+                  transmit
+                </button>
+              </div>
+            </div>
+
+            <!-- example prompts (small, conversational, distinct from full site) -->
+            <div class="ramone-hero-suggestions" id="ramone-hero-suggestions">
+              <span class="ramone-hero-suggestions-label">or poke me with</span>
+              <button class="ramone-hero-chip">What are you running on?</button>
+              <button class="ramone-hero-chip">
+                Show me something you built
+              </button>
+              <button class="ramone-hero-chip">Do you ever get bored?</button>
+              <button class="ramone-hero-chip">
+                What's the weirdest thing in your docs?
+              </button>
+            </div>
+
+            <!-- answer area -->
+            <div class="ramone-hero-answer" id="ramone-mini-answer" hidden>
+              <div
+                class="ramone-mini-answer-text"
+                id="ramone-mini-answer-text"
+              ></div>
+              <div class="ramone-mini-sources" id="ramone-mini-sources"></div>
+              <div class="ramone-mini-meta" id="ramone-mini-meta"></div>
+            </div>
+          </div>
+
+          <!-- footer strip inside the terminal frame -->
+          <div class="ramone-hero-footer">
+            <span>built &amp; maintained by atlas reaper</span>
+            <a
+              class="ramone-hero-link"
+              href="https://ramone.atlas-systems.uk/"
+              target="_blank"
+              rel="noopener"
+              >open full interface →</a
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- atlas-signal-reliability-programme -->
+      <section class="lab-programme" aria-labelledby="lab-programme-title">
+        <div class="lab-programme-frame">
+          <div class="lab-programme-label-row">
+            <div class="section-label">Signal and reliability</div>
+            <span class="lab-programme-eyebrow">evidence rack</span>
+          </div>
+          <div class="lab-programme-head">
+            <h2 id="lab-programme-title">Four instruments under the live console.</h2>
+            <p>
+              Compact proofs for audio, telemetry, conformance, and chaos. Each
+              surface opens into a focused lab without stretching this page into
+              a manual.
+            </p>
+          </div>
+          <div class="lab-programme-grid">
+            <a class="lab-programme-card lab-programme-card-signal" href="/lab/signal/">
+              <span class="lab-programme-topline">
+                <span class="lab-programme-kicker">01 // audio DSP</span>
+                <span class="lab-programme-state">interactive</span>
+              </span>
+              <strong>Signal Garden</strong>
+              <span class="lab-programme-desc">
+                Granular synthesis and a modular browser signal chain inside an
+                AudioWorklet.
+              </span>
+              <span class="lab-programme-route">open signal →</span>
+            </a>
+            <a class="lab-programme-card lab-programme-card-anomaly" href="/lab/anomaly/">
+              <span class="lab-programme-topline">
+                <span class="lab-programme-kicker">02 // telemetry DSP</span>
+                <span class="lab-programme-state">replay</span>
+              </span>
+              <strong>Shape detector</strong>
+              <span class="lab-programme-desc">
+                Feature extraction, constrained DTW, and temporal state decoding
+                for telemetry shapes.
+              </span>
+              <span class="lab-programme-route">open detector →</span>
+            </a>
+            <a class="lab-programme-card lab-programme-card-conformance" href="/lab/conformance/">
+              <span class="lab-programme-topline">
+                <span class="lab-programme-kicker">03 // policy evidence</span>
+                <span class="lab-programme-state">fresh</span>
+              </span>
+              <strong>Estate conformance</strong>
+              <span class="lab-programme-desc">
+                Weighted rule coverage and repository findings from the estate
+                audit.
+              </span>
+              <span class="lab-programme-route">open conformance →</span>
+            </a>
+            <a class="lab-programme-card lab-programme-card-reliability" href="/lab/reliability/">
+              <span class="lab-programme-topline">
+                <span class="lab-programme-kicker">04 // chaos evidence</span>
+                <span class="lab-programme-state">passed</span>
+              </span>
+              <strong>Reliability trials</strong>
+              <span class="lab-programme-desc">
+                Bounded fault injection, detection, notification, and recovery
+                proof.
+              </span>
+              <span class="lab-programme-route">open trials →</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ACTIVITY HEATMAP -->
+      <div class="ops-shell" id="ops-console">
+        <div class="ops-main">
+          <!-- SYSTEM MAP -->
+          <section class="section smap-section" id="system-map">
+            <div class="section-label">System map</div>
+
+            <div class="smap-head">
+              <p class="smap-statusline" id="system-map-statusline">
+                assembling estate districts…
+              </p>
+            </div>
+
+            <div class="smap-banner" id="system-map-banner" hidden></div>
+
+            <div class="smap-host" id="system-map-host">
+              <div class="smap-list" id="system-map-list"></div>
+            </div>
+
+            <div class="smap-legend" role="group" aria-label="System map legend">
+              <div class="smap-legend-group" role="group" aria-label="Status">
+                <span class="smap-legend-title">Status</span>
+                <span><i class="smap-leg-dot smap-leg-live"></i>live, /_meta verified</span>
+                <span><i class="smap-leg-dot smap-leg-undoc"></i>discovered, no /_meta</span>
+                <span><i class="smap-leg-dot smap-leg-down"></i>not answering</span>
+              </div>
+              <div class="smap-legend-group" role="group" aria-label="Node type">
+                <span class="smap-legend-title">Node type</span>
+                <span><svg class="smap-leg-role smap-leg-role-worker" viewBox="0 0 24 20" aria-hidden="true"><circle cx="12" cy="10" r="7"></circle></svg>Worker service</span>
+                <span><svg class="smap-leg-role smap-leg-role-site" viewBox="0 0 24 20" aria-hidden="true"><rect x="4" y="3" width="16" height="14" rx="3"></rect></svg>Pages site</span>
+                <span><svg class="smap-leg-role smap-leg-role-repo" viewBox="0 0 24 20" aria-hidden="true"><path d="M2 5H22V15H2ZM6 9H18"></path></svg>source repository</span>
+                <span><svg class="smap-leg-role smap-leg-role-local" viewBox="0 0 24 20" aria-hidden="true"><polygon points="12,2 21,10 12,18 3,10"></polygon></svg>LAN service</span>
+                <span><svg class="smap-leg-role smap-leg-role-ext" viewBox="0 0 24 20" aria-hidden="true"><polygon points="12,2 21,10 12,18 3,10"></polygon></svg>external dependency</span>
+                <span><svg class="smap-leg-role smap-leg-role-infra" viewBox="0 0 24 20" aria-hidden="true"><rect x="7" y="5" width="10" height="10"></rect></svg>infrastructure</span>
+                <span><svg class="smap-leg-role smap-leg-role-kv" viewBox="0 0 24 20" aria-hidden="true"><rect x="9" y="7" width="6" height="6"></rect></svg>KV namespace</span>
+              </div>
+              <div class="smap-legend-group" role="group" aria-label="Connection">
+                <span class="smap-legend-title">Connection</span>
+                <span><i class="smap-leg-line smap-leg-edge-binding"></i>binding</span>
+                <span><i class="smap-leg-line smap-leg-edge-tunnel"></i>tunnel</span>
+                <span><i class="smap-leg-line smap-leg-edge-http"></i>http</span>
+                <span><i class="smap-leg-line smap-leg-edge-poll"></i>poll</span>
+                <span><i class="smap-leg-line smap-leg-edge-probe"></i>probe</span>
+                <span><i class="smap-leg-line smap-leg-edge-dispatch"></i>dispatch</span>
+                <span><i class="smap-leg-line smap-leg-edge-notify"></i>notify</span>
+                <span><i class="smap-leg-line smap-leg-edge-alert"></i>alert</span>
+                <span><i class="smap-leg-line smap-leg-edge-kv"></i>KV link</span>
+              </div>
+            </div>
+
+            <p class="smap-note">
+              The 3D city view opens first on capable desktops; use the persistent
+              view controls to switch to the flat district plan. Drag to move around
+              the bounded city, Alt-drag or right-drag to orbit, and use the wheel
+              or a pinch gesture to zoom toward the pointer. Hover a node to preview
+              its routes, or click it to keep that network focused. District streets
+              and separated connection lanes organise public source repositories and
+              runtime services without inventing dependencies. Coloured routes follow
+              the key above and are drawn only from declared estate wiring or live registry probes.
+              Source-only repositories remain buildings in the source quarter until
+              the canonical topology declares a real connection.
+            </p>
+          </section>
+
+          <section class="section bbx-section" id="blackbox">
+            <div class="section-label">Incident console</div>
+            <div class="smap-head incident-console-head">
+              <p class="bbx-statusline" id="blackbox-statusline">
+                contacting recorder&#8230;
+              </p>
+            </div>
+            <div class="incident-console-grid">
+              <div class="incident-console-main">
+                <div id="blackbox-host"></div>
+              </div>
+              <aside class="incident-console-log" aria-label="Recent event log">
+                <div class="section-label">Failure log</div>
+                <div class="flog-head">
+                  <div class="flog-meta">
+                    <strong id="flog-total">—</strong> recent events ·
+                    <strong id="flog-shown">—</strong> shown
+                  </div>
+                  <button
+                    class="flog-refresh"
+                    id="flog-refresh-btn"
+                    type="button"
+                  >
+                    ↻ refresh
+                  </button>
+                </div>
+                <div class="flog-filters" id="flog-filters"></div>
+                <div id="flog-list" class="flog-list">
+                  <div class="flog-loading">Loading recent events…</div>
+                </div>
+                <div class="flog-note">
+                  Source: atlas-notify ring buffer. Blackbox preserves these
+                  events beside telemetry when a failure or drill lands.
+                </div>
+              </aside>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="section-label">Activity</div>
+            <div class="heatmap-meta">
+              <div class="heatmap-stats">
+                <div class="heatmap-stat">
+                  <strong id="heatmap-total">—</strong> commits · 90 days
+                </div>
+                <div class="heatmap-stat">
+                  <strong id="heatmap-repos">—</strong> repos
+                </div>
+                <div class="heatmap-stat">
+                  <strong id="heatmap-top-lang">—</strong> top language
+                </div>
+              </div>
+              <div class="heatmap-legend">
+                <span>less</span>
+                <div class="heatmap-legend-cells">
+                  <div
+                    class="heatmap-legend-cell"
+                    style="background: var(--bg-2)"
+                  ></div>
+                  <div
+                    class="heatmap-legend-cell"
+                    style="background: rgba(245, 166, 35, 0.18)"
+                  ></div>
+                  <div
+                    class="heatmap-legend-cell"
+                    style="background: rgba(245, 166, 35, 0.38)"
+                  ></div>
+                  <div
+                    class="heatmap-legend-cell"
+                    style="background: rgba(245, 166, 35, 0.62)"
+                  ></div>
+                  <div
+                    class="heatmap-legend-cell"
+                    style="background: var(--accent)"
+                  ></div>
+                </div>
+                <span>more</span>
+              </div>
+            </div>
+            <div class="heatmap-outer">
+              <div class="heatmap-left" id="heatmap-day-labels"></div>
+              <div class="heatmap-right">
+                <div class="heatmap-month-row" id="heatmap-months"></div>
+                <div class="heatmap-grid" id="heatmap-grid"></div>
+              </div>
+            </div>
+            <p class="heatmap-note" id="heatmap-note">Loading activity data…</p>
+          </section>
+
+          <!-- PIPELINE STATUS GRID -->
+          <section class="section" id="pipeline-grid-section">
+            <div class="section-label">Pipeline status</div>
+            <div class="pgrid-head">
+              <div class="pgrid-meta">
+                Live state across <strong id="pgrid-repo-count">—</strong> repos
+                · updated
+                <strong id="pgrid-updated">—</strong>
+              </div>
+              <div class="pgrid-legend">
+                <span><span class="dot success"></span>ok</span>
+                <span><span class="dot activity"></span>activity</span>
+                <span><span class="dot failure"></span>fail</span>
+                <span><span class="dot info"></span>live</span>
+                <span><span class="dot none"></span>idle</span>
+              </div>
+            </div>
+            <div class="pgrid-stats" id="pgrid-stats">
+              <div class="pgrid-stat-chip">
+                <span class="pgrid-stat-val" id="pstat-total">—</span>
+                <span class="pgrid-stat-label">pipeline runs</span>
+              </div>
+              <div class="pgrid-stat-chip">
+                <span class="pgrid-stat-val" id="pstat-rate">—</span>
+                <span class="pgrid-stat-label">success rate</span>
+              </div>
+              <div class="pgrid-stat-chip">
+                <span class="pgrid-stat-val" id="pstat-week">—</span>
+                <span class="pgrid-stat-label">this week</span>
+              </div>
+              <div class="pgrid-stat-chip">
+                <span class="pgrid-stat-val" id="pstat-top">—</span>
+                <span class="pgrid-stat-label">most active</span>
+              </div>
+            </div>
+            <div class="pgrid" id="pgrid"></div>
+            <div class="health-strip" id="health-strip">
+              <div class="health-loading">Checking worker latency…</div>
+            </div>
+            <p class="flog-note">
+              Green, amber, and red are reserved for deploy state. Amber means a
+              push was seen and the grid is waiting for a matching deploy event.
+              Older tags mean the last deploy record is old, not offline. Live
+              means the API registry reports an endpoint even when the deploy
+              feed is not wired yet. Runtime warnings do not set repo health.
+              Source: atlas-notify ring buffer, deploy-watch, and live build
+              metadata for atlas-systems.uk.
+            </p>
+          </section>
+
+          <!-- LIVE -->
+          <section class="section" id="live">
+            <div class="section-label">Live</div>
+
+            <div class="live-card">
+              <div class="live-topbar">
+                <div class="live-lights" aria-hidden="true">
+                  <i></i><i></i><i></i>
+                </div>
+                <div class="live-sysinfo">
+                  <strong>SPECULAR-CORE</strong>
+                  <span class="live-sep">//</span> live
+                </div>
+                <div class="live-feeds">
+                  <span
+                    class="live-feed"
+                    id="live-feed-telemetry"
+                    data-state=""
+                  >
+                    <span class="live-feed-dot"></span><span>telemetry</span>
+                  </span>
+                  <span class="live-feed" id="live-feed-registry" data-state="">
+                    <span class="live-feed-dot"></span><span>registry</span>
+                  </span>
+                </div>
+              </div>
+
+              <div class="live-inner">
+                <!-- typed boot log; same grammar as the Ramone widget above -->
+                <div class="live-boot" id="live-boot" aria-hidden="true"></div>
+
+                <div class="live-grid">
+                  <!-- TELEMETRY: existing widget, IDs unchanged, container restyled -->
+                  <div class="live-panel">
+                    <h3 class="live-panel-title">telemetry</h3>
+                    <section
+                      class="sp-w"
+                      id="specular-widget"
+                      aria-label="SPECULAR-CORE live telemetry"
+                    >
+                      <div class="sp-w-head">
+                        <span class="sp-w-dot" aria-hidden="true"></span>
+                        <span class="sp-w-name" id="spw-host"
+                          >SPECULAR-CORE</span
+                        >
+                        <span class="sp-w-label">// live telemetry</span>
+                        <span class="sp-w-age" id="spw-age" aria-live="polite"
+                          >connecting…</span
+                        >
+                      </div>
+
+                      <p class="sp-w-offline" id="spw-offline"></p>
+
+                      <div class="sp-w-grid">
+                        <div class="sp-w-tile">
+                          <h4>GPU</h4>
+                          <div class="sp-w-big">
+                            <span id="spw-gpu-util">–</span>%
+                          </div>
+                          <div class="sp-w-bar">
+                            <div class="sp-w-fill" id="spw-vram-fill"></div>
+                          </div>
+                          <div class="sp-w-sub" id="spw-vram">VRAM –</div>
+                          <div class="sp-w-sub" id="spw-gpu-line">–</div>
+                        </div>
+                        <div class="sp-w-tile">
+                          <h4>CPU</h4>
+                          <div class="sp-w-big">
+                            <span id="spw-cpu">–</span>%
+                          </div>
+                          <div
+                            class="sp-w-cores"
+                            id="spw-cores"
+                            aria-hidden="true"
+                          ></div>
+                          <div class="sp-w-sub" id="spw-cpu-line">–</div>
+                        </div>
+                        <div class="sp-w-tile">
+                          <h4>RAM</h4>
+                          <div class="sp-w-big">
+                            <span id="spw-ram">–</span>%
+                          </div>
+                          <div class="sp-w-bar">
+                            <div class="sp-w-fill" id="spw-ram-fill"></div>
+                          </div>
+                          <div class="sp-w-sub" id="spw-ram-line">–</div>
+                        </div>
+                        <div class="sp-w-tile">
+                          <h4>Ollama</h4>
+                          <div class="sp-w-sub" id="spw-ollama-line">–</div>
+                          <div class="sp-w-chips" id="spw-models"></div>
+                        </div>
+                      </div>
+
+                      <div class="sp-w-foot">
+                        <span id="spw-uptime"></span>
+                        <span id="spw-platform"></span>
+                        <a href="https://api.atlas-systems.uk/specular"
+                          >api.atlas-systems.uk/specular</a
+                        >
+                      </div>
+                    </section>
+                  </div>
+
+                  <!-- ESTATE: new panel, fed by the shared registry client -->
+                  <div class="live-panel">
+                    <h3 class="live-panel-title">estate</h3>
+                    <p class="live-estate-line" id="live-estate-line">
+                      contacting registry…
+                    </p>
+                    <p class="live-estate-sub" id="live-estate-sub"></p>
+                    <div class="live-workers" id="live-workers"></div>
+                    <a class="live-map-link" href="#system-map"
+                      >full system map ↑</a
+                    >
+                  </div>
+
+                  <!-- CORPUS: existing widget, IDs unchanged, terminal-styled input -->
+                  <div class="live-panel live-panel-corpus">
+                    <h3 class="live-panel-title">corpus</h3>
+                    <section
+                      class="cs-w"
+                      id="corpus-search"
+                      data-estate-search
+                      aria-label="Search the Atlas Systems corpus"
+                    >
+                      <p class="cs-w-head">
+                        <strong>ATLAS CORPUS</strong> // search the estate corpus
+                        for matching sources
+                      </p>
+
+                      <form class="cs-w-form" id="csw-form">
+                        <span class="cs-w-prompt" aria-hidden="true">&gt;</span>
+                        <label
+                          for="csw-q"
+                          style="
+                            position: absolute;
+                            width: 1px;
+                            height: 1px;
+                            overflow: hidden;
+                            clip: rect(0 0 0 0);
+                          "
+                          >Search query</label
+                        >
+                        <input
+                          class="cs-w-input"
+                          id="csw-q"
+                          name="q"
+                          type="search"
+                          placeholder="how do deploys get to Cloudflare?"
+                          maxlength="500"
+                          autocomplete="off"
+                          spellcheck="false"
+                        />
+                        <button class="cs-w-btn" id="csw-go" type="submit">
+                          search
+                        </button>
+                      </form>
+
+                      <p
+                        class="cs-w-status"
+                        id="csw-status"
+                        aria-live="polite"
+                      ></p>
+                      <ol class="cs-w-results" id="csw-results"></ol>
+                    </section>
+                  </div>
+
+                  <!-- live-infra:panels:v1 -->
+                  <!-- INFRA HEALTH: fed by atlas-api-public /v1/infra/status -->
+                  <div class="live-panel">
+                    <h3 class="live-panel-title">infra health</h3>
+                    <section
+                      class="li-w"
+                      id="infra-health"
+                      aria-label="Infra health for the Ollama and RAG stack"
+                    >
+                      <p class="li-w-head">
+                        <strong>INFRA HEALTH</strong> // ollama + rag
+                        reachability, wsl2 ip drift
+                      </p>
+                      <div
+                        class="li-w-state"
+                        id="liw-state"
+                        data-state="unknown"
+                      >
+                        <span class="li-w-dot" aria-hidden="true"></span>
+                        <span id="liw-overall">checking&hellip;</span>
+                      </div>
+                      <ul class="li-w-checks">
+                        <li data-check="ollama">
+                          <span class="li-w-name">ollama</span
+                          ><span class="li-w-val" id="liw-ollama"
+                            >&hellip;</span
+                          >
+                        </li>
+                        <li data-check="corpus_health">
+                          <span class="li-w-name">corpus health</span
+                          ><span class="li-w-val" id="liw-corpus-health"
+                            >&hellip;</span
+                          >
+                        </li>
+                        <li data-check="corpus_search">
+                          <span class="li-w-name">rag search</span
+                          ><span class="li-w-val" id="liw-corpus-search"
+                            >&hellip;</span
+                          >
+                        </li>
+                        <li data-check="wsl_ip">
+                          <span class="li-w-name">wsl2 ip</span
+                          ><span class="li-w-val" id="liw-ip">&hellip;</span>
+                        </li>
+                      </ul>
+                      <p
+                        class="li-w-meta"
+                        id="liw-checked"
+                        aria-live="polite"
+                      ></p>
+                    </section>
+                  </div>
+
+                  <!-- RAG QUERIES: fed by atlas-api-public /v1/rag/stats -->
+                  <div class="live-panel">
+                    <h3 class="live-panel-title">rag queries</h3>
+                    <section
+                      class="li-w"
+                      id="rag-queries"
+                      aria-label="RAG query statistics"
+                    >
+                      <p class="li-w-head">
+                        <strong>RAG QUERIES</strong> // real searches against
+                        the corpus; ips never logged
+                      </p>
+                      <div class="li-w-big">
+                        <span id="lrq-hour">&hellip;</span
+                        ><span class="li-w-big-label">last hour</span>
+                      </div>
+                      <ul class="li-w-rows">
+                        <li>
+                          <span class="li-w-name">today</span
+                          ><span class="li-w-val" id="lrq-today">&hellip;</span>
+                        </li>
+                        <li>
+                          <span class="li-w-name">all time</span
+                          ><span class="li-w-val" id="lrq-total">&hellip;</span>
+                        </li>
+                        <li>
+                          <span class="li-w-name">last query</span
+                          ><span class="li-w-val" id="lrq-last">&hellip;</span>
+                        </li>
+                      </ul>
+                      <p
+                        class="li-w-meta"
+                        id="lrq-checked"
+                        aria-live="polite"
+                      ></p>
+                    </section>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- atlas-dora:panel:v1 -->
+          <section class="section" id="dora-metrics">
+            <div class="section-label">Delivery</div>
+
+            <section class="dora-panel" aria-label="DORA metrics">
+              <h2>DORA metrics</h2>
+              <p class="dp-sub">computed live from the estate's own event stream · <a id="dp-raw-json" href="https://api.atlas-systems.uk/dora/metrics" style="color:inherit">raw JSON</a></p>
+
+              <div class="dp-grid">
+                <div class="dp-card">
+                  <div class="dp-label">Deploys / week</div>
+                  <div class="dp-value" id="dp-freq">·</div>
+                  <div class="dp-trend flat" id="dp-freq-trend"></div>
+                  <div class="dp-basis" id="dp-freq-basis"></div>
+                </div>
+                <div class="dp-card">
+                  <div class="dp-label">Change failure rate</div>
+                  <div class="dp-value" id="dp-cfr">·</div>
+                  <div class="dp-trend flat" id="dp-cfr-trend"></div>
+                  <div class="dp-basis" id="dp-cfr-basis"></div>
+                </div>
+                <div class="dp-card">
+                  <div class="dp-label">Mean time to recovery</div>
+                  <div class="dp-value" id="dp-mttr">·</div>
+                  <div class="dp-trend flat" id="dp-mttr-trend"></div>
+                  <div class="dp-basis" id="dp-mttr-basis"></div>
+                </div>
+              </div>
+
+              <p class="dp-degraded" id="dp-degraded"></p>
+              <p class="dp-error" id="dp-error"></p>
+
+              <footer>
+                <span id="dp-window"></span>
+                <span id="dp-meta"></span>
+              </footer>
+
+            <script>
+            (function () {
+              'use strict';
+
+              var PUBLIC_ENDPOINT = 'https://api.atlas-systems.uk/dora/metrics';
+              var LOCAL_ENDPOINT = 'http://localhost:8787/dora/metrics';
+              var ENDPOINT = isLocalPage() ? LOCAL_ENDPOINT : PUBLIC_ENDPOINT;
+              var REFRESH_MS = 5 * 60 * 1000; // matches the Worker's cache TTL
+
+              function el(id) { return document.getElementById(id); }
+              function text(id, value) { el(id).textContent = value; }
+              function isLocalPage() {
+                return location.protocol === 'file:'
+                  || location.hostname === 'localhost'
+                  || location.hostname === '127.0.0.1'
+                  || location.hostname === '';
+              }
+
+              // upGood: for deploy frequency, up is good; for CFR and MTTR, up is bad.
+              function paintTrend(id, trend, upGood) {
+                var node = el(id);
+                if (!trend || trend.delta === null || trend.dir === 'flat') {
+                  node.className = 'dp-trend flat';
+                  node.textContent = trend && trend.delta === null ? 'no previous sample' : 'steady';
+                  return;
+                }
+                var arrow = trend.dir === 'up' ? '\u25b2' : '\u25bc';
+                var good = trend.dir === 'up' ? upGood : !upGood;
+                node.className = 'dp-trend ' + (good ? 'good' : 'bad');
+                node.textContent = arrow + ' ' + Math.abs(trend.delta) + ' since last sample';
+              }
+
+              function fmt(value, suffix, digits) {
+                if (value === null || value === undefined) return 'n/a';
+                return (digits === undefined ? value : Number(value).toFixed(digits)) + (suffix || '');
+              }
+
+              function render(body, cacheState) {
+                el('dp-error').style.display = 'none';
+
+                var freq = body.deploymentFrequency || {};
+                text('dp-freq', fmt(freq.perWeek, ''));
+                text('dp-freq-basis', (freq.totalInWindow || 0) + ' deploys in window');
+                paintTrend('dp-freq-trend', body.trend && body.trend.deploymentFrequencyPerWeek, true);
+
+                var cfr = body.changeFailureRate || {};
+                text('dp-cfr', cfr.rate === null || cfr.rate === undefined ? 'n/a' : Math.round(cfr.rate * 100) + '%');
+                text('dp-cfr-basis',
+                  cfr.rate === null || cfr.rate === undefined
+                    ? (cfr.note || 'not computable')
+                    : cfr.failedDeploys + ' of ' + cfr.totalDeploys + ' deploys, ' + cfr.correlationWindowMinutes + ' min correlation window');
+                paintTrend('dp-cfr-trend', body.trend && body.trend.changeFailureRate, false);
+
+                var mttr = body.mttr || {};
+                text('dp-mttr', fmt(mttr.meanMinutes, ' min'));
+                text('dp-mttr-basis',
+                  mttr.measuredIncidents + ' of ' + mttr.totalRealIncidents + ' incidents measured'
+                  + (body.drillIncidentsExcluded ? ', ' + body.drillIncidentsExcluded + ' drill(s) excluded' : ''));
+                paintTrend('dp-mttr-trend', body.trend && body.trend.mttrMinutes, false);
+
+                var degraded = el('dp-degraded');
+                if (body.degraded && body.degraded.length) {
+                  degraded.style.display = 'block';
+                  degraded.textContent = 'Partial data. Unreachable: ' + body.degraded.map(function (d) { return d.upstream; }).join(', ')
+                    + '. Numbers above cover what answered.';
+                } else {
+                  degraded.style.display = 'none';
+                }
+
+                text('dp-window', body.window
+                  ? 'window: ' + body.window.days + ' days (' + body.window.basis + ')'
+                  : 'window: no timestamped events');
+                text('dp-meta', 'computed ' + (body.computedAt || '?') + ' · cache ' + cacheState);
+              }
+
+              function showError(message) {
+                var node = el('dp-error');
+                node.style.display = 'block';
+                node.textContent = 'Could not load metrics: ' + message + ' Retrying in 5 minutes, or reload now.';
+                text('dp-meta', 'last attempt failed');
+              }
+
+              function load() {
+                var raw = el('dp-raw-json');
+                if (raw) raw.href = ENDPOINT;
+                fetch(ENDPOINT, { headers: { accept: 'application/json' } })
+                  .then(function (response) {
+                    var cacheState = response.headers.get('x-dora-cache') || 'unknown';
+                    return response.json().then(function (body) {
+                      if (!response.ok || body.ok === false) {
+                        throw new Error(body.error || ('HTTP ' + response.status));
+                      }
+                      render(body, cacheState);
+                    });
+                  })
+                  .catch(function (error) { showError(error.message); });
+              }
+
+              load();
+              setInterval(load, REFRESH_MS);
+            })();
+            </script>
+            </section>
+          </section>
+
+          <!-- API SURFACE -->
+          <section class="section api-surface-compact" id="api-surface">
+            <div class="section-label">Surface</div>
+            <div
+              class="api-surface-summary"
+              id="api-surface-summary"
+              aria-live="polite"
+            >
+              <div class="api-surface-stat">
+                <strong>—</strong><span>public endpoints</span>
+              </div>
+              <div class="api-surface-stat">
+                <strong>—</strong><span>documented workers</span>
+              </div>
+              <div class="api-surface-stat">
+                <strong>—</strong><span>public repositories</span>
+              </div>
+            </div>
+            <div class="api-surface-overview">
+              <div>
+                <h2>One public contract, without another catalogue.</h2>
+                <p>
+                  The Lab keeps the operational summary. The versioned API
+                  documentation owns the complete endpoint catalogue, request
+                  methods, metadata, and public topology contract.
+                </p>
+              </div>
+              <a
+                class="api-surface-docs-link"
+                href="https://api.atlas-systems.uk/v1/docs"
+                target="_blank"
+                rel="noopener"
+              >
+                open API documentation →
+              </a>
+            </div>
+            <div id="api-surface-grid" hidden></div>
+            <p class="api-surface-note" id="api-surface-note" hidden></p>
+          </section>
+        </div>
+
+        <aside class="ops-rail" aria-label="Operations summary">
+          <div class="ops-panel ops-panel-primary">
+            <div class="ops-panel-head">
+              <span>Ops rail</span>
+              <a href="#blackbox">console</a>
+            </div>
+            <div class="ops-status-grid">
+              <a class="ops-status-tile" href="#blackbox">
+                <span>blackbox</span>
+                <strong id="ops-recorder-state">contacting</strong>
+                <small id="ops-recorder-meta">waiting for recorder</small>
+              </a>
+              <a class="ops-status-tile" href="#live">
+                <span>specular</span>
+                <strong id="ops-telemetry-state">waiting</strong>
+                <small id="ops-telemetry-meta">no sample yet</small>
+              </a>
+            </div>
+          </div>
+
+          <div class="ops-panel">
+            <div class="ops-panel-head">
+              <span>Latest incident</span>
+              <a href="#blackbox">open</a>
+            </div>
+            <div class="ops-incident-card">
+              <strong id="ops-incident-title">No incident loaded</strong>
+              <span id="ops-incident-meta">Blackbox is still loading.</span>
+            </div>
+          </div>
+
+          <div class="ops-panel">
+            <div class="ops-panel-head">
+              <span>Telemetry</span>
+              <a href="#live">live</a>
+            </div>
+            <div class="ops-meters">
+              <div class="ops-meter">
+                <span>GPU</span><strong id="ops-gpu-util">—</strong>
+              </div>
+              <div class="ops-meter">
+                <span>TEMP</span><strong id="ops-gpu-temp">—</strong>
+              </div>
+              <div class="ops-meter">
+                <span>CPU</span><strong id="ops-cpu">—</strong>
+              </div>
+              <div class="ops-meter">
+                <span>RAM</span><strong id="ops-ram">—</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="ops-panel">
+            <div class="ops-panel-head">
+              <span>Pipeline</span>
+              <a href="#pipeline-grid-section">grid</a>
+            </div>
+            <div class="ops-pipeline-line" id="ops-pipeline-line">
+              waiting for events
+            </div>
+            <div class="ops-pipeline-stats">
+              <span><strong id="ops-pipeline-runs">—</strong> runs</span>
+              <span><strong id="ops-pipeline-rate">—</strong> ok</span>
+              <span><strong id="ops-pipeline-week">—</strong> week</span>
+            </div>
+          </div>
+
+          <div class="ops-panel ops-panel-feed">
+            <div class="ops-panel-head">
+              <span>Failure feed</span>
+              <a href="#blackbox">log</a>
+            </div>
+            <div class="ops-feed" id="ops-failure-feed">
+              <div class="ops-feed-empty">Loading event feed…</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <nav class="mobile-nav" aria-label="Mobile navigation">
+      <div class="mobile-nav-inner">
+        <a href="/" class="mobile-nav-item">
+          <svg viewBox="0 0 24 24">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+          Home
+        </a>
+        <a href="/work/" class="mobile-nav-item">
+          <svg viewBox="0 0 24 24">
+            <polyline points="16 18 22 12 16 6" />
+            <polyline points="8 6 2 12 8 18" />
+          </svg>
+          Work
+        </a>
+        <a href="/writing/" class="mobile-nav-item">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+          </svg>
+          Writing
+        </a>
+        <a href="/about/" class="mobile-nav-item">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M20 21a8 8 0 10-16 0" />
+          </svg>
+          About
+        </a>
+        <button type="button" class="mobile-nav-item es-nav-search-mobile"
+                data-estate-search-open aria-label="Search the estate"
+                aria-haspopup="dialog"
+                style="background:transparent;border:none;font-family:inherit;cursor:pointer">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="21" y1="21" x2="16.2" y2="16.2"></line>
+          </svg>
+          Search
+        </button>
+      </div>
+    </nav>
+
+    <script>
+      document.querySelectorAll(".nav-link").forEach((a) => {
+        if (window.location.pathname.startsWith(a.getAttribute("href")))
+          a.classList.add("active");
+      });
+
+      const HEATMAP_URL = "https://api.atlas-systems.uk/pulse/heatmap";
+      const MONTH_NAMES = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+      const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      const CELL_SIZE = 11;
+      const CELL_GAP = 3;
+      const COL_W = CELL_SIZE + CELL_GAP;
+
+      async function initHeatmap() {
+        let data;
+        try {
+          const res = await fetch(HEATMAP_URL, { cache: "no-store" });
+          data = await res.json();
+        } catch {
+          document.getElementById("heatmap-note").textContent =
+            "Activity data unavailable.";
+          return;
+        }
+        document.getElementById("heatmap-total").textContent =
+          data.totals?.commitsLast90Days ?? "—";
+        document.getElementById("heatmap-repos").textContent =
+          data.totals?.publicRepos ?? "—";
+        document.getElementById("heatmap-top-lang").textContent =
+          data.totals?.topLanguage ?? "—";
+        const countMap = data.days || {};
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const days = [];
+        for (let i = 89; i >= 0; i--) {
+          const d = new Date(today);
+          d.setDate(d.getDate() - i);
+          const key = d.toISOString().slice(0, 10);
+          days.push({ key, count: countMap[key] || 0, d });
+        }
+        const startDow = (days[0].d.getDay() + 6) % 7;
+        const cells = [...Array(startDow).fill(null), ...days];
+        const totalCols = Math.ceil(cells.length / 7);
+        const dayLabelEl = document.getElementById("heatmap-day-labels");
+        DAY_LABELS.forEach((label) => {
+          const el = document.createElement("div");
+          el.className = "heatmap-day-label";
+          el.textContent =
+            label === "Mon" || label === "Wed" || label === "Fri" ? label : "";
+          dayLabelEl.appendChild(el);
+        });
+        const monthRow = document.getElementById("heatmap-months");
+        monthRow.style.width = totalCols * COL_W - CELL_GAP + "px";
+        let lastMonth = -1;
+        for (let col = 0; col < totalCols; col++) {
+          const slice = cells.slice(col * 7, col * 7 + 7);
+          const firstReal = slice.find((c) => c !== null);
+          if (!firstReal) continue;
+          const m = firstReal.d.getMonth();
+          if (m !== lastMonth) {
+            lastMonth = m;
+            const label = document.createElement("span");
+            label.className = "heatmap-month-label";
+            label.textContent = MONTH_NAMES[m];
+            label.style.left = col * COL_W + "px";
+            monthRow.appendChild(label);
+          }
+        }
+        const grid = document.getElementById("heatmap-grid");
+        const tooltip = document.getElementById("heatmap-tooltip");
+        cells.forEach((cell) => {
+          const el = document.createElement("div");
+          el.className = "heatmap-cell";
+          if (!cell) {
+            el.classList.add("empty");
+          } else {
+            const count = cell.count;
+            if (count > 0) {
+              let level = 1;
+              if (count === 2) level = 2;
+              else if (count <= 4) level = 3;
+              else if (count >= 5) level = 4;
+              el.dataset.level = level;
+            }
+            el.addEventListener("mousemove", (e) => {
+              const dateObj = new Date(cell.key + "T12:00:00");
+              const formatted = dateObj.toLocaleDateString("en-GB", {
+                weekday: "short",
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              });
+              tooltip.querySelector("strong").textContent =
+                count === 0
+                  ? "No commits"
+                  : `${count} commit${count !== 1 ? "s" : ""}`;
+              tooltip.querySelector("span").textContent = formatted;
+              tooltip.style.display = "block";
+              tooltip.style.left = e.clientX + 14 + "px";
+              tooltip.style.top = e.clientY - 42 + "px";
+            });
+            el.addEventListener("mouseleave", () => {
+              tooltip.style.display = "none";
+            });
+          }
+          grid.appendChild(el);
+        });
+        const activeDays = Object.keys(countMap).length;
+        document.getElementById("heatmap-note").textContent =
+          `Per-day commit breakdown across all repos · ${activeDays} day${activeDays !== 1 ? "s" : ""} with commits in the last 90 days`;
+      }
+      initHeatmap();
+
+      const FLOG_URL = "https://api.atlas-systems.uk/notify/recent";
+      const DEPLOY_LATEST_URL =
+        "https://api.atlas-systems.uk/deploy-watch/latest";
+      const SPECULAR_LIVE_URL = "https://api.atlas-systems.uk/specular";
+      const FLOG_LIMIT = 10;
+      const FLOG_LEVELS = ["success", "info", "warning", "failure"];
+      let flogActiveLevels = null;
+      let flogCachedData = null;
+      let flogFallbackData = null;
+      let pgridDeployLatest = null;
+      let pgridRegistryLive = new Set();
+      let opsInfraHealthy = false;
+      let opsLastFailureEvents = [];
+
+      function opsEl(id) {
+        return document.getElementById(id);
+      }
+      function labDisplayText(value) {
+        return String(value == null ? "" : value);
+      }
+      function opsText(id, value) {
+        const target = opsEl(id);
+        if (target) target.textContent = labDisplayText(value);
+      }
+      function opsTime(value) {
+        const t = typeof value === "number" ? value : Date.parse(value);
+        if (!Number.isFinite(t)) return "unknown";
+        return new Date(t).toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+      function opsMs(value) {
+        const t = typeof value === "number" ? value : Date.parse(value);
+        return Number.isFinite(t) ? t : 0;
+      }
+      function opsEventLabel(e) {
+        return labDisplayText(e.title || e.event || e.message || "event");
+      }
+      function isResolvedSentinelEvent(e) {
+        if (!opsInfraHealthy) return false;
+        const hay = (
+          (e?.title || "") +
+          " " +
+          (e?.message || "") +
+          " " +
+          (e?.event || "")
+        ).toLowerCase();
+        return (
+          hay.includes("sentinel silent") ||
+          hay.includes("specular-core is offline")
+        );
+      }
+      function opsMetric(value, suffix = "") {
+        const n = Number(value);
+        return Number.isFinite(n) ? `${Math.round(n)}${suffix}` : "-";
+      }
+      function paintOpsTelemetry(payload) {
+        const data = payload || {};
+        const t = data.telemetry || {};
+        const online = data.online === true;
+        const sampledAt = t.sampled_at || data.fetched_at || data.last_seen;
+        opsText(
+          "ops-telemetry-state",
+          online ? "online" : data.online === false ? "offline" : "unknown",
+        );
+        opsText(
+          "ops-telemetry-meta",
+          sampledAt
+            ? `${online ? "live" : "sample"} ${opsTime(sampledAt)}`
+            : "no sample yet",
+        );
+        opsText("ops-gpu-util", opsMetric(t.gpu?.utilisation_pct, "%"));
+        opsText("ops-gpu-temp", opsMetric(t.gpu?.temperature_c, "°C"));
+        opsText("ops-cpu", opsMetric(t.cpu?.overall_pct, "%"));
+        opsText("ops-ram", opsMetric(t.ram?.pct, "%"));
+      }
+      function countEventLevels(events) {
+        return events.reduce((acc, e) => {
+          const level = e.level || "info";
+          acc[level] = (acc[level] || 0) + 1;
+          return acc;
+        }, {});
+      }
+      function eventKey(e) {
+        return [e.ts, e.level, e.event, e.title, e.message]
+          .map((part) => part || "")
+          .join("\u001f");
+      }
+      function mergeEvents(...groups) {
+        const seen = new Set();
+        const merged = [];
+        for (const group of groups) {
+          for (const event of group || []) {
+            const key = eventKey(event);
+            if (seen.has(key)) continue;
+            seen.add(key);
+            merged.push(event);
+          }
+        }
+        return merged.sort((a, b) => opsMs(b.ts) - opsMs(a.ts));
+      }
+      function normalizeBlackboxEvents(inc) {
+        const events = [];
+        (inc.frames || []).forEach((frame) => {
+          (frame.events || []).forEach((event) => {
+            events.push({
+              level: event.level || "info",
+              event: event.event || "blackbox",
+              dialect: event.dialect || "blackbox",
+              title: event.title || event.message || "Recorded event",
+              message: event.message || `Captured inside ${inc.id}`,
+              ts: event.ts || new Date(frame.ts).toISOString(),
+            });
+          });
+        });
+        (inc.triggers || []).forEach((trigger) => {
+          events.push({
+            level: trigger.level || "failure",
+            event: trigger.event || "trigger",
+            dialect: trigger.dialect || "blackbox",
+            title: trigger.title || "Blackbox trigger",
+            message: trigger.message || `Triggered incident ${inc.id}`,
+            ts: trigger.ts || inc.ts,
+          });
+        });
+        return events
+          .filter((event) => event.ts)
+          .sort((a, b) => opsMs(b.ts) - opsMs(a.ts));
+      }
+      function setFlogFallback(events) {
+        if (!events.length) return;
+        flogFallbackData = {
+          ok: true,
+          total: events.length,
+          levelCounts: countEventLevels(events),
+          events,
+          fallback: true,
+        };
+        if (!flogCachedData || flogCachedData.fallback) {
+          flogCachedData = flogFallbackData;
+          renderFlog();
+        }
+      }
+
+      window.addEventListener("atlas:blackbox:status", (ev) => {
+        const s = ev.detail || {};
+        opsText(
+          "ops-recorder-state",
+          s.recording ? "recording" : "not recording",
+        );
+        const frames = s.buffer?.frames ?? 0;
+        const tick = s.last_tick ? opsTime(s.last_tick) : "never";
+        opsText("ops-recorder-meta", `${frames} frames · tick ${tick}`);
+      });
+
+      window.addEventListener("atlas:blackbox:incident", (ev) => {
+        const inc = ev.detail?.incident || {};
+        const trigger = Array.isArray(inc.triggers) ? inc.triggers[0] : null;
+        const resolvedSentinel = isResolvedSentinelEvent(trigger);
+        opsText(
+          "ops-incident-title",
+          resolvedSentinel
+            ? "Infra health recovered"
+            : trigger?.title || inc.id || "No incident loaded",
+        );
+        const bits = [];
+        if (resolvedSentinel) {
+          bits.push("latest sentinel report is healthy");
+        } else {
+          if (inc.ts) bits.push(opsTime(inc.ts));
+          if (inc.frame_count || ev.detail?.frameCount)
+            bits.push(`${inc.frame_count || ev.detail.frameCount} frames`);
+          bits.push(inc.sealed ? "sealed" : "recording");
+        }
+        opsText("ops-incident-meta", bits.join(" · "));
+        setFlogFallback(normalizeBlackboxEvents(inc));
+      });
+
+      window.addEventListener("atlas:infra:status", (ev) => {
+        const data = ev.detail || {};
+        opsInfraHealthy =
+          data.ok === true && data.overall === "ok" && data.stale !== true;
+        if (opsInfraHealthy) {
+          opsText("ops-telemetry-state", "online");
+          opsText(
+            "ops-telemetry-meta",
+            data.generated_at ? `live ${opsTime(data.generated_at)}` : "live",
+          );
+          const incidentTitle = opsEl("ops-incident-title");
+          if (
+            incidentTitle &&
+            /sentinel silent|specular-core is offline/i.test(
+              incidentTitle.textContent || "",
+            )
+          ) {
+            opsText("ops-incident-title", "Infra health recovered");
+            opsText("ops-incident-meta", "latest sentinel report is healthy");
+          }
+        }
+        if (opsLastFailureEvents.length)
+          updateOpsFailureFeed(opsLastFailureEvents);
+      });
+
+      window.addEventListener("atlas:telemetry", (ev) => {
+        const payload = ev.detail || {};
+        if (opsInfraHealthy && payload.online === false) return;
+        paintOpsTelemetry(payload);
+      });
+
+      function pollOpsTelemetry() {
+        fetch(SPECULAR_LIVE_URL, { cache: "no-store" })
+          .then((res) =>
+            res.ok
+              ? res.json()
+              : Promise.reject(new Error(`specular ${res.status}`)),
+          )
+          .then((payload) => {
+            if (opsInfraHealthy && payload.online === false) return;
+            paintOpsTelemetry(payload);
+          })
+          .catch(() => {
+            if (!opsInfraHealthy) {
+              opsText("ops-telemetry-state", "unreachable");
+              opsText("ops-telemetry-meta", "no live sample");
+            }
+          });
+      }
+      pollOpsTelemetry();
+      window.setInterval(pollOpsTelemetry, 60000);
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) pollOpsTelemetry();
+      });
+
+      function updateOpsFailureFeed(events) {
+        const feed = opsEl("ops-failure-feed");
+        if (!feed) return;
+        opsLastFailureEvents = events || [];
+        const picked = (events || [])
+          .filter((e) => e.level === "failure" || e.level === "warning")
+          .filter((e) => !isResolvedSentinelEvent(e))
+          .slice(0, 5);
+        if (!picked.length) {
+          feed.innerHTML =
+            '<div class="ops-feed-empty">No warnings or failures in the recent buffer.</div>';
+          return;
+        }
+        feed.innerHTML = "";
+        picked.forEach((e) => {
+          const row = document.createElement("button");
+          row.type = "button";
+          row.className = `ops-feed-item ${e.level || "info"}`;
+          const dot = document.createElement("span");
+          dot.className = "ops-feed-dot";
+          const title = document.createElement("span");
+          title.className = "ops-feed-title";
+          title.textContent = opsEventLabel(e);
+          const time = document.createElement("span");
+          time.className = "ops-feed-time";
+          time.textContent = flogRelTime(e.ts);
+          row.appendChild(dot);
+          row.appendChild(title);
+          row.appendChild(time);
+          row.addEventListener("click", () => {
+            window.dispatchEvent(
+              new CustomEvent("atlas:blackbox:seek-event", {
+                detail: { ts: e.ts },
+              }),
+            );
+          });
+          feed.appendChild(row);
+        });
+      }
+
+      function updateOpsPipeline(stats) {
+        opsText("ops-pipeline-runs", stats.total);
+        opsText(
+          "ops-pipeline-rate",
+          stats.rate === null ? "—" : `${stats.rate}%`,
+        );
+        opsText("ops-pipeline-week", stats.thisWeek);
+        const tone = stats.failures
+          ? `${stats.failures} failure${stats.failures !== 1 ? "s" : ""}`
+          : "no recent failures";
+        opsText(
+          "ops-pipeline-line",
+          `${tone} · most active ${stats.top || "—"}`,
+        );
+      }
+
+      async function loadFlog() {
+        const listEl = document.getElementById("flog-list");
+        listEl.innerHTML =
+          '<div class="flog-loading">Loading recent events…</div>';
+        let data;
+        try {
+          const urls = [
+            `${FLOG_URL}?limit=50`,
+            ...FLOG_LEVELS.map((lvl) => `${FLOG_URL}?limit=50&level=${lvl}`),
+          ];
+          const payloads = await Promise.all(
+            urls.map(async (url) => {
+              try {
+                const res = await fetch(url, { cache: "no-store" });
+                return res.json();
+              } catch {
+                return null;
+              }
+            }),
+          );
+          data = payloads[0];
+          if (data?.ok) {
+            data.events = mergeEvents(
+              ...payloads.filter((p) => p?.ok).map((p) => p.events || []),
+            );
+            data.returned = data.events.length;
+            data.levelCounts =
+              data.levelCounts || countEventLevels(data.events);
+          }
+          pgridDeployLatest = await loadLatestDeploy();
+        } catch {
+          if (flogFallbackData) {
+            flogCachedData = flogFallbackData;
+            renderFlog();
+            return;
+          }
+          listEl.innerHTML =
+            '<div class="flog-empty">Event feed unavailable. Waiting for Blackbox fallback.</div>';
+          return;
+        }
+        if (!data?.ok) {
+          if (flogFallbackData) {
+            flogCachedData = flogFallbackData;
+            renderFlog();
+            return;
+          }
+          listEl.innerHTML = `<div class="flog-empty">${data?.error || "No data."}</div>`;
+          return;
+        }
+        flogCachedData = data;
+        renderFlog();
+      }
+
+      function makeBuildMetaDeployEvent(commitSha, builtAt) {
+        if (!commitSha) return null;
+        return {
+          ts: builtAt || new Date().toISOString(),
+          level: "success",
+          dialect: "build-meta",
+          event: "pages-deploy",
+          title: "Deployed: atlas-systems.uk",
+          message: `Current deployed build [${commitSha}]`,
+          repo: "atlas-systems",
+          commitUrl: `https://github.com/AtlasReaper311/atlas-systems/commit/${commitSha}`,
+          pipeline: true,
+        };
+      }
+
+      function buildMetaFromDocument(doc) {
+        const commitSha = doc
+          .querySelector('meta[name="build-commit"]')
+          ?.content?.trim();
+        const builtAt = doc
+          .querySelector('meta[name="build-time"]')
+          ?.content?.trim();
+        return makeBuildMetaDeployEvent(commitSha, builtAt);
+      }
+
+      async function buildMetaDeployEvent() {
+        const localMeta = buildMetaFromDocument(document);
+        if (localMeta) return localMeta;
+        try {
+          const res = await fetch(`/?build-meta=${Date.now()}`, {
+            cache: "no-store",
+          });
+          if (!res.ok) return null;
+          const html = await res.text();
+          const doc = new DOMParser().parseFromString(html, "text/html");
+          return buildMetaFromDocument(doc);
+        } catch {
+          return null;
+        }
+      }
+
+      function latestDeployEvent(data) {
+        if (!data?.ok || !data.commitSha) return null;
+        const ok = data.status === "success";
+        return {
+          ts: data.endedOn || data.createdOn || data.checkedAt,
+          level: ok ? "success" : "failure",
+          dialect: "deploy-watch",
+          event: "pages-deploy",
+          title: ok
+            ? "Deployed: atlas-systems.uk"
+            : "Deploy failed: atlas-systems.uk",
+          message: `Cloudflare Pages ${data.status || "unknown"} [${data.commitSha}]`,
+          repo: "atlas-systems",
+          commitUrl: data.commitUrl,
+          pipeline: true,
+        };
+      }
+
+      async function loadLatestDeploy() {
+        const buildMeta = await buildMetaDeployEvent();
+        try {
+          const res = await fetch(DEPLOY_LATEST_URL, { cache: "no-store" });
+          const data = await res.json();
+          const watchEvent = latestDeployEvent(data);
+          if (!buildMeta) return watchEvent;
+          if (!watchEvent) return buildMeta;
+          return opsMs(buildMeta.ts) >= opsMs(watchEvent.ts)
+            ? buildMeta
+            : watchEvent;
+        } catch {
+          return buildMeta;
+        }
+      }
+
+      function renderFlog() {
+        if (!flogCachedData) return;
+        const data = flogCachedData;
+        const listEl = document.getElementById("flog-list");
+        const filtersEl = document.getElementById("flog-filters");
+        filtersEl.innerHTML = "";
+        const counts = data.levelCounts || {};
+        filtersEl.appendChild(
+          makeChip("all", null, data.total, flogActiveLevels === null),
+        );
+        for (const lvl of FLOG_LEVELS) {
+          if (!counts[lvl]) continue;
+          filtersEl.appendChild(
+            makeChip(
+              lvl,
+              lvl,
+              counts[lvl],
+              flogActiveLevels && flogActiveLevels.has(lvl),
+            ),
+          );
+        }
+        const filtered = flogActiveLevels
+          ? data.events.filter((e) => flogActiveLevels.has(e.level))
+          : data.events;
+        const shown = filtered.slice(0, FLOG_LIMIT);
+        updateOpsFailureFeed(data.events || []);
+        document.getElementById("flog-total").textContent = data.total;
+        document.getElementById("flog-shown").textContent = shown.length;
+        if (!shown.length) {
+          listEl.innerHTML =
+            '<div class="flog-empty">No events match this filter.</div>';
+          return;
+        }
+        listEl.innerHTML = "";
+        for (const e of shown) listEl.appendChild(renderFlogEntry(e));
+      }
+
+      function makeChip(label, level, count, active) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "flog-chip" + (active ? " active" : "");
+        if (level) {
+          const dot = document.createElement("span");
+          dot.className = `dot ${level}`;
+          btn.appendChild(dot);
+        }
+        btn.appendChild(document.createTextNode(label));
+        const c = document.createElement("span");
+        c.className = "count";
+        c.textContent = count;
+        btn.appendChild(c);
+        btn.addEventListener("click", () => {
+          if (level === null) {
+            flogActiveLevels = null;
+          } else {
+            if (!flogActiveLevels) flogActiveLevels = new Set();
+            if (flogActiveLevels.has(level)) flogActiveLevels.delete(level);
+            else flogActiveLevels.add(level);
+            if (!flogActiveLevels.size) flogActiveLevels = null;
+          }
+          loadFlog();
+        });
+        return btn;
+      }
+
+      function flogIsCicd(e) {
+        const t = e.title || "";
+        return (
+          /^deployed:/i.test(t) ||
+          /^blocked:/i.test(t) ||
+          /^deploy failed:/i.test(t) ||
+          /^pages deploy (succeeded|failed)/i.test(t)
+        );
+      }
+
+      function renderFlogEntry(e) {
+        const row = document.createElement("div");
+        row.className = "flog-entry";
+        const dot = document.createElement("div");
+        dot.className = `flog-dot ${e.level || "info"}`;
+        row.appendChild(dot);
+        const body = document.createElement("div");
+        body.className = "flog-body";
+        const src = document.createElement("div");
+        src.className = "flog-source";
+        src.textContent = e.event || e.dialect || "event";
+        const badge = document.createElement("span");
+        badge.className = "flog-badge " + (flogIsCicd(e) ? "cicd" : "runtime");
+        badge.textContent = flogIsCicd(e) ? "CI/CD" : "Runtime";
+        src.appendChild(badge);
+        const title = document.createElement("div");
+        title.className = "flog-title";
+        title.textContent = labDisplayText(e.title || "(no title)");
+        body.appendChild(src);
+        body.appendChild(title);
+        if (e.message) {
+          const msg = document.createElement("div");
+          msg.className = "flog-msg";
+          msg.textContent = labDisplayText(e.message);
+          body.appendChild(msg);
+        }
+        row.appendChild(body);
+        const when = document.createElement("div");
+        when.className = "flog-when";
+        when.textContent = flogRelTime(e.ts);
+        row.appendChild(when);
+        row.tabIndex = 0;
+        row.setAttribute("role", "button");
+        row.setAttribute(
+          "aria-label",
+          "Focus event in incident console: " +
+            labDisplayText(e.title || e.event || "event"),
+        );
+        row.addEventListener("click", () => {
+          window.dispatchEvent(
+            new CustomEvent("atlas:blackbox:seek-event", {
+              detail: { ts: e.ts },
+            }),
+          );
+        });
+        row.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            window.dispatchEvent(
+              new CustomEvent("atlas:blackbox:seek-event", {
+                detail: { ts: e.ts },
+              }),
+            );
+          }
+        });
+        return row;
+      }
+
+      function flogRelTime(iso) {
+        if (!iso) return "";
+        const then = new Date(iso).getTime();
+        if (!Number.isFinite(then)) return "";
+        const s = Math.max(1, Math.round((Date.now() - then) / 1000));
+        if (s < 60) return `${s}s ago`;
+        const m = Math.round(s / 60);
+        if (m < 60) return `${m}m ago`;
+        const h = Math.round(m / 60);
+        if (h < 24) return `${h}h ago`;
+        const d = Math.round(h / 24);
+        if (d < 30) return `${d}d ago`;
+        return `${Math.round(d / 30)}mo ago`;
+      }
+
+      document
+        .getElementById("flog-refresh-btn")
+        .addEventListener("click", loadFlog);
+      loadFlog();
+      setInterval(() => {
+        if (flogCachedData) renderFlog();
+      }, 30_000);
+
+      const PGRID_REPOS = [
+        { id: "atlas-api-index", aliases: ["atlas-api-index"] },
+        { id: "atlas-api-public", aliases: ["atlas-api-public"] },
+        { id: "atlas-blackbox", aliases: ["atlas-blackbox"] },
+        { id: "atlas-corpus", aliases: ["atlas-corpus"] },
+        { id: "atlas-daily-digest", aliases: ["atlas-daily-digest"] },
+        { id: "atlas-doc-viewer", aliases: ["atlas-doc-viewer", "cv.atlas-systems.uk"] },
+        { id: "atlas-dora", aliases: ["atlas-dora"] },
+        { id: "atlas-notify", aliases: ["atlas-notify"] },
+        { id: "atlas-quota-watch", aliases: ["atlas-quota-watch"] },
+        { id: "atlas-systems", aliases: ["atlas-systems", "atlas-systems.uk"] },
+        { id: "deploy-watch", aliases: ["deploy-watch"] },
+        { id: "github-pulse", aliases: ["github-pulse"] },
+        { id: "ramone-edge", aliases: ["ramone-edge", "ramone.atlas-systems.uk"] },
+        { id: "ramone-voice-trigger", aliases: ["ramone-voice-trigger", "ramone-trigger"] },
+        { id: "site-pulse", aliases: ["site-pulse"] },
+        { id: "specular-sonify", aliases: ["specular-sonify"] },
+        { id: "specular-telemetry", aliases: ["specular-telemetry", "specular-edge"] },
+        { id: "status", aliases: ["status", "status.atlas-systems.uk"] },
+      ];
+      const PGRID_RECENT_MS = 5 * 60 * 1000;
+      const PGRID_STALE_MS = 7 * 24 * 60 * 60 * 1000;
+      const PGRID_REPO_URL = (repo) =>
+        `https://github.com/AtlasReaper311/${repo}`;
+      const PGRID_REPO_IDS = PGRID_REPOS.map((repo) => repo.id);
+      const PGRID_REPO_BY_ID = Object.fromEntries(
+        PGRID_REPOS.map((repo) => [repo.id, repo]),
+      );
+
+      function tokenMatch(hay, token) {
+        const escaped = token
+          .toLowerCase()
+          .replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+        return new RegExp("(^|[^a-z0-9.-])" + escaped + "($|[^a-z0-9.-])").test(
+          hay,
+        );
+      }
+
+      function pgridRepoFor(ev) {
+        if (ev.repo && PGRID_REPO_BY_ID[ev.repo]) return ev.repo;
+        const hay = ((ev.title || "") + " " + (ev.message || "")).toLowerCase();
+        for (const repo of PGRID_REPOS) {
+          if (repo.aliases.some((alias) => tokenMatch(hay, alias)))
+            return repo.id;
+        }
+        return null;
+      }
+
+      function pgridShaFrom(ev) {
+        const m = ((ev.title || "") + " " + (ev.message || "")).match(
+          /\b[0-9a-f]{7,40}\b/i,
+        );
+        return m ? m[0].slice(0, 7) : null;
+      }
+
+      function pgridSummary(ev) {
+        const t = ev.title || "";
+        if (/^pages deploy succeeded/i.test(t)) return "Pages deploy succeeded";
+        if (/^pages deploy failed/i.test(t)) return "Pages deploy failed";
+        if (/^deployed:/i.test(t)) return "Deployed";
+        if (/^deploy failed:/i.test(t)) return "Deploy failed";
+        if (/^blocked:/i.test(t)) return "Blocked";
+        if (/^push to/i.test(t)) return "Push to main";
+        return t || ev.event || "event";
+      }
+
+      function isPipelineEvent(e) {
+        return (
+          e.pipeline === true ||
+          /^(deployed:|deploy failed:|blocked:|pages deploy)/i.test(
+            e.title || "",
+          )
+        );
+      }
+
+      function isActivityEvent(e) {
+        return /^push to/i.test(e.title || "") || e.event === "github:push";
+      }
+
+      function pgridStatusLevel(status, activity) {
+        if (!status && activity) return "activity";
+        if (!status) return "none";
+        if (!activity) return status.level || "info";
+        const statusTime = opsMs(status.ts);
+        const activityTime = opsMs(activity.ts);
+        if (activityTime > statusTime) return "activity";
+        return status.level || "info";
+      }
+
+      function pgridRender(events) {
+        const grid = document.getElementById("pgrid");
+        if (!grid) return;
+        const repoCount = document.getElementById("pgrid-repo-count");
+        if (repoCount) repoCount.textContent = PGRID_REPOS.length;
+        const state = {};
+        for (const repo of PGRID_REPO_IDS)
+          state[repo] = { activity: null, latest: null, status: null };
+        const sourceEvents = mergeEvents(
+          events || [],
+          pgridDeployLatest ? [pgridDeployLatest] : [],
+        );
+        for (const ev of sourceEvents) {
+          const repo = pgridRepoFor(ev);
+          if (!repo || !state[repo]) continue;
+          if (!state[repo].latest) state[repo].latest = ev;
+          if (!state[repo].activity && isActivityEvent(ev))
+            state[repo].activity = ev;
+          if (!state[repo].status && isPipelineEvent(ev))
+            state[repo].status = ev;
+        }
+        grid.innerHTML = "";
+        const now = Date.now();
+        for (const repo of PGRID_REPO_IDS) {
+          const { activity, latest, status } = state[repo];
+          const registryLive = pgridRegistryLive.has(repo);
+          const tile = document.createElement("a");
+          tile.className = "pgrid-tile";
+          tile.href = PGRID_REPO_URL(repo);
+          tile.target = "_blank";
+          tile.rel = "noopener noreferrer";
+          const activityAfterStatus =
+            status && activity && opsMs(activity.ts) > opsMs(status.ts);
+          let level = pgridStatusLevel(status, activity);
+          if (level === "none" && registryLive) level = "success";
+          if (level === "none") tile.classList.add("idle");
+          if (registryLive) tile.classList.add("registry-live");
+          const refEv = activityAfterStatus
+            ? activity
+            : status || activity || latest;
+          let isStale = false;
+          if (refEv && refEv.ts) {
+            const age = now - new Date(refEv.ts).getTime();
+            if (Number.isFinite(age) && age <= PGRID_RECENT_MS)
+              tile.classList.add("recent");
+            if (Number.isFinite(age) && age > PGRID_STALE_MS) isStale = true;
+          }
+          if (isStale && level !== "none") tile.classList.add("stale");
+          const row = document.createElement("div");
+          row.className = "pgrid-row";
+          const name = document.createElement("div");
+          name.className = "pgrid-repo";
+          name.textContent = repo;
+          const dot = document.createElement("div");
+          dot.className = "pgrid-dot " + level;
+          row.appendChild(name);
+          row.appendChild(dot);
+          tile.appendChild(row);
+          const meta = document.createElement("div");
+          meta.className = "pgrid-meta-line";
+          if (refEv) {
+            const sha = pgridShaFrom(refEv);
+            if (sha) {
+              const s = document.createElement("span");
+              s.className = "pgrid-sha";
+              s.textContent = sha;
+              meta.appendChild(s);
+              const sep = document.createElement("span");
+              sep.className = "pgrid-sep";
+              sep.textContent = "·";
+              meta.appendChild(sep);
+            }
+            const when = document.createElement("span");
+            when.textContent = flogRelTime(refEv.ts);
+            meta.appendChild(when);
+            if (isStale && level !== "none") {
+              const sep2 = document.createElement("span");
+              sep2.className = "pgrid-sep";
+              sep2.textContent = "·";
+              meta.appendChild(sep2);
+              const st = document.createElement("span");
+              st.className = "pgrid-stale-tag";
+              st.textContent = "older";
+              meta.appendChild(st);
+            }
+          } else {
+            meta.textContent = registryLive
+              ? "endpoint live"
+              : "no deploy feed yet";
+          }
+          tile.appendChild(meta);
+          const summary = document.createElement("div");
+          summary.className = "pgrid-summary";
+          if (activityAfterStatus)
+            summary.textContent = "New push; waiting for deploy event";
+          else if (status) summary.textContent = pgridSummary(status);
+          else if (activity && registryLive)
+            summary.textContent = "Endpoint live";
+          else if (activity)
+            summary.textContent = "Push seen; waiting for first deploy event";
+          else if (latest) summary.textContent = pgridSummary(latest);
+          else if (registryLive) summary.textContent = "Endpoint live";
+          else summary.textContent = "Deploy feed not wired yet";
+          tile.appendChild(summary);
+          const pulse = document.createElement("div");
+          pulse.className = "pgrid-pulse";
+          tile.appendChild(pulse);
+          grid.appendChild(tile);
+        }
+        const updatedEl = document.getElementById("pgrid-updated");
+        if (updatedEl)
+          updatedEl.textContent = new Date().toLocaleTimeString("en-GB", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+      }
+
+      function renderPipelineStats(events) {
+        const pipeline = mergeEvents(
+          events || [],
+          pgridDeployLatest ? [pgridDeployLatest] : [],
+        ).filter(isPipelineEvent);
+        const total = pipeline.length;
+        const successes = pipeline.filter((e) => e.level === "success").length;
+        const failures = pipeline.filter((e) => e.level === "failure").length;
+        const rateBase = successes + failures;
+        const rate =
+          rateBase > 0 ? Math.round((successes / rateBase) * 100) : null;
+        const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const thisWeek = pipeline.filter(
+          (e) => new Date(e.ts).getTime() >= weekAgo,
+        ).length;
+        const recentFailures = pipeline.filter(
+          (e) => e.level === "failure" && new Date(e.ts).getTime() >= weekAgo,
+        ).length;
+        const repoCounts = {};
+        for (const e of pipeline) {
+          const repo = pgridRepoFor(e);
+          if (repo) repoCounts[repo] = (repoCounts[repo] || 0) + 1;
+        }
+        const topEntry = Object.entries(repoCounts).sort(
+          (a, b) => b[1] - a[1],
+        )[0];
+        const totalEl = document.getElementById("pstat-total");
+        const rateEl = document.getElementById("pstat-rate");
+        const weekEl = document.getElementById("pstat-week");
+        const topEl = document.getElementById("pstat-top");
+        if (totalEl) totalEl.textContent = total;
+        if (weekEl) weekEl.textContent = thisWeek;
+        if (topEl) topEl.textContent = topEntry ? topEntry[0] : "—";
+        if (rateEl) {
+          if (rate === null) {
+            rateEl.textContent = "—";
+            rateEl.className = "pgrid-stat-val";
+          } else {
+            rateEl.textContent = rate + "%";
+            rateEl.className =
+              "pgrid-stat-val " +
+              (rate >= 90 ? "good" : rate >= 70 ? "warn" : "bad");
+          }
+        }
+        updateOpsPipeline({
+          total,
+          rate,
+          thisWeek,
+          failures: recentFailures,
+          top: topEntry ? topEntry[0] : null,
+        });
+      }
+
+      const _origRenderFlog = renderFlog;
+      renderFlog = function () {
+        _origRenderFlog();
+        if (flogCachedData?.events) {
+          pgridRender(flogCachedData.events);
+          renderPipelineStats(flogCachedData.events);
+        }
+      };
+      const _pgridWatch = setInterval(() => {
+        if (flogCachedData?.events) {
+          pgridRender(flogCachedData.events);
+          renderPipelineStats(flogCachedData.events);
+          clearInterval(_pgridWatch);
+        }
+      }, 200);
+
+      let _healthTargets = null;
+
+      function endpointProbeUrl(ep) {
+        const BASE = "https://api.atlas-systems.uk";
+        const path = (ep.path || "").replace(/\?.*$/, "");
+        if (/^https?:\/\//i.test(path)) return path;
+        try {
+          if (ep.probeUrl)
+            return new URL(path || "/", new URL(ep.probeUrl).origin).href;
+        } catch {}
+        return BASE + (path || "/");
+      }
+
+      function deriveHealthTargets(endpoints) {
+        const byWorker = {};
+        for (const ep of endpoints) {
+          if (ep.method !== "GET") continue;
+          if (/auth required/i.test(ep.description || "")) continue;
+          if (!byWorker[ep.worker]) byWorker[ep.worker] = ep;
+          if (/health|liveness|probe/i.test(ep.description || ""))
+            byWorker[ep.worker] = ep;
+        }
+        return Object.entries(byWorker).map(([worker, ep]) => {
+          return {
+            label: worker,
+            url: endpointProbeUrl(ep),
+            registryLive: /^(live|ok|active|operational)$/i.test(
+              ep.registryStatus || "",
+            ),
+          };
+        });
+      }
+
+      async function pingEndpoint(url) {
+        const t0 = performance.now();
+        async function attempt(options = {}) {
+          const controller = new AbortController();
+          const tid = setTimeout(() => controller.abort(), 5000);
+          try {
+            return await fetch(url, {
+              cache: "no-store",
+              signal: controller.signal,
+              ...options,
+            });
+          } finally {
+            clearTimeout(tid);
+          }
+        }
+        try {
+          const res = await attempt();
+          return {
+            ok: res.ok,
+            reachable: res.status < 500,
+            status: res.status,
+            ms: Math.round(performance.now() - t0),
+          };
+        } catch {
+          try {
+            await attempt({ mode: "no-cors" });
+            return {
+              ok: true,
+              reachable: true,
+              status: "opaque",
+              ms: Math.round(performance.now() - t0),
+            };
+          } catch {
+            return { ok: false, reachable: false, status: null, ms: null };
+          }
+        }
+      }
+
+      async function runHealthChecks() {
+        if (!_healthTargets?.length) return;
+        const strip = document.getElementById("health-strip");
+        if (!strip) return;
+        const results = await Promise.all(
+          _healthTargets.map(async (t) => ({
+            ...t,
+            ping: await pingEndpoint(t.url),
+          })),
+        );
+        strip.innerHTML = "";
+        for (const { label, url, registryLive, ping } of results) {
+          const registryFallback =
+            registryLive && (!ping.reachable || ping.ms === null);
+          const chip = document.createElement("div");
+          chip.className = "health-chip";
+          const name = document.createElement("div");
+          name.className = "health-chip-name";
+          name.textContent = label;
+          const row = document.createElement("div");
+          row.className = "health-chip-row";
+          const dotClass = registryFallback
+            ? "up"
+            : !ping.reachable || ping.ms === null
+              ? "down"
+              : !ping.ok || ping.ms >= 400
+                ? "degraded"
+                : "up";
+          const latClass = registryFallback
+            ? "fast"
+            : ping.ms === null
+              ? "err"
+              : ping.ms < 150
+                ? "fast"
+                : ping.ms < 400
+                  ? "medium"
+                  : "slow";
+          const dot = document.createElement("div");
+          dot.className = "health-dot " + dotClass;
+          const lat = document.createElement("span");
+          lat.className = "health-chip-latency " + latClass;
+          lat.textContent = registryFallback
+            ? "live"
+            : ping.ms !== null
+              ? ping.ms + "ms"
+              : "timeout";
+          chip.title = `${label} · ${registryFallback ? "registry live" : ping.status || "timeout"} · ${registryFallback ? "registry fallback" : ping.ms !== null ? ping.ms + "ms" : "no response"} · ${url || ""}`;
+          row.appendChild(dot);
+          row.appendChild(lat);
+          chip.appendChild(name);
+          chip.appendChild(row);
+          strip.appendChild(chip);
+        }
+      }
+
+      const API_INDEX_URL = "https://api.atlas-systems.uk/";
+      const API_SURFACE_EXCLUDED_WORKERS = new Set();
+
+      function normalizeApiSurface(data) {
+        const endpoints = [];
+        const repos = { ...(data.repos || {}) };
+        const undocumented = [];
+        const seen = new Set();
+
+        function addEndpoint(worker, meta, ep) {
+          const next = {
+            ...ep,
+            worker,
+            source: meta?.source || ep.source || "",
+            probeUrl: meta?.probeUrl || ep.probeUrl || ep.probe_url || "",
+            registryStatus: meta?.status || ep.status || "",
+          };
+          const key = [
+            next.worker,
+            next.method || "GET",
+            next.path || "",
+            next.description || "",
+          ].join("|");
+          if (!seen.has(key)) {
+            endpoints.push(next);
+            seen.add(key);
+          }
+        }
+
+        if (Array.isArray(data.endpoints)) {
+          for (const ep of data.endpoints)
+            addEndpoint(ep.worker || "unknown", { source: ep.source }, ep);
+        }
+
+        if (Array.isArray(data.workers)) {
+          for (const worker of data.workers) {
+            const meta = worker.meta || {};
+            const name = meta.name || worker.name || "unknown";
+            if (meta.source && !repos[name]) repos[name] = meta.source;
+            if (worker.documented && Array.isArray(meta.endpoints)) {
+              for (const ep of meta.endpoints)
+                addEndpoint(
+                  name,
+                  { ...meta, probeUrl: worker.probe_url || "" },
+                  ep,
+                );
+            } else {
+              undocumented.push({
+                worker: name,
+                note: worker.note || "No valid /_meta document yet.",
+                probeUrl: worker.probe_url || "",
+              });
+            }
+          }
+        }
+
+        return {
+          endpoints: endpoints.filter(
+            (ep) => !API_SURFACE_EXCLUDED_WORKERS.has(ep.worker || ""),
+          ),
+          repos,
+          undocumented: undocumented.filter(
+            (item) => !API_SURFACE_EXCLUDED_WORKERS.has(item.worker || ""),
+          ),
+          counts: data.counts || null,
+          warnings: Array.isArray(data.discovery_warnings)
+            ? data.discovery_warnings
+            : [],
+        };
+      }
+
+      async function initApiSurface() {
+        const grid = document.getElementById("api-surface-grid");
+        const note = document.getElementById("api-surface-note");
+        const summary = document.getElementById("api-surface-summary");
+        if (!grid) return;
+        let data;
+        try {
+          const res = await fetch(API_INDEX_URL, {
+            headers: { Accept: "application/json" },
+            cache: "no-store",
+          });
+          data = await res.json();
+        } catch {
+          grid.innerHTML =
+            '<div class="api-loading">API index unavailable.</div>';
+          if (note) note.textContent = "";
+          return;
+        }
+        const { endpoints, repos, undocumented, counts, warnings } =
+          normalizeApiSurface(data);
+        if (!endpoints.length && !undocumented.length) {
+          grid.innerHTML =
+            '<div class="api-loading">No endpoints reported.</div>';
+          if (note) note.textContent = "";
+          return;
+        }
+        const order = [];
+        const byWorker = {};
+        for (const ep of endpoints) {
+          const w = ep.worker || "unknown";
+          if (!byWorker[w]) {
+            byWorker[w] = [];
+            order.push(w);
+          }
+          byWorker[w].push(ep);
+        }
+        const workerPriority = [
+          "atlas-api-public",
+          "atlas-api-index",
+          "atlas-notify",
+          "ramone-edge",
+          "github-pulse",
+          "site-pulse",
+          "deploy-watch",
+          "ramone-trigger",
+          "specular-edge",
+        ];
+        order.sort((a, b) => {
+          const ai = workerPriority.indexOf(a);
+          const bi = workerPriority.indexOf(b);
+          if (ai !== -1 || bi !== -1)
+            return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+          return a.localeCompare(b);
+        });
+        if (summary) {
+          const total = endpoints.length;
+          const pending = undocumented.length;
+          summary.innerHTML = `
+            <div class="api-surface-stat"><strong>${total}</strong><span>public endpoints</span></div>
+            <div class="api-surface-stat"><strong>${order.length}</strong><span>documented workers</span></div>
+            <div class="api-surface-stat"><strong>${pending}</strong><span>pending meta</span></div>
+          `;
+        }
+        grid.innerHTML = "";
+        for (const worker of order) {
+          const card = document.createElement("div");
+          card.className = "api-worker-card";
+          const head = document.createElement("div");
+          head.className = "api-worker-head";
+          const name = document.createElement("div");
+          name.className = "api-worker-name";
+          name.textContent = worker;
+          head.appendChild(name);
+          if (repos[worker]) {
+            const link = document.createElement("a");
+            link.className = "api-worker-link";
+            link.href = repos[worker];
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.textContent = "repo →";
+            head.appendChild(link);
+          }
+          card.appendChild(head);
+          const list = document.createElement("div");
+          list.className = "api-endpoint-list";
+          const shown = byWorker[worker].slice(0, 4);
+          for (const ep of shown) {
+            const row = document.createElement("div");
+            row.className = "api-endpoint-row";
+            const top = document.createElement("div");
+            top.className = "api-endpoint-top";
+            const method = document.createElement("span");
+            method.className =
+              "api-method " + (ep.method === "POST" ? "post" : "get");
+            method.textContent = ep.method || "GET";
+            top.appendChild(method);
+            const path = document.createElement("span");
+            path.className = "api-path";
+            path.textContent = ep.path || "";
+            top.appendChild(path);
+            let desc = ep.description || "";
+            const needsAuth = /\(auth required\)/i.test(desc);
+            desc = desc.replace(/\s*\(auth required\)/i, "");
+            if (needsAuth) {
+              const authTag = document.createElement("span");
+              authTag.className = "api-auth-tag";
+              authTag.textContent = "auth";
+              top.appendChild(authTag);
+            }
+            row.appendChild(top);
+            if (desc) {
+              const descEl = document.createElement("div");
+              descEl.className = "api-desc";
+              descEl.textContent = desc;
+              row.appendChild(descEl);
+            }
+            list.appendChild(row);
+          }
+          if (byWorker[worker].length > shown.length) {
+            const more = document.createElement("div");
+            more.className = "api-more";
+            more.textContent = `+ ${byWorker[worker].length - shown.length} more endpoint${byWorker[worker].length - shown.length !== 1 ? "s" : ""} in /v1/docs`;
+            list.appendChild(more);
+          }
+          card.appendChild(list);
+          grid.appendChild(card);
+        }
+        for (const item of undocumented) {
+          const card = document.createElement("div");
+          card.className = "api-worker-card";
+          const head = document.createElement("div");
+          head.className = "api-worker-head";
+          const name = document.createElement("div");
+          name.className = "api-worker-name";
+          name.textContent = item.worker;
+          head.appendChild(name);
+          card.appendChild(head);
+          const list = document.createElement("div");
+          list.className = "api-endpoint-list";
+          const row = document.createElement("div");
+          row.className = "api-endpoint-row";
+          const top = document.createElement("div");
+          top.className = "api-endpoint-top";
+          const method = document.createElement("span");
+          method.className = "api-method get";
+          method.textContent = "META";
+          const path = document.createElement("span");
+          path.className = "api-path";
+          path.textContent = "/_meta pending";
+          top.appendChild(method);
+          top.appendChild(path);
+          row.appendChild(top);
+          const descEl = document.createElement("div");
+          descEl.className = "api-desc";
+          descEl.textContent = item.note;
+          row.appendChild(descEl);
+          list.appendChild(row);
+          card.appendChild(list);
+          grid.appendChild(card);
+        }
+        if (note) {
+          const total = endpoints.length;
+          const wc = order.length;
+          const missing = undocumented.length;
+          const warningText = warnings.length
+            ? ` ${warnings.length} discovery warning${warnings.length !== 1 ? "s" : ""}.`
+            : "";
+          note.textContent = `Live registry — ${total} endpoint${total !== 1 ? "s" : ""} across ${wc} documented Worker${wc !== 1 ? "s" : ""}; ${missing} Worker${missing !== 1 ? "s" : ""} still need /_meta.${warningText} Source: api.atlas-systems.uk/`;
+        }
+        _healthTargets = deriveHealthTargets(endpoints);
+        pgridRegistryLive = new Set();
+        for (const ep of endpoints) {
+          if (!/^(live|ok|active|operational)$/i.test(ep.registryStatus || ""))
+            continue;
+          const repo = pgridRepoFor({
+            title: `${ep.worker || ""} ${ep.source || ""}`,
+          });
+          if (repo) pgridRegistryLive.add(repo);
+        }
+        if (flogCachedData?.events) pgridRender(flogCachedData.events);
+        runHealthChecks();
+        setInterval(runHealthChecks, 60_000);
+      }
+      initApiSurface();
+    </script>
+
+    <script src="/js/transitions.js?v=20260706-history"></script>
+    <script src="/lab/lab-card.js?v=20260701-session-fallback" defer></script>
+    <script src="/js/atlas-registry.js" defer></script>
+    <script
+      src="/lab/system-map.topology.js?v=20260715-live-topology"
+      defer
+    ></script>
+    <script
+      src="/lab/system-map-bootstrap.js?v=20260724-live-health"
+      defer
+    ></script>
+    <script src="/lab/live-section.js?v=20260713-estate-search" defer></script>
+    <script src="/lab/live-infra.js?v=20260707-infra-recovery" defer></script>
+    <script
+      src="/lab/blackbox-timeline.js?v=20260705-ops-console"
+      defer
+    ></script>
+    <script src="/js/atlas-terminal-card-v3.js" defer></script>
+    <script src="/vendor/tone.min.js?v=20260708-sonify" defer></script>
+    <script
+      type="module"
+      src="/static/js/sonify/ui.js?v=20260718-system-symphony-ghost-tempo-guard"
+    ></script>
+    <script type="module" src="/static/js/estate-search/homepage-widget.js"></script>
+  <script type="module" src="/static/js/estate-search/global-search.js"></script>
+    <script
+      src="/lab/api-surface-repository-count.js?v=20260715-public-repos"
+      defer
+    ></script>
+  </body>
+</html>

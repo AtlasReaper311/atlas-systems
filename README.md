@@ -33,10 +33,11 @@ Live source for [atlas-systems.uk](https://atlas-systems.uk). Hand-built HTML, C
 |---|---|---|---|
 | Sitemap | `deploy.yml` | push to `main`, manual dispatch | Regenerates `sitemap.xml` from real file history |
 | Static validation | `atlas-infra/validate-static.yml` | called by `deploy.yml` | Runs `html-validate` and offline internal-link checks |
-| Deploy | `atlas-infra/validate-static.yml` | validation success | Publishes to Cloudflare Pages through Wrangler |
+| Deploy | `atlas-infra/validate-static.yml` | validation success | Stages the `.pagesignore`-filtered site artifact, then publishes it to Cloudflare Pages through Wrangler |
 | Notify | `atlas-infra/validate-static.yml` | always | Reports deploy outcome to Discord and the Lab failure log |
 | Corpus refresh | `atlas-corpus/refresh-corpus.yml` | push to `main` | Re-ingests the estate docs into the searchable corpus |
 | Outcome verification | `deploy-watch` | Cloudflare cron | Confirms the actual Pages deployment result from Cloudflare's API |
+| Interface preview | `interface-preview.yml` | same-repository PR changing governed interface paths | Publishes a non-production PR branch and captures deterministic Chromium and Firefox evidence |
 | Branch preview | `preview.yml` | push to `feat/system-symphony-h1-h8-preview` | Validates and publishes a non-production `pages.dev` branch preview |
 
 The push event, validation gate, deploy result, and Cloudflare Pages outcome are separate signals. `deploy.yml` handles the build path; `deploy-watch` independently verifies whether Cloudflare actually produced the expected deployment.
@@ -72,6 +73,20 @@ The preview alias is not currently on the production `specular-sonify` and
 surface on the branch preview; live mode deliberately remains stale/Unknown for
 those feeds until a separate, exact-origin Worker change is reviewed and
 approved. The preview workflow does not widen CORS or deploy those Workers.
+
+### Governed interface previews
+
+Pull requests from this repository that change governed public-interface paths
+run `interface-preview.yml`. The workflow validates the exact pull-request head,
+deploys only to an `interface-pr-<number>` Pages branch, and records deterministic
+Chromium and Firefox screenshots, accessibility results, console errors,
+semantic structure, overflow, and mobile-navigation clearance for 14 days.
+Production remains unchanged until a separately approved merge and deployment.
+
+Phase G adds a read-only repository surface declaration and exact-authority
+validation without changing the rendered site. The scope and rollback boundary
+are documented in
+[`docs/PHASE-G-INTERFACE-CONFORMANCE.md`](docs/PHASE-G-INTERFACE-CONFORMANCE.md).
 
 ## Live data
 

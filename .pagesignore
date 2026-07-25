@@ -1,0 +1,27 @@
+# Repository and workflow metadata
+/.atlas/
+/.github/
+/.wrangler/
+/.assetsignore
+/.gitattributes
+/.gitignore
+/.htmlvalidate.json
+/.pagesignore
+
+# Source documentation and generator inputs
+/LICENSE
+/README.md
+/case-study-template.md
+/case-study-voice.md
+/decisions.md
+/docs/
+/llms.tsx
+/site-snippet/
+
+# Build and validation tooling
+/node_modules/
+/package.json
+/package-lock.json
+/scripts/
+*.test.js
+*.test.mjs

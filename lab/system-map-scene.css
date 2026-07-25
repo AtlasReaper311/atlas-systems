@@ -59,7 +59,7 @@
   background: rgba(17, 17, 24, 0.85);
   border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
   border-radius: 3px;
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   font-family: var(--mono, 'IBM Plex Mono', monospace);
   font-size: 10px;
   letter-spacing: 0.08em;
@@ -85,7 +85,7 @@
   font-family: var(--mono, 'IBM Plex Mono', monospace);
   font-size: 10px;
   letter-spacing: 0.06em;
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   transition: opacity 1.2s ease;
 }
 .smap3d-hint-gone { opacity: 0; }

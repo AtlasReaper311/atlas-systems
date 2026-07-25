@@ -1,0 +1,267 @@
+/*
+ * Atlas Systems long-form article presentation v2.
+ *
+ * This same-origin layer is shared by protected historical articles and future
+ * generator output. It changes presentation only; article body markup and prose
+ * remain owned by their original publication source.
+ */
+
+html {
+  scroll-padding-top: calc(var(--atlas-header-height, 56px) + 32px);
+}
+
+body {
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+main {
+  width: min(100%, 1160px);
+  overflow-x: clip;
+}
+
+.article-header {
+  gap: clamp(32px, 5vw, 64px);
+  padding-top: calc(var(--atlas-header-height, 56px) + clamp(56px, 8vw, 96px));
+  padding-bottom: clamp(48px, 7vw, 80px);
+}
+
+.header-meta {
+  gap: 12px;
+}
+
+.article-title {
+  max-width: 18ch;
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  line-height: .98;
+}
+
+.article-subtitle,
+.spec-value,
+.outcome-value,
+.engine-item,
+.intensity-item {
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.article-lede {
+  max-width: 640px;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.article-index,
+.article-date,
+.article-read-time,
+.section-label,
+.tag,
+.spec-label,
+.toc-label,
+.toc-item a,
+.callout-label,
+.phase-num,
+.outcome-label,
+.engine-label,
+.video-label,
+.footer-next {
+  font-size: 11px;
+}
+
+.tag {
+  padding: 4px 8px;
+}
+
+.spec-strip {
+  margin: clamp(32px, 5vw, 56px) 0;
+}
+
+.spec-cell {
+  min-width: 0;
+  padding: 16px 20px;
+}
+
+.article-body {
+  min-width: 0;
+  grid-template-columns: minmax(160px, 200px) minmax(0, 720px);
+  gap: clamp(40px, 6vw, 72px);
+  justify-content: center;
+  padding: clamp(48px, 7vw, 80px) 0;
+}
+
+.prose {
+  min-width: 0;
+  width: 100%;
+  max-width: 720px;
+}
+
+.prose h2 {
+  margin: 56px 0 20px;
+  font-size: clamp(1.9rem, 3vw, 2.4rem);
+}
+
+.prose h3 {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.prose p,
+.prose ul li,
+.prose ol li {
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.callout p,
+.data-table,
+.model-table,
+.model-table td,
+.model-table th {
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.callout,
+.outcome-cell,
+.engine-cell,
+.intensity-cell {
+  padding: 20px 24px;
+}
+
+.table-wrap,
+.model-table,
+.prose pre {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.prose img,
+.prose video,
+.video-embed,
+.prose iframe {
+  max-width: 100%;
+}
+
+.back-link,
+.footer-back,
+.toc-item a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.toc-item a {
+  width: 100%;
+}
+
+.article-footer {
+  gap: 24px;
+  padding: 40px 0 56px;
+}
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent, #f5a623);
+  outline-offset: 3px;
+}
+
+@media (max-width: 900px) {
+  .article-header {
+    grid-template-columns: 1fr;
+  }
+
+  .article-title {
+    max-width: 22ch;
+  }
+
+  .article-body {
+    grid-template-columns: minmax(0, 720px);
+  }
+}
+
+@media (max-width: 680px) {
+  main {
+    padding-inline: 20px;
+  }
+
+  .article-header {
+    padding-top: calc(var(--atlas-header-height, 56px) + 48px);
+    padding-bottom: 48px;
+  }
+
+  .article-title {
+    font-size: clamp(2.35rem, 13vw, 3.4rem);
+  }
+
+  .spec-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .article-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .outcomes-grid,
+  .engine-grid,
+  .intensity-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /*
+   * Historical technical articles contain tables and terminal transcripts
+   * whose intrinsic width exceeds a phone viewport. Wrap them at this
+   * breakpoint so the page does not create keyboard-inaccessible horizontal
+   * scroll regions.
+   */
+  .model-table,
+  .data-table {
+    table-layout: fixed;
+    overflow: visible;
+  }
+
+  .model-table th,
+  .model-table td,
+  .data-table th,
+  .data-table td,
+  .model-table code,
+  .data-table code {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .prose pre {
+    overflow-x: visible;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .prose pre code {
+    white-space: inherit;
+  }
+}
+
+@media (max-width: 390px) {
+  main {
+    padding-inline: 16px;
+  }
+
+  .spec-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

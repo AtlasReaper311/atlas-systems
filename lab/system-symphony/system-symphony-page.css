@@ -1,0 +1,239 @@
+body.symphony-page {
+  overflow-x: hidden;
+}
+
+.symphony-page-main {
+  width: min(calc(100% - 48px), 1560px);
+  max-width: none;
+}
+
+.symphony-page-summary {
+  margin-top: 2rem;
+}
+
+.symphony-page-host {
+  min-height: 320px;
+  margin-top: 2rem;
+}
+
+.symphony-page-host > .system-symphony {
+  position: static;
+  display: block;
+  width: 100%;
+}
+
+.symphony-page .symphony-widget {
+  display: none;
+}
+
+.symphony-page-host .symphony-overlay {
+  position: static;
+  inset: auto;
+  z-index: auto;
+  padding: 0;
+  display: block;
+  place-items: initial;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.symphony-page-host .symphony-console {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  box-shadow: none;
+}
+
+.symphony-page-host .symphony-console__scroll {
+  height: auto;
+  overflow: visible;
+  overscroll-behavior: auto;
+}
+
+.symphony-page-host .symphony-console__header {
+  position: relative;
+}
+
+.symphony-page-host [data-close-console] {
+  display: none !important;
+}
+
+.symphony-page-host .symphony-important-status {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0.75rem clamp(18px, 3vw, 42px);
+  clip: auto;
+  white-space: normal;
+}
+
+.symphony-page-host .symphony-button,
+.symphony-page-host .symphony-segmented button,
+.symphony-page-host .symphony-table-action,
+.symphony-page-host .symphony-demo-profiles button,
+.symphony-page-host input[type="range"] {
+  min-height: 44px;
+}
+
+.symphony-page-host .symphony-visual,
+.symphony-page-host .symphony-table-wrap {
+  overflow-x: auto;
+}
+
+.symphony-page-host .symphony-topology,
+.symphony-page-host [data-waveform] {
+  display: block;
+  width: 100%;
+  min-width: 680px;
+}
+
+.symphony-page-host .symphony-table-wrap table {
+  min-width: 760px;
+}
+
+.symphony-page-host .symphony-source-panel,
+.symphony-page-host .symphony-orchestra,
+.symphony-page-host .symphony-service-section {
+  scroll-margin-top: 112px;
+}
+
+.symphony-page-explanation {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--border);
+}
+
+.symphony-page-explanation article {
+  padding: 1.25rem;
+  background: var(--bg-1);
+}
+
+.symphony-page-explanation h3 {
+  margin: 0 0 0.65rem;
+  font-size: 13px;
+}
+
+.symphony-page-explanation p {
+  margin: 0;
+  color: var(--text-dim);
+}
+
+.symphony-page-keyboard {
+  margin: 0;
+  padding-left: 1.25rem;
+  columns: 2;
+  column-gap: 2rem;
+}
+
+.symphony-page-keyboard li {
+  margin: 0.45rem 0;
+  break-inside: avoid;
+  color: var(--text-dim);
+}
+
+.symphony-page-keyboard kbd {
+  padding: 0.15rem 0.35rem;
+  border: 1px solid var(--border-hi);
+  border-radius: 3px;
+  color: var(--text);
+  font: 500 11px var(--mono);
+}
+
+@media (max-width: 1024px) {
+  .symphony-page-host .symphony-console__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .symphony-page-host .symphony-console__header-controls {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .symphony-page-explanation,
+  .symphony-page-host .symphony-source-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .symphony-page-host .symphony-source-panel__controls {
+    justify-items: start;
+  }
+
+  .symphony-page-host .symphony-performance {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .symphony-page-main {
+    width: min(calc(100% - 32px), 1560px);
+  }
+
+  .symphony-page-host .symphony-console {
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+  }
+
+  .symphony-page-host .symphony-orchestra__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .symphony-page-host .symphony-performance__macros,
+  .symphony-page-host .symphony-demo-profiles > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .symphony-page-keyboard {
+    columns: 1;
+  }
+}
+
+@media (max-width: 375px) {
+  .symphony-page-main {
+    width: calc(100% - 24px);
+  }
+
+  .symphony-page-host .symphony-console__header,
+  .symphony-page-host .symphony-source-panel,
+  .symphony-page-host .symphony-orchestra,
+  .symphony-page-host .symphony-service-section {
+    margin-inline: 0;
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
+  }
+
+  .symphony-page-host .symphony-console__header-controls,
+  .symphony-page-host .symphony-console__header-controls > * {
+    width: 100%;
+  }
+
+  .symphony-page-host .symphony-volume {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .symphony-page-host .symphony-performance__macros,
+  .symphony-page-host .symphony-demo-profiles > div {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .symphony-page-host *,
+  .symphony-page-host *::before,
+  .symphony-page-host *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

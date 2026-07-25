@@ -1,6 +1,11 @@
 import { subscribe as subscribeRegistry } from "./atlas-registry.js?v=20260720-esm-live";
+import {
+  applyHealthEvidence,
+  healthStatusForNode,
+} from "./system-map-status.js?v=20260724-live-health";
 
 const TOPOLOGY_URL = "https://api.atlas-systems.uk/v1/topology";
+const STATS_URL = "https://api.atlas-systems.uk/v1/stats";
 const MAP_URL = "/lab/system-map.js?v=20260715-route-clarity";
 const BLOCKED = new Set(["simple-proxy"]);
 
@@ -23,7 +28,9 @@ function cloneBase() {
   };
 }
 
-function statusFor(component, workerByName) {
+function statusFor(component, workerByName, stats) {
+  const measured = healthStatusForNode(component.id, stats);
+  if (measured) return measured;
   if (component.kind !== "worker") return "static";
 
   const worker = workerByName.get(component.id);
@@ -81,7 +88,7 @@ function addEdge(graph, edge) {
   if (!exists) graph.edges.push(edge);
 }
 
-function compile(topologyDocument, snapshot) {
+function compile(topologyDocument, snapshot, stats) {
   const graph = cloneBase();
   const workers = Array.isArray(snapshot?.workers) ? snapshot.workers : [];
   const workerByName = new Map(
@@ -98,7 +105,7 @@ function compile(topologyDocument, snapshot) {
       kind: component.kind,
       layer: component.layer || "reusable-kit",
       lifecycle: component.lifecycle || "production",
-      status: statusFor(component, workerByName),
+      status: statusFor(component, workerByName, stats),
       sourceOnly:
         component.source_only === true ||
         component.kind === "repository" ||
@@ -116,9 +123,12 @@ function compile(topologyDocument, snapshot) {
     if (!worker?.name || BLOCKED.has(worker.name)) continue;
 
     const existing = graph.nodes.find((node) => node.id === worker.name);
-    const status = worker.documented === false
-      ? "undoc"
-      : worker.meta?.status || "live";
+    const measured = healthStatusForNode(worker.name, stats);
+    const status = measured || (
+      worker.documented === false
+        ? "undoc"
+        : worker.meta?.status || "live"
+    );
 
     mergeNode(graph, {
       id: worker.name,
@@ -157,7 +167,7 @@ function compile(topologyDocument, snapshot) {
     }
   }
 
-  graph.nodes = graph.nodes
+  graph.nodes = applyHealthEvidence(graph.nodes, stats)
     .filter((node) => !BLOCKED.has(node.id))
     .sort((a, b) => a.id.localeCompare(b.id));
 
@@ -196,14 +206,27 @@ async function fetchTopology() {
   return response.json();
 }
 
+async function fetchStats() {
+  const response = await fetch(STATS_URL, {
+    cache: "no-store",
+    headers: { Accept: "application/json" },
+  });
+
+  if (!response.ok) {
+    throw new Error(`stats ${response.status}`);
+  }
+
+  return response.json();
+}
+
 function mountMap() {
   if (mounted) return;
   mounted = true;
   void import(MAP_URL);
 }
 
-function publish(graph, snapshot, topology) {
-  const detail = { graph, snapshot, topology };
+function publish(graph, snapshot, topology, stats) {
+  const detail = { graph, snapshot, topology, stats };
 
   // system-map.js still consumes this handoff. Removing that global belongs to
   // the system-map module boundary, not the registry migration.
@@ -218,13 +241,27 @@ function publish(graph, snapshot, topology) {
 async function refresh(snapshot) {
   if (refreshInFlight) return refreshInFlight;
 
-  refreshInFlight = fetchTopology()
-    .catch(() => ({
-      schema: "atlas-public-topology/fallback",
-      components: [],
-    }))
-    .then((topology) => {
-      publish(compile(topology, snapshot), snapshot, topology);
+  refreshInFlight = Promise.allSettled([
+    fetchTopology(),
+    fetchStats(),
+  ])
+    .then(([topologyResult, statsResult]) => {
+      const topology = topologyResult.status === "fulfilled"
+        ? topologyResult.value
+        : {
+            schema: "atlas-public-topology/fallback",
+            components: [],
+          };
+      const stats = statsResult.status === "fulfilled"
+        ? statsResult.value
+        : null;
+
+      publish(
+        compile(topology, snapshot, stats),
+        snapshot,
+        topology,
+        stats,
+      );
     })
     .finally(() => {
       refreshInFlight = null;

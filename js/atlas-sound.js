@@ -267,7 +267,7 @@
     style.id = "atlas-sound-style";
     style.textContent =
       ".atlas-sound-toggle{font-family:var(--mono,'IBM Plex Mono',monospace);" +
-      "font-size:11px;letter-spacing:0.06em;color:var(--text-faint,#555560);" +
+      "font-size:11px;letter-spacing:0.06em;color:var(--text-faint,#888894);" +
       "background:none;border:none;padding:0.35rem 0.6rem;cursor:pointer;" +
       "transition:color 0.15s;}" +
       ".atlas-sound-toggle:hover{color:var(--text-dim,#aaa9a0);}" +

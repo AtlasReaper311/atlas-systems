@@ -99,7 +99,7 @@
 }
 
 .ops-panel-head a {
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   text-decoration: none;
   letter-spacing: 0.08em;
 }
@@ -129,7 +129,7 @@
 }
 
 .ops-status-tile span {
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -145,7 +145,7 @@
 }
 
 .ops-status-tile small {
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   font-size: 10.5px;
   line-height: 1.4;
 }
@@ -188,7 +188,7 @@
 }
 
 .ops-meter span {
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   font-size: 10px;
   letter-spacing: 0.09em;
 }
@@ -206,7 +206,7 @@
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 10px;
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   font-size: 10.5px;
 }
 
@@ -256,7 +256,7 @@
   height: 7px;
   border-radius: 50%;
   align-self: center;
-  background: var(--text-faint, #555560);
+  background: var(--text-faint, #888894);
 }
 
 .ops-feed-item.success .ops-feed-dot { background: #4ade80; }
@@ -274,7 +274,7 @@
 
 .ops-feed-time,
 .ops-feed-empty {
-  color: var(--text-faint, #555560);
+  color: var(--text-faint, #888894);
   font-size: 10.5px;
   white-space: nowrap;
 }

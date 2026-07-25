@@ -1,0 +1,32 @@
+.project-series {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.6rem;
+  margin: -0.15rem 0 0.9rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid rgba(245,166,35,0.24);
+  background: rgba(245,166,35,0.07);
+  color: var(--text-dim, #aaa9a0);
+  text-decoration: none;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.project-series strong {
+  overflow: hidden;
+  color: var(--accent, #f5a623);
+  font-size: 10px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.project-series:hover,
+.project-series:focus-visible {
+  border-color: var(--accent, #f5a623);
+  color: var(--text, #e8e8e0);
+  outline: none;
+}
+@media (max-width: 560px) {
+  .project-series { grid-template-columns: 1fr; gap: 0.2rem; }
+}

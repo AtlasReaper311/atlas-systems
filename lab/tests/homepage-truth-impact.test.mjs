@@ -34,7 +34,7 @@ test("homepage keeps detailed Worker coverage in the evidence cards only", () =>
   assert.doesNotMatch(truthSource, /\.style\s*[.=\[]|\bcssText\b/);
 });
 
-test("header operational status remains owned by the existing live controller", () => {
+test("homepage keeps its initial status hook for the estate shell to replace", () => {
   assert.match(html, /id="nav-build-status">checking…<\/span>/);
   assert.match(html, /\/js\/live-signal\.js\?v=20260720-vector-five/);
   assert.doesNotMatch(truthSource, /nav-build-status|renderNavDot|overallHealth/);
@@ -63,7 +63,7 @@ test("AWS is officially active and Writing remains reachable on mobile", () => {
 
 test("homepage uses the canonical Atlas Systems text tokens", () => {
   assert.match(baseCss, /--text-dim:#aaa9a0/);
-  assert.match(baseCss, /--text-faint:#555560/);
+  assert.match(baseCss, /--text-faint:#888894/);
   assert.match(baseCss, /--accent:#f5a623/);
 });
 

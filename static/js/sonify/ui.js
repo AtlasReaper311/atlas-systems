@@ -1170,7 +1170,7 @@ export function initSystemSymphony() {
       waveformContext.moveTo(0, height / 2);
       waveformContext.lineTo(width, height / 2);
       waveformContext.stroke();
-      waveformContext.strokeStyle = engine.isRunning() ? "#f5a623" : "#555560";
+      waveformContext.strokeStyle = engine.isRunning() ? "#f5a623" : "#888894";
       waveformContext.lineWidth = 1.5;
       waveformContext.beginPath();
       const stride = width / Math.max(1, data.length - 1);

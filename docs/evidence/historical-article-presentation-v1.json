@@ -1,0 +1,63 @@
+{
+  "schema": "atlas-scheduler/published-article-presentation-refresh/v1",
+  "production_write": false,
+  "stylesheet": {
+    "path": "static/css/article-interface-v2.css",
+    "href": "/static/css/article-interface-v2.css?v=20260724-phase-b-v1",
+    "sha256": "855c34001577c751c5483ef454d9f425d9ed766a3516c88297dc60afc2815f8d"
+  },
+  "protected_indexes": {
+    "writing/index.html": {
+      "before_sha256": "83cf1a5b3f2996cade487f7f67c17f26f04c24d594a0a047fbd98c8b1b18ebda",
+      "after_sha256": "83cf1a5b3f2996cade487f7f67c17f26f04c24d594a0a047fbd98c8b1b18ebda",
+      "unchanged": true
+    },
+    "work/index.html": {
+      "before_sha256": "9a9db1f748f826407dccbb0fc41a01e016326ea033364ca1eec8e376dcc3bf95",
+      "after_sha256": "9a9db1f748f826407dccbb0fc41a01e016326ea033364ca1eec8e376dcc3bf95",
+      "unchanged": true
+    }
+  },
+  "articles": [
+    {
+      "slug": "sonin-generative-system",
+      "path": "writing/sonin-generative-system/index.html",
+      "stylesheet_link_added": true,
+      "source_sha256": "6eefaeef05691b747dfa0efc1d037388e544318bf2476f136ef60d95b6ee51b2",
+      "output_sha256": "b97cf4bc4d4a82f8989a86ed2d9db66e996f866d6d3689bee6d2f53b8975f9b3",
+      "body_sha256_before": "b50ed998a5d67e88536db7b26a2580232c5c79260cbc4d27ab76189b9999ec82",
+      "body_sha256_after": "b50ed998a5d67e88536db7b26a2580232c5c79260cbc4d27ab76189b9999ec82",
+      "body_unchanged": true
+    },
+    {
+      "slug": "slampunk-dynamic-mix-engine",
+      "path": "writing/slampunk-dynamic-mix-engine/index.html",
+      "stylesheet_link_added": true,
+      "source_sha256": "1e71c4e8ac748790a863ec786f85f2cc4a267e38c7186f7cba889538fb1679b6",
+      "output_sha256": "8c65ae67f6595731c047b835c08fe04b6ba7859f57609d0a866c036b2f074549",
+      "body_sha256_before": "d67055b9eec303cdf385f4d7121fcfd4e0390d027e0e37d254f31de193395710",
+      "body_sha256_after": "d67055b9eec303cdf385f4d7121fcfd4e0390d027e0e37d254f31de193395710",
+      "body_unchanged": true
+    },
+    {
+      "slug": "ramone-local-ai-system",
+      "path": "writing/ramone-local-ai-system/index.html",
+      "stylesheet_link_added": true,
+      "source_sha256": "15f95dbaef0c313647fea33de1216586abb7ca47891690823c410a203c78bcdb",
+      "output_sha256": "78bba7dac3405786a24b1510b2f93b1c54ad0c59880abb5a7e5d6aa0fd00f3fb",
+      "body_sha256_before": "8c3ef4ff8c3c2c12473b0d70f62fbe1a4c97864915ebbfdbbe2985ea99c6c322",
+      "body_sha256_after": "8c3ef4ff8c3c2c12473b0d70f62fbe1a4c97864915ebbfdbbe2985ea99c6c322",
+      "body_unchanged": true
+    },
+    {
+      "slug": "overclocking-specular-core",
+      "path": "writing/overclocking-specular-core/index.html",
+      "stylesheet_link_added": true,
+      "source_sha256": "293d4065504c466590786baf4188dc8c36d49a0036c4d89c52593f56d3140788",
+      "output_sha256": "a1d27a8540e3c4ec281df3b3a229c4a4bcd679314fb0e9731ddeec5af68cf593",
+      "body_sha256_before": "c1dc7b543f9dec76b1e18ca046d3f8031e500e112ce55926a21ec1f889067c7f",
+      "body_sha256_after": "c1dc7b543f9dec76b1e18ca046d3f8031e500e112ce55926a21ec1f889067c7f",
+      "body_unchanged": true
+    }
+  ]
+}

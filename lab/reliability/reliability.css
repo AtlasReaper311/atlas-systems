@@ -1,7 +1,13 @@
 .experiment-grid { margin-top: 1rem; }
 .experiment { display: grid; gap: 1rem; }
+.evidence-section-head { display: flex; justify-content: space-between; gap: 1rem; align-items: end; }
+.evidence-section-head .status { margin: 0; }
 .experiment-head { display: flex; justify-content: space-between; gap: 1rem; align-items: start; }
 .experiment-head code { word-break: break-word; }
+.experiment-context { display: block; margin-bottom: .35rem; color: var(--accent); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+.experiment-source { width: fit-content; color: var(--accent); font-size: 10px; text-decoration: none; }
+.experiment-source:hover,
+.experiment-source:focus-visible { text-decoration: underline; }
 .verdict { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
 .verdict.pass { color: var(--green); }
 .verdict.fail { color: var(--red); }
@@ -17,4 +23,9 @@
 .provenance div { display: grid; grid-template-columns: 12rem 1fr; gap: 1rem; padding: .65rem 0; border-bottom: 1px solid var(--border); }
 .provenance dt { color: var(--text-faint); }
 .provenance dd { margin: 0; word-break: break-all; }
-@media (max-width: 760px) { .stage-grid { grid-template-columns: repeat(2, 1fr); } .loop li { grid-template-columns: 2rem 1fr; } .loop span { grid-column: 2; } }
+@media (max-width: 760px) {
+  .evidence-section-head { align-items: flex-start; flex-direction: column; }
+  .stage-grid { grid-template-columns: repeat(2, 1fr); }
+  .loop li { grid-template-columns: 2rem 1fr; }
+  .loop span { grid-column: 2; }
+}

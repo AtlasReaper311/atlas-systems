@@ -3,26 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Pushing the Limits — Overclocking SPECULAR-CORE case study by Atlas Reaper.">
+  <meta name="description" content="Pushing the Limits: Overclocking SPECULAR-CORE case study by Atlas Reaper.">
   <meta name="theme-color" content="#0a0a0f">
-  <title>SPECULAR-CORE — Hardware Tuning // Atlas Systems</title>
+  <title>SPECULAR-CORE: Hardware Tuning // Atlas Systems</title>
   <link rel="canonical" href="https://atlas-systems.uk/writing/overclocking-specular-core/">
   <meta property="og:type" content="article">
-  <meta property="og:title" content="SPECULAR-CORE — Hardware Tuning // Atlas Systems">
-  <meta property="og:description" content="Pushing the Limits — Overclocking SPECULAR-CORE case study by Atlas Reaper.">
+  <meta property="og:title" content="SPECULAR-CORE: Hardware Tuning // Atlas Systems">
+  <meta property="og:description" content="Pushing the Limits: Overclocking SPECULAR-CORE case study by Atlas Reaper.">
   <meta property="og:url" content="https://atlas-systems.uk/writing/overclocking-specular-core/">
   <meta property="og:site_name" content="Atlas Systems">
-  <meta property="og:image" content="https://atlas-systems.uk/og-default.png">
+  <meta property="og:image" content="https://atlas-systems.uk/og/overclocking-specular-core.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Atlas Systems: audio systems, local AI infrastructure, and deployment automation">
+  <meta property="og:image:alt" content="Overclocking SPECULAR-CORE. // Atlas Systems">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="SPECULAR-CORE — Hardware Tuning // Atlas Systems">
-  <meta name="twitter:description" content="Pushing the Limits — Overclocking SPECULAR-CORE case study by Atlas Reaper.">
-  <meta name="twitter:image" content="https://atlas-systems.uk/og-default.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <meta name="twitter:title" content="SPECULAR-CORE: Hardware Tuning // Atlas Systems">
+  <meta name="twitter:description" content="Pushing the Limits: Overclocking SPECULAR-CORE case study by Atlas Reaper.">
+  <meta name="twitter:image" content="https://atlas-systems.uk/og/overclocking-specular-core.png">
+  <meta property="article:published_time" content="2026-06-22">
+  <meta property="article:author" content="Atlas Reaper">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "SPECULAR-CORE: Hardware Tuning",
+      "description": "Pushing the Limits: Overclocking SPECULAR-CORE case study by Atlas Reaper.",
+      "datePublished": "2026-06-22",
+      "mainEntityOfPage": "https://atlas-systems.uk/writing/overclocking-specular-core/",
+      "author": {
+        "@type": "Person",
+        "name": "Atlas Reaper",
+        "url": "https://atlas-systems.uk/about/"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Atlas Systems",
+        "url": "https://atlas-systems.uk/"
+      },
+      "image": "https://atlas-systems.uk/og/overclocking-specular-core.png"
+    }
+  </script>
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -66,14 +87,14 @@
     .spec-cell{background:var(--bg);padding:1rem 1.25rem}
     .spec-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.3rem}
     .spec-value{font-size:12px;color:var(--text)}
-    .article-body{display:grid;grid-template-columns:200px 1fr;gap:4rem;padding:4rem 0}
+    .article-body{min-width:0;display:grid;grid-template-columns:200px 1fr;gap:4rem;padding:4rem 0}
     .toc{position:sticky;top:calc(var(--nav-h) + 2rem);align-self:start;height:fit-content}
     .toc-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-faint);margin-bottom:1rem}
     .toc-list{list-style:none;display:flex;flex-direction:column;gap:0.1rem}
     .toc-item a{font-size:11px;color:var(--text-faint);text-decoration:none;display:block;padding:0.35rem 0.75rem;border-left:1px solid var(--border);transition:all 0.15s;line-height:1.4}
     .toc-item a:hover{color:var(--text-dim);border-left-color:var(--border-hi)}
     .toc-item a.active{color:var(--accent);border-left-color:var(--accent)}
-    .prose{max-width:var(--content-w)}
+    .prose{width:100%;min-width:0;max-width:var(--content-w);overflow-wrap:anywhere}
     .prose h2{font-family:var(--serif);font-size:1.8rem;line-height:1.1;color:var(--text);margin:3rem 0 1.25rem;padding-top:1rem}
     .prose h2:first-child{margin-top:0}
     .prose h3{font-size:13px;font-weight:500;color:var(--text);letter-spacing:0.06em;text-transform:uppercase;margin:2rem 0 0.75rem;display:flex;align-items:center;gap:0.6rem}
@@ -117,9 +138,17 @@
     .mobile-nav-item:hover,.mobile-nav-item.active{color:var(--accent)}
     .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
     @media(max-width:900px){.article-body{grid-template-columns:1fr}.toc{display:none}.article-header{grid-template-columns:1fr}}
-    @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}.outcomes-grid{grid-template-columns:1fr}}
+    @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}.outcomes-grid{grid-template-columns:1fr}.model-table{display:block;overflow-x:auto}}
   </style>
   <link rel="stylesheet" href="/static/css/estate-search.css">
+
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="twitter:image:alt" content="Overclocking SPECULAR-CORE. // Atlas Systems">
+  <link rel="stylesheet" href="/static/css/article-interface-v2.css?v=20260724-phase-b-v1">
 </head>
 <body>
   <nav aria-label="Primary navigation">
@@ -162,7 +191,7 @@
       </div>
       <div class="header-content">
         <div class="section-label">Case Study</div>
-        <h1 class="article-title">Pushing the Limits — Overclocking SPECULAR-CORE</h1>
+        <h1 class="article-title">Pushing the Limits: Overclocking SPECULAR-CORE</h1>
         <div class="article-subtitle">SPECULAR-CORE — Hardware Tuning</div>
         <p class="article-lede">A full system optimisation record for a Ryzen 9 9950X3D and RTX 5070 build, BIOS-level memory and fabric synchronisation, GPU voltage/frequency curve tuning, AIO cooling profiles, and OS-level thread scheduling, validated through an overnight stress test with zero faults.</p>
       </div>

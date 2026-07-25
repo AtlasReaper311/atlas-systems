@@ -1,0 +1,36 @@
+{
+  "schema": "atlas-systems/specular-core-title-normalization/v1",
+  "production_write": false,
+  "reason": "User-approved punctuation update after Phase B visual review",
+  "replacement": {
+    "from": "em dash",
+    "to": "colon",
+    "scope": [
+      "document title",
+      "document description",
+      "Open Graph title",
+      "Open Graph description",
+      "Twitter title",
+      "Twitter description",
+      "article heading",
+      "article subtitle",
+      "Writing featured heading",
+      "Writing card heading",
+      "Writing card subtitle"
+    ]
+  },
+  "files": [
+    {
+      "path": "writing/overclocking-specular-core/index.html",
+      "before_sha256": "a1d27a8540e3c4ec281df3b3a229c4a4bcd679314fb0e9731ddeec5af68cf593",
+      "after_sha256": "f78b1a945f55822b05ba6938e8e41251844ec77e8c2319ce1d8a35b83853d8ca",
+      "body_sha256_before": "c1dc7b543f9dec76b1e18ca046d3f8031e500e112ce55926a21ec1f889067c7f",
+      "body_sha256_after": "56f2e062ff5051f9e6d54e8679fbca934250ab44b78faaf595a5f51ff7bfe60e"
+    },
+    {
+      "path": "writing/index.html",
+      "before_sha256": "83cf1a5b3f2996cade487f7f67c17f26f04c24d594a0a047fbd98c8b1b18ebda",
+      "after_sha256": "0bb57ba870df366b83fad3524696e8a203f21978652d12220ae65136358feb92"
+    }
+  ]
+}
