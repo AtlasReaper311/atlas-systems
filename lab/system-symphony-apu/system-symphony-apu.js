@@ -5,12 +5,15 @@ import {
 } from "../../static/js/sonify/mapping.js?v=20260720-system-symphony-loop-production-v2";
 import { createPoller } from "../../static/js/sonify/poller.js?v=20260720-system-symphony-loop-production-v2";
 import {
-  ATLAS_APU_BUILD_ID,
   channelSummary,
   chipIdentityForVoice,
   sceneForFrame,
 } from "../../static/js/sonify/apu-palette.js?v=20260725-system-symphony-atlas-apu-preview-v1";
-import { createApuEngine } from "../../static/js/sonify/apu-engine.js?v=20260725-system-symphony-atlas-apu-renderer-v2";
+import {
+  ATLAS_APU_TRACK_BUILD_ID,
+  arrangementTimeline,
+} from "../../static/js/sonify/apu-arranger.js?v=20260725-system-symphony-atlas-apu-track-v1";
+import { createApuTrackEngine } from "../../static/js/sonify/apu-track-engine.js?v=20260725-system-symphony-atlas-apu-track-v1";
 
 const root = document.querySelector("[data-apu-root]");
 if (!root) throw new Error("system-symphony-apu: page root is missing");
@@ -19,6 +22,7 @@ const statusNode = root.querySelector("[data-status]");
 const audioButton = root.querySelector("[data-audio-toggle]");
 const volumeInput = root.querySelector("[data-volume]");
 const serviceTable = root.querySelector("[data-service-table]");
+const formTimeline = root.querySelector("[data-form-timeline]");
 const waveformCanvas = root.querySelector("[data-waveform]");
 const spectrumCanvas = root.querySelector("[data-spectrum]");
 const waveformContext = waveformCanvas.getContext("2d");
@@ -28,6 +32,7 @@ const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 let latestFrame = null;
 let latestMerged = null;
 let currentFrame = null;
+let currentArrangement = null;
 let mode = "live";
 let animationFrame = null;
 let lastDrawAt = 0;
@@ -62,12 +67,12 @@ function sourceMessage(frame) {
     return `Browser-only ${mode} scene. Live evidence continues underneath and no estate state is changed.`;
   }
   if (window.__ATLAS_SYMPHONY_PREVIEW_DATA__) {
-    return "Bounded same-origin preview evidence. This branch does not claim current production telemetry.";
+    return "Bounded same-origin preview evidence is driving a deterministic 32-bar soundtrack form.";
   }
   if (frame?.stale) {
     return "Live telemetry is stale. The score has moved to Unknown while the last successful frame remains inspectable.";
   }
-  return "Live read-only estate evidence is driving the generated score.";
+  return "Live read-only estate evidence is driving the generated 32-bar soundtrack.";
 }
 
 function clearNode(node) {
@@ -128,22 +133,55 @@ function renderChannelCounts(frame) {
   }
 }
 
+function buildFormTimeline() {
+  if (!formTimeline) return;
+  clearNode(formTimeline);
+  for (const section of arrangementTimeline()) {
+    const item = document.createElement("div");
+    item.className = "apu-form-section";
+    item.dataset.formSection = section.id;
+    item.style.setProperty("--section-bars", String(section.endBar - section.startBar + 1));
+
+    const label = document.createElement("strong");
+    label.textContent = section.label;
+    const bars = document.createElement("span");
+    bars.textContent = `${section.startBar}-${section.endBar}`;
+    item.append(label, bars);
+    formTimeline.append(item);
+  }
+}
+
+function renderArrangement(arrangement, scene = null) {
+  if (!arrangement) return;
+  currentArrangement = arrangement;
+  root.dataset.section = arrangement.section;
+  setMetric("section", arrangement.sectionLabel);
+  setMetric("position", `Bars ${arrangement.cycleBarStart}-${arrangement.cycleBarEnd} / 32`);
+  setMetric("phase", arrangement.directorPhase);
+  setMetric("bpm", `${Math.round(arrangement.targetBpm ?? scene?.bpm ?? 100)} BPM`);
+  for (const item of root.querySelectorAll("[data-form-section]")) {
+    const active = item.dataset.formSection === arrangement.section;
+    item.dataset.active = String(active);
+    item.setAttribute("aria-current", active ? "step" : "false");
+  }
+}
+
 function renderFrame(frame) {
   currentFrame = frame;
   const scene = engine.getScene() ?? sceneForFrame(frame);
+  const arrangement = engine.getArrangement();
   root.dataset.state = frame.scoreState ?? "unknown";
-  root.dataset.build = ATLAS_APU_BUILD_ID;
+  root.dataset.build = ATLAS_APU_TRACK_BUILD_ID;
   root.dataset.ready = "true";
-  document.documentElement.dataset.atlasApuBuild = ATLAS_APU_BUILD_ID;
+  document.documentElement.dataset.atlasApuBuild = ATLAS_APU_TRACK_BUILD_ID;
 
   setMetric("state", frame.scoreLabel ?? formatStatus(frame.scoreState));
   setMetric("scene", scene.label);
-  setMetric("phase", engine.getPhase());
-  setMetric("bpm", `${Math.round(scene.bpm)} BPM`);
   setMetric("components", frame.totalComponents ?? frame.voices?.length ?? 0);
   setMetric("measured", frame.measuredComponents ?? 0);
   setMetric("warnings", frame.warningCount ?? 0);
   setMetric("failures", `${frame.failureCount ?? 0} / ${frame.activeIncidents ?? 0}`);
+  if (arrangement) renderArrangement(arrangement, scene);
   renderChannelCounts(frame);
   renderServiceTable(frame);
   setStatus(sourceMessage(frame), sourceLabel(frame));
@@ -194,11 +232,10 @@ function markVoice(event) {
   }, reducedMotion.matches ? 40 : 180);
 }
 
-const engine = createApuEngine({
-  onPhase: ({ phase, scene }) => {
-    setMetric("phase", phase);
+const engine = createApuTrackEngine({
+  onArrangement: ({ arrangement, scene }) => {
+    renderArrangement(arrangement, scene);
     setMetric("scene", scene.label);
-    setMetric("bpm", `${Math.round(scene.bpm)} BPM`);
   },
   onVoice: markVoice,
   onRunningChange: (running) => {
@@ -207,7 +244,7 @@ const engine = createApuEngine({
     root.querySelector("[data-waveform-label]").textContent = running ? "running" : "silent";
   },
   onError: (error) => {
-    console.error("system-symphony-apu: audio engine failed", error);
+    console.error("system-symphony-apu-track: audio engine failed", error);
     setStatus(`Audio engine error: ${error.message}`, "stale");
   },
 });
@@ -223,9 +260,7 @@ const poller = createPoller({
   },
   onStatus(status) {
     if (mode !== "live") return;
-    if (status.stale) {
-      setStatus(sourceMessage({ stale: true }), "stale");
-    }
+    if (status.stale) setStatus(sourceMessage({ stale: true }), "stale");
   },
   onDeployment(deployment) {
     engine.queueDeployment(deployment);
@@ -317,11 +352,14 @@ window.addEventListener("pagehide", () => {
 
 root.dataset.apuNoSamples = "true";
 window.__ATLAS_APU__ = Object.freeze({
-  buildId: ATLAS_APU_BUILD_ID,
+  buildId: ATLAS_APU_TRACK_BUILD_ID,
   getFrame: () => currentFrame,
   getScene: () => engine.getScene(),
+  getArrangement: () => currentArrangement ?? engine.getArrangement(),
+  getTimeline: () => arrangementTimeline(),
   isRunning: () => engine.isRunning(),
 });
 
+buildFormTimeline();
 poller.start();
 animationFrame = window.requestAnimationFrame(animate);
