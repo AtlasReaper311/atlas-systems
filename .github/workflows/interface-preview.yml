@@ -38,6 +38,7 @@ on:
       - "js/tests/card-signatures.test.mjs"
       - "js/tests/public-interface-contract.test.mjs"
       - "scripts/capture_interface_evidence.mjs"
+      - "scripts/capture_batch_h_evidence.mjs"
       - "scripts/generate_sitemap.py"
       - "scripts/verify_interface_bundle.py"
       - "sitemap.xml"
@@ -68,6 +69,7 @@ jobs:
           set -euo pipefail
           npx --yes html-validate@9.7.1 "**/*.html"
           node --check scripts/capture_interface_evidence.mjs
+          node --check scripts/capture_batch_h_evidence.mjs
           node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
           python3 scripts/verify_interface_bundle.py
           python3 scripts/generate_sitemap.py --check-only
@@ -217,5 +219,48 @@ jobs:
             ${{ runner.temp }}/interface-evidence/evidence.json
             ${{ runner.temp }}/interface-evidence/capture-error.txt
             ${{ runner.temp }}/interface-evidence/screenshots/*.png
+          if-no-files-found: error
+          retention-days: 14
+
+  capture-batch-h-evidence:
+    name: Capture Batch H browser evidence
+    needs: deploy-preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PREVIEW_URL: ${{ needs.deploy-preview.outputs.preview_url }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - name: Check out Batch H evidence runner
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          sparse-checkout: scripts/capture_batch_h_evidence.mjs
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
+        with:
+          node-version: "22"
+      - name: Install pinned browser and accessibility tooling
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/batch-h-evidence"
+          cp scripts/capture_batch_h_evidence.mjs "${RUNNER_TEMP}/batch-h-evidence/"
+          cd "${RUNNER_TEMP}/batch-h-evidence"
+          npm init -y >/dev/null
+          npm install --save-exact playwright@1.61.1 @axe-core/playwright@4.12.1
+          npm audit --audit-level=high
+          npx playwright install --with-deps firefox
+      - name: Capture Batch H browser and viewport matrix
+        working-directory: ${{ runner.temp }}/batch-h-evidence
+        run: node capture_batch_h_evidence.mjs
+      - name: Upload Batch H visual and accessibility evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        with:
+          name: batch-h-preview-evidence
+          path: |
+            ${{ runner.temp }}/batch-h-evidence/batch-h-evidence.json
+            ${{ runner.temp }}/batch-h-evidence/batch-h-capture-error.txt
+            ${{ runner.temp }}/batch-h-evidence/batch-h-screenshots/*.png
           if-no-files-found: error
           retention-days: 14
