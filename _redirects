@@ -5,3 +5,11 @@
 /writing /writing/ 301
 /lab     /lab/     301
 /about   /about/   301
+/systems /systems/ 301
+
+# Retired Lab reliability route, superseded by the focused Systems destination.
+# Exact-match only. Cloudflare Pages follows redirects even when a static asset
+# matches, so a splat here would also shadow reliability-core.js, reliability.js,
+# reliability.css and evidence/*.json in the same directory.
+/lab/reliability  /systems/reliability/ 301
+/lab/reliability/ /systems/reliability/ 301
