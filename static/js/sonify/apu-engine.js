@@ -45,18 +45,20 @@ function requireTone() {
 function safeRamp(parameter, value, seconds = 0.12, at = undefined) {
   if (!parameter || !Number.isFinite(value)) return;
   const duration = Math.max(0.01, Number(seconds) || 0.01);
+  const startAt = Number.isFinite(at)
+    ? at
+    : typeof globalThis.Tone?.now === "function"
+      ? globalThis.Tone.now()
+      : null;
   if (
-    Number.isFinite(at)
+    Number.isFinite(startAt)
     && typeof parameter.setValueAtTime === "function"
     && typeof parameter.linearRampToValueAtTime === "function"
   ) {
-    parameter.cancelScheduledValues?.(at);
-    parameter.setValueAtTime(parameter.value, at);
-    parameter.linearRampToValueAtTime(value, at + duration);
-    return;
-  }
-  if (typeof parameter.rampTo === "function") {
-    parameter.rampTo(value, duration);
+    const current = Number.isFinite(parameter.value) ? parameter.value : value;
+    parameter.cancelScheduledValues?.(startAt);
+    parameter.setValueAtTime(current, startAt);
+    parameter.linearRampToValueAtTime(value, startAt + duration);
     return;
   }
   parameter.value = value;
@@ -198,7 +200,7 @@ export function createApuEngine({
     delaySend.chain(delay, delayReturn);
     melodyBus.connect(delaySend);
 
-    reverb = new Tone.Reverb({ decay: 1.35, wet: 1 });
+    reverb = new Tone.Freeverb({ roomSize: 0.72, dampening: 3800, wet: 1 });
     reverbSend = new Tone.Gain(0.1);
     reverbReturn = new Tone.Gain(0.1).connect(chipBus);
     reverbSend.chain(reverb, reverbReturn);
@@ -304,9 +306,6 @@ export function createApuEngine({
     safeRamp(hatFilter.frequency, profile.noiseBrightnessHz, 0.5, at);
     setPulseWidth(pulseA, profile.pulseADuty, at);
     setPulseWidth(pulseB, profile.pulseBDuty, at);
-    if (triangleBass?.filter?.frequency) {
-      safeRamp(triangleBass.filter.frequency, profile.bassCutoffHz, 0.5, at);
-    }
   }
 
   function commitFrame(at) {
@@ -523,7 +522,6 @@ export function createApuEngine({
         await startToneWithTimeout(Tone);
         if (!initialized) {
           buildGraph(Tone);
-          await reverb.generate();
           if (currentFrame) {
             director.observe(currentFrame);
             currentPlan = director.advancePhrase();
