@@ -24,6 +24,7 @@ const consoleErrors = [];
 const pageErrors = [];
 const audioRequests = [];
 const failedRequests = [];
+let evidence = null;
 
 page.on("console", (message) => {
   if (message.type() === "error") consoleErrors.push(message.text());
@@ -37,6 +38,60 @@ page.on("request", (request) => {
 page.on("requestfailed", (request) => {
   failedRequests.push({ url: request.url(), error: request.failure()?.errorText ?? "unknown" });
 });
+
+async function collectEvidence() {
+  return page.evaluate(() => {
+    const root = document.querySelector("[data-apu-root]");
+    const metric = (name) => root?.querySelector(`[data-metric="${name}"]`)?.textContent?.trim() ?? null;
+    return {
+      buildId: globalThis.__ATLAS_APU__?.buildId ?? null,
+      documentBuild: document.documentElement.dataset.atlasApuBuild ?? null,
+      ready: root?.dataset.ready ?? null,
+      running: root?.dataset.running ?? null,
+      noSamples: root?.dataset.apuNoSamples ?? null,
+      source: root?.dataset.source ?? null,
+      state: root?.dataset.state ?? null,
+      statusText: root?.querySelector("[data-status]")?.textContent?.trim() ?? null,
+      metricState: metric("state"),
+      metricScene: metric("scene"),
+      metricPhase: metric("phase"),
+      metricComponents: metric("components"),
+      serviceRows: root?.querySelectorAll("[data-service]").length ?? 0,
+      channelCards: root?.querySelectorAll("[data-channel]").length ?? 0,
+      toneState: globalThis.Tone?.getContext?.().state ?? null,
+      engineRunning: globalThis.__ATLAS_APU__?.isRunning?.() === true,
+    };
+  });
+}
+
+async function writeBundle(fileName, error = null) {
+  try {
+    evidence = evidence ?? await collectEvidence();
+  } catch (collectionError) {
+    evidence = { collectionError: collectionError.message };
+  }
+  try {
+    await page.screenshot({
+      path: path.join(outputDirectory, "atlas-apu-preview.png"),
+      fullPage: true,
+    });
+  } catch (screenshotError) {
+    consoleErrors.push(`screenshot failed: ${screenshotError.message}`);
+  }
+  await fs.writeFile(
+    path.join(outputDirectory, fileName),
+    `${JSON.stringify({
+      route,
+      error: error ? { name: error.name, message: error.message, stack: error.stack } : null,
+      evidence,
+      audioRequests,
+      failedRequests,
+      consoleErrors,
+      pageErrors,
+    }, null, 2)}\n`,
+    "utf8",
+  );
+}
 
 try {
   const response = await page.goto(route, {
@@ -54,28 +109,7 @@ try {
   }, null, { timeout: 15_000 });
 
   await page.waitForTimeout(1800);
-
-  const evidence = await page.evaluate(() => {
-    const root = document.querySelector("[data-apu-root]");
-    const metric = (name) => root?.querySelector(`[data-metric="${name}"]`)?.textContent?.trim() ?? null;
-    return {
-      buildId: globalThis.__ATLAS_APU__?.buildId ?? null,
-      documentBuild: document.documentElement.dataset.atlasApuBuild ?? null,
-      ready: root?.dataset.ready ?? null,
-      running: root?.dataset.running ?? null,
-      noSamples: root?.dataset.apuNoSamples ?? null,
-      source: root?.dataset.source ?? null,
-      state: root?.dataset.state ?? null,
-      metricState: metric("state"),
-      metricScene: metric("scene"),
-      metricPhase: metric("phase"),
-      metricComponents: metric("components"),
-      serviceRows: root?.querySelectorAll("[data-service]").length ?? 0,
-      channelCards: root?.querySelectorAll("[data-channel]").length ?? 0,
-      toneState: globalThis.Tone?.getContext?.().state ?? null,
-      engineRunning: globalThis.__ATLAS_APU__?.isRunning?.() === true,
-    };
-  });
+  evidence = await collectEvidence();
 
   assert.match(evidence.buildId ?? "", /atlas-apu-preview-v1$/);
   assert.equal(evidence.documentBuild, evidence.buildId);
@@ -96,15 +130,10 @@ try {
   assert.deepEqual(pageErrors, []);
   assert.deepEqual(consoleErrors, []);
 
-  await page.screenshot({
-    path: path.join(outputDirectory, "atlas-apu-preview.png"),
-    fullPage: true,
-  });
-  await fs.writeFile(
-    path.join(outputDirectory, "evidence.json"),
-    `${JSON.stringify({ route, evidence, audioRequests, failedRequests, consoleErrors, pageErrors }, null, 2)}\n`,
-    "utf8",
-  );
+  await writeBundle("evidence.json");
+} catch (error) {
+  await writeBundle("failure.json", error);
+  throw error;
 } finally {
   await browser.close();
 }
