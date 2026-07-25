@@ -377,9 +377,8 @@ export function transitionEventForTrackStep(frame = {}, arrangement = null, step
   if (transition === "fill" && position === 31) {
     return Object.freeze({ type: "hit", midi: scaleMidi(scale, 65, (harmony.rootDegree ?? 0) + 4), duration: "8n", velocity: 0.3 });
   }
-  if (transition === "rise" && [28, 31].includes(position)) {
-    const degree = (harmony.rootDegree ?? 0) + (position === 28 ? 2 : 4);
-    return Object.freeze({ type: "rise", midi: scaleMidi(scale, 65, degree), duration: "32n", velocity: position === 31 ? 0.34 : 0.24 });
+  if (transition === "rise" && position === 31) {
+    return Object.freeze({ type: "rise", midi: scaleMidi(scale, 65, (harmony.rootDegree ?? 0) + 4), duration: "8n", velocity: 0.32 });
   }
   if (transition === "drop" && position === 31) {
     return Object.freeze({ type: "drop", midi: scaleMidi(scale, 53, harmony.rootDegree ?? 0), duration: "2n", velocity: 0.36 });
