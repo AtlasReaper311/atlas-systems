@@ -13,7 +13,6 @@ from urllib.parse import urlsplit
 ROUTES = ["/", "/systems/", "/lab/", "/lab/signal/", "/writing/"]
 ASSET_PATTERN = re.compile(r'''(?:href|src)=["']([^"']+)["']''', re.IGNORECASE)
 REPORT_PATH = Path("data/performance-baseline.json")
-GENERATED_REPORT_PATH = Path("/tmp/generated-performance-baseline.json")
 
 
 def route_file(root: Path, route: str) -> Path:
@@ -74,9 +73,7 @@ def main() -> int:
     rendered = json.dumps(report, indent=2) + "\n"
     if args.check_only:
         if not REPORT_PATH.exists() or REPORT_PATH.read_text(encoding="utf-8") != rendered:
-            GENERATED_REPORT_PATH.write_text(rendered, encoding="utf-8")
             print("static performance baseline is stale", file=sys.stderr)
-            print(f"generated replacement at {GENERATED_REPORT_PATH}", file=sys.stderr)
             return 1
         print(f"OK  {len(report['routes'])} representative route baselines")
         return 0
