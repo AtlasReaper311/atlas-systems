@@ -27,13 +27,18 @@ function shippedSources(directory = ".") {
   return found;
 }
 
-function directive(name) {
+// Returns the directive's source list as exact tokens. Token equality is used
+// throughout instead of substring matching: a substring check would accept
+// https://res.cloudinary.com.example.invalid, and CodeQL flags the pattern as
+// js/incomplete-url-substring-sanitization.
+function directiveSources(name) {
   const policy = headers.match(/Content-Security-Policy:([^\n]*)/)?.[1] ?? "";
   const found = policy
     .split(";")
     .map((part) => part.trim())
     .find((part) => part === name || part.startsWith(`${name} `));
-  return found ? found.slice(name.length).trim() : null;
+  if (!found) return null;
+  return found.slice(name.length).trim().split(/\s+/).filter(Boolean);
 }
 
 function redirectRules() {
@@ -47,7 +52,7 @@ function redirectRules() {
 }
 
 test("media-src covers local Symphony audio and the Cloudinary demo host", () => {
-  const media = directive("media-src");
+  const media = directiveSources("media-src");
   assert.ok(media, "media-src must be declared; otherwise it falls back to default-src 'self'");
 
   // static/audio/system-symphony/* is loaded through `new Audio()` in
@@ -59,7 +64,7 @@ test("media-src covers local Symphony audio and the Cloudinary demo host", () =>
 });
 
 test("every remote media host referenced in source is allowed by media-src", () => {
-  const media = directive("media-src") ?? "";
+  const media = directiveSources("media-src") ?? [];
   const sources = shippedSources();
 
   const hosts = new Set();
@@ -76,7 +81,7 @@ test("every remote media host referenced in source is allowed by media-src", () 
 });
 
 test("script-src does not grant 'unsafe-eval'", () => {
-  const script = directive("script-src");
+  const script = directiveSources("script-src");
   assert.ok(script, "script-src must be declared");
   assert.ok(!script.includes("'unsafe-eval'"), "no shipped source needs 'unsafe-eval'");
 });
