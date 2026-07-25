@@ -13,8 +13,9 @@ const fatalPatterns = [
   /Tone\.js is unavailable/i,
   /Cross-Origin Request Blocked/i,
   /Access-Control-Allow-Origin/i,
-  /file:\/\/\//i,
+  /file:\/\//i,
   /audio failed to start/i,
+  /Events scheduled inside of scheduled callbacks/i,
 ];
 const consoleMessages = [];
 const pageErrors = [];
@@ -40,6 +41,7 @@ page.on("requestfailed", (request) => {
   const criticalRequest =
     url.includes("/vendor/tone.min.js")
     || url.includes("/lab/system-symphony/preview-data/")
+    || url.includes("/static/audio/system-symphony/")
     || url.startsWith("https://api.atlas-systems.uk/");
   if (!criticalRequest) return;
   requestFailures.push({
@@ -58,7 +60,8 @@ try {
 
   await page.waitForFunction(() => {
     return Boolean(window.Tone)
-      && window.__ATLAS_SYMPHONY_PREVIEW_DATA__ === true;
+      && window.__ATLAS_SYMPHONY_PREVIEW_DATA__ === true
+      && Boolean(window.__ATLAS_SYMPHONY_AUDIO_STABILITY__);
   }, null, { timeout: 20_000 });
 
   for (const fixturePath of [
@@ -72,9 +75,14 @@ try {
     await fixture.json();
   }
 
+  await page.waitForFunction(() => {
+    const snapshot = window.__ATLAS_SYMPHONY_AUDIO_STABILITY__?.getSnapshot?.();
+    return snapshot?.preloadState === "ready" || snapshot?.preloadState === "degraded";
+  }, null, { timeout: 60_000 });
+
   const audioButton = page.locator("[data-audio-toggle]:visible").first();
   await audioButton.waitFor({ state: "visible", timeout: 20_000 });
-  await audioButton.click();
+  await assert.doesNotReject(() => audioButton.click({ timeout: 20_000 }));
   await page.waitForFunction(() => {
     return [...document.querySelectorAll("[data-audio-toggle]")]
       .some((button) => (
@@ -85,6 +93,22 @@ try {
   await page.waitForFunction(() => (
     document.getElementById("system-symphony-widget")?.dataset?.source === "preview"
   ), null, { timeout: 10_000 });
+
+  await page.waitForTimeout(12_000);
+
+  const stability = await page.evaluate(() => (
+    window.__ATLAS_SYMPHONY_AUDIO_STABILITY__?.getSnapshot?.() ?? null
+  ));
+  assert.ok(stability, "audio stability diagnostics are unavailable");
+  assert.equal(stability.preloadFailures, 0, JSON.stringify(stability, null, 2));
+  assert.ok(stability.preloadedAssets >= 35, JSON.stringify(stability, null, 2));
+  assert.ok(stability.lookAheadSeconds >= 0.12, JSON.stringify(stability, null, 2));
+  assert.ok(stability.meterSamples >= 20, JSON.stringify(stability, null, 2));
+  assert.ok(
+    stability.maximumOutputDb === null || stability.maximumOutputDb <= -3.5,
+    JSON.stringify(stability, null, 2),
+  );
+  assert.ok(stability.maximumLateSeconds <= 0.08, JSON.stringify(stability, null, 2));
 
   const fatalConsole = consoleMessages.filter(({ text }) => (
     fatalPatterns.some((pattern) => pattern.test(text))
@@ -103,6 +127,7 @@ try {
       ?? window.Tone?.context?.state
       ?? null,
     previewDataEnabled: window.__ATLAS_SYMPHONY_PREVIEW_DATA__ === true,
+    audioStability: window.__ATLAS_SYMPHONY_AUDIO_STABILITY__?.getSnapshot?.() ?? null,
     audioButtons: [...document.querySelectorAll("[data-audio-toggle]")].map((button) => ({
       text: button.textContent?.trim() ?? "",
       disabled: button.disabled,
