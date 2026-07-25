@@ -12,6 +12,7 @@ on:
       - ".github/workflows/preview.yml"
       - "_headers"
       - "lab/**"
+      - "scripts/smoke_system_symphony_preview.mjs"
       - "static/js/sonify/**"
 
 permissions:
@@ -66,14 +67,14 @@ jobs:
           fail: true
 
   deploy-preview:
-    name: Publish branch preview
+    name: Publish and verify branch preview
     needs: validate
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
       (startsWith(github.event.pull_request.head.ref, 'feat/system-symphony-') ||
        startsWith(github.event.pull_request.head.ref, 'fix/system-symphony-'))
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     environment:
       name: pages-preview
       url: ${{ steps.deploy.outputs.deployment_url }}
@@ -122,6 +123,17 @@ jobs:
           test -n "${deployment_url}"
           echo "deployment_url=${deployment_url}" >>"${GITHUB_OUTPUT}"
 
+      - name: Install pinned browser smoke tooling
+        run: npm install --no-save --ignore-scripts playwright@1.61.1
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify System Symphony preview data and audio
+        env:
+          PREVIEW_URL: https://system-symphony-pr-${{ github.event.pull_request.number }}.atlas-systems-44t.pages.dev
+        run: node scripts/smoke_system_symphony_preview.mjs
+
       - name: Record branch preview alias
         env:
           ATOMIC_URL: ${{ steps.deploy.outputs.deployment_url }}
@@ -134,6 +146,8 @@ jobs:
             echo "${PREVIEW_URL}"
             echo
             echo "Atomic deployment: ${ATOMIC_URL}"
+            echo
+            echo "Browser smoke verified Tone.js, same-origin preview data, and the Start Audio path."
             echo
             echo "This is a non-production branch deployment. atlas-systems.uk is unchanged."
           } >>"${GITHUB_STEP_SUMMARY}"
