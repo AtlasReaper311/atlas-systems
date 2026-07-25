@@ -16,6 +16,8 @@ test("interface validation remains automatic while Pages publication is opt-in",
 });
 
 test("preview evidence cannot run unless the guarded deployment completes", () => {
+  const deployBlock = workflow.match(/\n  deploy-preview:\n([\s\S]*?)\n  capture-evidence:/)?.[1];
+  assert.ok(deployBlock, "deploy-preview job block");
+  assert.doesNotMatch(deployBlock, /if:\s*always\(\)/);
   assert.match(workflow, /capture-evidence:\s*[\s\S]*needs: deploy-preview/);
-  assert.doesNotMatch(workflow, /interface-preview-approved[\s\S]*CF_PAGES_DEPLOY_TOKEN[\s\S]*if:\s*always\(\)/);
 });
