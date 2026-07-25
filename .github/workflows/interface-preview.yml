@@ -19,22 +19,30 @@ on:
       - "static/css/card-signatures.css"
       - "static/css/editorial-surfaces-v2.css"
       - "static/css/v2-directory-pages.css"
+      - "static/css/system-symphony.css"
+      - "static/css/systems-focus.css"
       - "static/media/card-signatures.svg"
       - "static/vendor/atlas-interface/**"
       - "static/js/card-signatures.js"
       - "static/js/estate-shell.js"
       - "static/js/estate-status.js"
+      - "static/js/focused-systems-shell.js"
+      - "static/js/sonify/**"
       - "js/card-search.js"
       - "static/js/estate-search/**"
       - "lab/index.html"
       - "lab/console/**"
       - "lab/system-map/**"
+      - "lab/system-symphony/**"
       - "lab/shared/**"
       - "lab/proof-chain/**"
       - "lab/signal/**"
       - "lab/anomaly/**"
       - "lab/conformance/**"
       - "lab/reliability/**"
+      - "og/**"
+      - "scripts/og/**"
+      - "js/tests/batch-h-*.test.mjs"
       - "js/tests/card-signatures.test.mjs"
       - "js/tests/public-interface-contract.test.mjs"
       - "scripts/capture_interface_evidence.mjs"
@@ -183,16 +191,18 @@ jobs:
     name: Capture deterministic interface evidence
     needs: deploy-preview
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       PREVIEW_URL: ${{ needs.deploy-preview.outputs.preview_url }}
       HEAD_SHA: ${{ github.event.pull_request.head.sha }}
     steps:
-      - name: Check out evidence runner
+      - name: Check out evidence runners
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          sparse-checkout: scripts/capture_interface_evidence.mjs
+          sparse-checkout: |
+            scripts/capture_interface_evidence.mjs
+            scripts/capture_batch_h_evidence.mjs
           sparse-checkout-cone-mode: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
         with:
@@ -202,6 +212,7 @@ jobs:
           set -euo pipefail
           mkdir -p "${RUNNER_TEMP}/interface-evidence"
           cp scripts/capture_interface_evidence.mjs "${RUNNER_TEMP}/interface-evidence/"
+          cp scripts/capture_batch_h_evidence.mjs "${RUNNER_TEMP}/interface-evidence/"
           cd "${RUNNER_TEMP}/interface-evidence"
           npm init -y >/dev/null
           npm install --save-exact playwright@1.61.1 @axe-core/playwright@4.12.1
@@ -210,6 +221,9 @@ jobs:
       - name: Capture governed browser and viewport matrix
         working-directory: ${{ runner.temp }}/interface-evidence
         run: node capture_interface_evidence.mjs
+      - name: Capture Batch H browser and viewport matrix
+        working-directory: ${{ runner.temp }}/interface-evidence
+        run: node capture_batch_h_evidence.mjs
       - name: Upload visual and accessibility evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
@@ -221,46 +235,14 @@ jobs:
             ${{ runner.temp }}/interface-evidence/screenshots/*.png
           if-no-files-found: error
           retention-days: 14
-
-  capture-batch-h-evidence:
-    name: Capture Batch H browser evidence
-    needs: deploy-preview
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    env:
-      PREVIEW_URL: ${{ needs.deploy-preview.outputs.preview_url }}
-      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-    steps:
-      - name: Check out Batch H evidence runner
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          sparse-checkout: scripts/capture_batch_h_evidence.mjs
-          sparse-checkout-cone-mode: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
-        with:
-          node-version: "22"
-      - name: Install pinned browser and accessibility tooling
-        run: |
-          set -euo pipefail
-          mkdir -p "${RUNNER_TEMP}/batch-h-evidence"
-          cp scripts/capture_batch_h_evidence.mjs "${RUNNER_TEMP}/batch-h-evidence/"
-          cd "${RUNNER_TEMP}/batch-h-evidence"
-          npm init -y >/dev/null
-          npm install --save-exact playwright@1.61.1 @axe-core/playwright@4.12.1
-          npm audit --audit-level=high
-          npx playwright install --with-deps firefox
-      - name: Capture Batch H browser and viewport matrix
-        working-directory: ${{ runner.temp }}/batch-h-evidence
-        run: node capture_batch_h_evidence.mjs
       - name: Upload Batch H visual and accessibility evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
         with:
           name: batch-h-preview-evidence
           path: |
-            ${{ runner.temp }}/batch-h-evidence/batch-h-evidence.json
-            ${{ runner.temp }}/batch-h-evidence/batch-h-capture-error.txt
-            ${{ runner.temp }}/batch-h-evidence/batch-h-screenshots/*.png
+            ${{ runner.temp }}/interface-evidence/batch-h-evidence.json
+            ${{ runner.temp }}/interface-evidence/batch-h-capture-error.txt
+            ${{ runner.temp }}/interface-evidence/batch-h-screenshots/*.png
           if-no-files-found: error
           retention-days: 14
