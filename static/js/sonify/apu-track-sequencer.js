@@ -1,14 +1,15 @@
 import { chipIdentityForVoice, clamp } from "./apu-palette.js?v=20260725-system-symphony-atlas-apu-preview-v1";
 
 export const APU_TRACK_STEPS = 32;
+export const TONIC_MIDI = 41;
 
-const CHORD_OFFSETS = Object.freeze({
-  open: Object.freeze([0, 3, 6]),
-  wide: Object.freeze([0, 4, 6]),
+const CHORD_DEGREES = Object.freeze({
+  open: Object.freeze([0, 4, 7]),
+  wide: Object.freeze([0, 4, 9]),
   minor: Object.freeze([0, 2, 4]),
-  suspended: Object.freeze([0, 3, 5]),
+  suspended: Object.freeze([0, 3, 4]),
   tense: Object.freeze([0, 1, 4]),
-  power: Object.freeze([0, 4]),
+  power: Object.freeze([0, 4, 7]),
 });
 
 const PRIMARY_PATTERNS = Object.freeze({
@@ -34,10 +35,10 @@ const BASS_PATTERNS = Object.freeze({
     Object.freeze({ step: 0, degree: 0, duration: "8n" }),
     Object.freeze({ step: 6, degree: 4, duration: "16n" }),
     Object.freeze({ step: 8, degree: 0, duration: "8n" }),
-    Object.freeze({ step: 14, degree: 5, duration: "16n" }),
+    Object.freeze({ step: 14, degree: 2, duration: "16n" }),
     Object.freeze({ step: 16, degree: 0, duration: "8n" }),
     Object.freeze({ step: 22, degree: 4, duration: "16n" }),
-    Object.freeze({ step: 24, degree: 5, duration: "8n" }),
+    Object.freeze({ step: 24, degree: 2, duration: "8n" }),
     Object.freeze({ step: 30, degree: 4, duration: "16n" }),
   ]),
   walk: Object.freeze([
@@ -46,9 +47,9 @@ const BASS_PATTERNS = Object.freeze({
     Object.freeze({ step: 8, degree: 2, duration: "8n" }),
     Object.freeze({ step: 12, degree: 4, duration: "8n" }),
     Object.freeze({ step: 16, degree: 0, duration: "8n" }),
-    Object.freeze({ step: 20, degree: 5, duration: "8n" }),
-    Object.freeze({ step: 24, degree: 4, duration: "8n" }),
-    Object.freeze({ step: 28, degree: 2, duration: "8n" }),
+    Object.freeze({ step: 20, degree: 1, duration: "8n" }),
+    Object.freeze({ step: 24, degree: 2, duration: "8n" }),
+    Object.freeze({ step: 28, degree: 4, duration: "8n" }),
   ]),
   rise: Object.freeze([
     Object.freeze({ step: 0, degree: 0, duration: "8n" }),
@@ -62,7 +63,7 @@ const BASS_PATTERNS = Object.freeze({
   ]),
   climax: Object.freeze(Array.from({ length: 16 }, (_, index) => Object.freeze({
     step: index * 2,
-    degree: index % 4 === 3 ? 5 : index % 4,
+    degree: index % 4 === 3 ? 4 : index % 3 === 1 ? 2 : 0,
     duration: "16n",
   }))),
   sustain: Object.freeze([
@@ -85,22 +86,117 @@ function wrappedStep(step) {
   return modulo(step, APU_TRACK_STEPS);
 }
 
-function safeScale(frame) {
-  return Array.isArray(frame?.scale) && frame.scale.length
+export function normalizedScale(frame = {}) {
+  const source = Array.isArray(frame?.scale) && frame.scale.length
     ? frame.scale
     : [0, 2, 3, 5, 7, 8, 10, 12];
+  const unique = [...new Set(source
+    .filter(Number.isFinite)
+    .map((offset) => modulo(offset, 12)))]
+    .sort((left, right) => left - right);
+  return Object.freeze(unique.length >= 3 ? unique : [0, 2, 3, 5, 7, 8, 10]);
 }
 
-function scaleMidi(scale, rootMidi, degree) {
+export function scaleMidi(scale, rootMidi, degree) {
+  const safeScale = Array.isArray(scale) && scale.length ? scale : [0, 2, 3, 5, 7, 8, 10];
   const safeDegree = Math.trunc(degree);
-  const octave = Math.floor(safeDegree / scale.length) * 12;
-  const index = modulo(safeDegree, scale.length);
-  return rootMidi + scale[index] + octave;
+  const octave = Math.floor(safeDegree / safeScale.length) * 12;
+  const index = modulo(safeDegree, safeScale.length);
+  return rootMidi + safeScale[index] + octave;
+}
+
+export function foldMidi(midi, minimum, maximum) {
+  let folded = Number.isFinite(midi) ? midi : minimum;
+  while (folded > maximum) folded -= 12;
+  while (folded < minimum) folded += 12;
+  return folded;
 }
 
 function activeHarmony(arrangement, step) {
   const bar = wrappedStep(step) < 16 ? 0 : 1;
   return arrangement?.harmony?.[bar] ?? { rootDegree: 0, quality: "minor", inversion: 0 };
+}
+
+function chordDegrees(harmony) {
+  return CHORD_DEGREES[harmony?.quality] ?? CHORD_DEGREES.minor;
+}
+
+function nearestNumber(target, candidates, previous = null, maximumLeap = Infinity) {
+  let best = candidates[0] ?? target;
+  let bestScore = Infinity;
+  for (const candidate of candidates) {
+    const leap = previous === null ? 0 : Math.abs(candidate - previous);
+    const leapPenalty = leap > maximumLeap ? (leap - maximumLeap) * 8 : leap * 0.18;
+    const score = Math.abs(candidate - target) + leapPenalty;
+    if (score < bestScore) {
+      best = candidate;
+      bestScore = score;
+    }
+  }
+  return best;
+}
+
+function degreeCandidates(harmony, target, includePassing = false) {
+  const root = harmony?.rootDegree ?? 0;
+  const base = chordDegrees(harmony);
+  const candidates = [];
+  for (let octave = -2; octave <= 3; octave += 1) {
+    const octaveOffset = octave * 7;
+    for (const offset of base) {
+      candidates.push(root + offset + octaveOffset);
+      if (includePassing) {
+        candidates.push(root + offset - 1 + octaveOffset);
+        candidates.push(root + offset + 1 + octaveOffset);
+      }
+    }
+  }
+  return candidates.sort((left, right) => Math.abs(left - target) - Math.abs(right - target));
+}
+
+function melodyDegreeSequence(arrangement, pattern, counter = false) {
+  const source = arrangement?.motifDegrees?.length
+    ? arrangement.motifDegrees
+    : [0, 2, 4, 1, 5, 4, 2, 0];
+  const result = [];
+  let previous = null;
+  for (let index = 0; index < pattern.length; index += 1) {
+    const position = pattern[index];
+    const harmony = activeHarmony(arrangement, position);
+    const sourceIndex = counter
+      ? modulo(source.length - 1 - index, source.length)
+      : modulo(index, source.length);
+    const target = (harmony.rootDegree ?? 0) + source[sourceIndex];
+    const strongBeat = position % 8 === 0 || index === 0;
+    const candidates = degreeCandidates(harmony, target, !strongBeat);
+    const chosen = nearestNumber(target, candidates, previous, counter ? 4 : 3);
+    result.push(chosen);
+    previous = chosen;
+  }
+  return result;
+}
+
+function midiCandidatesForHarmony(frame, arrangement, step, minimum, maximum, includeScale = false) {
+  const scale = normalizedScale(frame);
+  const harmony = activeHarmony(arrangement, step);
+  const allowedOffsets = includeScale
+    ? Array.from({ length: scale.length }, (_, index) => index)
+    : chordDegrees(harmony);
+  const candidates = [];
+  for (let octave = -3; octave <= 7; octave += 1) {
+    for (const offset of allowedOffsets) {
+      const degree = (harmony.rootDegree ?? 0) + offset + octave * scale.length;
+      const midi = scaleMidi(scale, TONIC_MIDI, degree);
+      if (midi >= minimum && midi <= maximum) candidates.push(midi);
+    }
+  }
+  return candidates;
+}
+
+export function quantizeMidiToHarmony(frame, arrangement, step, midi, minimum = 32, maximum = 91) {
+  const strongBeat = wrappedStep(step) % 8 === 0;
+  const candidates = midiCandidatesForHarmony(frame, arrangement, step, minimum, maximum, !strongBeat);
+  if (!candidates.length) return clamp(Math.round(midi), minimum, maximum);
+  return nearestNumber(midi, candidates);
 }
 
 function rhythmVelocity(arrangement, base) {
@@ -129,19 +225,21 @@ export function rhythmEventsForTrackStep(frame = {}, arrangement = null, step = 
   } else if (pattern === "drive") {
     kick = [0, 6, 10, 16, 22, 26].includes(position);
     snare = position === 8 || position === 24;
-    hat = position % 2 === 1;
+    hat = [3, 7, 11, 15, 19, 23, 27, 31].includes(position);
     openHat = position === 15 || position === 31;
   } else if (pattern === "build") {
     const local = arrangement?.sectionLocalPhrase ?? 0;
     kick = [0, 8, 16, 24].includes(position) || (local > 0 && [6, 14, 22, 30].includes(position));
     snare = position === 8 || position === 24 || (local > 0 && [28, 30].includes(position));
-    hat = position % (local > 0 ? 2 : 4) === (local > 0 ? 1 : 2);
+    hat = local > 0
+      ? [1, 5, 9, 13, 17, 21, 25, 29].includes(position)
+      : [2, 6, 10, 14, 18, 22, 26, 30].includes(position);
     openHat = position === 15 || position === 31;
     noiseAccent = position === 31;
   } else if (pattern === "peak") {
     kick = [0, 4, 6, 10, 16, 20, 22, 26].includes(position);
     snare = [8, 14, 24, 30].includes(position);
-    hat = position % 2 === 1;
+    hat = [1, 3, 5, 9, 11, 13, 17, 19, 21, 25, 27, 29].includes(position);
     openHat = position === 7 || position === 15 || position === 23 || position === 31;
     noiseAccent = position === 15 || position === 31;
   } else if (pattern === "release") {
@@ -150,11 +248,11 @@ export function rhythmEventsForTrackStep(frame = {}, arrangement = null, step = 
   } else if (pattern === "recovery") {
     kick = position === 0 || position === 16;
     snare = position === 8 || position === 24;
-    hat = position % 4 === 2;
+    hat = [6, 14, 22, 30].includes(position);
   }
 
   if (fill) {
-    snare = position >= 28;
+    snare = [28, 30, 31].includes(position);
     kick = kick || position === 28;
     hat = false;
     openHat = position === 31;
@@ -163,10 +261,10 @@ export function rhythmEventsForTrackStep(frame = {}, arrangement = null, step = 
 
   return Object.freeze({
     kick: kick ? Object.freeze({ velocity: rhythmVelocity(arrangement, pattern === "peak" ? 0.8 : 0.58) }) : null,
-    snare: snare ? Object.freeze({ velocity: rhythmVelocity(arrangement, fill ? 0.5 + (position - 28) * 0.06 : 0.38) }) : null,
-    hat: hat ? Object.freeze({ velocity: rhythmVelocity(arrangement, 0.17) }) : null,
-    openHat: openHat ? Object.freeze({ velocity: rhythmVelocity(arrangement, 0.22) }) : null,
-    noiseAccent: noiseAccent ? Object.freeze({ velocity: rhythmVelocity(arrangement, 0.28) }) : null,
+    snare: snare ? Object.freeze({ velocity: rhythmVelocity(arrangement, fill ? 0.48 + (position - 28) * 0.05 : 0.38) }) : null,
+    hat: hat ? Object.freeze({ velocity: rhythmVelocity(arrangement, pattern === "peak" ? 0.13 : 0.11) }) : null,
+    openHat: openHat ? Object.freeze({ velocity: rhythmVelocity(arrangement, 0.16) }) : null,
+    noiseAccent: noiseAccent ? Object.freeze({ velocity: rhythmVelocity(arrangement, 0.24) }) : null,
   });
 }
 
@@ -175,33 +273,34 @@ export function bassEventForTrackStep(frame = {}, arrangement = null, step = 0) 
   const pattern = BASS_PATTERNS[arrangement?.bassPattern ?? "none"] ?? BASS_PATTERNS.none;
   const event = pattern.find((candidate) => candidate.step === position);
   if (!event) return null;
-  const scale = safeScale(frame);
+  const scale = normalizedScale(frame);
   const harmony = activeHarmony(arrangement, position);
-  const degree = harmony.rootDegree + event.degree;
-  const octaveBoost = arrangement?.octaveBoost && position >= 24 ? 12 : 0;
-  const midi = clamp(scaleMidi(scale, 29 + octaveBoost, degree), 27, 55);
+  const degree = (harmony.rootDegree ?? 0) + event.degree;
+  const base = arrangement?.section === "peak" ? 41 : 29;
+  const midi = foldMidi(scaleMidi(scale, base, degree), 27, 55);
   return Object.freeze({
     midi,
     duration: event.duration,
-    velocity: clamp(0.38 + (arrangement?.mix?.bass ?? 0) * 0.34, 0.2, 0.76),
+    velocity: clamp(0.36 + (arrangement?.mix?.bass ?? 0) * 0.32, 0.2, 0.72),
   });
 }
 
 export function padChordForTrackStep(frame = {}, arrangement = null, step = 0) {
   const position = wrappedStep(step);
   if (position !== 0 && position !== 16) return null;
-  const scale = safeScale(frame);
+  const scale = normalizedScale(frame);
   const harmony = activeHarmony(arrangement, position);
-  const offsets = CHORD_OFFSETS[harmony.quality] ?? CHORD_OFFSETS.minor;
+  const offsets = chordDegrees(harmony);
   const rootMidi = frame.scoreState === "unknown" ? 48 : 53;
-  let midis = offsets.map((offset) => scaleMidi(scale, rootMidi, harmony.rootDegree + offset));
+  let midis = offsets.map((offset) => scaleMidi(scale, rootMidi, (harmony.rootDegree ?? 0) + offset));
   if (harmony.inversion > 0 && midis.length > 2) {
     midis = [...midis.slice(1), midis[0] + 12];
   }
+  const bounded = [...new Set(midis.map((midi) => foldMidi(midi, 45, 78)))].sort((left, right) => left - right);
   return Object.freeze({
-    midis: Object.freeze(midis.map((midi) => clamp(midi, 45, 76))),
+    midis: Object.freeze(bounded),
     duration: arrangement?.section === "release" || arrangement?.section === "breathe" ? "1m" : "2n",
-    velocity: clamp(0.12 + (arrangement?.mix?.pad ?? 0) * 0.2, 0.08, 0.34),
+    velocity: clamp(0.1 + (arrangement?.mix?.pad ?? 0) * 0.18, 0.07, 0.28),
   });
 }
 
@@ -210,37 +309,33 @@ export function primaryPulseEventForTrackStep(frame = {}, arrangement = null, st
   const pattern = PRIMARY_PATTERNS[arrangement?.motifMode ?? "statement"] ?? PRIMARY_PATTERNS.statement;
   const eventIndex = pattern.indexOf(position);
   if (eventIndex === -1) return null;
-  const degrees = arrangement?.motifDegrees?.length ? arrangement.motifDegrees : [0, 2, 4, 1, 5, 4, 2, 0];
-  const harmony = activeHarmony(arrangement, position);
-  const scale = safeScale(frame);
-  const motifDegree = degrees[eventIndex % degrees.length];
-  const octave = arrangement?.octaveBoost && eventIndex % 3 === 1 ? 12 : 0;
-  const midi = clamp(scaleMidi(scale, 60 + octave, harmony.rootDegree + motifDegree), 58, 91);
+  const scale = normalizedScale(frame);
+  const degrees = melodyDegreeSequence(arrangement, pattern, false);
+  const baseMidi = arrangement?.section === "peak" ? 77 : 65;
+  const midi = foldMidi(scaleMidi(scale, baseMidi, degrees[eventIndex]), 58, 88);
   return Object.freeze({
     midi,
     duration: arrangement?.motifMode === "breathe" ? "8n" : arrangement?.motifMode === "climax" ? "32n" : "16n",
-    velocity: clamp(0.2 + (arrangement?.mix?.primary ?? 0) * 0.3, 0.12, 0.56),
+    velocity: clamp(0.18 + (arrangement?.mix?.primary ?? 0) * 0.28, 0.12, 0.52),
   });
 }
 
 export function secondaryPulseEventForTrackStep(frame = {}, arrangement = null, step = 0) {
   const position = wrappedStep(step);
   const counter = arrangement?.counterPattern ?? "none";
-  let active = false;
-  if (counter === "answer") active = [4, 12, 20, 28].includes(position);
-  if (counter === "counter") active = [2, 6, 10, 14, 18, 22, 26, 30].includes(position);
-  if (counter === "octave") active = position % 4 === 2;
-  if (!active) return null;
-  const scale = safeScale(frame);
-  const harmony = activeHarmony(arrangement, position);
-  const degrees = arrangement?.motifDegrees?.length ? arrangement.motifDegrees : [0, 2, 4, 1];
-  const index = Math.floor(position / 2) % degrees.length;
-  const direction = counter === "answer" ? degrees.length - 1 - index : index;
-  const octave = counter === "octave" && position >= 16 ? 12 : 0;
+  let pattern = [];
+  if (counter === "answer") pattern = [4, 12, 20, 28];
+  if (counter === "counter") pattern = [2, 6, 10, 14, 18, 22, 26, 30];
+  if (counter === "octave") pattern = [2, 6, 10, 14, 18, 22, 26, 30];
+  const eventIndex = pattern.indexOf(position);
+  if (eventIndex === -1) return null;
+  const scale = normalizedScale(frame);
+  const degrees = melodyDegreeSequence(arrangement, pattern, true);
+  const baseMidi = counter === "octave" ? 65 : 53;
   return Object.freeze({
-    midi: clamp(scaleMidi(scale, 55 + octave, harmony.rootDegree + degrees[modulo(direction, degrees.length)]), 53, 88),
+    midi: foldMidi(scaleMidi(scale, baseMidi, degrees[eventIndex]), 53, 86),
     duration: counter === "octave" ? "32n" : "16n",
-    velocity: clamp(0.12 + (arrangement?.mix?.secondary ?? 0) * 0.26, 0.08, 0.44),
+    velocity: clamp(0.1 + (arrangement?.mix?.secondary ?? 0) * 0.23, 0.07, 0.38),
   });
 }
 
@@ -249,7 +344,7 @@ export function serviceEventForTrackStep(frame = {}, arrangement = null, step = 
   if (!voices.length || (arrangement?.mix?.services ?? 0) <= 0.05) return null;
   const position = wrappedStep(step);
   const density = arrangement?.serviceDensity ?? 0.2;
-  const stride = density >= 0.7 ? 2 : density >= 0.4 ? 4 : 8;
+  const stride = density >= 0.66 ? 4 : density >= 0.36 ? 8 : 16;
   const offset = arrangement?.section === "intro" || arrangement?.section === "breathe" ? 4 : 2;
   if (position % stride !== offset % stride) return null;
 
@@ -263,39 +358,40 @@ export function serviceEventForTrackStep(frame = {}, arrangement = null, step = 
     : [voice.registerMidi ?? 53];
   const motifIndex = modulo((arrangement?.phraseIndex ?? 0) + position + (voice.hash ?? 0), motif.length);
   const identity = chipIdentityForVoice(voice);
-  const registerLift = arrangement?.section === "peak" ? 12 : 0;
+  const target = motif[motifIndex] + identity.octaveOffset;
   return Object.freeze({
     voice,
     identity,
-    midi: clamp(motif[motifIndex] + identity.octaveOffset + registerLift, 32, 91),
+    midi: quantizeMidiToHarmony(frame, arrangement, position, target, 32, 88),
     duration: identity.shortGate ? "32n" : frame.scoreState === "unknown" ? "8n" : "16n",
-    velocity: clamp((voice.velocity ?? 0.3) * (0.34 + (arrangement?.mix?.services ?? 0) * 0.52), 0.06, 0.48),
+    velocity: clamp((voice.velocity ?? 0.3) * (0.28 + (arrangement?.mix?.services ?? 0) * 0.42), 0.05, 0.38),
   });
 }
 
 export function transitionEventForTrackStep(frame = {}, arrangement = null, step = 0) {
   if (!arrangement?.isSectionEnd) return null;
   const position = wrappedStep(step);
-  const scale = safeScale(frame);
+  const scale = normalizedScale(frame);
   const harmony = activeHarmony(arrangement, position);
   const transition = arrangement.transition ?? "none";
   if (transition === "fill" && position === 31) {
-    return Object.freeze({ type: "hit", midi: scaleMidi(scale, 67, harmony.rootDegree + 4), duration: "8n", velocity: 0.34 });
+    return Object.freeze({ type: "hit", midi: scaleMidi(scale, 65, (harmony.rootDegree ?? 0) + 4), duration: "8n", velocity: 0.3 });
   }
-  if (transition === "rise" && position >= 28) {
-    return Object.freeze({ type: "rise", midi: scaleMidi(scale, 65, harmony.rootDegree + (position - 27)), duration: "32n", velocity: 0.26 + (position - 28) * 0.04 });
+  if (transition === "rise" && [28, 31].includes(position)) {
+    const degree = (harmony.rootDegree ?? 0) + (position === 28 ? 2 : 4);
+    return Object.freeze({ type: "rise", midi: scaleMidi(scale, 65, degree), duration: "32n", velocity: position === 31 ? 0.34 : 0.24 });
   }
   if (transition === "drop" && position === 31) {
-    return Object.freeze({ type: "drop", midi: scaleMidi(scale, 53, harmony.rootDegree), duration: "2n", velocity: 0.4 });
+    return Object.freeze({ type: "drop", midi: scaleMidi(scale, 53, harmony.rootDegree ?? 0), duration: "2n", velocity: 0.36 });
   }
   if (transition === "resolve" && position === 30) {
-    return Object.freeze({ type: "resolve", midi: scaleMidi(scale, 60, harmony.rootDegree), duration: "4n", velocity: 0.3 });
+    return Object.freeze({ type: "resolve", midi: scaleMidi(scale, 65, harmony.rootDegree ?? 0), duration: "4n", velocity: 0.27 });
   }
   if (transition === "lift" && position === 31) {
-    return Object.freeze({ type: "lift", midi: scaleMidi(scale, 72, harmony.rootDegree + 4), duration: "8n", velocity: 0.28 });
+    return Object.freeze({ type: "lift", midi: scaleMidi(scale, 77, (harmony.rootDegree ?? 0) + 4), duration: "8n", velocity: 0.25 });
   }
   if (transition === "restart" && position === 31) {
-    return Object.freeze({ type: "restart", midi: scaleMidi(scale, 60, 0), duration: "2n", velocity: 0.24 });
+    return Object.freeze({ type: "restart", midi: scaleMidi(scale, 65, 0), duration: "2n", velocity: 0.2 });
   }
   return null;
 }
