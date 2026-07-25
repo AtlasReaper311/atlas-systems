@@ -58,6 +58,14 @@
       "tagline": "Objectives, error budgets, chaos evidence, and runbooks."
     },
     {
+      "file": "evidence",
+      "html": "systems/evidence/index.html",
+      "route": "/systems/evidence/",
+      "kicker": "Verify / Public evidence",
+      "title": ["Claims need", "[provenance.]"],
+      "tagline": "Activity, deployments, pipelines, timestamps, and fingerprints."
+    },
+    {
       "file": "about",
       "html": "about/index.html",
       "route": "/about/",
