@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Current bounded public observations across SPECULAR-CORE, public Workers, incidents, corpus state, and Atlas Systems operations.">
+  <meta name="theme-color" content="#0a0a0f">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
+  <title>Observability // Atlas Systems</title>
+  <link rel="canonical" href="https://atlas-systems.uk/systems/observability/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Observability // Atlas Systems">
+  <meta property="og:description" content="What Atlas Systems is observing now, with explicit stale, unknown, and unmeasured states.">
+  <meta property="og:url" content="https://atlas-systems.uk/systems/observability/">
+  <meta property="og:site_name" content="Atlas Systems">
+  <meta property="og:image" content="https://atlas-systems.uk/og/systems.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Current bounded observations across Atlas Systems.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Observability // Atlas Systems">
+  <meta name="twitter:description" content="What Atlas Systems is observing now.">
+  <meta name="twitter:image" content="https://atlas-systems.uk/og/systems.png">
+  <meta name="twitter:image:alt" content="Current bounded observations across Atlas Systems.">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260724-maturity-completion">
+  <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h">
+</head>
+<body>
+  <nav aria-label="Primary navigation">
+    <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
+    <ul class="nav-links">
+      <li><a href="/work/">Work</a></li><li><a href="/writing/">Writing</a></li>
+      <li><a href="/lab/">Lab</a></li><li><a href="/systems/" aria-current="page">Systems</a></li>
+      <li><a href="/about/">About</a></li>
+    </ul>
+  </nav>
+  <main class="focus-main">
+    <header>
+      <p class="focus-breadcrumb">Systems / observability</p>
+      <h1 class="focus-title">What is being observed now?</h1>
+      <p class="focus-lede">A focused read-only view of public telemetry, registry state, incident evidence, corpus activity, and the operations links that support those observations. Missing evidence remains missing. Stale evidence remains stale.</p>
+      <div class="focus-actions">
+        <a class="focus-action primary" href="https://status.atlas-systems.uk/">Public status</a>
+        <a class="focus-action" href="/systems/reliability/">Reliability evidence</a>
+        <a class="focus-action" href="/systems/evidence/">Claim evidence</a>
+      </div>
+    </header>
+
+    <section class="focus-section" aria-labelledby="observation-summary-title">
+      <div class="focus-section-head">
+        <div><p class="focus-breadcrumb">Current frame</p><h2 id="observation-summary-title">Observation summary</h2></div>
+        <p id="observation-status" class="focus-status-line" data-state="unknown" aria-live="polite">Contacting public evidence sources.</p>
+      </div>
+      <div class="focus-grid cols-4">
+        <article class="focus-metric"><span>Telemetry source</span><strong id="summary-telemetry">unknown</strong></article>
+        <article class="focus-metric"><span>Public services</span><strong id="summary-services">unknown</strong></article>
+        <article class="focus-metric"><span>Recent failures</span><strong id="summary-failures">unknown</strong></article>
+        <article class="focus-metric"><span>Corpus activity</span><strong id="summary-corpus">unknown</strong></article>
+      </div>
+    </section>
+
+    <section class="focus-section" aria-labelledby="specular-title">
+      <div class="focus-section-head">
+        <div><p class="focus-breadcrumb">SPECULAR-CORE</p><h2 id="specular-title">Telemetry cockpit</h2></div>
+        <span id="telemetry-state" class="focus-state" data-state="unknown">unknown</span>
+      </div>
+      <div class="focus-grid cols-4">
+        <article class="focus-metric"><span>GPU utilisation</span><strong id="metric-gpu">not measured</strong></article>
+        <article class="focus-metric"><span>GPU temperature</span><strong id="metric-gpu-temp">not measured</strong></article>
+        <article class="focus-metric"><span>CPU utilisation</span><strong id="metric-cpu">not measured</strong></article>
+        <article class="focus-metric"><span>RAM utilisation</span><strong id="metric-ram">not measured</strong></article>
+      </div>
+      <p id="telemetry-detail" class="focus-status-line" data-state="unknown" aria-live="polite">No successful sample yet.</p>
+    </section>
+
+    <section class="focus-section" aria-labelledby="registry-title">
+      <div class="focus-section-head">
+        <div><p class="focus-breadcrumb">Public registry</p><h2 id="registry-title">Observed services</h2></div>
+        <p id="registry-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for the public registry.</p>
+      </div>
+      <div class="focus-table-wrap">
+        <table class="focus-table">
+          <thead><tr><th>Service</th><th>Layer</th><th>Observed state</th><th>Evidence</th></tr></thead>
+          <tbody id="registry-rows"><tr><td colspan="4">No registry evidence loaded.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="focus-section" aria-labelledby="incidents-title">
+      <div class="focus-section-head">
+        <div><p class="focus-breadcrumb">Incidents and failures</p><h2 id="incidents-title">Recent failure feed</h2></div>
+        <p id="incident-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for bounded recent events.</p>
+      </div>
+      <ul id="failure-feed" class="focus-list"><li><strong>No failure evidence loaded.</strong><span>Unknown is not healthy.</span></li></ul>
+    </section>
+
+    <section class="focus-section" aria-labelledby="infra-title">
+      <div class="focus-section-head">
+        <div><p class="focus-breadcrumb">Local AI boundary</p><h2 id="infra-title">Infrastructure and corpus state</h2></div>
+        <p>Only aggregate public state is rendered. Query terms, IP addresses, private repositories, and provider credentials are outside this surface.</p>
+      </div>
+      <div class="focus-grid cols-2">
+        <article class="focus-panel">
+          <h3>Infrastructure health</h3>
+          <span id="infra-state" class="focus-state" data-state="unknown">unknown</span>
+          <p id="infra-detail">No sentinel report loaded.</p>
+        </article>
+        <article class="focus-panel">
+          <h3>Corpus index activity</h3>
+          <span id="corpus-state" class="focus-state" data-state="unknown">unknown</span>
+          <p id="corpus-detail">No aggregate query evidence loaded.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="focus-section" aria-labelledby="operations-title">
+      <div class="focus-section-head">
+        <div><p class="focus-breadcrumb">Operations rail</p><h2 id="operations-title">Raw public sources</h2></div>
+        <p>These links expose the machine-readable records used by this page. They do not grant mutation authority.</p>
+      </div>
+      <div class="focus-rail">
+        <a href="https://api.atlas-systems.uk/specular"><strong>SPECULAR telemetry</strong><span>/specular</span></a>
+        <a href="https://api.atlas-systems.uk/v1/registry"><strong>Service registry</strong><span>/v1/registry</span></a>
+        <a href="https://api.atlas-systems.uk/v1/infra/status"><strong>Infra status</strong><span>/v1/infra/status</span></a>
+        <a href="https://api.atlas-systems.uk/v1/rag/stats"><strong>Corpus statistics</strong><span>/v1/rag/stats</span></a>
+        <a href="https://api.atlas-systems.uk/notify/recent"><strong>Recent events</strong><span>/notify/recent</span></a>
+        <a href="/lab/console/"><strong>Preserved console</strong><span>noindex compatibility route</span></a>
+      </div>
+      <p class="focus-note">The page fetches a fixed allowlist of public endpoints and renders a fixed allowlist of fields with <code>textContent</code>. It does not expose provider responses wholesale.</p>
+    </section>
+  </main>
+  <script type="module" src="/systems/observability/observability.js?v=20260725-batch-h"></script>
+</body>
+</html>
