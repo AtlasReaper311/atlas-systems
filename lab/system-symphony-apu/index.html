@@ -60,7 +60,7 @@
         <button type="button" data-mode="unknown" aria-pressed="false">Unknown</button>
       </div>
 
-      <div class="apu-metrics" aria-label="Current score summary">
+      <section class="apu-metrics" aria-label="Current score summary">
         <article><span>Score</span><strong data-metric="state">Unknown</strong></article>
         <article><span>Scene</span><strong data-metric="scene">Lost Signal</strong></article>
         <article><span>Phase</span><strong data-metric="phase">Standby</strong></article>
@@ -69,16 +69,16 @@
         <article><span>Measured</span><strong data-metric="measured">0</strong></article>
         <article><span>Warnings</span><strong data-metric="warnings">0</strong></article>
         <article><span>Failures</span><strong data-metric="failures">0</strong></article>
-      </div>
+      </section>
 
       <div class="apu-visuals">
         <div class="apu-scope">
           <div class="apu-scope-head"><span>Master waveform</span><strong data-waveform-label>silent</strong></div>
-          <canvas width="960" height="150" data-waveform aria-label="Atlas APU real-time waveform"></canvas>
+          <canvas width="960" height="150" data-waveform role="img" aria-label="Atlas APU real-time waveform"></canvas>
         </div>
         <div class="apu-scope">
           <div class="apu-scope-head"><span>Master spectrum</span><strong>32 visible bands</strong></div>
-          <canvas width="960" height="150" data-spectrum aria-label="Atlas APU real-time spectrum"></canvas>
+          <canvas width="960" height="150" data-spectrum role="img" aria-label="Atlas APU real-time spectrum"></canvas>
         </div>
       </div>
 
@@ -102,16 +102,16 @@
           <div><span>02</span><h3 id="apu-services-title">Service leitmotifs</h3></div>
           <p>Each component keeps stable register, motif, pulse width and stereo identity across state changes.</p>
         </div>
-        <div class="apu-table-wrap" role="region" aria-label="Atlas APU service mapping" tabindex="0">
+        <section class="apu-table-wrap" aria-label="Atlas APU service mapping" tabindex="0">
           <table>
             <thead>
-              <tr><th>Service</th><th>Layer</th><th>Status</th><th>APU voice</th><th>Register</th><th>Evidence</th></tr>
+              <tr><th scope="col">Service</th><th scope="col">Layer</th><th scope="col">Status</th><th scope="col">APU voice</th><th scope="col">Register</th><th scope="col">Evidence</th></tr>
             </thead>
             <tbody data-service-table>
               <tr><td colspan="6">Waiting for the first score frame.</td></tr>
             </tbody>
           </table>
-        </div>
+        </section>
       </section>
     </section>
 
