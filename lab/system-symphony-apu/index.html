@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <meta name="description" content="Atlas APU preview: a sample-free browser game soundtrack generated from bounded Atlas Systems telemetry.">
+  <meta name="description" content="Atlas APU track preview: a sample-free 32-bar browser game soundtrack generated from bounded Atlas Systems telemetry.">
   <meta name="theme-color" content="#0a0a0f">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
-  <link rel="stylesheet" href="/lab/system-symphony-apu/system-symphony-apu.css?v=20260725-atlas-apu-preview-v1">
-  <title>Atlas APU Preview // System Symphony</title>
+  <link rel="stylesheet" href="/lab/system-symphony-apu/system-symphony-apu.css?v=20260725-atlas-apu-track-v1">
+  <title>Atlas APU Track Preview // System Symphony</title>
 </head>
 <body>
   <nav aria-label="Primary navigation">
@@ -24,11 +24,11 @@
     </ul>
   </nav>
 
-  <main class="apu-main" data-apu-root data-ready="false" data-running="false" data-source="connecting" data-state="unknown">
+  <main class="apu-main" data-apu-root data-ready="false" data-running="false" data-source="connecting" data-state="unknown" data-section="standby">
     <header class="apu-hero">
-      <p class="apu-kicker">System Symphony / isolated branch preview</p>
-      <h1>The estate becomes a game soundtrack.</h1>
-      <p class="apu-lede">Atlas APU replaces the sample library with pulse, triangle, noise, wavetable and FM-style browser synthesis. The existing telemetry frame, service identities, uncertainty rules and composition director remain the score authority.</p>
+      <p class="apu-kicker">System Symphony / long-form arrangement preview</p>
+      <h1>The estate becomes a complete game soundtrack.</h1>
+      <p class="apu-lede">Atlas APU now moves through a deterministic 32-bar form with an intro, themes, variation, build, peak, release, recovery and breathing space. Estate evidence reshapes harmony, density and articulation without destroying the musical arc.</p>
       <div class="apu-boundary" role="status">
         <strong>Preview boundary</strong>
         <span>This route does not replace the current production instrument and cannot change estate state.</span>
@@ -38,7 +38,7 @@
     <section class="apu-console" aria-labelledby="apu-console-title">
       <div class="apu-console-head">
         <div>
-          <p class="apu-kicker">ATLAS APU // six-channel procedural engine</p>
+          <p class="apu-kicker">ATLAS APU // 32-bar procedural soundtrack</p>
           <h2 id="apu-console-title">Live soundtrack console</h2>
         </div>
         <div class="apu-controls">
@@ -60,15 +60,25 @@
         <button type="button" data-mode="unknown" aria-pressed="false">Unknown</button>
       </div>
 
-      <section class="apu-metrics" aria-label="Current score summary">
+      <section class="apu-metrics" aria-label="Current score and arrangement summary">
+        <article><span>Section</span><strong data-metric="section">Standby</strong></article>
+        <article><span>Position</span><strong data-metric="position">Bars 0-0 / 32</strong></article>
+        <article><span>Director phase</span><strong data-metric="phase">Standby</strong></article>
+        <article><span>Tempo</span><strong data-metric="bpm">100 BPM</strong></article>
         <article><span>Score</span><strong data-metric="state">Unknown</strong></article>
         <article><span>Scene</span><strong data-metric="scene">Lost Signal</strong></article>
-        <article><span>Phase</span><strong data-metric="phase">Standby</strong></article>
-        <article><span>Tempo</span><strong data-metric="bpm">100 BPM</strong></article>
         <article><span>Components</span><strong data-metric="components">0</strong></article>
         <article><span>Measured</span><strong data-metric="measured">0</strong></article>
         <article><span>Warnings</span><strong data-metric="warnings">0</strong></article>
         <article><span>Failures</span><strong data-metric="failures">0</strong></article>
+      </section>
+
+      <section class="apu-form-panel" aria-labelledby="apu-form-title">
+        <div class="apu-scope-head">
+          <span id="apu-form-title">32-bar form</span>
+          <strong>one phrase = two bars</strong>
+        </div>
+        <div class="apu-form-timeline" data-form-timeline role="list" aria-label="Atlas APU soundtrack sections"></div>
       </section>
 
       <div class="apu-visuals">
@@ -88,19 +98,19 @@
           <p>Historical console vocabulary with a modern output stage. No streamed or decoded audio assets.</p>
         </div>
         <div class="apu-channel-grid">
-          <article data-channel="pulse-a"><span>PULSE A</span><strong>Player lead</strong><p>Overall motif, recovery melody and public surface identity.</p><small data-channel-count="pulse-a">0 services</small></article>
-          <article data-channel="pulse-b"><span>PULSE B</span><strong>Packet counterline</strong><p>API, edge and reusable-system callouts with deterministic duty cycles.</p><small data-channel-count="pulse-b">0 services</small></article>
-          <article data-channel="triangle"><span>TRIANGLE</span><strong>Machine foundation</strong><p>Infrastructure bass and stable low-frequency continuity.</p><small data-channel-count="triangle">0 services</small></article>
-          <article data-channel="noise"><span>NOISE</span><strong>Operations rhythm</strong><p>Drums, incidents and observability accents generated from filtered noise.</p><small data-channel-count="noise">0 services</small></article>
-          <article data-channel="wavetable"><span>WAVETABLE</span><strong>Memory field</strong><p>Local AI, unknown evidence and slower suspended harmonic colour.</p><small data-channel-count="wavetable">0 services</small></article>
-          <article data-channel="fm-accent"><span>FM ACCENT</span><strong>Release signal</strong><p>Generated deployment, transition and recovery fanfares.</p><small data-channel-count="fm-accent">event channel</small></article>
+          <article data-channel="pulse-a"><span>PULSE A</span><strong>Player lead</strong><p>Theme statements, transformations, octave peaks and recovery reprises.</p><small data-channel-count="pulse-a">0 services</small></article>
+          <article data-channel="pulse-b"><span>PULSE B</span><strong>Packet counterline</strong><p>Answer phrases, counter-melody and section-dependent callouts.</p><small data-channel-count="pulse-b">0 services</small></article>
+          <article data-channel="triangle"><span>TRIANGLE</span><strong>Machine foundation</strong><p>Foundation, groove, walking, rising, climax and sustained bass roles.</p><small data-channel-count="triangle">0 services</small></article>
+          <article data-channel="noise"><span>NOISE</span><strong>Operations rhythm</strong><p>Section-specific drums, fills, dropouts and incident accents.</p><small data-channel-count="noise">0 services</small></article>
+          <article data-channel="wavetable"><span>WAVETABLE</span><strong>Memory field</strong><p>Two-chord phrases, inversions and state-specific harmonic colour.</p><small data-channel-count="wavetable">0 services</small></article>
+          <article data-channel="fm-accent"><span>FM ACCENT</span><strong>Transition signal</strong><p>Generated lifts, rises, hits, drops, resolutions and deployment fanfares.</p><small data-channel-count="fm-accent">event channel</small></article>
         </div>
       </section>
 
       <section class="apu-services" aria-labelledby="apu-services-title">
         <div class="apu-section-head">
           <div><span>02</span><h3 id="apu-services-title">Service leitmotifs</h3></div>
-          <p>Each component keeps stable register, motif, pulse width and stereo identity across state changes.</p>
+          <p>Each component keeps stable register, motif, pulse width and stereo identity while section density changes around it.</p>
         </div>
         <section class="apu-table-wrap" aria-label="Atlas APU service mapping" tabindex="0">
           <table>
@@ -121,9 +131,9 @@
       </div>
       <div class="apu-note-grid">
         <article><h3>Same evidence</h3><p>The existing read-only sonification frame, topology merge, stale handling and deployment detector remain unchanged.</p></article>
-        <article><h3>New renderer</h3><p>Every audible event is produced by browser synthesis. There are no sample players, granular sources, audio loops or codec fallbacks.</p></article>
-        <article><h3>Game-audio structure</h3><p>The current establish, develop, intensify, destabilise, peak, release, recover and breathe phases direct the arrangement.</p></article>
-        <article><h3>Controlled cutover</h3><p>The existing System Symphony route remains available for direct comparison until a later reviewed pull request performs the replacement.</p></article>
+        <article><h3>Long-form memory</h3><p>A complete 32-bar cycle controls harmony, melody transformation, bass role, drum density and transitions.</p></article>
+        <article><h3>Real orchestration</h3><p>Lead, counterline, service voices, bass, drums, pad and accents enter and leave through independent section gains.</p></article>
+        <article><h3>Controlled cutover</h3><p>The current System Symphony route remains available for direct comparison until a later reviewed pull request performs the replacement.</p></article>
       </div>
       <div class="apu-links">
         <a href="/lab/system-symphony/">Compare current production instrument</a>
@@ -135,6 +145,6 @@
 
   <script src="/lab/system-symphony/preview-endpoints.js?v=20260725-numbered-previews"></script>
   <script src="/vendor/tone.min.js?v=20260708-sonify"></script>
-  <script type="module" src="/lab/system-symphony-apu/system-symphony-apu.js?v=20260725-atlas-apu-renderer-v2"></script>
+  <script type="module" src="/lab/system-symphony-apu/system-symphony-apu.js?v=20260725-atlas-apu-track-v1"></script>
 </body>
 </html>
