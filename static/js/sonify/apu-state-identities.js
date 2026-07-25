@@ -1,0 +1,163 @@
+export const APU_STATE_IDENTITY_BUILD_ID = "20260726-system-symphony-state-identities-v1";
+export const APU_STATE_KEYS = Object.freeze(["healthy", "warning", "critical", "unknown"]);
+
+const freezeArray = (values) => Object.freeze([...values]);
+const freezeObject = (value) => Object.freeze({ ...value });
+
+export const APU_STATE_IDENTITIES = Object.freeze({
+  healthy: freezeObject({
+    id: "healthy",
+    label: "Explorer",
+    scale: freezeArray([0, 2, 3, 5, 7, 9, 10]),
+    chordQualities: freezeArray(["open", "wide", "minor"]),
+    primaryDutyCycle: 0.5,
+    counterDutyCycle: 0.25,
+    leadGate: "8n",
+    counterGate: "16n",
+    bassGrammar: "walking",
+    rhythmGrammar: "swing-open",
+    counterGrammar: "counterpoint",
+    padRole: "warm-pad",
+    accentRole: "service-callout",
+    stereoWidth: 0.78,
+    omissionThreshold: 0.05,
+    masterGainDb: -10,
+    dynamicRangeDb: 12,
+    transitionPolicy: "crossfade",
+    tensionPolicy: "diatonic",
+  }),
+  warning: freezeObject({
+    id: "warning",
+    label: "Grid Pressure",
+    scale: freezeArray([0, 1, 3, 5, 7, 8, 10]),
+    chordQualities: freezeArray(["tense", "minor", "suspended"]),
+    primaryDutyCycle: 0.125,
+    counterDutyCycle: 0.25,
+    leadGate: "32n",
+    counterGate: "32n",
+    bassGrammar: "mutating-ostinato",
+    rhythmGrammar: "diagnostic-stutter",
+    counterGrammar: "diagnostic",
+    padRole: "gated-pulse",
+    accentRole: "diagnostic-bleep",
+    stereoWidth: 0.28,
+    omissionThreshold: 0.12,
+    masterGainDb: -10.5,
+    dynamicRangeDb: 8,
+    transitionPolicy: "tight-crossfade",
+    tensionPolicy: "approach-resolve",
+  }),
+  critical: freezeObject({
+    id: "critical",
+    label: "Boss Protocol",
+    scale: freezeArray([0, 1, 4, 5, 7, 8, 10]),
+    chordQualities: freezeArray(["power", "tense"]),
+    primaryDutyCycle: 0.125,
+    counterDutyCycle: 0.125,
+    leadGate: "32n",
+    counterGate: "32n",
+    bassGrammar: "root-fifth-lockstep",
+    rhythmGrammar: "impact-metal",
+    counterGrammar: "alarm",
+    padRole: "sub-bass-layer",
+    accentRole: "secondary-impact",
+    stereoWidth: 0.12,
+    omissionThreshold: 0.08,
+    masterGainDb: -11,
+    dynamicRangeDb: 5,
+    transitionPolicy: "hard-choke",
+    tensionPolicy: "bounded-alarm",
+  }),
+  unknown: freezeObject({
+    id: "unknown",
+    label: "Lost Signal",
+    scale: freezeArray([0, 2, 5, 7, 10]),
+    chordQualities: freezeArray(["suspended", "open"]),
+    primaryDutyCycle: 0.5,
+    counterDutyCycle: 0.5,
+    leadGate: "2n",
+    counterGate: "2n",
+    bassGrammar: "static-drone",
+    rhythmGrammar: "sparse-carrier",
+    counterGrammar: "suspended-fragments",
+    padRole: "carrier-drift",
+    accentRole: "telemetry-hum",
+    stereoWidth: 0.62,
+    omissionThreshold: 0.4,
+    masterGainDb: -18,
+    dynamicRangeDb: 18,
+    transitionPolicy: "one-bar-decay",
+    tensionPolicy: "drift-only",
+  }),
+});
+
+export function normalizedStateIdentity(state) {
+  return APU_STATE_IDENTITIES[state] ?? APU_STATE_IDENTITIES.unknown;
+}
+
+export function deterministicEventHash({ state = "unknown", barIndex = 0, stepIndex = 0, serviceHash = 0, phraseIndex = 0 } = {}) {
+  let hash = 2166136261;
+  const source = `${state}:${Math.trunc(barIndex)}:${Math.trunc(stepIndex)}:${Math.trunc(serviceHash)}:${Math.trunc(phraseIndex)}`;
+  for (let index = 0; index < source.length; index += 1) {
+    hash ^= source.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+export function shouldOmitEvent(context = {}) {
+  const identity = normalizedStateIdentity(context.state);
+  const normalized = deterministicEventHash(context) / 0xffffffff;
+  return normalized < identity.omissionThreshold;
+}
+
+export function statePatternGrammar(state, section) {
+  const identity = normalizedStateIdentity(state);
+  const isPeak = section === "build" || section === "peak";
+  if (identity.id === "healthy") {
+    return Object.freeze({
+      motif: isPeak ? "ascending" : "statement",
+      bass: isPeak ? "rise" : "walk",
+      drums: isPeak ? "build" : "groove",
+      counter: "counter",
+    });
+  }
+  if (identity.id === "warning") {
+    return Object.freeze({
+      motif: isPeak ? "climax" : "variation",
+      bass: isPeak ? "climax" : "groove",
+      drums: isPeak ? "peak" : "drive",
+      counter: "answer",
+    });
+  }
+  if (identity.id === "critical") {
+    return Object.freeze({
+      motif: "climax",
+      bass: "climax",
+      drums: isPeak ? "peak" : "build",
+      counter: "octave",
+    });
+  }
+  return Object.freeze({
+    motif: "fragment",
+    bass: section === "release" || section === "breathe" ? "none" : "sustain",
+    drums: section === "peak" ? "release" : "none",
+    counter: section === "theme-b" ? "answer" : "none",
+  });
+}
+
+export function stateMixModifiers(state) {
+  const identity = normalizedStateIdentity(state);
+  if (identity.id === "healthy") return Object.freeze({ primary: 1, secondary: 1.1, services: 0.9, bass: 0.95, drums: 0.88, pad: 1, accent: 0.75 });
+  if (identity.id === "warning") return Object.freeze({ primary: 0.92, secondary: 1.08, services: 1.15, bass: 1.08, drums: 1.08, pad: 0.62, accent: 1.1 });
+  if (identity.id === "critical") return Object.freeze({ primary: 1.08, secondary: 0.96, services: 0.72, bass: 1.18, drums: 1.18, pad: 0.18, accent: 1.25 });
+  return Object.freeze({ primary: 0.52, secondary: 0.38, services: 0.42, bass: 0.46, drums: 0.18, pad: 1.18, accent: 0.28 });
+}
+
+export function stateTimbreModifiers(state) {
+  const identity = normalizedStateIdentity(state);
+  if (identity.id === "healthy") return Object.freeze({ leadCutoffScale: 1.18, counterCutoffScale: 1.12, serviceCutoffScale: 1.04, padCutoffScale: 1.08, leadDriveScale: 0.72 });
+  if (identity.id === "warning") return Object.freeze({ leadCutoffScale: 0.82, counterCutoffScale: 0.9, serviceCutoffScale: 0.86, padCutoffScale: 0.72, leadDriveScale: 1.18 });
+  if (identity.id === "critical") return Object.freeze({ leadCutoffScale: 1.08, counterCutoffScale: 1.04, serviceCutoffScale: 0.92, padCutoffScale: 0.48, leadDriveScale: 1.72 });
+  return Object.freeze({ leadCutoffScale: 0.42, counterCutoffScale: 0.36, serviceCutoffScale: 0.48, padCutoffScale: 0.58, leadDriveScale: 0.5 });
+}
