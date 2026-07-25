@@ -3,7 +3,6 @@
 
   const PREVIEW_HOST = "system-symphony-pr-43.atlas-systems-44t.pages.dev";
   const SAMPLE_MODULE = "/static/js/sonify/samples.js?v=20260720-system-symphony-loop-production-v2";
-  const SAMPLE_PATH = "/static/audio/system-symphony/";
   const OUTPUT_CEILING_DB = -4;
   const SAMPLE_TRIM_DB = -4;
   const MAX_PREFETCH_CONCURRENCY = 4;
@@ -184,16 +183,18 @@
 
   function setPreloadUi(disabled, message) {
     for (const button of document.querySelectorAll("[data-audio-toggle]")) {
-      if (disabled) {
+      if (disabled && button.dataset.stabilityGate !== "true") {
         button.disabled = true;
         button.dataset.stabilityGate = "true";
-      } else if (button.dataset.stabilityGate === "true") {
+      } else if (!disabled && button.dataset.stabilityGate === "true") {
         button.disabled = false;
         delete button.dataset.stabilityGate;
       }
     }
     const status = document.querySelector("[data-important-status]");
-    if (status && message) status.textContent = message;
+    if (status && message && status.textContent !== message) {
+      status.textContent = message;
+    }
   }
 
   async function prefetchAssets() {
