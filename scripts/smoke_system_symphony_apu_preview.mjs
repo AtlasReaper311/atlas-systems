@@ -1,0 +1,110 @@
+import assert from "node:assert/strict";
+import fs from "node:fs/promises";
+import path from "node:path";
+import process from "node:process";
+import { chromium } from "playwright";
+
+const previewBase = process.env.PREVIEW_URL;
+if (!previewBase) throw new Error("PREVIEW_URL is required");
+
+const outputDirectory = process.env.APU_SMOKE_OUTPUT_DIR
+  ?? process.env.SMOKE_OUTPUT_DIR
+  ?? path.join(process.cwd(), ".tmp", "system-symphony-apu-smoke");
+const route = new URL("/lab/system-symphony-apu/?symphonyPreviewData=1", previewBase).href;
+
+await fs.mkdir(outputDirectory, { recursive: true });
+
+const browser = await chromium.launch({ headless: true });
+const page = await browser.newPage({
+  viewport: { width: 1440, height: 1200 },
+  reducedMotion: "reduce",
+});
+
+const consoleErrors = [];
+const pageErrors = [];
+const audioRequests = [];
+const failedRequests = [];
+
+page.on("console", (message) => {
+  if (message.type() === "error") consoleErrors.push(message.text());
+});
+page.on("pageerror", (error) => pageErrors.push(error.message));
+page.on("request", (request) => {
+  if (/\.(?:wav|mp3|m4a|aac|ogg|opus|flac)(?:\?|$)/i.test(request.url())) {
+    audioRequests.push(request.url());
+  }
+});
+page.on("requestfailed", (request) => {
+  failedRequests.push({ url: request.url(), error: request.failure()?.errorText ?? "unknown" });
+});
+
+try {
+  const response = await page.goto(route, {
+    waitUntil: "networkidle",
+    timeout: 60_000,
+  });
+  assert.equal(response?.ok(), true, `preview route answered ${response?.status()}`);
+
+  await page.waitForSelector('[data-apu-root][data-ready="true"]', { timeout: 30_000 });
+  await page.getByRole("button", { name: "Start audio" }).click();
+  await page.waitForFunction(() => {
+    const root = document.querySelector("[data-apu-root]");
+    return root?.dataset.running === "true"
+      && globalThis.Tone?.getContext?.().state === "running";
+  }, null, { timeout: 15_000 });
+
+  await page.waitForTimeout(1800);
+
+  const evidence = await page.evaluate(() => {
+    const root = document.querySelector("[data-apu-root]");
+    const metric = (name) => root?.querySelector(`[data-metric="${name}"]`)?.textContent?.trim() ?? null;
+    return {
+      buildId: globalThis.__ATLAS_APU__?.buildId ?? null,
+      documentBuild: document.documentElement.dataset.atlasApuBuild ?? null,
+      ready: root?.dataset.ready ?? null,
+      running: root?.dataset.running ?? null,
+      noSamples: root?.dataset.apuNoSamples ?? null,
+      source: root?.dataset.source ?? null,
+      state: root?.dataset.state ?? null,
+      metricState: metric("state"),
+      metricScene: metric("scene"),
+      metricPhase: metric("phase"),
+      metricComponents: metric("components"),
+      serviceRows: root?.querySelectorAll("[data-service]").length ?? 0,
+      channelCards: root?.querySelectorAll("[data-channel]").length ?? 0,
+      toneState: globalThis.Tone?.getContext?.().state ?? null,
+      engineRunning: globalThis.__ATLAS_APU__?.isRunning?.() === true,
+    };
+  });
+
+  assert.match(evidence.buildId ?? "", /atlas-apu-preview-v1$/);
+  assert.equal(evidence.documentBuild, evidence.buildId);
+  assert.equal(evidence.ready, "true");
+  assert.equal(evidence.running, "true");
+  assert.equal(evidence.noSamples, "true");
+  assert.equal(evidence.source, "preview");
+  assert.notEqual(evidence.metricState, "Unknown");
+  assert.ok(Number.parseInt(evidence.metricComponents ?? "0", 10) > 0);
+  assert.ok(evidence.serviceRows > 0);
+  assert.equal(evidence.channelCards, 6);
+  assert.equal(evidence.toneState, "running");
+  assert.equal(evidence.engineRunning, true);
+  assert.deepEqual(audioRequests, [], "the APU preview requested an audio asset");
+
+  const materialFailures = failedRequests.filter(({ url }) => !url.includes("cloudflareinsights.com"));
+  assert.deepEqual(materialFailures, []);
+  assert.deepEqual(pageErrors, []);
+  assert.deepEqual(consoleErrors, []);
+
+  await page.screenshot({
+    path: path.join(outputDirectory, "atlas-apu-preview.png"),
+    fullPage: true,
+  });
+  await fs.writeFile(
+    path.join(outputDirectory, "evidence.json"),
+    `${JSON.stringify({ route, evidence, audioRequests, failedRequests, consoleErrors, pageErrors }, null, 2)}\n`,
+    "utf8",
+  );
+} finally {
+  await browser.close();
+}
