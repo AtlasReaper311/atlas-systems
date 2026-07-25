@@ -1,0 +1,50 @@
+name: Batch H diagnostics
+
+on:
+  pull_request:
+    branches:
+      - feat/batch-h-system-symphony-page
+
+permissions:
+  contents: read
+
+concurrency:
+  group: batch-h-diagnostics-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  capture:
+    name: Capture Batch H validation evidence
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+
+      - name: Capture validator and contract output
+        shell: bash
+        run: |
+          set +e
+          mkdir -p batch-h-diagnostics
+          npx --yes html-validate@9.7.1 "**/*.html" > batch-h-diagnostics/html-validate.txt 2>&1
+          printf '%s\n' "$?" > batch-h-diagnostics/html-validate.exit
+          node --test js/tests/batch-h-*.test.mjs > batch-h-diagnostics/batch-h-tests.txt 2>&1
+          printf '%s\n' "$?" > batch-h-diagnostics/batch-h-tests.exit
+          python scripts/measure_static_performance.py --root . > batch-h-diagnostics/performance-command.txt 2>&1
+          printf '%s\n' "$?" > batch-h-diagnostics/performance-command.exit
+          cp data/performance-baseline.json batch-h-diagnostics/performance-baseline.json
+          git diff --check > batch-h-diagnostics/diff-check.txt 2>&1
+          printf '%s\n' "$?" > batch-h-diagnostics/diff-check.exit
+
+      - name: Upload diagnostic evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: batch-h-diagnostics
+          path: batch-h-diagnostics/
+          if-no-files-found: error
+          retention-days: 1
