@@ -148,9 +148,13 @@ test("cached corpus activity is not promoted to current index health", () => {
 test("the browser uses health and topology contracts instead of registry status fields", () => {
   const page = readFileSync("systems/observability/index.html", "utf8");
   const script = readFileSync("systems/observability/observability.js", "utf8");
+  const endpoints = Object.fromEntries(
+    [...script.matchAll(/^\s{2}([a-z]+): "([^"]+)",$/gm)]
+      .map((match) => [match[1], match[2]]),
+  );
 
-  assert.ok(script.includes("https://api.atlas-systems.uk/sonify"));
-  assert.ok(script.includes("https://api.atlas-systems.uk/v1/topology"));
+  assert.equal(endpoints.health, "https://api.atlas-systems.uk/sonify");
+  assert.equal(endpoints.topology, "https://api.atlas-systems.uk/v1/topology");
   assert.ok(script.includes("health.health_detail"));
   assert.ok(script.includes("topology?.layer"));
   assert.doesNotMatch(script, /entry\?\.(status|state|health)/);
