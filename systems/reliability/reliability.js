@@ -5,6 +5,17 @@ const ENDPOINTS = Object.freeze({
   chaos: "https://api.atlas-systems.uk/v1/evidence/chaos",
 });
 
+const EVALUATOR_STATES = Object.freeze([
+  "objective_met",
+  "budget_at_risk",
+  "budget_exhausted",
+  "insufficient_evidence",
+  "stale_evidence",
+  "unavailable_source",
+  "malformed_evidence",
+  "unmeasured",
+]);
+const EVALUATOR_STATE_SET = new Set(EVALUATOR_STATES);
 const FETCH_TIMEOUT_MS = 6000;
 const byId = (id) => document.getElementById(id);
 
@@ -20,7 +31,13 @@ function setStatus(id, state, text) {
   node.textContent = text;
 }
 
-function stateBadge(state) {
+function evaluatorState(value) {
+  const state = String(value ?? "unknown");
+  return EVALUATOR_STATE_SET.has(state) ? state : "unknown";
+}
+
+function stateBadge(value) {
+  const state = evaluatorState(value);
   const badge = document.createElement("span");
   badge.className = "focus-state";
   badge.dataset.state = state;
@@ -132,7 +149,7 @@ function renderReliability(payload) {
   const { results, unmeasured, report } = resultRows(payload);
   setText("measured-count", results.length);
   if (byId("unmeasured-count")?.textContent === "unknown") setText("unmeasured-count", unmeasured.length);
-  const atRisk = results.filter((entry) => ["budget_at_risk", "budget_exhausted"].includes(entry?.state)).length;
+  const atRisk = results.filter((entry) => ["budget_at_risk", "budget_exhausted"].includes(evaluatorState(entry?.state))).length;
   setText("risk-count", atRisk);
 
   const body = byId("budget-rows");
@@ -154,7 +171,7 @@ function renderReliability(payload) {
       const service = document.createElement("td");
       service.textContent = String(entry?.service_id ?? "unknown service");
       const state = document.createElement("td");
-      state.appendChild(stateBadge(entry?.state ?? "unknown"));
+      state.appendChild(stateBadge(entry?.state));
       const budget = document.createElement("td");
       budget.textContent = percentFromFraction(entry?.budget?.remaining_fraction);
       const fast = document.createElement("td");
@@ -168,16 +185,8 @@ function renderReliability(payload) {
     }
   }
 
-  const nonHealthyStates = new Set([
-    "budget_at_risk",
-    "budget_exhausted",
-    "insufficient_evidence",
-    "stale_evidence",
-    "unavailable_source",
-    "malformed_evidence",
-    "unmeasured",
-  ]);
-  const hasNonHealthy = entries.some((entry) => nonHealthyStates.has(entry?.state));
+  const nonHealthyStates = new Set(EVALUATOR_STATES.filter((state) => state !== "objective_met"));
+  const hasNonHealthy = entries.some((entry) => nonHealthyStates.has(evaluatorState(entry?.state)));
   const state = payload?.stale === true || payload?.policy_state !== "fresh"
     ? "stale"
     : hasNonHealthy
