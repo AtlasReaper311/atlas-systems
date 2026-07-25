@@ -27,10 +27,6 @@
   Cache-Control: no-cache, max-age=0, must-revalidate
   X-Atlas-System-Symphony-Build: 20260720-system-symphony-loop-production-v2
 
-/lab/system-symphony/*
-  Cache-Control: no-cache, max-age=0, must-revalidate
-  X-Atlas-System-Symphony-Build: 20260725-pr43-stability-v2
-
 /static/js/sonify/*
   Cache-Control: no-cache, max-age=0, must-revalidate
   X-Atlas-System-Symphony-Build: 20260720-system-symphony-loop-production-v2
