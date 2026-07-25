@@ -74,6 +74,8 @@ def main() -> int:
     if args.check_only:
         if not REPORT_PATH.exists() or REPORT_PATH.read_text(encoding="utf-8") != rendered:
             print("static performance baseline is stale", file=sys.stderr)
+            print("Expected candidate:", file=sys.stderr)
+            print(rendered, file=sys.stderr, end="")
             return 1
         print(f"OK  {len(report['routes'])} representative route baselines")
         return 0
