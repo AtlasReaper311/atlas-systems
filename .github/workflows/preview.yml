@@ -13,6 +13,7 @@ on:
       - "_headers"
       - "lab/**"
       - "scripts/smoke_system_symphony_preview.mjs"
+      - "scripts/smoke_system_symphony_apu_preview.mjs"
       - "static/js/sonify/**"
 
 permissions:
@@ -129,18 +130,33 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Verify System Symphony live data and audio
+      - name: Verify current System Symphony live data and audio
         env:
           PREVIEW_URL: ${{ steps.deploy.outputs.deployment_url }}
           SMOKE_OUTPUT_DIR: ${{ runner.temp }}/system-symphony-smoke
         run: node scripts/smoke_system_symphony_preview.mjs
 
-      - name: Upload System Symphony smoke evidence
+      - name: Verify Atlas APU sample-free preview
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.deployment_url }}
+          APU_SMOKE_OUTPUT_DIR: ${{ runner.temp }}/system-symphony-apu-smoke
+        run: node scripts/smoke_system_symphony_apu_preview.mjs
+
+      - name: Upload current System Symphony smoke evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
         with:
           name: system-symphony-preview-smoke
           path: ${{ runner.temp }}/system-symphony-smoke
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload Atlas APU smoke evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        with:
+          name: system-symphony-apu-preview-smoke
+          path: ${{ runner.temp }}/system-symphony-apu-smoke
           if-no-files-found: error
           retention-days: 7
 
@@ -153,11 +169,13 @@ jobs:
           {
             echo "## Cloudflare Pages preview"
             echo
-            echo "${PREVIEW_URL}"
+            echo "Current instrument: ${PREVIEW_URL}/lab/system-symphony/"
+            echo
+            echo "Atlas APU candidate: ${PREVIEW_URL}/lab/system-symphony-apu/"
             echo
             echo "Atomic deployment: ${ATOMIC_URL}"
             echo
-            echo "Browser smoke verified Tone.js, bounded same-origin preview evidence, the restored PR #43 palette exclusions, the full sample library, and the Start Audio path."
+            echo "Browser smoke verified the current production-comparison route and the sample-free Atlas APU route. The APU check requires a running Tone.js context, bounded same-origin preview evidence, generated service voices, six channel cards, and zero audio asset requests."
             echo
             echo "This is a non-production branch deployment. atlas-systems.uk is unchanged."
           } >>"${GITHUB_STEP_SUMMARY}"
