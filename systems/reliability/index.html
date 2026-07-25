@@ -6,6 +6,7 @@
   <meta name="description" content="Atlas Systems reliability objectives, coverage, error budgets, burn states, DORA delivery metrics, and bounded chaos evidence.">
   <meta name="theme-color" content="#0a0a0f">
   <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
   <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
   <link rel="manifest" href="/site.webmanifest">
@@ -27,8 +28,9 @@
   <meta name="twitter:image:alt" content="Reliability under measured failure. // Atlas Systems">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260724-maturity-completion">
-  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260724-source-hardening">
-  <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h">
+  <link rel="stylesheet" href="/static/css/estate-search.css">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
+  <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h-fixes">
 </head>
 <body>
   <nav aria-label="Primary navigation">
@@ -40,7 +42,7 @@
     </ul>
   </nav>
   <main class="focus-main">
-    <header>
+    <header class="focus-hero">
       <p class="focus-breadcrumb">Systems / reliability</p>
       <h1 class="focus-title">Can the estate support its reliability claims?</h1>
       <p class="focus-lede">Reliability is presented as measured objectives and evidence quality, not a decorative green light. This route joins policy coverage, error budgets, burn states, delivery outcomes, and bounded failure experiments while retaining explicit stale, insufficient, unavailable, malformed, and unmeasured states.</p>
@@ -122,10 +124,11 @@
         <a href="https://api.atlas-systems.uk/dora/metrics"><strong>DORA metrics</strong><span>/dora/metrics</span></a>
         <a href="https://api.atlas-systems.uk/v1/evidence/chaos"><strong>Chaos evidence</strong><span>/v1/evidence/chaos</span></a>
         <a href="https://github.com/AtlasReaper311/atlas-infra/tree/main/docs/runbooks"><strong>Reliability runbooks</strong><span>atlas-infra/docs/runbooks</span></a>
-        <a href="/lab/console/index.html#dora-metrics"><strong>Preserved console panel</strong><span>compatibility evidence view</span></a>
+        <a href="/lab/console/"><strong>Preserved console</strong><span>compatibility evidence view</span></a>
       </div>
     </section>
   </main>
+  <script type="module" src="/static/js/focused-systems-shell.js?v=20260725-batch-h-fixes"></script>
   <script type="module" src="/systems/reliability/reliability.js?v=20260725-batch-h"></script>
 </body>
 </html>
