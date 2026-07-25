@@ -1,8 +1,8 @@
 (() => {
   "use strict";
 
-  const PREVIEW_HOST = "system-symphony-pr-43.atlas-systems-44t.pages.dev";
-  if (window.location.hostname !== PREVIEW_HOST) return;
+  const PREVIEW_HOST_PATTERN = /^system-symphony-pr-\d+\.atlas-systems-44t\.pages\.dev$/;
+  if (!PREVIEW_HOST_PATTERN.test(window.location.hostname)) return;
 
   const endpointMap = new Map([
     ["https://api.atlas-systems.uk/sonify", "/lab/system-symphony/preview-data/sonify.json"],
