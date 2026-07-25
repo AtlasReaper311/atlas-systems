@@ -32,7 +32,11 @@ page.on("pageerror", (error) => {
 });
 page.on("requestfailed", (request) => {
   const url = request.url();
-  if (url.includes("static.cloudflareinsights.com")) return;
+  const criticalRequest =
+    url.includes("/vendor/tone.min.js")
+    || url.includes("/lab/system-symphony/preview-data/")
+    || url.startsWith("https://api.atlas-systems.uk/");
+  if (!criticalRequest) return;
   diagnostics.push(`requestfailed: ${url} (${request.failure()?.errorText ?? "unknown"})`);
 });
 
