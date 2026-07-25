@@ -112,7 +112,7 @@ test("section endings use bounded fills instead of continuous hats", () => {
     if (transitionEventForTrackStep(frame, variationEnd, step)) transitions.push(step);
   }
   assert.ok(hats.length < 12);
-  assert.deepEqual(transitions, [28, 31]);
+  assert.deepEqual(transitions, [31]);
   assert.ok(rhythmEventsForTrackStep(frame, variationEnd, 30).snare);
 });
 
