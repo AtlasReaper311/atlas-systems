@@ -6,6 +6,7 @@
   <meta name="description" content="Current bounded public observations across SPECULAR-CORE, public Workers, incidents, corpus state, and Atlas Systems operations.">
   <meta name="theme-color" content="#0a0a0f">
   <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
   <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
   <link rel="manifest" href="/site.webmanifest">
@@ -27,8 +28,9 @@
   <meta name="twitter:image:alt" content="What is being observed now? // Atlas Systems">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260724-maturity-completion">
-  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260724-source-hardening">
-  <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h">
+  <link rel="stylesheet" href="/static/css/estate-search.css">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
+  <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h-fixes">
 </head>
 <body>
   <nav aria-label="Primary navigation">
@@ -40,7 +42,7 @@
     </ul>
   </nav>
   <main class="focus-main">
-    <header>
+    <header class="focus-hero">
       <p class="focus-breadcrumb">Systems / observability</p>
       <h1 class="focus-title">What is being observed now?</h1>
       <p class="focus-lede">A focused read-only view of public telemetry, registry state, incident evidence, corpus activity, and the operations links that support those observations. Missing evidence remains missing. Stale evidence remains stale.</p>
@@ -134,6 +136,7 @@
       <p class="focus-note">The page fetches a fixed allowlist of public endpoints and renders a fixed allowlist of fields with <code>textContent</code>. It does not expose provider responses wholesale.</p>
     </section>
   </main>
+  <script type="module" src="/static/js/focused-systems-shell.js?v=20260725-batch-h-fixes"></script>
   <script type="module" src="/systems/observability/observability.js?v=20260725-batch-h"></script>
 </body>
 </html>
