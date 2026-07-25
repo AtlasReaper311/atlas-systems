@@ -3,6 +3,7 @@
 
   const PREVIEW_HOST = "system-symphony-pr-43.atlas-systems-44t.pages.dev";
   const SAMPLE_MODULE = "/static/js/sonify/samples.js?v=20260720-system-symphony-loop-production-v2";
+  const SAMPLE_PATH = "/static/audio/system-symphony/";
   const OUTPUT_CEILING_DB = -4;
   const SAMPLE_TRIM_DB = -4;
   const MAX_PREFETCH_CONCURRENCY = 4;
@@ -78,56 +79,66 @@
     }, 100);
   }
 
-  function replaceConstructor(name, transformOptions) {
-    const Native = Tone[name];
-    if (typeof Native !== "function") return;
+  function wrapConnect(Constructor, stabilise) {
+    const prototype = Constructor?.prototype;
+    const nativeConnect = prototype?.connect;
+    if (typeof nativeConnect !== "function" || nativeConnect.__atlasStableConnect) return;
 
-    class StableConstructor extends Native {
-      constructor(...args) {
-        super(...transformOptions(args));
+    function stableConnect(...args) {
+      if (!this.__atlasAudioStabilised) {
+        stabilise(this);
+        Object.defineProperty(this, "__atlasAudioStabilised", { value: true });
       }
+      return nativeConnect.apply(this, args);
     }
-    Object.setPrototypeOf(StableConstructor, Native);
-    Tone[name] = StableConstructor;
+    stableConnect.__atlasStableConnect = true;
+    prototype.connect = stableConnect;
   }
 
-  function trimVolumeOptions(args) {
-    if (!args.length || typeof args[0] !== "object" || args[0] === null) return args;
-    const options = { ...args[0] };
-    if (Number.isFinite(options.volume)) options.volume += SAMPLE_TRIM_DB;
-    return [options, ...args.slice(1)];
+  function setParamValue(parameter, value) {
+    if (!parameter || !Number.isFinite(value)) return;
+    const time = toneNow();
+    if (typeof parameter.setValueAtTime === "function") {
+      parameter.setValueAtTime(value, time);
+    } else {
+      parameter.value = value;
+    }
   }
 
   function installLowDistortionProfile() {
-    replaceConstructor("Distortion", (args) => {
-      if (!args.length || typeof args[0] !== "object" || args[0] === null) return args;
-      const options = { ...args[0] };
-      const wet = Number(options.wet);
-      if (Number.isFinite(wet)) {
-        options.wet = Number(options.distortion) <= 0.05 ? 0 : Math.min(0.025, wet);
+    wrapConnect(Tone.Distortion, (node) => {
+      const requested = Number(node.wet?.value);
+      const distortion = Number(node.distortion);
+      const wet = distortion <= 0.05 ? 0 : Math.min(0.025, Number.isFinite(requested) ? requested : 0);
+      setParamValue(node.wet, wet);
+      try {
+        node.oversample = "none";
+      } catch {
+        // Tone may expose oversample as read-only in some browser builds.
       }
-      options.oversample = "none";
-      return [options, ...args.slice(1)];
     });
 
-    replaceConstructor("Limiter", (args) => {
-      const threshold = Number(args[0]);
-      return [Number.isFinite(threshold) ? Math.min(threshold, OUTPUT_CEILING_DB) : OUTPUT_CEILING_DB];
+    wrapConnect(Tone.Limiter, (node) => {
+      const current = Number(node.threshold?.value);
+      setParamValue(
+        node.threshold,
+        Number.isFinite(current) ? Math.min(current, OUTPUT_CEILING_DB) : OUTPUT_CEILING_DB,
+      );
     });
 
-    replaceConstructor("Player", trimVolumeOptions);
-    replaceConstructor("GrainPlayer", trimVolumeOptions);
-    replaceConstructor("Sampler", trimVolumeOptions);
+    for (const Constructor of [Tone.Player, Tone.GrainPlayer, Tone.Sampler]) {
+      wrapConnect(Constructor, (node) => {
+        const current = Number(node.volume?.value);
+        if (Number.isFinite(current)) setParamValue(node.volume, current + SAMPLE_TRIM_DB);
+      });
+    }
 
-    replaceConstructor("Reverb", (args) => {
-      if (!args.length || typeof args[0] !== "object" || args[0] === null) return args;
-      const options = { ...args[0] };
-      if (Number.isFinite(options.decay)) options.decay = Math.min(options.decay, 1.35);
-      return [options, ...args.slice(1)];
+    wrapConnect(Tone.Reverb, (node) => {
+      if (Number.isFinite(node.decay)) node.decay = Math.min(node.decay, 1.35);
     });
   }
 
-  function safeScheduledTime(value) {
+  function safeScheduledTime(value, label) {
     if (!Number.isFinite(value)) return value;
     const now = toneNow();
     const minimum = now + 0.012;
@@ -138,13 +149,13 @@
     return Math.ceil(minimum * 1000) / 1000;
   }
 
-  function wrapScheduledMethod(Constructor, methodName, timeIndex) {
+  function wrapScheduledMethod(Constructor, methodName, timeIndex, label) {
     const prototype = Constructor?.prototype;
     const native = prototype?.[methodName];
     if (typeof native !== "function" || native.__atlasStableSchedule) return;
 
     function stableScheduledMethod(...args) {
-      args[timeIndex] = safeScheduledTime(args[timeIndex]);
+      args[timeIndex] = safeScheduledTime(args[timeIndex], label);
       return native.apply(this, args);
     }
     stableScheduledMethod.__atlasStableSchedule = true;
@@ -153,7 +164,7 @@
 
   function installScheduleGuard() {
     for (const name of ["Player", "GrainPlayer"]) {
-      wrapScheduledMethod(Tone[name], "start", 0);
+      wrapScheduledMethod(Tone[name], "start", 0, `${name}.start`);
     }
     for (const name of [
       "Sampler",
@@ -164,10 +175,10 @@
       "MembraneSynth",
       "PolySynth",
     ]) {
-      wrapScheduledMethod(Tone[name], "triggerAttackRelease", 2);
+      wrapScheduledMethod(Tone[name], "triggerAttackRelease", 2, `${name}.triggerAttackRelease`);
     }
     for (const name of ["NoiseSynth", "MetalSynth"]) {
-      wrapScheduledMethod(Tone[name], "triggerAttackRelease", 1);
+      wrapScheduledMethod(Tone[name], "triggerAttackRelease", 1, `${name}.triggerAttackRelease`);
     }
   }
 
