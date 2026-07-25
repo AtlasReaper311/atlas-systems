@@ -1,34 +1,40 @@
 (() => {
   const Tone = globalThis.Tone;
-  if (!Tone?.PolySynth || !Tone?.FMSynth || !Tone?.Synth) return;
+  const prototype = Tone?.PolySynth?.prototype;
+  if (!prototype?.triggerAttackRelease) return;
   if (Tone.__atlasApuTransitionCompatibilityInstalled) return;
 
-  const OriginalPolySynth = Tone.PolySynth;
+  const originalTriggerAttackRelease = prototype.triggerAttackRelease;
+  Tone.__atlasApuSuppressedPolyStarts = 0;
 
-  function AtlasPolySynth(Voice, options = {}) {
-    if (Voice === Tone.FMSynth) {
-      return new Tone.Synth({
-        oscillator: { type: "triangle" },
-        envelope: { attack: 0.002, decay: 0.1, sustain: 0.08, release: 0.18 },
-        volume: -16,
-      });
+  function guardedTriggerAttackRelease(...args) {
+    try {
+      return originalTriggerAttackRelease.apply(this, args);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!message.includes("Start time must be strictly greater than previous start time")) {
+        throw error;
+      }
+
+      // Tone.js can reject a decorative PolySynth accent when its internal
+      // voice allocator receives an equal scheduled start. The soundtrack form,
+      // transport and evidence state are authoritative; omit that one accent
+      // rather than allowing a non-critical event voice to poison playback.
+      Tone.__atlasApuSuppressedPolyStarts += 1;
+      return this;
     }
-    return new OriginalPolySynth(Voice, options);
   }
-
-  Object.setPrototypeOf(AtlasPolySynth, OriginalPolySynth);
-  AtlasPolySynth.prototype = OriginalPolySynth.prototype;
 
   try {
-    Object.defineProperty(Tone, "PolySynth", {
+    Object.defineProperty(prototype, "triggerAttackRelease", {
       configurable: true,
-      enumerable: true,
+      enumerable: false,
       writable: true,
-      value: AtlasPolySynth,
+      value: guardedTriggerAttackRelease,
     });
   } catch {
-    Tone.PolySynth = AtlasPolySynth;
+    prototype.triggerAttackRelease = guardedTriggerAttackRelease;
   }
 
-  Tone.__atlasApuTransitionCompatibilityInstalled = Tone.PolySynth === AtlasPolySynth;
+  Tone.__atlasApuTransitionCompatibilityInstalled = prototype.triggerAttackRelease === guardedTriggerAttackRelease;
 })();
