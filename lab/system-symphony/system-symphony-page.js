@@ -61,6 +61,19 @@ function installInlineKeyboardBoundary(pageHost, instrumentHost) {
   }, true);
 }
 
+function makeScrollableRegionsFocusable(host) {
+  for (const [selector, label] of [
+    [".symphony-visual", "System Symphony topology and waveform visualisation"],
+    [".symphony-table-wrap", "System Symphony service score table"],
+  ]) {
+    for (const region of host.querySelectorAll(selector)) {
+      region.tabIndex = 0;
+      region.setAttribute("role", "region");
+      region.setAttribute("aria-label", label);
+    }
+  }
+}
+
 function convertConsoleToRegion(host, pageHost) {
   const previousFocus = document.activeElement;
   const openButton = host.querySelector("[data-open-console]");
@@ -82,6 +95,7 @@ function convertConsoleToRegion(host, pageHost) {
   if (closeButton) closeButton.hidden = true;
   document.body.classList.remove("symphony-console-open");
   pageHost.setAttribute("aria-busy", "false");
+  makeScrollableRegionsFocusable(host);
 
   if (previousFocus instanceof HTMLElement && previousFocus !== document.body) {
     previousFocus.focus({ preventScroll: true });
