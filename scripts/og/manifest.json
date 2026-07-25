@@ -42,6 +42,30 @@
       "tagline": "Every public service in the estate, catalogued."
     },
     {
+      "file": "observability",
+      "html": "systems/observability/index.html",
+      "route": "/systems/observability/",
+      "kicker": "Observe / Current evidence",
+      "title": ["What is being", "[observed now?]"],
+      "tagline": "Telemetry, registry state, incidents, and explicit unknowns."
+    },
+    {
+      "file": "reliability-evidence",
+      "html": "systems/reliability/index.html",
+      "route": "/systems/reliability/",
+      "kicker": "Verify / Reliability",
+      "title": ["Claims under", "[failure.]"],
+      "tagline": "Bounded fault injection, detection, rollback, and recovery."
+    },
+    {
+      "file": "evidence",
+      "html": "systems/evidence/index.html",
+      "route": "/systems/evidence/",
+      "kicker": "Verify / Public evidence",
+      "title": ["Claims need", "[provenance.]"],
+      "tagline": "Activity, deployments, pipelines, timestamps, and fingerprints."
+    },
+    {
       "file": "about",
       "html": "about/index.html",
       "route": "/about/",
@@ -66,6 +90,14 @@
       "tagline": "The estate's services and status, at the terminal."
     },
     {
+      "file": "system-symphony",
+      "html": "lab/system-symphony/index.html",
+      "route": "/lab/system-symphony/",
+      "kicker": "Experience / Telemetry sonification",
+      "title": ["Hear the estate,", "keep [uncertainty.]"],
+      "tagline": "A read-only generative instrument driven by bounded evidence."
+    },
+    {
       "file": "proof-chain",
       "html": "lab/proof-chain/index.html",
       "route": "/lab/proof-chain/",
@@ -80,14 +112,6 @@
       "kicker": "Experience / Generative DSP",
       "title": ["Signal [Garden.]"],
       "tagline": "A browser-native instrument that grows rather than loops."
-    },
-    {
-      "file": "reliability-evidence",
-      "html": "lab/reliability/index.html",
-      "route": "/lab/reliability/",
-      "kicker": "Verify / Reliability",
-      "title": ["Claims under", "[failure.]"],
-      "tagline": "Bounded fault injection, detection, rollback, and recovery."
     },
     {
       "file": "estate-conformance",
