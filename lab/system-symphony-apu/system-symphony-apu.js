@@ -10,7 +10,7 @@ import {
   chipIdentityForVoice,
   sceneForFrame,
 } from "../../static/js/sonify/apu-palette.js?v=20260725-system-symphony-atlas-apu-preview-v1";
-import { createApuEngine } from "../../static/js/sonify/apu-engine.js?v=20260725-system-symphony-atlas-apu-preview-v1";
+import { createApuEngine } from "../../static/js/sonify/apu-engine.js?v=20260725-system-symphony-atlas-apu-renderer-v2";
 
 const root = document.querySelector("[data-apu-root]");
 if (!root) throw new Error("system-symphony-apu: page root is missing");
