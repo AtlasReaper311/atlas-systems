@@ -16,7 +16,7 @@ await fs.mkdir(outputDirectory, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({
-  viewport: { width: 1440, height: 1200 },
+  viewport: { width: 1440, height: 1400 },
   reducedMotion: "reduce",
 });
 
@@ -43,6 +43,8 @@ async function collectEvidence() {
   return page.evaluate(() => {
     const root = document.querySelector("[data-apu-root]");
     const metric = (name) => root?.querySelector(`[data-metric="${name}"]`)?.textContent?.trim() ?? null;
+    const arrangement = globalThis.__ATLAS_APU__?.getArrangement?.() ?? null;
+    const timeline = globalThis.__ATLAS_APU__?.getTimeline?.() ?? [];
     return {
       buildId: globalThis.__ATLAS_APU__?.buildId ?? null,
       documentBuild: document.documentElement.dataset.atlasApuBuild ?? null,
@@ -51,13 +53,20 @@ async function collectEvidence() {
       noSamples: root?.dataset.apuNoSamples ?? null,
       source: root?.dataset.source ?? null,
       state: root?.dataset.state ?? null,
+      section: root?.dataset.section ?? null,
       statusText: root?.querySelector("[data-status]")?.textContent?.trim() ?? null,
       metricState: metric("state"),
       metricScene: metric("scene"),
+      metricSection: metric("section"),
+      metricPosition: metric("position"),
       metricPhase: metric("phase"),
       metricComponents: metric("components"),
       serviceRows: root?.querySelectorAll("[data-service]").length ?? 0,
       channelCards: root?.querySelectorAll("[data-channel]").length ?? 0,
+      timelineSections: root?.querySelectorAll("[data-form-section]").length ?? 0,
+      activeTimelineSections: root?.querySelectorAll('[data-form-section][data-active="true"]').length ?? 0,
+      timeline,
+      arrangement,
       toneState: globalThis.Tone?.getContext?.().state ?? null,
       engineRunning: globalThis.__ATLAS_APU__?.isRunning?.() === true,
     };
@@ -72,7 +81,7 @@ async function writeBundle(fileName, error = null) {
   }
   try {
     await page.screenshot({
-      path: path.join(outputDirectory, "atlas-apu-preview.png"),
+      path: path.join(outputDirectory, "atlas-apu-track-preview.png"),
       fullPage: true,
     });
   } catch (screenshotError) {
@@ -105,13 +114,14 @@ try {
   await page.waitForFunction(() => {
     const root = document.querySelector("[data-apu-root]");
     return root?.dataset.running === "true"
-      && globalThis.Tone?.getContext?.().state === "running";
+      && globalThis.Tone?.getContext?.().state === "running"
+      && globalThis.__ATLAS_APU__?.getArrangement?.()?.section;
   }, null, { timeout: 15_000 });
 
   await page.waitForTimeout(1800);
   evidence = await collectEvidence();
 
-  assert.match(evidence.buildId ?? "", /atlas-apu-preview-v1$/);
+  assert.match(evidence.buildId ?? "", /atlas-apu-track-v1$/);
   assert.equal(evidence.documentBuild, evidence.buildId);
   assert.equal(evidence.ready, "true");
   assert.equal(evidence.running, "true");
@@ -121,9 +131,20 @@ try {
   assert.ok(Number.parseInt(evidence.metricComponents ?? "0", 10) > 0);
   assert.ok(evidence.serviceRows > 0);
   assert.equal(evidence.channelCards, 6);
+  assert.equal(evidence.timelineSections, 10);
+  assert.equal(evidence.activeTimelineSections, 1);
+  assert.equal(evidence.timeline.length, 10);
+  assert.equal(evidence.timeline[0].startBar, 1);
+  assert.equal(evidence.timeline.at(-1).endBar, 32);
+  assert.equal(evidence.arrangement.section, "intro");
+  assert.equal(evidence.arrangement.cycleBarStart, 1);
+  assert.equal(evidence.arrangement.cycleBarEnd, 2);
+  assert.equal(evidence.arrangement.mix.drums, 0);
+  assert.equal(evidence.metricSection, "Intro");
+  assert.match(evidence.metricPosition ?? "", /Bars 1-2 \/ 32/);
   assert.equal(evidence.toneState, "running");
   assert.equal(evidence.engineRunning, true);
-  assert.deepEqual(audioRequests, [], "the APU preview requested an audio asset");
+  assert.deepEqual(audioRequests, [], "the APU track preview requested an audio asset");
 
   const materialFailures = failedRequests.filter(({ url }) => !url.includes("cloudflareinsights.com"));
   assert.deepEqual(materialFailures, []);
