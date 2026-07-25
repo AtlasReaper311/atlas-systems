@@ -28,6 +28,7 @@
     sampleNodesTrimmed: 0,
     distortionNodesStabilised: 0,
     reverbNodesStabilised: 0,
+    flattenedScheduleCallbacks: 0,
     outputCeilingDb: OUTPUT_CEILING_DB,
     sampleTrimDb: SAMPLE_TRIM_DB,
     lookAheadSeconds: null,
@@ -36,6 +37,14 @@
 
   function toneNow() {
     return typeof Tone.now === "function" ? Tone.now() : 0;
+  }
+
+  function rawAudioNow() {
+    const context = typeof Tone.getContext === "function" ? Tone.getContext() : Tone.context;
+    const rawContext = context?.rawContext ?? context;
+    return Number.isFinite(rawContext?.currentTime)
+      ? rawContext.currentTime
+      : toneNow();
   }
 
   function configureContext() {
@@ -142,8 +151,7 @@
 
   function safeScheduledTime(value, label) {
     if (!Number.isFinite(value)) return value;
-    const now = toneNow();
-    const minimum = now + 0.012;
+    const minimum = rawAudioNow() + 0.006;
     if (value >= minimum) return value;
     const lateBy = minimum - value;
     diagnostics.lateScheduleCount += 1;
@@ -182,6 +190,27 @@
     for (const name of ["NoiseSynth", "MetalSynth"]) {
       wrapScheduledMethod(Tone[name], "triggerAttackRelease", 1, `${name}.triggerAttackRelease`);
     }
+  }
+
+  function installNestedScheduleFlattening() {
+    const transport = typeof Tone.getTransport === "function"
+      ? Tone.getTransport()
+      : Tone.Transport;
+    const nativeScheduleOnce = transport?.scheduleOnce;
+    if (!transport || typeof nativeScheduleOnce !== "function" || nativeScheduleOnce.__atlasFlattened) {
+      return;
+    }
+
+    function flattenedScheduleOnce(callback, time) {
+      if (typeof callback === "function" && Number.isFinite(time)) {
+        diagnostics.flattenedScheduleCallbacks += 1;
+        callback(time);
+        return `atlas-inline-${diagnostics.flattenedScheduleCallbacks}`;
+      }
+      return nativeScheduleOnce.call(this, callback, time);
+    }
+    flattenedScheduleOnce.__atlasFlattened = true;
+    transport.scheduleOnce = flattenedScheduleOnce;
   }
 
   function setPreloadUi(disabled, message) {
@@ -245,6 +274,7 @@
   installOutputSafety();
   installLowDistortionProfile();
   installScheduleGuard();
+  installNestedScheduleFlattening();
 
   const observer = new MutationObserver(() => {
     if (diagnostics.preloadState === "loading") {
