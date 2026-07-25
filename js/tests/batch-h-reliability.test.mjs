@@ -5,9 +5,10 @@ import test from "node:test";
 const page = readFileSync("systems/reliability/index.html", "utf8");
 const script = readFileSync("systems/reliability/reliability.js", "utf8");
 const compatibility = readFileSync("lab/reliability/index.html", "utf8");
+const shell = readFileSync("static/js/focused-systems-shell.js", "utf8");
 
 test("reliability combines objectives, budgets, delivery, and bounded chaos", () => {
-  assert.match(page, /<link rel="canonical" href="https:\/\/atlas-systems\.uk\/systems\/reliability\/">/);
+  assert.ok(page.includes('<link rel="canonical" href="https://atlas-systems.uk/systems/reliability/">'));
   for (const section of [
     "Reliability coverage",
     "Reliability objectives",
@@ -18,6 +19,17 @@ test("reliability combines objectives, budgets, delivery, and bounded chaos", ()
   ]) {
     assert.ok(page.includes(section), `missing ${section}`);
   }
+});
+
+test("reliability uses the governed estate header and an honest console link", () => {
+  assert.ok(page.includes('<header class="focus-hero">'));
+  assert.ok(page.includes('/static/css/estate-search.css'));
+  assert.ok(page.includes('/static/css/estate-shell.css?v=20260723-interface-v2'));
+  assert.ok(page.includes('/static/js/focused-systems-shell.js?v=20260725-batch-h-fixes'));
+  assert.ok(shell.includes('import "./estate-shell.js?v=20260723-interface-v2"'));
+  assert.ok(page.includes('href="/lab/console/"'));
+  assert.ok(!page.includes('/lab/console/index.html'));
+  assert.ok(!page.includes('#dora-metrics'));
 });
 
 test("reliability reads the existing public contracts without a new aggregator", () => {
@@ -46,13 +58,13 @@ test("reliability retains every explicit evaluator state", () => {
   ]) {
     assert.ok(script.includes(`\"${state}\"`), `missing ${state}`);
   }
-  assert.match(page, /Unsupported percentiles are not invented\./);
-  assert.match(page, /A simulated pass is not presented as production proof\./);
+  assert.ok(page.includes("Unsupported percentiles are not invented."));
+  assert.ok(page.includes("A simulated pass is not presented as production proof."));
 });
 
 test("the old Lab reliability route remains a noindex compatibility route", () => {
-  assert.match(compatibility, /<meta name="robots" content="noindex, follow">/);
-  assert.match(compatibility, /<link rel="canonical" href="https:\/\/atlas-systems\.uk\/systems\/reliability\/">/);
-  assert.match(compatibility, /window\.location\.replace\("\/systems\/reliability\/"\)/);
-  assert.match(compatibility, /href="\/systems\/reliability\/"/);
+  assert.ok(compatibility.includes('<meta name="robots" content="noindex, follow">'));
+  assert.ok(compatibility.includes('<link rel="canonical" href="https://atlas-systems.uk/systems/reliability/">'));
+  assert.ok(compatibility.includes('window.location.replace("/systems/reliability/")'));
+  assert.ok(compatibility.includes('href="/systems/reliability/"'));
 });
