@@ -6,6 +6,7 @@
   <meta name="description" content="System Symphony translates bounded Atlas Systems telemetry into an interactive, read-only generative score with explicit unknown and unmeasured states.">
   <meta name="theme-color" content="#0a0a0f">
   <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
   <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
   <link rel="manifest" href="/site.webmanifest">
@@ -27,10 +28,11 @@
   <meta name="twitter:image:alt" content="Hear the estate, keep uncertainty. // Atlas Systems">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260724-maturity-completion">
-  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260724-source-hardening">
-  <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h">
+  <link rel="stylesheet" href="/static/css/estate-search.css">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
+  <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h-fixes">
   <link rel="stylesheet" href="/static/css/system-symphony.css?v=20260718-system-symphony-ghost-mix">
-  <link rel="stylesheet" href="/lab/system-symphony/system-symphony-page.css?v=20260725-batch-h">
+  <link rel="stylesheet" href="/lab/system-symphony/system-symphony-page.css?v=20260725-batch-h-fixes">
 </head>
 <body class="symphony-page">
   <nav aria-label="Primary navigation">
@@ -42,9 +44,9 @@
     </ul>
   </nav>
   <main class="focus-main symphony-page-main">
-    <header>
+    <header class="focus-hero">
       <p class="focus-breadcrumb">Lab / telemetry sonification / preview</p>
-      <h1 id="symphony-page-title" class="focus-title" tabindex="-1">Hear the estate without hiding uncertainty.</h1>
+      <h1 id="symphony-page-title" class="focus-title">Hear the estate without hiding uncertainty.</h1>
       <p class="focus-lede">System Symphony maps a fixed public health frame, service identity, dependency topology, incidents, and successful deployments into a generative score. Live mode is read-only. Simulated mode changes only the browser snapshot. Audio never starts without a user gesture.</p>
       <div class="focus-actions">
         <a class="focus-action primary" href="#instrument">Open instrument</a>
@@ -110,6 +112,7 @@
       </div>
     </section>
   </main>
-  <script type="module" src="/lab/system-symphony/system-symphony-page.js?v=20260725-batch-h"></script>
+  <script type="module" src="/lab/shared/shell.js?v=20260725-batch-h-fixes"></script>
+  <script type="module" src="/lab/system-symphony/system-symphony-page.js?v=20260725-batch-h-fixes"></script>
 </body>
 </html>
