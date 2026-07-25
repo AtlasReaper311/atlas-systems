@@ -8,7 +8,10 @@ if (!previewBase) throw new Error("PREVIEW_URL is required");
 
 const outputDir = process.env.SMOKE_OUTPUT_DIR
   ?? path.join(process.cwd(), "system-symphony-smoke");
-const pageUrl = new URL("/lab/system-symphony/?symphonyDebug=1", previewBase).href;
+const pageUrl = new URL(
+  "/lab/system-symphony/?symphonyDebug=1&symphonyPreviewData=1",
+  previewBase,
+).href;
 const previewOrigin = new URL(previewBase).origin;
 const API_ENDPOINTS = Object.freeze({
   sonify: "https://api.atlas-systems.uk/sonify",
