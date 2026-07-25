@@ -4,6 +4,7 @@ const OBJECTIVES_URL = "https://api.atlas-systems.uk/v1/reliability/objectives";
 const SHELL_FIX_STYLESHEET = "/static/css/batch-h-shell-fixes.css?v=20260725-browser-evidence";
 const HOST_ID = "system-symphony-widget";
 const HOST_WAIT_MS = 5000;
+const PAGE_OUTPUT_GAIN_PERCENT = 50;
 
 const byId = (id) => document.getElementById(id);
 
@@ -83,6 +84,15 @@ function makeScrollableRegionsFocusable(host) {
   }
 }
 
+function applyPageOutputHeadroom(host) {
+  const sliders = [...host.querySelectorAll("[data-volume]")];
+  const primary = sliders[0];
+  if (!primary) return;
+  primary.value = String(PAGE_OUTPUT_GAIN_PERCENT);
+  primary.dispatchEvent(new Event("input", { bubbles: true }));
+  host.dataset.pageOutputGain = String(PAGE_OUTPUT_GAIN_PERCENT);
+}
+
 function convertConsoleToRegion(host, pageHost) {
   const previousFocus = document.activeElement;
   const openButton = host.querySelector("[data-open-console]");
@@ -105,6 +115,7 @@ function convertConsoleToRegion(host, pageHost) {
   document.body.classList.remove("symphony-console-open");
   pageHost.setAttribute("aria-busy", "false");
   makeScrollableRegionsFocusable(host);
+  applyPageOutputHeadroom(host);
 
   if (previousFocus instanceof HTMLElement && previousFocus !== document.body) {
     previousFocus.focus({ preventScroll: true });
