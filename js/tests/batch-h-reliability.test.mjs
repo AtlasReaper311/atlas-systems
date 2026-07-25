@@ -21,14 +21,15 @@ test("reliability combines objectives, budgets, delivery, and bounded chaos", ()
   }
 });
 
-test("reliability uses the governed estate header and clean compatibility links", () => {
+test("reliability uses the governed estate header and an honest console link", () => {
   assert.ok(page.includes('<header class="focus-hero">'));
   assert.ok(page.includes('/static/css/estate-search.css'));
   assert.ok(page.includes('/static/css/estate-shell.css?v=20260723-interface-v2'));
   assert.ok(page.includes('/static/js/focused-systems-shell.js?v=20260725-batch-h-fixes'));
   assert.ok(shell.includes('import "./estate-shell.js?v=20260723-interface-v2"'));
-  assert.ok(page.includes('href="/lab/console/#dora-metrics"'));
+  assert.ok(page.includes('href="/lab/console/"'));
   assert.ok(!page.includes('/lab/console/index.html'));
+  assert.ok(!page.includes('#dora-metrics'));
 });
 
 test("reliability reads the existing public contracts without a new aggregator", () => {
