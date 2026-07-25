@@ -83,9 +83,11 @@ async function chooseState(label, expectedState, expectedTransitionMode) {
   await page.waitForFunction(
     ({ state, transitionMode, priorCount }) => {
       const diagnostics = globalThis.__ATLAS_APU__?.getDiagnostics?.();
+      const arrangement = globalThis.__ATLAS_APU__?.getArrangement?.();
       return diagnostics?.currentState === state
         && diagnostics?.transitionMode === transitionMode
-        && Number(diagnostics?.stateTransitionCount) > priorCount;
+        && Number(diagnostics?.stateTransitionCount) > priorCount
+        && arrangement?.scoreState === state;
     },
     {
       state: expectedState,
