@@ -72,7 +72,7 @@ try {
     await fixture.json();
   }
 
-  const audioButton = page.locator("[data-audio-toggle]").first();
+  const audioButton = page.locator("[data-audio-toggle]:visible").first();
   await audioButton.waitFor({ state: "visible", timeout: 20_000 });
   await audioButton.click();
   await page.waitForFunction(() => {
@@ -101,6 +101,7 @@ try {
       text: button.textContent?.trim() ?? "",
       disabled: button.disabled,
       ariaLabel: button.getAttribute("aria-label"),
+      visible: Boolean(button.offsetWidth || button.offsetHeight || button.getClientRects().length),
     })),
     importantStatus: document.querySelector("[data-important-status]")?.textContent?.trim() ?? null,
     hostState: document.getElementById("system-symphony-widget")?.dataset?.state ?? null,
