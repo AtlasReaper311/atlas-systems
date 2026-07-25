@@ -1,10 +1,19 @@
 import "../../static/js/sonify/ui.js?v=20260718-system-symphony-ghost-tempo-guard";
 
 const OBJECTIVES_URL = "https://api.atlas-systems.uk/v1/reliability/objectives";
+const SHELL_FIX_STYLESHEET = "/static/css/batch-h-shell-fixes.css?v=20260725-browser-evidence";
 const HOST_ID = "system-symphony-widget";
 const HOST_WAIT_MS = 5000;
 
 const byId = (id) => document.getElementById(id);
+
+function ensureStylesheet(href) {
+  if (document.head.querySelector(`link[href="${href}"]`)) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = href;
+  document.head.appendChild(link);
+}
 
 function setText(id, value) {
   const node = byId(id);
@@ -127,6 +136,7 @@ async function loadObjectiveCount() {
 async function initialisePage() {
   const pageHost = document.querySelector("[data-symphony-page-host]");
   if (!pageHost) return;
+  ensureStylesheet(SHELL_FIX_STYLESHEET);
   try {
     const host = await waitForInstrumentHost();
     convertConsoleToRegion(host, pageHost);
