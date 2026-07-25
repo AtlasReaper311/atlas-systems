@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Atlas APU preview: a sample-free browser game soundtrack generated from bounded Atlas Systems telemetry.">
+  <meta name="theme-color" content="#0a0a0f">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
+  <link rel="stylesheet" href="/lab/system-symphony-apu/system-symphony-apu.css?v=20260725-atlas-apu-preview-v1">
+  <title>Atlas APU Preview // System Symphony</title>
+</head>
+<body>
+  <nav aria-label="Primary navigation">
+    <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
+    <ul class="nav-links">
+      <li><a href="/work/">Work</a></li>
+      <li><a href="/writing/">Writing</a></li>
+      <li><a href="/lab/" aria-current="page">Lab</a></li>
+      <li><a href="/systems/">Systems</a></li>
+      <li><a href="/about/">About</a></li>
+    </ul>
+  </nav>
+
+  <main class="apu-main" data-apu-root data-ready="false" data-running="false" data-source="connecting" data-state="unknown">
+    <header class="apu-hero">
+      <p class="apu-kicker">System Symphony / isolated branch preview</p>
+      <h1>The estate becomes a game soundtrack.</h1>
+      <p class="apu-lede">Atlas APU replaces the sample library with pulse, triangle, noise, wavetable and FM-style browser synthesis. The existing telemetry frame, service identities, uncertainty rules and composition director remain the score authority.</p>
+      <div class="apu-boundary" role="status">
+        <strong>Preview boundary</strong>
+        <span>This route does not replace the current production instrument and cannot change estate state.</span>
+      </div>
+    </header>
+
+    <section class="apu-console" aria-labelledby="apu-console-title">
+      <div class="apu-console-head">
+        <div>
+          <p class="apu-kicker">ATLAS APU // six-channel procedural engine</p>
+          <h2 id="apu-console-title">Live soundtrack console</h2>
+        </div>
+        <div class="apu-controls">
+          <button type="button" class="apu-button apu-button-primary" data-audio-toggle>Start audio</button>
+          <label class="apu-volume">
+            <span>Volume</span>
+            <input type="range" min="0" max="100" step="1" value="50" data-volume aria-label="Atlas APU volume">
+          </label>
+        </div>
+      </div>
+
+      <p class="apu-status" data-status aria-live="polite">Connecting to bounded preview evidence.</p>
+
+      <div class="apu-mode-row" role="group" aria-label="Atlas APU score source">
+        <button type="button" data-mode="live" aria-pressed="true">Live frame</button>
+        <button type="button" data-mode="healthy" aria-pressed="false">Healthy</button>
+        <button type="button" data-mode="warning" aria-pressed="false">Warning</button>
+        <button type="button" data-mode="critical" aria-pressed="false">Critical</button>
+        <button type="button" data-mode="unknown" aria-pressed="false">Unknown</button>
+      </div>
+
+      <div class="apu-metrics" aria-label="Current score summary">
+        <article><span>Score</span><strong data-metric="state">Unknown</strong></article>
+        <article><span>Scene</span><strong data-metric="scene">Lost Signal</strong></article>
+        <article><span>Phase</span><strong data-metric="phase">Standby</strong></article>
+        <article><span>Tempo</span><strong data-metric="bpm">100 BPM</strong></article>
+        <article><span>Components</span><strong data-metric="components">0</strong></article>
+        <article><span>Measured</span><strong data-metric="measured">0</strong></article>
+        <article><span>Warnings</span><strong data-metric="warnings">0</strong></article>
+        <article><span>Failures</span><strong data-metric="failures">0</strong></article>
+      </div>
+
+      <div class="apu-visuals">
+        <div class="apu-scope">
+          <div class="apu-scope-head"><span>Master waveform</span><strong data-waveform-label>silent</strong></div>
+          <canvas width="960" height="150" data-waveform aria-label="Atlas APU real-time waveform"></canvas>
+        </div>
+        <div class="apu-scope">
+          <div class="apu-scope-head"><span>Master spectrum</span><strong>32 visible bands</strong></div>
+          <canvas width="960" height="150" data-spectrum aria-label="Atlas APU real-time spectrum"></canvas>
+        </div>
+      </div>
+
+      <section class="apu-channels" aria-labelledby="apu-channels-title">
+        <div class="apu-section-head">
+          <div><span>01</span><h3 id="apu-channels-title">Fictional sound chip</h3></div>
+          <p>Historical console vocabulary with a modern output stage. No streamed or decoded audio assets.</p>
+        </div>
+        <div class="apu-channel-grid">
+          <article data-channel="pulse-a"><span>PULSE A</span><strong>Player lead</strong><p>Overall motif, recovery melody and public surface identity.</p><small data-channel-count="pulse-a">0 services</small></article>
+          <article data-channel="pulse-b"><span>PULSE B</span><strong>Packet counterline</strong><p>API, edge and reusable-system callouts with deterministic duty cycles.</p><small data-channel-count="pulse-b">0 services</small></article>
+          <article data-channel="triangle"><span>TRIANGLE</span><strong>Machine foundation</strong><p>Infrastructure bass and stable low-frequency continuity.</p><small data-channel-count="triangle">0 services</small></article>
+          <article data-channel="noise"><span>NOISE</span><strong>Operations rhythm</strong><p>Drums, incidents and observability accents generated from filtered noise.</p><small data-channel-count="noise">0 services</small></article>
+          <article data-channel="wavetable"><span>WAVETABLE</span><strong>Memory field</strong><p>Local AI, unknown evidence and slower suspended harmonic colour.</p><small data-channel-count="wavetable">0 services</small></article>
+          <article data-channel="fm-accent"><span>FM ACCENT</span><strong>Release signal</strong><p>Generated deployment, transition and recovery fanfares.</p><small data-channel-count="fm-accent">event channel</small></article>
+        </div>
+      </section>
+
+      <section class="apu-services" aria-labelledby="apu-services-title">
+        <div class="apu-section-head">
+          <div><span>02</span><h3 id="apu-services-title">Service leitmotifs</h3></div>
+          <p>Each component keeps stable register, motif, pulse width and stereo identity across state changes.</p>
+        </div>
+        <div class="apu-table-wrap" role="region" aria-label="Atlas APU service mapping" tabindex="0">
+          <table>
+            <thead>
+              <tr><th>Service</th><th>Layer</th><th>Status</th><th>APU voice</th><th>Register</th><th>Evidence</th></tr>
+            </thead>
+            <tbody data-service-table>
+              <tr><td colspan="6">Waiting for the first score frame.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <section class="apu-notes" aria-labelledby="apu-notes-title">
+      <div class="apu-section-head">
+        <div><span>03</span><h2 id="apu-notes-title">What this preview proves</h2></div>
+      </div>
+      <div class="apu-note-grid">
+        <article><h3>Same evidence</h3><p>The existing read-only sonification frame, topology merge, stale handling and deployment detector remain unchanged.</p></article>
+        <article><h3>New renderer</h3><p>Every audible event is produced by browser synthesis. There are no sample players, granular sources, audio loops or codec fallbacks.</p></article>
+        <article><h3>Game-audio structure</h3><p>The current establish, develop, intensify, destabilise, peak, release, recover and breathe phases direct the arrangement.</p></article>
+        <article><h3>Controlled cutover</h3><p>The existing System Symphony route remains available for direct comparison until a later reviewed pull request performs the replacement.</p></article>
+      </div>
+      <div class="apu-links">
+        <a href="/lab/system-symphony/">Compare current production instrument</a>
+        <a href="https://api.atlas-systems.uk/sonify">Inspect source frame</a>
+        <a href="https://github.com/AtlasReaper311/atlas-systems">Inspect repository</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="/lab/system-symphony/preview-endpoints.js?v=20260725-numbered-previews"></script>
+  <script src="/vendor/tone.min.js?v=20260708-sonify"></script>
+  <script type="module" src="/lab/system-symphony-apu/system-symphony-apu.js?v=20260725-atlas-apu-preview-v1"></script>
+</body>
+</html>
