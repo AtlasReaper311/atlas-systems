@@ -102,7 +102,7 @@ test("service notes are pulled into the current harmony", () => {
   assert.deepEqual(serviceEventForTrackStep(frame, arrangement, 2), service);
 });
 
-test("section endings use bounded fills instead of continuous hats", () => {
+test("section endings use bounded percussion without unsafe pitched accents", () => {
   const variationEnd = arrangementForPhrase(frame, plan, 6);
   const hats = [];
   const transitions = [];
@@ -112,7 +112,7 @@ test("section endings use bounded fills instead of continuous hats", () => {
     if (transitionEventForTrackStep(frame, variationEnd, step)) transitions.push(step);
   }
   assert.ok(hats.length < 12);
-  assert.deepEqual(transitions, [31]);
+  assert.deepEqual(transitions, []);
   assert.ok(rhythmEventsForTrackStep(frame, variationEnd, 30).snare);
 });
 
@@ -121,5 +121,5 @@ test("release removes rhythmic pressure but preserves harmonic motion", () => {
   assert.ok(padChordForTrackStep(frame, release, 0));
   assert.ok(bassEventForTrackStep(frame, release, 0));
   assert.equal(rhythmEventsForTrackStep(frame, release, 8).snare, null);
-  assert.ok(transitionEventForTrackStep(frame, release, 30));
+  assert.equal(transitionEventForTrackStep(frame, release, 30), null);
 });
