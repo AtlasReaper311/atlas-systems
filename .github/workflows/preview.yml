@@ -132,7 +132,17 @@ jobs:
       - name: Verify System Symphony preview data and audio
         env:
           PREVIEW_URL: https://system-symphony-pr-${{ github.event.pull_request.number }}.atlas-systems-44t.pages.dev
+          SMOKE_OUTPUT_DIR: ${{ runner.temp }}/system-symphony-smoke
         run: node scripts/smoke_system_symphony_preview.mjs
+
+      - name: Upload System Symphony smoke evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        with:
+          name: system-symphony-preview-smoke
+          path: ${{ runner.temp }}/system-symphony-smoke
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Record branch preview alias
         env:
