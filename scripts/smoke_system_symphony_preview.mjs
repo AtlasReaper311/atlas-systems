@@ -8,7 +8,7 @@ if (!previewBase) throw new Error("PREVIEW_URL is required");
 
 const outputDir = process.env.SMOKE_OUTPUT_DIR
   ?? path.join(process.cwd(), "system-symphony-smoke");
-const pageUrl = new URL("/lab/system-symphony/", previewBase).href;
+const pageUrl = new URL("/lab/system-symphony/?symphonyDebug=1", previewBase).href;
 const fatalPatterns = [
   /Tone\.js is unavailable/i,
   /Cross-Origin Request Blocked/i,
@@ -40,6 +40,7 @@ page.on("requestfailed", (request) => {
   const criticalRequest =
     url.includes("/vendor/tone.min.js")
     || url.includes("/lab/system-symphony/preview-data/")
+    || url.includes("/static/audio/system-symphony/")
     || url.startsWith("https://api.atlas-systems.uk/");
   if (!criticalRequest) return;
   requestFailures.push({
@@ -58,7 +59,8 @@ try {
 
   await page.waitForFunction(() => {
     return Boolean(window.Tone)
-      && window.__ATLAS_SYMPHONY_PREVIEW_DATA__ === true;
+      && window.__ATLAS_SYMPHONY_PREVIEW_DATA__ === true
+      && Boolean(window.__symphonyEngine);
   }, null, { timeout: 20_000 });
 
   for (const fixturePath of [
@@ -86,6 +88,23 @@ try {
     document.getElementById("system-symphony-widget")?.dataset?.source === "preview"
   ), null, { timeout: 10_000 });
 
+  await page.waitForFunction(() => (
+    window.__symphonyEngine?.isSampleReady?.() === true
+  ), null, { timeout: 45_000 });
+  await page.waitForFunction(() => {
+    const stats = window.__symphonyEngine?.getSampleLoadStats?.();
+    return stats?.backgroundComplete === true;
+  }, null, { timeout: 90_000 });
+
+  const sampleStats = await page.evaluate(() => (
+    window.__symphonyEngine?.getSampleLoadStats?.() ?? null
+  ));
+  assert.ok(sampleStats, "sample loader diagnostics are unavailable");
+  assert.equal(sampleStats.coreReady, true, JSON.stringify(sampleStats, null, 2));
+  assert.equal(sampleStats.failed, 0, JSON.stringify(sampleStats, null, 2));
+  assert.equal(sampleStats.completed, sampleStats.totalAssets, JSON.stringify(sampleStats, null, 2));
+  assert.equal(sampleStats.loaded, sampleStats.totalAssets, JSON.stringify(sampleStats, null, 2));
+
   const fatalConsole = consoleMessages.filter(({ text }) => (
     fatalPatterns.some((pattern) => pattern.test(text))
   ));
@@ -103,6 +122,9 @@ try {
       ?? window.Tone?.context?.state
       ?? null,
     previewDataEnabled: window.__ATLAS_SYMPHONY_PREVIEW_DATA__ === true,
+    sampleReady: window.__symphonyEngine?.isSampleReady?.() ?? false,
+    sampleStats: window.__symphonyEngine?.getSampleLoadStats?.() ?? null,
+    samplePalette: window.__symphonyEngine?.getSamplePalette?.() ?? null,
     audioButtons: [...document.querySelectorAll("[data-audio-toggle]")].map((button) => ({
       text: button.textContent?.trim() ?? "",
       disabled: button.disabled,
@@ -139,4 +161,4 @@ try {
 }
 
 if (failure) throw failure;
-console.log(`System Symphony preview smoke passed: ${pageUrl}`);
+console.log(`System Symphony preview smoke passed with complete sample library: ${pageUrl}`);
