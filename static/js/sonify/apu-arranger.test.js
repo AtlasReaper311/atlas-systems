@@ -28,7 +28,7 @@ const directorPlan = {
 };
 
 test("Atlas APU track form is a complete 32-bar cycle", () => {
-  assert.match(ATLAS_APU_TRACK_BUILD_ID, /atlas-apu-track-v1$/);
+  assert.match(ATLAS_APU_TRACK_BUILD_ID, /atlas-apu-track-v2$/);
   assert.equal(APU_TRACK_PHRASES, 16);
   assert.equal(APU_TRACK_BARS, 32);
   assert.equal(APU_FORM.reduce((total, section) => total + section.phrases, 0), 16);
@@ -49,29 +49,53 @@ test("Atlas APU track form is a complete 32-bar cycle", () => {
   ]);
 });
 
-test("arrangement moves through sections and loops deterministically", () => {
-  const intro = arrangementForPhrase(frame, directorPlan, 0);
-  const theme = arrangementForPhrase(frame, directorPlan, 3);
-  const peak = arrangementForPhrase(frame, directorPlan, 11);
+test("arrangement moves through every section and loops deterministically", () => {
+  const sections = Array.from({ length: APU_TRACK_PHRASES }, (_, phrase) => (
+    arrangementForPhrase(frame, directorPlan, phrase).section
+  ));
+  assert.deepEqual(sections, [
+    "intro",
+    "establish",
+    "establish",
+    "theme-a",
+    "theme-a",
+    "variation",
+    "variation",
+    "theme-b",
+    "theme-b",
+    "build",
+    "build",
+    "peak",
+    "peak",
+    "release",
+    "recovery",
+    "breathe",
+  ]);
   const looped = arrangementForPhrase(frame, directorPlan, 16);
-  assert.equal(intro.section, "intro");
-  assert.equal(theme.section, "theme-a");
-  assert.equal(peak.section, "peak");
   assert.equal(looped.section, "intro");
   assert.equal(looped.cycleNumber, 1);
-  assert.deepEqual(arrangementForPhrase(frame, directorPlan, 11), peak);
 });
 
-test("section orchestration creates real contrast", () => {
+test("motif identity remains recognisable between paired phrases", () => {
+  const themeA1 = arrangementForPhrase(frame, directorPlan, 3);
+  const themeA2 = arrangementForPhrase(frame, directorPlan, 4);
+  assert.deepEqual(themeA1.motifDegrees.slice(0, 4), themeA2.motifDegrees.slice(0, 4));
+  assert.equal(themeA2.motifDegrees.at(-1), 0);
+  assert.notDeepEqual(themeA1.motifDegrees, arrangementForPhrase(frame, directorPlan, 5).motifDegrees);
+});
+
+test("section orchestration and timbre create real contrast", () => {
   const intro = arrangementForPhrase(frame, directorPlan, 0);
+  const theme = arrangementForPhrase(frame, directorPlan, 3);
   const peak = arrangementForPhrase(frame, directorPlan, 11);
   const release = arrangementForPhrase(frame, directorPlan, 13);
   assert.equal(intro.mix.drums, 0);
   assert.equal(intro.mix.bass, 0);
+  assert.ok(theme.timbre.leadCutoffHz > intro.timbre.leadCutoffHz);
   assert.ok(peak.mix.drums > 0.9);
   assert.ok(peak.mix.primary > 0.9);
+  assert.ok(peak.timbre.counterCutoffHz > theme.timbre.counterCutoffHz);
   assert.ok(release.mix.pad > release.mix.drums);
-  assert.equal(peak.octaveBoost, true);
 });
 
 test("state changes reshape harmony without destroying form", () => {
