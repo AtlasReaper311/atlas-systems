@@ -50,6 +50,14 @@
       "tagline": "Telemetry, registry state, incidents, and explicit unknowns."
     },
     {
+      "file": "reliability",
+      "html": "systems/reliability/index.html",
+      "route": "/systems/reliability/",
+      "kicker": "Verify / Reliability",
+      "title": ["Reliability under", "[measured failure.]"],
+      "tagline": "Objectives, error budgets, chaos evidence, and runbooks."
+    },
+    {
       "file": "about",
       "html": "about/index.html",
       "route": "/about/",
