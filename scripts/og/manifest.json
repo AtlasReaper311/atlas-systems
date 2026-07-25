@@ -42,6 +42,14 @@
       "tagline": "Every public service in the estate, catalogued."
     },
     {
+      "file": "observability",
+      "html": "systems/observability/index.html",
+      "route": "/systems/observability/",
+      "kicker": "Observe / Current evidence",
+      "title": ["What is being", "[observed now?]"],
+      "tagline": "Telemetry, registry state, incidents, and explicit unknowns."
+    },
+    {
       "file": "about",
       "html": "about/index.html",
       "route": "/about/",
