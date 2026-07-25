@@ -122,7 +122,7 @@ function mixFor(section, state, directorPlan) {
   const pressure = clamp(intent.pressure ?? 0, 0, 1);
   const confidence = clamp(intent.confidence ?? (state === "unknown" ? 0.35 : 0.85), 0, 1);
   const stateScale = state === "critical" ? 1.08 : state === "warning" ? 1.02 : state === "unknown" ? 0.7 : 1;
-  return Object.freeze({
+  const computed = {
     primary: clamp(base.primary * confidence * stateScale, 0, 1),
     secondary: clamp(base.secondary * confidence * stateScale, 0, 1),
     services: clamp(base.services * (0.72 + confidence * 0.28), 0, 1),
@@ -130,7 +130,16 @@ function mixFor(section, state, directorPlan) {
     drums: clamp(base.drums * (0.78 + pressure * 0.22) * (state === "unknown" ? 0.45 : 1), 0, 1),
     pad: clamp(base.pad * (state === "critical" ? 0.72 : 1), 0, 1),
     accent: clamp(base.accent * (0.74 + pressure * 0.26), 0, 1),
-  });
+  };
+
+  if (section.id === "peak" && state !== "unknown") {
+    computed.primary = Math.max(computed.primary, 0.92);
+    computed.bass = Math.max(computed.bass, 0.92);
+    computed.drums = Math.max(computed.drums, 0.92);
+    computed.accent = Math.max(computed.accent, 0.78);
+  }
+
+  return Object.freeze(computed);
 }
 
 export function arrangementForPhrase(frame = {}, directorPlan = null, phraseIndex = 0) {
