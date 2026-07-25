@@ -129,7 +129,7 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Verify System Symphony preview data and audio
+      - name: Verify System Symphony live data and audio
         env:
           PREVIEW_URL: https://system-symphony-pr-${{ github.event.pull_request.number }}.atlas-systems-44t.pages.dev
           SMOKE_OUTPUT_DIR: ${{ runner.temp }}/system-symphony-smoke
@@ -157,7 +157,7 @@ jobs:
             echo
             echo "Atomic deployment: ${ATOMIC_URL}"
             echo
-            echo "Browser smoke verified Tone.js, same-origin preview data, and the Start Audio path."
+            echo "Browser smoke verified Tone.js, the live public evidence APIs, the manifest-backed topology, and the Start Audio path."
             echo
             echo "This is a non-production branch deployment. atlas-systems.uk is unchanged."
           } >>"${GITHUB_STEP_SUMMARY}"
