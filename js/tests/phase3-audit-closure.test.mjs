@@ -17,14 +17,27 @@ test("Atlas-owned Status navigation stays in the current tab", () => {
   assert.doesNotMatch(link, /target=/);
 });
 
-test("all approved Lab routes are indexable and sitemap-owned", () => {
+test("approved public Lab and focused Systems routes are sitemap-owned", () => {
   assert.match(robots, /User-agent: \*/);
   assert.match(robots, /Allow: \//);
-  for (const route of ["proof-chain", "signal", "reliability", "conformance", "anomaly"]) {
-    const url = `https://atlas-systems.uk/lab/${route}/`;
+  const routes = [
+    "/lab/system-map/",
+    "/lab/proof-chain/",
+    "/lab/signal/",
+    "/lab/system-symphony/",
+    "/lab/conformance/",
+    "/lab/anomaly/",
+    "/systems/observability/",
+    "/systems/reliability/",
+    "/systems/evidence/",
+  ];
+  for (const route of routes) {
+    const url = `https://atlas-systems.uk${route}`;
     assert.ok(sitemap.includes(`<loc>${url}</loc>`), `${url} missing from sitemap.xml`);
-    assert.ok(sitemapGenerator.includes(`\"/lab/${route}/\"`), `${route} missing from generator authority`);
+    assert.ok(sitemapGenerator.includes(`"${route}"`), `${route} missing from generator authority`);
   }
+  assert.doesNotMatch(sitemap, /https:\/\/atlas-systems\.uk\/lab\/reliability\//);
+  assert.doesNotMatch(sitemapGenerator, /\("\/lab\/reliability\/"/);
 });
 
 test("maturity semantics use distinct shapes without replacing labels", () => {
