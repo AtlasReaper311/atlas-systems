@@ -121,8 +121,8 @@ test("the hybrid sampler loads in tiers and constructs voices only when played",
     const palette = sampler.applyScene(frame, performance, 0, 0.1, 3.5);
     assert.equal(typeof palette.signature, "string");
     assert.ok(
-      runtime.starts.some(({ name, args }) => name === "GrainPlayer" && args[0] === 3.5),
-      "scheduled atmosphere starts must use the transport callback time",
+      runtime.starts.some(({ name, args }) => ["GrainPlayer", "Player"].includes(name) && args[0] === 3.5),
+      "scheduled atmosphere starts must use the transport callback time regardless of player mode",
     );
     const startsBeforeGhostMix = runtime.starts.length;
     const focusPalette = sampler.applyScene(
@@ -160,8 +160,8 @@ test("the hybrid sampler loads in tiers and constructs voices only when played",
     assert.equal(sampler.playBassPhrase(0, frame, 1, 0, loopPerformance), false);
     assert.equal(
       sampler.playBassPhrase(0, frame, 8, 0, loopPerformance),
-      true,
-      "the selected four-beat fragment must restart on every measure boundary",
+      false,
+      "the selected four-bar loop must not restart on an internal measure boundary",
     );
     assert.equal(sampler.playBass(0, frame, {
       step: 0,

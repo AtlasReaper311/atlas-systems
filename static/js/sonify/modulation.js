@@ -237,7 +237,9 @@ export function applyContinuousTelemetryModulation(
   const decay = clamp(staleDecay, 0, 1);
 
   const liveIntensity = pressure * (0.9 + componentLoad * 0.1);
-  const tempoLift = liveIntensity * 3 + deploymentEnergy * 2;
+  // Transport tempo is locked to a single BPM across all states, so live
+  // intensity never lifts the tempo. It still shapes density, gain, voice
+  // energy and velocity below, which carry the sense of pressure instead.
   const densityLift = liveIntensity * 0.06 + deploymentEnergy * 0.03;
   const gainLiftDb = liveIntensity * 0.3 + deploymentEnergy * 0.3;
   const voiceLift = liveIntensity * 0.04 + deploymentEnergy * 0.02;
@@ -266,7 +268,7 @@ export function applyContinuousTelemetryModulation(
 
   return {
     ...frame,
-    bpm: clamp(frame.bpm + tempoLift, frame.bpm, frame.bpm + 5),
+    bpm: frame.bpm,
     density: clamp(
       frame.density * (1 + densityLift) * (1 - decay * 0.06),
       0,
@@ -280,7 +282,7 @@ export function applyContinuousTelemetryModulation(
     modulation: Object.freeze({
       ...safeModulation,
       staleDecay: decay,
-      tempoLiftBpm: tempoLift,
+      tempoLiftBpm: 0,
       densityLift,
       gainLiftDb,
     }),

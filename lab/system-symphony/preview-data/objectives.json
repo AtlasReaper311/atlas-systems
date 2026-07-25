@@ -1,0 +1,8 @@
+{
+  "preview": true,
+  "objectives": [
+    {"service":"atlas-systems","indicator":"availability","target":99.9,"window_days":30},
+    {"service":"atlas-api-public","indicator":"availability","target":99.9,"window_days":30},
+    {"service":"specular-sonify","indicator":"availability","target":99.5,"window_days":30}
+  ]
+}

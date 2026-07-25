@@ -252,6 +252,9 @@ test("deployment afterglow is additive and never changes harmony or global filte
   assert.equal(active.frame.scoreState, base.scoreState);
   assert.deepEqual(active.frame.scale, base.scale);
   assert.equal(active.frame.masterFilterHz, base.masterFilterHz);
-  assert.ok(active.frame.bpm > base.bpm);
+  // Tempo is locked, so a deployment never speeds the transport up. Its energy
+  // is carried by deploymentEnergy (which feeds density, gain and the motif),
+  // not by a tempo lift.
+  assert.equal(active.frame.bpm, base.bpm);
   assert.ok(active.frame.modulation.deploymentEnergy > 0);
 });

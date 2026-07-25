@@ -10,6 +10,9 @@ on:
       - reopened
     paths:
       - ".github/workflows/preview.yml"
+      - "_headers"
+      - "lab/**"
+      - "scripts/smoke_system_symphony_preview.mjs"
       - "static/js/sonify/**"
 
 permissions:
@@ -24,7 +27,8 @@ jobs:
     name: Validate preview candidate
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'feat/system-symphony-composition-director'
+      (startsWith(github.event.pull_request.head.ref, 'feat/system-symphony-') ||
+       startsWith(github.event.pull_request.head.ref, 'fix/system-symphony-'))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -63,21 +67,22 @@ jobs:
           fail: true
 
   deploy-preview:
-    name: Publish branch preview
+    name: Publish and verify branch preview
     needs: validate
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'feat/system-symphony-composition-director'
+      (startsWith(github.event.pull_request.head.ref, 'feat/system-symphony-') ||
+       startsWith(github.event.pull_request.head.ref, 'fix/system-symphony-'))
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     environment:
       name: pages-preview
       url: ${{ steps.deploy.outputs.deployment_url }}
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CF_PAGES_DEPLOY_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-      SOURCE_BRANCH: feat/system-symphony-composition-director
-      PAGES_BRANCH: system-symphony-composition-director
+      SOURCE_BRANCH: ${{ github.event.pull_request.head.ref }}
+      PAGES_BRANCH: system-symphony-pr-${{ github.event.pull_request.number }}
       PROJECT_NAME: atlas-systems
     steps:
       - name: Check out validated head
@@ -93,7 +98,10 @@ jobs:
       - name: Guard production boundary
         run: |
           set -euo pipefail
-          test "${SOURCE_BRANCH}" = "feat/system-symphony-composition-director"
+          case "${SOURCE_BRANCH}" in
+            feat/system-symphony-*|fix/system-symphony-*) ;;
+            *) echo "Refusing unexpected preview source branch: ${SOURCE_BRANCH}" >&2; exit 1 ;;
+          esac
           test "${SOURCE_BRANCH}" != "main"
           test "${PAGES_BRANCH}" != "main"
 
@@ -115,10 +123,31 @@ jobs:
           test -n "${deployment_url}"
           echo "deployment_url=${deployment_url}" >>"${GITHUB_OUTPUT}"
 
+      - name: Install pinned browser smoke tooling
+        run: npm install --no-save --ignore-scripts playwright@1.61.1
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify System Symphony live data and audio
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.deployment_url }}
+          SMOKE_OUTPUT_DIR: ${{ runner.temp }}/system-symphony-smoke
+        run: node scripts/smoke_system_symphony_preview.mjs
+
+      - name: Upload System Symphony smoke evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        with:
+          name: system-symphony-preview-smoke
+          path: ${{ runner.temp }}/system-symphony-smoke
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Record branch preview alias
         env:
           ATOMIC_URL: ${{ steps.deploy.outputs.deployment_url }}
-          PREVIEW_URL: https://system-symphony-composition-director.atlas-systems-44t.pages.dev
+          PREVIEW_URL: https://system-symphony-pr-${{ github.event.pull_request.number }}.atlas-systems-44t.pages.dev
         run: |
           set -euo pipefail
           {
@@ -127,6 +156,8 @@ jobs:
             echo "${PREVIEW_URL}"
             echo
             echo "Atomic deployment: ${ATOMIC_URL}"
+            echo
+            echo "Browser smoke verified Tone.js, bounded same-origin preview evidence, the restored PR #43 palette exclusions, the full sample library, and the Start Audio path."
             echo
             echo "This is a non-production branch deployment. atlas-systems.uk is unchanged."
           } >>"${GITHUB_STEP_SUMMARY}"

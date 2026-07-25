@@ -19,20 +19,20 @@ import {
   resolveSamplePalette,
   sampleIdForEvent,
   sectionForPhrase,
-} from "./samples.js?v=20260720-system-symphony-composition-director";
-import { createAssetLoader } from "./asset-loader.js?v=20260720-system-symphony-composition-director";
+} from "./samples.js?v=20260720-system-symphony-loop-production-v2";
+import { createAssetLoader } from "./asset-loader.js?v=20260720-system-symphony-loop-production-v2";
 import {
   arrangementPhaseForPhrase,
   ghostLayerMixProfile,
-} from "./ghost-circuit.js?v=20260720-system-symphony-composition-director";
+} from "./ghost-circuit.js?v=20260720-system-symphony-loop-production-v2";
 
 const PLAYBACK_RATE_MIN = 0.75;
 const PLAYBACK_RATE_MAX = 1.35;
-const ATMOSPHERE_XFADE_SECONDS = 4;
+const ATMOSPHERE_XFADE_SECONDS = 3;
 
 export const SAMPLE_STATE_MIX = Object.freeze({
-  healthy: Object.freeze({ drums: 0.68, bass: 0.62, bassLoop: 0.32, bassFilterHz: 720, lead: 0.58, atmosphere: 0.2, atmosphereFilterHz: 2300, drive: 0.025, room: 0.08, delay: 0.12 }),
-  warning: Object.freeze({ drums: 0.72, bass: 0.64, bassLoop: 0.18, bassFilterHz: 860, lead: 0.28, atmosphere: 0.14, atmosphereFilterHz: 1150, drive: 0.04, room: 0.08, delay: 0.08 }),
+  healthy: Object.freeze({ drums: 0.68, bass: 0.62, bassLoop: 0.32, bassFilterHz: 720, lead: 0.64, atmosphere: 0.2, atmosphereFilterHz: 2300, drive: 0.025, room: 0.08, delay: 0.12 }),
+  warning: Object.freeze({ drums: 0.72, bass: 0.64, bassLoop: 0.18, bassFilterHz: 860, lead: 0.42, atmosphere: 0.14, atmosphereFilterHz: 1150, drive: 0.04, room: 0.08, delay: 0.08 }),
   critical: Object.freeze({ drums: 0.76, bass: 0.68, bassLoop: 0.28, bassFilterHz: 980, lead: 0, atmosphere: 0.1, atmosphereFilterHz: 920, drive: 0.065, room: 0.06, delay: 0.06 }),
   unknown: Object.freeze({ drums: 0.28, bass: 0.34, bassLoop: 0, bassFilterHz: 620, lead: 0.2, atmosphere: 0, atmosphereFilterHz: 800, drive: 0.018, room: 0.16, delay: 0.18 }),
 });
@@ -71,6 +71,29 @@ function normalizedState(scoreState) {
 function clampPlaybackRate(value) {
   if (!Number.isFinite(value)) return 1;
   return Math.min(PLAYBACK_RATE_MAX, Math.max(PLAYBACK_RATE_MIN, value));
+}
+
+export function bassLoopPlaybackPlan(sample, targetBpm) {
+  if (!sample || !Number.isFinite(sample.bpm) || !Number.isFinite(sample.playableBeats)) return null;
+  const requestedRate = Number(targetBpm) / sample.bpm;
+  const playbackRate = clampPlaybackRate(requestedRate);
+  // Tone.Player.start(time, offset, duration) treats duration as source-buffer
+  // seconds and divides by playbackRate internally (verified in the vendored
+  // Tone.js 14.8.49: Player._start does duration /= this._playbackRate). The
+  // third argument must therefore be the loop's native source length. Computing
+  // it from targetBpm scales tempo twice, truncating the loop and leaving a
+  // silent gap before the next phrase.
+  const sourceDurationSeconds = sample.playableBeats * 60 / sample.bpm;
+  const audibleDurationSeconds = sourceDurationSeconds / playbackRate;
+  return Object.freeze({
+    requestedRate,
+    playbackRate,
+    rateWasClamped: Math.abs(playbackRate - requestedRate) > 0.0001,
+    sourceOffset: 0,
+    outputDuration: sourceDurationSeconds,
+    audibleDurationSeconds,
+    playableBeats: sample.playableBeats,
+  });
 }
 
 function setDetune(voice, cents) {
@@ -213,13 +236,21 @@ export function createHybridSampler(Tone, {
     const sample = LEAD_LOOPS[id];
     if (!buffer || !sample) return null;
     const voices = Array.from({ length: 4 }, () => {
-      const voice = new Tone.GrainPlayer({
-        grainSize: sample.grainSize ?? 0.14,
-        overlap: sample.grainOverlap ?? 0.07,
-        loop: false,
-        volume: sample.gainDb,
-      });
+      const granular = Math.abs(sample.transposeCents ?? 0) > 0.01;
+      const voice = granular
+        ? new Tone.GrainPlayer({
+          grainSize: sample.grainSize ?? 0.1,
+          overlap: sample.grainOverlap ?? 0.045,
+          loop: false,
+          volume: sample.gainDb,
+        })
+        : new Tone.Player({
+          fadeIn: 0.006,
+          fadeOut: 0.025,
+          volume: sample.gainDb,
+        });
       voice.buffer = buffer;
+      voice.__atlasGranular = granular;
       voice.connect(leadBus);
       return voice;
     });
@@ -233,12 +264,9 @@ export function createHybridSampler(Tone, {
     const sample = BASS_LOOPS[id];
     if (!buffer || !sample) return null;
     const voices = Array.from({ length: 2 }, () => {
-      const voice = new Tone.GrainPlayer({
-        grainSize: 0.12,
-        overlap: 0.06,
-        loop: false,
+      const voice = new Tone.Player({
         fadeIn: 0.008,
-        fadeOut: 0.025,
+        fadeOut: 0.035,
         volume: sample.gainDb,
       });
       voice.buffer = buffer;
@@ -255,15 +283,13 @@ export function createHybridSampler(Tone, {
     const sample = ATMOSPHERE_LOOPS[id];
     if (!buffer || !sample) return null;
     const gain = new Tone.Gain(0).connect(atmosphereFilter);
-    const player = new Tone.GrainPlayer({
-      grainSize: 0.4,
-      overlap: 0.2,
-      loop: true,
-      volume: sample.gainDb,
-    });
+    const granular = Math.abs(sample.transposeCents ?? 0) > 0.01;
+    const player = granular
+      ? new Tone.GrainPlayer({ grainSize: 0.24, overlap: 0.1, loop: true, volume: sample.gainDb })
+      : new Tone.Player({ loop: true, fadeIn: 0.04, fadeOut: 0.08, volume: sample.gainDb });
     player.buffer = buffer;
     player.connect(gain);
-    const entry = { player, gain, sample, isPlaying: false };
+    const entry = { player, gain, sample, granular, isPlaying: false };
     atmospherePlayers.set(id, entry);
     return entry;
   }
@@ -310,7 +336,7 @@ export function createHybridSampler(Tone, {
     entry.player.playbackRate = clampPlaybackRate(
       (frame?.bpm ?? entry.sample.bpm) / entry.sample.bpm,
     );
-    setDetune(entry.player, entry.sample.transposeCents);
+    if (entry.granular) setDetune(entry.player, entry.sample.transposeCents);
     safeRamp(entry.gain.gain, 1, ATMOSPHERE_XFADE_SECONDS, scheduledTime);
     return true;
   }
@@ -334,7 +360,9 @@ export function createHybridSampler(Tone, {
       : ghostLayerMixProfile(ghostOptions);
     const ghostModeActive = Boolean(ghostOptions.focus || ghostOptions.audition);
     const leadMultiplier = performance && (phaseMix.riff > 0 || ghostModeActive)
-      ? ghostMix.lead
+      ? ghostModeActive
+        ? ghostMix.lead
+        : Math.max(0.9, ghostMix.lead)
       : 1;
     const ramp = (parameter, value) => (
       safeRamp(parameter, value, transition, scheduledTime)
@@ -347,9 +375,7 @@ export function createHybridSampler(Tone, {
     ramp(
       drumBus.gain,
       mix.drums
-        * (0.76 + energy * 0.24)
-        * phaseMix.drums
-        * ghostMix.backing,
+        * (0.76 + energy * 0.24),
     );
     ramp(
       bassBus.gain,
@@ -438,31 +464,25 @@ export function createHybridSampler(Tone, {
   }
 
   function playBassPhrase(time, frame, step, phraseIndex, performance = null) {
-    if (!ready || !performance || step % 8 !== 0) return false;
+    if (!ready || !performance || step !== 0) return false;
     const palette = resolveSamplePalette(frame?.scoreState, performance, phraseIndex);
     const sample = BASS_LOOPS[palette.bassLoop];
     const voices = ensureBassLoopVoices(palette.bassLoop);
     if (!sample || !voices?.length) return false;
     const targetBpm = performance.targetBpm ?? frame?.bpm ?? sample.bpm;
-    const sourceMeasures = Math.max(1, Math.floor(sample.playableBeats / 4));
-    const measureIndex = phraseIndex * 4 + Math.floor(step / 8);
-    const sourceMeasure = (
-      measureIndex + (performance.bassLoopSliceVariant ?? 0)
-    ) % sourceMeasures;
-    const sourceOffset = sourceMeasure * 4 * 60 / sample.bpm;
-    const outputDuration = 4 * 60 / targetBpm;
+    const plan = bassLoopPlaybackPlan(sample, targetBpm);
+    if (!plan) return false;
     const voice = voices[bassLoopVoiceCursor % voices.length];
     bassLoopVoiceCursor += 1;
-    voice.playbackRate = clampPlaybackRate(targetBpm / sample.bpm);
-    setDetune(voice, sample.transposeCents);
-    const liveRestraint = performance.liveDirected ? 0.84 : 1;
+    voice.playbackRate = plan.playbackRate;
+    const liveRestraint = performance.liveDirected ? 0.9 : 1;
     setVolume(
       voice,
-      (0.42 + (performance.energy ?? 0.5) * 0.14) * liveRestraint,
+      (0.48 + (performance.energy ?? 0.5) * 0.12) * liveRestraint,
       sample.gainDb,
     );
     try {
-      voice.start(time, sourceOffset, Math.max(0.5, outputDuration));
+      voice.start(time, plan.sourceOffset, Math.max(0.5, plan.outputDuration));
       return true;
     } catch (error) {
       console.warn(`system-symphony: bass loop ${sample.id} could not trigger`, error);
@@ -483,7 +503,7 @@ export function createHybridSampler(Tone, {
     voice.playbackRate = clampPlaybackRate(
       (performance?.targetBpm ?? frame?.bpm ?? sample.bpm) / sample.bpm,
     );
-    setDetune(voice, sample.transposeCents);
+    if (voice.__atlasGranular) setDetune(voice, sample.transposeCents);
     voice.reverse = frame?.scoreState === "unknown" && event.section === "space";
     setVolume(voice, event.velocity, sample.gainDb);
     const wrappedSourceBeat = event.sourceBeat % sample.playableBeats;
@@ -618,6 +638,9 @@ export function createHybridSampler(Tone, {
     playLead,
     playSectionAccent,
     playAccent,
+    // Development-only bus references for the mute/solo diagnostic. Not used by
+    // the shipped UI; exposed only when the debug flag is set.
+    getDebugNodes: () => ({ bassLoopBus, leadBus, atmosphereBus, bassBus, drumBus }),
     isReady: () => ready,
     isSampleAvailable: (id) => loader.has(id),
     getPalette: () => currentPalette,

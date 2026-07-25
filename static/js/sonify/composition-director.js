@@ -1,4 +1,4 @@
-import { clamp, stableHash } from "./mapping.js?v=20260720-system-symphony-composition-director";
+import { LOCKED_TRANSPORT_BPM, clamp, stableHash } from "./mapping.js?v=20260720-system-symphony-loop-production-v2";
 
 /**
  * Phrase-level musical direction for live System SYMPHONY playback.
@@ -250,19 +250,24 @@ function motifPatternFor(state, variant, phase, intent) {
   return base;
 }
 
-function livePerformanceFields(seed, phraseIndex, state, phase, intent, motifVariant, recoveryEnergy) {
+function livePerformanceFields(seed, phraseIndex, state, phase, stateAgePhrases, intent, motifVariant, recoveryEnergy) {
   const phraseSeed = stableHash(`${seed}:${phraseIndex}:${state}:${phase}`);
   const energy = bounded(intent.intensity);
   const motion = bounded(intent.rhythmicPressure * 0.68 + intent.instability * 0.32);
   const grit = bounded(intent.harmonicTension * 0.72 + intent.instability * 0.28);
   const space = bounded((1 - intent.density) * 0.52 + intent.confidence * 0.48);
-  const targetBpm = clamp(
-    (state === "critical" ? 126 : state === "warning" ? 118 : state === "unknown" ? 96 : 112)
-      + intent.rhythmicPressure * 3
-      + intent.deploymentEnergy * 2,
-    92,
-    132,
-  );
+  // Single locked transport tempo for every live state. The loop foundation is
+  // a set of native 100 BPM F/Fm samples, so a constant 100 BPM keeps them at
+  // playbackRate 1.0 (no pitch shift, no drift). State contrast is carried by
+  // harmony, density, orchestration, filtering and tension, not tempo.
+  const targetBpm = LOCKED_TRANSPORT_BPM;
+  const stableEnoughForDrop = state !== "unknown" && stateAgePhrases >= 7;
+  const dropCycle = stateAgePhrases % 8;
+  const dropStage = stableEnoughForDrop && dropCycle === 7
+    ? "build"
+    : stableEnoughForDrop && dropCycle === 0
+      ? "drop"
+      : "none";
   return {
     liveDirected: true,
     seed,
@@ -287,6 +292,10 @@ function livePerformanceFields(seed, phraseIndex, state, phase, intent, motifVar
     delayWet: Number(clamp(0.06 + space * 0.14, 0.05, 0.2).toFixed(4)),
     reverbWet: Number(clamp(0.1 + space * 0.22, 0.08, 0.32).toFixed(4)),
     chordOffset: phraseSeed % 4,
+    // Pinned to the PR #38 pad progression (variant 0). Per-phrase progression
+    // switching wandered the harmony and is held back until the core baseline is
+    // approved, then can be reintroduced as a deliberate, listened-to change.
+    chordProgression: 0,
     bassPattern: phraseSeed % 8,
     bassShift: state === "warning" ? 1 : 0,
     bassDegreeOffset: motifVariant,
@@ -300,7 +309,7 @@ function livePerformanceFields(seed, phraseIndex, state, phase, intent, motifVar
     hatTimbre: (phraseSeed >>> 13) % 3,
     metalTimbre: (phraseSeed >>> 15) % 3,
     bassTimbre: (phraseSeed >>> 17) % 5,
-    bassLoopTimbre: state === "warning" ? 0 : (phraseSeed >>> 19) % 4,
+    bassLoopTimbre: (phraseSeed >>> 19) % 4,
     bassLoopSliceVariant: (phraseSeed >>> 21) % 4,
     leadTimbre: (phraseSeed >>> 23) % 4,
     atmosphereTimbre: (phraseSeed >>> 25) % 2,
@@ -317,6 +326,8 @@ function livePerformanceFields(seed, phraseIndex, state, phase, intent, motifVar
     arpGate: state === "critical" ? 0 : state === "warning" ? 1 : 2,
     hatDensityLabel: state === "critical" ? "dense" : state === "warning" ? "standard" : state === "unknown" ? "sparse" : "standard",
     recoveryEnergy,
+    stateAgePhrases,
+    dropStage,
   };
 }
 
@@ -329,7 +340,7 @@ export function motifEventForStep(plan, scale, step) {
   const degrees = plan.motifDegrees?.length ? plan.motifDegrees : ATLAS_MOTIF_DEGREES;
   const degree = degrees[eventIndex % degrees.length];
   const octave = plan.state === "critical" && plan.phase === "peak" && eventIndex % 4 === 3 ? 12 : 0;
-  const root = plan.state === "unknown" ? 50 : 54;
+  const root = plan.state === "unknown" ? 53 : 57;
   return Object.freeze({
     midi: Math.min(74, root + safeScale[modulo(degree, safeScale.length)] + octave),
     duration: plan.state === "critical" ? "16n" : plan.state === "warning" ? "8n" : plan.state === "unknown" ? "2n" : "8n",
@@ -347,6 +358,8 @@ export function createCompositionDirector({ seed = LIVE_COMPOSITION_SEED } = {})
   let phaseAge = 0;
   let latestIntent = deriveMusicalIntent({ scoreState: "unknown", stale: true });
   let currentState = "unknown";
+  let lastPlanState = "unknown";
+  let stateAgePhrases = 0;
   let lastCommittedPressure = latestIntent.pressure;
   let recentPhases = [];
   let recentMotifVariants = [];
@@ -360,6 +373,11 @@ export function createCompositionDirector({ seed = LIVE_COMPOSITION_SEED } = {})
 
   function advancePhrase() {
     phraseIndex += 1;
+    if (currentState === lastPlanState) stateAgePhrases += 1;
+    else {
+      lastPlanState = currentState;
+      stateAgePhrases = 0;
+    }
     const recoveryEnergy = bounded(Math.max(0, lastCommittedPressure - latestIntent.pressure) * 1.8);
     const intent = Object.freeze({ ...latestIntent, recoveryEnergy });
     const requested = desiredPhaseFor(currentState, intent, currentPhase, phaseAge, recoveryEnergy);
@@ -396,6 +414,7 @@ export function createCompositionDirector({ seed = LIVE_COMPOSITION_SEED } = {})
       phraseIndex,
       currentState,
       currentPhase,
+      stateAgePhrases,
       intent,
       motifVariant,
       recoveryEnergy,
@@ -436,6 +455,7 @@ export function createCompositionDirector({ seed = LIVE_COMPOSITION_SEED } = {})
       currentPhase,
       phaseAge,
       currentState,
+      stateAgePhrases,
       lastCommittedPressure,
       recentPhases: Object.freeze([...recentPhases]),
       recentMotifVariants: Object.freeze([...recentMotifVariants]),
@@ -447,6 +467,8 @@ export function createCompositionDirector({ seed = LIVE_COMPOSITION_SEED } = {})
       phaseAge = 0;
       latestIntent = deriveMusicalIntent({ scoreState: "unknown", stale: true });
       currentState = "unknown";
+      lastPlanState = "unknown";
+      stateAgePhrases = 0;
       lastCommittedPressure = latestIntent.pressure;
       recentPhases = [];
       recentMotifVariants = [];
