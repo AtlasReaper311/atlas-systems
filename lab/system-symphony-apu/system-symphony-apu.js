@@ -12,8 +12,8 @@ import {
 import {
   ATLAS_APU_TRACK_BUILD_ID,
   arrangementTimeline,
-} from "../../static/js/sonify/apu-arranger.js?v=20260725-system-symphony-atlas-apu-track-v1";
-import { createApuTrackEngine } from "../../static/js/sonify/apu-track-engine.js?v=20260725-system-symphony-atlas-apu-track-v1";
+} from "../../static/js/sonify/apu-arranger.js?v=20260726-system-symphony-atlas-apu-track-v2";
+import { createApuTrackEngine } from "../../static/js/sonify/apu-track-engine-v2.js?v=20260726-system-symphony-atlas-apu-track-v2";
 
 const root = document.querySelector("[data-apu-root]");
 if (!root) throw new Error("system-symphony-apu: page root is missing");
@@ -67,7 +67,7 @@ function sourceMessage(frame) {
     return `Browser-only ${mode} scene. Live evidence continues underneath and no estate state is changed.`;
   }
   if (window.__ATLAS_SYMPHONY_PREVIEW_DATA__) {
-    return "Bounded same-origin preview evidence is driving a deterministic 32-bar soundtrack form.";
+    return "Bounded same-origin preview evidence is driving the corrected 32-bar soundtrack form.";
   }
   if (frame?.stale) {
     return "Live telemetry is stale. The score has moved to Unknown while the last successful frame remains inspectable.";
@@ -102,14 +102,13 @@ function renderServiceTable(frame) {
     const row = document.createElement("tr");
     row.dataset.service = voice.name;
 
+    const nameCell = document.createElement("td");
     const name = document.createElement("strong");
     name.textContent = voice.displayName ?? voice.name;
-    const nameCell = document.createElement("td");
     nameCell.append(name);
     row.append(nameCell);
 
     makeCell(row, voice.layer);
-
     const statusCell = document.createElement("td");
     const status = document.createElement("span");
     status.className = "apu-status-pill";
@@ -126,18 +125,16 @@ function renderServiceTable(frame) {
 }
 
 function renderChannelCounts(frame) {
-  const counts = channelSummary(frame);
-  for (const [channel, count] of Object.entries(counts)) {
+  for (const [channel, count] of Object.entries(channelSummary(frame))) {
     const node = root.querySelector(`[data-channel-count="${channel}"]`);
     if (node) node.textContent = `${count} ${count === 1 ? "service" : "services"}`;
   }
 }
 
 function buildFormTimeline() {
-  if (!formTimeline) return;
   clearNode(formTimeline);
   for (const section of arrangementTimeline()) {
-    const item = document.createElement("div");
+    const item = document.createElement("li");
     item.className = "apu-form-section";
     item.dataset.formSection = section.id;
     item.style.setProperty("--section-bars", String(section.endBar - section.startBar + 1));
@@ -162,7 +159,8 @@ function renderArrangement(arrangement, scene = null) {
   for (const item of root.querySelectorAll("[data-form-section]")) {
     const active = item.dataset.formSection === arrangement.section;
     item.dataset.active = String(active);
-    item.setAttribute("aria-current", active ? "step" : "false");
+    if (active) item.setAttribute("aria-current", "step");
+    else item.removeAttribute("aria-current");
   }
 }
 
@@ -206,7 +204,6 @@ function setMode(nextMode) {
   for (const button of root.querySelectorAll("[data-mode]")) {
     button.setAttribute("aria-pressed", String(button.dataset.mode === mode));
   }
-
   const frame = mode === "live" ? latestFrame : simulatedFrame(mode);
   if (!frame) {
     setStatus("The first evidence frame has not arrived yet.", "connecting");
@@ -259,8 +256,7 @@ const poller = createPoller({
     if (info.newIncidents > 0) engine.queueIncident(info.newIncidents);
   },
   onStatus(status) {
-    if (mode !== "live") return;
-    if (status.stale) setStatus(sourceMessage({ stale: true }), "stale");
+    if (mode === "live" && status.stale) setStatus(sourceMessage({ stale: true }), "stale");
   },
   onDeployment(deployment) {
     engine.queueDeployment(deployment);
@@ -270,12 +266,11 @@ const poller = createPoller({
 async function toggleAudio() {
   audioButton.disabled = true;
   try {
-    if (engine.isRunning()) {
-      engine.pause();
-      return;
+    if (engine.isRunning()) engine.pause();
+    else {
+      await engine.start();
+      if (currentFrame) renderFrame(currentFrame);
     }
-    await engine.start();
-    if (currentFrame) renderFrame(currentFrame);
   } catch (error) {
     setStatus(`Audio could not start: ${error.message}`, "stale");
   } finally {
@@ -319,9 +314,8 @@ function drawSpectrum(values) {
   visible.forEach((value, index) => {
     const normalized = Math.max(0, Math.min(1, (Number(value) + 100) / 100));
     const barHeight = Math.max(2, normalized * height * 0.9);
-    const x = index * (barWidth + gap);
     spectrumContext.fillStyle = index % 4 === 0 ? "#f5a623" : "rgba(232,232,224,0.58)";
-    spectrumContext.fillRect(x, height - barHeight, barWidth, barHeight);
+    spectrumContext.fillRect(index * (barWidth + gap), height - barHeight, barWidth, barHeight);
   });
 }
 
@@ -336,9 +330,7 @@ function animate(at) {
 }
 
 audioButton.addEventListener("click", toggleAudio);
-volumeInput.addEventListener("input", () => {
-  engine.setVolume(Number(volumeInput.value) / 100);
-});
+volumeInput.addEventListener("input", () => engine.setVolume(Number(volumeInput.value) / 100));
 for (const button of root.querySelectorAll("[data-mode]")) {
   button.addEventListener("click", () => setMode(button.dataset.mode));
 }
@@ -357,6 +349,7 @@ window.__ATLAS_APU__ = Object.freeze({
   getScene: () => engine.getScene(),
   getArrangement: () => currentArrangement ?? engine.getArrangement(),
   getTimeline: () => arrangementTimeline(),
+  getDiagnostics: () => engine.getDiagnostics(),
   isRunning: () => engine.isRunning(),
 });
 
