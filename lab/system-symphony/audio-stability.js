@@ -202,12 +202,9 @@
     }
 
     function flattenedScheduleOnce(callback, time) {
-      const callbackSource = typeof callback === "function"
-        ? Function.prototype.toString.call(callback)
-        : "";
-      const isAtlasSnareRoll = callbackSource.includes("snare.triggerAttackRelease")
-        && callbackSource.includes("Math.max(0.08");
-      if (isAtlasSnareRoll && Number.isFinite(time)) {
+      const stack = new Error().stack ?? "";
+      const calledFromAtlasEngine = stack.includes("/static/js/sonify/engine.js");
+      if (calledFromAtlasEngine && typeof callback === "function" && Number.isFinite(time)) {
         diagnostics.flattenedScheduleCallbacks += 1;
         callback(time);
         return `atlas-inline-${diagnostics.flattenedScheduleCallbacks}`;
