@@ -1,6 +1,8 @@
 const ENDPOINTS = Object.freeze({
   telemetry: "https://api.atlas-systems.uk/specular",
   registry: "https://api.atlas-systems.uk/v1/registry",
+  health: "https://api.atlas-systems.uk/sonify",
+  topology: "https://api.atlas-systems.uk/v1/topology",
   infra: "https://api.atlas-systems.uk/v1/infra/status",
   corpus: "https://api.atlas-systems.uk/v1/rag/stats",
   events: "https://api.atlas-systems.uk/notify/recent",
@@ -9,6 +11,7 @@ const ENDPOINTS = Object.freeze({
 const FETCH_TIMEOUT_MS = 6000;
 const TELEMETRY_STALE_MS = 2 * 60 * 1000;
 const GENERAL_STALE_MS = 20 * 60 * 1000;
+const OBSERVED_STATES = new Set(["healthy", "degraded", "down", "unknown"]);
 
 const byId = (id) => document.getElementById(id);
 
@@ -30,19 +33,19 @@ function timestampOf(value) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function ageLabel(value) {
+export function ageLabel(value, nowMs = Date.now()) {
   const parsed = timestampOf(value);
   if (parsed === null) return "timestamp unavailable";
-  const seconds = Math.max(0, Math.round((Date.now() - parsed) / 1000));
+  const seconds = Math.max(0, Math.round((nowMs - parsed) / 1000));
   if (seconds < 60) return `${seconds}s old`;
   if (seconds < 3600) return `${Math.round(seconds / 60)}m old`;
   if (seconds < 86400) return `${Math.round(seconds / 3600)}h old`;
   return `${Math.round(seconds / 86400)}d old`;
 }
 
-function isStale(value, threshold) {
+function isStale(value, threshold, nowMs = Date.now()) {
   const parsed = timestampOf(value);
-  return parsed === null || Date.now() - parsed > threshold;
+  return parsed === null || nowMs - parsed > threshold;
 }
 
 function percent(value) {
@@ -100,62 +103,121 @@ function renderTelemetry(payload) {
 }
 
 function registryEntries(payload) {
-  const candidates = [payload?.services, payload?.workers, payload?.entries, payload?.registry?.services, payload?.data?.services];
+  const candidates = [payload?.workers, payload?.services, payload?.entries, payload?.registry?.services, payload?.data?.services];
   return candidates.find(Array.isArray) ?? [];
 }
 
-function registryState(entry) {
-  const raw = String(entry?.status ?? entry?.state ?? entry?.health ?? "unknown").toLowerCase();
-  if (["healthy", "live", "operational", "ok", "up"].includes(raw)) return "healthy";
-  if (["warning", "degraded", "stale"].includes(raw)) return raw === "stale" ? "stale" : "degraded";
-  if (["failed", "failure", "down", "offline"].includes(raw)) return "failed";
-  return "unknown";
+function healthEntries(payload) {
+  return Array.isArray(payload?.services) ? payload.services : [];
 }
 
-function renderRegistry(payload) {
+function topologyEntries(payload) {
+  return Array.isArray(payload?.components) ? payload.components : [];
+}
+
+function observedState(value) {
+  const state = String(value ?? "unknown").toLowerCase();
+  return OBSERVED_STATES.has(state) ? state : "unknown";
+}
+
+export function buildObservedServices(registryPayload, healthPayload, topologyPayload) {
+  const registry = registryEntries(registryPayload);
+  const healthByName = new Map(
+    healthEntries(healthPayload)
+      .filter((entry) => typeof entry?.name === "string")
+      .map((entry) => [entry.name, entry]),
+  );
+  const topologyByName = new Map(
+    topologyEntries(topologyPayload)
+      .filter((entry) => typeof (entry?.id ?? entry?.name) === "string")
+      .map((entry) => [entry.id ?? entry.name, entry]),
+  );
+
+  const services = [];
+  const uncovered = [];
+  for (const entry of registry.slice(0, 80)) {
+    const name = String(entry?.name ?? entry?.service ?? entry?.id ?? "").trim();
+    if (!name) continue;
+    const health = healthByName.get(name);
+    if (!health) {
+      uncovered.push(name);
+      continue;
+    }
+    const topology = topologyByName.get(name);
+    services.push({
+      name,
+      layer: topology?.layer ?? topology?.kind ?? "public worker",
+      state: observedState(health.status),
+      detail: health.health_detail ?? "Bounded health record returned no detail.",
+      evidenceSource: health.evidence_source ?? null,
+      measuredAt: health.measured_at ?? healthPayload?.timestamp ?? null,
+      latencyMs: Number.isFinite(health.latency_ms) ? health.latency_ms : null,
+    });
+  }
+
+  return {
+    services,
+    uncovered,
+    totalRegistry: registry.length,
+    currentMeasurements: services.filter((service) => service.state !== "unknown" && service.measuredAt).length,
+  };
+}
+
+function serviceEvidenceLabel(service) {
+  const parts = [service.detail];
+  if (service.measuredAt) parts.push(ageLabel(service.measuredAt));
+  if (Number.isFinite(service.latencyMs)) parts.push(`${Math.round(service.latencyMs)} ms`);
+  return parts.filter(Boolean).join("; ");
+}
+
+function renderObservedServices(registryPayload, healthPayload, topologyPayload) {
   const rows = byId("registry-rows");
   rows.replaceChildren();
-  const entries = registryEntries(payload);
-  if (!entries.length) {
+  const view = buildObservedServices(registryPayload, healthPayload, topologyPayload);
+
+  if (!view.services.length) {
     const row = document.createElement("tr");
     const cell = document.createElement("td");
     cell.colSpan = 4;
-    cell.textContent = "The registry returned no public services. Empty is not operational.";
+    cell.textContent = "No registry entries have a bounded health contract. Inventory alone is not observation.";
     row.appendChild(cell);
     rows.appendChild(row);
-    setText("summary-services", "0 observed");
+    setText("summary-services", "0 covered");
     const status = byId("registry-status");
     status.dataset.state = "warning";
-    status.textContent = "Registry response was valid but empty.";
+    status.textContent = `${view.totalRegistry} public registry entries; none can be presented as observed services.`;
     return "empty";
   }
 
-  const bounded = entries.slice(0, 80);
-  let measured = 0;
-  for (const entry of bounded) {
+  for (const service of view.services) {
     const row = document.createElement("tr");
     const name = document.createElement("td");
     const layer = document.createElement("td");
     const stateCell = document.createElement("td");
     const evidence = document.createElement("td");
-    const state = registryState(entry);
-    name.textContent = String(entry?.display_name ?? entry?.name ?? entry?.service ?? entry?.id ?? "unnamed public service");
-    layer.textContent = String(entry?.layer ?? entry?.kind ?? "unclassified");
+    name.textContent = service.name;
+    layer.textContent = service.layer;
     const badge = document.createElement("span");
     badge.className = "focus-state";
-    badge.dataset.state = state;
-    badge.textContent = state;
+    badge.dataset.state = service.state;
+    badge.textContent = service.state;
     stateCell.appendChild(badge);
-    const verified = entry?.meta_verified === true || entry?.measured === true || entry?.source === "probe";
-    evidence.textContent = verified ? "measured public evidence" : "declared or unmeasured";
-    if (verified) measured += 1;
+    evidence.textContent = serviceEvidenceLabel(service);
     row.append(name, layer, stateCell, evidence);
     rows.appendChild(row);
   }
-  setText("summary-services", `${bounded.length} public`);
+
+  setText("summary-services", `${view.services.length} covered`);
   const status = byId("registry-status");
-  status.dataset.state = "healthy";
-  status.textContent = `${bounded.length} public services rendered; ${measured} explicitly measured.`;
+  const hasDown = view.services.some((service) => service.state === "down");
+  const hasNonHealthy = view.services.some((service) => ["degraded", "unknown"].includes(service.state));
+  status.dataset.state = view.uncovered.length ? "warning" : hasDown ? "failure" : hasNonHealthy ? "warning" : "healthy";
+  status.textContent = view.uncovered.length
+    ? `${view.services.length}/${view.totalRegistry} public services have health contracts; ${view.uncovered.length} inventory-only entr${view.uncovered.length === 1 ? "y was" : "ies were"} omitted.`
+    : `${view.services.length}/${view.totalRegistry} public services have health contracts; ${view.currentMeasurements} current measurements available.`;
+
+  if (hasDown) return "failed";
+  if (view.uncovered.length || hasNonHealthy) return "degraded";
   return "healthy";
 }
 
@@ -207,28 +269,67 @@ function renderEvents(payload) {
   return "failure";
 }
 
-function renderInfra(payload) {
+export function deriveInfraView(payload, nowMs = Date.now()) {
   const raw = String(payload?.overall ?? payload?.state ?? payload?.status ?? "unknown").toLowerCase();
-  const stale = payload?.stale === true || isStale(payload?.checked_at ?? payload?.generated_at ?? payload?.last_report_at, GENERAL_STALE_MS);
-  const state = stale ? "stale" : ["ok", "healthy", "operational", "up"].includes(raw) ? "healthy" : ["degraded", "warning"].includes(raw) ? "degraded" : ["down", "failed", "failure"].includes(raw) ? "failed" : "unknown";
-  setState("infra-state", state);
-  const checks = payload?.checks && typeof payload.checks === "object" ? Object.keys(payload.checks).length : 0;
-  setText("infra-detail", `${checks || "No"} public check${checks === 1 ? "" : "s"}; ${payload?.checked_at ? ageLabel(payload.checked_at) : "report age unknown"}.`);
-  return state;
+  const reportAt = payload?.last_report_at ?? payload?.checked_at ?? payload?.generated_at ?? null;
+  const stale = payload?.stale === true || isStale(reportAt, GENERAL_STALE_MS, nowMs);
+  const state = stale
+    ? "stale"
+    : ["ok", "healthy", "operational", "up"].includes(raw)
+      ? "healthy"
+      : ["degraded", "warning"].includes(raw)
+        ? "degraded"
+        : ["down", "failed", "failure"].includes(raw)
+          ? "failed"
+          : "unknown";
+  const checks = payload?.components && typeof payload.components === "object"
+    ? Object.keys(payload.components).length
+    : payload?.checks && typeof payload.checks === "object"
+      ? Object.keys(payload.checks).length
+      : 0;
+  return {
+    state,
+    checks,
+    reportAt,
+    detail: `${checks || "No"} local check${checks === 1 ? "" : "s"}; ${reportAt ? `report ${ageLabel(reportAt, nowMs)}` : "report age unknown"}.`,
+  };
 }
 
-function renderCorpus(payload) {
+function renderInfra(payload) {
+  const view = deriveInfraView(payload);
+  setState("infra-state", view.state);
+  setText("infra-detail", view.detail);
+  return view.state;
+}
+
+export function deriveCorpusView(payload, nowMs = Date.now()) {
   const hour = Number(payload?.last_hour ?? payload?.counts?.last_hour ?? payload?.queries_last_hour);
   const today = Number(payload?.today ?? payload?.counts?.today ?? payload?.queries_today);
   const total = Number(payload?.total ?? payload?.counts?.total ?? payload?.queries_total);
   const hasCounts = [hour, today, total].some(Number.isFinite);
-  const state = payload?.stale === true ? "stale" : hasCounts ? "healthy" : "unknown";
-  setState("corpus-state", state);
-  setText("summary-corpus", Number.isFinite(hour) ? `${hour} / hour` : Number.isFinite(today) ? `${today} today` : "unknown");
-  setText("corpus-detail", hasCounts
-    ? `${Number.isFinite(hour) ? hour : "unknown"} last hour; ${Number.isFinite(today) ? today : "unknown"} today; ${Number.isFinite(total) ? total : "unknown"} all time. Terms and IPs are not rendered.`
-    : "The public response did not contain aggregate query counts. No index-health claim is made.");
-  return state;
+  const source = String(payload?.source ?? "none");
+  const summaryAt = payload?.last_summary_at ?? payload?.generated_at ?? null;
+  const state = source === "live" && hasCounts
+    ? "healthy"
+    : source === "last-summary" && hasCounts
+      ? "stale"
+      : "unknown";
+  const countText = Number.isFinite(hour) ? `${hour} / hour` : Number.isFinite(today) ? `${today} today` : "unknown";
+  const counts = `${Number.isFinite(hour) ? hour : "unknown"} last hour; ${Number.isFinite(today) ? today : "unknown"} today; ${Number.isFinite(total) ? total : "unknown"} all time.`;
+  const provenance = source === "live"
+    ? "Live corpus statistics."
+    : source === "last-summary"
+      ? `Cached activity summary; ${summaryAt ? ageLabel(summaryAt, nowMs) : "summary time unavailable"}. This does not prove current index health.`
+      : "No live or cached corpus source is available. No index-health claim is made.";
+  return { state, countText, detail: `${counts} ${provenance} Terms and IPs are not rendered.` };
+}
+
+function renderCorpus(payload) {
+  const view = deriveCorpusView(payload);
+  setState("corpus-state", view.state);
+  setText("summary-corpus", view.countText);
+  setText("corpus-detail", view.detail);
+  return view.state;
 }
 
 function renderFailure(id, summaryId, label, error) {
@@ -241,31 +342,38 @@ function renderFailure(id, summaryId, label, error) {
 }
 
 async function load() {
-  const results = await Promise.allSettled(Object.values(ENDPOINTS).map(fetchJson));
-  const [telemetry, registry, infra, corpus, events] = results;
+  const keys = Object.keys(ENDPOINTS);
+  const settled = await Promise.allSettled(keys.map((key) => fetchJson(ENDPOINTS[key])));
+  const results = Object.fromEntries(keys.map((key, index) => [key, settled[index]]));
   const states = [];
 
-  if (telemetry.status === "fulfilled") states.push(renderTelemetry(telemetry.value));
+  if (results.telemetry.status === "fulfilled") states.push(renderTelemetry(results.telemetry.value));
   else {
     setState("telemetry-state", "unavailable");
-    renderFailure("telemetry-detail", "summary-telemetry", "Telemetry", telemetry.reason);
+    renderFailure("telemetry-detail", "summary-telemetry", "Telemetry", results.telemetry.reason);
     states.push("unavailable");
   }
 
-  if (registry.status === "fulfilled") states.push(renderRegistry(registry.value));
-  else {
-    renderFailure("registry-status", "summary-services", "Registry", registry.reason);
+  if (
+    results.registry.status === "fulfilled"
+    && results.health.status === "fulfilled"
+    && results.topology.status === "fulfilled"
+  ) {
+    states.push(renderObservedServices(results.registry.value, results.health.value, results.topology.value));
+  } else {
+    const failed = [results.registry, results.health, results.topology].find((result) => result.status === "rejected");
+    renderFailure("registry-status", "summary-services", "Observed service composition", failed?.reason ?? "source unavailable");
     states.push("unavailable");
   }
 
-  if (infra.status === "fulfilled") states.push(renderInfra(infra.value));
+  if (results.infra.status === "fulfilled") states.push(renderInfra(results.infra.value));
   else {
     setState("infra-state", "unavailable");
     setText("infra-detail", "Public infra status is unavailable.");
     states.push("unavailable");
   }
 
-  if (corpus.status === "fulfilled") states.push(renderCorpus(corpus.value));
+  if (results.corpus.status === "fulfilled") states.push(renderCorpus(results.corpus.value));
   else {
     setState("corpus-state", "unavailable");
     setText("summary-corpus", "unavailable");
@@ -273,16 +381,16 @@ async function load() {
     states.push("unavailable");
   }
 
-  if (events.status === "fulfilled") states.push(renderEvents(events.value));
+  if (results.events.status === "fulfilled") states.push(renderEvents(results.events.value));
   else {
-    renderFailure("incident-status", "summary-failures", "Recent events", events.reason);
+    renderFailure("incident-status", "summary-failures", "Recent events", results.events.reason);
     states.push("unavailable");
   }
 
   const overall = byId("observation-status");
   if (states.some((state) => ["failed", "failure", "down"].includes(state))) {
     overall.dataset.state = "failure";
-    overall.textContent = "At least one bounded source reports failure evidence.";
+    overall.textContent = "At least one bounded source reports current failure evidence.";
   } else if (states.some((state) => ["stale", "degraded", "empty", "unknown", "unavailable"].includes(state))) {
     overall.dataset.state = "warning";
     overall.textContent = "The frame contains stale, empty, unknown, degraded, or unavailable evidence.";
@@ -292,4 +400,4 @@ async function load() {
   }
 }
 
-load();
+if (typeof document !== "undefined") load();
