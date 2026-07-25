@@ -90,6 +90,14 @@
       "tagline": "The estate's services and status, at the terminal."
     },
     {
+      "file": "system-symphony",
+      "html": "lab/system-symphony/index.html",
+      "route": "/lab/system-symphony/",
+      "kicker": "Experience / Telemetry sonification",
+      "title": ["Hear the estate,", "keep [uncertainty.]"],
+      "tagline": "A read-only generative instrument driven by bounded evidence."
+    },
+    {
       "file": "proof-chain",
       "html": "lab/proof-chain/index.html",
       "route": "/lab/proof-chain/",

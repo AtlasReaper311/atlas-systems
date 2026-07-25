@@ -2,11 +2,12 @@
 
 const LAB_ROUTES = [
   { label: "Lab home", href: "/lab/" },
+  { label: "System Symphony", href: "/lab/system-symphony/" },
   { label: "System Map", href: "/lab/system-map/" },
   { label: "Operations", href: "/lab/console/" },
   { label: "Proof Chain", href: "/lab/proof-chain/" },
   { label: "Signal Garden", href: "/lab/signal/" },
-  { label: "Reliability", href: "/lab/reliability/" },
+  { label: "Reliability", href: "/systems/reliability/" },
   { label: "Conformance", href: "/lab/conformance/" },
   { label: "Shape Detector", href: "/lab/anomaly/" },
 ];
