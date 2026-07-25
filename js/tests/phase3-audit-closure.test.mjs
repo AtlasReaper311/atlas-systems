@@ -36,7 +36,7 @@ test("approved public Lab and focused Systems routes are sitemap-owned", () => {
     assert.ok(sitemap.includes(`<loc>${url}</loc>`), `${url} missing from sitemap.xml`);
     assert.ok(sitemapGenerator.includes(`"${route}"`), `${route} missing from generator authority`);
   }
-  assert.ok(!sitemap.includes("https://atlas-systems.uk/lab/reliability/"));
+  assert.ok(!sitemap.includes("<loc>https://atlas-systems.uk/lab/reliability/</loc>"));
   assert.ok(!sitemapGenerator.includes('("/lab/reliability/"'));
 });
 
