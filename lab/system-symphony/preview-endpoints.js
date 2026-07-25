@@ -26,5 +26,36 @@
     return nativeFetch(previewUrl, init);
   };
 
+  function setText(selector, value) {
+    const node = document.querySelector(selector);
+    if (node && node.textContent !== value) node.textContent = value;
+  }
+
+  function enforcePreviewLabels() {
+    const host = document.getElementById("system-symphony-widget");
+    if (!host) return;
+    if (host.dataset.source !== "preview") host.dataset.source = "preview";
+    setText("[data-source-badge]", "Preview data");
+    setText("[data-dialog-source]", "Preview data");
+    setText(
+      "[data-source-explanation]",
+      "Bounded same-origin preview data. This branch does not claim to display current production telemetry.",
+    );
+    const important = host.querySelector("[data-important-status]");
+    if (important?.textContent?.startsWith("LIVE.")) {
+      important.textContent = important.textContent.replace(/^LIVE\./, "PREVIEW DATA.");
+    }
+  }
+
+  const labelObserver = new MutationObserver(enforcePreviewLabels);
+  labelObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-source"],
+    childList: true,
+    subtree: true,
+  });
+  enforcePreviewLabels();
+  window.addEventListener("pagehide", () => labelObserver.disconnect(), { once: true });
+
   window.__ATLAS_SYMPHONY_PREVIEW_DATA__ = true;
 })();
