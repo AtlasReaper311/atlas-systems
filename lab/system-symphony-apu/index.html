@@ -9,8 +9,8 @@
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
-  <link rel="stylesheet" href="/lab/system-symphony-apu/system-symphony-apu.css?v=20260725-atlas-apu-track-v1">
-  <link rel="stylesheet" href="/lab/system-symphony-apu/system-symphony-apu-track.css?v=20260725-atlas-apu-track-v1">
+  <link rel="stylesheet" href="/lab/system-symphony-apu/system-symphony-apu.css?v=20260726-atlas-apu-track-v2">
+  <link rel="stylesheet" href="/lab/system-symphony-apu/system-symphony-apu-track.css?v=20260726-atlas-apu-track-v2">
   <title>Atlas APU Track Preview // System Symphony</title>
 </head>
 <body>
@@ -27,9 +27,9 @@
 
   <main class="apu-main" data-apu-root data-ready="false" data-running="false" data-source="connecting" data-state="unknown" data-section="standby">
     <header class="apu-hero">
-      <p class="apu-kicker">System Symphony / long-form arrangement preview</p>
+      <p class="apu-kicker">System Symphony / corrected long-form preview</p>
       <h1>The estate becomes a complete game soundtrack.</h1>
-      <p class="apu-lede">Atlas APU now moves through a deterministic 32-bar form with an intro, themes, variation, build, peak, release, recovery and breathing space. Estate evidence reshapes harmony, density and articulation without destroying the musical arc.</p>
+      <p class="apu-lede">Atlas APU moves through a deterministic 32-bar form with an intro, themes, variation, build, peak, release, recovery and breathing space. Every pitched voice now shares the same F-centred harmonic authority, while each channel has a distinct synthesis identity.</p>
       <div class="apu-boundary" role="status">
         <strong>Preview boundary</strong>
         <span>This route does not replace the current production instrument and cannot change estate state.</span>
@@ -39,7 +39,7 @@
     <section class="apu-console" aria-labelledby="apu-console-title">
       <div class="apu-console-head">
         <div>
-          <p class="apu-kicker">ATLAS APU // 32-bar procedural soundtrack</p>
+          <p class="apu-kicker">ATLAS APU // 32-bar procedural soundtrack v2</p>
           <h2 id="apu-console-title">Live soundtrack console</h2>
         </div>
         <div class="apu-controls">
@@ -64,7 +64,7 @@
       <section class="apu-metrics" aria-label="Current score and arrangement summary">
         <article><span>Section</span><strong data-metric="section">Standby</strong></article>
         <article><span>Position</span><strong data-metric="position">Bars 0-0 / 32</strong></article>
-        <article><span>Director phase</span><strong data-metric="phase">Standby</strong></article>
+        <article><span>Telemetry phase</span><strong data-metric="phase">Standby</strong></article>
         <article><span>Tempo</span><strong data-metric="bpm">100 BPM</strong></article>
         <article><span>Score</span><strong data-metric="state">Unknown</strong></article>
         <article><span>Scene</span><strong data-metric="scene">Lost Signal</strong></article>
@@ -98,22 +98,22 @@
       <section class="apu-channels" aria-labelledby="apu-channels-title">
         <div class="apu-section-head">
           <div><span>01</span><h3 id="apu-channels-title">Fictional sound chip</h3></div>
-          <p>Historical console vocabulary with a modern output stage. No streamed or decoded audio assets.</p>
+          <p>Historical console vocabulary with clearly separated synthesis roles. No streamed or decoded audio assets.</p>
         </div>
         <div class="apu-channel-grid">
-          <article data-channel="pulse-a"><span>PULSE A</span><strong>Player lead</strong><p>Theme statements, transformations, octave peaks and recovery reprises.</p><small data-channel-count="pulse-a">0 services</small></article>
-          <article data-channel="pulse-b"><span>PULSE B</span><strong>Packet counterline</strong><p>Answer phrases, counter-melody and section-dependent callouts.</p><small data-channel-count="pulse-b">0 services</small></article>
-          <article data-channel="triangle"><span>TRIANGLE</span><strong>Machine foundation</strong><p>Foundation, groove, walking, rising, climax and sustained bass roles.</p><small data-channel-count="triangle">0 services</small></article>
-          <article data-channel="noise"><span>NOISE</span><strong>Operations rhythm</strong><p>Section-specific drums, fills, dropouts and incident accents.</p><small data-channel-count="noise">0 services</small></article>
-          <article data-channel="wavetable"><span>WAVETABLE</span><strong>Memory field</strong><p>Two-chord phrases, inversions and state-specific harmonic colour.</p><small data-channel-count="wavetable">0 services</small></article>
-          <article data-channel="fm-accent"><span>FM ACCENT</span><strong>Transition signal</strong><p>Generated lifts, rises, hits, drops, resolutions and deployment fanfares.</p><small data-channel-count="fm-accent">event channel</small></article>
+          <article data-channel="pulse-a"><span>LEAD BUS</span><strong>Square player lead</strong><p>A focused square-wave melody with section-dependent filtering and constrained voice-leading.</p><small data-channel-count="pulse-a">0 services</small></article>
+          <article data-channel="pulse-b"><span>COUNTER BUS</span><strong>FM packet counterline</strong><p>A softer FM answer voice with its own register, rhythm, filter and harmonic path.</p><small data-channel-count="pulse-b">0 services</small></article>
+          <article data-channel="triangle"><span>TRIANGLE</span><strong>Machine foundation</strong><p>A dedicated triangle bass for foundation, groove, walking, rising, climax and sustained roles.</p><small data-channel-count="triangle">0 services</small></article>
+          <article data-channel="noise"><span>NOISE</span><strong>Operations rhythm</strong><p>Lower-level section-specific kick, snare, hats, fills, dropouts and incident accents.</p><small data-channel-count="noise">0 services</small></article>
+          <article data-channel="wavetable"><span>MEMORY FIELD</span><strong>Sine harmonic pad</strong><p>A slow sine-based pad carrying consonant two-chord phrases and restrained inversions.</p><small data-channel-count="wavetable">0 services</small></article>
+          <article data-channel="fm-accent"><span>EVENT BUS</span><strong>Polyphonic transition signal</strong><p>Fault-isolated FM lifts, rises, hits, drops, resolutions and deployment fanfares.</p><small data-channel-count="fm-accent">event channel</small></article>
         </div>
       </section>
 
       <section class="apu-services" aria-labelledby="apu-services-title">
         <div class="apu-section-head">
           <div><span>02</span><h3 id="apu-services-title">Service leitmotifs</h3></div>
-          <p>Each component keeps stable register, motif, pulse width and stereo identity while section density changes around it.</p>
+          <p>Service voices rotate between pulse, triangle, sawtooth and square timbres, then quantise into the active harmony.</p>
         </div>
         <section class="apu-table-wrap" aria-label="Atlas APU service mapping" tabindex="0">
           <table>
@@ -133,10 +133,10 @@
         <div><span>03</span><h2 id="apu-notes-title">What this preview proves</h2></div>
       </div>
       <div class="apu-note-grid">
-        <article><h3>Same evidence</h3><p>The existing read-only sonification frame, topology merge, stale handling and deployment detector remain unchanged.</p></article>
+        <article><h3>Shared tonal centre</h3><p>Lead, counterline, services, pad, bass and event cues now resolve through the same F-centred scale and active chord.</p></article>
         <article><h3>Long-form memory</h3><p>A complete 32-bar cycle controls harmony, melody transformation, bass role, drum density and transitions.</p></article>
-        <article><h3>Real orchestration</h3><p>Lead, counterline, service voices, bass, drums, pad and accents enter and leave through independent section gains.</p></article>
-        <article><h3>Controlled cutover</h3><p>The current System Symphony route remains available for direct comparison until a later reviewed pull request performs the replacement.</p></article>
+        <article><h3>Distinct orchestration</h3><p>Square lead, FM counterline, varied service oscillators, triangle bass, sine pad, noise drums and event voices occupy separate roles.</p></article>
+        <article><h3>Fault isolation</h3><p>A failed voice can no longer stop the transport or pin playback to one rapidly repeating percussion step.</p></article>
       </div>
       <div class="apu-links">
         <a href="/lab/system-symphony/">Compare current production instrument</a>
@@ -148,6 +148,6 @@
 
   <script src="/lab/system-symphony/preview-endpoints.js?v=20260725-numbered-previews"></script>
   <script src="/vendor/tone.min.js?v=20260708-sonify"></script>
-  <script type="module" src="/lab/system-symphony-apu/system-symphony-apu.js?v=20260725-atlas-apu-track-v1"></script>
+  <script type="module" src="/lab/system-symphony-apu/system-symphony-apu.js?v=20260726-atlas-apu-track-v2"></script>
 </body>
 </html>
