@@ -15,7 +15,7 @@ test("System Symphony has a dedicated canonical product page", () => {
   assert.match(page, /Audio never starts without a user gesture\./);
   assert.match(page, /data-symphony-page-host/);
   assert.match(page, /href="\/systems\/reliability\/"/);
-  assert.match(page, /https:\/\/api\.atlas-systems\.uk\/sonify/);
+  assert.ok(page.includes("https://api.atlas-systems.uk/sonify"));
 });
 
 test("the page reuses the current engine instead of forking audio logic", () => {
