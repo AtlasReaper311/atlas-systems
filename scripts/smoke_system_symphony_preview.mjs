@@ -77,7 +77,10 @@ try {
   await audioButton.click();
   await page.waitForFunction(() => {
     return [...document.querySelectorAll("[data-audio-toggle]")]
-      .some((button) => /pause/i.test(button.textContent ?? ""));
+      .some((button) => (
+        /stop/i.test(button.textContent ?? "")
+        && button.getAttribute("aria-pressed") === "true"
+      ));
   }, null, { timeout: 45_000 });
 
   const fatalConsole = consoleMessages.filter(({ text }) => (
@@ -101,6 +104,7 @@ try {
       text: button.textContent?.trim() ?? "",
       disabled: button.disabled,
       ariaLabel: button.getAttribute("aria-label"),
+      ariaPressed: button.getAttribute("aria-pressed"),
       visible: Boolean(button.offsetWidth || button.offsetHeight || button.getClientRects().length),
     })),
     importantStatus: document.querySelector("[data-important-status]")?.textContent?.trim() ?? null,
