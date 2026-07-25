@@ -368,29 +368,6 @@ export function serviceEventForTrackStep(frame = {}, arrangement = null, step = 
   });
 }
 
-export function transitionEventForTrackStep(frame = {}, arrangement = null, step = 0) {
-  if (!arrangement?.isSectionEnd) return null;
-  const position = wrappedStep(step);
-  const scale = normalizedScale(frame);
-  const harmony = activeHarmony(arrangement, position);
-  const transition = arrangement.transition ?? "none";
-  if (transition === "fill" && position === 31) {
-    return Object.freeze({ type: "hit", midi: scaleMidi(scale, 65, (harmony.rootDegree ?? 0) + 4), duration: "8n", velocity: 0.3 });
-  }
-  if (transition === "rise" && position === 31) {
-    return Object.freeze({ type: "rise", midi: scaleMidi(scale, 65, (harmony.rootDegree ?? 0) + 4), duration: "8n", velocity: 0.32 });
-  }
-  if (transition === "drop" && position === 31) {
-    return Object.freeze({ type: "drop", midi: scaleMidi(scale, 53, harmony.rootDegree ?? 0), duration: "2n", velocity: 0.36 });
-  }
-  if (transition === "resolve" && position === 30) {
-    return Object.freeze({ type: "resolve", midi: scaleMidi(scale, 65, harmony.rootDegree ?? 0), duration: "4n", velocity: 0.27 });
-  }
-  if (transition === "lift" && position === 31) {
-    return Object.freeze({ type: "lift", midi: scaleMidi(scale, 77, (harmony.rootDegree ?? 0) + 4), duration: "8n", velocity: 0.25 });
-  }
-  if (transition === "restart" && position === 31) {
-    return Object.freeze({ type: "restart", midi: scaleMidi(scale, 65, 0), duration: "2n", velocity: 0.2 });
-  }
+export function transitionEventForTrackStep() {
   return null;
 }
