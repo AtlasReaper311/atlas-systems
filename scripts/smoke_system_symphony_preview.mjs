@@ -82,6 +82,9 @@ try {
         && button.getAttribute("aria-pressed") === "true"
       ));
   }, null, { timeout: 45_000 });
+  await page.waitForFunction(() => (
+    document.getElementById("system-symphony-widget")?.dataset?.source === "preview"
+  ), null, { timeout: 10_000 });
 
   const fatalConsole = consoleMessages.filter(({ text }) => (
     fatalPatterns.some((pattern) => pattern.test(text))
