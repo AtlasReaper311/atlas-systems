@@ -83,6 +83,7 @@ async function configureContext(context) {
       configurable: false,
     });
   });
+
   await context.route("**/*", async (route) => {
     const url = new URL(route.request().url());
     if (fixtureHosts.has(url.hostname)) {
@@ -107,7 +108,9 @@ async function openWithRetry(page, route) {
       if (!response?.ok()) throw new Error(`HTTP ${response?.status() ?? "no response"}`);
       await page.waitForSelector(".atlas-header__brand", { timeout: 15_000 });
       await page.waitForSelector(".atlas-header__actions", { timeout: 15_000 });
+      await page.waitForSelector(".atlas-search-control", { timeout: 15_000 });
       await page.waitForSelector("main.focus-main", { timeout: 15_000 });
+      await page.waitForSelector(".focus-hero", { timeout: 15_000 });
       await page.evaluate(() => document.fonts?.ready || Promise.resolve());
       await page.waitForTimeout(1_000);
       return url;
@@ -123,6 +126,7 @@ async function inspectPage(page) {
   return page.evaluate(() => {
     function selectorFor(element) {
       if (!element || element === document.documentElement) return "html";
+      if (element === document.body) return "body";
       if (element.id) return `#${CSS.escape(element.id)}`;
       const classes = [...element.classList].slice(0, 3).map((name) => `.${CSS.escape(name)}`).join("");
       return `${element.tagName.toLowerCase()}${classes}`;
@@ -133,18 +137,25 @@ async function inspectPage(page) {
     const overflow = [...document.querySelectorAll("body *")]
       .map((element) => {
         const rect = element.getBoundingClientRect();
-        return { selector: selectorFor(element), left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width) };
+        return {
+          selector: selectorFor(element),
+          left: Math.round(rect.left),
+          right: Math.round(rect.right),
+          width: Math.round(rect.width),
+        };
       })
       .filter((item) => item.left < -1 || item.right > width + 1)
       .sort((a, b) => b.width - a.width)
       .slice(0, 12);
     const header = document.querySelector(".atlas-header");
-    const main = document.querySelector("main.focus-main");
+    const hero = document.querySelector(".focus-hero");
     const mobileNav = document.querySelector(".atlas-mobile-nav");
     const mobileVisible = Boolean(mobileNav) && getComputedStyle(mobileNav).display !== "none";
     const statusStates = [...document.querySelectorAll(".focus-status-line[data-state], .focus-state[data-state]")]
       .map((node) => node.dataset.state)
       .filter(Boolean);
+    const activeElement = document.activeElement;
+
     return {
       title: document.title,
       width,
@@ -155,8 +166,8 @@ async function inspectPage(page) {
       headerPresent: Boolean(header),
       headerPosition: header ? getComputedStyle(header).position : null,
       headerBottom: header ? Math.round(header.getBoundingClientRect().bottom) : null,
-      mainTop: main ? Math.round(main.getBoundingClientRect().top) : null,
-      searchPresent: Boolean(document.querySelector(".atlas-header__search")),
+      heroTop: hero ? Math.round(hero.getBoundingClientRect().top) : null,
+      searchPresent: Boolean(document.querySelector(".atlas-search-control")),
       mobileVisible,
       mobileActive: document.querySelectorAll('.atlas-mobile-nav [aria-current="page"]').length,
       mobileNavHeight: mobileNav ? Math.round(mobileNav.getBoundingClientRect().height) : 0,
@@ -169,7 +180,8 @@ async function inspectPage(page) {
       audioToggleText: document.querySelector("[data-audio-toggle]")?.textContent?.trim() || null,
       modalCount: document.querySelectorAll('[aria-modal="true"]').length,
       inlineSymphonyRegion: Boolean(document.querySelector('.symphony-console[role="region"]')),
-      activeElement: selectorFor(document.activeElement),
+      activeElement: selectorFor(activeElement),
+      activeElementInsideSymphony: Boolean(activeElement?.closest?.("[data-symphony-page-host]")),
     };
   });
 }
@@ -199,8 +211,9 @@ function semanticFailures(evidence, focus, browserName, viewportName, routeName,
   if (evidence.mainCount !== 1) values.push(`${prefix}: expected one main, found ${evidence.mainCount}`);
   if (!evidence.headerPresent || !["fixed", "sticky"].includes(evidence.headerPosition)) values.push(`${prefix}: governed header is missing or not pinned`);
   if (!evidence.searchPresent) values.push(`${prefix}: global search control is missing`);
-  if (evidence.mainTop < evidence.headerBottom) values.push(`${prefix}: header obscures the focused page hero`);
+  if (evidence.heroTop === null || evidence.headerBottom === null || evidence.heroTop < evidence.headerBottom) values.push(`${prefix}: header obscures the focused page hero`);
   if (evidence.scrollWidth > evidence.width + 1) values.push(`${prefix}: horizontal overflow ${evidence.scrollWidth} > ${evidence.width}; ${JSON.stringify(evidence.overflow)}`);
+
   const mobileExpected = Number(viewportName) < 768;
   if (mobileExpected !== evidence.mobileVisible) values.push(`${prefix}: mobile navigation visibility is incorrect`);
   if (mobileExpected && evidence.mobileActive !== 1) values.push(`${prefix}: active mobile ${activeSection} route is missing`);
@@ -209,11 +222,12 @@ function semanticFailures(evidence, focus, browserName, viewportName, routeName,
   if (evidence.canonical && !evidence.canonical.startsWith("https://atlas-systems.uk/")) values.push(`${prefix}: preview hostname entered canonical metadata`);
   if (!focus.focusVisible || ["body", "html"].includes(focus.tag)) values.push(`${prefix}: keyboard focus is not visibly placed on an interactive control`);
   if (routeName !== "system-symphony" && evidence.statusStates.length && evidence.healthyStates === evidence.statusStates.length) values.push(`${prefix}: unavailable evidence was rendered entirely healthy`);
+
   if (routeName === "system-symphony") {
     if (evidence.audioContextCount !== 0) values.push(`${prefix}: audio context was created before user consent`);
     if (evidence.audioToggleText !== "Start") values.push(`${prefix}: audio control did not remain at Start before consent`);
     if (evidence.modalCount !== 0 || !evidence.inlineSymphonyRegion) values.push(`${prefix}: Symphony is not embedded as a non-modal page region`);
-    if (evidence.activeElement.includes("symphony")) values.push(`${prefix}: Symphony stole focus during page load`);
+    if (evidence.activeElementInsideSymphony) values.push(`${prefix}: Symphony stole focus during page load`);
   }
   return values;
 }
@@ -234,12 +248,25 @@ async function captureRoute(context, browserName, viewportName, routeName, route
     const pageFailures = semanticFailures(evidence, focus, browserName, viewportName, routeName, activeSection);
     if (pageErrors.length) pageFailures.push(`${browserName}/${viewportName}/${routeName}: page errors ${JSON.stringify(pageErrors)}`);
     if (blocking.length) pageFailures.push(`${browserName}/${viewportName}/${routeName}: serious accessibility findings ${JSON.stringify(blocking)}`);
+
     const fullPage = `batch-h-screenshots/${browserName}-${viewportName}-${routeName}-full.png`;
     const viewportShot = `batch-h-screenshots/${browserName}-${viewportName}-${routeName}-viewport.png`;
     await page.screenshot({ path: fullPage, fullPage: true });
     await page.screenshot({ path: viewportShot, fullPage: false });
     failures.push(...pageFailures);
-    report.push({ browser: browserName, viewport: viewportName, route, url, activeSection, evidence, focus, pageErrors, accessibilityViolations: violations, failures: pageFailures, screenshots: { fullPage, viewport: viewportShot } });
+    report.push({
+      browser: browserName,
+      viewport: viewportName,
+      route,
+      url,
+      activeSection,
+      evidence,
+      focus,
+      pageErrors,
+      accessibilityViolations: violations,
+      failures: pageFailures,
+      screenshots: { fullPage, viewport: viewportShot },
+    });
   } catch (error) {
     const message = `${browserName}/${viewportName}/${routeName}: ${error.stack || error.message}`;
     failures.push(message);

@@ -24,6 +24,8 @@ test("Batch H browser evidence covers every focused destination", () => {
 test("Batch H evidence checks the corrected headers and failure states", () => {
   assert.ok(runner.includes('waitForSelector(".atlas-header__brand"'));
   assert.ok(runner.includes('waitForSelector(".atlas-header__actions"'));
+  assert.ok(runner.includes('waitForSelector(".atlas-search-control"'));
+  assert.ok(runner.includes('document.querySelector(".focus-hero")'));
   assert.ok(runner.includes("header obscures the focused page hero"));
   assert.ok(runner.includes("global search control is missing"));
   assert.ok(runner.includes("unavailable evidence was rendered entirely healthy"));
@@ -38,6 +40,7 @@ test("Batch H evidence verifies keyboard, no-JavaScript, motion, and audio conse
   assert.ok(runner.includes('reducedMotion: "reduce"'));
   assert.ok(runner.includes("audio context was created before user consent"));
   assert.ok(runner.includes('audioToggleText !== "Start"'));
+  assert.ok(runner.includes("activeElementInsideSymphony"));
   assert.ok(runner.includes("Symphony stole focus during page load"));
   assert.ok(runner.includes("Symphony is not embedded as a non-modal page region"));
 });
