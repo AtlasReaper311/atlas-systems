@@ -1,7 +1,13 @@
 import { ATLAS_MOTIF_DEGREES } from "./composition-director.js?v=20260720-system-symphony-loop-production-v2";
 import { clamp, normalizedScoreState } from "./apu-palette.js?v=20260725-system-symphony-atlas-apu-preview-v1";
+import {
+  normalizedStateIdentity,
+  stateMixModifiers,
+  statePatternGrammar,
+  stateTimbreModifiers,
+} from "./apu-state-identities.js?v=20260726-system-symphony-state-identities-v1";
 
-export const ATLAS_APU_TRACK_BUILD_ID = "20260726-system-symphony-atlas-apu-track-v2";
+export const ATLAS_APU_TRACK_BUILD_ID = "20260726-system-symphony-state-identities-v1";
 export const APU_TRACK_PHRASES = 16;
 export const APU_BARS_PER_PHRASE = 2;
 export const APU_TRACK_BARS = APU_TRACK_PHRASES * APU_BARS_PER_PHRASE;
@@ -20,10 +26,10 @@ export const APU_FORM = Object.freeze([
 ]);
 
 const STATE_ROOTS = Object.freeze({
-  healthy: Object.freeze([0, 5, 3, 4, 0, 5, 3, 4, 1, 5, 3, 4, 0, 5, 3, 0]),
+  healthy: Object.freeze([0, 4, 3, 5, 0, 4, 3, 5, 1, 4, 3, 5, 0, 4, 3, 0]),
   warning: Object.freeze([0, 1, 4, 5, 0, 1, 5, 4, 1, 4, 5, 1, 0, 5, 1, 0]),
-  critical: Object.freeze([0, 1, 0, 4, 0, 1, 5, 1, 0, 1, 4, 1, 0, 5, 1, 0]),
-  unknown: Object.freeze([0, 3, 0, 5, 0, 3, 5, 0, 0, 4, 3, 0, 5, 3, 0, 0]),
+  critical: Object.freeze([0, 0, 4, 0, 0, 4, 1, 0, 0, 4, 1, 0, 0, 4, 1, 0]),
+  unknown: Object.freeze([0, 3, 0, 4, 0, 3, 4, 0, 0, 4, 3, 0, 4, 3, 0, 0]),
 });
 
 const MOTIF_MODES = Object.freeze({
@@ -32,7 +38,7 @@ const MOTIF_MODES = Object.freeze({
   answer: Object.freeze([4, 5, 4, 2, 1, 2, 0, 0]),
   ascending: Object.freeze([0, 1, 2, 3, 4, 5, 4, 6]),
   fragment: Object.freeze([0, 2, 4, 2]),
-  climax: Object.freeze([0, 2, 4, 5, 4, 2, 1, 0]),
+  climax: Object.freeze([0, 4, 0, 4, 1, 4, 0, 4]),
   recovery: Object.freeze([...ATLAS_MOTIF_DEGREES]),
   breathe: Object.freeze([0, 4, 2, 0]),
 });
@@ -50,19 +56,6 @@ const SECTION_MIX = Object.freeze({
   breathe: Object.freeze({ primary: 0.24, secondary: 0, services: 0.1, bass: 0, drums: 0, pad: 0.86, accent: 0.1 }),
 });
 
-const SECTION_QUALITY = Object.freeze({
-  intro: "open",
-  establish: "minor",
-  "theme-a": "minor",
-  variation: "wide",
-  "theme-b": "suspended",
-  build: "wide",
-  peak: "power",
-  release: "open",
-  recovery: "minor",
-  breathe: "suspended",
-});
-
 const SECTION_TIMBRE = Object.freeze({
   intro: Object.freeze({ leadCutoffHz: 2200, counterCutoffHz: 1800, serviceCutoffScale: 0.72, padCutoffScale: 0.78, leadDrive: 0.04 }),
   establish: Object.freeze({ leadCutoffHz: 3400, counterCutoffHz: 2400, serviceCutoffScale: 0.82, padCutoffScale: 0.88, leadDrive: 0.06 }),
@@ -76,23 +69,13 @@ const SECTION_TIMBRE = Object.freeze({
   breathe: Object.freeze({ leadCutoffHz: 1800, counterCutoffHz: 1400, serviceCutoffScale: 0.6, padCutoffScale: 0.72, leadDrive: 0.02 }),
 });
 
-function modulo(value, length) {
-  return ((Math.trunc(value) % length) + length) % length;
-}
+const modulo = (value, length) => ((Math.trunc(value) % length) + length) % length;
 
 function sectionAtPhrase(cyclePhrase) {
   let cursor = 0;
   for (const section of APU_FORM) {
     const end = cursor + section.phrases;
-    if (cyclePhrase < end) {
-      return Object.freeze({
-        ...section,
-        startPhrase: cursor,
-        localPhrase: cyclePhrase - cursor,
-        isFirstPhrase: cyclePhrase === cursor,
-        isLastPhrase: cyclePhrase === end - 1,
-      });
-    }
+    if (cyclePhrase < end) return Object.freeze({ ...section, startPhrase: cursor, localPhrase: cyclePhrase - cursor, isFirstPhrase: cyclePhrase === cursor, isLastPhrase: cyclePhrase === end - 1 });
     cursor = end;
   }
   return Object.freeze({ ...APU_FORM[0], startPhrase: 0, localPhrase: 0, isFirstPhrase: true, isLastPhrase: true });
@@ -114,75 +97,70 @@ function phraseVariation(source, localPhrase, cycleNumber) {
 function stateAdjustedMotif(mode, state, section, cycleNumber) {
   const source = phraseVariation(MOTIF_MODES[mode] ?? MOTIF_MODES.statement, section.localPhrase, cycleNumber);
   if (state === "healthy") return source;
-  if (state === "warning") {
-    return source.map((degree, index) => (index % 4 === 3 ? Math.max(0, degree - 1) : degree));
-  }
-  if (state === "critical") {
-    return source.map((degree, index) => (index % 2 === 0 ? degree : Math.max(0, degree - 1)));
-  }
-  return source.filter((_, index) => index % 2 === 0);
+  if (state === "warning") return source.map((degree, index) => (index % 4 === 3 ? Math.max(0, degree - 1) : degree));
+  if (state === "critical") return source.map((degree, index) => (index % 2 === 0 ? 0 : degree >= 4 ? 4 : 1));
+  return source.filter((_, index) => index % 2 === 0).slice(0, 4);
 }
 
 function harmonyForPhrase(state, cyclePhrase, section) {
+  const identity = normalizedStateIdentity(state);
   const roots = STATE_ROOTS[state];
-  const first = roots[cyclePhrase];
-  const second = roots[(cyclePhrase + 1) % roots.length];
-  const quality = state === "critical"
-    ? "power"
-    : state === "unknown"
-      ? "suspended"
-      : state === "warning" && ["build", "peak", "theme-b"].includes(section.id)
-        ? "tense"
-        : SECTION_QUALITY[section.id] ?? "minor";
+  const qualityIndex = modulo(cyclePhrase + section.localPhrase, identity.chordQualities.length);
+  const quality = identity.chordQualities[qualityIndex];
   return Object.freeze([
-    Object.freeze({ rootDegree: first, quality, inversion: 0 }),
-    Object.freeze({ rootDegree: second, quality, inversion: section.localPhrase % 2 }),
+    Object.freeze({ rootDegree: roots[cyclePhrase], quality, inversion: 0 }),
+    Object.freeze({ rootDegree: roots[(cyclePhrase + 1) % roots.length], quality, inversion: state === "healthy" ? section.localPhrase % 2 : 0 }),
   ]);
 }
 
 function mixFor(section, state, directorPlan) {
   const base = SECTION_MIX[section.id] ?? SECTION_MIX.establish;
+  const modifiers = stateMixModifiers(state);
   const intent = directorPlan?.intent ?? {};
   const pressure = clamp(intent.pressure ?? 0, 0, 1);
   const confidence = clamp(intent.confidence ?? (state === "unknown" ? 0.35 : 0.85), 0, 1);
-  const stateScale = state === "critical" ? 1.08 : state === "warning" ? 1.02 : state === "unknown" ? 0.7 : 1;
-  const computed = {
-    primary: clamp(base.primary * confidence * stateScale, 0, 1),
-    secondary: clamp(base.secondary * confidence * stateScale, 0, 1),
-    services: clamp(base.services * (0.72 + confidence * 0.28), 0, 1),
-    bass: clamp(base.bass * (0.84 + pressure * 0.16), 0, 1),
-    drums: clamp(base.drums * (0.78 + pressure * 0.22) * (state === "unknown" ? 0.45 : 1), 0, 1),
-    pad: clamp(base.pad * (state === "critical" ? 0.72 : 1), 0, 1),
-    accent: clamp(base.accent * (0.74 + pressure * 0.26), 0, 1),
-  };
+  return Object.freeze({
+    primary: clamp(base.primary * modifiers.primary * confidence, 0, 1),
+    secondary: clamp(base.secondary * modifiers.secondary * confidence, 0, 1),
+    services: clamp(base.services * modifiers.services * (0.72 + confidence * 0.28), 0, 1),
+    bass: clamp(base.bass * modifiers.bass * (0.84 + pressure * 0.16), 0, 1),
+    drums: clamp(base.drums * modifiers.drums * (0.78 + pressure * 0.22), 0, 1),
+    pad: clamp(base.pad * modifiers.pad, 0, 1),
+    accent: clamp(base.accent * modifiers.accent * (0.74 + pressure * 0.26), 0, 1),
+  });
+}
 
-  if (section.id === "peak" && state !== "unknown") {
-    computed.primary = Math.max(computed.primary, 0.92);
-    computed.bass = Math.max(computed.bass, 0.92);
-    computed.drums = Math.max(computed.drums, 0.92);
-    computed.accent = Math.max(computed.accent, 0.78);
-  }
-
-  return Object.freeze(computed);
+function timbreFor(section, state) {
+  const base = SECTION_TIMBRE[section.id] ?? SECTION_TIMBRE.establish;
+  const modifier = stateTimbreModifiers(state);
+  const identity = normalizedStateIdentity(state);
+  return Object.freeze({
+    leadCutoffHz: Math.round(base.leadCutoffHz * modifier.leadCutoffScale),
+    counterCutoffHz: Math.round(base.counterCutoffHz * modifier.counterCutoffScale),
+    serviceCutoffScale: base.serviceCutoffScale * modifier.serviceCutoffScale,
+    padCutoffScale: base.padCutoffScale * modifier.padCutoffScale,
+    leadDrive: clamp(base.leadDrive * modifier.leadDriveScale, 0, 0.5),
+    primaryDutyCycle: identity.primaryDutyCycle,
+    counterDutyCycle: identity.counterDutyCycle,
+    stereoWidth: identity.stereoWidth,
+    transitionPolicy: identity.transitionPolicy,
+    masterGainDb: identity.masterGainDb,
+    dynamicRangeDb: identity.dynamicRangeDb,
+  });
 }
 
 export function arrangementForPhrase(frame = {}, directorPlan = null, phraseIndex = 0) {
   const state = normalizedScoreState(frame.scoreState);
+  const identity = normalizedStateIdentity(state);
   const absolutePhrase = Math.max(0, Math.trunc(phraseIndex));
   const cyclePhrase = modulo(absolutePhrase, APU_TRACK_PHRASES);
   const cycleNumber = Math.floor(absolutePhrase / APU_TRACK_PHRASES);
   const section = sectionAtPhrase(cyclePhrase);
-  const harmony = harmonyForPhrase(state, cyclePhrase, section);
-  const motifDegrees = stateAdjustedMotif(section.motif, state, section, cycleNumber);
+  const grammar = statePatternGrammar(state, section.id);
+  const motifMode = section.id === "intro" || section.id === "release" || section.id === "breathe" ? section.motif : grammar.motif;
   const mix = mixFor(section, state, directorPlan);
   const cycleBarStart = cyclePhrase * APU_BARS_PER_PHRASE + 1;
-  const energy = clamp(
-    (directorPlan?.energy ?? directorPlan?.intent?.intensity ?? frame.tension ?? 0.35) * 0.55
-      + mix.drums * 0.25
-      + mix.primary * 0.2,
-    0,
-    1,
-  );
+  const energy = clamp((directorPlan?.energy ?? directorPlan?.intent?.intensity ?? frame.tension ?? 0.35) * 0.55 + mix.drums * 0.25 + mix.primary * 0.2, 0, 1);
 
   return Object.freeze({
     buildId: ATLAS_APU_TRACK_BUILD_ID,
@@ -198,20 +176,21 @@ export function arrangementForPhrase(frame = {}, directorPlan = null, phraseInde
     isSectionStart: section.isFirstPhrase,
     isSectionEnd: section.isLastPhrase,
     scoreState: state,
+    stateIdentity: identity,
     directorPhase: directorPlan?.phase ?? "establish",
-    targetBpm: directorPlan?.targetBpm ?? frame.bpm ?? 100,
+    targetBpm: 100,
     energy,
-    harmony,
-    motifMode: section.motif,
-    motifDegrees: Object.freeze(motifDegrees),
-    drumPattern: section.drums,
-    bassPattern: section.bass,
-    counterPattern: section.counter,
+    harmony: harmonyForPhrase(state, cyclePhrase, section),
+    motifMode,
+    motifDegrees: Object.freeze(stateAdjustedMotif(motifMode, state, section, cycleNumber)),
+    drumPattern: section.id === "intro" || section.id === "release" || section.id === "breathe" ? section.drums : grammar.drums,
+    bassPattern: section.id === "intro" || section.id === "release" || section.id === "breathe" ? section.bass : grammar.bass,
+    counterPattern: section.id === "intro" || section.id === "release" || section.id === "breathe" ? section.counter : grammar.counter,
     transition: section.transition,
     fillEnabled: section.isLastPhrase && !["intro", "release", "breathe"].includes(section.id),
     octaveBoost: section.id === "peak" || (section.id === "build" && section.localPhrase === section.phrases - 1),
-    serviceDensity: clamp(mix.services * (0.62 + energy * 0.24), 0.06, 0.78),
-    timbre: SECTION_TIMBRE[section.id] ?? SECTION_TIMBRE.establish,
+    serviceDensity: clamp(mix.services * (0.62 + energy * 0.24), 0.03, 0.82),
+    timbre: timbreFor(section, state),
     mix,
   });
 }
@@ -221,13 +200,6 @@ export function arrangementTimeline() {
   return Object.freeze(APU_FORM.map((section) => {
     const startPhrase = phrase;
     phrase += section.phrases;
-    return Object.freeze({
-      id: section.id,
-      label: section.label,
-      startPhrase,
-      endPhrase: phrase - 1,
-      startBar: startPhrase * APU_BARS_PER_PHRASE + 1,
-      endBar: phrase * APU_BARS_PER_PHRASE,
-    });
+    return Object.freeze({ id: section.id, label: section.label, startPhrase, endPhrase: phrase - 1, startBar: startPhrase * APU_BARS_PER_PHRASE + 1, endBar: phrase * APU_BARS_PER_PHRASE });
   }));
 }
