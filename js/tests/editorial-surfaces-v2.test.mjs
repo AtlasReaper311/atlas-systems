@@ -70,10 +70,23 @@ test("Writing preserves scheduler markers, order, and series source attributes",
   for (let number = 1; number <= 7; number += 1) {
     assert.match(writing, new RegExp(`<!-- W-0${number}:`));
   }
-  assert.equal((writing.match(/class="article-entry coming-soon"/g) || []).length, 3);
-  assert.equal((writing.match(/data-series="pipeline-observability"/g) || []).length, 3);
-  assert.match(writing, /aria-disabled="true" tabindex="-1"/);
-  assert.match(writing, /Coming July 2026/);
+  const seriesCards = writing.match(
+    /<a\b[^>]*class="article-entry(?: coming-soon)?"[^>]*data-series="pipeline-observability"[^>]*>/g,
+  ) || [];
+  assert.equal(seriesCards.length, 3);
+  assert.equal((writing.match(/id="series-pipeline-observability"/g) || []).length, 1);
+  assert.ok(
+    writing.indexOf('id="series-pipeline-observability"') <
+      writing.indexOf('data-series="pipeline-observability"'),
+  );
+  for (const part of ["1", "2", "3"]) {
+    assert.match(writing, new RegExp(`data-series-part="${part}"`));
+  }
+  for (const card of seriesCards.filter((card) => card.includes("coming-soon"))) {
+    assert.match(card, /href="#"/);
+    assert.match(card, /aria-disabled="true" tabindex="-1"/);
+  }
+  assert.match(writing, /data-series-note="3 parts · 26–30 July 2026"/);
   assert.doesNotMatch(writing, /<span class="article-date">(?:26|28|30) July 2026<\/span>/);
 });
 

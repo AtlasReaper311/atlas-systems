@@ -161,7 +161,10 @@
     }).length;
 
     var banner = make("section", "series-banner series-injected");
-    banner.id = "series-" + group.id;
+    var anchorId = "series-" + group.id;
+    var staticAnchor = document.getElementById(anchorId);
+    if (staticAnchor) staticAnchor.removeAttribute("id");
+    banner.id = anchorId;
     banner.style.setProperty("--series-total", String(group.total));
     banner.setAttribute("aria-label", group.title + " series navigation");
 
