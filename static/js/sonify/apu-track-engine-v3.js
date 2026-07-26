@@ -24,6 +24,8 @@ export const APU_TRACK_WAVEFORM_SIZE = 512;
 export const APU_TRACK_SPECTRUM_SIZE = 64;
 export const APU_TRACK_SERVICE_POOL = 8;
 export const APU_TRACK_BPM = 100;
+export const APU_TRACK_CRITICAL_CHOKE_SECONDS = 0.045;
+export const APU_TRACK_PULSE_WIDTH_LEAD_SECONDS = 0.028;
 
 function requireTone() {
   const Tone = globalThis.Tone;
@@ -31,7 +33,7 @@ function requireTone() {
   return Tone;
 }
 
-function safeRamp(parameter, value, seconds = 0.12, at = undefined) {
+export function safeRamp(parameter, value, seconds = 0.12, at = undefined) {
   if (!parameter || !Number.isFinite(value)) return;
   const duration = Math.max(0.01, Number(seconds) || 0.01);
   const startAt = Number.isFinite(at)
@@ -39,6 +41,15 @@ function safeRamp(parameter, value, seconds = 0.12, at = undefined) {
     : typeof globalThis.Tone?.now === "function"
       ? globalThis.Tone.now()
       : null;
+  if (
+    Number.isFinite(startAt)
+    && typeof parameter.cancelAndHoldAtTime === "function"
+    && typeof parameter.linearRampToValueAtTime === "function"
+  ) {
+    parameter.cancelAndHoldAtTime(startAt);
+    parameter.linearRampToValueAtTime(value, startAt + duration);
+    return;
+  }
   if (
     Number.isFinite(startAt)
     && typeof parameter.setValueAtTime === "function"
@@ -82,6 +93,12 @@ function setBits(crusher, bits) {
 function setPulseWidth(synth, width, at = undefined) {
   const parameter = synth?.oscillator?.width;
   if (parameter) safeRamp(parameter, clamp(width, 0.08, 0.75), 0.04, at);
+}
+
+function pulseWidthLeadTime(time) {
+  return Number.isFinite(time)
+    ? Math.max(0, time - APU_TRACK_PULSE_WIDTH_LEAD_SECONDS)
+    : undefined;
 }
 
 function createServiceVoice(Tone, output, index) {
@@ -176,11 +193,8 @@ export function createApuTrackEngine({
     nodes.masterFilter = new Tone.Filter({ type: "lowpass", frequency: 9000, rolloff: -24, Q: 0.7 });
     nodes.masterHighpass = new Tone.Filter({ type: "highpass", frequency: 24, rolloff: -12, Q: 0.5 });
     nodes.masterVolume = new Tone.Volume(-10);
-    nodes.crusher = new Tone.BitCrusher(12);
-    nodes.crusher.wet.value = 0.08;
     nodes.chipBus = new Tone.Gain(1);
     nodes.chipBus.chain(
-      nodes.crusher,
       nodes.masterVolume,
       nodes.masterHighpass,
       nodes.masterFilter,
@@ -195,9 +209,12 @@ export function createApuTrackEngine({
     nodes.limiter.connect(nodes.spectrum);
 
     nodes.melodyBus = new Tone.Gain(0.9).connect(nodes.chipBus);
+    nodes.chipColor = new Tone.BitCrusher(12);
+    nodes.chipColor.wet.value = 0.08;
     nodes.primaryBus = new Tone.Gain(0).connect(nodes.melodyBus);
     nodes.secondaryBus = new Tone.Gain(0).connect(nodes.melodyBus);
-    nodes.serviceBus = new Tone.Gain(0).connect(nodes.melodyBus);
+    nodes.serviceBus = new Tone.Gain(0);
+    nodes.serviceBus.chain(nodes.chipColor, nodes.melodyBus);
     nodes.bassBus = new Tone.Gain(0).connect(nodes.chipBus);
     nodes.drumBus = new Tone.Gain(0).connect(nodes.chipBus);
     nodes.padBus = new Tone.Gain(0).connect(nodes.chipBus);
@@ -349,8 +366,8 @@ export function createApuTrackEngine({
     safeRamp(nodes.compressor.ratio, compression.ratio, duration, at);
     safeRamp(nodes.compressor.attack, compression.attack, duration, at);
     safeRamp(nodes.compressor.release, compression.release, duration, at);
-    setBits(nodes.crusher, profile.crusherBits);
-    safeRamp(nodes.crusher.wet, profile.crusherWet, duration, at);
+    setBits(nodes.chipColor, profile.crusherBits);
+    safeRamp(nodes.chipColor.wet, profile.crusherWet, duration, at);
     safeRamp(nodes.delayReturn.gain, profile.delayWet, duration, at);
     safeRamp(nodes.reverbReturn.gain, profile.reverbWet, duration, at);
     safeRamp(nodes.hatFilter.frequency, Math.max(2800, profile.noiseBrightnessHz), duration, at);
@@ -389,9 +406,9 @@ export function createApuTrackEngine({
     if (policy === "hard-choke") {
       nodes.pad.releaseAll?.(at);
       nodes.secondary.triggerRelease?.(at);
-      safeRamp(nodes.padBus.gain, 0, 0.01, at);
-      safeRamp(nodes.secondaryBus.gain, 0, 0.01, at);
-      return 0.08;
+      safeRamp(nodes.padBus.gain, 0, APU_TRACK_CRITICAL_CHOKE_SECONDS, at);
+      safeRamp(nodes.secondaryBus.gain, 0, APU_TRACK_CRITICAL_CHOKE_SECONDS, at);
+      return Math.max(0.12, APU_TRACK_CRITICAL_CHOKE_SECONDS * 2);
     }
 
     if (policy === "one-bar-decay") return barDurationSeconds();
@@ -468,14 +485,14 @@ export function createApuTrackEngine({
   function playPrimary(time, step) {
     const event = primaryPulseEventForTrackStep(currentFrame, currentArrangement, step);
     if (!event) return;
-    setPulseWidth(nodes.primary, event.dutyCycle, time);
+    setPulseWidth(nodes.primary, event.dutyCycle, pulseWidthLeadTime(time));
     nodes.primary.triggerAttackRelease(midiToFrequencyHz(event.midi), event.duration, time, event.velocity);
   }
 
   function playSecondary(time, step) {
     const event = secondaryPulseEventForTrackStep(currentFrame, currentArrangement, step);
     if (!event) return;
-    setPulseWidth(nodes.secondary, event.dutyCycle, time);
+    setPulseWidth(nodes.secondary, event.dutyCycle, pulseWidthLeadTime(time));
     nodes.secondary.triggerAttackRelease(midiToFrequencyHz(event.midi), event.duration, time, event.velocity);
   }
 
@@ -491,7 +508,7 @@ export function createApuTrackEngine({
       ? Math.min(1400, event.voice.filterHz ?? 1400)
       : event.voice.filterHz ?? 3200;
     safeRamp(slot.filter.frequency, cutoff * scale, 0.03, time);
-    setPulseWidth(slot.synth, event.identity.dutyCycle, time);
+    setPulseWidth(slot.synth, event.identity.dutyCycle, pulseWidthLeadTime(time));
     if (slot.synth.detune) safeRamp(slot.synth.detune, event.voice.detuneCents ?? 0, 0.03, time);
     slot.synth.triggerAttackRelease(midiToFrequencyHz(event.midi), event.duration, time, event.velocity);
     requireTone().Draw.schedule(() => onVoice?.({
