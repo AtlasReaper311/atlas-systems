@@ -1,0 +1,69 @@
+name: Import approved System Symphony stack
+
+on:
+  push:
+    branches:
+      - feat/system-symphony-apu-production-rollout
+
+permissions:
+  contents: write
+
+concurrency:
+  group: system-symphony-apu-production-rollout-import
+  cancel-in-progress: false
+
+jobs:
+  import-stack:
+    name: Merge approved APU stack onto current main
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out rollout branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: feat/system-symphony-apu-production-rollout
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Merge reviewed stack and retain current-main contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp .github/workflows/ci.yml "${RUNNER_TEMP}/ci.yml"
+          cp _headers "${RUNNER_TEMP}/headers"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin feat/system-symphony-evidence-hybrid-state
+
+          set +e
+          git merge --no-ff --no-commit origin/feat/system-symphony-evidence-hybrid-state
+          merge_status=$?
+          set -e
+
+          if [ "${merge_status}" -ne 0 ]; then
+            unresolved="$(git diff --name-only --diff-filter=U | sort)"
+            expected="$(printf '%s\n' '.github/workflows/ci.yml' '_headers' | sort)"
+            if [ "${unresolved}" != "${expected}" ]; then
+              echo "Unexpected merge conflicts:" >&2
+              printf '%s\n' "${unresolved}" >&2
+              exit 1
+            fi
+          fi
+
+          cp "${RUNNER_TEMP}/ci.yml" .github/workflows/ci.yml
+          cp "${RUNNER_TEMP}/headers" _headers
+          git add .github/workflows/ci.yml _headers
+
+          if git diff --name-only --diff-filter=U | grep -q .; then
+            echo "Unresolved merge conflicts remain" >&2
+            git diff --name-only --diff-filter=U >&2
+            exit 1
+          fi
+
+          rm -f rollout-note.tmp
+          rm -f .github/workflows/rollout-import.yml
+          git add -A
+          git commit -m "Merge approved Atlas APU stack onto current main"
+          git push origin HEAD:feat/system-symphony-apu-production-rollout
