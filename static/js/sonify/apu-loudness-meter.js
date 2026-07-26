@@ -4,14 +4,7 @@ export const APU_LOUDNESS_METER_BUILD_ID = "20260726-system-symphony-loudness-me
 export const APU_LOUDNESS_PROCESSOR_NAME = "atlas-apu-loudness-meter";
 export const APU_LOUDNESS_WORKLET_URL = "/static/js/sonify/apu-loudness-worklet.js?v=20260726-system-symphony-loudness-meter-v1";
 
-function isUsableAudioContext(candidate) {
-  if (!candidate?.audioWorklet?.addModule) return false;
-  const BaseContext = globalThis.BaseAudioContext;
-  if (typeof BaseContext === "function") return candidate instanceof BaseContext;
-  return true;
-}
-
-function rawAudioContext(context) {
+function nativeAudioContext(context) {
   const candidates = [
     context?.rawContext?._nativeAudioContext,
     context?._nativeAudioContext,
@@ -20,7 +13,44 @@ function rawAudioContext(context) {
     context?._context,
     context,
   ];
-  return candidates.find(isUsableAudioContext) ?? null;
+  const BaseContext = globalThis.BaseAudioContext;
+  return candidates.find((candidate) => {
+    if (!candidate?.audioWorklet?.addModule) return false;
+    return typeof BaseContext !== "function" || candidate instanceof BaseContext;
+  }) ?? null;
+}
+
+function toneWorkletFactory(context) {
+  const candidates = [context, context?.rawContext, context?._context];
+  const toneContext = candidates.find((candidate) => (
+    typeof candidate?.addAudioWorkletModule === "function"
+    && typeof candidate?.createAudioWorkletNode === "function"
+  ));
+  if (!toneContext) return null;
+  return Object.freeze({
+    sampleRate: toneContext.sampleRate ?? context?.sampleRate ?? null,
+    addModule: (url) => toneContext.addAudioWorkletModule(url),
+    createNode: (name, options) => toneContext.createAudioWorkletNode(name, options),
+    dialect: "tone-context",
+  });
+}
+
+function nativeWorkletFactory(context) {
+  const rawContext = nativeAudioContext(context);
+  if (!rawContext || typeof globalThis.AudioWorkletNode !== "function") return null;
+  return Object.freeze({
+    sampleRate: rawContext.sampleRate,
+    addModule: (url) => rawContext.audioWorklet.addModule(url),
+    createNode: (name, options) => new globalThis.AudioWorkletNode(rawContext, name, options),
+    dialect: "native-context",
+  });
+}
+
+function workletFactory(context) {
+  // Tone.js wraps standardized-audio-context. Its Context methods create a
+  // worklet node in the same node dialect as Tone.Destination, avoiding an
+  // invalid standardized-node to native-node connection.
+  return toneWorkletFactory(context) ?? nativeWorkletFactory(context);
 }
 
 function sourceCandidates(source) {
@@ -61,10 +91,8 @@ export async function createApuLoudnessMeter({
   onError = null,
   maxBlockHistory = 216000,
 } = {}) {
-  const rawContext = rawAudioContext(context);
-  if (!rawContext || typeof AudioWorkletNode !== "function") {
-    throw new Error("AudioWorklet is unavailable in this browser context");
-  }
+  const factory = workletFactory(context);
+  if (!factory) throw new Error("AudioWorklet is unavailable in this browser context");
 
   let disposed = false;
   let status = "loading";
@@ -79,13 +107,14 @@ export async function createApuLoudnessMeter({
       status,
       detail,
       processorReady,
+      dialect: factory.dialect,
     }));
   };
 
   emitStatus("loading");
-  await rawContext.audioWorklet.addModule(APU_LOUDNESS_WORKLET_URL);
+  await factory.addModule(APU_LOUDNESS_WORKLET_URL);
 
-  const node = new AudioWorkletNode(rawContext, APU_LOUDNESS_PROCESSOR_NAME, {
+  const node = factory.createNode(APU_LOUDNESS_PROCESSOR_NAME, {
     numberOfInputs: 1,
     numberOfOutputs: 0,
     channelCount: 2,
@@ -107,7 +136,7 @@ export async function createApuLoudnessMeter({
     const message = event.data ?? {};
     if (message.type === "ready") {
       processorReady = true;
-      emitStatus("running", `${message.buildId ?? APU_LOUDNESS_DSP_BUILD_ID}@${message.sampleRate ?? rawContext.sampleRate}`);
+      emitStatus("running", `${message.buildId ?? APU_LOUDNESS_DSP_BUILD_ID}@${message.sampleRate ?? factory.sampleRate ?? "unknown"}`);
       return;
     }
     if (message.type === "metrics" && message.metrics) {
@@ -135,7 +164,7 @@ export async function createApuLoudnessMeter({
     buildId: APU_LOUDNESS_METER_BUILD_ID,
 
     getStatus() {
-      return Object.freeze({ status, processorReady, disposed });
+      return Object.freeze({ status, processorReady, disposed, dialect: factory.dialect });
     },
 
     getMetrics() {
