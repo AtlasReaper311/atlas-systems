@@ -21,18 +21,32 @@ function setStatus(message) {
   if (status) status.textContent = message;
 }
 
-function setJson(payload) {
+function setJson(payload, { reveal = false } = {}) {
   const json = document.querySelector("[data-rom-json]");
   if (json) json.textContent = JSON.stringify(payload, null, 2);
+  if (!reveal) return;
+  const inspector = document.querySelector("[data-rom-inspector]");
+  if (inspector) {
+    inspector.open = true;
+    inspector.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+  json?.focus({ preventScroll: true });
 }
 
 function categoryFor(cartridge) {
-  if (cartridge.source === "fixture") return "Fixture cartridge";
   if (cartridge.dominantState === "healthy") return "Healthy cartridge";
   if (cartridge.dominantState === "warning") return "Warning cartridge";
   if (cartridge.dominantState === "critical") return "Critical cartridge";
   if (cartridge.dominantState === "unknown") return "Unknown cartridge";
   return "Recovery cartridge";
+}
+
+function sourceCategory(cartridge) {
+  if (cartridge.source === "fixture") return "Fixture evidence";
+  if (cartridge.source === "replay") return "Replay evidence";
+  if (cartridge.source === "live stale" || cartridge.source === "stale") return "Stale live evidence";
+  if (cartridge.source === "live") return "Live evidence";
+  return "Source unknown";
 }
 
 function proofLine(cartridge) {
@@ -72,7 +86,7 @@ function renderCartridgeCard(cartridge) {
   body.className = "symphony-rom-card__body";
   const type = document.createElement("p");
   type.className = "symphony-panel-kicker";
-  type.textContent = categoryFor(cartridge);
+  type.textContent = `${categoryFor(cartridge)} / ${sourceCategory(cartridge)}`;
   const title = document.createElement("h2");
   title.textContent = cartridge.movementName ?? cartridge.movement ?? "Unknown Drift";
   const summary = document.createElement("p");
@@ -85,6 +99,7 @@ function renderCartridgeCard(cartridge) {
     ["Seed", cartridge.seed],
     ["Source", cartridge.source],
     ["Build", cartridge.engineVersion],
+    ["Commit", cartridge.commit],
     ["Sample-free", cartridge.sampleFree],
   ]) {
     const item = document.createElement("div");
@@ -107,8 +122,8 @@ function renderCartridgeCard(cartridge) {
   inspect.className = "focus-action";
   inspect.textContent = "Inspect";
   inspect.addEventListener("click", () => {
-    setJson(cartridge);
-    setStatus(`${proofLine(cartridge)}. Fixture/live/replay labels are preserved in the exported JSON.`);
+    setJson(cartridge, { reveal: true });
+    setStatus(`${proofLine(cartridge)}. Fixture, live, stale, and replay labels are preserved in the exported JSON.`);
   });
   actions.append(inspect);
 
@@ -137,7 +152,7 @@ function renderIncidentCard(arc) {
   body.className = "symphony-rom-card__body";
   const type = document.createElement("p");
   type.className = "symphony-panel-kicker";
-  type.textContent = "Historic incident cartridge";
+  type.textContent = `Historic incident cartridge / ${sourceCategory(arc)}`;
   const title = document.createElement("h2");
   title.textContent = arc.title ?? "Incident Replay";
   const summary = document.createElement("p");
@@ -150,6 +165,7 @@ function renderIncidentCard(arc) {
     ["Seed", arc.replaySeed],
     ["Source", arc.source],
     ["Build", arc.archiveBuildId],
+    ["Commit", arc.frameCartridges?.[0]?.commit],
     ["Sample-free", arc.sampleFreeGuardStatus],
   ]) {
     const item = document.createElement("div");
@@ -172,7 +188,7 @@ function renderIncidentCard(arc) {
   inspect.className = "focus-action";
   inspect.textContent = "Inspect";
   inspect.addEventListener("click", () => {
-    setJson(arc);
+    setJson(arc, { reveal: true });
     setStatus(`${arc.title}: ${validateIncidentArc(arc).valid ? "valid" : "invalid"} static fixture arc.`);
   });
   actions.append(inspect);
