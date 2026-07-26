@@ -25,6 +25,7 @@ const pageErrors = [];
 const audioRequests = [];
 const failedRequests = [];
 const stateTransitions = [];
+const transitionEvents = [];
 let evidence = null;
 
 page.on("console", (message) => {
@@ -92,16 +93,23 @@ async function collectEvidence() {
   });
 }
 
-async function waitForStateTransition(state, policy) {
-  await page.waitForFunction(({ expectedState, expectedPolicy }) => {
+async function waitForStateTransition(state, policy, eventType) {
+  await page.waitForFunction(({ expectedState, expectedPolicy, expectedEventType }) => {
     const diagnostics = globalThis.__ATLAS_APU__?.getDiagnostics?.();
+    const transitionStep = diagnostics?.lastStateTransition?.stepIndex;
+    const eventStep = diagnostics?.lastTransitionEvent?.stepIndex;
     return diagnostics?.state === expectedState
       && diagnostics?.lastStateTransition?.to === expectedState
       && diagnostics?.lastStateTransition?.policy === expectedPolicy
+      && diagnostics?.lastTransitionEvent?.type === expectedEventType
+      && Number.isFinite(transitionStep)
+      && Number.isFinite(eventStep)
+      && eventStep >= transitionStep
       && Object.keys(diagnostics?.channelFailures ?? {}).length === 0;
-  }, { expectedState: state, expectedPolicy: policy }, { timeout: 10_000, polling: 100 });
+  }, { expectedState: state, expectedPolicy: policy, expectedEventType: eventType }, { timeout: 10_000, polling: 100 });
   const snapshot = await collectEvidence();
   stateTransitions.push(snapshot.diagnostics.lastStateTransition);
+  transitionEvents.push(snapshot.diagnostics.lastTransitionEvent);
 }
 
 async function writeBundle(fileName, error = null) {
@@ -125,6 +133,7 @@ async function writeBundle(fileName, error = null) {
       error: error ? { name: error.name, message: error.message, stack: error.stack } : null,
       evidence,
       stateTransitions,
+      transitionEvents,
       audioRequests,
       failedRequests,
       consoleErrors,
@@ -159,13 +168,13 @@ try {
   }, null, { timeout: 15_000, polling: 100 });
 
   await page.getByRole("button", { name: "Critical", exact: true }).click();
-  await waitForStateTransition("critical", "hard-choke");
+  await waitForStateTransition("critical", "hard-choke", "interrupt-drop");
 
   await page.getByRole("button", { name: "Unknown", exact: true }).click();
-  await waitForStateTransition("unknown", "one-bar-decay");
+  await waitForStateTransition("unknown", "one-bar-decay", "melody-dropout");
 
   await page.getByRole("button", { name: "Healthy", exact: true }).click();
-  await waitForStateTransition("healthy", "crossfade");
+  await waitForStateTransition("healthy", "crossfade", "carrier-resolve");
 
   // Continue through bars 15-16 so transport, state transitions, mastering and
   // the monitoring-only worklet all remain active during a long browser run.
@@ -189,15 +198,15 @@ try {
 
   evidence = await collectEvidence();
 
-  assert.match(evidence.buildId ?? "", /state-identities-v1$/);
+  assert.match(evidence.buildId ?? "", /atlas-chip-laws-v3$/);
   assert.equal(evidence.documentBuild, evidence.buildId);
   assert.match(evidence.loudnessBuildId ?? "", /loudness-meter-v3$/);
-  assert.match(evidence.masteringRuntimeBuildId ?? "", /mastering-runtime-v1$/);
+  assert.match(evidence.masteringRuntimeBuildId ?? "", /mastering-runtime-v2$/);
   assert.equal(evidence.ready, "true");
   assert.equal(evidence.running, "true");
   assert.equal(evidence.noSamples, "true");
   assert.equal(evidence.source, "simulated");
-  assert.equal(evidence.volumeValue, "70");
+  assert.equal(evidence.volumeValue, "62");
   assert.equal(evidence.metricState, "Healthy");
   assert.ok(Number.parseInt(evidence.metricComponents ?? "0", 10) > 0);
   assert.ok(evidence.serviceRows > 0);
@@ -214,7 +223,7 @@ try {
   assert.match(evidence.metricPosition ?? "", /Bars 15-16 \/ 32/);
   assert.equal(evidence.mastering.state, "healthy");
   assert.equal(evidence.mastering.targetIntegratedLufs, -22);
-  assert.equal(evidence.masteringRuntime.policyBuildId, "20260726-system-symphony-mastering-v2");
+  assert.equal(evidence.masteringRuntime.policyBuildId, "20260726-system-symphony-mastering-v4");
   assert.equal(evidence.masteringRuntime.state, "healthy");
   assert.equal(evidence.masteringRuntime.targetGainDb, 4);
   assert.equal(evidence.masteringRuntime.upstreamGainDb, evidence.arrangement.timbre.masterGainDb);
@@ -243,7 +252,7 @@ try {
   assert.ok(Number.isFinite(evidence.loudnessMetrics.sessionTruePeakDbtp));
   assert.ok(evidence.loudnessMetrics.integratedLufs > -27, "mastered programme remained below the lower acceptance bound");
   assert.ok(evidence.loudnessMetrics.integratedLufs < -12, "mastered programme exceeded the upper acceptance bound");
-  assert.ok(evidence.loudnessMetrics.sessionTruePeakDbtp <= -0.8, "estimated true peak exceeded the mastering guard");
+  assert.ok(evidence.loudnessMetrics.sessionTruePeakDbtp <= -2, "estimated true peak exceeded the mastering guard");
   assert.ok(evidence.loudnessMetrics.blockCount > 0);
   assert.ok(evidence.loudnessMetrics.gatedBlockCount > 0);
   assert.match(evidence.loudnessMetrics.truePeakMethod, /4x-cubic-estimate/);
@@ -254,12 +263,17 @@ try {
   assert.match(evidence.loudnessMethodText ?? "", /normalised above the user volume control/);
 
   const integratedCompensation = evidence.loudnessMetrics.integratedLufs - evidence.rawLoudnessMetrics.integratedLufs;
-  assert.ok(integratedCompensation > 3 && integratedCompensation < 3.2, "70% user-gain compensation was not preserved");
+  assert.ok(integratedCompensation > 4 && integratedCompensation < 4.3, "62% user-gain compensation was not preserved");
 
   assert.deepEqual(stateTransitions.map(({ to, policy }) => ({ to, policy })), [
     { to: "critical", policy: "hard-choke" },
     { to: "unknown", policy: "one-bar-decay" },
     { to: "healthy", policy: "crossfade" },
+  ]);
+  assert.deepEqual(transitionEvents.map(({ type }) => type), [
+    "interrupt-drop",
+    "melody-dropout",
+    "carrier-resolve",
   ]);
   assert.deepEqual(audioRequests, [], "the APU track preview requested an audio asset");
 

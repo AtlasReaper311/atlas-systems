@@ -162,11 +162,11 @@ async function measureState(label, state, policy) {
   assert.equal(snapshot.metricState, label);
   assert.equal(snapshot.frame.scoreState, state);
   assert.equal(snapshot.masteringRuntime.state, state);
-  assert.equal(snapshot.masteringRuntime.policyBuildId, "20260726-system-symphony-mastering-v3");
+  assert.equal(snapshot.masteringRuntime.policyBuildId, "20260726-system-symphony-mastering-v4");
   assert.equal(snapshot.masteringRuntime.targetGainDb, 4);
   assert.ok(metrics.integratedLufs >= window.minimum, `${browserName} ${state} fell below ${window.minimum} LUFS`);
   assert.ok(metrics.integratedLufs <= window.maximum, `${browserName} ${state} exceeded ${window.maximum} LUFS`);
-  assert.ok(metrics.sessionTruePeakDbtp <= -0.8, `${browserName} ${state} exceeded the true-peak guard`);
+  assert.ok(metrics.sessionTruePeakDbtp <= -2, `${browserName} ${state} exceeded the true-peak guard`);
   assert.ok(metrics.blockCount > 0);
   assert.ok(metrics.gatedBlockCount > 0);
   stateMeasurements.push({
@@ -275,15 +275,22 @@ try {
   }, null, { timeout: 40_000, polling: 250 });
 
   evidence = await collectEvidence();
-  assert.match(evidence.hybridBuildId ?? "", /evidence-hybrid-v1$/);
+  assert.match(evidence.hybridBuildId ?? "", /evidence-hybrid-v2$/);
   assert.equal(evidence.documentHybridBuild, evidence.hybridBuildId);
+  assert.equal(evidence.frame?.scorePlan?.chip, "ATLAS-APU-01");
+  assert.equal(evidence.frame?.scorePlan?.tempo?.grid, "16-step");
+  assert.equal(evidence.frame?.scorePlan?.source, "fixture");
+  assert.equal(evidence.diagnostics?.scorePlanGuard?.active, true);
+  assert.equal(evidence.diagnostics?.scorePlanGuard?.mode, "score-plan");
+  assert.equal(evidence.diagnostics?.sampleFree, true);
+  assert.equal(evidence.diagnostics?.scorePlanMovement, "Green Clock");
   assert.match(evidence.loudnessBuildId ?? "", /loudness-meter-v3$/);
   assert.match(evidence.masteringRuntimeBuildId ?? "", /mastering-runtime-v2$/);
   assert.equal(evidence.ready, "true");
   assert.equal(evidence.running, "true");
   assert.equal(evidence.source, "preview");
   assert.equal(evidence.noSamples, "true");
-  assert.equal(evidence.volumeValue, "70");
+  assert.equal(evidence.volumeValue, "62");
   assert.equal(evidence.metricMeasured, "19");
   assert.equal(evidence.metricKnown, "91%");
   assert.ok(evidence.stateVector.warning > 0);

@@ -39,6 +39,7 @@
   function enforcePreviewLabels() {
     const host = document.getElementById("system-symphony-widget");
     if (!host) return;
+    if (host.dataset.source === "demo") return;
     if (host.dataset.source !== "preview") host.dataset.source = "preview";
     setText("[data-source-badge]", "Preview data");
     setText("[data-dialog-source]", "Preview data");

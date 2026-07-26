@@ -3,7 +3,7 @@ import {
   APU_TRACK_PHRASES,
   ATLAS_APU_TRACK_BUILD_ID,
   arrangementForPhrase,
-} from "./apu-arranger.js?v=20260726-system-symphony-state-identities-v1";
+} from "./apu-arranger.js?v=20260726-system-symphony-atlas-chip-laws-v3";
 import {
   APU_TRACK_STEPS,
   bassEventForTrackStep,
@@ -14,18 +14,27 @@ import {
   secondaryPulseEventForTrackStep,
   serviceEventForTrackStep,
   transitionEventForTrackStep,
-} from "./apu-track-sequencer.js?v=20260726-system-symphony-state-identities-v1";
+} from "./apu-track-sequencer.js?v=20260726-system-symphony-atlas-chip-laws-v3";
 import { createCompositionDirector } from "./composition-director.js?v=20260720-system-symphony-loop-production-v2";
 import { midiToFrequencyHz } from "./mapping.js?v=20260720-system-symphony-loop-production-v2";
+import {
+  ATLAS_APU_ENGINE_CONTROLS_BUILD_ID,
+  engineControlsForFrame,
+} from "./atlas-apu-engine-controls.js?v=20260726-atlas-apu-engine-controls-v4";
+import {
+  APU_MASTERING_DEFAULT_USER_GAIN,
+  APU_MASTERING_LIMITER_CEILING_DB,
+} from "./apu-mastering.js?v=20260726-system-symphony-mastering-v4";
 
 export const APU_TRACK_AUDIO_START_TIMEOUT_MS = 8000;
-export const APU_TRACK_DEFAULT_GAIN = 0.5;
+export const APU_TRACK_DEFAULT_GAIN = APU_MASTERING_DEFAULT_USER_GAIN;
 export const APU_TRACK_WAVEFORM_SIZE = 512;
 export const APU_TRACK_SPECTRUM_SIZE = 64;
 export const APU_TRACK_SERVICE_POOL = 8;
 export const APU_TRACK_BPM = 100;
-export const APU_TRACK_CRITICAL_CHOKE_SECONDS = 0.045;
+export const APU_TRACK_CRITICAL_CHOKE_SECONDS = 0.09;
 export const APU_TRACK_PULSE_WIDTH_LEAD_SECONDS = 0.028;
+export const APU_TRACK_TRANSITION_ORNAMENT_OFFSET_SECONDS = 0.012;
 
 function requireTone() {
   const Tone = globalThis.Tone;
@@ -163,6 +172,8 @@ export function createApuTrackEngine({
   let pendingIncidentCount = 0;
   let servicePoolCursor = 0;
   let lastStateTransition = null;
+  let lastTransitionEvent = null;
+  let currentEngineControls = engineControlsForFrame();
 
   const director = createCompositionDirector({ seed: "ATLAS-APU-TRACK" });
   const channelFailures = new Map();
@@ -188,7 +199,7 @@ export function createApuTrackEngine({
 
   function buildGraph(Tone) {
     nodes.output = new Tone.Gain(0).toDestination();
-    nodes.limiter = new Tone.Limiter(-1);
+    nodes.limiter = new Tone.Limiter(APU_MASTERING_LIMITER_CEILING_DB);
     nodes.compressor = new Tone.Compressor({ threshold: -18, ratio: 1.7, attack: 0.022, release: 0.24 });
     nodes.masterFilter = new Tone.Filter({ type: "lowpass", frequency: 9000, rolloff: -24, Q: 0.7 });
     nodes.masterHighpass = new Tone.Filter({ type: "highpass", frequency: 24, rolloff: -12, Q: 0.5 });
@@ -279,7 +290,7 @@ export function createApuTrackEngine({
     nodes.padSub = new Tone.MonoSynth({
       oscillator: { type: "square" },
       filter: { type: "lowpass", frequency: 310, Q: 0.8, rolloff: -24 },
-      envelope: { attack: 0.001, decay: 0.075, sustain: 0.08, release: 0.045 },
+      envelope: { attack: 0.004, decay: 0.075, sustain: 0.08, release: 0.06 },
       volume: -18,
     });
     nodes.padFilter = new Tone.Filter({ type: "lowpass", frequency: 3800, Q: 0.5, rolloff: -24 });
@@ -290,23 +301,23 @@ export function createApuTrackEngine({
     nodes.kick = new Tone.MembraneSynth({
       pitchDecay: 0.028,
       octaves: 2.6,
-      envelope: { attack: 0.001, decay: 0.14, sustain: 0, release: 0.12 },
-      volume: -10,
+      envelope: { attack: 0.002, decay: 0.14, sustain: 0, release: 0.12 },
+      volume: -11,
     }).connect(nodes.drumBus);
     nodes.snare = new Tone.NoiseSynth({
       noise: { type: "white" },
-      envelope: { attack: 0.001, decay: 0.06, sustain: 0, release: 0.018 },
-      volume: -18,
+      envelope: { attack: 0.003, decay: 0.064, sustain: 0, release: 0.025 },
+      volume: -19,
     }).connect(nodes.drumBus);
     nodes.hat = new Tone.NoiseSynth({
       noise: { type: "white" },
-      envelope: { attack: 0.001, decay: 0.014, sustain: 0 },
-      volume: -29,
+      envelope: { attack: 0.002, decay: 0.018, sustain: 0 },
+      volume: -30,
     });
     nodes.openHat = new Tone.NoiseSynth({
       noise: { type: "white" },
-      envelope: { attack: 0.001, decay: 0.075, sustain: 0, release: 0.025 },
-      volume: -30,
+      envelope: { attack: 0.003, decay: 0.08, sustain: 0, release: 0.032 },
+      volume: -31,
     });
     nodes.hatFilter = new Tone.Filter({ type: "highpass", frequency: 6100, Q: 0.5, rolloff: -24 });
     nodes.hat.connect(nodes.hatFilter);
@@ -315,10 +326,10 @@ export function createApuTrackEngine({
 
     nodes.noiseAccent = new Tone.NoiseSynth({
       noise: { type: "pink" },
-      envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.035 },
-      volume: -23,
+      envelope: { attack: 0.004, decay: 0.095, sustain: 0, release: 0.045 },
+      volume: -25,
     });
-    nodes.noiseAccentFilter = new Tone.Filter({ type: "bandpass", frequency: 1500, Q: 2.2 });
+    nodes.noiseAccentFilter = new Tone.Filter({ type: "bandpass", frequency: 1500, Q: 1.35 });
     nodes.noiseAccent.chain(nodes.noiseAccentFilter, nodes.accentBus);
 
     nodes.telemetryHum = new Tone.Oscillator({ frequency: 55, type: "sine", volume: -34 });
@@ -354,46 +365,53 @@ export function createApuTrackEngine({
 
   function applyScene(frame, at = undefined, duration = 0.5) {
     if (!initialized || !frame || !currentArrangement) return;
+    currentEngineControls = engineControlsForFrame(frame);
     const scene = sceneForFrame(frame, currentDirectorPlan);
     const profile = scene.profile;
     const timbre = currentArrangement.timbre ?? {};
+    const scoreTimbre = currentEngineControls.timbre;
     const compression = compressionForRange(timbre.dynamicRangeDb ?? 12);
     safeRamp(nodes.transport.bpm, APU_TRACK_BPM, 0.08, at);
     safeRamp(nodes.masterVolume.volume, timbre.masterGainDb ?? scene.masterGainDb, duration, at);
-    safeRamp(nodes.masterFilter.frequency, scene.masterFilterHz, duration, at);
-    safeRamp(nodes.masterHighpass.frequency, scene.masterHpHz, duration, at);
+    safeRamp(nodes.masterFilter.frequency, scene.masterFilterHz * (scoreTimbre?.masterFilterScale ?? 1), duration, at);
+    safeRamp(nodes.masterHighpass.frequency, scene.masterHpHz * (scoreTimbre?.masterHighpassScale ?? 1), duration, at);
+    safeRamp(nodes.primaryFilter.Q, scoreTimbre?.leadFilterQ ?? 1.25, duration, at);
+    safeRamp(nodes.secondaryFilter.Q, scoreTimbre?.counterFilterQ ?? 1.1, duration, at);
     safeRamp(nodes.compressor.threshold, compression.threshold, duration, at);
     safeRamp(nodes.compressor.ratio, compression.ratio, duration, at);
     safeRamp(nodes.compressor.attack, compression.attack, duration, at);
     safeRamp(nodes.compressor.release, compression.release, duration, at);
-    setBits(nodes.chipColor, profile.crusherBits);
-    safeRamp(nodes.chipColor.wet, profile.crusherWet, duration, at);
-    safeRamp(nodes.delayReturn.gain, profile.delayWet, duration, at);
-    safeRamp(nodes.reverbReturn.gain, profile.reverbWet, duration, at);
-    safeRamp(nodes.hatFilter.frequency, Math.max(2800, profile.noiseBrightnessHz), duration, at);
-    safeRamp(nodes.telemetryHumGain.gain, stateKey(frame) === "unknown" ? 0.045 : 0, duration, at);
+    setBits(nodes.chipColor, scoreTimbre?.chipBits ?? profile.crusherBits);
+    safeRamp(nodes.chipColor.wet, scoreTimbre?.chipWet ?? profile.crusherWet, duration, at);
+    safeRamp(nodes.delayReturn.gain, scoreTimbre?.delayGain ?? profile.delayWet, duration, at);
+    safeRamp(nodes.reverbReturn.gain, scoreTimbre?.reverbGain ?? profile.reverbWet, duration, at);
+    safeRamp(nodes.hatFilter.frequency, scoreTimbre?.hatFilterHz ?? Math.max(2800, profile.noiseBrightnessHz), duration, at);
+    safeRamp(nodes.noiseAccentFilter.frequency, scoreTimbre?.noiseAccentFilterHz ?? 1500, duration, at);
+    safeRamp(nodes.telemetryHumGain.gain, scoreTimbre?.telemetryHumGain ?? (stateKey(frame) === "unknown" ? 0.045 : 0), duration, at);
   }
 
   function applyArrangementMix(at = undefined, duration = 0.18) {
     if (!currentArrangement) return;
     const mix = currentArrangement.mix;
     const timbre = currentArrangement.timbre ?? {};
+    const scoreBuses = currentEngineControls.buses;
+    const scoreTimbre = currentEngineControls.timbre;
     const width = clamp(timbre.stereoWidth ?? 0.5, 0, 1);
-    safeRamp(nodes.primaryBus.gain, mix.primary, duration, at);
-    safeRamp(nodes.secondaryBus.gain, mix.secondary, duration, at);
-    safeRamp(nodes.serviceBus.gain, mix.services, duration, at);
-    safeRamp(nodes.bassBus.gain, mix.bass, duration, at);
-    safeRamp(nodes.drumBus.gain, mix.drums, duration, at);
-    safeRamp(nodes.padBus.gain, mix.pad, duration, at);
-    safeRamp(nodes.accentBus.gain, mix.accent, duration, at);
-    safeRamp(nodes.primaryFilter.frequency, timbre.leadCutoffHz ?? 4800, duration, at);
-    safeRamp(nodes.secondaryFilter.frequency, timbre.counterCutoffHz ?? 3300, duration, at);
+    safeRamp(nodes.primaryBus.gain, clamp(mix.primary * (scoreBuses?.primary ?? 1), 0, 1), duration, at);
+    safeRamp(nodes.secondaryBus.gain, clamp(mix.secondary * (scoreBuses?.secondary ?? 1), 0, 1), duration, at);
+    safeRamp(nodes.serviceBus.gain, clamp(mix.services * (scoreBuses?.services ?? 1), 0, 1), duration, at);
+    safeRamp(nodes.bassBus.gain, clamp(mix.bass * (scoreBuses?.bass ?? 1), 0, 1), duration, at);
+    safeRamp(nodes.drumBus.gain, clamp(mix.drums * (scoreBuses?.drums ?? 1), 0, 1), duration, at);
+    safeRamp(nodes.padBus.gain, clamp(mix.pad * (scoreBuses?.pad ?? 1), 0, 1), duration, at);
+    safeRamp(nodes.accentBus.gain, clamp(mix.accent * (scoreBuses?.accent ?? 1), 0, 1), duration, at);
+    safeRamp(nodes.primaryFilter.frequency, (timbre.leadCutoffHz ?? 4800) * (scoreTimbre?.leadFilterScale ?? 1), duration, at);
+    safeRamp(nodes.secondaryFilter.frequency, (timbre.counterCutoffHz ?? 3300) * (scoreTimbre?.counterFilterScale ?? 1), duration, at);
     const scene = sceneForFrame(currentFrame, currentDirectorPlan);
-    safeRamp(nodes.padFilter.frequency, scene.profile.padCutoffHz * (timbre.padCutoffScale ?? 1), duration, at);
+    safeRamp(nodes.padFilter.frequency, scene.profile.padCutoffHz * (timbre.padCutoffScale ?? 1) * (scoreTimbre?.padFilterScale ?? 1), duration, at);
     safeRamp(nodes.primaryPanner.pan, -0.42 * width, duration, at);
     safeRamp(nodes.secondaryPanner.pan, 0.42 * width, duration, at);
-    setPulseWidth(nodes.primary, timbre.primaryDutyCycle ?? 0.5, at);
-    setPulseWidth(nodes.secondary, timbre.counterDutyCycle ?? 0.25, at);
+    setPulseWidth(nodes.primary, scoreTimbre?.primaryDutyCycle ?? timbre.primaryDutyCycle ?? 0.5, at);
+    setPulseWidth(nodes.secondary, scoreTimbre?.counterDutyCycle ?? timbre.counterDutyCycle ?? 0.25, at);
   }
 
   function applyStateTransition(previousFrame, nextFrame, at) {
@@ -412,7 +430,7 @@ export function createApuTrackEngine({
     }
 
     if (policy === "one-bar-decay") return barDurationSeconds();
-    if (policy === "tight-crossfade") return 0.12;
+    if (policy === "tight-crossfade") return 0.18;
     return 0.28;
   }
 
@@ -460,7 +478,10 @@ export function createApuTrackEngine({
     if (events.snare) nodes.snare.triggerAttackRelease(0.05, time, events.snare.velocity);
     if (events.hat) nodes.hat.triggerAttackRelease(0.015, time, events.hat.velocity);
     if (events.openHat) nodes.openHat.triggerAttackRelease(0.075, time, events.openHat.velocity);
-    if (events.noiseAccent) nodes.noiseAccent.triggerAttackRelease(0.09, time, events.noiseAccent.velocity);
+    if (events.noiseAccent) {
+      const accentVelocity = Math.min(stateKey(currentFrame) === "critical" ? 0.24 : 0.22, events.noiseAccent.velocity);
+      nodes.noiseAccent.triggerAttackRelease(0.085, time, accentVelocity);
+    }
   }
 
   function playBass(time, step) {
@@ -520,10 +541,43 @@ export function createApuTrackEngine({
   }
 
   function playTransition(time, step) {
-    const event = transitionEventForTrackStep(currentFrame, currentArrangement, step);
+    const event = transitionEventForTrackStep(
+      currentFrame,
+      currentArrangement,
+      step,
+      lastStateTransition,
+      stepIndex,
+    );
     if (!event) return;
-    if (["rise", "drop", "restart"].includes(event.type)) {
-      nodes.noiseAccent.triggerAttackRelease(event.type === "drop" ? 0.12 : 0.065, time, Math.min(0.34, event.velocity));
+    lastTransitionEvent = Object.freeze({
+      type: event.type,
+      stepIndex,
+      phraseIndex: trackPhraseIndex,
+    });
+    const ornamentTime = time + APU_TRACK_TRANSITION_ORNAMENT_OFFSET_SECONDS;
+    if (event.bassDrop) {
+      nodes.padSub.triggerAttackRelease(
+        midiToFrequencyHz(event.bassDrop.midi),
+        event.bassDrop.duration,
+        ornamentTime,
+        Math.min(0.3, event.bassDrop.velocity),
+      );
+    }
+    if (event.noise) {
+      nodes.noiseAccent.triggerAttackRelease(
+        event.noise.duration,
+        ornamentTime,
+        Math.min(0.24, event.noise.velocity),
+      );
+    }
+    for (const note of event.notes ?? []) {
+      const voice = note.voice === "deployment" ? nodes.deployment : nodes.incident;
+      voice.triggerAttackRelease(
+        midiToFrequencyHz(note.midi),
+        note.duration,
+        ornamentTime,
+        Math.min(0.46, note.velocity),
+      );
     }
   }
 
@@ -708,6 +762,11 @@ export function createApuTrackEngine({
         state: stateKey(currentFrame),
         pendingState: pendingFrame ? stateKey(pendingFrame) : null,
         lastStateTransition,
+        lastTransitionEvent,
+        engineControlsBuildId: ATLAS_APU_ENGINE_CONTROLS_BUILD_ID,
+        scorePlanGuard: currentEngineControls.guard,
+        scorePlanMovement: currentEngineControls.movement,
+        sampleFree: currentEngineControls.sampleFree,
         channelFailures: Object.freeze(Object.fromEntries(channelFailures)),
       });
     },

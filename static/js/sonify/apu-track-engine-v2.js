@@ -1,4 +1,4 @@
-import { APU_MASTERING_DEFAULT_USER_GAIN } from "./apu-mastering.js?v=20260726-system-symphony-mastering-v2";
+import { APU_MASTERING_DEFAULT_USER_GAIN } from "./apu-mastering.js?v=20260726-system-symphony-mastering-v4";
 import {
   APU_TRACK_AUDIO_START_TIMEOUT_MS,
   APU_TRACK_BPM,
@@ -6,7 +6,7 @@ import {
   APU_TRACK_SPECTRUM_SIZE,
   APU_TRACK_WAVEFORM_SIZE,
   createApuTrackEngine as createBaseApuTrackEngine,
-} from "./apu-track-engine-v3.js?v=20260726-system-symphony-state-identities-v1";
+} from "./apu-track-engine-v3.js?v=20260726-system-symphony-atlas-chip-laws-v3";
 
 export {
   APU_TRACK_AUDIO_START_TIMEOUT_MS,

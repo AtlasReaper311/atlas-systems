@@ -48,6 +48,9 @@ GET /deploy-watch/latest -- successful deployment identity --+        |
 - `sampler.js` owns Tone.js `Player`, `Sampler` and `GrainPlayer` nodes, isolated layer buses, parallel effects, lazy decoding and procedural fallback state.
 - `performance.js` is pure JavaScript. It turns a visible hexadecimal seed plus four macro values into one deterministic curated arrangement without reading or changing telemetry.
 - `ghost-circuit.js` is pure JavaScript. It owns the five-phase arrangement director, scale-safe riff grammar, arpeggio ordering, filter motion and bounded transition accents.
+- `atlas-apu-state-themes.js` is pure JavaScript. It defines the authored Green Clock, Warning Pressure, Critical Choke, Unknown Drift and Recovery Bloom theme language.
+- `atlas-apu-score-plan.js` is pure JavaScript. It turns the bounded frame into the auditable Atlas APU cartridge plan: frame seed, movement, state vector, 16-step grid, motif, bass, noise, counterline, transition signature, confidence and the seven voice-role lanes.
+- `atlas-apu-engine-controls.js` is pure JavaScript. It guards score-plan input for the active APU track engine and derives sample-free bus, timbre, filter, hum and effect controls from the authored theme profile.
 - `ui.js` owns the compact widget, dialog, topology, real waveform, table, inspector, live/Demo isolation and accessible performance controls.
 - `static/css/system-symphony.css` contains the responsive Atlas-branded presentation and reduced-motion rules.
 

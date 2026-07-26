@@ -1,5 +1,5 @@
 import { chipIdentityForVoice, clamp } from "./apu-palette.js?v=20260725-system-symphony-atlas-apu-preview-v1";
-import { normalizedStateIdentity, shouldOmitEvent } from "./apu-state-identities.js?v=20260726-system-symphony-state-identities-v1";
+import { normalizedStateIdentity, shouldOmitEvent } from "./apu-state-identities.js?v=20260726-system-symphony-state-identities-v4";
 
 export const APU_TRACK_STEPS = 32;
 export const TONIC_MIDI = 41;
@@ -52,6 +52,16 @@ const BASS_PATTERNS = Object.freeze({
     Object.freeze({ step: 24, degree: 2, duration: "8n" }),
     Object.freeze({ step: 28, degree: 4, duration: "8n" }),
   ]),
+  pressure: Object.freeze([
+    Object.freeze({ step: 0, degree: 0, duration: "16n" }),
+    Object.freeze({ step: 4, degree: 1, duration: "32n" }),
+    Object.freeze({ step: 8, degree: 0, duration: "16n" }),
+    Object.freeze({ step: 12, degree: 3, duration: "32n" }),
+    Object.freeze({ step: 16, degree: 0, duration: "16n" }),
+    Object.freeze({ step: 20, degree: 1, duration: "32n" }),
+    Object.freeze({ step: 24, degree: 0, duration: "16n" }),
+    Object.freeze({ step: 28, degree: 4, duration: "32n" }),
+  ]),
   rise: Object.freeze([
     Object.freeze({ step: 0, degree: 0, duration: "8n" }),
     Object.freeze({ step: 4, degree: 1, duration: "8n" }),
@@ -82,6 +92,7 @@ const BASS_PATTERNS = Object.freeze({
 const modulo = (value, length) => ((Math.trunc(value) % length) + length) % length;
 const wrappedStep = (step) => modulo(step, APU_TRACK_STEPS);
 const barIndexFor = (arrangement, step) => (arrangement?.cycleBarStart ?? 1) - 1 + (wrappedStep(step) >= 16 ? 1 : 0);
+const transitionKey = (from, to) => `${from ?? "unknown"}>${to ?? "unknown"}`;
 
 export function normalizedScale(frame = {}) {
   const identityScale = normalizedStateIdentity(frame.scoreState).scale;
@@ -192,6 +203,47 @@ function rhythmVelocity(arrangement, base) {
   return clamp(base * (0.78 + (arrangement?.energy ?? 0.4) * 0.22), 0.04, 0.92);
 }
 
+function uniqueSteps(steps) {
+  return Object.freeze([...new Set(steps.map(wrappedStep))].sort((left, right) => left - right));
+}
+
+function structuralSection(arrangement) {
+  return ["intro", "release", "recovery", "breathe"].includes(arrangement?.section);
+}
+
+function primaryPatternForState(identity, arrangement, basePattern) {
+  if (identity.id === "healthy") return basePattern;
+  if (identity.id === "warning" && !structuralSection(arrangement)) {
+    return uniqueSteps(basePattern.map((position, index) => position + (index % 2 === 0 ? 1 : 0)));
+  }
+  if (identity.id === "critical" && !structuralSection(arrangement)) {
+    return uniqueSteps([0, 4, 8, 12, 16, 20, 24, 28]);
+  }
+  if (identity.id === "unknown") {
+    return arrangement?.sectionLocalPhrase % 2 === 0
+      ? uniqueSteps([0, 16])
+      : uniqueSteps([8, 24]);
+  }
+  return basePattern;
+}
+
+function secondaryPatternForState(identity, arrangement, counter) {
+  if (identity.id === "critical" && !structuralSection(arrangement)) {
+    return uniqueSteps([1, 7, 15, 17, 23, 31]);
+  }
+  if (identity.id === "warning" && !structuralSection(arrangement)) {
+    return counter === "answer"
+      ? uniqueSteps([3, 11, 19, 27])
+      : uniqueSteps([1, 5, 9, 13, 17, 21, 25, 29]);
+  }
+  if (identity.id === "unknown") {
+    return counter === "none" ? [] : uniqueSteps([12, 28]);
+  }
+  if (counter === "answer") return [4, 12, 20, 28];
+  if (counter === "counter" || counter === "octave") return [2, 6, 10, 14, 18, 22, 26, 30];
+  return [];
+}
+
 function baseRhythm(pattern, position, localPhrase = 0) {
   if (pattern === "sparse") {
     return {
@@ -220,6 +272,15 @@ function baseRhythm(pattern, position, localPhrase = 0) {
       noiseAccent: false,
     };
   }
+  if (pattern === "diagnostic") {
+    return {
+      kick: [0, 6, 16, 22].includes(position),
+      snare: [8, 24, 30].includes(position),
+      hat: position % 2 === 1 && ![13, 29].includes(position),
+      openHat: false,
+      noiseAccent: [15, 23, 31].includes(position),
+    };
+  }
   if (pattern === "build") {
     return {
       kick: [0, 8, 16, 24].includes(position) || (localPhrase > 0 && [6, 14, 22, 30].includes(position)),
@@ -238,6 +299,15 @@ function baseRhythm(pattern, position, localPhrase = 0) {
       hat: [1, 3, 5, 9, 11, 13, 17, 19, 21, 25, 27, 29].includes(position),
       openHat: [7, 15, 23, 31].includes(position),
       noiseAccent: position === 15 || position === 31,
+    };
+  }
+  if (pattern === "boss") {
+    return {
+      kick: [0, 4, 8, 16, 20, 24].includes(position),
+      snare: [8, 14, 24, 30].includes(position),
+      hat: [3, 7, 11, 19, 23, 27].includes(position),
+      openHat: false,
+      noiseAccent: [0, 8, 14, 16, 24, 30, 31].includes(position),
     };
   }
   if (pattern === "release") {
@@ -277,7 +347,7 @@ export function rhythmEventsForTrackStep(frame = {}, arrangement = null, step = 
       }
       noiseAccent = noiseAccent && position === 31;
     } else if (state === "warning") {
-      hat = position % 2 === 1 && !omitted(frame, arrangement, step, 11);
+      hat = position % 2 === 1 && ![13, 29].includes(position) && !omitted(frame, arrangement, step, 11);
       noiseAccent = noiseAccent || [15, 31].includes(position);
       snare = snare || (pattern !== "sparse" && position === 30);
     } else if (state === "critical") {
@@ -325,8 +395,12 @@ export function bassEventForTrackStep(frame = {}, arrangement = null, step = 0) 
   let degree = (harmony.rootDegree ?? 0) + event.degree;
   if (identity.id === "critical") degree = (harmony.rootDegree ?? 0) + (position % 8 === 0 ? 0 : 4);
   if (identity.id === "unknown") degree = harmony.rootDegree ?? 0;
+  let midi = foldMidi(scaleMidi(scale, arrangement?.section === "peak" ? 41 : 29, degree), 27, 55);
+  if (identity.id === "warning" && [12, 28].includes(position)) {
+    midi = foldMidi(midi - 1, 27, 55);
+  }
   return Object.freeze({
-    midi: foldMidi(scaleMidi(scale, arrangement?.section === "peak" ? 41 : 29, degree), 27, 55),
+    midi,
     duration: identity.id === "unknown" ? "1m" : event.duration,
     velocity: clamp((identity.id === "critical" ? 0.48 : 0.36) + (arrangement?.mix?.bass ?? 0) * 0.28, 0.18, 0.78),
   });
@@ -353,11 +427,24 @@ export function padChordForTrackStep(frame = {}, arrangement = null, step = 0) {
 export function primaryPulseEventForTrackStep(frame = {}, arrangement = null, step = 0) {
   const position = wrappedStep(step);
   const identity = normalizedStateIdentity(frame.scoreState);
-  const pattern = PRIMARY_PATTERNS[arrangement?.motifMode ?? "statement"] ?? PRIMARY_PATTERNS.statement;
+  const basePattern = PRIMARY_PATTERNS[arrangement?.motifMode ?? "statement"] ?? PRIMARY_PATTERNS.statement;
+  const pattern = primaryPatternForState(identity, arrangement, basePattern);
   const eventIndex = pattern.indexOf(position);
-  if (eventIndex === -1 || omitted(frame, arrangement, step, 67, position % 16 === 0)) return null;
+  if (eventIndex === -1 || omitted(frame, arrangement, step, 67, identity.id === "critical" || position % 16 === 0)) return null;
+  if (identity.id === "critical") {
+    const scale = normalizedScale(frame);
+    const harmony = activeHarmony(arrangement, position);
+    const degree = (harmony.rootDegree ?? 0) + (position % 8 === 0 ? 0 : 4);
+    return Object.freeze({
+      midi: foldMidi(scaleMidi(scale, 53, degree), 52, 76),
+      duration: identity.leadGate,
+      velocity: clamp(0.18 + (arrangement?.mix?.primary ?? 0) * 0.3, 0.12, 0.58),
+      dutyCycle: identity.primaryDutyCycle,
+    });
+  }
   const degrees = melodyDegreeSequence(arrangement, pattern, false);
-  const midi = foldMidi(scaleMidi(normalizedScale(frame), arrangement?.section === "peak" ? 77 : 65, degrees[eventIndex]), 58, 88);
+  const rootMidi = identity.id === "critical" ? 53 : identity.id === "unknown" ? 62 : arrangement?.section === "peak" ? 77 : 65;
+  const midi = foldMidi(scaleMidi(normalizedScale(frame), rootMidi, degrees[eventIndex]), 52, 88);
   return Object.freeze({
     midi,
     duration: identity.leadGate,
@@ -370,11 +457,19 @@ export function secondaryPulseEventForTrackStep(frame = {}, arrangement = null, 
   const position = wrappedStep(step);
   const identity = normalizedStateIdentity(frame.scoreState);
   const counter = arrangement?.counterPattern ?? "none";
-  let pattern = [];
-  if (counter === "answer") pattern = [4, 12, 20, 28];
-  if (counter === "counter" || counter === "octave") pattern = [2, 6, 10, 14, 18, 22, 26, 30];
+  const pattern = secondaryPatternForState(identity, arrangement, counter);
   const eventIndex = pattern.indexOf(position);
-  if (eventIndex === -1 || omitted(frame, arrangement, step, 79, eventIndex === 0)) return null;
+  if (eventIndex === -1 || omitted(frame, arrangement, step, 79, identity.id === "critical" || eventIndex === 0)) return null;
+  if (identity.id === "critical") {
+    const harmony = activeHarmony(arrangement, position);
+    const alarmSemitone = eventIndex % 2 === 0 ? 1 : 6;
+    return Object.freeze({
+      midi: foldMidi(TONIC_MIDI + 12 + (harmony.rootDegree ?? 0) + alarmSemitone, 48, 76),
+      duration: identity.counterGate,
+      velocity: clamp(0.12 + (arrangement?.mix?.secondary ?? 0) * 0.26, 0.08, 0.44),
+      dutyCycle: identity.counterDutyCycle,
+    });
+  }
   const degrees = melodyDegreeSequence(arrangement, pattern, true);
   return Object.freeze({
     midi: foldMidi(scaleMidi(normalizedScale(frame), counter === "octave" ? 65 : 53, degrees[eventIndex]), 53, 86),
@@ -409,6 +504,145 @@ export function serviceEventForTrackStep(frame = {}, arrangement = null, step = 
   });
 }
 
-export function transitionEventForTrackStep() {
-  return null;
+function signatureForTransition(transition = {}) {
+  const source = transition && typeof transition === "object" ? transition : {};
+  const from = normalizedStateIdentity(source.from).id;
+  const to = normalizedStateIdentity(source.to).id;
+  if (from === to) return null;
+  const key = transitionKey(from, to);
+  if (key === "healthy>warning") return "pressure-ramp";
+  if (key === "warning>critical") return "interrupt-drop";
+  if (key === "critical>healthy" || key === "critical>warning") return "recovery-bloom";
+  if (from === "unknown" && to !== "unknown") return "carrier-resolve";
+  if (from !== "unknown" && to === "unknown") return "melody-dropout";
+  if (to === "critical") return "interrupt-drop";
+  if (to === "warning") return "pressure-ramp";
+  return "state-crossfade";
+}
+
+function transitionDelta(transition = {}, absoluteStepIndex) {
+  const source = transition && typeof transition === "object" ? transition : {};
+  if (!Number.isFinite(absoluteStepIndex) || !Number.isFinite(source.stepIndex)) return null;
+  const delta = Math.trunc(absoluteStepIndex) - Math.trunc(source.stepIndex);
+  return delta >= 0 && delta < 16 ? delta : null;
+}
+
+function transitionNote(midi, duration, velocity, voice = "incident") {
+  return Object.freeze({
+    voice,
+    midi,
+    duration,
+    velocity: clamp(velocity, 0.04, 0.46),
+  });
+}
+
+function transitionNoise(duration, velocity) {
+  return Object.freeze({
+    duration,
+    velocity: clamp(velocity, 0.04, 0.24),
+  });
+}
+
+export function transitionEventForTrackStep(
+  frame = {},
+  arrangement = null,
+  step = 0,
+  transition = null,
+  absoluteStepIndex = null,
+) {
+  const delta = transitionDelta(transition, absoluteStepIndex);
+  if (delta === null) return null;
+  const signature = signatureForTransition(transition);
+  if (!signature) return null;
+  const position = wrappedStep(step);
+  const baseMidi = quantizeMidiToHarmony(frame, arrangement, position, 65, 48, 84);
+  const lowMidi = quantizeMidiToHarmony(frame, arrangement, position, 41, 27, 55);
+
+  if (signature === "pressure-ramp") {
+    const pressureSteps = [0, 3, 6, 9, 14];
+    const index = pressureSteps.indexOf(delta);
+    if (index === -1) return null;
+    return Object.freeze({
+      type: signature,
+      notes: Object.freeze([
+        transitionNote(
+          quantizeMidiToHarmony(frame, arrangement, position, baseMidi + (index % 2 === 0 ? 0 : 1), 48, 84),
+          "32n",
+          0.2 + index * 0.025,
+          "incident",
+        ),
+      ]),
+      noise: [9, 14].includes(delta) ? transitionNoise("32n", 0.12 + index * 0.015) : null,
+    });
+  }
+
+  if (signature === "interrupt-drop") {
+    if (![0, 1, 4, 8].includes(delta)) return null;
+    return Object.freeze({
+      type: signature,
+      bassDrop: delta === 0
+        ? Object.freeze({ midi: Math.max(24, lowMidi - 12), duration: "16n", velocity: 0.3 })
+        : null,
+      notes: delta <= 1
+        ? Object.freeze([transitionNote(quantizeMidiToHarmony(frame, arrangement, position, 53 + delta * 6, 48, 72), "32n", 0.34)])
+        : Object.freeze([transitionNote(quantizeMidiToHarmony(frame, arrangement, position, 41 + delta, 36, 64), "32n", 0.22)]),
+      noise: transitionNoise(delta === 0 ? 0.095 : "32n", delta === 0 ? 0.22 : 0.14),
+    });
+  }
+
+  if (signature === "recovery-bloom") {
+    const bloomSteps = [0, 2, 4, 6, 10];
+    const index = bloomSteps.indexOf(delta);
+    if (index === -1) return null;
+    return Object.freeze({
+      type: signature,
+      notes: Object.freeze([
+        transitionNote(
+          quantizeMidiToHarmony(frame, arrangement, position, 60 + index * 3, 55, 88),
+          index === bloomSteps.length - 1 ? "8n" : "16n",
+          0.24 + index * 0.035,
+          "deployment",
+        ),
+      ]),
+      noise: index === 0 ? transitionNoise("32n", 0.08) : null,
+    });
+  }
+
+  if (signature === "carrier-resolve") {
+    const resolveSteps = [0, 4, 8, 12];
+    const index = resolveSteps.indexOf(delta);
+    if (index === -1) return null;
+    return Object.freeze({
+      type: signature,
+      notes: Object.freeze([
+        transitionNote(
+          quantizeMidiToHarmony(frame, arrangement, position, 53 + index * 5, 48, 84),
+          index === resolveSteps.length - 1 ? "8n" : "16n",
+          0.18 + index * 0.04,
+          "deployment",
+        ),
+      ]),
+      noise: index === 0 ? transitionNoise("16n", 0.1) : null,
+    });
+  }
+
+  if (signature === "melody-dropout") {
+    if (![0, 5, 10, 15].includes(delta)) return null;
+    return Object.freeze({
+      type: signature,
+      notes: delta === 0
+        ? Object.freeze([transitionNote(quantizeMidiToHarmony(frame, arrangement, position, 65, 55, 80), "32n", 0.18)])
+        : Object.freeze([]),
+      noise: transitionNoise(delta === 15 ? "16n" : "32n", delta === 15 ? 0.16 : 0.1),
+    });
+  }
+
+  if (![0, 8].includes(delta)) return null;
+  return Object.freeze({
+    type: signature,
+    notes: Object.freeze([
+      transitionNote(baseMidi, "16n", 0.16, "deployment"),
+    ]),
+    noise: delta === 0 ? transitionNoise("32n", 0.08) : null,
+  });
 }

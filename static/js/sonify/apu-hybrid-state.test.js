@@ -98,7 +98,7 @@ test("hybrid frame recomputes voices under the dominant grammar and exposes weig
   const merged = { preview: true, stale: false, estate, services: mixedFixture };
   const frame = buildHybridFrame(computeFrame(merged), merged);
 
-  assert.match(APU_HYBRID_STATE_BUILD_ID, /evidence-hybrid-v1$/);
+  assert.match(APU_HYBRID_STATE_BUILD_ID, /evidence-hybrid-v2$/);
   assert.equal(frame.scoreState, "healthy");
   assert.equal(frame.warningCount, 1);
   assert.equal(frame.unknownCount, 2);

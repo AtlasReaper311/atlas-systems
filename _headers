@@ -17,20 +17,25 @@
 
 /lab/system-symphony
   Cache-Control: no-cache, max-age=0, must-revalidate
-  X-Atlas-System-Symphony-Build: 20260726-system-symphony-atlas-apu-live-v1
+  X-Atlas-System-Symphony-Build: 20260726-system-symphony-atlas-apu-live-v7
 
 /lab/system-symphony/
   Cache-Control: no-cache, max-age=0, must-revalidate
-  X-Atlas-System-Symphony-Build: 20260726-system-symphony-atlas-apu-live-v1
+  X-Atlas-System-Symphony-Build: 20260726-system-symphony-atlas-apu-live-v7
 
 /lab/system-symphony/index.html
   Cache-Control: no-cache, max-age=0, must-revalidate
-  X-Atlas-System-Symphony-Build: 20260726-system-symphony-atlas-apu-live-v1
+  X-Atlas-System-Symphony-Build: 20260726-system-symphony-atlas-apu-live-v7
+
+/lab/system-symphony/replay/*
+  Cache-Control: no-cache, max-age=0, must-revalidate
+  X-Robots-Tag: noindex, nofollow
+  X-Atlas-System-Symphony-Build: 20260726-system-symphony-atlas-apu-live-v7
 
 /lab/system-symphony-apu/*
   X-Robots-Tag: noindex, nofollow
-  X-Atlas-System-Symphony-Build: 20260726-system-symphony-hybrid-state-v1
+  X-Atlas-System-Symphony-Build: 20260726-system-symphony-atlas-chip-laws-v3
 
 /static/js/sonify/*
   Cache-Control: no-cache, max-age=0, must-revalidate
-  X-Atlas-System-Symphony-Build: 20260726-system-symphony-atlas-apu-live-v1
+  X-Atlas-System-Symphony-Build: 20260726-system-symphony-atlas-apu-live-v7

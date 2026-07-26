@@ -28,7 +28,7 @@ const directorPlan = {
 };
 
 test("Atlas APU track form is a complete 32-bar cycle", () => {
-  assert.match(ATLAS_APU_TRACK_BUILD_ID, /state-identities-v1$/);
+  assert.match(ATLAS_APU_TRACK_BUILD_ID, /atlas-chip-laws-v3$/);
   assert.equal(APU_TRACK_PHRASES, 16);
   assert.equal(APU_TRACK_BARS, 32);
   assert.equal(APU_FORM.reduce((total, section) => total + section.phrases, 0), 16);
@@ -108,4 +108,8 @@ test("state changes reshape harmony without destroying form", () => {
   assert.equal(critical.harmony[0].quality, "power");
   assert.equal(unknown.harmony[0].quality, "suspended");
   assert.ok(unknown.mix.drums < warning.mix.drums);
+  assert.equal(healthy.chipLaw, "explorer-counterpoint");
+  assert.equal(warning.chipLaw, "diagnostic-stutter");
+  assert.equal(critical.chipLaw, "boss-lockstep");
+  assert.equal(unknown.chipLaw, "lost-signal-dropout");
 });

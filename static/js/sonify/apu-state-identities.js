@@ -1,6 +1,6 @@
-import { masteringProfileForState } from "./apu-mastering.js?v=20260726-system-symphony-mastering-v3";
+import { masteringProfileForState } from "./apu-mastering.js?v=20260726-system-symphony-mastering-v4";
 
-export const APU_STATE_IDENTITY_BUILD_ID = "20260726-system-symphony-state-identities-v3";
+export const APU_STATE_IDENTITY_BUILD_ID = "20260726-system-symphony-state-identities-v4";
 export const APU_STATE_KEYS = Object.freeze(["healthy", "warning", "critical", "unknown"]);
 
 const freezeArray = (values) => Object.freeze([...values]);
@@ -32,6 +32,7 @@ export const APU_STATE_IDENTITIES = Object.freeze({
     dynamicRangeDb: 12,
     transitionPolicy: "crossfade",
     tensionPolicy: "diatonic",
+    soundLaw: "explorer-counterpoint",
   }),
   warning: freezeObject({
     id: "warning",
@@ -54,6 +55,7 @@ export const APU_STATE_IDENTITIES = Object.freeze({
     dynamicRangeDb: 8,
     transitionPolicy: "tight-crossfade",
     tensionPolicy: "approach-resolve",
+    soundLaw: "diagnostic-stutter",
   }),
   critical: freezeObject({
     id: "critical",
@@ -76,6 +78,7 @@ export const APU_STATE_IDENTITIES = Object.freeze({
     dynamicRangeDb: 5,
     transitionPolicy: "hard-choke",
     tensionPolicy: "bounded-alarm",
+    soundLaw: "boss-lockstep",
   }),
   unknown: freezeObject({
     id: "unknown",
@@ -98,6 +101,7 @@ export const APU_STATE_IDENTITIES = Object.freeze({
     dynamicRangeDb: 18,
     transitionPolicy: "one-bar-decay",
     tensionPolicy: "drift-only",
+    soundLaw: "lost-signal-dropout",
   }),
 });
 
@@ -130,7 +134,7 @@ export function statePatternGrammar(state, section) {
 
   if (identity.id === "healthy") {
     if (section === "establish") return grammar("statement", "foundation", "sparse", "none");
-    if (section === "theme-a") return grammar("statement", "groove", "groove", "counter");
+    if (section === "theme-a") return grammar("statement", "walk", "groove", "counter");
     if (section === "variation") return grammar("variation", "walk", "groove", "counter");
     if (section === "theme-b") return grammar("answer", "walk", "drive", "counter");
     if (section === "build") return grammar("ascending", "rise", "build", "counter");
@@ -140,12 +144,12 @@ export function statePatternGrammar(state, section) {
   }
 
   if (identity.id === "warning") {
-    if (section === "establish") return grammar("statement", "groove", "drive", "answer");
-    if (section === "theme-a") return grammar("variation", "groove", "drive", "answer");
-    if (section === "variation") return grammar("answer", "groove", "drive", "counter");
-    if (section === "theme-b") return grammar("variation", "groove", "drive", "counter");
-    if (section === "build") return grammar("climax", "climax", "build", "counter");
-    if (section === "peak") return grammar("climax", "climax", "peak", "octave");
+    if (section === "establish") return grammar("statement", "pressure", "diagnostic", "answer");
+    if (section === "theme-a") return grammar("variation", "pressure", "diagnostic", "answer");
+    if (section === "variation") return grammar("answer", "pressure", "diagnostic", "counter");
+    if (section === "theme-b") return grammar("variation", "pressure", "diagnostic", "counter");
+    if (section === "build") return grammar("climax", "pressure", "build", "counter");
+    if (section === "peak") return grammar("climax", "climax", "diagnostic", "octave");
     if (section === "recovery") return grammar("recovery", "reprise", "recovery", "answer");
     return grammar("fragment", "none", "none", "none");
   }
@@ -153,7 +157,7 @@ export function statePatternGrammar(state, section) {
   if (identity.id === "critical") {
     if (section === "establish") return grammar("statement", "foundation", "sparse", "none");
     if (section === "recovery") return grammar("recovery", "reprise", "recovery", "answer");
-    return grammar("climax", "climax", section === "peak" ? "peak" : "build", "octave");
+    return grammar("climax", "climax", "boss", "octave");
   }
 
   if (section === "theme-b") return grammar("answer", "sustain", "none", "answer");

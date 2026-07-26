@@ -72,6 +72,11 @@ async function collectEvidence() {
       sampleStats: engine?.getSampleLoadStats?.() ?? null,
       samplePalette: engine?.getSamplePalette?.() ?? null,
       composition: engine?.getCompositionSnapshot?.() ?? null,
+      cartridge: globalThis.__ATLAS_APU_CARTRIDGE__ ?? null,
+      cartridgeJson: document.querySelector("[data-cartridge-json]")?.textContent?.trim() ?? null,
+      proofReplayHref: document.getElementById("page-proof-replay")?.href ?? null,
+      proofSampleFree: document.getElementById("page-proof-sample-free")?.textContent?.trim() ?? null,
+      proofSource: document.getElementById("page-proof-source")?.textContent?.trim() ?? null,
       importantStatus: host?.querySelector("[data-important-status]")?.textContent?.trim() ?? null,
     };
   });
@@ -104,16 +109,16 @@ try {
   }, null, { timeout: 20_000, polling: 100 });
 
   evidence = await collectEvidence();
-  assert.match(evidence.buildId ?? "", /atlas-apu-live-v1$/);
+  assert.match(evidence.buildId ?? "", /atlas-apu-live-v7$/);
   assert.equal(evidence.documentBuild, evidence.buildId);
   assert.equal(evidence.previewData, false);
   assert.equal(evidence.source, "live");
   assert.equal(evidence.running, "1");
   assert.equal(evidence.engineRunning, true);
   assert.equal(evidence.toneState, "running");
-  assert.equal(evidence.pageOutputGain, 70);
+  assert.equal(evidence.pageOutputGain, 62);
   assert.ok(evidence.sliderValues.length >= 2);
-  assert.ok(evidence.sliderValues.every((value) => value === 70));
+  assert.ok(evidence.sliderValues.every((value) => value === 62));
   assert.equal(evidence.topologyPresent, true);
   assert.ok(evidence.topologyNodes > 0, "production topology map has no nodes");
   assert.ok(evidence.serviceRows > 0, "production service table has no rows");
@@ -124,6 +129,18 @@ try {
   assert.equal(evidence.sampleStats?.totalAssets, 0);
   assert.equal(evidence.samplePalette?.section, "sample-free");
   assert.ok(evidence.composition?.arrangement?.section);
+  assert.equal(evidence.composition?.diagnostics?.scorePlanGuard?.active, true, JSON.stringify(evidence, null, 2));
+  assert.equal(evidence.composition?.diagnostics?.scorePlanGuard?.mode, "score-plan", JSON.stringify(evidence, null, 2));
+  assert.equal(evidence.composition?.diagnostics?.sampleFree, true, JSON.stringify(evidence, null, 2));
+  assert.equal(evidence.cartridge?.title, "ATLAS APU CARTRIDGE", JSON.stringify(evidence, null, 2));
+  assert.match(evidence.cartridge?.frameSeed ?? "", /^APU-[0-9A-F]{8}$/);
+  assert.equal(evidence.cartridge?.source, "live", JSON.stringify(evidence, null, 2));
+  assert.equal(evidence.cartridge?.sampleFree, "yes", JSON.stringify(evidence, null, 2));
+  assert.match(evidence.cartridge?.replayUrl ?? "", /\/lab\/system-symphony\/replay\/\?frame=APU-/);
+  assert.ok(evidence.cartridgeJson?.includes('"scorePlan"'), JSON.stringify(evidence, null, 2));
+  assert.match(evidence.proofReplayHref ?? "", /\/lab\/system-symphony\/replay\/\?frame=APU-/);
+  assert.match(evidence.proofSampleFree ?? "", /^yes \/ score-plan$/);
+  assert.equal(evidence.proofSource, "live");
   assert.deepEqual(audioRequests, [], "production APU requested an audio asset");
   assert.deepEqual(failedRequests, []);
   assert.deepEqual(pageErrors, []);

@@ -114,6 +114,38 @@ try {
     document.getElementById("system-symphony-widget")?.dataset?.source === "preview"
   ), null, { timeout: 30_000 });
 
+  const modeState = await page.evaluate(() => {
+    const flagship = document.querySelector("[data-symphony-flagship]");
+    return {
+      defaultMode: flagship?.dataset?.symphonyMode ?? null,
+      tabLabels: [...document.querySelectorAll("[data-symphony-mode-tab]")].map((tab) => tab.textContent?.trim()),
+      activePanels: [...document.querySelectorAll("[data-symphony-mode-panel]:not([hidden])")]
+        .map((panel) => panel.dataset.symphonyModePanel),
+      playPanel: !document.querySelector('[data-symphony-mode-panel="play"]')?.hidden,
+      tracePanel: !document.querySelector('[data-symphony-mode-panel="trace"]')?.hidden,
+      replayPanel: !document.querySelector('[data-symphony-mode-panel="replay"]')?.hidden,
+      replaySeed: document.querySelector("[data-page-replay-seed]")?.value ?? null,
+      replayProfile: document.querySelector("[data-page-replay-profile]")?.value ?? null,
+    };
+  });
+  assert.equal(modeState.defaultMode, "play", JSON.stringify(modeState, null, 2));
+  assert.deepEqual(modeState.tabLabels, ["PLAY", "TRACE", "REPLAY"], JSON.stringify(modeState, null, 2));
+  assert.deepEqual(modeState.activePanels, ["play"], JSON.stringify(modeState, null, 2));
+  assert.equal(modeState.playPanel, true, JSON.stringify(modeState, null, 2));
+  assert.equal(modeState.tracePanel, false, JSON.stringify(modeState, null, 2));
+  assert.equal(modeState.replayPanel, false, JSON.stringify(modeState, null, 2));
+  assert.equal(modeState.replaySeed, "A7A5", JSON.stringify(modeState, null, 2));
+  assert.equal(modeState.replayProfile, "custom", JSON.stringify(modeState, null, 2));
+
+  await page.locator('[data-symphony-mode-tab="trace"]').click();
+  await page.waitForFunction(() => (
+    document.querySelector("[data-symphony-flagship]")?.dataset?.symphonyMode === "trace"
+  ), null, { timeout: 5_000 });
+  await page.locator('[data-symphony-mode-tab="play"]').click();
+  await page.waitForFunction(() => (
+    document.querySelector("[data-symphony-flagship]")?.dataset?.symphonyMode === "play"
+  ), null, { timeout: 5_000 });
+
   const audioButton = page.locator("[data-audio-toggle]:visible").first();
   await audioButton.waitFor({ state: "visible", timeout: 20_000 });
   await audioButton.click();
@@ -130,6 +162,11 @@ try {
   await page.waitForFunction(() => (
     window.__symphonyEngine?.getSampleLoadStats?.()?.backgroundComplete === true
   ), null, { timeout: 90_000 });
+  await page.waitForFunction(() => {
+    const snapshot = window.__symphonyEngine?.getCompositionSnapshot?.();
+    return Boolean(snapshot?.arrangement?.section)
+      && snapshot?.diagnostics?.scorePlanGuard?.active === true;
+  }, null, { timeout: 45_000, polling: 100 });
 
   const audioState = await page.evaluate(() => {
     const host = document.getElementById("system-symphony-widget");
@@ -143,6 +180,11 @@ try {
       documentBuild: document.documentElement.dataset.systemSymphonyBuild ?? null,
       samplePalette: window.__symphonyEngine?.getSamplePalette?.() ?? null,
       composition: window.__symphonyEngine?.getCompositionSnapshot?.() ?? null,
+      cartridge: window.__ATLAS_APU_CARTRIDGE__ ?? null,
+      cartridgeJson: document.querySelector("[data-cartridge-json]")?.textContent?.trim() ?? null,
+      proofReplayHref: document.getElementById("page-proof-replay")?.href ?? null,
+      proofSampleFree: document.getElementById("page-proof-sample-free")?.textContent?.trim() ?? null,
+      proofSource: document.getElementById("page-proof-source")?.textContent?.trim() ?? null,
       topologyNodes: host?.querySelectorAll("[data-node]").length ?? 0,
       serviceRows: host?.querySelectorAll("[data-service-table] tr").length ?? 0,
       stateWeightCards: host?.querySelectorAll("[data-state-weight]").length ?? 0,
@@ -159,7 +201,7 @@ try {
   assert.equal(audioState.toneContextState, "running", JSON.stringify(audioState, null, 2));
   assert.equal(audioState.hostSource, "preview", JSON.stringify(audioState, null, 2));
   assert.equal(audioState.hostRunning, "1", JSON.stringify(audioState, null, 2));
-  assert.match(audioState.buildId ?? "", /atlas-apu-live-v1$/);
+  assert.match(audioState.buildId ?? "", /atlas-apu-live-v7$/);
   assert.equal(audioState.documentBuild, audioState.buildId);
   assert.equal(audioState.sampleStats?.coreReady, true, JSON.stringify(audioState, null, 2));
   assert.equal(audioState.sampleStats?.sampleFree, true, JSON.stringify(audioState, null, 2));
@@ -171,13 +213,25 @@ try {
   assert.equal(audioState.samplePalette?.section, "sample-free", JSON.stringify(audioState, null, 2));
   assert.equal(audioState.samplePalette?.bassLoop, null);
   assert.ok(audioState.composition?.arrangement?.section, JSON.stringify(audioState, null, 2));
+  assert.equal(audioState.composition?.diagnostics?.scorePlanGuard?.active, true, JSON.stringify(audioState, null, 2));
+  assert.equal(audioState.composition?.diagnostics?.scorePlanGuard?.mode, "score-plan", JSON.stringify(audioState, null, 2));
+  assert.equal(audioState.composition?.diagnostics?.sampleFree, true, JSON.stringify(audioState, null, 2));
+  assert.equal(audioState.cartridge?.title, "ATLAS APU CARTRIDGE", JSON.stringify(audioState, null, 2));
+  assert.match(audioState.cartridge?.frameSeed ?? "", /^APU-[0-9A-F]{8}$/);
+  assert.equal(audioState.cartridge?.source, "fixture", JSON.stringify(audioState, null, 2));
+  assert.equal(audioState.cartridge?.sampleFree, "yes", JSON.stringify(audioState, null, 2));
+  assert.match(audioState.cartridge?.replayUrl ?? "", /\/lab\/system-symphony\/replay\/\?frame=APU-/);
+  assert.ok(audioState.cartridgeJson?.includes('"scorePlan"'), JSON.stringify(audioState, null, 2));
+  assert.match(audioState.proofReplayHref ?? "", /\/lab\/system-symphony\/replay\/\?frame=APU-/);
+  assert.match(audioState.proofSampleFree ?? "", /^yes \/ score-plan$/);
+  assert.equal(audioState.proofSource, "fixture");
   assert.ok(audioState.topologyNodes > 0, JSON.stringify(audioState, null, 2));
   assert.ok(audioState.serviceRows > 0, JSON.stringify(audioState, null, 2));
   assert.equal(audioState.stateWeightCards, 4);
   assert.ok(audioState.dominantReason, JSON.stringify(audioState, null, 2));
-  assert.equal(audioState.pageOutputGain, 70);
+  assert.equal(audioState.pageOutputGain, 62);
   assert.ok(audioState.sliderValues.length >= 2);
-  assert.ok(audioState.sliderValues.every((value) => value === 70));
+  assert.ok(audioState.sliderValues.every((value) => value === 62));
   assert.deepEqual(audioRequests, [], "the live-route APU requested an audio asset");
 
   const fatalConsole = consoleMessages.filter(({ text }) => (
@@ -200,6 +254,7 @@ try {
     sampleReady: window.__symphonyEngine?.isSampleReady?.() ?? false,
     sampleStats: window.__symphonyEngine?.getSampleLoadStats?.() ?? null,
     samplePalette: window.__symphonyEngine?.getSamplePalette?.() ?? null,
+    cartridge: window.__ATLAS_APU_CARTRIDGE__ ?? null,
     audioButtons: [...document.querySelectorAll("[data-audio-toggle]")].map((button) => ({
       text: button.textContent?.trim() ?? "",
       disabled: button.disabled,
