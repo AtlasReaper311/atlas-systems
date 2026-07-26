@@ -4,6 +4,21 @@ export const APU_LOUDNESS_METER_BUILD_ID = "20260726-system-symphony-loudness-me
 export const APU_LOUDNESS_PROCESSOR_NAME = "atlas-apu-loudness-meter";
 export const APU_LOUDNESS_WORKLET_URL = "/static/js/sonify/apu-loudness-worklet.js?v=20260726-system-symphony-loudness-meter-v1";
 
+function describeError(error) {
+  const name = typeof error?.name === "string" && error.name ? error.name : "Error";
+  const message = typeof error?.message === "string" && error.message
+    ? error.message
+    : String(error || "unknown error");
+  const code = error?.code === undefined ? "" : ` code=${String(error.code)}`;
+  return `${name}: ${message}${code}`;
+}
+
+function stageError(stage, dialect, error) {
+  const wrapped = new Error(`APU loudness ${stage} failed [${dialect}]: ${describeError(error)}`);
+  wrapped.cause = error;
+  return wrapped;
+}
+
 function nativeAudioContext(context) {
   const candidates = [
     context?.rawContext?._nativeAudioContext,
@@ -69,10 +84,10 @@ function connectSource(source, destination) {
       candidate.connect(destination);
       return candidate;
     } catch (error) {
-      failures.push(error instanceof Error ? error.message : String(error));
+      failures.push(describeError(error));
     }
   }
-  throw new Error(`APU loudness meter source is not connectable: ${failures.join("; ") || "no audio output"}`);
+  throw new Error(`source is not connectable: ${failures.join("; ") || "no audio output"}`);
 }
 
 function disconnectSource(source, destination) {
@@ -112,18 +127,28 @@ export async function createApuLoudnessMeter({
   };
 
   emitStatus("loading");
-  await factory.addModule(APU_LOUDNESS_WORKLET_URL);
+  try {
+    await factory.addModule(APU_LOUDNESS_WORKLET_URL);
+  } catch (error) {
+    throw stageError("module registration", factory.dialect, error);
+  }
 
-  const node = factory.createNode(APU_LOUDNESS_PROCESSOR_NAME, {
-    numberOfInputs: 1,
-    numberOfOutputs: 0,
-    channelCount: 2,
-    channelCountMode: "explicit",
-    channelInterpretation: "speakers",
-    processorOptions: {
-      maxBlockHistory,
-    },
-  });
+  let node = null;
+  try {
+    node = factory.createNode(APU_LOUDNESS_PROCESSOR_NAME, {
+      numberOfInputs: 1,
+      numberOfOutputs: 0,
+      channelCount: 2,
+      channelCountMode: "explicit",
+      channelInterpretation: "speakers",
+      processorOptions: {
+        maxBlockHistory,
+      },
+    });
+    if (!node?.port) throw new TypeError("created worklet node has no MessagePort");
+  } catch (error) {
+    throw stageError("node creation", factory.dialect, error);
+  }
 
   node.onprocessorerror = (event) => {
     const error = new Error(event?.message || "APU loudness worklet processor failed");
@@ -157,7 +182,7 @@ export async function createApuLoudnessMeter({
   } catch (error) {
     node.port.close();
     node.disconnect();
-    throw error;
+    throw stageError("source connection", factory.dialect, error);
   }
 
   return Object.freeze({
