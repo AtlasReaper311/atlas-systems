@@ -52,6 +52,8 @@ async function collectEvidence() {
       buildId: globalThis.__ATLAS_APU__?.buildId ?? null,
       documentBuild: document.documentElement.dataset.atlasApuBuild ?? null,
       loudnessBuildId: globalThis.__ATLAS_APU_LOUDNESS__?.buildId ?? null,
+      masteringRuntimeBuildId: globalThis.__ATLAS_APU_MASTERING_RUNTIME__?.buildId ?? null,
+      masteringRuntime: globalThis.__ATLAS_APU_MASTERING_RUNTIME__?.getStatus?.() ?? null,
       ready: root?.dataset.ready ?? null,
       running: root?.dataset.running ?? null,
       noSamples: root?.dataset.apuNoSamples ?? null,
@@ -150,7 +152,10 @@ try {
 
   await page.waitForFunction(() => {
     const status = globalThis.__ATLAS_APU_LOUDNESS__?.getStatus?.();
-    return status?.status === "running" && status?.processorReady === true;
+    const mastering = globalThis.__ATLAS_APU_MASTERING_RUNTIME__?.getStatus?.();
+    return status?.status === "running"
+      && status?.processorReady === true
+      && mastering?.active === true;
   }, null, { timeout: 15_000, polling: 100 });
 
   await page.getByRole("button", { name: "Critical", exact: true }).click();
@@ -168,9 +173,13 @@ try {
     const arrangement = globalThis.__ATLAS_APU__?.getArrangement?.();
     const diagnostics = globalThis.__ATLAS_APU__?.getDiagnostics?.();
     const loudness = globalThis.__ATLAS_APU_LOUDNESS__?.getMetrics?.();
+    const mastering = globalThis.__ATLAS_APU_MASTERING_RUNTIME__?.getStatus?.();
     return arrangement?.section === "theme-b"
       && Number(diagnostics?.trackPhraseIndex) >= 7
       && Number(diagnostics?.stepIndex) > 32 * 7
+      && mastering?.active === true
+      && mastering?.state === "healthy"
+      && mastering?.targetGainDb === 4
       && loudness?.ready === true
       && Number.isFinite(loudness?.momentaryLufs)
       && Number.isFinite(loudness?.shortTermLufs)
@@ -183,6 +192,7 @@ try {
   assert.match(evidence.buildId ?? "", /state-identities-v1$/);
   assert.equal(evidence.documentBuild, evidence.buildId);
   assert.match(evidence.loudnessBuildId ?? "", /loudness-meter-v3$/);
+  assert.match(evidence.masteringRuntimeBuildId ?? "", /mastering-runtime-v1$/);
   assert.equal(evidence.ready, "true");
   assert.equal(evidence.running, "true");
   assert.equal(evidence.noSamples, "true");
@@ -203,9 +213,19 @@ try {
   assert.equal(evidence.metricSection, "Theme B");
   assert.match(evidence.metricPosition ?? "", /Bars 15-16 \/ 32/);
   assert.equal(evidence.mastering.state, "healthy");
-  assert.equal(evidence.mastering.masterGainDb, -2);
-  assert.equal(evidence.mastering.programmeTrimDb, 8);
   assert.equal(evidence.mastering.targetIntegratedLufs, -22);
+  assert.equal(evidence.masteringRuntime.policyBuildId, "20260726-system-symphony-mastering-v2");
+  assert.equal(evidence.masteringRuntime.state, "healthy");
+  assert.equal(evidence.masteringRuntime.targetGainDb, 4);
+  assert.equal(evidence.masteringRuntime.upstreamGainDb, evidence.arrangement.timbre.masterGainDb);
+  assert.equal(
+    evidence.masteringRuntime.appliedTrimDb,
+    evidence.masteringRuntime.targetGainDb - evidence.masteringRuntime.upstreamGainDb,
+  );
+  assert.equal(
+    evidence.masteringRuntime.upstreamGainDb + evidence.masteringRuntime.appliedTrimDb,
+    4,
+  );
   assert.ok(evidence.diagnostics.stepIndex > 32 * 7);
   assert.ok(evidence.diagnostics.trackPhraseIndex >= 7);
   assert.equal(evidence.diagnostics.state, "healthy");
