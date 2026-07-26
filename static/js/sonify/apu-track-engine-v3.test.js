@@ -6,6 +6,7 @@ import { APU_MASTERING_LIMITER_CEILING_DB } from "./apu-mastering.js";
 import {
   APU_TRACK_CRITICAL_CHOKE_SECONDS,
   APU_TRACK_PULSE_WIDTH_LEAD_SECONDS,
+  APU_TRACK_TRANSITION_ORNAMENT_OFFSET_SECONDS,
   safeRamp,
 } from "./apu-track-engine-v3.js";
 
@@ -64,6 +65,8 @@ test("track engine source keeps crusher off the full master and schedules pulse 
 
   assert.ok(APU_TRACK_CRITICAL_CHOKE_SECONDS >= 0.08);
   assert.ok(APU_TRACK_PULSE_WIDTH_LEAD_SECONDS > 0);
+  assert.ok(APU_TRACK_TRANSITION_ORNAMENT_OFFSET_SECONDS > 0);
+  assert.ok(APU_TRACK_TRANSITION_ORNAMENT_OFFSET_SECONDS < 0.02);
   assert.ok(APU_MASTERING_LIMITER_CEILING_DB <= -2);
   assert.match(source, /new Tone\.Limiter\(APU_MASTERING_LIMITER_CEILING_DB\)/);
   assert.match(source, /nodes\.serviceBus\.chain\(nodes\.chipColor, nodes\.melodyBus\)/);

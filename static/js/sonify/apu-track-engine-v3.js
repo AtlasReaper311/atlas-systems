@@ -34,6 +34,7 @@ export const APU_TRACK_SERVICE_POOL = 8;
 export const APU_TRACK_BPM = 100;
 export const APU_TRACK_CRITICAL_CHOKE_SECONDS = 0.09;
 export const APU_TRACK_PULSE_WIDTH_LEAD_SECONDS = 0.028;
+export const APU_TRACK_TRANSITION_ORNAMENT_OFFSET_SECONDS = 0.012;
 
 function requireTone() {
   const Tone = globalThis.Tone;
@@ -553,18 +554,19 @@ export function createApuTrackEngine({
       stepIndex,
       phraseIndex: trackPhraseIndex,
     });
+    const ornamentTime = time + APU_TRACK_TRANSITION_ORNAMENT_OFFSET_SECONDS;
     if (event.bassDrop) {
       nodes.padSub.triggerAttackRelease(
         midiToFrequencyHz(event.bassDrop.midi),
         event.bassDrop.duration,
-        time,
+        ornamentTime,
         Math.min(0.3, event.bassDrop.velocity),
       );
     }
     if (event.noise) {
       nodes.noiseAccent.triggerAttackRelease(
         event.noise.duration,
-        time,
+        ornamentTime,
         Math.min(0.24, event.noise.velocity),
       );
     }
@@ -573,7 +575,7 @@ export function createApuTrackEngine({
       voice.triggerAttackRelease(
         midiToFrequencyHz(note.midi),
         note.duration,
-        time,
+        ornamentTime,
         Math.min(0.46, note.velocity),
       );
     }
