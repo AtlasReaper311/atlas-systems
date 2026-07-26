@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <meta name="description" content="Atlas APU track preview: a sample-free 32-bar browser game soundtrack generated from bounded Atlas Systems telemetry.">
+  <meta name="description" content="Atlas APU track preview with sample-free state identities and a monitoring-only browser loudness meter.">
   <meta name="theme-color" content="#0a0a0f">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
@@ -25,11 +25,11 @@
     </ul>
   </nav>
 
-  <main class="apu-main" data-apu-root data-ready="false" data-running="false" data-source="connecting" data-state="unknown" data-section="standby">
+  <main class="apu-main" data-apu-root data-ready="false" data-running="false" data-source="connecting" data-state="unknown" data-section="standby" data-loudness-status="idle">
     <header class="apu-hero">
-      <p class="apu-kicker">System Symphony / corrected long-form preview</p>
-      <h1>The estate becomes a complete game soundtrack.</h1>
-      <p class="apu-lede">Atlas APU moves through a deterministic 32-bar form with an intro, themes, variation, build, peak, release, recovery and breathing space. Every pitched voice now shares the same F-centred harmonic authority, while each channel has a distinct synthesis identity.</p>
+      <p class="apu-kicker">System Symphony / state identity and loudness preview</p>
+      <h1>The estate becomes a measurable game soundtrack.</h1>
+      <p class="apu-lede">Atlas APU moves through a deterministic 32-bar form while Healthy, Warning, Critical and Unknown use separate musical grammars. A monitoring-only AudioWorklet reports loudness and peak evidence without entering the audible signal path.</p>
       <div class="apu-boundary" role="status">
         <strong>Preview boundary</strong>
         <span>This route does not replace the current production instrument and cannot change estate state.</span>
@@ -39,7 +39,7 @@
     <section class="apu-console" aria-labelledby="apu-console-title">
       <div class="apu-console-head">
         <div>
-          <p class="apu-kicker">ATLAS APU // 32-bar procedural soundtrack v2</p>
+          <p class="apu-kicker">ATLAS APU // six-role procedural soundtrack</p>
           <h2 id="apu-console-title">Live soundtrack console</h2>
         </div>
         <div class="apu-controls">
@@ -74,6 +74,22 @@
         <article><span>Failures</span><strong data-metric="failures">0</strong></article>
       </section>
 
+      <section class="apu-form-panel" aria-labelledby="apu-loudness-title">
+        <div class="apu-scope-head">
+          <span id="apu-loudness-title">Monitoring-only loudness evidence</span>
+          <strong data-loudness="status">Idle</strong>
+        </div>
+        <div class="apu-metrics" aria-label="Current loudness measurements">
+          <article><span>Momentary</span><strong data-loudness="momentary">Waiting</strong></article>
+          <article><span>Short-term</span><strong data-loudness="short-term">Waiting</strong></article>
+          <article><span>Integrated</span><strong data-loudness="integrated">Waiting</strong></article>
+          <article><span>True peak</span><strong data-loudness="true-peak">Waiting</strong></article>
+          <article><span>Sample peak</span><strong data-loudness="sample-peak">Waiting</strong></article>
+          <article><span>Gate blocks</span><strong data-loudness="blocks">0 / 0</strong></article>
+        </div>
+        <p class="apu-status" data-loudness="method">The meter starts after the browser audio context is unlocked.</p>
+      </section>
+
       <section class="apu-form-panel" aria-labelledby="apu-form-title">
         <div class="apu-scope-head">
           <span id="apu-form-title">32-bar form</span>
@@ -101,12 +117,12 @@
           <p>Historical console vocabulary with clearly separated synthesis roles. No streamed or decoded audio assets.</p>
         </div>
         <div class="apu-channel-grid">
-          <article data-channel="pulse-a"><span>LEAD BUS</span><strong>Square player lead</strong><p>A focused square-wave melody with section-dependent filtering and constrained voice-leading.</p><small data-channel-count="pulse-a">0 services</small></article>
-          <article data-channel="pulse-b"><span>COUNTER BUS</span><strong>FM packet counterline</strong><p>A softer FM answer voice with its own register, rhythm, filter and harmonic path.</p><small data-channel-count="pulse-b">0 services</small></article>
-          <article data-channel="triangle"><span>TRIANGLE</span><strong>Machine foundation</strong><p>A dedicated triangle bass for foundation, groove, walking, rising, climax and sustained roles.</p><small data-channel-count="triangle">0 services</small></article>
-          <article data-channel="noise"><span>NOISE</span><strong>Operations rhythm</strong><p>Lower-level section-specific kick, snare, hats, fills, dropouts and incident accents.</p><small data-channel-count="noise">0 services</small></article>
-          <article data-channel="wavetable"><span>MEMORY FIELD</span><strong>Sine harmonic pad</strong><p>A slow sine-based pad carrying consonant two-chord phrases and restrained inversions.</p><small data-channel-count="wavetable">0 services</small></article>
-          <article data-channel="fm-accent"><span>EVENT BUS</span><strong>Operational accents</strong><p>Percussive fills, noise lifts, dropouts, incident signals and deployment fanfares.</p><small data-channel-count="fm-accent">event channel</small></article>
+          <article data-channel="pulse-a"><span>LEAD BUS</span><strong>State-shaped pulse lead</strong><p>Duty cycle, gate length, harmony and stereo position change with the active estate state.</p><small data-channel-count="pulse-a">0 services</small></article>
+          <article data-channel="pulse-b"><span>COUNTER BUS</span><strong>Diagnostic counterline</strong><p>Counterpoint, hazard figures, alarm intervals and suspended fragments share one bounded role.</p><small data-channel-count="pulse-b">0 services</small></article>
+          <article data-channel="triangle"><span>TRIANGLE</span><strong>Machine foundation</strong><p>Walking, ostinato, root-fifth lockstep and static-drone bass grammars preserve the tonal centre.</p><small data-channel-count="triangle">0 services</small></article>
+          <article data-channel="noise"><span>NOISE</span><strong>Operations rhythm</strong><p>Open swing, diagnostic stutter, impact bursts and sparse carrier pulses remain deterministic.</p><small data-channel-count="noise">0 services</small></article>
+          <article data-channel="wavetable"><span>MEMORY FIELD</span><strong>Dynamic role allocation</strong><p>Warm pad, gated pressure field, Critical sub-bass and Unknown carrier drift share Channel 5.</p><small data-channel-count="wavetable">0 services</small></article>
+          <article data-channel="fm-accent"><span>EVENT BUS</span><strong>Operational accents</strong><p>Service calls, diagnostic bleeps, impact bursts and low telemetry hum share Channel 6.</p><small data-channel-count="fm-accent">event channel</small></article>
         </div>
       </section>
 
@@ -133,10 +149,10 @@
         <div><span>03</span><h2 id="apu-notes-title">What this preview proves</h2></div>
       </div>
       <div class="apu-note-grid">
-        <article><h3>Shared tonal centre</h3><p>Lead, counterline, services, pad and bass now resolve through the same F-centred scale and active chord.</p></article>
-        <article><h3>Long-form memory</h3><p>A complete 32-bar cycle controls harmony, melody transformation, bass role, drum density and transitions.</p></article>
-        <article><h3>Distinct orchestration</h3><p>Square lead, FM counterline, varied service oscillators, triangle bass, sine pad and noise drums occupy separate roles.</p></article>
-        <article><h3>Fault isolation</h3><p>A failed voice can no longer stop the transport or pin playback to one rapidly repeating percussion step.</p></article>
+        <article><h3>State identity</h3><p>Healthy, Warning, Critical and Unknown now change composition, rhythm, envelopes, role allocation and spatial treatment.</p></article>
+        <article><h3>Quantised transitions</h3><p>Critical chokes the old pad and counterline at the bar boundary; Unknown dissolves over one full 2.4-second bar.</p></article>
+        <article><h3>Measured output</h3><p>A sink-only AudioWorklet applies K-weighting, overlapping gates and peak estimation without entering the audible path.</p></article>
+        <article><h3>Honest evidence</h3><p>Integrated loudness is labelled by sample-rate method, while true peak remains an explicit four-times cubic estimate.</p></article>
       </div>
       <div class="apu-links">
         <a href="/lab/system-symphony/">Compare current production instrument</a>
@@ -149,5 +165,6 @@
   <script src="/lab/system-symphony/preview-endpoints.js?v=20260725-numbered-previews"></script>
   <script src="/vendor/tone.min.js?v=20260708-sonify"></script>
   <script type="module" src="/lab/system-symphony-apu/system-symphony-apu.js?v=20260726-atlas-apu-track-v2"></script>
+  <script type="module" src="/static/js/sonify/apu-loudness-ui.js?v=20260726-system-symphony-loudness-meter-v1"></script>
 </body>
 </html>
