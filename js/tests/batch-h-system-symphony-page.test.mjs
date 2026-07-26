@@ -82,7 +82,9 @@ test("the lab page exposes the Phase 9 static black-box flight recorder", () => 
 test("the lab page exposes the Phase 10 incident boss-track replay", () => {
   assert.ok(page.includes("INCIDENT REPLAY AS A MOVEMENT"));
   assert.ok(page.includes("data-incident-arc"));
+  assert.ok(page.includes("data-incident-arc-audition"));
   assert.ok(page.includes("data-incident-arc-play"));
+  assert.ok(page.includes("data-incident-arc-progress"));
   assert.ok(page.includes("data-incident-arc-timeline"));
   assert.ok(page.includes("data-incident-arc-impact"));
   assert.ok(page.includes('href="/lab/system-symphony/black-box/incident-arcs.json"'));
@@ -93,6 +95,8 @@ test("the lab page exposes the Phase 10 incident boss-track replay", () => {
   assert.ok(adapter.includes("validateIncidentArc"));
   assert.ok(adapter.includes("incidentArcSummary"));
   assert.ok(adapter.includes("playIncidentArc"));
+  assert.ok(adapter.includes("INCIDENT_ARC_FRAME_MS = 10000"));
+  assert.ok(adapter.includes("ensureConsoleAudioRunning"));
   assert.ok(adapter.includes("symphonyIncident"));
   assert.ok(adapter.includes("symphonyIncidentStep"));
 });
@@ -114,9 +118,17 @@ test("the replay entry route canonicalizes Phase 7 replay links", () => {
 test("PLAY stays minimal while TRACE and REPLAY reveal proof deliberately", () => {
   assert.ok(pageCss.includes('[data-symphony-mode="play"] .symphony-page-host .symphony-service-section'));
   assert.ok(pageCss.includes('[data-symphony-mode="play"] .symphony-page-host .symphony-inspector'));
-  assert.ok(pageCss.includes('[data-symphony-mode="play"] .symphony-cartridge'));
-  assert.ok(pageCss.includes('[data-symphony-mode="play"] .symphony-flight-recorder'));
-  assert.ok(pageCss.includes('[data-symphony-mode="play"] .symphony-incident-replay'));
+  assert.ok(pageCss.includes('[data-symphony-mode="play"] .symphony-proof-console'));
+  assert.ok(pageCss.includes("[data-proof-panel][hidden]"));
+  assert.ok(page.includes("data-proof-console"));
+  assert.ok(page.includes('data-proof-open="blackbox"'));
+  assert.ok(page.includes('data-proof-tab="cartridge"'));
+  assert.ok(page.includes('data-proof-tab="blackbox"'));
+  assert.ok(page.includes('data-proof-tab="incident"'));
+  assert.ok(page.includes("Inspect cartridge JSON"));
+  assert.ok(page.includes("Inspect selected black-box JSON"));
+  assert.ok(page.includes("Inspect incident arc JSON"));
+  assert.ok(adapter.includes("selectProofPanel"));
   assert.ok(pageCss.includes('[data-symphony-mode="trace"] .symphony-page-host .symphony-performance'));
   assert.ok(pageCss.includes('[data-symphony-mode="replay"] .symphony-page-host .symphony-service-section'));
   assert.ok(adapter.includes("clickConsoleAudio"));

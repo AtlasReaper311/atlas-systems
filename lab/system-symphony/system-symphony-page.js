@@ -25,8 +25,10 @@ const HOST_ID = "system-symphony-widget";
 const HOST_WAIT_MS = 5000;
 const PAGE_OUTPUT_GAIN_PERCENT = Math.round(DEFAULT_USER_GAIN * 100);
 const PAGE_MODES = new Set(["play", "trace", "replay"]);
+const PROOF_PANELS = new Set(["cartridge", "blackbox", "incident"]);
 const REPLAY_PROFILES = new Set(["custom", "healthy", "warning", "critical", "unknown"]);
 const REPLAY_ROUTE = "/lab/system-symphony/replay/";
+const INCIDENT_ARC_FRAME_MS = 10000;
 const MOVEMENTS = Object.freeze({
   healthy: "Green Clock",
   warning: "Warning Pressure",
@@ -40,6 +42,7 @@ let incidentArcs = [];
 let selectedIncidentArc = null;
 let incidentArcIndex = 0;
 let incidentArcTimer = null;
+let activeProofPanel = "cartridge";
 
 const byId = (id) => document.getElementById(id);
 
@@ -219,9 +222,46 @@ function syncMode(mode, { push = true } = {}) {
   window.history.replaceState({}, "", url);
 }
 
+function scrollToPanel(target) {
+  if (!target) return;
+  const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - 96);
+  window.scrollTo({ top, left: 0, behavior: "auto" });
+}
+
+function pinHorizontalScroll() {
+  if (window.scrollX === 0) return;
+  window.scrollTo({ top: window.scrollY, left: 0, behavior: "auto" });
+}
+
+function selectProofPanel(panel = "cartridge", { scroll = false } = {}) {
+  const nextPanel = PROOF_PANELS.has(panel) ? panel : "cartridge";
+  activeProofPanel = nextPanel;
+  const consoleNode = document.querySelector("[data-proof-console]");
+  for (const tab of document.querySelectorAll("[data-proof-tab]")) {
+    const selected = tab.dataset.proofTab === nextPanel;
+    tab.setAttribute("aria-selected", String(selected));
+    tab.tabIndex = selected ? 0 : -1;
+  }
+  for (const proofPanel of document.querySelectorAll("[data-proof-panel]")) {
+    proofPanel.hidden = proofPanel.dataset.proofPanel !== nextPanel;
+  }
+  if (scroll) {
+    const target = document.querySelector(`[data-proof-panel="${nextPanel}"]`) ?? consoleNode;
+    scrollToPanel(target);
+  }
+  window.requestAnimationFrame(pinHorizontalScroll);
+}
+
 function clickConsoleAudio(host) {
   const button = host.querySelector(".symphony-console [data-audio-toggle]");
   button?.click();
+  return host.dataset.running === "1";
+}
+
+function ensureConsoleAudioRunning(host) {
+  if (!host) return false;
+  if (host.dataset.running === "1") return true;
+  return clickConsoleAudio(host);
 }
 
 function makeReplayUrl({
@@ -423,6 +463,7 @@ function selectArchivedCartridge(cartridge, host, { armReplay = true } = {}) {
   setFlightRecorderField("schema", validation.valid ? cartridge.schemaVersion : `invalid: ${validation.missing.join(", ")}`);
   const summary = cartridgeSummary(cartridge);
   if (armReplay) {
+    selectProofPanel("blackbox");
     renderCartridge(displayCartridge);
     const seed = document.querySelector("[data-page-replay-seed]");
     const profile = document.querySelector("[data-page-replay-profile]");
@@ -523,6 +564,31 @@ function setIncidentArcStatus(message) {
   if (status) status.textContent = message;
 }
 
+function renderIncidentProgress({ playing = false } = {}) {
+  const progress = document.querySelector("[data-incident-arc-progress]");
+  const bar = document.querySelector("[data-incident-arc-progress-bar]");
+  if (!progress || !bar || !selectedIncidentArc) return;
+  const cartridge = selectedIncidentArc.frameCartridges[incidentArcIndex];
+  if (!cartridge) {
+    progress.hidden = true;
+    return;
+  }
+  progress.hidden = false;
+  progress.dataset.playing = String(playing);
+  progress.dataset.state = cartridge.dominantState ?? "unknown";
+  progress.style.setProperty("--incident-frame-ms", `${INCIDENT_ARC_FRAME_MS}ms`);
+  progress.setAttribute(
+    "aria-label",
+    `Holding incident stage ${incidentArcIndex + 1} of ${selectedIncidentArc.frameCartridges.length} for ${INCIDENT_ARC_FRAME_MS / 1000} seconds.`,
+  );
+  bar.style.animation = "none";
+  bar.style.transform = "scaleX(0)";
+  if (playing) {
+    void bar.offsetWidth;
+    bar.style.animation = `symphony-incident-progress ${INCIDENT_ARC_FRAME_MS}ms linear forwards`;
+  }
+}
+
 function renderIncidentArcJson(arc) {
   const json = document.querySelector("[data-incident-arc-json]");
   if (!json) return;
@@ -565,7 +631,10 @@ function renderIncidentTimeline(arc) {
     const proof = document.createElement("p");
     proof.textContent = `${cartridge.frameTime} / ${cartridge.seed}`;
     stage.append(heading, state, proof);
-    stage.addEventListener("click", () => armIncidentArcFrame(arc, cartridge.incidentFrame.index));
+    stage.addEventListener("click", () => {
+      clearIncidentArcTimer();
+      armIncidentArcFrame(arc, cartridge.incidentFrame.index);
+    });
     timeline.append(stage);
   }
 }
@@ -586,16 +655,18 @@ function renderIncidentImpact(arc, activeCartridge) {
   }
 }
 
-function armIncidentArcFrame(arc = selectedIncidentArc, index = incidentArcIndex, { updateUrl = true } = {}) {
+function armIncidentArcFrame(arc = selectedIncidentArc, index = incidentArcIndex, { updateUrl = true, playing = false } = {}) {
   if (!arc) return false;
   const boundedIndex = Math.max(0, Math.min(index, arc.frameCartridges.length - 1));
   const cartridge = arc.frameCartridges[boundedIndex];
   if (!cartridge) return false;
   incidentArcIndex = boundedIndex;
   selectedIncidentArc = arc;
+  selectProofPanel("incident");
   renderCartridge(decorateCartridgeForDisplay(cartridge, cartridge.telemetrySnapshot));
   renderIncidentTimeline(arc);
   renderIncidentImpact(arc, cartridge);
+  renderIncidentProgress({ playing });
   setIncidentArcField("selected", `${arc.incidentId} / ${boundedIndex + 1} of ${arc.frameCartridges.length}`);
   setIncidentArcField("path", arc.stateTransitionPath.join(" -> "));
   const seed = document.querySelector("[data-page-replay-seed]");
@@ -606,7 +677,9 @@ function armIncidentArcFrame(arc = selectedIncidentArc, index = incidentArcIndex
   const host = document.getElementById(HOST_ID);
   if (host) applyReplay(host);
   if (updateUrl) updateIncidentUrl(arc, boundedIndex);
-  setIncidentArcStatus(`Incident arc stage ${boundedIndex + 1}: ${cartridge.incidentFrame.label} / ${cartridge.source}.`);
+  const hold = `${INCIDENT_ARC_FRAME_MS / 1000}s hold`;
+  const prefix = playing ? "Performing" : "Armed";
+  setIncidentArcStatus(`${prefix} stage ${boundedIndex + 1} of ${arc.frameCartridges.length}: ${cartridge.incidentFrame.label} / ${cartridge.source} / ${hold}.`);
   return true;
 }
 
@@ -626,36 +699,44 @@ function selectIncidentArc(arc, { armReplay = false, index = 0 } = {}) {
   if (armReplay) armIncidentArcFrame(arc, incidentArcIndex);
 }
 
-function playIncidentArc() {
+function playIncidentArc({ startAudio = false } = {}) {
   if (!selectedIncidentArc) {
     setIncidentArcStatus("No incident arc is available.");
     return;
   }
+  const host = document.getElementById(HOST_ID);
+  const audioRunning = startAudio ? ensureConsoleAudioRunning(host) : host?.dataset.running === "1";
   clearIncidentArcTimer();
-  armIncidentArcFrame(selectedIncidentArc, 0);
+  armIncidentArcFrame(selectedIncidentArc, 0, { playing: true });
+  setIncidentArcStatus(`${audioRunning ? "Boss track playing" : "Timeline playing silently"}: warning -> critical -> recovery, ${INCIDENT_ARC_FRAME_MS / 1000}s per frame.`);
   incidentArcTimer = window.setInterval(() => {
     const nextIndex = incidentArcIndex + 1;
     if (nextIndex >= selectedIncidentArc.frameCartridges.length) {
       clearIncidentArcTimer();
+      renderIncidentProgress({ playing: false });
       setIncidentArcStatus(`Incident arc complete: ${selectedIncidentArc.recoveryMarker?.label ?? "sequence ended"}.`);
       return;
     }
-    armIncidentArcFrame(selectedIncidentArc, nextIndex);
-  }, 3200);
+    armIncidentArcFrame(selectedIncidentArc, nextIndex, { playing: true });
+  }, INCIDENT_ARC_FRAME_MS);
 }
 
 function installIncidentArcControls() {
-  document.querySelector("[data-incident-arc-play]")?.addEventListener("click", playIncidentArc);
+  document.querySelector("[data-incident-arc-audition]")?.addEventListener("click", () => playIncidentArc({ startAudio: true }));
+  document.querySelector("[data-incident-arc-play]")?.addEventListener("click", () => playIncidentArc());
   document.querySelector("[data-incident-arc-stop]")?.addEventListener("click", () => {
     clearIncidentArcTimer();
+    renderIncidentProgress({ playing: false });
     setIncidentArcStatus("Incident arc playback stopped.");
   });
   document.querySelector("[data-incident-arc-prev]")?.addEventListener("click", () => {
     clearIncidentArcTimer();
+    renderIncidentProgress({ playing: false });
     armIncidentArcFrame(selectedIncidentArc, incidentArcIndex - 1);
   });
   document.querySelector("[data-incident-arc-next]")?.addEventListener("click", () => {
     clearIncidentArcTimer();
+    renderIncidentProgress({ playing: false });
     armIncidentArcFrame(selectedIncidentArc, incidentArcIndex + 1);
   });
   window.addEventListener("pagehide", clearIncidentArcTimer, { once: true });
@@ -769,6 +850,7 @@ function downloadCartridgeJson() {
 function installModeControls(host) {
   const params = new URLSearchParams(window.location.search);
   const initialMode = normaliseMode(params.get("symphonyMode"));
+  const initialProofPanel = params.get("symphonyProof");
   const initialProfile = normaliseReplayProfile(params.get("symphonyScene"));
   const initialSeed = normaliseReplaySeed(params.get("symphonySeed"));
   let replayRetryTimer = null;
@@ -777,6 +859,7 @@ function installModeControls(host) {
   if (profile) profile.value = initialProfile;
   if (seed) seed.value = initialSeed;
   syncMode(initialMode, { push: false });
+  selectProofPanel(PROOF_PANELS.has(initialProofPanel) ? initialProofPanel : activeProofPanel);
   for (const tab of document.querySelectorAll("[data-symphony-mode-tab]")) {
     tab.addEventListener("click", () => {
       const mode = normaliseMode(tab.dataset.symphonyModeTab);
@@ -799,7 +882,27 @@ function installModeControls(host) {
     link.addEventListener("click", (event) => {
       event.preventDefault();
       syncMode(link.dataset.symphonyModeLink);
-      byId("symphony-trace-surface")?.scrollIntoView({ block: "start" });
+      scrollToPanel(byId("symphony-trace-surface"));
+    });
+  }
+  for (const tab of document.querySelectorAll("[data-proof-tab]")) {
+    tab.addEventListener("click", () => selectProofPanel(tab.dataset.proofTab));
+    tab.addEventListener("keydown", (event) => {
+      if (!["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+      event.preventDefault();
+      const tabs = [...document.querySelectorAll("[data-proof-tab]")];
+      const index = tabs.indexOf(tab);
+      const offset = event.key === "ArrowRight" ? 1 : -1;
+      const next = tabs[(index + offset + tabs.length) % tabs.length];
+      next.focus();
+      next.click();
+    });
+  }
+  for (const opener of document.querySelectorAll("[data-proof-open]")) {
+    opener.addEventListener("click", (event) => {
+      event.preventDefault();
+      syncMode("trace");
+      selectProofPanel(opener.dataset.proofOpen, { scroll: true });
     });
   }
   document.querySelector("[data-page-audio-toggle]")?.addEventListener("click", () => clickConsoleAudio(host));

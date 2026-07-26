@@ -71,7 +71,7 @@
           </dl>
           <div class="symphony-panel-actions">
             <button class="focus-action primary" type="button" data-page-audio-toggle>Start listening</button>
-            <a class="focus-action" href="#symphony-panel-trace" data-symphony-mode-link="trace">Inspect trace</a>
+            <button class="focus-action" type="button" data-proof-open="blackbox">Show proof</button>
           </div>
         </section>
 
@@ -81,7 +81,8 @@
           <p>Service nodes are arranged by estate layer, edges are declared dependencies, and measured versus unmeasured components stay visually distinct.</p>
           <div class="symphony-panel-actions">
             <a class="focus-action primary" href="#symphony-trace-surface">Open topology</a>
-            <a class="focus-action" href="#atlas-apu-cartridge">Open cartridge</a>
+            <button class="focus-action" type="button" data-proof-open="cartridge">Open cartridge</button>
+            <button class="focus-action" type="button" data-proof-open="blackbox">Open black box</button>
             <a class="focus-action" href="https://api.atlas-systems.uk/v1/topology">Topology JSON</a>
           </div>
         </section>
@@ -113,14 +114,19 @@
         </dl>
       </aside>
 
-      <div id="symphony-trace-surface" class="symphony-page-host" data-symphony-page-host aria-busy="true"></div>
-      <div class="focus-grid cols-4 symphony-page-summary" role="group" aria-label="System Symphony evidence summary">
-        <article class="focus-metric"><span>Instrument state</span><strong id="page-score-state">unknown</strong></article>
-        <article class="focus-metric"><span>Components</span><strong id="page-service-count">0</strong></article>
-        <article class="focus-metric"><span>Measured / unmeasured</span><strong id="page-measurement-count">0 / 0</strong></article>
-        <article class="focus-metric"><span>Approved objectives</span><strong id="page-objective-count">unknown</strong></article>
-      </div>
-      <section id="atlas-apu-cartridge" class="symphony-cartridge" aria-labelledby="atlas-apu-cartridge-title" data-cartridge-panel>
+      <section class="symphony-proof-console" aria-labelledby="symphony-proof-console-title" data-proof-console>
+        <div class="symphony-proof-console__header">
+          <div>
+            <p class="symphony-panel-kicker">TRACE PROOF</p>
+            <h2 id="symphony-proof-console-title">APU proof console</h2>
+          </div>
+          <div class="symphony-proof-console__tabs" role="tablist" aria-label="APU proof console sections">
+            <button type="button" role="tab" aria-selected="true" aria-controls="atlas-apu-cartridge" data-proof-tab="cartridge">Current</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="atlas-apu-flight-recorder" data-proof-tab="blackbox">Black box</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="atlas-apu-incident-replay" data-proof-tab="incident">Boss track</button>
+          </div>
+        </div>
+        <section id="atlas-apu-cartridge" class="symphony-cartridge" aria-labelledby="atlas-apu-cartridge-title" data-cartridge-panel data-proof-panel="cartridge">
         <div class="symphony-cartridge__header">
           <div>
             <p class="symphony-panel-kicker">SCORE DEBUG</p>
@@ -153,10 +159,13 @@
           <div><dt>Sample-free</dt><dd data-cartridge-field="sampleFree">pending</dd></div>
           <div><dt>Replay seed</dt><dd data-cartridge-field="replaySeed">A7A5</dd></div>
         </dl>
-        <pre class="symphony-cartridge-json" data-cartridge-json tabindex="0" aria-label="Current cartridge JSON">Waiting for first score frame.</pre>
+        <details class="symphony-proof-json">
+          <summary>Inspect cartridge JSON</summary>
+          <pre class="symphony-cartridge-json" data-cartridge-json tabindex="0" aria-label="Current cartridge JSON">Waiting for first score frame.</pre>
+        </details>
         <p class="symphony-replay-status" data-cartridge-status aria-live="polite">Cartridge will update when the first evidence frame arrives.</p>
       </section>
-      <section id="atlas-apu-flight-recorder" class="symphony-flight-recorder" aria-labelledby="atlas-apu-flight-recorder-title" data-flight-recorder>
+      <section id="atlas-apu-flight-recorder" class="symphony-flight-recorder" aria-labelledby="atlas-apu-flight-recorder-title" data-flight-recorder data-proof-panel="blackbox" hidden>
         <div class="symphony-cartridge__header">
           <div>
             <p class="symphony-panel-kicker">STATIC ARCHIVE</p>
@@ -172,17 +181,21 @@
           <div><dt>Schema</dt><dd data-flight-recorder-field="schema">pending</dd></div>
         </dl>
         <section class="symphony-flight-recorder__list" data-flight-recorder-list aria-label="Archived Atlas APU cartridges"></section>
-        <pre class="symphony-cartridge-json symphony-flight-recorder__json" data-flight-recorder-json tabindex="0" aria-label="Selected archived cartridge JSON">Loading static archive.</pre>
+        <details class="symphony-proof-json">
+          <summary>Inspect selected black-box JSON</summary>
+          <pre class="symphony-cartridge-json symphony-flight-recorder__json" data-flight-recorder-json tabindex="0" aria-label="Selected archived cartridge JSON">Loading static archive.</pre>
+        </details>
         <p class="symphony-replay-status" data-flight-recorder-status aria-live="polite">Flight recorder archive is static fixture evidence until live persistence is approved.</p>
       </section>
-      <section id="atlas-apu-incident-replay" class="symphony-incident-replay" aria-labelledby="atlas-apu-incident-replay-title" data-incident-arc>
+      <section id="atlas-apu-incident-replay" class="symphony-incident-replay" aria-labelledby="atlas-apu-incident-replay-title" data-incident-arc data-proof-panel="incident" hidden>
         <div class="symphony-cartridge__header">
           <div>
             <p class="symphony-panel-kicker">BOSS TRACK</p>
             <h2 id="atlas-apu-incident-replay-title">INCIDENT REPLAY AS A MOVEMENT</h2>
           </div>
           <div class="symphony-cartridge__actions">
-            <button class="focus-action primary" type="button" data-incident-arc-play>Play arc</button>
+            <button class="focus-action primary" type="button" data-incident-arc-audition>Start boss track</button>
+            <button class="focus-action" type="button" data-incident-arc-play>Play timeline</button>
             <button class="focus-action" type="button" data-incident-arc-prev>Previous</button>
             <button class="focus-action" type="button" data-incident-arc-next>Next</button>
             <button class="focus-action" type="button" data-incident-arc-stop>Stop</button>
@@ -197,9 +210,23 @@
         </dl>
         <section class="symphony-incident-replay__timeline" data-incident-arc-timeline aria-label="Incident replay timeline"></section>
         <section class="symphony-incident-replay__impact" data-incident-arc-impact aria-label="Affected services"></section>
-        <pre class="symphony-cartridge-json symphony-incident-replay__json" data-incident-arc-json tabindex="0" aria-label="Selected incident arc JSON">Loading incident arc archive.</pre>
+        <div class="symphony-incident-replay__progress" data-incident-arc-progress hidden>
+          <span data-incident-arc-progress-bar></span>
+        </div>
+        <details class="symphony-proof-json">
+          <summary>Inspect incident arc JSON</summary>
+          <pre class="symphony-cartridge-json symphony-incident-replay__json" data-incident-arc-json tabindex="0" aria-label="Selected incident arc JSON">Loading incident arc archive.</pre>
+        </details>
         <p class="symphony-replay-status" data-incident-arc-status aria-live="polite">Incident boss tracks are static fixture evidence until live persistence is approved.</p>
       </section>
+      </section>
+      <div id="symphony-trace-surface" class="symphony-page-host" data-symphony-page-host aria-busy="true"></div>
+      <div class="focus-grid cols-4 symphony-page-summary" role="group" aria-label="System Symphony evidence summary">
+        <article class="focus-metric"><span>Instrument state</span><strong id="page-score-state">unknown</strong></article>
+        <article class="focus-metric"><span>Components</span><strong id="page-service-count">0</strong></article>
+        <article class="focus-metric"><span>Measured / unmeasured</span><strong id="page-measurement-count">0 / 0</strong></article>
+        <article class="focus-metric"><span>Approved objectives</span><strong id="page-objective-count">unknown</strong></article>
+      </div>
       <p id="page-source-status" class="focus-status-line" data-state="unknown" aria-live="polite">Initialising the Atlas APU renderer and preserved topology interface.</p>
     </header>
 
