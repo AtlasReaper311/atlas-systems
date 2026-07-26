@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <meta name="description" content="Atlas APU track preview with sample-free state identities, controlled mastering and a monitoring-only browser loudness meter.">
+  <meta name="description" content="Atlas APU track preview with evidence-truth labels, hybrid estate state composition, controlled mastering and browser loudness evidence.">
   <meta name="theme-color" content="#0a0a0f">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
   <link rel="stylesheet" href="/lab/system-symphony-apu/system-symphony-apu.css?v=20260726-atlas-apu-track-v2">
   <link rel="stylesheet" href="/lab/system-symphony-apu/system-symphony-apu-track.css?v=20260726-atlas-apu-track-v2">
+  <link rel="stylesheet" href="/lab/system-symphony-apu/system-symphony-apu-hybrid.css?v=20260726-evidence-hybrid-v1">
   <title>Atlas APU Track Preview // System Symphony</title>
 </head>
 <body>
@@ -27,12 +28,12 @@
 
   <main class="apu-main" data-apu-root data-ready="false" data-running="false" data-source="connecting" data-state="unknown" data-section="standby" data-loudness-status="idle">
     <header class="apu-hero">
-      <p class="apu-kicker">System Symphony / state identity, mastering and loudness preview</p>
-      <h1>The estate becomes a measurable game soundtrack.</h1>
-      <p class="apu-lede">Atlas APU moves through a deterministic 32-bar form while Healthy, Warning, Critical and Unknown use separate musical grammars. A controlled mastering policy uses the available headroom, while a monitoring-only AudioWorklet reports loudness and peak evidence without entering the audible signal path.</p>
+      <p class="apu-kicker">System Symphony / evidence truth and hybrid-state preview</p>
+      <h1>The estate becomes a measurable, mixed operational score.</h1>
+      <p class="apu-lede">Atlas APU keeps one dominant harmonic grammar for musical coherence while Healthy, Warning, Critical and Unknown contribute weighted diagnostic, pressure, carrier and service layers. Every service row states whether its evidence is current, stale, simulated, topology-only or reported unknown.</p>
       <div class="apu-boundary" role="status">
         <strong>Preview boundary</strong>
-        <span>This route does not replace the current production instrument and cannot change estate state.</span>
+        <span>This route does not replace the current production instrument, change provider state or claim that numbered Pages fixture data is live.</span>
       </div>
     </header>
 
@@ -51,6 +52,11 @@
         </div>
       </div>
 
+      <div class="apu-fixture-banner" data-preview-fixture-banner role="status" hidden>
+        <strong>Preview fixture, not live estate data</strong>
+        <span>This numbered Pages deployment uses bounded evidence for browser validation.</span>
+      </div>
+
       <p class="apu-status" data-status aria-live="polite">Connecting to bounded preview evidence.</p>
 
       <div class="apu-mode-row" role="group" aria-label="Atlas APU score source">
@@ -64,14 +70,29 @@
       <section class="apu-metrics" aria-label="Current score and arrangement summary">
         <article><span>Section</span><strong data-metric="section">Standby</strong></article>
         <article><span>Position</span><strong data-metric="position">Bars 0-0 / 32</strong></article>
-        <article><span>Telemetry phase</span><strong data-metric="phase">Standby</strong></article>
+        <article><span>Director phase</span><strong data-metric="phase">Standby</strong></article>
         <article><span>Tempo</span><strong data-metric="bpm">100 BPM</strong></article>
-        <article><span>Score</span><strong data-metric="state">Unknown</strong></article>
+        <article><span>Dominant score</span><strong data-metric="state">Unknown</strong></article>
         <article><span>Scene</span><strong data-metric="scene">Lost Signal</strong></article>
         <article><span>Components</span><strong data-metric="components">0</strong></article>
-        <article><span>Measured</span><strong data-metric="measured">0</strong></article>
+        <article><span>Current evidence</span><strong data-metric="measured">0</strong></article>
+        <article><span>Known state</span><strong data-metric="known">0%</strong></article>
         <article><span>Warnings</span><strong data-metric="warnings">0</strong></article>
         <article><span>Failures</span><strong data-metric="failures">0</strong></article>
+      </section>
+
+      <section class="apu-form-panel" aria-labelledby="apu-vector-title">
+        <div class="apu-scope-head">
+          <span id="apu-vector-title">Hybrid estate state</span>
+          <strong>dominant grammar + weighted layers</strong>
+        </div>
+        <div class="apu-state-vector" role="group" aria-label="Healthy, Warning, Critical and Unknown score weights">
+          <article class="apu-state-weight" data-state-vector="healthy" data-dominant="false"><span>Healthy / Explorer</span><strong data-state-vector-value>0%</strong></article>
+          <article class="apu-state-weight" data-state-vector="warning" data-dominant="false"><span>Warning / Grid Pressure</span><strong data-state-vector-value>0%</strong></article>
+          <article class="apu-state-weight" data-state-vector="critical" data-dominant="false"><span>Critical / Boss Protocol</span><strong data-state-vector-value>0%</strong></article>
+          <article class="apu-state-weight" data-state-vector="unknown" data-dominant="true"><span>Unknown / Lost Signal</span><strong data-state-vector-value>100%</strong></article>
+        </div>
+        <p class="apu-dominant-reason" data-dominant-reason>Waiting for the first evidence frame.</p>
       </section>
 
       <section class="apu-form-panel" aria-labelledby="apu-loudness-title">
@@ -114,22 +135,22 @@
       <section class="apu-channels" aria-labelledby="apu-channels-title">
         <div class="apu-section-head">
           <div><span>01</span><h3 id="apu-channels-title">Fictional sound chip</h3></div>
-          <p>Historical console vocabulary with clearly separated synthesis roles. No streamed or decoded audio assets.</p>
+          <p>The dominant state owns scale and transition semantics. Weighted estate states influence density, pressure, brightness, carrier presence and the status-specific service voices.</p>
         </div>
         <div class="apu-channel-grid">
-          <article data-channel="pulse-a"><span>LEAD BUS</span><strong>State-shaped pulse lead</strong><p>Duty cycle, gate length, harmony and stereo position change with the active estate state.</p><small data-channel-count="pulse-a">0 services</small></article>
-          <article data-channel="pulse-b"><span>COUNTER BUS</span><strong>Diagnostic counterline</strong><p>Counterpoint, hazard figures, alarm intervals and suspended fragments share one bounded role.</p><small data-channel-count="pulse-b">0 services</small></article>
-          <article data-channel="triangle"><span>TRIANGLE</span><strong>Machine foundation</strong><p>Walking, ostinato, root-fifth lockstep and static-drone bass grammars preserve the tonal centre.</p><small data-channel-count="triangle">0 services</small></article>
-          <article data-channel="noise"><span>NOISE</span><strong>Operations rhythm</strong><p>Open swing, diagnostic stutter, impact bursts and sparse carrier pulses remain deterministic.</p><small data-channel-count="noise">0 services</small></article>
-          <article data-channel="wavetable"><span>MEMORY FIELD</span><strong>Dynamic role allocation</strong><p>Warm pad, gated pressure field, Critical sub-bass and Unknown carrier drift share Channel 5.</p><small data-channel-count="wavetable">0 services</small></article>
-          <article data-channel="fm-accent"><span>EVENT BUS</span><strong>Operational accents</strong><p>Service calls, diagnostic bleeps, impact bursts and low telemetry hum share Channel 6.</p><small data-channel-count="fm-accent">event channel</small></article>
+          <article data-channel="pulse-a"><span>LEAD BUS</span><strong>Dominant harmonic lead</strong><p>The selected grammar stays tonal while the state vector changes pressure and phrasing around it.</p><small data-channel-count="pulse-a">0 services</small></article>
+          <article data-channel="pulse-b"><span>COUNTER BUS</span><strong>Diagnostic counterline</strong><p>Warning and Critical evidence increase hazard figures without averaging incompatible scales.</p><small data-channel-count="pulse-b">0 services</small></article>
+          <article data-channel="triangle"><span>TRIANGLE</span><strong>Machine foundation</strong><p>Estate pressure shapes bass movement while the dominant state keeps the tonal centre bounded.</p><small data-channel-count="triangle">0 services</small></article>
+          <article data-channel="noise"><span>NOISE</span><strong>Operations rhythm</strong><p>Warnings, incidents and unknown coverage alter diagnostic density through deterministic controls.</p><small data-channel-count="noise">0 services</small></article>
+          <article data-channel="wavetable"><span>MEMORY FIELD</span><strong>Weighted texture layer</strong><p>Healthy pad, Critical sub-bass and Unknown carrier presence coexist as bounded state weights.</p><small data-channel-count="wavetable">0 services</small></article>
+          <article data-channel="fm-accent"><span>EVENT BUS</span><strong>Operational accents</strong><p>Service calls, incident bursts, deployment cues and uncertainty hum remain individually attributable.</p><small data-channel-count="fm-accent">event channel</small></article>
         </div>
       </section>
 
       <section class="apu-services" aria-labelledby="apu-services-title">
         <div class="apu-section-head">
-          <div><span>02</span><h3 id="apu-services-title">Service leitmotifs</h3></div>
-          <p>Service voices rotate between pulse, triangle, sawtooth and square timbres, then quantise into the active harmony.</p>
+          <div><span>02</span><h3 id="apu-services-title">Service leitmotifs and evidence truth</h3></div>
+          <p>Each service keeps its own status colouring and now states whether the row is current evidence, reported unknown, topology-only, stale or simulated.</p>
         </div>
         <section class="apu-table-wrap" aria-label="Atlas APU service mapping" tabindex="0">
           <table>
@@ -149,10 +170,10 @@
         <div><span>03</span><h2 id="apu-notes-title">What this preview proves</h2></div>
       </div>
       <div class="apu-note-grid">
-        <article><h3>State identity</h3><p>Healthy, Warning, Critical and Unknown change composition, rhythm, envelopes, role allocation and spatial treatment.</p></article>
-        <article><h3>Quantised transitions</h3><p>Critical chokes the old pad and counterline at the bar boundary; Unknown dissolves over one full 2.4-second bar.</p></article>
-        <article><h3>Controlled mastering</h3><p>State-specific programme trims use the measured headroom while preserving Lost Signal as the quieter uncertainty state.</p></article>
-        <article><h3>Measured output</h3><p>A sink-only AudioWorklet applies K-weighting, overlapping gates and peak estimation without entering the audible path.</p></article>
+        <article><h3>Hybrid state</h3><p>One dominant grammar protects harmony while all four estate states remain visible as weighted operational layers.</p></article>
+        <article><h3>Evidence truth</h3><p>Preview fixtures, current measurements, stale records, topology-only components and reported unknowns are not collapsed into one measured flag.</p></article>
+        <article><h3>Quantised transitions</h3><p>Critical still chokes at the bar boundary and Unknown still dissolves over one complete 2.4-second bar.</p></article>
+        <article><h3>Measured output</h3><p>A monitoring-only AudioWorklet reports loudness and peak evidence without entering the audible signal path.</p></article>
       </div>
       <div class="apu-links">
         <a href="/lab/system-symphony/">Compare current production instrument</a>
@@ -164,7 +185,7 @@
 
   <script src="/lab/system-symphony/preview-endpoints.js?v=20260725-numbered-previews"></script>
   <script src="/vendor/tone.min.js?v=20260708-sonify"></script>
-  <script type="module" src="/lab/system-symphony-apu/system-symphony-apu.js?v=20260726-atlas-apu-mastering-v2"></script>
+  <script type="module" src="/lab/system-symphony-apu/system-symphony-apu-hybrid.js?v=20260726-evidence-hybrid-v1"></script>
   <script type="module" src="/static/js/sonify/apu-loudness-ui.js?v=20260726-atlas-apu-mastering-v2"></script>
 </body>
 </html>
