@@ -14,13 +14,13 @@ import {
   ATLAS_APU_SCORE_PLAN_BUILD_ID,
 } from "./atlas-apu-score-plan.js?v=20260726-atlas-apu-score-plan-v2";
 
-export const ATLAS_APU_ENGINE_CONTROLS_BUILD_ID = "20260726-atlas-apu-engine-controls-v1";
+export const ATLAS_APU_ENGINE_CONTROLS_BUILD_ID = "20260726-atlas-apu-engine-controls-v2";
 
 const STATE_CHIP_COLOR = Object.freeze({
-  healthy: Object.freeze({ bits: 12, wet: 0.07, hum: 0 }),
-  warning: Object.freeze({ bits: 10, wet: 0.13, hum: 0.006 }),
-  critical: Object.freeze({ bits: 8, wet: 0.2, hum: 0.012 }),
-  unknown: Object.freeze({ bits: 9, wet: 0.11, hum: 0.052 }),
+  healthy: Object.freeze({ bits: 14, wet: 0.045, hum: 0 }),
+  warning: Object.freeze({ bits: 9, wet: 0.155, hum: 0.006 }),
+  critical: Object.freeze({ bits: 7, wet: 0.235, hum: 0.012 }),
+  unknown: Object.freeze({ bits: 11, wet: 0.095, hum: 0.052 }),
 });
 
 function round(value, places = 4) {
@@ -129,9 +129,12 @@ function timbreFor(plan = {}) {
     leadFilterScale: round(clamp(0.82 + beauty * 0.28 + urgency * 0.08, 0.58, 1.18)),
     counterFilterScale: round(clamp(0.72 + urgency * 0.32 + confidence * 0.1, 0.42, 1.16)),
     padFilterScale: round(clamp(0.7 + beauty * 0.32 - urgency * 0.16, 0.42, 1.12)),
+    leadFilterQ: round(clamp(0.78 + urgency * 1.35, 0.7, 2.35)),
+    counterFilterQ: round(clamp(0.85 + urgency * 1.55 + (state === "warning" ? 0.45 : 0), 0.8, 2.8)),
     delayGain: round(clamp(0.045 + beauty * 0.06 + (1 - confidence) * 0.04, 0.03, 0.17)),
     reverbGain: round(clamp(0.055 + beauty * 0.09 + (state === "unknown" ? 0.08 : 0), 0.04, 0.22)),
     hatFilterHz: Math.round(clamp(3000 + noiseDensity * 3900 + urgency * 900, 2600, 7600)),
+    noiseAccentFilterHz: Math.round(clamp(900 + urgency * 1300 + noiseDensity * 700, 700, 3200)),
     telemetryHumGain: round(clamp(chipColor.hum + (1 - confidence) * 0.018, 0, 0.07)),
     primaryDutyCycle: clamp(Number(plan.motif?.dutyCycle) || 0.5, 0.08, 0.75),
     counterDutyCycle: clamp(Number(plan.roles?.contention?.alerts) > 0 ? 0.125 : 0.25, 0.08, 0.75),

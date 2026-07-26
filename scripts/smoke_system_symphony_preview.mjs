@@ -159,7 +159,7 @@ try {
   assert.equal(audioState.toneContextState, "running", JSON.stringify(audioState, null, 2));
   assert.equal(audioState.hostSource, "preview", JSON.stringify(audioState, null, 2));
   assert.equal(audioState.hostRunning, "1", JSON.stringify(audioState, null, 2));
-  assert.match(audioState.buildId ?? "", /atlas-apu-live-v2$/);
+  assert.match(audioState.buildId ?? "", /atlas-apu-live-v3$/);
   assert.equal(audioState.documentBuild, audioState.buildId);
   assert.equal(audioState.sampleStats?.coreReady, true, JSON.stringify(audioState, null, 2));
   assert.equal(audioState.sampleStats?.sampleFree, true, JSON.stringify(audioState, null, 2));

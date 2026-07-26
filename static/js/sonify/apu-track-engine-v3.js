@@ -3,7 +3,7 @@ import {
   APU_TRACK_PHRASES,
   ATLAS_APU_TRACK_BUILD_ID,
   arrangementForPhrase,
-} from "./apu-arranger.js?v=20260726-system-symphony-state-identities-v1";
+} from "./apu-arranger.js?v=20260726-system-symphony-atlas-chip-laws-v1";
 import {
   APU_TRACK_STEPS,
   bassEventForTrackStep,
@@ -14,13 +14,13 @@ import {
   secondaryPulseEventForTrackStep,
   serviceEventForTrackStep,
   transitionEventForTrackStep,
-} from "./apu-track-sequencer.js?v=20260726-system-symphony-state-identities-v1";
+} from "./apu-track-sequencer.js?v=20260726-system-symphony-atlas-chip-laws-v1";
 import { createCompositionDirector } from "./composition-director.js?v=20260720-system-symphony-loop-production-v2";
 import { midiToFrequencyHz } from "./mapping.js?v=20260720-system-symphony-loop-production-v2";
 import {
   ATLAS_APU_ENGINE_CONTROLS_BUILD_ID,
   engineControlsForFrame,
-} from "./atlas-apu-engine-controls.js?v=20260726-atlas-apu-engine-controls-v1";
+} from "./atlas-apu-engine-controls.js?v=20260726-atlas-apu-engine-controls-v2";
 
 export const APU_TRACK_AUDIO_START_TIMEOUT_MS = 8000;
 export const APU_TRACK_DEFAULT_GAIN = 0.5;
@@ -369,6 +369,8 @@ export function createApuTrackEngine({
     safeRamp(nodes.masterVolume.volume, timbre.masterGainDb ?? scene.masterGainDb, duration, at);
     safeRamp(nodes.masterFilter.frequency, scene.masterFilterHz * (scoreTimbre?.masterFilterScale ?? 1), duration, at);
     safeRamp(nodes.masterHighpass.frequency, scene.masterHpHz * (scoreTimbre?.masterHighpassScale ?? 1), duration, at);
+    safeRamp(nodes.primaryFilter.Q, scoreTimbre?.leadFilterQ ?? 1.25, duration, at);
+    safeRamp(nodes.secondaryFilter.Q, scoreTimbre?.counterFilterQ ?? 1.1, duration, at);
     safeRamp(nodes.compressor.threshold, compression.threshold, duration, at);
     safeRamp(nodes.compressor.ratio, compression.ratio, duration, at);
     safeRamp(nodes.compressor.attack, compression.attack, duration, at);
@@ -378,6 +380,7 @@ export function createApuTrackEngine({
     safeRamp(nodes.delayReturn.gain, scoreTimbre?.delayGain ?? profile.delayWet, duration, at);
     safeRamp(nodes.reverbReturn.gain, scoreTimbre?.reverbGain ?? profile.reverbWet, duration, at);
     safeRamp(nodes.hatFilter.frequency, scoreTimbre?.hatFilterHz ?? Math.max(2800, profile.noiseBrightnessHz), duration, at);
+    safeRamp(nodes.noiseAccentFilter.frequency, scoreTimbre?.noiseAccentFilterHz ?? 1500, duration, at);
     safeRamp(nodes.telemetryHumGain.gain, scoreTimbre?.telemetryHumGain ?? (stateKey(frame) === "unknown" ? 0.045 : 0), duration, at);
   }
 

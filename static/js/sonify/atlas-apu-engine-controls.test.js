@@ -43,7 +43,7 @@ test("valid score plans activate the guarded engine-control path", () => {
   const guard = scorePlanGuardForFrame(frame);
   const controls = engineControlsForFrame(frame);
 
-  assert.match(ATLAS_APU_ENGINE_CONTROLS_BUILD_ID, /engine-controls-v1$/);
+  assert.match(ATLAS_APU_ENGINE_CONTROLS_BUILD_ID, /engine-controls-v2$/);
   assert.equal(guard.active, true);
   assert.equal(guard.mode, "score-plan");
   assert.equal(guard.sampleFree, true);
@@ -89,13 +89,15 @@ test("theme controls make critical urgent and unknown carrier-led", () => {
   assert.ok(critical.buses.drums > 1);
   assert.ok(critical.buses.bass > 1);
   assert.ok(critical.buses.pad < 0.5);
-  assert.equal(critical.timbre.chipBits, 8);
+  assert.equal(critical.timbre.chipBits, 7);
+  assert.ok(critical.timbre.noiseAccentFilterHz > 2000);
 
   assert.equal(unknown.movement, "Unknown Drift");
   assert.ok(unknown.buses.pad > 1);
   assert.ok(unknown.buses.drums < 0.5);
   assert.ok(unknown.timbre.telemetryHumGain > critical.timbre.telemetryHumGain);
   assert.ok(unknown.timbre.reverbGain > critical.timbre.reverbGain);
+  assert.ok(unknown.timbre.chipWet < critical.timbre.chipWet);
 });
 
 test("dependency contention tightens the counter-pulse duty cycle", () => {

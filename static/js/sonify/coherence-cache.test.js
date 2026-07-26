@@ -60,7 +60,7 @@ test("cache contract exposes and revalidates the active Atlas APU build", () => 
   const headers = fs.readFileSync("_headers", "utf8");
   const symphonyPage = fs.readFileSync("lab/system-symphony/system-symphony-page.js", "utf8");
   const ui = fs.readFileSync("static/js/sonify/ui.js", "utf8");
-  assert.equal(LIVE_APU_BUILD_ID, "20260726-system-symphony-atlas-apu-live-v2");
+  assert.equal(LIVE_APU_BUILD_ID, "20260726-system-symphony-atlas-apu-live-v3");
   assert.match(headers, /\/static\/js\/sonify\/\*[\s\S]*Cache-Control: no-cache, max-age=0, must-revalidate/);
   assert.match(headers, new RegExp(`X-Atlas-System-Symphony-Build: ${LIVE_APU_BUILD_ID}`));
   assert.match(symphonyPage, new RegExp(`ui\\.js\\?v=${LIVE_APU_BUILD_ID}`));

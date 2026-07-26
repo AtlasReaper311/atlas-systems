@@ -5,9 +5,9 @@ import {
   stateMixModifiers,
   statePatternGrammar,
   stateTimbreModifiers,
-} from "./apu-state-identities.js?v=20260726-system-symphony-state-identities-v1";
+} from "./apu-state-identities.js?v=20260726-system-symphony-state-identities-v4";
 
-export const ATLAS_APU_TRACK_BUILD_ID = "20260726-system-symphony-state-identities-v1";
+export const ATLAS_APU_TRACK_BUILD_ID = "20260726-system-symphony-atlas-chip-laws-v1";
 export const APU_TRACK_PHRASES = 16;
 export const APU_BARS_PER_PHRASE = 2;
 export const APU_TRACK_BARS = APU_TRACK_PHRASES * APU_BARS_PER_PHRASE;
@@ -117,10 +117,36 @@ function phraseVariation(source, localPhrase, cycleNumber) {
 
 function stateAdjustedMotif(mode, state, section, cycleNumber) {
   const source = phraseVariation(MOTIF_MODES[mode] ?? MOTIF_MODES.statement, section.localPhrase, cycleNumber);
-  if (state === "healthy") return source;
-  if (state === "warning") return source.map((degree, index) => (index % 4 === 3 ? Math.max(0, degree - 1) : degree));
-  if (state === "critical") return source.map((degree, index) => (index % 2 === 0 ? 0 : degree >= 4 ? 4 : 1));
-  return source.filter((_, index) => index % 2 === 0).slice(0, 4);
+  if (state === "healthy") {
+    const explorer = {
+      statement: [0, 2, 4, 6, 5, 4, 2, 0],
+      variation: [0, 4, 6, 5, 2, 4, 6, 7],
+      answer: [6, 5, 4, 2, 4, 2, 0, 0],
+      ascending: [0, 2, 4, 5, 6, 7, 9, 11],
+      climax: [0, 4, 6, 7, 9, 7, 6, 4],
+      fragment: [0, 4, 6, 4],
+      recovery: [0, 2, 4, 5, 7, 5, 4, 2],
+      breathe: [0, 6, 4, 0],
+    };
+    return phraseVariation(explorer[mode] ?? source, section.localPhrase, cycleNumber);
+  }
+  if (state === "warning") {
+    const diagnostic = [0, 1, 3, 1, 4, 3, 1, 0];
+    const pressure = mode === "climax"
+      ? [0, 1, 0, 3, 1, 4, 3, 1]
+      : diagnostic;
+    return pressure.map((degree, index) => (
+      cycleNumber % 2 === 1 && index % 4 === 3 ? Math.max(0, degree - 1) : degree
+    ));
+  }
+  if (state === "critical") {
+    return mode === "recovery"
+      ? [0, 2, 4, 5, 4, 2, 0]
+      : [0, 4, 0, 1, 0, 4];
+  }
+  return section.localPhrase % 2 === 0
+    ? [0, 2, 0]
+    : [0, 4];
 }
 
 function harmonyForPhrase(state, cyclePhrase, section) {
@@ -229,6 +255,7 @@ export function arrangementForPhrase(frame = {}, directorPlan = null, phraseInde
     stateIdentity: identity,
     directorPhase: directorPlan?.phase ?? "establish",
     targetBpm: 100,
+    chipLaw: identity.soundLaw,
     energy,
     harmony: harmonyForPhrase(state, cyclePhrase, section),
     motifMode,

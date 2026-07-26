@@ -189,10 +189,10 @@ try {
 
   evidence = await collectEvidence();
 
-  assert.match(evidence.buildId ?? "", /state-identities-v1$/);
+  assert.match(evidence.buildId ?? "", /atlas-chip-laws-v1$/);
   assert.equal(evidence.documentBuild, evidence.buildId);
   assert.match(evidence.loudnessBuildId ?? "", /loudness-meter-v3$/);
-  assert.match(evidence.masteringRuntimeBuildId ?? "", /mastering-runtime-v1$/);
+  assert.match(evidence.masteringRuntimeBuildId ?? "", /mastering-runtime-v2$/);
   assert.equal(evidence.ready, "true");
   assert.equal(evidence.running, "true");
   assert.equal(evidence.noSamples, "true");
@@ -214,7 +214,7 @@ try {
   assert.match(evidence.metricPosition ?? "", /Bars 15-16 \/ 32/);
   assert.equal(evidence.mastering.state, "healthy");
   assert.equal(evidence.mastering.targetIntegratedLufs, -22);
-  assert.equal(evidence.masteringRuntime.policyBuildId, "20260726-system-symphony-mastering-v2");
+  assert.equal(evidence.masteringRuntime.policyBuildId, "20260726-system-symphony-mastering-v3");
   assert.equal(evidence.masteringRuntime.state, "healthy");
   assert.equal(evidence.masteringRuntime.targetGainDb, 4);
   assert.equal(evidence.masteringRuntime.upstreamGainDb, evidence.arrangement.timbre.masterGainDb);
