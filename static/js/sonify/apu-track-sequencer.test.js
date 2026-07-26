@@ -174,6 +174,9 @@ test("Atlas chip laws create audible state contrast beyond mix changes", () => {
 test("state transition signatures produce bounded audible APU events", () => {
   const arrangement = arrangementForPhrase(frame, plan, 3);
   const start = 96;
+
+  assert.equal(transitionEventForTrackStep(frame, arrangement, 0, null, start), null);
+
   const pressure = transitionEventForTrackStep(
     { ...frame, scoreState: "warning", scale: [0, 1, 3, 5, 7, 8, 10] },
     arrangement,

@@ -505,8 +505,9 @@ export function serviceEventForTrackStep(frame = {}, arrangement = null, step = 
 }
 
 function signatureForTransition(transition = {}) {
-  const from = normalizedStateIdentity(transition.from).id;
-  const to = normalizedStateIdentity(transition.to).id;
+  const source = transition && typeof transition === "object" ? transition : {};
+  const from = normalizedStateIdentity(source.from).id;
+  const to = normalizedStateIdentity(source.to).id;
   if (from === to) return null;
   const key = transitionKey(from, to);
   if (key === "healthy>warning") return "pressure-ramp";
@@ -520,8 +521,9 @@ function signatureForTransition(transition = {}) {
 }
 
 function transitionDelta(transition = {}, absoluteStepIndex) {
-  if (!Number.isFinite(absoluteStepIndex) || !Number.isFinite(transition.stepIndex)) return null;
-  const delta = Math.trunc(absoluteStepIndex) - Math.trunc(transition.stepIndex);
+  const source = transition && typeof transition === "object" ? transition : {};
+  if (!Number.isFinite(absoluteStepIndex) || !Number.isFinite(source.stepIndex)) return null;
+  const delta = Math.trunc(absoluteStepIndex) - Math.trunc(source.stepIndex);
   return delta >= 0 && delta < 16 ? delta : null;
 }
 
