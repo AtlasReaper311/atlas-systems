@@ -24,8 +24,10 @@ test("the instrument route upgrades internal tabs to reliable product links", ()
   assert.equal(normalizePath("/lab/system-symphony"), "/lab/system-symphony/");
   assert.ok(shell.includes("system-symphony-mode-links.js?v=20260726-mode-links-v1"));
   assert.ok(modeLinks.includes("data-symphony-mode-route"));
+  assert.ok(modeLinks.includes("link.dataset.symphonyModeTab = mode.key"));
   assert.ok(modeLinks.includes("event.preventDefault()"));
-  assert.ok(modeLinks.includes("tab.click()"));
+  assert.ok(modeLinks.includes("control.click()"));
+  assert.ok(modeLinks.includes("window.location.assign(link.href)"));
   assert.ok(modeLinks.includes('link.setAttribute("aria-current", "page")'));
   assert.ok(modeLinks.includes("tabs.style.display = \"none\""));
 });
