@@ -7,17 +7,17 @@
       "route": "/",
       "html_bytes": 21140,
       "first_party_request_count": 21,
-      "referenced_asset_bytes": 128344,
-      "total_static_bytes": 149484,
+      "referenced_asset_bytes": 128396,
+      "total_static_bytes": 149536,
       "largest_referenced_asset": "lab/index.html",
       "largest_referenced_asset_bytes": 18644
     },
     {
       "route": "/systems/",
-      "html_bytes": 16625,
+      "html_bytes": 16677,
       "first_party_request_count": 13,
       "referenced_asset_bytes": 89772,
-      "total_static_bytes": 106397,
+      "total_static_bytes": 106449,
       "largest_referenced_asset": "static/css/v2-directory-pages.css",
       "largest_referenced_asset_bytes": 23651
     },
@@ -49,5 +49,5 @@
       "largest_referenced_asset_bytes": 23671
     }
   ],
-  "sha256": "2d10c8e4bc972f486a5fbffc74df6ff82fa1cd875fdb6ab7c5925eb7280b4a38"
+  "sha256": "744a0608d7f5931232ab357841d7f1af0cf3f44c40cb2f36aa0df7535f47e1db"
 }

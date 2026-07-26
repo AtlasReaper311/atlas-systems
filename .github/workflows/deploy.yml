@@ -102,8 +102,8 @@ jobs:
             -H 'Pragma: no-cache' \
             "https://atlas-systems.uk/systems/?atlas-deploy=${EXPECTED_SHA}")"
 
-          if [[ "$SYSTEMS_BODY" != *'One estate,'* ]]; then
-            echo "::error::The production Systems route did not expose the expected v2 content"
+          if [[ "$SYSTEMS_BODY" != *'<meta name="atlas-route" content="systems-index">'* ]]; then
+            echo "::error::The production Systems route did not expose the expected Systems route marker"
             exit 1
           fi
 

@@ -41,6 +41,7 @@ Live source for [atlas-systems.uk](https://atlas-systems.uk). Hand-built HTML, C
 | Branch preview | `preview.yml` | push to `feat/system-symphony-h1-h8-preview` | Validates and publishes a non-production `pages.dev` branch preview |
 
 The push event, validation gate, deploy result, and Cloudflare Pages outcome are separate signals. `deploy.yml` handles the build path; `deploy-watch` independently verifies whether Cloudflare actually produced the expected deployment.
+Deployment secret ownership and rotation notes live in [`docs/deployment-secrets.md`](docs/deployment-secrets.md).
 
 ### System SYMPHONY branch preview
 

@@ -24,6 +24,22 @@ test("historical articles consume one versioned presentation layer", () => {
   }
 });
 
+test("historical article shells expose the current Systems route", () => {
+  for (const [slug, number] of articles) {
+    const html = fs.readFileSync(`writing/${slug}/index.html`, "utf8");
+    assert.match(
+      html,
+      /<a href="\/systems\/" class="nav-link">Systems<\/a>/,
+      `${number} desktop navigation must expose Systems`,
+    );
+    assert.match(
+      html,
+      /<a href="\/systems\/" class="mobile-nav-item">[\s\S]*?Systems<\/a>/,
+      `${number} mobile navigation must expose Systems`,
+    );
+  }
+});
+
 test("presentation refresh preserved bodies before the approved title normalization", () => {
   const previous = JSON.parse(
     fs.readFileSync(

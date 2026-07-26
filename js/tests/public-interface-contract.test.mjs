@@ -264,12 +264,31 @@ test("production deployment remains independent from Cloudflare Git integration"
   assert.match(deploy, /needs: \[deploy, verify-production\]/);
 });
 
+test("pull request CI also protects direct main pushes", () => {
+  const ci = fs.readFileSync(".github/workflows/ci.yml", "utf8");
+
+  assert.match(ci, /on:\n\s+pull_request:\n\s+push:\n\s+branches: \[main\]/);
+});
+
+test("deploy webhook secret is documented without exposing a value", () => {
+  const workflow = fs.readFileSync(".github/workflows/notify-deploy.yml", "utf8");
+  const docs = fs.readFileSync("docs/deployment-secrets.md", "utf8");
+
+  assert.match(workflow, /secrets\.DISCORD_DEPLOY_WEBHOOK/);
+  assert.match(docs, /## `DISCORD_DEPLOY_WEBHOOK`/);
+  assert.match(docs, /Repository secret/);
+  assert.doesNotMatch(docs, /https:\/\/discord(?:app)?\.com\/api\/webhooks\//);
+});
+
 test("production route verification cannot fail from a closed grep pipe", () => {
   const deploy = fs.readFileSync(".github/workflows/deploy.yml", "utf8");
+  const systems = fs.readFileSync("systems/index.html", "utf8");
 
   assert.doesNotMatch(deploy, /\|\s*grep -Fq 'One estate,'/);
+  assert.doesNotMatch(deploy, /One estate,/);
   assert.match(deploy, /SYSTEMS_BODY="\$\(curl -fsSL/);
-  assert.match(deploy, /if \[\[ "\$SYSTEMS_BODY" != \*'One estate,'\* \]\]; then/);
+  assert.match(deploy, /atlas-route" content="systems-index/);
+  assert.match(systems, /<meta name="atlas-route" content="systems-index">/);
 });
 
 test("mutable site responses revalidate while versioned interface assets stay immutable", () => {
