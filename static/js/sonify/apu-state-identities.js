@@ -1,8 +1,14 @@
-export const APU_STATE_IDENTITY_BUILD_ID = "20260726-system-symphony-state-identities-v1";
+import { masteringProfileForState } from "./apu-mastering.js?v=20260726-system-symphony-mastering-v1";
+
+export const APU_STATE_IDENTITY_BUILD_ID = "20260726-system-symphony-state-identities-v2";
 export const APU_STATE_KEYS = Object.freeze(["healthy", "warning", "critical", "unknown"]);
 
 const freezeArray = (values) => Object.freeze([...values]);
 const freezeObject = (value) => Object.freeze({ ...value });
+const HEALTHY_MASTERING = masteringProfileForState("healthy");
+const WARNING_MASTERING = masteringProfileForState("warning");
+const CRITICAL_MASTERING = masteringProfileForState("critical");
+const UNKNOWN_MASTERING = masteringProfileForState("unknown");
 
 export const APU_STATE_IDENTITIES = Object.freeze({
   healthy: freezeObject({
@@ -21,7 +27,8 @@ export const APU_STATE_IDENTITIES = Object.freeze({
     accentRole: "service-callout",
     stereoWidth: 0.78,
     omissionThreshold: 0.05,
-    masterGainDb: -10,
+    mastering: HEALTHY_MASTERING,
+    masterGainDb: HEALTHY_MASTERING.masterGainDb,
     dynamicRangeDb: 12,
     transitionPolicy: "crossfade",
     tensionPolicy: "diatonic",
@@ -42,7 +49,8 @@ export const APU_STATE_IDENTITIES = Object.freeze({
     accentRole: "diagnostic-bleep",
     stereoWidth: 0.28,
     omissionThreshold: 0.12,
-    masterGainDb: -10.5,
+    mastering: WARNING_MASTERING,
+    masterGainDb: WARNING_MASTERING.masterGainDb,
     dynamicRangeDb: 8,
     transitionPolicy: "tight-crossfade",
     tensionPolicy: "approach-resolve",
@@ -63,7 +71,8 @@ export const APU_STATE_IDENTITIES = Object.freeze({
     accentRole: "secondary-impact",
     stereoWidth: 0.12,
     omissionThreshold: 0.08,
-    masterGainDb: -11,
+    mastering: CRITICAL_MASTERING,
+    masterGainDb: CRITICAL_MASTERING.masterGainDb,
     dynamicRangeDb: 5,
     transitionPolicy: "hard-choke",
     tensionPolicy: "bounded-alarm",
@@ -84,7 +93,8 @@ export const APU_STATE_IDENTITIES = Object.freeze({
     accentRole: "telemetry-hum",
     stereoWidth: 0.62,
     omissionThreshold: 0.4,
-    masterGainDb: -18,
+    mastering: UNKNOWN_MASTERING,
+    masterGainDb: UNKNOWN_MASTERING.masterGainDb,
     dynamicRangeDb: 18,
     transitionPolicy: "one-bar-decay",
     tensionPolicy: "drift-only",
