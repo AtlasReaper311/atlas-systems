@@ -34,8 +34,9 @@ test("the controller rejects unsupported contexts before touching the source", a
   assert.equal(connected, false);
 });
 
-test("the controller loads a sink-only processor and keeps the source branch independent", async (context) => {
+test("the controller unwraps Tone's native context and keeps the meter sink-only", async (context) => {
   const previousAudioWorkletNode = globalThis.AudioWorkletNode;
+  const previousBaseAudioContext = globalThis.BaseAudioContext;
   let node = null;
   const moduleUrls = [];
   const statusEvents = [];
@@ -43,8 +44,18 @@ test("the controller loads a sink-only processor and keeps the source branch ind
   const connections = [];
   const disconnections = [];
 
+  class FakeBaseAudioContext {
+    constructor() {
+      this.sampleRate = 48000;
+      this.audioWorklet = {
+        addModule: async (url) => moduleUrls.push(url),
+      };
+    }
+  }
+
   class FakeAudioWorkletNode {
     constructor(rawContext, name, options) {
+      assert.ok(rawContext instanceof FakeBaseAudioContext);
       this.rawContext = rawContext;
       this.name = name;
       this.options = options;
@@ -63,17 +74,19 @@ test("the controller loads a sink-only processor and keeps the source branch ind
     }
   }
 
+  globalThis.BaseAudioContext = FakeBaseAudioContext;
   globalThis.AudioWorkletNode = FakeAudioWorkletNode;
   context.after(() => {
     if (previousAudioWorkletNode === undefined) delete globalThis.AudioWorkletNode;
     else globalThis.AudioWorkletNode = previousAudioWorkletNode;
+    if (previousBaseAudioContext === undefined) delete globalThis.BaseAudioContext;
+    else globalThis.BaseAudioContext = previousBaseAudioContext;
   });
 
-  const rawContext = {
-    sampleRate: 48000,
-    audioWorklet: {
-      addModule: async (url) => moduleUrls.push(url),
-    },
+  const nativeContext = new FakeBaseAudioContext();
+  const standardizedWrapper = {
+    audioWorklet: nativeContext.audioWorklet,
+    _nativeAudioContext: nativeContext,
   };
   const source = {
     connect: (destination) => connections.push(destination),
@@ -81,13 +94,14 @@ test("the controller loads a sink-only processor and keeps the source branch ind
   };
 
   const meter = await createApuLoudnessMeter({
-    context: { rawContext },
+    context: { rawContext: standardizedWrapper },
     source,
     onStatus: (event) => statusEvents.push(event),
     onMetrics: (metrics) => metricEvents.push(metrics),
   });
 
   assert.deepEqual(moduleUrls, [APU_LOUDNESS_WORKLET_URL]);
+  assert.equal(node.rawContext, nativeContext);
   assert.equal(node.name, APU_LOUDNESS_PROCESSOR_NAME);
   assert.equal(node.options.numberOfOutputs, 0);
   assert.equal(node.options.channelCount, 2);
