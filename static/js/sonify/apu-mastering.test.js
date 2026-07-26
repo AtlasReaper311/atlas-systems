@@ -12,7 +12,7 @@ import {
   masteringTargetWindow,
 } from "./apu-mastering.js";
 
-test("mastering policy applies the measured browser calibration and preserves Lost Signal distance", () => {
+test("mastering policy applies the measured browser calibration without burying Lost Signal", () => {
   assert.equal(APU_MASTERING_DEFAULT_USER_GAIN, 0.7);
   assert.equal(APU_MASTERING_LIMITER_CEILING_DB, -1);
   assert.equal(APU_MASTERING_BROWSER_CALIBRATION_DB, 6);
@@ -21,8 +21,9 @@ test("mastering policy applies the measured browser calibration and preserves Lo
   assert.equal(APU_MASTERING_PROFILES.healthy.masterGainDb, 4);
   assert.equal(APU_MASTERING_PROFILES.warning.masterGainDb, 4);
   assert.equal(APU_MASTERING_PROFILES.critical.masterGainDb, 4);
-  assert.equal(APU_MASTERING_PROFILES.unknown.masterGainDb, -5);
-  assert.ok(APU_MASTERING_PROFILES.unknown.masterGainDb < APU_MASTERING_PROFILES.healthy.masterGainDb);
+  assert.equal(APU_MASTERING_PROFILES.unknown.masterGainDb, 4);
+  assert.equal(APU_MASTERING_PROFILES.unknown.targetIntegratedLufs, -27);
+  assert.ok(APU_MASTERING_PROFILES.unknown.programmeTrimDb > APU_MASTERING_PROFILES.healthy.programmeTrimDb);
 });
 
 test("programme trims reconcile exactly with the original state gains", () => {
