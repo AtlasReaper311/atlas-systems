@@ -60,7 +60,7 @@ jobs:
     needs: [deploy]
     if: needs.deploy.result == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
       - name: Confirm the custom domain serves this commit
         env:
@@ -106,6 +106,36 @@ jobs:
             echo "::error::The production Systems route did not expose the expected Systems route marker"
             exit 1
           fi
+
+      - name: Check out production smoke tooling
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
+
+      - name: Set up Node.js for production smoke
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
+        with:
+          node-version: "22"
+
+      - name: Install pinned production browser tooling
+        run: npm install --no-save --ignore-scripts playwright@1.61.1
+
+      - name: Install Chromium for production smoke
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify the live System Symphony Atlas APU and topology map
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+          SITE_URL: https://atlas-systems.uk
+          SYMPHONY_PRODUCTION_OUTPUT_DIR: ${{ runner.temp }}/system-symphony-production-smoke
+        run: node scripts/smoke_system_symphony_production.mjs
+
+      - name: Upload production System Symphony evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        with:
+          name: system-symphony-production-smoke
+          path: ${{ runner.temp }}/system-symphony-production-smoke
+          if-no-files-found: error
+          retention-days: 14
 
   refresh-corpus:
     needs: [deploy, verify-production]
