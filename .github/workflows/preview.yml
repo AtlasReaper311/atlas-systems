@@ -14,6 +14,7 @@ on:
       - "lab/**"
       - "scripts/smoke_system_symphony_preview.mjs"
       - "scripts/smoke_system_symphony_apu_preview.mjs"
+      - "scripts/smoke_system_symphony_apu_hybrid.mjs"
       - "static/js/sonify/**"
 
 permissions:
@@ -75,7 +76,7 @@ jobs:
       (startsWith(github.event.pull_request.head.ref, 'feat/system-symphony-') ||
        startsWith(github.event.pull_request.head.ref, 'fix/system-symphony-'))
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     environment:
       name: pages-preview
       url: ${{ steps.deploy.outputs.deployment_url }}
@@ -127,8 +128,8 @@ jobs:
       - name: Install pinned browser smoke tooling
         run: npm install --no-save --ignore-scripts playwright@1.61.1
 
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Install Chromium and Firefox
+        run: npx playwright install --with-deps chromium firefox
 
       - name: Verify current System Symphony live data and audio
         env:
@@ -136,11 +137,19 @@ jobs:
           SMOKE_OUTPUT_DIR: ${{ runner.temp }}/system-symphony-smoke
         run: node scripts/smoke_system_symphony_preview.mjs
 
-      - name: Verify Atlas APU sample-free preview
+      - name: Verify hybrid Atlas APU in Chromium
         env:
           PREVIEW_URL: ${{ steps.deploy.outputs.deployment_url }}
-          APU_SMOKE_OUTPUT_DIR: ${{ runner.temp }}/system-symphony-apu-smoke
-        run: node scripts/smoke_system_symphony_apu_preview.mjs
+          APU_BROWSER: chromium
+          APU_SMOKE_OUTPUT_DIR: ${{ runner.temp }}/system-symphony-apu-smoke/chromium
+        run: node scripts/smoke_system_symphony_apu_hybrid.mjs
+
+      - name: Verify hybrid Atlas APU in Firefox
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.deployment_url }}
+          APU_BROWSER: firefox
+          APU_SMOKE_OUTPUT_DIR: ${{ runner.temp }}/system-symphony-apu-smoke/firefox
+        run: node scripts/smoke_system_symphony_apu_hybrid.mjs
 
       - name: Upload current System Symphony smoke evidence
         if: always()
@@ -151,11 +160,11 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Upload Atlas APU smoke evidence
+      - name: Upload hybrid Atlas APU smoke evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
         with:
-          name: system-symphony-apu-preview-smoke
+          name: system-symphony-apu-hybrid-smoke
           path: ${{ runner.temp }}/system-symphony-apu-smoke
           if-no-files-found: error
           retention-days: 7
@@ -171,11 +180,11 @@ jobs:
             echo
             echo "Current instrument: ${PREVIEW_URL}/lab/system-symphony/"
             echo
-            echo "Atlas APU candidate: ${PREVIEW_URL}/lab/system-symphony-apu/"
+            echo "Hybrid Atlas APU candidate: ${PREVIEW_URL}/lab/system-symphony-apu/"
             echo
             echo "Atomic deployment: ${ATOMIC_URL}"
             echo
-            echo "Browser smoke verified the current production-comparison route and the sample-free Atlas APU route. The APU check requires a running Tone.js context, bounded same-origin preview evidence, generated service voices, six channel cards, and zero audio asset requests."
+            echo "Browser smoke verified the current production-comparison route plus the hybrid Atlas APU in Chromium and Firefox. The APU checks require a running Tone.js context, explicit fixture evidence states, a mixed state vector, per-state loudness measurements, six channel cards and zero audio asset requests."
             echo
             echo "This is a non-production branch deployment. atlas-systems.uk is unchanged."
           } >>"${GITHUB_STEP_SUMMARY}"
