@@ -4,8 +4,23 @@ export const APU_LOUDNESS_METER_BUILD_ID = "20260726-system-symphony-loudness-me
 export const APU_LOUDNESS_PROCESSOR_NAME = "atlas-apu-loudness-meter";
 export const APU_LOUDNESS_WORKLET_URL = "/static/js/sonify/apu-loudness-worklet.js?v=20260726-system-symphony-loudness-meter-v1";
 
+function isUsableAudioContext(candidate) {
+  if (!candidate?.audioWorklet?.addModule) return false;
+  const BaseContext = globalThis.BaseAudioContext;
+  if (typeof BaseContext === "function") return candidate instanceof BaseContext;
+  return true;
+}
+
 function rawAudioContext(context) {
-  return context?.rawContext ?? context?._context ?? context;
+  const candidates = [
+    context?.rawContext?._nativeAudioContext,
+    context?._nativeAudioContext,
+    context?._context?._nativeAudioContext,
+    context?.rawContext,
+    context?._context,
+    context,
+  ];
+  return candidates.find(isUsableAudioContext) ?? null;
 }
 
 function sourceCandidates(source) {
@@ -47,7 +62,7 @@ export async function createApuLoudnessMeter({
   maxBlockHistory = 216000,
 } = {}) {
   const rawContext = rawAudioContext(context);
-  if (!rawContext?.audioWorklet?.addModule || typeof AudioWorkletNode !== "function") {
+  if (!rawContext || typeof AudioWorkletNode !== "function") {
     throw new Error("AudioWorklet is unavailable in this browser context");
   }
 
