@@ -35,6 +35,29 @@ function nativeAudioContext(context) {
   }) ?? null;
 }
 
+function standardizedAudioContext(context, toneContext) {
+  const candidates = [
+    toneContext?.rawContext,
+    context?.rawContext,
+    toneContext?._context,
+    context?._context,
+  ];
+  return candidates.find((candidate) => (
+    typeof candidate?.createGain === "function"
+    && candidate?.destination
+  )) ?? null;
+}
+
+function createZeroGainSink(audioContext) {
+  if (!audioContext?.createGain || !audioContext?.destination) {
+    throw new TypeError("audio context cannot create a silent monitor sink");
+  }
+  const sink = audioContext.createGain();
+  if (sink?.gain) sink.gain.value = 0;
+  sink.connect(audioContext.destination);
+  return sink;
+}
+
 function toneWorkletFactory(context) {
   const candidates = [context, context?.rawContext, context?._context];
   const toneContext = candidates.find((candidate) => (
@@ -42,10 +65,13 @@ function toneWorkletFactory(context) {
     && typeof candidate?.createAudioWorkletNode === "function"
   ));
   if (!toneContext) return null;
+  const audioContext = standardizedAudioContext(context, toneContext);
+  if (!audioContext) return null;
   return Object.freeze({
-    sampleRate: toneContext.sampleRate ?? context?.sampleRate ?? null,
+    sampleRate: toneContext.sampleRate ?? audioContext.sampleRate ?? context?.sampleRate ?? null,
     addModule: (url) => toneContext.addAudioWorkletModule(url, APU_LOUDNESS_PROCESSOR_NAME),
     createNode: (name, options) => toneContext.createAudioWorkletNode(name, options),
+    createSilentSink: () => createZeroGainSink(audioContext),
     dialect: "tone-context",
   });
 }
@@ -57,14 +83,16 @@ function nativeWorkletFactory(context) {
     sampleRate: rawContext.sampleRate,
     addModule: (url) => rawContext.audioWorklet.addModule(url),
     createNode: (name, options) => new globalThis.AudioWorkletNode(rawContext, name, options),
+    createSilentSink: () => createZeroGainSink(rawContext),
     dialect: "native-context",
   });
 }
 
 function workletFactory(context) {
   // Tone.js wraps standardized-audio-context. Its Context methods create a
-  // worklet node in the same node dialect as Tone.Destination, avoiding an
-  // invalid standardized-node to native-node connection.
+  // worklet node in the same node dialect as Tone.Destination. A one-output
+  // worklet is required by that wrapper, so the output terminates at an
+  // explicit zero-gain sink connected directly to the raw context destination.
   return toneWorkletFactory(context) ?? nativeWorkletFactory(context);
 }
 
@@ -114,6 +142,7 @@ export async function createApuLoudnessMeter({
   let metrics = null;
   let processorReady = false;
   let connectedSource = null;
+  let silentSink = null;
 
   const emitStatus = (nextStatus, detail = null) => {
     status = nextStatus;
@@ -137,7 +166,8 @@ export async function createApuLoudnessMeter({
   try {
     node = factory.createNode(APU_LOUDNESS_PROCESSOR_NAME, {
       numberOfInputs: 1,
-      numberOfOutputs: 0,
+      numberOfOutputs: 1,
+      outputChannelCount: [1],
       channelCount: 2,
       channelCountMode: "explicit",
       channelInterpretation: "speakers",
@@ -146,7 +176,12 @@ export async function createApuLoudnessMeter({
       },
     });
     if (!node?.port) throw new TypeError("created worklet node has no MessagePort");
+    silentSink = factory.createSilentSink();
+    node.connect(silentSink);
   } catch (error) {
+    silentSink?.disconnect?.();
+    node?.port?.close?.();
+    node?.disconnect?.();
     throw stageError("node creation", factory.dialect, error);
   }
 
@@ -182,6 +217,7 @@ export async function createApuLoudnessMeter({
   } catch (error) {
     node.port.close();
     node.disconnect();
+    silentSink.disconnect?.();
     throw stageError("source connection", factory.dialect, error);
   }
 
@@ -207,6 +243,8 @@ export async function createApuLoudnessMeter({
       if (disposed) return;
       disposed = true;
       disconnectSource(connectedSource, node);
+      disconnectSource(node, silentSink);
+      silentSink?.disconnect?.();
       node.port.close();
       node.disconnect();
       emitStatus("disposed");
