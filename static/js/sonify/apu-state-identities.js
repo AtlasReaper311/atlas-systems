@@ -1,6 +1,6 @@
-import { masteringProfileForState } from "./apu-mastering.js?v=20260726-system-symphony-mastering-v2";
+import { masteringProfileForState } from "./apu-mastering.js?v=20260726-system-symphony-mastering-v3";
 
-export const APU_STATE_IDENTITY_BUILD_ID = "20260726-system-symphony-state-identities-v2";
+export const APU_STATE_IDENTITY_BUILD_ID = "20260726-system-symphony-state-identities-v3";
 export const APU_STATE_KEYS = Object.freeze(["healthy", "warning", "critical", "unknown"]);
 
 const freezeArray = (values) => Object.freeze([...values]);
