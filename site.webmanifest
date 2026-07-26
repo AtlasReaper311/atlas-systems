@@ -1,6 +1,9 @@
 {
+  "id": "/",
   "name": "Atlas Systems",
   "short_name": "Atlas Systems",
+  "start_url": "/",
+  "scope": "/",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
