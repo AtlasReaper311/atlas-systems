@@ -1,8 +1,8 @@
 import { APU_LOUDNESS_DSP_BUILD_ID } from "./apu-loudness-dsp.js?v=20260726-system-symphony-loudness-dsp-v1";
 
-export const APU_LOUDNESS_METER_BUILD_ID = "20260726-system-symphony-loudness-meter-v2";
+export const APU_LOUDNESS_METER_BUILD_ID = "20260726-system-symphony-loudness-meter-v3";
 export const APU_LOUDNESS_PROCESSOR_NAME = "atlas-apu-loudness-meter";
-export const APU_LOUDNESS_WORKLET_URL = "/static/js/sonify/apu-loudness-worklet.js?v=20260726-system-symphony-loudness-meter-v2";
+export const APU_LOUDNESS_WORKLET_URL = "/static/js/sonify/apu-loudness-worklet.js?v=20260726-system-symphony-loudness-meter-v3";
 
 function describeError(error) {
   const name = typeof error?.name === "string" && error.name ? error.name : "Error";
@@ -35,19 +35,6 @@ function nativeAudioContext(context) {
   }) ?? null;
 }
 
-function standardizedAudioContext(context, toneContext) {
-  const candidates = [
-    toneContext?.rawContext,
-    context?.rawContext,
-    toneContext?._context,
-    context?._context,
-  ];
-  return candidates.find((candidate) => (
-    typeof candidate?.createGain === "function"
-    && candidate?.destination
-  )) ?? null;
-}
-
 function createZeroGainSink(audioContext) {
   if (!audioContext?.createGain || !audioContext?.destination) {
     throw new TypeError("audio context cannot create a silent monitor sink");
@@ -56,47 +43,6 @@ function createZeroGainSink(audioContext) {
   if (sink?.gain) sink.gain.value = 0;
   sink.connect(audioContext.destination);
   return sink;
-}
-
-function toneWorkletFactory(context) {
-  const candidates = [context, context?.rawContext, context?._context];
-  const toneContext = candidates.find((candidate) => (
-    typeof candidate?.addAudioWorkletModule === "function"
-    && typeof candidate?.createAudioWorkletNode === "function"
-  ));
-  if (!toneContext) return null;
-  const audioContext = standardizedAudioContext(context, toneContext);
-  if (!audioContext) return null;
-  return Object.freeze({
-    sampleRate: toneContext.sampleRate ?? audioContext.sampleRate ?? context?.sampleRate ?? null,
-    addModule: (url) => toneContext.addAudioWorkletModule(url, APU_LOUDNESS_PROCESSOR_NAME),
-    // Tone 14.8 delegates to standardized-audio-context. Chromium rejects the
-    // explicit AudioWorkletNode options accepted by the native fallback, so use
-    // the registered processor's one-input/one-output defaults on this path.
-    createNode: (name) => toneContext.createAudioWorkletNode(name),
-    createSilentSink: () => createZeroGainSink(audioContext),
-    dialect: "tone-context",
-  });
-}
-
-function nativeWorkletFactory(context) {
-  const rawContext = nativeAudioContext(context);
-  if (!rawContext || typeof globalThis.AudioWorkletNode !== "function") return null;
-  return Object.freeze({
-    sampleRate: rawContext.sampleRate,
-    addModule: (url) => rawContext.audioWorklet.addModule(url),
-    createNode: (name, options) => new globalThis.AudioWorkletNode(rawContext, name, options),
-    createSilentSink: () => createZeroGainSink(rawContext),
-    dialect: "native-context",
-  });
-}
-
-function workletFactory(context) {
-  // Tone.js wraps standardized-audio-context. Its Context methods create a
-  // worklet node in the same node dialect as Tone.Destination. The worklet
-  // output terminates at an explicit zero-gain sink connected directly to the
-  // raw context destination, so the meter never returns audio to System Symphony.
-  return toneWorkletFactory(context) ?? nativeWorkletFactory(context);
 }
 
 function sourceCandidates(source) {
@@ -125,8 +71,95 @@ function disconnectSource(source, destination) {
   try {
     source?.disconnect?.(destination);
   } catch {
-    // Tone.js nodes can already be disconnected during graph disposal.
+    // Tone.js and browser nodes can already be disconnected during disposal.
   }
+}
+
+function stopStream(stream) {
+  for (const track of stream?.getTracks?.() ?? []) {
+    try {
+      track.stop?.();
+    } catch {
+      // A browser can already have ended the capture track.
+    }
+  }
+}
+
+function toneMediaStreamFactory(context) {
+  const rawContext = nativeAudioContext(context);
+  if (
+    !rawContext
+    || typeof rawContext.createMediaStreamSource !== "function"
+    || typeof globalThis.AudioWorkletNode !== "function"
+  ) return null;
+
+  const candidates = [context, context?.rawContext, context?._context];
+  const toneContext = candidates.find((candidate) => (
+    candidate
+    && candidate !== rawContext
+    && typeof candidate.createMediaStreamDestination === "function"
+  ));
+  if (!toneContext) return null;
+
+  return Object.freeze({
+    sampleRate: rawContext.sampleRate,
+    addModule: (url) => rawContext.audioWorklet.addModule(url),
+    createNode: (name, options) => new globalThis.AudioWorkletNode(rawContext, name, options),
+    createSilentSink: () => createZeroGainSink(rawContext),
+    connectMonitor(source, node) {
+      const capture = toneContext.createMediaStreamDestination();
+      if (!capture?.stream) throw new TypeError("Tone context created no monitor stream");
+      const connectedSource = connectSource(source, capture);
+      let nativeSource = null;
+      try {
+        nativeSource = rawContext.createMediaStreamSource(capture.stream);
+        nativeSource.connect(node);
+      } catch (error) {
+        disconnectSource(connectedSource, capture);
+        capture.disconnect?.();
+        stopStream(capture.stream);
+        throw error;
+      }
+      return Object.freeze({
+        dispose() {
+          disconnectSource(connectedSource, capture);
+          disconnectSource(nativeSource, node);
+          nativeSource?.disconnect?.();
+          capture.disconnect?.();
+          stopStream(capture.stream);
+        },
+      });
+    },
+    dialect: "tone-media-stream-bridge",
+  });
+}
+
+function nativeWorkletFactory(context) {
+  const rawContext = nativeAudioContext(context);
+  if (!rawContext || typeof globalThis.AudioWorkletNode !== "function") return null;
+  return Object.freeze({
+    sampleRate: rawContext.sampleRate,
+    addModule: (url) => rawContext.audioWorklet.addModule(url),
+    createNode: (name, options) => new globalThis.AudioWorkletNode(rawContext, name, options),
+    createSilentSink: () => createZeroGainSink(rawContext),
+    connectMonitor(source, node) {
+      const connectedSource = connectSource(source, node);
+      return Object.freeze({
+        dispose() {
+          disconnectSource(connectedSource, node);
+        },
+      });
+    },
+    dialect: "native-context",
+  });
+}
+
+function workletFactory(context) {
+  // Tone 14.8's standardized AudioWorkletNode constructor rejects the custom
+  // processor in Chromium. Keep Tone nodes in their own dialect by capturing
+  // the destination into a MediaStreamAudioDestinationNode, then feed that
+  // stream into a native node created by the underlying browser AudioContext.
+  return toneMediaStreamFactory(context) ?? nativeWorkletFactory(context);
 }
 
 export async function createApuLoudnessMeter({
@@ -144,7 +177,7 @@ export async function createApuLoudnessMeter({
   let status = "loading";
   let metrics = null;
   let processorReady = false;
-  let connectedSource = null;
+  let monitorConnection = null;
   let silentSink = null;
 
   const emitStatus = (nextStatus, detail = null) => {
@@ -212,12 +245,12 @@ export async function createApuLoudnessMeter({
   };
 
   try {
-    connectedSource = connectSource(source, node);
+    monitorConnection = factory.connectMonitor(source, node);
   } catch (error) {
     node.port.close();
     node.disconnect();
     silentSink.disconnect?.();
-    throw stageError("source connection", factory.dialect, error);
+    throw stageError("monitor connection", factory.dialect, error);
   }
 
   return Object.freeze({
@@ -241,7 +274,7 @@ export async function createApuLoudnessMeter({
     dispose() {
       if (disposed) return;
       disposed = true;
-      disconnectSource(connectedSource, node);
+      monitorConnection?.dispose?.();
       disconnectSource(node, silentSink);
       silentSink?.disconnect?.();
       node.port.close();
