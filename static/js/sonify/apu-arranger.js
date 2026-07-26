@@ -56,6 +56,19 @@ const SECTION_MIX = Object.freeze({
   breathe: Object.freeze({ primary: 0.24, secondary: 0, services: 0.1, bass: 0, drums: 0, pad: 0.86, accent: 0.1 }),
 });
 
+const SECTION_QUALITY = Object.freeze({
+  intro: "open",
+  establish: "minor",
+  "theme-a": "minor",
+  variation: "wide",
+  "theme-b": "suspended",
+  build: "wide",
+  peak: "power",
+  release: "open",
+  recovery: "minor",
+  breathe: "suspended",
+});
+
 const SECTION_TIMBRE = Object.freeze({
   intro: Object.freeze({ leadCutoffHz: 2200, counterCutoffHz: 1800, serviceCutoffScale: 0.72, padCutoffScale: 0.78, leadDrive: 0.04 }),
   establish: Object.freeze({ leadCutoffHz: 3400, counterCutoffHz: 2400, serviceCutoffScale: 0.82, padCutoffScale: 0.88, leadDrive: 0.06 }),
@@ -75,7 +88,15 @@ function sectionAtPhrase(cyclePhrase) {
   let cursor = 0;
   for (const section of APU_FORM) {
     const end = cursor + section.phrases;
-    if (cyclePhrase < end) return Object.freeze({ ...section, startPhrase: cursor, localPhrase: cyclePhrase - cursor, isFirstPhrase: cyclePhrase === cursor, isLastPhrase: cyclePhrase === end - 1 });
+    if (cyclePhrase < end) {
+      return Object.freeze({
+        ...section,
+        startPhrase: cursor,
+        localPhrase: cyclePhrase - cursor,
+        isFirstPhrase: cyclePhrase === cursor,
+        isLastPhrase: cyclePhrase === end - 1,
+      });
+    }
     cursor = end;
   }
   return Object.freeze({ ...APU_FORM[0], startPhrase: 0, localPhrase: 0, isFirstPhrase: true, isLastPhrase: true });
@@ -103,13 +124,26 @@ function stateAdjustedMotif(mode, state, section, cycleNumber) {
 }
 
 function harmonyForPhrase(state, cyclePhrase, section) {
-  const identity = normalizedStateIdentity(state);
   const roots = STATE_ROOTS[state];
-  const qualityIndex = modulo(cyclePhrase + section.localPhrase, identity.chordQualities.length);
-  const quality = identity.chordQualities[qualityIndex];
+  const firstRoot = roots[cyclePhrase];
+  const secondRoot = roots[(cyclePhrase + 1) % roots.length];
+  let firstQuality = SECTION_QUALITY[section.id] ?? "minor";
+  let secondQuality = firstQuality;
+
+  if (state === "warning") {
+    firstQuality = ["theme-b", "build", "peak"].includes(section.id) ? "tense" : "minor";
+    secondQuality = section.localPhrase % 2 === 0 ? firstQuality : "suspended";
+  } else if (state === "critical") {
+    firstQuality = "power";
+    secondQuality = section.id === "release" || section.id === "recovery" ? "power" : "tense";
+  } else if (state === "unknown") {
+    firstQuality = "suspended";
+    secondQuality = "open";
+  }
+
   return Object.freeze([
-    Object.freeze({ rootDegree: roots[cyclePhrase], quality, inversion: 0 }),
-    Object.freeze({ rootDegree: roots[(cyclePhrase + 1) % roots.length], quality, inversion: state === "healthy" ? section.localPhrase % 2 : 0 }),
+    Object.freeze({ rootDegree: firstRoot, quality: firstQuality, inversion: 0 }),
+    Object.freeze({ rootDegree: secondRoot, quality: secondQuality, inversion: state === "healthy" ? section.localPhrase % 2 : 0 }),
   ]);
 }
 
@@ -119,7 +153,7 @@ function mixFor(section, state, directorPlan) {
   const intent = directorPlan?.intent ?? {};
   const pressure = clamp(intent.pressure ?? 0, 0, 1);
   const confidence = clamp(intent.confidence ?? (state === "unknown" ? 0.35 : 0.85), 0, 1);
-  return Object.freeze({
+  const computed = {
     primary: clamp(base.primary * modifiers.primary * confidence, 0, 1),
     secondary: clamp(base.secondary * modifiers.secondary * confidence, 0, 1),
     services: clamp(base.services * modifiers.services * (0.72 + confidence * 0.28), 0, 1),
@@ -127,7 +161,16 @@ function mixFor(section, state, directorPlan) {
     drums: clamp(base.drums * modifiers.drums * (0.78 + pressure * 0.22), 0, 1),
     pad: clamp(base.pad * modifiers.pad, 0, 1),
     accent: clamp(base.accent * modifiers.accent * (0.74 + pressure * 0.26), 0, 1),
-  });
+  };
+
+  if (section.id === "peak" && state !== "unknown") {
+    computed.primary = Math.max(computed.primary, state === "critical" ? 0.98 : 0.94);
+    computed.bass = Math.max(computed.bass, state === "critical" ? 1 : 0.94);
+    computed.drums = Math.max(computed.drums, state === "critical" ? 1 : 0.94);
+    computed.accent = Math.max(computed.accent, 0.8);
+  }
+
+  return Object.freeze(computed);
 }
 
 function timbreFor(section, state) {
@@ -157,10 +200,17 @@ export function arrangementForPhrase(frame = {}, directorPlan = null, phraseInde
   const cycleNumber = Math.floor(absolutePhrase / APU_TRACK_PHRASES);
   const section = sectionAtPhrase(cyclePhrase);
   const grammar = statePatternGrammar(state, section.id);
-  const motifMode = section.id === "intro" || section.id === "release" || section.id === "breathe" ? section.motif : grammar.motif;
+  const structuralSection = section.id === "intro" || section.id === "release" || section.id === "breathe";
+  const motifMode = structuralSection ? section.motif : grammar.motif;
   const mix = mixFor(section, state, directorPlan);
   const cycleBarStart = cyclePhrase * APU_BARS_PER_PHRASE + 1;
-  const energy = clamp((directorPlan?.energy ?? directorPlan?.intent?.intensity ?? frame.tension ?? 0.35) * 0.55 + mix.drums * 0.25 + mix.primary * 0.2, 0, 1);
+  const energy = clamp(
+    (directorPlan?.energy ?? directorPlan?.intent?.intensity ?? frame.tension ?? 0.35) * 0.55
+      + mix.drums * 0.25
+      + mix.primary * 0.2,
+    0,
+    1,
+  );
 
   return Object.freeze({
     buildId: ATLAS_APU_TRACK_BUILD_ID,
@@ -183,9 +233,9 @@ export function arrangementForPhrase(frame = {}, directorPlan = null, phraseInde
     harmony: harmonyForPhrase(state, cyclePhrase, section),
     motifMode,
     motifDegrees: Object.freeze(stateAdjustedMotif(motifMode, state, section, cycleNumber)),
-    drumPattern: section.id === "intro" || section.id === "release" || section.id === "breathe" ? section.drums : grammar.drums,
-    bassPattern: section.id === "intro" || section.id === "release" || section.id === "breathe" ? section.bass : grammar.bass,
-    counterPattern: section.id === "intro" || section.id === "release" || section.id === "breathe" ? section.counter : grammar.counter,
+    drumPattern: structuralSection ? section.drums : grammar.drums,
+    bassPattern: structuralSection ? section.bass : grammar.bass,
+    counterPattern: structuralSection ? section.counter : grammar.counter,
     transition: section.transition,
     fillEnabled: section.isLastPhrase && !["intro", "release", "breathe"].includes(section.id),
     octaveBoost: section.id === "peak" || (section.id === "build" && section.localPhrase === section.phrases - 1),
@@ -200,6 +250,13 @@ export function arrangementTimeline() {
   return Object.freeze(APU_FORM.map((section) => {
     const startPhrase = phrase;
     phrase += section.phrases;
-    return Object.freeze({ id: section.id, label: section.label, startPhrase, endPhrase: phrase - 1, startBar: startPhrase * APU_BARS_PER_PHRASE + 1, endBar: phrase * APU_BARS_PER_PHRASE });
+    return Object.freeze({
+      id: section.id,
+      label: section.label,
+      startPhrase,
+      endPhrase: phrase - 1,
+      startBar: startPhrase * APU_BARS_PER_PHRASE + 1,
+      endBar: phrase * APU_BARS_PER_PHRASE,
+    });
   }));
 }
