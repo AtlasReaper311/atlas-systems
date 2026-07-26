@@ -121,14 +121,12 @@ function installMetadata() {
   ensureMeta("og:description", description);
   ensureMeta("og:url", canonical.href || productionUrl);
   ensureMeta("og:site_name", "Atlas Systems");
-  ensureMeta("og:image", "https://atlas-systems.uk/og-default.png");
   ensureMeta("og:image:width", "1200");
   ensureMeta("og:image:height", "630");
   ensureMeta("og:image:alt", "Atlas Systems: audio systems, local AI infrastructure, and deployment automation");
   ensureMeta("twitter:card", "summary_large_image");
   ensureMeta("twitter:title", title);
   ensureMeta("twitter:description", description);
-  ensureMeta("twitter:image", "https://atlas-systems.uk/og-default.png");
 }
 
 async function installLabShell() {
