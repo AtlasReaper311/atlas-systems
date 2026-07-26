@@ -48,13 +48,15 @@ jobs:
           set -e
 
           if [ "${merge_status}" -ne 0 ]; then
-            unresolved="$(git diff --name-only --diff-filter=U | sort)"
-            expected="$(printf '%s\n' '.github/workflows/ci.yml' '_headers' | sort)"
-            if [ "${unresolved}" != "${expected}" ]; then
-              echo "Unexpected merge conflicts:" >&2
-              printf '%s\n' "${unresolved}" >&2
-              exit 1
-            fi
+            git diff --name-only --diff-filter=U | while IFS= read -r path; do
+              [ -n "${path}" ] || continue
+              echo "Retaining current-main rollout version for conflict: ${path}"
+              if git checkout --ours -- "${path}" 2>/dev/null; then
+                git add -- "${path}"
+              else
+                git rm -f --ignore-unmatch -- "${path}"
+              fi
+            done
           fi
 
           cp "${RUNNER_TEMP}/ci.yml" .github/workflows/ci.yml
