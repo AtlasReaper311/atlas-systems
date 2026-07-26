@@ -15,6 +15,7 @@ const LAB_ROUTES = [
 
 const PRODUCTION_ORIGIN = "https://atlas-systems.uk";
 const SEARCH_CSS = "/static/css/estate-search.css";
+const SYSTEM_SYMPHONY_ROUTE = "/lab/system-symphony/";
 
 function normalizePath(pathname) {
   if (pathname === "/") return pathname;
@@ -130,6 +131,11 @@ function installMetadata() {
   ensureMeta("twitter:description", description);
 }
 
+async function installRouteEnhancements() {
+  if (currentPath() !== SYSTEM_SYMPHONY_ROUTE) return;
+  await import("/lab/system-symphony/trace-role-bridge.js?v=20260726-phase-d-role-routing-v1");
+}
+
 async function installLabShell() {
   ensureStylesheet(SEARCH_CSS);
   installMetadata();
@@ -138,6 +144,7 @@ async function installLabShell() {
   installFooter();
   await import("/static/js/estate-shell.js?v=20260723-interface-v2");
   await import("/static/js/estate-search/global-search.js");
+  await installRouteEnhancements();
 }
 
 void installLabShell();
