@@ -1,4 +1,4 @@
-import "./apu-mastering-runtime.js?v=20260726-system-symphony-mastering-runtime-v1";
+import "./apu-mastering-runtime.js?v=20260726-system-symphony-mastering-runtime-v2";
 import {
   APU_LOUDNESS_METER_BUILD_ID,
   createApuLoudnessMeter,
