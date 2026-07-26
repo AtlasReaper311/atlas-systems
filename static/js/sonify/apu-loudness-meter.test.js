@@ -1,11 +1,26 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
 import {
   APU_LOUDNESS_PROCESSOR_NAME,
   APU_LOUDNESS_WORKLET_URL,
   createApuLoudnessMeter,
 } from "./apu-loudness-meter.js";
+
+const directory = dirname(fileURLToPath(import.meta.url));
+
+test("the AudioWorklet source is self-contained and classic-loader safe", () => {
+  const source = readFileSync(join(directory, "apu-loudness-worklet.js"), "utf8");
+  assert.equal(/^\s*import\s/m.test(source), false, "worklet must not use static imports");
+  assert.equal(/^\s*export\s/m.test(source), false, "worklet must not use module exports");
+  assert.match(source, /registerProcessor\(PROCESSOR_NAME, AtlasApuLoudnessProcessor\)/);
+  assert.match(source, /1\.53512485958697/);
+  assert.match(source, /-1\.99004745483398/);
+  assert.doesNotThrow(() => new Function(source));
+});
 
 test("the controller rejects unsupported contexts before touching the source", async () => {
   let connected = false;
