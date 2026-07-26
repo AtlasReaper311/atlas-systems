@@ -279,7 +279,7 @@ try {
   assert.equal(evidence.documentHybridBuild, evidence.hybridBuildId);
   assert.equal(evidence.frame?.scorePlan?.chip, "ATLAS-APU-01");
   assert.equal(evidence.frame?.scorePlan?.tempo?.grid, "16-step");
-  assert.equal(evidence.frame?.scorePlan?.source, "preview");
+  assert.equal(evidence.frame?.scorePlan?.source, "fixture");
   assert.equal(evidence.diagnostics?.scorePlanGuard?.active, true);
   assert.equal(evidence.diagnostics?.scorePlanGuard?.mode, "score-plan");
   assert.equal(evidence.diagnostics?.sampleFree, true);
