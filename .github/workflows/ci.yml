@@ -78,26 +78,7 @@ jobs:
           exit 1
 
       - name: Run System SYMPHONY tests
-        id: system-symphony
-        continue-on-error: true
-        run: |
-          set -o pipefail
-          node --test static/js/sonify/*.test.js 2>&1 | tee system-symphony-test-report.txt
-
-      - name: Upload System SYMPHONY test report
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: system-symphony-test-report
-          path: system-symphony-test-report.txt
-          if-no-files-found: error
-          retention-days: 7
-
-      - name: Enforce System SYMPHONY test result
-        if: steps.system-symphony.outcome != 'success'
-        run: |
-          cat system-symphony-test-report.txt
-          exit 1
+        run: node --test static/js/sonify/*.test.js
 
       - name: Check normalized page titles
         run: |
