@@ -48,6 +48,7 @@ const audioRequests = [];
 const failedRequests = [];
 const stateTransitions = [];
 const stateMeasurements = [];
+let fixtureEvidence = null;
 let evidence = null;
 
 page.on("console", (message) => {
@@ -199,6 +200,7 @@ async function writeBundle(fileName, error = null) {
       route,
       browser: browserName,
       error: error ? { name: error.name, message: error.message, stack: error.stack } : null,
+      fixtureEvidence,
       evidence,
       stateTransitions,
       stateMeasurements,
@@ -216,25 +218,25 @@ try {
   assert.equal(response?.ok(), true, `preview route answered ${response?.status()}`);
   await page.waitForSelector('[data-apu-root][data-ready="true"]', { timeout: 30_000 });
 
-  const fixture = await collectEvidence();
-  assert.equal(fixture.source, "preview");
-  assert.equal(fixture.fixtureBannerHidden, false);
-  assert.match(fixture.fixtureBannerText ?? "", /not live estate data/i);
-  assert.equal(fixture.frame.evidenceMode, "preview");
-  assert.equal(fixture.frame.previewEstateDerived, true);
-  assert.equal(fixture.frame.scoreState, "healthy");
-  assert.equal(fixture.metricState, "Healthy");
-  assert.equal(fixture.metricKnown, "91%");
-  assert.equal(fixture.metricMeasured, "19");
-  assert.equal(fixture.rows.length, 21);
-  assert.equal(fixture.rows.filter((row) => row.evidenceState === "current").length, 19);
-  assert.equal(fixture.rows.filter((row) => row.evidenceState === "reported-unknown").length, 2);
-  assert.equal(fixture.rows.filter((row) => row.cells[1] === "unknown").length, 0);
-  assert.ok(fixture.stateVector.healthy > 0.75);
-  assert.ok(fixture.stateVector.warning > 0);
-  assert.ok(fixture.stateVector.unknown > 0);
-  assert.equal(fixture.stateVector.critical, 0);
-  assert.match(fixture.dominantReason ?? "", /Healthy supplies the harmonic grammar/);
+  fixtureEvidence = await collectEvidence();
+  assert.equal(fixtureEvidence.source, "preview");
+  assert.equal(fixtureEvidence.fixtureBannerHidden, false);
+  assert.match(fixtureEvidence.fixtureBannerText ?? "", /not live estate data/i);
+  assert.equal(fixtureEvidence.frame.evidenceMode, "preview");
+  assert.equal(fixtureEvidence.frame.previewEstateDerived, true);
+  assert.equal(fixtureEvidence.frame.scoreState, "healthy");
+  assert.equal(fixtureEvidence.metricState, "Healthy");
+  assert.equal(fixtureEvidence.metricKnown, "91%");
+  assert.equal(fixtureEvidence.metricMeasured, "19");
+  assert.equal(fixtureEvidence.rows.length, 21);
+  assert.equal(fixtureEvidence.rows.filter((row) => row.evidenceState === "current").length, 19);
+  assert.equal(fixtureEvidence.rows.filter((row) => row.evidenceState === "reported-unknown").length, 2);
+  assert.equal(fixtureEvidence.rows.filter((row) => row.cells[1] === "unknown").length, 0);
+  assert.ok(fixtureEvidence.stateVector.healthy > 0.75);
+  assert.ok(fixtureEvidence.stateVector.warning > 0);
+  assert.ok(fixtureEvidence.stateVector.unknown > 0);
+  assert.equal(fixtureEvidence.stateVector.critical, 0);
+  assert.match(fixtureEvidence.dominantReason ?? "", /Healthy supplies the harmonic grammar/);
 
   await page.getByRole("button", { name: "Start audio" }).click();
   await page.waitForFunction(() => {
@@ -254,6 +256,15 @@ try {
   await measureState("Unknown", "unknown", "one-bar-decay");
   await measureState("Healthy", "healthy", "crossfade");
 
+  await page.getByRole("button", { name: "Live frame", exact: true }).click();
+  await page.waitForFunction(() => {
+    const frame = globalThis.__ATLAS_APU__?.getFrame?.();
+    return frame?.evidenceMode === "preview"
+      && Number(frame?.stateVector?.warning) > 0
+      && Number(frame?.stateVector?.unknown) > 0
+      && Number(frame?.measuredComponents) === 19;
+  }, null, { timeout: 10_000, polling: 100 });
+
   await page.waitForFunction(() => {
     const arrangement = globalThis.__ATLAS_APU__?.getArrangement?.();
     const diagnostics = globalThis.__ATLAS_APU__?.getDiagnostics?.();
@@ -270,8 +281,13 @@ try {
   assert.match(evidence.masteringRuntimeBuildId ?? "", /mastering-runtime-v2$/);
   assert.equal(evidence.ready, "true");
   assert.equal(evidence.running, "true");
+  assert.equal(evidence.source, "preview");
   assert.equal(evidence.noSamples, "true");
   assert.equal(evidence.volumeValue, "70");
+  assert.equal(evidence.metricMeasured, "19");
+  assert.equal(evidence.metricKnown, "91%");
+  assert.ok(evidence.stateVector.warning > 0);
+  assert.ok(evidence.stateVector.unknown > 0);
   assert.equal(evidence.channelCards, 6);
   assert.equal(evidence.timelineSections, 10);
   assert.equal(evidence.arrangement.section, "theme-b");
