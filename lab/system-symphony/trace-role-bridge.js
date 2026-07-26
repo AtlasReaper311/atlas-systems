@@ -37,8 +37,10 @@ function selectedRole() {
 }
 
 function serviceIdentityForNode(node) {
-  const direct = node?.dataset.node?.trim();
-  if (direct) return direct;
+  return node?.dataset.node?.trim() ?? "";
+}
+
+function displayIdentityForNode(node) {
   const title = node?.querySelector("title")?.textContent ?? "";
   return title.split(":", 1)[0].trim();
 }
@@ -57,8 +59,9 @@ function serviceRoleMap(host) {
 
 function decorateTopology(host, roles) {
   for (const node of host.querySelectorAll("[data-node]")) {
-    const serviceName = serviceIdentityForNode(node);
-    const role = roles.get(serviceName) ?? "";
+    const role = roles.get(serviceIdentityForNode(node))
+      ?? roles.get(displayIdentityForNode(node))
+      ?? "";
     if (role) node.dataset.apuRole = role;
     else delete node.dataset.apuRole;
   }
