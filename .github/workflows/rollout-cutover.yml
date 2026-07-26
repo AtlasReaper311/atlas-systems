@@ -1,0 +1,46 @@
+name: Apply System Symphony production cutover
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  contents: write
+
+concurrency:
+  group: system-symphony-apu-production-cutover
+  cancel-in-progress: false
+
+jobs:
+  apply-cutover:
+    name: Integrate Atlas APU behind the preserved live map
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/system-symphony-apu-production-rollout'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out rollout branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: feat/system-symphony-apu-production-rollout
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Apply reviewed production integration
+        run: python3 scripts/apply_system_symphony_cutover.py
+
+      - name: Commit the cutover and remove temporary tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/rollout-cutover.yml
+          rm -f scripts/apply_system_symphony_cutover.py
+          git add -A
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "feat(symphony): promote Atlas APU behind the live estate map"
+          git push origin HEAD:feat/system-symphony-apu-production-rollout
