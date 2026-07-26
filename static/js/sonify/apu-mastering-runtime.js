@@ -1,7 +1,7 @@
 import {
   APU_MASTERING_BUILD_ID,
   masteringProfileForState,
-} from "./apu-mastering.js?v=20260726-system-symphony-mastering-v3";
+} from "./apu-mastering.js?v=20260726-system-symphony-mastering-v4";
 
 export const APU_MASTERING_RUNTIME_BUILD_ID = "20260726-system-symphony-mastering-runtime-v2";
 export const APU_MASTERING_RUNTIME_POLL_MS = 100;

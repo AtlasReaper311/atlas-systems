@@ -14,13 +14,13 @@ import {
   ATLAS_APU_SCORE_PLAN_BUILD_ID,
 } from "./atlas-apu-score-plan.js?v=20260726-atlas-apu-score-plan-v2";
 
-export const ATLAS_APU_ENGINE_CONTROLS_BUILD_ID = "20260726-atlas-apu-engine-controls-v2";
+export const ATLAS_APU_ENGINE_CONTROLS_BUILD_ID = "20260726-atlas-apu-engine-controls-v3";
 
 const STATE_CHIP_COLOR = Object.freeze({
-  healthy: Object.freeze({ bits: 14, wet: 0.045, hum: 0 }),
-  warning: Object.freeze({ bits: 9, wet: 0.155, hum: 0.006 }),
-  critical: Object.freeze({ bits: 7, wet: 0.235, hum: 0.012 }),
-  unknown: Object.freeze({ bits: 11, wet: 0.095, hum: 0.052 }),
+  healthy: Object.freeze({ bits: 14, wet: 0.035, hum: 0 }),
+  warning: Object.freeze({ bits: 9, wet: 0.12, hum: 0.005 }),
+  critical: Object.freeze({ bits: 7, wet: 0.16, hum: 0.01 }),
+  unknown: Object.freeze({ bits: 11, wet: 0.075, hum: 0.048 }),
 });
 
 function round(value, places = 4) {
@@ -66,25 +66,25 @@ function busScalesFor(plan = {}) {
 
   if (state === "critical") {
     return Object.freeze({
-      primary: 0.92,
-      secondary: 0.92,
-      services: 0.78,
-      bass: 1.12,
-      drums: 1.14,
-      pad: 0.42,
-      accent: recoveryActive ? 1.24 : 1.14,
+      primary: 0.88,
+      secondary: 0.78,
+      services: 0.68,
+      bass: 1.04,
+      drums: 1.03,
+      pad: 0.36,
+      accent: recoveryActive ? 0.96 : 0.82,
     });
   }
 
   if (state === "warning") {
     return Object.freeze({
-      primary: 0.95,
-      secondary: 1.12,
-      services: 1.08,
-      bass: 1.04,
-      drums: 1.08,
-      pad: 0.74,
-      accent: recoveryActive ? 1.18 : 1,
+      primary: 0.92,
+      secondary: 1.02,
+      services: 0.98,
+      bass: 0.98,
+      drums: 1.02,
+      pad: 0.7,
+      accent: recoveryActive ? 1.05 : 0.9,
     });
   }
 
@@ -123,18 +123,18 @@ function timbreFor(plan = {}) {
 
   return Object.freeze({
     chipBits: chipColor.bits,
-    chipWet: round(chipColor.wet + urgency * 0.018),
+    chipWet: round(clamp(chipColor.wet + urgency * 0.012, 0, 0.175)),
     masterFilterScale: round(clamp(0.72 + beauty * 0.38 - thermalPressure * 0.08, 0.42, 1.18)),
     masterHighpassScale: round(clamp(0.82 + urgency * 0.42, 0.7, 1.32)),
     leadFilterScale: round(clamp(0.82 + beauty * 0.28 + urgency * 0.08, 0.58, 1.18)),
     counterFilterScale: round(clamp(0.72 + urgency * 0.32 + confidence * 0.1, 0.42, 1.16)),
     padFilterScale: round(clamp(0.7 + beauty * 0.32 - urgency * 0.16, 0.42, 1.12)),
-    leadFilterQ: round(clamp(0.78 + urgency * 1.35, 0.7, 2.35)),
-    counterFilterQ: round(clamp(0.85 + urgency * 1.55 + (state === "warning" ? 0.45 : 0), 0.8, 2.8)),
+    leadFilterQ: round(clamp(0.72 + urgency * 1.05, 0.7, 1.95)),
+    counterFilterQ: round(clamp(0.78 + urgency * 1.2 + (state === "warning" ? 0.28 : 0), 0.75, 2.25)),
     delayGain: round(clamp(0.045 + beauty * 0.06 + (1 - confidence) * 0.04, 0.03, 0.17)),
     reverbGain: round(clamp(0.055 + beauty * 0.09 + (state === "unknown" ? 0.08 : 0), 0.04, 0.22)),
     hatFilterHz: Math.round(clamp(3000 + noiseDensity * 3900 + urgency * 900, 2600, 7600)),
-    noiseAccentFilterHz: Math.round(clamp(900 + urgency * 1300 + noiseDensity * 700, 700, 3200)),
+    noiseAccentFilterHz: Math.round(clamp(820 + urgency * 1050 + noiseDensity * 520, 650, 2600)),
     telemetryHumGain: round(clamp(chipColor.hum + (1 - confidence) * 0.018, 0, 0.07)),
     primaryDutyCycle: clamp(Number(plan.motif?.dutyCycle) || 0.5, 0.08, 0.75),
     counterDutyCycle: clamp(Number(plan.roles?.contention?.alerts) > 0 ? 0.125 : 0.25, 0.08, 0.75),

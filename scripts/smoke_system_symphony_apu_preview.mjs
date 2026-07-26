@@ -189,7 +189,7 @@ try {
 
   evidence = await collectEvidence();
 
-  assert.match(evidence.buildId ?? "", /atlas-chip-laws-v1$/);
+  assert.match(evidence.buildId ?? "", /atlas-chip-laws-v2$/);
   assert.equal(evidence.documentBuild, evidence.buildId);
   assert.match(evidence.loudnessBuildId ?? "", /loudness-meter-v3$/);
   assert.match(evidence.masteringRuntimeBuildId ?? "", /mastering-runtime-v2$/);
@@ -197,7 +197,7 @@ try {
   assert.equal(evidence.running, "true");
   assert.equal(evidence.noSamples, "true");
   assert.equal(evidence.source, "simulated");
-  assert.equal(evidence.volumeValue, "70");
+  assert.equal(evidence.volumeValue, "62");
   assert.equal(evidence.metricState, "Healthy");
   assert.ok(Number.parseInt(evidence.metricComponents ?? "0", 10) > 0);
   assert.ok(evidence.serviceRows > 0);
@@ -214,7 +214,7 @@ try {
   assert.match(evidence.metricPosition ?? "", /Bars 15-16 \/ 32/);
   assert.equal(evidence.mastering.state, "healthy");
   assert.equal(evidence.mastering.targetIntegratedLufs, -22);
-  assert.equal(evidence.masteringRuntime.policyBuildId, "20260726-system-symphony-mastering-v3");
+  assert.equal(evidence.masteringRuntime.policyBuildId, "20260726-system-symphony-mastering-v4");
   assert.equal(evidence.masteringRuntime.state, "healthy");
   assert.equal(evidence.masteringRuntime.targetGainDb, 4);
   assert.equal(evidence.masteringRuntime.upstreamGainDb, evidence.arrangement.timbre.masterGainDb);
@@ -243,7 +243,7 @@ try {
   assert.ok(Number.isFinite(evidence.loudnessMetrics.sessionTruePeakDbtp));
   assert.ok(evidence.loudnessMetrics.integratedLufs > -27, "mastered programme remained below the lower acceptance bound");
   assert.ok(evidence.loudnessMetrics.integratedLufs < -12, "mastered programme exceeded the upper acceptance bound");
-  assert.ok(evidence.loudnessMetrics.sessionTruePeakDbtp <= -0.8, "estimated true peak exceeded the mastering guard");
+  assert.ok(evidence.loudnessMetrics.sessionTruePeakDbtp <= -2, "estimated true peak exceeded the mastering guard");
   assert.ok(evidence.loudnessMetrics.blockCount > 0);
   assert.ok(evidence.loudnessMetrics.gatedBlockCount > 0);
   assert.match(evidence.loudnessMetrics.truePeakMethod, /4x-cubic-estimate/);
@@ -254,7 +254,7 @@ try {
   assert.match(evidence.loudnessMethodText ?? "", /normalised above the user volume control/);
 
   const integratedCompensation = evidence.loudnessMetrics.integratedLufs - evidence.rawLoudnessMetrics.integratedLufs;
-  assert.ok(integratedCompensation > 3 && integratedCompensation < 3.2, "70% user-gain compensation was not preserved");
+  assert.ok(integratedCompensation > 4 && integratedCompensation < 4.3, "62% user-gain compensation was not preserved");
 
   assert.deepEqual(stateTransitions.map(({ to, policy }) => ({ to, policy })), [
     { to: "critical", policy: "hard-choke" },

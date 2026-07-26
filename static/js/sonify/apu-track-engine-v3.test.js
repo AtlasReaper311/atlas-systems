@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 
+import { APU_MASTERING_LIMITER_CEILING_DB } from "./apu-mastering.js";
 import {
   APU_TRACK_CRITICAL_CHOKE_SECONDS,
   APU_TRACK_PULSE_WIDTH_LEAD_SECONDS,
@@ -61,10 +62,13 @@ test("safeRamp fallback keeps the current parameter value before ramping", () =>
 test("track engine source keeps crusher off the full master and schedules pulse width before note attack", () => {
   const source = fs.readFileSync("static/js/sonify/apu-track-engine-v3.js", "utf8");
 
-  assert.ok(APU_TRACK_CRITICAL_CHOKE_SECONDS >= 0.04);
+  assert.ok(APU_TRACK_CRITICAL_CHOKE_SECONDS >= 0.08);
   assert.ok(APU_TRACK_PULSE_WIDTH_LEAD_SECONDS > 0);
+  assert.ok(APU_MASTERING_LIMITER_CEILING_DB <= -2);
+  assert.match(source, /new Tone\.Limiter\(APU_MASTERING_LIMITER_CEILING_DB\)/);
   assert.match(source, /nodes\.serviceBus\.chain\(nodes\.chipColor, nodes\.melodyBus\)/);
   assert.doesNotMatch(source, /nodes\.chipBus\.chain\(\s*nodes\.crusher,/);
+  assert.match(source, /nodes\.noiseAccentFilter = new Tone\.Filter\(\{ type: "bandpass", frequency: 1500, Q: 1\.35 \}\)/);
   assert.match(source, /setPulseWidth\(nodes\.primary, event\.dutyCycle, pulseWidthLeadTime\(time\)\)/);
   assert.match(source, /setPulseWidth\(nodes\.secondary, event\.dutyCycle, pulseWidthLeadTime\(time\)\)/);
   assert.match(source, /setPulseWidth\(slot\.synth, event\.identity\.dutyCycle, pulseWidthLeadTime\(time\)\)/);

@@ -1,7 +1,7 @@
-export const APU_MASTERING_BUILD_ID = "20260726-system-symphony-mastering-v3";
-export const APU_MASTERING_DEFAULT_USER_GAIN = 0.7;
-export const APU_MASTERING_LIMITER_CEILING_DB = -1;
-export const APU_MASTERING_MAX_ESTIMATED_TRUE_PEAK_DBTP = -0.8;
+export const APU_MASTERING_BUILD_ID = "20260726-system-symphony-mastering-v4";
+export const APU_MASTERING_DEFAULT_USER_GAIN = 0.62;
+export const APU_MASTERING_LIMITER_CEILING_DB = -2.2;
+export const APU_MASTERING_MAX_ESTIMATED_TRUE_PEAK_DBTP = -2;
 export const APU_MASTERING_BROWSER_CALIBRATION_DB = 6;
 
 const freezeProfile = (profile) => Object.freeze({ ...profile });

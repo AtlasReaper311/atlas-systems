@@ -1,4 +1,4 @@
-import "../../static/js/sonify/ui.js?v=20260726-system-symphony-atlas-apu-live-v3";
+import "../../static/js/sonify/ui.js?v=20260726-system-symphony-atlas-apu-live-v4";
 
 const OBJECTIVES_URL = "https://api.atlas-systems.uk/v1/reliability/objectives";
 const SHELL_FIX_STYLESHEET = "/static/css/batch-h-shell-fixes.css?v=20260725-browser-evidence";

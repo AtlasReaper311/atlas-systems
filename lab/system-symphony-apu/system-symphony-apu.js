@@ -12,8 +12,8 @@ import {
 import {
   ATLAS_APU_TRACK_BUILD_ID,
   arrangementTimeline,
-} from "../../static/js/sonify/apu-arranger.js?v=20260726-system-symphony-atlas-chip-laws-v1";
-import { createApuTrackEngine } from "../../static/js/sonify/apu-track-engine-v2.js?v=20260726-system-symphony-atlas-chip-laws-v1";
+} from "../../static/js/sonify/apu-arranger.js?v=20260726-system-symphony-atlas-chip-laws-v2";
+import { createApuTrackEngine } from "../../static/js/sonify/apu-track-engine-v2.js?v=20260726-system-symphony-atlas-chip-laws-v2";
 
 const root = document.querySelector("[data-apu-root]");
 if (!root) throw new Error("system-symphony-apu: page root is missing");

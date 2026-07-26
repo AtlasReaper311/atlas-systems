@@ -162,11 +162,11 @@ async function measureState(label, state, policy) {
   assert.equal(snapshot.metricState, label);
   assert.equal(snapshot.frame.scoreState, state);
   assert.equal(snapshot.masteringRuntime.state, state);
-  assert.equal(snapshot.masteringRuntime.policyBuildId, "20260726-system-symphony-mastering-v3");
+  assert.equal(snapshot.masteringRuntime.policyBuildId, "20260726-system-symphony-mastering-v4");
   assert.equal(snapshot.masteringRuntime.targetGainDb, 4);
   assert.ok(metrics.integratedLufs >= window.minimum, `${browserName} ${state} fell below ${window.minimum} LUFS`);
   assert.ok(metrics.integratedLufs <= window.maximum, `${browserName} ${state} exceeded ${window.maximum} LUFS`);
-  assert.ok(metrics.sessionTruePeakDbtp <= -0.8, `${browserName} ${state} exceeded the true-peak guard`);
+  assert.ok(metrics.sessionTruePeakDbtp <= -2, `${browserName} ${state} exceeded the true-peak guard`);
   assert.ok(metrics.blockCount > 0);
   assert.ok(metrics.gatedBlockCount > 0);
   stateMeasurements.push({
@@ -290,7 +290,7 @@ try {
   assert.equal(evidence.running, "true");
   assert.equal(evidence.source, "preview");
   assert.equal(evidence.noSamples, "true");
-  assert.equal(evidence.volumeValue, "70");
+  assert.equal(evidence.volumeValue, "62");
   assert.equal(evidence.metricMeasured, "19");
   assert.equal(evidence.metricKnown, "91%");
   assert.ok(evidence.stateVector.warning > 0);

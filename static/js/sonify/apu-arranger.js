@@ -7,7 +7,7 @@ import {
   stateTimbreModifiers,
 } from "./apu-state-identities.js?v=20260726-system-symphony-state-identities-v4";
 
-export const ATLAS_APU_TRACK_BUILD_ID = "20260726-system-symphony-atlas-chip-laws-v1";
+export const ATLAS_APU_TRACK_BUILD_ID = "20260726-system-symphony-atlas-chip-laws-v2";
 export const APU_TRACK_PHRASES = 16;
 export const APU_BARS_PER_PHRASE = 2;
 export const APU_TRACK_BARS = APU_TRACK_PHRASES * APU_BARS_PER_PHRASE;
