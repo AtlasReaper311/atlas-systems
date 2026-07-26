@@ -21,7 +21,7 @@ const ROLE_LABELS = Object.freeze({
   memory: "MEMORY",
 });
 const ROLE_ZONES = Object.freeze({
-  clock: { x: 600, y: 112 },
+  clock: { x: 600, y: 144 },
   pulse: { x: 910, y: 188 },
   signal: { x: 1010, y: 400 },
   recovery: { x: 850, y: 610 },
@@ -64,6 +64,11 @@ function nodeIdentity(node) {
   return node.dataset.node || node.querySelector("title")?.textContent?.split(":", 1)[0] || "component";
 }
 
+function findNodeByIdentity(topology, identity) {
+  return [...topology.querySelectorAll("[data-node]")]
+    .find((node) => nodeIdentity(node) === identity) ?? null;
+}
+
 function servicePositions(nodes, zone) {
   const positions = new Map();
   const count = nodes.length;
@@ -102,7 +107,7 @@ function createBoardLayer() {
   revision.textContent = "REV 2026.07 // READ-ONLY TELEMETRY // SAMPLE-FREE";
   layer.append(title, revision);
 
-  const romSlot = svgElement("g", { class: "pcb-rom-slot", transform: "translate(510 40)" });
+  const romSlot = svgElement("g", { class: "pcb-rom-slot", transform: "translate(510 32)" });
   romSlot.append(
     svgElement("rect", { x: 0, y: 0, width: 180, height: 46, rx: 5 }),
     svgElement("rect", { class: "pcb-rom-slot__mouth", x: 16, y: 13, width: 148, height: 18, rx: 2 }),
@@ -235,6 +240,19 @@ function chipGeometry(node, role, pinned) {
   }
 }
 
+function externalPortGeometry(node) {
+  if (node.querySelector(".pcb-external-port__body")) return;
+  const title = node.querySelector("title");
+  const firstGraphic = title?.nextSibling ?? node.firstChild;
+  const body = svgElement("rect", { class: "pcb-external-port__body", x: -38, y: -13, width: 76, height: 26, rx: 3 });
+  node.insertBefore(body, firstGraphic);
+  const label = node.querySelector(":scope > text");
+  if (label) {
+    label.setAttribute("y", "3");
+    label.setAttribute("text-anchor", "middle");
+  }
+}
+
 function replaceDependencyLines(topology, positions) {
   for (const line of [...topology.querySelectorAll("line.symphony-edge")]) {
     const from = positions.get(line.dataset.from);
@@ -258,8 +276,10 @@ function installBoardChrome(host, topology, pinnedServices) {
 
   const defs = topology.querySelector("defs");
   const board = createBoardLayer();
-  defs?.insertAdjacentElement("afterend", board) ?? topology.prepend(board);
-  board.insertAdjacentElement("afterend", createRoleBuses());
+  if (defs?.parentNode) defs.parentNode.insertBefore(board, defs.nextSibling);
+  else topology.prepend(board);
+  const buses = createRoleBuses();
+  board.parentNode?.insertBefore(buses, board.nextSibling);
   topology.appendChild(createApuPackage());
 
   const nodes = [...topology.querySelectorAll("[data-node]:not(.symphony-node--external)")];
@@ -282,11 +302,13 @@ function installBoardChrome(host, topology, pinnedServices) {
   }
 
   externalNodes.forEach((node, index) => {
-    const position = { x: 180 + index * Math.min(150, 840 / Math.max(1, externalNodes.length - 1)), y: 666 };
+    const spacing = Math.min(150, 840 / Math.max(1, externalNodes.length - 1));
+    const position = { x: 180 + index * spacing, y: 666 };
     const identity = nodeIdentity(node);
     positions.set(identity, position);
     node.setAttribute("transform", `translate(${position.x} ${position.y})`);
     node.classList.add("pcb-external-port");
+    externalPortGeometry(node);
   });
 
   replaceDependencyLines(topology, positions);
@@ -360,6 +382,9 @@ function createToolbar(host, topology, pinnedServices) {
   soloButton.addEventListener("click", () => host.querySelector("[data-demo-solo]")?.click());
   muteButton.addEventListener("click", () => host.querySelector("[data-demo-mute]")?.click());
   topology.addEventListener("click", () => window.requestAnimationFrame(refresh));
+  topology.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") window.requestAnimationFrame(refresh);
+  });
   const observer = new MutationObserver(refresh);
   observer.observe(host, { attributes: true, attributeFilter: ["data-source", "data-running"] });
   window.addEventListener("pagehide", () => observer.disconnect(), { once: true });
@@ -368,11 +393,16 @@ function createToolbar(host, topology, pinnedServices) {
 
 function createMobileModules(topology) {
   const visual = topology.closest(".symphony-visual");
-  if (!visual || visual.querySelector("[data-pcb-mobile-modules]")) return;
-  const container = document.createElement("div");
-  container.className = "pcb-mobile-modules";
-  container.dataset.pcbMobileModules = "";
-  container.setAttribute("aria-label", "Atlas APU role modules");
+  if (!visual) return;
+  let container = visual.querySelector("[data-pcb-mobile-modules]");
+  if (!container) {
+    container = document.createElement("div");
+    container.className = "pcb-mobile-modules";
+    container.dataset.pcbMobileModules = "";
+    container.setAttribute("aria-label", "Atlas APU role modules");
+    topology.insertAdjacentElement("afterend", container);
+  }
+  container.replaceChildren();
 
   for (const role of ROLE_ORDER) {
     const nodes = [...topology.querySelectorAll(`[data-node][data-apu-role="${role}"]`)];
@@ -382,10 +412,15 @@ function createMobileModules(topology) {
     heading.textContent = `${ROLE_LABELS[role]} BUS`;
     const list = document.createElement("div");
     for (const node of nodes) {
+      const identity = nodeIdentity(node);
       const button = document.createElement("button");
       button.type = "button";
-      button.textContent = nodeIdentity(node);
-      button.addEventListener("click", () => node.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+      button.dataset.node = identity;
+      button.textContent = identity;
+      button.addEventListener("click", () => {
+        const current = findNodeByIdentity(topology, identity);
+        current?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      });
       list.appendChild(button);
     }
     if (nodes.length === 0) {
@@ -396,13 +431,13 @@ function createMobileModules(topology) {
     section.append(heading, list);
     container.appendChild(section);
   }
-  topology.insertAdjacentElement("afterend", container);
 }
 
 function syncBoardState(host, topology) {
   const state = host.querySelector('[data-metric="state"]')?.textContent?.trim() || "Unknown";
   const stateNode = topology.querySelector("[data-pcb-apu-state]");
-  if (stateNode) stateNode.textContent = state.toUpperCase();
+  const stateText = state.toUpperCase();
+  if (stateNode && stateNode.textContent !== stateText) stateNode.textContent = stateText;
   topology.dataset.pcbState = state.split("/")[0].trim().toLowerCase();
   topology.classList.toggle("is-audible", host.dataset.running === "1");
 }
@@ -412,8 +447,8 @@ function enhanceTopology(host, topology, pinnedServices) {
   if (!topology.querySelector("[data-pcb-board-layer]")) {
     installBoardChrome(host, topology, pinnedServices);
     createToolbar(host, topology, pinnedServices);
-    createMobileModules(topology);
   }
+  createMobileModules(topology);
   syncBoardState(host, topology);
 }
 
