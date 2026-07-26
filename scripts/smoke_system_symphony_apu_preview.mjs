@@ -51,6 +51,7 @@ async function collectEvidence() {
     return {
       buildId: globalThis.__ATLAS_APU__?.buildId ?? null,
       documentBuild: document.documentElement.dataset.atlasApuBuild ?? null,
+      loudnessBuildId: globalThis.__ATLAS_APU_LOUDNESS__?.buildId ?? null,
       ready: root?.dataset.ready ?? null,
       running: root?.dataset.running ?? null,
       noSamples: root?.dataset.apuNoSamples ?? null,
@@ -181,6 +182,7 @@ try {
 
   assert.match(evidence.buildId ?? "", /state-identities-v1$/);
   assert.equal(evidence.documentBuild, evidence.buildId);
+  assert.match(evidence.loudnessBuildId ?? "", /loudness-meter-v2$/);
   assert.equal(evidence.ready, "true");
   assert.equal(evidence.running, "true");
   assert.equal(evidence.noSamples, "true");
