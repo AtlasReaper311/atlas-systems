@@ -10,8 +10,9 @@ import {
   DEFAULT_USER_GAIN,
   SYSTEM_SYMPHONY_BUILD_ID,
   createEngine,
-} from "./engine.js?v=20260720-system-symphony-loop-production-v2";
+} from "./apu-production-engine.js?v=20260726-system-symphony-atlas-apu-live-v1";
 import { createPoller } from "./poller.js?v=20260720-system-symphony-loop-production-v2";
+import { buildHybridFrame } from "./apu-hybrid-state.js?v=20260726-system-symphony-evidence-hybrid-v1";
 import {
   applyDemoProfileToServices,
   buildDependencyGraph,
@@ -146,7 +147,7 @@ function template() {
       <section class="symphony-console" role="dialog" aria-modal="true" aria-labelledby="symphony-console-title" tabindex="-1">
         <header class="symphony-console__header">
           <div>
-            <p class="symphony-kicker">Live estate generative score</p>
+            <p class="symphony-kicker">Live estate Atlas APU score</p>
             <h2 id="symphony-console-title">System <em>SYMPHONY</em></h2>
             <p class="symphony-console__mode"><span data-dialog-source>CONNECTING</span> <span aria-hidden="true">/</span> <span data-dialog-score>Unknown score</span></p>
           </div>
@@ -182,31 +183,31 @@ function template() {
             <div class="symphony-source-panel__controls">
               <div class="symphony-segmented" role="group" aria-label="Symphony data source">
                 <button type="button" data-live-mode aria-pressed="true">Live estate</button>
-                <button type="button" data-demo-mode aria-pressed="false" disabled>Ghost Circuit demo</button>
+                <button type="button" data-demo-mode aria-pressed="false" disabled>Atlas APU audition</button>
               </div>
               <button class="symphony-button" type="button" data-demo-reset hidden>Reset preview from live</button>
               <div class="symphony-performance" data-performance-panel hidden>
                 <div class="symphony-performance__header">
-                  <span>Ghost Circuit // performance v2</span>
+                  <span>Atlas APU // deterministic state audition</span>
                   <strong data-performance-scene>NIGHT DRIVE</strong>
                 </div>
                 <div class="symphony-demo-profiles">
                   <span>Musical scene</span>
                   <div role="group" aria-label="Demo musical scene">
                     <button type="button" data-demo-profile="custom" aria-pressed="true"><span>Custom</span><strong>Live snapshot</strong></button>
-                    <button type="button" data-demo-profile="healthy" aria-pressed="false"><span>Healthy</span><strong>Night Drive</strong></button>
+                    <button type="button" data-demo-profile="healthy" aria-pressed="false"><span>Healthy</span><strong>Explorer</strong></button>
                     <button type="button" data-demo-profile="warning" aria-pressed="false"><span>Warning</span><strong>Grid Pressure</strong></button>
-                    <button type="button" data-demo-profile="critical" aria-pressed="false"><span>Critical</span><strong>Redline Protocol</strong></button>
-                    <button type="button" data-demo-profile="unknown" aria-pressed="false"><span>Unknown</span><strong>Ghost Signal</strong></button>
+                    <button type="button" data-demo-profile="critical" aria-pressed="false"><span>Critical</span><strong>Boss Protocol</strong></button>
+                    <button type="button" data-demo-profile="unknown" aria-pressed="false"><span>Unknown</span><strong>Lost Signal</strong></button>
                   </div>
                 </div>
-                <div class="symphony-performance__macros">
+                <div class="symphony-performance__macros" hidden>
                   <label><span>Energy <output data-performance-output="energy">${PERFORMANCE_MACRO_DEFAULTS.energy}</output></span><input type="range" min="0" max="100" step="1" value="${PERFORMANCE_MACRO_DEFAULTS.energy}" data-performance-macro="energy" /></label>
                   <label><span>Motion <output data-performance-output="motion">${PERFORMANCE_MACRO_DEFAULTS.motion}</output></span><input type="range" min="0" max="100" step="1" value="${PERFORMANCE_MACRO_DEFAULTS.motion}" data-performance-macro="motion" /></label>
                   <label><span>Grit <output data-performance-output="grit">${PERFORMANCE_MACRO_DEFAULTS.grit}</output></span><input type="range" min="0" max="100" step="1" value="${PERFORMANCE_MACRO_DEFAULTS.grit}" data-performance-macro="grit" /></label>
                   <label><span>Space <output data-performance-output="space">${PERFORMANCE_MACRO_DEFAULTS.space}</output></span><input type="range" min="0" max="100" step="1" value="${PERFORMANCE_MACRO_DEFAULTS.space}" data-performance-macro="space" /></label>
                 </div>
-                <div class="symphony-ghost-monitor">
+                <div class="symphony-ghost-monitor" hidden>
                   <div class="symphony-ghost-monitor__heading">
                     <span>Ghost phase</span>
                     <strong data-ghost-phase>STANDBY</strong>
@@ -225,7 +226,7 @@ function template() {
                   </div>
                   <p>Focus ducks the backing for A/B listening. Hear arp and Hear riff isolate each Ghost Circuit voice.</p>
                 </div>
-                <div class="symphony-performance__actions">
+                <div class="symphony-performance__actions" hidden>
                   <button class="symphony-button symphony-button--primary" type="button" data-randomise-score>Randomise score</button>
                   <label class="symphony-performance__seed"><span>Score seed</span><input type="text" value="${DEFAULT_PERFORMANCE_SEED}" minlength="4" maxlength="8" pattern="[0-9A-Fa-f]{4,8}" spellcheck="false" autocomplete="off" data-performance-seed aria-describedby="symphony-performance-status" /></label>
                   <button class="symphony-button" type="button" data-replay-seed>Replay seed</button>
@@ -246,6 +247,19 @@ function template() {
             <article><span>Unknown</span><strong data-metric="unknown">0</strong></article>
             <article><span>Unmeasured</span><strong data-metric="unmeasured">0</strong></article>
             <article class="symphony-metric-deploy"><span>Recent deployment</span><strong data-metric="deployment">baseline pending</strong></article>
+          </section>
+
+          <section class="symphony-hybrid-state" aria-labelledby="symphony-hybrid-state-title" data-hybrid-state>
+            <div class="symphony-hybrid-state__head">
+              <div><span>Hybrid score vector</span><h3 id="symphony-hybrid-state-title">One grammar, four audible layers</h3></div>
+              <p data-dominant-reason>Waiting for the first evidence frame.</p>
+            </div>
+            <div class="symphony-state-vector" role="group" aria-label="Current Atlas APU state weights">
+              <article class="symphony-state-weight" data-state="healthy"><span>Healthy / Explorer</span><strong data-state-weight="healthy">0%</strong></article>
+              <article class="symphony-state-weight" data-state="warning"><span>Warning / Grid Pressure</span><strong data-state-weight="warning">0%</strong></article>
+              <article class="symphony-state-weight" data-state="critical"><span>Critical / Boss Protocol</span><strong data-state-weight="critical">0%</strong></article>
+              <article class="symphony-state-weight" data-state="unknown"><span>Unknown / Lost Signal</span><strong data-state-weight="unknown">100%</strong></article>
+            </div>
           </section>
 
           <section class="symphony-orchestra" aria-labelledby="symphony-orchestra-title">
@@ -407,6 +421,12 @@ export function initSystemSymphony() {
   let sceneTransitionPending = false;
 
   function presentationForVoice(voice) {
+    if (voice.evidenceState === "topology-only") {
+      return { key: "unmeasured", label: "Unmeasured" };
+    }
+    if (voice.evidenceState === "reported-unknown" || voice.evidenceState === "stale") {
+      return { key: "unknown", label: STATUS_LABELS.unknown };
+    }
     if (!voice.measured && !voice.demoSimulated) {
       return { key: "unmeasured", label: "Unmeasured" };
     }
@@ -433,6 +453,7 @@ export function initSystemSymphony() {
 
   function sourceState(frame = currentFrame) {
     if (mode === "demo") return { key: "demo", label: "DEMO / SIMULATED" };
+    if (frame?.evidenceMode === "preview") return { key: "preview", label: "PREVIEW FIXTURE" };
     if (frame?.stale) return { key: "stale", label: "LIVE DATA STALE" };
     if (lastLiveFrame) return { key: "live", label: "LIVE" };
     return { key: "connecting", label: "CONNECTING" };
@@ -482,19 +503,12 @@ export function initSystemSymphony() {
         String(button.dataset.demoProfile === activeDemoProfile),
       );
     }
-    const palette = resolveSamplePalette(
-      frame.scoreState,
-      performanceArrangement,
-      0,
-    );
-    const leadLabel = palette.lead ?? "procedural";
-    const bassLabel = palette.bass?.replace(/^bass-/, "") ?? "procedural";
-    const rhythmLabel = palette.bassLoop ?? "one-shot";
-    const textureLabel = palette.atmosphere ?? "procedural";
-    const arpLabel = performanceArrangement?.arpDirectionLabel ?? "seeded";
-    const voicingLabel = performanceArrangement?.padVoicingLabel ?? "triad";
+    const weights = frame.stateVector ?? { healthy: 0, warning: 0, critical: 0, unknown: 1 };
+    const vectorLabel = ["healthy", "warning", "critical", "unknown"]
+      .map((state) => `${state} ${Math.round((Number(weights[state]) || 0) * 100)}%`)
+      .join(" / ");
     host.querySelector("[data-performance-status]").textContent =
-      `${performanceStatus} // ${palette.section} // arp ${arpLabel} // ${voicingLabel} pads // bass ${bassLabel} // rhythm ${rhythmLabel} // lead ${leadLabel} // texture ${textureLabel}`;
+      `${performanceStatus} // ${vectorLabel} // ${frame.dominantStateReason ?? "deterministic state audition"}`;
     renderGhostControls();
   }
 
@@ -589,6 +603,21 @@ export function initSystemSymphony() {
       `${frame.measuredComponents} / ${frame.totalComponents} measured`;
   }
 
+  function renderHybridState(frame) {
+    const weights = frame?.stateVector ?? { healthy: 0, warning: 0, critical: 0, unknown: 1 };
+    for (const state of ["healthy", "warning", "critical", "unknown"]) {
+      const node = host.querySelector(`[data-state-weight="${state}"]`);
+      if (node) node.textContent = `${Math.round((Number(weights[state]) || 0) * 100)}%`;
+    }
+    const panel = host.querySelector("[data-hybrid-state]");
+    if (panel) panel.dataset.dominant = frame?.scoreState ?? "unknown";
+    const reason = host.querySelector("[data-dominant-reason]");
+    if (reason) {
+      reason.textContent = frame?.dominantStateReason
+        ?? "Unknown supplies the safe harmonic grammar until current evidence arrives.";
+    }
+  }
+
   function renderMetrics(frame) {
     metricValue(host, "state", `${frame.scoreLabel} / ${frame.mode}`);
     metricValue(
@@ -617,6 +646,7 @@ export function initSystemSymphony() {
         ? `${latestDeployment.commitSha ?? latestDeployment.deployId ?? "baseline"} / baseline`
         : "baseline pending";
     metricValue(host, "deployment", deploymentText);
+    renderHybridState(frame);
   }
 
   function layerPositions(voices) {
@@ -813,7 +843,7 @@ export function initSystemSymphony() {
         presentation.label,
         formatLatency(voice.latency_ms),
         voice.instrumentLabel,
-        voice.demoSimulated ? "preview simulation" : voice.measured ? "measured" : "topology only",
+        voice.evidenceLabel ?? (voice.demoSimulated ? "Simulated profile" : voice.measured ? "Current measurement" : "Topology only"),
       ];
       values.forEach((value, index) => {
         const cell = document.createElement("td");
@@ -879,11 +909,12 @@ export function initSystemSymphony() {
       ["Status", presentation.label],
       [
         "Measurement",
-        voice.demoSimulated
-          ? "Simulated preview"
-          : voice.measured
-            ? "Measured by /sonify"
-            : "Topology only / unmeasured",
+        voice.evidenceLabel
+          ?? (voice.demoSimulated
+            ? "Simulated profile"
+            : voice.measured
+              ? "Current measurement"
+              : "Topology only / unmeasured"),
       ],
       ["Evidence", voice.evidence_source ?? "No live evidence source"],
       ["Health detail", voice.health_detail ?? "No health detail supplied"],
@@ -952,7 +983,7 @@ export function initSystemSymphony() {
     host.querySelector("[data-last-update]").textContent = formatTimestamp(frame.lastSuccessfulAt);
     const explanation = host.querySelector("[data-source-explanation]");
     explanation.textContent = mode === "demo"
-      ? "Browser-only performance mode. Scenes, macros and score seeds reshape the local composition while live telemetry continues unchanged underneath."
+      ? "Browser-only Atlas APU audition. State profiles reshape only the local score while live telemetry continues unchanged underneath."
       : frame.stale
         ? "The live telemetry request failed. Last-known values remain visible, while the score is explicitly Unknown."
         : "Reading current public telemetry. Live mode is strictly read-only.";
@@ -990,7 +1021,11 @@ export function initSystemSymphony() {
   }
 
   function currentDemoFrame() {
-    return demoMerged ? computeFrame(demoMerged) : null;
+    if (!demoMerged) return null;
+    return buildHybridFrame(computeFrame(demoMerged), {
+      ...demoMerged,
+      stale: false,
+    });
   }
 
   function resetDemoFromLive() {
@@ -1249,14 +1284,10 @@ export function initSystemSymphony() {
       if (!shouldStart) engine.pause();
       else {
         host.querySelector("[data-important-status]").textContent =
-          "Loading hybrid instrument library…";
+          "Initialising the sample-free Atlas APU…";
         await startPromise;
-        const stats = engine.getSampleLoadStats();
-        host.querySelector("[data-important-status]").textContent = engine.isSampleReady()
-          ? stats?.backgroundComplete
-            ? `Full hybrid instrument ready: ${stats.loaded}/${stats.totalAssets} assets.`
-            : "Core hybrid instrument ready. Lead and atmosphere textures are loading."
-          : "Sample library unavailable. Procedural fallback is active.";
+        host.querySelector("[data-important-status]").textContent =
+          "Atlas APU ready: six procedural roles, zero streamed or decoded audio assets.";
       }
       setRunningUi();
     } catch (error) {
@@ -1439,32 +1470,22 @@ export function initSystemSymphony() {
     if (mode !== "demo") return;
     renderGhostControls(phase);
   });
-  engine.setSampleLoadHandler((stats) => {
+  engine.setSampleLoadHandler(() => {
     const status = host.querySelector("[data-important-status]");
-    if (!status) return;
-    if (stats.backgroundComplete) {
-      status.textContent = stats.failed > 0
-        ? `Hybrid instrument ready: ${stats.loaded}/${stats.totalAssets} assets, ${stats.failed} procedural fallbacks.`
-        : stats.fallbacks > 0
-          ? `Full hybrid instrument ready: ${stats.loaded}/${stats.totalAssets} assets, ${stats.fallbacks} codec fallbacks.`
-          : `Full hybrid instrument ready: ${stats.loaded}/${stats.totalAssets} assets.`;
-      return;
+    if (status && engine.isRunning()) {
+      status.textContent = "Atlas APU ready: six procedural roles, zero streamed or decoded audio assets.";
     }
-    status.textContent = stats.coreReady
-      ? `Core hybrid instrument ready. Textures ${stats.completed}/${stats.totalAssets}; ${stats.failed} fallbacks.`
-      : stats.failed > 0
-        ? `Loading core instrument: ${stats.loaded} ready, ${stats.failed} using fallback.`
-        : `Loading core instrument: ${stats.loaded}/${stats.requested} ready.`;
   });
 
   const poller = createPoller({
     onFrame(frame, info) {
-      lastLiveFrame = frame;
+      const hybridFrame = buildHybridFrame(frame, info.merged);
+      lastLiveFrame = hybridFrame;
       lastLiveMerged = clone(info.merged);
       latestDeployment = info.deployment ?? latestDeployment;
       host.querySelector("[data-demo-mode]").disabled = false;
       if (mode === "live") {
-        applyAndRender(frame);
+        applyAndRender(hybridFrame);
         if (info.newIncidents > 0) {
           engine.queueIncidentAccent(info.newIncidents);
         }
@@ -1478,7 +1499,8 @@ export function initSystemSymphony() {
     },
   });
 
-  const initialFrame = computeFrame({ stale: true, services: [] });
+  const initialMerged = { stale: true, services: [] };
+  const initialFrame = buildHybridFrame(computeFrame(initialMerged), initialMerged);
   applyAndRender(initialFrame);
   poller.start();
 

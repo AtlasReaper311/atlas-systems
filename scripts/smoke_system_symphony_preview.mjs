@@ -29,6 +29,7 @@ const fatalPatterns = [
 const consoleMessages = [];
 const pageErrors = [];
 const requestFailures = [];
+const audioRequests = [];
 
 await mkdir(outputDir, { recursive: true });
 
@@ -44,6 +45,11 @@ page.on("console", (message) => {
 });
 page.on("pageerror", (error) => {
   pageErrors.push(error.message);
+});
+page.on("request", (request) => {
+  if (/\.(?:wav|mp3|m4a|aac|ogg|opus|flac)(?:\?|$)/i.test(request.url())) {
+    audioRequests.push(request.url());
+  }
 });
 page.on("requestfailed", (request) => {
   const url = request.url();
@@ -133,7 +139,14 @@ try {
         ?? window.Tone?.context?.state
         ?? null,
       sampleStats: window.__symphonyEngine?.getSampleLoadStats?.() ?? null,
+      buildId: window.__ATLAS_SYSTEM_SYMPHONY_BUILD__ ?? null,
+      documentBuild: document.documentElement.dataset.systemSymphonyBuild ?? null,
       samplePalette: window.__symphonyEngine?.getSamplePalette?.() ?? null,
+      composition: window.__symphonyEngine?.getCompositionSnapshot?.() ?? null,
+      topologyNodes: host?.querySelectorAll("[data-node]").length ?? 0,
+      serviceRows: host?.querySelectorAll("[data-service-table] tr").length ?? 0,
+      stateWeightCards: host?.querySelectorAll("[data-state-weight]").length ?? 0,
+      dominantReason: host?.querySelector("[data-dominant-reason]")?.textContent?.trim() ?? null,
       hostSource: host?.dataset?.source ?? null,
       hostRunning: host?.dataset?.running ?? null,
       pageOutputGain: Number(host?.dataset?.pageOutputGain),
@@ -146,17 +159,26 @@ try {
   assert.equal(audioState.toneContextState, "running", JSON.stringify(audioState, null, 2));
   assert.equal(audioState.hostSource, "preview", JSON.stringify(audioState, null, 2));
   assert.equal(audioState.hostRunning, "1", JSON.stringify(audioState, null, 2));
+  assert.match(audioState.buildId ?? "", /atlas-apu-live-v1$/);
+  assert.equal(audioState.documentBuild, audioState.buildId);
   assert.equal(audioState.sampleStats?.coreReady, true, JSON.stringify(audioState, null, 2));
+  assert.equal(audioState.sampleStats?.sampleFree, true, JSON.stringify(audioState, null, 2));
   assert.equal(audioState.sampleStats?.failed, 0, JSON.stringify(audioState, null, 2));
-  assert.equal(audioState.sampleStats?.loaded, audioState.sampleStats?.totalAssets, JSON.stringify(audioState, null, 2));
-  assert.equal(audioState.samplePalette?.lead, "acid-synth", JSON.stringify(audioState, null, 2));
-  assert.notEqual(audioState.samplePalette?.lead, "wobbly-synth");
-  assert.notEqual(audioState.samplePalette?.bass, "bass-transformer");
-  assert.notEqual(audioState.samplePalette?.bass, "bass-angry");
-  assert.ok(audioState.samplePalette?.bassLoop, JSON.stringify(audioState, null, 2));
-  assert.equal(audioState.pageOutputGain, 50);
+  assert.equal(audioState.sampleStats?.loaded, 0, JSON.stringify(audioState, null, 2));
+  assert.equal(audioState.sampleStats?.totalAssets, 0, JSON.stringify(audioState, null, 2));
+  assert.equal(audioState.samplePalette?.lead, "pulse-a", JSON.stringify(audioState, null, 2));
+  assert.equal(audioState.samplePalette?.bass, "triangle", JSON.stringify(audioState, null, 2));
+  assert.equal(audioState.samplePalette?.section, "sample-free", JSON.stringify(audioState, null, 2));
+  assert.equal(audioState.samplePalette?.bassLoop, null);
+  assert.ok(audioState.composition?.arrangement?.section, JSON.stringify(audioState, null, 2));
+  assert.ok(audioState.topologyNodes > 0, JSON.stringify(audioState, null, 2));
+  assert.ok(audioState.serviceRows > 0, JSON.stringify(audioState, null, 2));
+  assert.equal(audioState.stateWeightCards, 4);
+  assert.ok(audioState.dominantReason, JSON.stringify(audioState, null, 2));
+  assert.equal(audioState.pageOutputGain, 70);
   assert.ok(audioState.sliderValues.length >= 2);
-  assert.ok(audioState.sliderValues.every((value) => value === 50));
+  assert.ok(audioState.sliderValues.every((value) => value === 70));
+  assert.deepEqual(audioRequests, [], "the live-route APU requested an audio asset");
 
   const fatalConsole = consoleMessages.filter(({ text }) => (
     fatalPatterns.some((pattern) => pattern.test(text))
@@ -200,6 +222,7 @@ try {
       : failure,
     state,
     previewEvidence,
+    audioRequests,
     consoleMessages,
     pageErrors,
     requestFailures,
@@ -217,4 +240,4 @@ try {
 }
 
 if (failure) throw failure;
-console.log(`System Symphony PR #43 mix preview passed: ${pageUrl}`);
+console.log(`System Symphony Atlas APU live-route preview passed: ${pageUrl}`);
