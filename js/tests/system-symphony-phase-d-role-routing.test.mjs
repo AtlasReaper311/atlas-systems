@@ -11,7 +11,7 @@ const romLibrary = readFileSync("lab/system-symphony/rom-library.js", "utf8");
 test("System Symphony loads the Phase D role bridge only on the flagship route", () => {
   assert.ok(labShell.includes('const SYSTEM_SYMPHONY_ROUTE = "/lab/system-symphony/"'));
   assert.ok(labShell.includes("currentPath() !== SYSTEM_SYMPHONY_ROUTE"));
-  assert.ok(labShell.includes("trace-role-bridge.js?v=20260726-phase-d-role-routing-v1"));
+  assert.ok(labShell.includes("trace-role-bridge.js?v=20260726-phase-d-link-routing-v2"));
 });
 
 test("TRACE role selection maps service rows onto topology nodes and dependency routes", () => {
