@@ -42,7 +42,7 @@ function categoryFor(cartridge) {
 }
 
 function sourceCategory(cartridge) {
-  if (cartridge.source === "fixture") return "Fixture evidence";
+  if (cartridge.source === "fixture") return "Fixture cartridge";
   if (cartridge.source === "replay") return "Replay evidence";
   if (cartridge.source === "live stale" || cartridge.source === "stale") return "Stale live evidence";
   if (cartridge.source === "live") return "Live evidence";
