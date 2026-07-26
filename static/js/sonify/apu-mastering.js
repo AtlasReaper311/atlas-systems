@@ -1,4 +1,4 @@
-export const APU_MASTERING_BUILD_ID = "20260726-system-symphony-mastering-v2";
+export const APU_MASTERING_BUILD_ID = "20260726-system-symphony-mastering-v3";
 export const APU_MASTERING_DEFAULT_USER_GAIN = 0.7;
 export const APU_MASTERING_LIMITER_CEILING_DB = -1;
 export const APU_MASTERING_MAX_ESTIMATED_TRUE_PEAK_DBTP = -0.8;
@@ -38,8 +38,8 @@ export const APU_MASTERING_PROFILES = Object.freeze({
     state: "unknown",
     label: "Lost Signal master",
     baseGainDb: -18,
-    programmeTrimDb: 13,
-    masterGainDb: -5,
+    programmeTrimDb: 22,
+    masterGainDb: 4,
     targetIntegratedLufs: -27,
     toleranceDb: 5,
   }),
