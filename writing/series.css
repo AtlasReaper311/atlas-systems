@@ -8,6 +8,10 @@
   background: linear-gradient(135deg, rgba(245,166,35,0.08), rgba(17,17,24,0.68));
   scroll-margin-top: calc(var(--nav-h, 56px) + 1.5rem);
 }
+.series-anchor {
+  display: block;
+  scroll-margin-top: calc(var(--nav-h, 56px) + 1.5rem);
+}
 .series-banner[hidden] { display: none; }
 .series-banner-header {
   display: flex;
