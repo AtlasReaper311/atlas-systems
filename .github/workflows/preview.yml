@@ -45,11 +45,21 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Validate HTML
+        run: npx --yes html-validate@9.7.1 "**/*.html"
+
+      - name: Run main-site tests
+        run: node --test js/tests/*.test.mjs
+
+      - name: Run Lab tests
+        run: node --test lab/tests/*.test.mjs
+
+      - name: Run System Symphony tests
+        run: node --test static/js/sonify/*.test.js
+
       - name: Validate static site and Pages output
         run: |
           set -euo pipefail
-          npx --yes html-validate@9.7.1 "**/*.html"
-          node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
           python3 scripts/generate_sitemap.py --check-only
           python3 scripts/verify_pages_output.py .
           python3 - <<'PY'
