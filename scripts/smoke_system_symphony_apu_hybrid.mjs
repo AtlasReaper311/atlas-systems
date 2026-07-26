@@ -210,7 +210,7 @@ try {
   assert.equal(fixture.frame.previewEstateDerived, true);
   assert.equal(fixture.frame.scoreState, "healthy");
   assert.equal(fixture.metricState, "Healthy");
-  assert.equal(fixture.metricKnown, "90%");
+  assert.equal(fixture.metricKnown, "91%");
   assert.equal(fixture.metricMeasured, "19");
   assert.equal(fixture.rows.length, 21);
   assert.equal(fixture.rows.filter((row) => row.evidenceState === "current").length, 19);
