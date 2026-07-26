@@ -88,17 +88,21 @@ function schedule() {
   timer = globalThis.setTimeout(schedule, APU_MASTERING_RUNTIME_POLL_MS);
 }
 
-schedule();
+const browserRuntime = typeof globalThis.document !== "undefined"
+  && typeof globalThis.addEventListener === "function";
 
-globalThis.__ATLAS_APU_MASTERING_RUNTIME__ = Object.freeze({
-  buildId: APU_MASTERING_RUNTIME_BUILD_ID,
-  policyBuildId: APU_MASTERING_BUILD_ID,
-  getStatus: () => status,
-});
+if (browserRuntime) {
+  schedule();
+  globalThis.__ATLAS_APU_MASTERING_RUNTIME__ = Object.freeze({
+    buildId: APU_MASTERING_RUNTIME_BUILD_ID,
+    policyBuildId: APU_MASTERING_BUILD_ID,
+    getStatus: () => status,
+  });
 
-globalThis.addEventListener("pagehide", () => {
-  disposed = true;
-  if (timer !== null) globalThis.clearTimeout(timer);
-  const volume = destinationVolume();
-  if (volume && previousDestinationDb !== null) volume.value = previousDestinationDb;
-}, { once: true });
+  globalThis.addEventListener("pagehide", () => {
+    disposed = true;
+    if (timer !== null) globalThis.clearTimeout(timer);
+    const volume = destinationVolume();
+    if (volume && previousDestinationDb !== null) volume.value = previousDestinationDb;
+  }, { once: true });
+}
