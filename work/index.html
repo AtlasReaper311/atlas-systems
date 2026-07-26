@@ -463,6 +463,85 @@
         </div>
       </article>
 
+      <!-- P-04: Atlas Systems Infrastructure -->
+      <article class="project-entry" id="atlas-pipeline-infrastructure-dashboard" data-project-id="atlas-pipeline-infrastructure-dashboard" data-project-section="all" data-tags="devops">
+        <div class="project-media">
+          <div class="gallery" id="atlas-pipeline-infrastructure-dashboard-gallery" onclick="openLightbox(getCurrentGalleryImg('atlas-pipeline-infrastructure-dashboard-gallery'),'atlas-pipeline-infrastructure-dashboard-gallery')">
+            <img class="gallery-img active" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1784731383/atlas-pipeline-architecture_rqen24.png" alt="Atlas Pipeline architecture connecting ten GitHub repositories to GitHub Actions, reusable atlas-infra workflows, five Cloudflare Workers, an authenticated event bus, Discord reporting, and Atlas Lab">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1784731391/Screenshot_2026-07-22_at_15.36.17_ymt6w7.png" alt="Atlas Lab incident console replaying a quota-watch analytics failure beside the live operational event log">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1784731392/Screenshot_2026-07-22_at_15.38.05_hvzvej.png" alt="Successful atlas-api-public CI run showing linting, tests, Wrangler bundle generation, Worker contract validation, and repository classification checks">
+            <div class="gallery-nav" onclick="event.stopPropagation()">
+              <div class="gallery-arrows">
+                <button type="button" class="gallery-arrow" onclick="galleryPrev('atlas-pipeline-infrastructure-dashboard-gallery')">← prev</button>
+                <button type="button" class="gallery-arrow" onclick="galleryNext('atlas-pipeline-infrastructure-dashboard-gallery')">next →</button>
+              </div>
+              <div class="gallery-dots" id="atlas-pipeline-infrastructure-dashboard-gallery-dots">
+                <button type="button" class="gallery-dot active" onclick="galleryGoto('atlas-pipeline-infrastructure-dashboard-gallery',0)" aria-label="View image 1"></button>
+                <button type="button" class="gallery-dot" onclick="galleryGoto('atlas-pipeline-infrastructure-dashboard-gallery',1)" aria-label="View image 2"></button>
+                <button type="button" class="gallery-dot" onclick="galleryGoto('atlas-pipeline-infrastructure-dashboard-gallery',2)" aria-label="View image 3"></button>
+              </div>
+              <span class="gallery-counter" id="atlas-pipeline-infrastructure-dashboard-gallery-counter">1 / 3</span>
+            </div>
+          </div>
+        </div>
+        <div class="project-info">
+          <div class="project-meta">
+            <span class="project-index">P-04</span>
+            <div class="project-tags">
+              <span class="tag highlight">DevOps</span>
+              <span class="tag">GitHub Actions</span>
+              <span class="tag">Cloudflare</span>
+            </div>
+          </div>
+          <h2 class="project-title">Atlas Systems Infrastructure — Infrastructure Dashboard &amp; Observability</h2>
+          <a class="project-series" href="/writing/#series-pipeline-observability"><span>Writing series</span><strong>Pipeline &amp; Observability</strong><span>Part 1 of 3</span></a>
+          <div class="project-role">Infrastructure Engineer</div>
+          <p class="project-desc">Atlas Systems&#x27; infrastructure observes itself. A single authenticated event bus accepts pushes, deploys, and alerts from ten repos across three different webhook dialects, formats them into Discord, and persists a rolling history that a live dashboard reads directly. Five Cloudflare Workers and three Cloudflare Pages sites deploy through reusable GitHub Actions workflows defined once and shared across the whole estate; nothing reaches production without passing a real gate first. The Lab page turns that history into something visible: a 90-day commit heatmap, a classified failure log, a live status grid per repo, and a self-documenting map of every public endpoint in the system. All of it runs on free-tier infrastructure.
+</p>
+          <div class="project-result">
+            <span class="project-result-label">Result</span>
+            <p>10 repos on consistent, gated CI/CD pipelines, defined once and inherited everywhere</p>
+          </div>
+          <details class="project-disclosure">
+            <summary><span>Technical detail</span><span aria-hidden="true">expand</span></summary>
+            <div class="project-disclosure-body">
+              <div class="spec-grid">
+            <div class="spec-cell"><div class="spec-label">Estate</div><div class="spec-value">10 repos, 5 Workers, 3 static sites</div></div>
+            <div class="spec-cell"><div class="spec-label">Platform</div><div class="spec-value">GitHub Actions, Cloudflare Workers + Pages</div></div>
+            <div class="spec-cell"><div class="spec-label">Cost</div><div class="spec-value">£0 (free tier)</div></div>
+            <div class="spec-cell"><div class="spec-label">Pipelines</div><div class="spec-value">Reusable workflows, gated validate + deploy</div></div>
+            <div class="spec-cell"><div class="spec-label">Lab dashboard</div><div class="spec-value">4 live panels, heatmap to API map</div></div>
+            <div class="spec-cell"><div class="spec-label">Discord channels</div><div class="spec-value">7 active, one per signal class</div></div>
+              </div>
+              <div class="tech-stack">
+            <span class="tech-pill">GitHub Actions</span>
+            <span class="tech-pill">Cloudflare Workers</span>
+            <span class="tech-pill">Cloudflare Pages</span>
+            <span class="tech-pill">wrangler</span>
+            <span class="tech-pill">Discord Webhooks</span>
+            <span class="tech-pill">Vitest</span>
+            <span class="tech-pill">html-validate</span>
+            <span class="tech-pill">Workers KV</span>
+              </div>
+              <div class="achievements">
+                <div class="achievement">Event bus accepting three independent webhook auth dialects through one authenticated endpoint</div>
+                <div class="achievement">Lab dashboard surfacing pipeline and runtime events together, the same ring buffer feeding all four panels</div>
+                <div class="achievement">Hard gates on every static site; broken HTML or a dead link cannot reach production</div>
+                <div class="achievement">Zero cost across the entire estate, Workers, Pages, KV, and Actions all on free tier</div>
+              </div>
+            </div>
+          </details>
+          <div class="project-links">
+            <a href="/writing/atlas-pipeline-infrastructure-dashboard/" class="proj-link primary">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Case Study
+            </a>
+            <a href="https://github.com/AtlasReaper311/atlas-infra" class="proj-link" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>GitHub
+            </a>
+          </div>
+        </div>
+      </article>
+
       <!-- WORK_CARDS_INSERT_POINT -->
 
       </div>

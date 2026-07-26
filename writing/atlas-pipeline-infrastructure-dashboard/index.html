@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Building a live infrastructure dashboard and automated deployment pipeline across ten Cloudflare Workers repos, starting from manual deploys with no audit">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Atlas Systems Infrastructure // Atlas Systems</title>
+  <link rel="canonical" href="https://atlas-systems.uk/writing/atlas-pipeline-infrastructure-dashboard/">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Atlas Systems Infrastructure // Atlas Systems">
+  <meta property="og:description" content="Building a live infrastructure dashboard and automated deployment pipeline across ten Cloudflare Workers repos, starting from manual deploys with no audit">
+  <meta property="og:url" content="https://atlas-systems.uk/writing/atlas-pipeline-infrastructure-dashboard/">
+  <meta property="og:site_name" content="Atlas Systems">
+  <meta property="og:image" content="https://atlas-systems.uk/og/atlas-pipeline-infrastructure-dashboard.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Atlas Systems Infrastructure // Atlas Systems">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Atlas Systems Infrastructure // Atlas Systems">
+  <meta name="twitter:description" content="Building a live infrastructure dashboard and automated deployment pipeline across ten Cloudflare Workers repos, starting from manual deploys with no audit">
+  <meta name="twitter:image" content="https://atlas-systems.uk/og/atlas-pipeline-infrastructure-dashboard.png">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/static/css/estate-search.css">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
+  <link rel="stylesheet" href="/static/css/article-interface-v2.css?v=20260724-phase-b-v1">
+  <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;
+      --border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);
+      --text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;
+      --accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);
+      --mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px;
+      --content-w:720px
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
+    nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(10,10,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem,5vw,3rem);z-index:100}
+    .nav-wordmark{font-family:var(--mono);font-weight:500;font-size:13px;letter-spacing:0.12em;color:var(--text);text-decoration:none;text-transform:uppercase}
+    .nav-wordmark span{color:var(--accent)}
+    .nav-links{display:flex;list-style:none}
+    .nav-links a{display:block;padding:0.35rem 1rem;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color 0.15s;position:relative}
+    .nav-links a::after{content:'';position:absolute;bottom:-1px;left:50%;right:50%;height:1px;background:var(--accent);transition:left 0.2s,right 0.2s}
+    .nav-links a:hover{color:var(--text)}
+    .nav-links a:hover::after,.nav-links a.active::after{left:1rem;right:1rem}
+    .nav-links a.active{color:var(--text)}
+    main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);position:relative;z-index:1}
+    .article-header{padding-top:calc(var(--nav-h) + 5rem);padding-bottom:4rem;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr 2fr;gap:3rem}
+    .header-meta{display:flex;flex-direction:column;gap:1rem}
+    .back-link{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s;margin-bottom:0.5rem}
+    .back-link:hover{color:var(--accent)}
+    .back-link svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .article-index{font-size:11px;color:var(--text-faint);letter-spacing:0.1em}
+    .article-date{font-size:11px;color:var(--text-dim)}
+    .article-read-time{font-size:11px;color:var(--text-faint)}
+    .header-tags{display:flex;flex-direction:column;gap:0.4rem;margin-top:0.5rem}
+    .tag{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:0.2rem 0.5rem;border:1px solid var(--border);color:var(--text-dim);display:inline-block}
+    .tag.highlight{border-color:rgba(245,166,35,0.4);color:rgba(245,166,35,0.8)}
+    .section-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem}
+    .section-label::before{content:'';display:inline-block;width:24px;height:1px;background:var(--accent)}
+    .article-title{font-family:var(--serif);font-size:clamp(2rem,4vw,3.2rem);line-height:1.05;color:var(--text);margin-bottom:0.75rem}
+    .article-subtitle{font-size:12px;color:var(--accent);letter-spacing:0.06em;margin-bottom:1.5rem}
+    .article-lede{font-size:14px;color:var(--text-dim);line-height:1.9;max-width:560px}
+    .spec-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin:3rem 0}
+    .spec-cell{background:var(--bg);padding:1rem 1.25rem}
+    .spec-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.3rem}
+    .spec-value{font-size:12px;color:var(--text)}
+    .article-body{display:grid;grid-template-columns:200px 1fr;gap:4rem;padding:4rem 0}
+    .toc{position:sticky;top:calc(var(--nav-h) + 2rem);align-self:start;height:fit-content}
+    .toc-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-faint);margin-bottom:1rem}
+    .toc-list{list-style:none;display:flex;flex-direction:column;gap:0.1rem}
+    .toc-item a{font-size:11px;color:var(--text-faint);text-decoration:none;display:block;padding:0.35rem 0.75rem;border-left:1px solid var(--border);transition:all 0.15s;line-height:1.4}
+    .toc-item a:hover{color:var(--text-dim);border-left-color:var(--border-hi)}
+    .toc-item a.active{color:var(--accent);border-left-color:var(--accent)}
+    .prose{max-width:var(--content-w)}
+    .prose h2{font-family:var(--serif);font-size:1.8rem;line-height:1.1;color:var(--text);margin:3rem 0 1.25rem;padding-top:1rem}
+    .prose h2:first-child{margin-top:0}
+    .prose h3{font-size:13px;font-weight:500;color:var(--text);letter-spacing:0.06em;text-transform:uppercase;margin:2rem 0 0.75rem;display:flex;align-items:center;gap:0.6rem}
+    .prose h3::before{content:'';display:inline-block;width:16px;height:1px;background:var(--accent);flex-shrink:0}
+    .prose p{font-size:13px;color:var(--text-dim);line-height:1.9;margin-bottom:1.25rem}
+    .prose p:last-child{margin-bottom:0}
+    .prose strong{color:var(--text);font-weight:500}
+    .prose a,.prose a:visited{color:var(--accent);text-decoration-color:rgba(245,166,35,0.45);text-decoration-thickness:1px;text-underline-offset:0.18em;transition:color 0.15s,text-decoration-color 0.15s}
+    .prose a:hover{color:var(--text);text-decoration-color:var(--accent)}
+    .prose a:focus-visible{color:var(--text);outline:2px solid var(--accent);outline-offset:3px;text-decoration-color:var(--accent)}
+    .prose code{font-family:var(--mono);font-size:12px;background:var(--bg-1);border:1px solid var(--border);padding:0.15rem 0.4rem;color:var(--accent)}
+    .prose pre{background:var(--bg-1);border:1px solid var(--border);border-left:2px solid var(--accent);padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto}
+    .prose pre code{background:none;border:none;padding:0;font-size:12px;color:var(--text-dim);line-height:1.7}
+    .prose ul{margin:1rem 0 1.25rem 0;display:flex;flex-direction:column;gap:0.5rem}
+    .prose ul li{font-size:13px;color:var(--text-dim);line-height:1.7;display:flex;gap:0.75rem;align-items:flex-start}
+    .prose ul li::before{content:'→';color:var(--accent);flex-shrink:0;margin-top:0.1rem}
+    .callout{border:1px solid var(--border);border-left:2px solid var(--accent);background:var(--bg-1);padding:1.25rem 1.5rem;margin:1.5rem 0}
+    .callout-label{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem}
+    .callout p{margin-bottom:0;font-size:12px}
+    .callout.error{border-left-color:#e24b4a}
+    .callout.error .callout-label{color:#e24b4a}
+    .callout.success{border-left-color:#4ade80}
+    .callout.success .callout-label{color:#4ade80}
+    .callout.warning{border-left-color:var(--accent)}
+    .phase-marker{display:flex;align-items:center;gap:1rem;margin:2.5rem 0 1.5rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border)}
+    .phase-num{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap}
+    .phase-title{font-size:13px;font-weight:500;color:var(--text)}
+    .section-break{height:1px;background:var(--border);margin:3rem 0}
+    .outcomes-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin:1.5rem 0}
+    .outcome-cell{background:var(--bg);padding:1.25rem 1.5rem}
+    .outcome-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.4rem}
+    .outcome-value{font-size:13px;color:var(--text)}
+    .article-footer{padding:3rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+    .footer-back{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s}
+    .footer-back:hover{color:var(--accent)}
+    .footer-back svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .footer-next{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);display:flex;align-items:center;gap:0.4rem}
+    .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
+    .mobile-nav-inner{display:flex;align-items:stretch;height:100%}
+    .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.15s}
+    .mobile-nav-item:hover,.mobile-nav-item.active{color:var(--accent)}
+    .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    @media(max-width:900px){.article-body{grid-template-columns:1fr}.toc{display:none}.article-header{grid-template-columns:1fr}}
+    @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}.outcomes-grid{grid-template-columns:1fr}}
+
+    /* data tables (generated from markdown | a | b | ) */
+    .table-wrap{overflow-x:auto;margin:1.75rem 0;border:1px solid var(--border)}
+    .data-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+    .data-table th{background:var(--bg-1);color:var(--accent);text-align:left;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;font-size:10px;padding:0.6rem 0.85rem;border-bottom:1px solid var(--border-hi);white-space:nowrap}
+    .data-table td{color:var(--text-dim);padding:0.55rem 0.85rem;border-bottom:1px solid var(--border);line-height:1.5;vertical-align:top}
+    .data-table tbody tr:last-child td{border-bottom:none}
+    .data-table tbody tr:hover td{background:var(--bg-1)}
+    .data-table strong{color:var(--text);font-weight:500}
+    .data-table code{background:var(--bg-2);padding:0.1rem 0.35rem;font-size:11px;color:var(--accent)}
+
+/* Public interface contract overrides applied after the preserved article stylesheet. */
+.atlas-brand-cluster{display:inline-flex;align-items:center;gap:.75rem;min-width:0}
+.es-nav-search{display:inline-flex;align-items:center;gap:.45rem;min-height:36px;padding:.35rem .65rem;border:1px solid var(--border);background:transparent;color:var(--text-dim);font:inherit;font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.es-nav-search:hover,.es-nav-search:focus-visible{color:var(--text);border-color:var(--border-hi)}
+.es-nav-search svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.5}
+.es-nav-search kbd{color:var(--text-faint);font:inherit;font-size:8px}
+.article-lede{font-size:16px;line-height:1.8;max-width:620px}
+.prose p{font-size:16px;line-height:1.8}
+.prose ul li{font-size:16px;line-height:1.8}
+.callout p{font-size:14px;line-height:1.75}
+.table-wrap{max-width:100%;overscroll-behavior-inline:contain}
+:where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:680px){
+  :root{--nav-h:112px}
+  nav{height:auto;min-height:var(--nav-h);align-items:stretch;flex-direction:column;justify-content:center;gap:.55rem;padding:.65rem 1rem}
+  .nav-links{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));width:100%}
+  .nav-links li{min-width:0}
+  .nav-links a,.es-nav-search{display:flex;align-items:center;justify-content:center;min-width:0;min-height:44px;padding:.4rem .2rem;font-size:9px;text-align:center}
+  .es-nav-search kbd{display:none}
+  main{padding-bottom:2rem}
+}
+@media(max-width:420px){
+  .atlas-estate-status-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  .atlas-estate-status{width:32px;justify-content:center;padding:0}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto!important}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+  </style>
+  <link rel="stylesheet" href="/writing/series-article.css?v=20260722-cluster">
+  <meta name="twitter:image:alt" content="Atlas Systems Infrastructure // Atlas Systems">
+</head>
+<body>
+
+<nav aria-label="Primary navigation">
+  <div class="atlas-brand-cluster">
+    <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
+    <a class="atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" aria-label="Atlas Systems status: checking">
+      <span class="atlas-estate-status-dot" aria-hidden="true"></span>
+      <span class="atlas-estate-status-label">checking</span>
+    </a>
+  </div>
+  <ul class="nav-links">
+    <li><a href="/work/">Work</a></li>
+    <li><a href="/writing/" class="active" aria-current="page">Writing</a></li>
+    <li><a href="/lab/">Lab</a></li>
+    <li><a href="/systems/">Systems</a></li>
+    <li><a href="/about/">About</a></li>
+    <li>
+      <button type="button" class="es-nav-search" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg>
+        Search
+        <kbd data-estate-search-kbd>ctrl k</kbd>
+      </button>
+    </li>
+  </ul>
+</nav>
+
+<main>
+
+  <header class="article-header">
+    <div class="header-meta">
+      <a href="/writing/" class="back-link">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        Writing
+      </a>
+      <div class="article-index">W-05</div>
+      <div class="article-date">23 July 2026</div>
+      <div class="article-read-time">~12 min read</div>
+      <div class="header-tags">
+        <span class="tag highlight">DevOps</span>
+        <span class="tag">Infrastructure</span>
+        <span class="tag">CI/CD</span>
+        <span class="tag">Cloudflare Workers</span>
+        <span class="tag">Observability</span>
+      </div>
+    </div>
+    <div class="header-content">
+      <div class="section-label">Case Study</div>
+      <h1 class="article-title">Atlas Systems Infrastructure</h1>
+      <div class="article-subtitle">Atlas Systems Infrastructure — Infrastructure Dashboard &amp; Observability // Case Study</div>
+      <p class="article-lede">Building a live infrastructure dashboard and automated deployment pipeline across ten Cloudflare Workers repos, starting from manual deploys with no audit trail and ending with a self-reporting system that documents its own operation in Discord. A single authenticated event bus accepts three webhook auth dialects, observability Workers proxy GitHub and Cloudflare analytics behind cached endpoints, and identical GitHub Actions workflows deploy every Worker on push, all on free-tier infrastructure at zero cost.</p>
+    </div>
+  </header>
+
+<!-- AUTO-SERIES-NAV-START -->
+<nav class="article-series-nav" aria-label="Pipeline &amp; Observability series">
+  <div class="article-series-heading">
+    <span class="article-series-kicker">Writing series · Part 1 of 3</span>
+    <a class="article-series-title" href="/writing/#series-pipeline-observability">Pipeline &amp; Observability</a>
+  </div>
+  <ol class="article-series-parts">
+      <li class="article-series-part is-current"><span class="series-part-link" aria-current="page"><span class="series-part-number">Part 1</span><span class="series-part-title">Atlas Systems Infrastructure</span><span class="series-part-state">Current</span></span></li>
+      <li class="article-series-part is-next is-scheduled"><span class="series-part-link" aria-disabled="true"><span class="series-part-number">Part 2</span><span class="series-part-title">Atlas Systems CI/CD</span><span class="series-part-state">Next · 28 Jul 2026</span></span></li>
+      <li class="article-series-part is-scheduled"><span class="series-part-link" aria-disabled="true"><span class="series-part-number">Part 3</span><span class="series-part-title">Atlas Lab</span><span class="series-part-state">30 Jul 2026</span></span></li>
+  </ol>
+</nav>
+<!-- AUTO-SERIES-NAV-END -->
+
+<div class="spec-strip">
+    <div class="spec-cell"><div class="spec-label">Series</div><div class="spec-value">Part 1 of 3 — Pipeline &amp; Observability</div></div>
+    <div class="spec-cell"><div class="spec-label">Timeline</div><div class="spec-value">June 2026</div></div>
+    <div class="spec-cell"><div class="spec-label">Workers deployed</div><div class="spec-value">5 (atlas-notify, github-pulse, site-pulse, deploy-watch, atlas-vault)</div></div>
+    <div class="spec-cell"><div class="spec-label">Platform</div><div class="spec-value">Cloudflare Workers, GitHub Actions</div></div>
+    <div class="spec-cell"><div class="spec-label">Discord channels</div><div class="spec-value">7 active (push-log, deploy-log, api-deploys, ci-cd, weekly-digest, vault-backups, uptime-alerts)</div></div>
+    <div class="spec-cell"><div class="spec-label">Cost</div><div class="spec-value">£0</div></div>
+    <div class="spec-cell"><div class="spec-label">Tests added</div><div class="spec-value">36 (24 Python, 12 JavaScript)</div></div>
+  </div>
+
+  <div class="article-body">
+    <aside class="toc">
+      <div class="toc-label">Contents</div>
+      <ul class="toc-list">
+        <li class="toc-item"><a href="#overview">Overview</a></li>
+        <li class="toc-item"><a href="#architecture">Architecture</a></li>
+        <li class="toc-item"><a href="#the-event-bus">The Event Bus</a></li>
+        <li class="toc-item"><a href="#observability-workers">Observability Workers</a></li>
+        <li class="toc-item"><a href="#phase-i-worker-route-claiming">Phase I — Worker Route Claiming</a></li>
+        <li class="toc-item"><a href="#phase-ii-cloudflare-bot-protection-blocking-ci">Phase II — Cloudflare Bot Protection Blocking CI</a></li>
+        <li class="toc-item"><a href="#phase-iii-the-zone-name-trap">Phase III — The zone_name Trap</a></li>
+        <li class="toc-item"><a href="#phase-iv-package-lock-json-absent-from-worker-repos">Phase IV — package-lock.json Absent</a></li>
+        <li class="toc-item"><a href="#ci-cd-automation">CI/CD Automation</a></li>
+        <li class="toc-item"><a href="#personal-tooling">Personal Tooling</a></li>
+        <li class="toc-item"><a href="#outcomes">Outcomes</a></li>
+      </ul>
+    </aside>
+
+    <article class="prose">
+      <section id="overview">
+        <h2>Overview</h2>
+        <p>Before this build, Atlas Systems had five Cloudflare Workers in production, each deployed manually by running <code>npx wrangler deploy</code> from a terminal. There was no record of when a deploy happened, no indication if it failed, and no consistency between repos. The GitHub profile showed pushes in three repos and nothing from the other seven. Two repos had tests that ran locally but nowhere else.</p>
+        <p>The goal was to close every one of those gaps without adding cost, complexity for complexity&#x27;s sake, or infrastructure that needs its own maintenance burden. Everything here runs on free-tier Cloudflare and GitHub Actions. The constraint mattered: a system that costs money to observe costs more money when it breaks.</p>
+        <p>The design principle throughout was fan-in: build one authenticated endpoint that every other service reports to, and build one place to look when something goes wrong. That principle is what shaped the architecture from the first day, and it is the principle two later pieces of work built directly on top of.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="architecture">
+        <h2>Architecture</h2>
+        <p>The full system runs across ten repos. Five are Cloudflare Workers sitting behind <code>api.atlas-systems.uk</code>; three are Cloudflare Pages static sites that auto-deploy from Git; one is a Python library with no deploy; one is a reference repo for CI/CD patterns.</p>
+        <p>The Workers share a single hostname via Cloudflare&#x27;s route system. Each Worker claims a specific path prefix, and Cloudflare routes requests to the most specific matching pattern. <code>atlas-notify</code> owns <code>/notify*</code> and <code>/*</code> as a catch-all for the API index; <code>github-pulse</code> owns <code>/pulse*</code>; <code>site-pulse</code> owns <code>/site-pulse*</code>; <code>deploy-watch</code> owns <code>/deploy-watch*</code>. No Worker knows about the others; they compose into one API namespace without any shared state or coordination code.</p>
+        <div class="callout"><div class="callout-label">Architecture Note</div><p>The <code>api.atlas-systems.uk</code> subdomain points at a Cloudflare-proxied <code>AAAA</code> record set to <code>100::</code>, the IPv6 discard prefix. Workers intercept requests before they ever reach an origin, so the record exists only to give the proxy something to resolve. The actual response always comes from a Worker function, not a server.</p></div>
+        <p>Discord acts as the observability layer. Seven channels cover the full lifecycle: <code>push-log</code> receives every commit across every repo via GitHub webhooks; <code>deploy-log</code> receives Cloudflare Pages outcomes; <code>api-deploys</code> receives Worker deploy results; <code>ci-cd</code> receives test results; <code>weekly-digest</code> runs on a Sunday cron; <code>vault-backups</code> receives the daily atlas-vault status report. Each channel has a single, well-defined source of truth.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="the-event-bus">
+        <h2>The Event Bus</h2>
+        <p><code>atlas-notify</code> is a Cloudflare Worker that accepts authenticated POST requests and formats them into Discord embeds. It supports three inbound authentication dialects in a single endpoint: Bearer token for internal services, HMAC SHA-256 signature verification for GitHub webhooks, and header equality for Cloudflare&#x27;s own notification system. The caller does not need to know which dialect the Worker expects; the Worker detects which one was used and validates accordingly.</p>
+        <p>This matters because native webhooks from GitHub and Cloudflare use fixed auth mechanisms that cannot be changed. Building the Worker to accept all three means those services plug in directly without adapter scripts or credential translation layers.</p>
+        <p>Outbound formatting is handled by a set of formatters keyed on the <code>source</code> field of the incoming payload. A push from GitHub produces a different embed shape from a Docker health event or a generic <code>alert</code>. Unknown but authenticated sources still get delivered as amber &quot;unknown event&quot; embeds rather than being dropped, on the basis that visibility is always more useful than silence.</p>
+        <p>The test suite runs inside Cloudflare&#x27;s actual Workers runtime via <code>@cloudflare/vitest-pool-workers</code>, not a Node simulation. This matters specifically for the HMAC verification step, which calls <code>crypto.subtle</code>, a real Web Crypto API. A test that mocks <code>crypto.subtle</code> would pass regardless of whether the actual implementation was correct; running inside <code>workerd</code> means a green test is a genuine guarantee about production behaviour.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="observability-workers">
+        <h2>Observability Workers</h2>
+        <h3>github-pulse</h3>
+        <p><code>github-pulse</code> is a read-only proxy between the portfolio site and the GitHub API. It holds the authentication token server-side and caches responses in Cloudflare KV with a one-hour TTL. The site fetches one JSON document containing aggregate stats across the account, and that document is generated by at most one upstream burst of GitHub API calls per hour regardless of how many page views occur in that window.</p>
+        <p>The original implementation derived recent commit data from GitHub&#x27;s public events feed. That feed has a documented limitation: it marks a push&#x27;s commits as non-distinct when it judges them already visible from a recent prior push to the same branch. A day of rapid small commits through the GitHub web UI trips this consistently, silently producing an empty &quot;no recent commits&quot; reading even when commits exist. The fix was to stop reading from the events feed for this metric entirely and query each repo&#x27;s actual Commits API endpoint directly, filtered by author to exclude CI bot commits.</p>
+        <h3>site-pulse</h3>
+        <p><code>site-pulse</code> is the same backend-for-frontend pattern applied to Cloudflare&#x27;s GraphQL Analytics API. The token stays server-side, the response caches for an hour, and the site reads one clean JSON document. The interesting constraint here is Cloudflare&#x27;s free-tier query window: the <code>httpRequestsAdaptiveGroups</code> dataset only allows a 24-hour time range per query on the free plan. A 30-day history cannot be retrieved in one call.</p>
+        <p>The resolution was to scope the endpoint honestly to a 24-hour snapshot and accumulate daily snapshots via a cron trigger rather than pretend a wider window is available. A separate <code>/weekly</code> endpoint sums the stored daily entries, with a field showing how many days of data have actually been collected. The display label on the homepage reflects that count directly, so it says &quot;(1d)&quot; on day one and &quot;(7d)&quot; after a week, rather than silently presenting a partial number as a full weekly total.</p>
+        <p>The permission that works for this dataset is <code>Zone: Analytics: Read</code>. The similarly named <code>Account: Account Analytics: Read</code> permission does not grant access to zone-scoped query data despite what the general documentation implies. This distinction was confirmed through five failed token configurations before the correct combination was found and documented.</p>
+        <h3>deploy-watch</h3>
+        <p><code>deploy-watch</code> runs on a five-minute cron and polls Cloudflare&#x27;s Pages deployment API. It posts to the <code>deploy-log</code> Discord channel only when a deploy&#x27;s terminal outcome (success, failure, or canceled) genuinely changes from the previously recorded one. A deduplication key in KV stores the last reported deploy ID and status; duplicate outcomes produce no Discord message.</p>
+        <p>It also always writes the latest known snapshot to a separate KV key regardless of outcome, including mid-build states. The homepage&#x27;s Live Signal section reads from <code>/deploy-watch/latest</code> on page load to show the real last deploy time, commit SHA, and build status. This replaced a previous implementation that derived &quot;last deploy&quot; from github-pulse&#x27;s cached commit data, which was both indirect and subject to the hour-long cache delay.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="phase-i-worker-route-claiming">
+        <h2>Phase I — Worker Route Claiming</h2>
+        <div class="phase-marker"><span class="phase-num">Phase I</span><span class="phase-title">Worker Route Claiming</span></div>
+        <p>Adding the API index endpoint at <code>api.atlas-systems.uk/</code> produced a 522 timeout rather than the expected JSON response. <code>atlas-notify</code> was deployed and returning 200 on <code>/notify</code>. The bare root path was not.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p>Worker routes are scoped per URL pattern, not per hostname. The existing route only claimed <code>/notify*</code>. An unmatched request fell through to the <code>AAAA</code> discard record, which by design goes nowhere, producing a connection timeout on Cloudflare&#x27;s side.</p></div>
+        <p>Adding a second, broader route <code>api.atlas-systems.uk/*</code> claimed the root path without displacing the existing specific route. Cloudflare evaluates the most specific matching pattern first, so both routes coexist correctly.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>Two routes on one Worker: a specific pattern for the primary path and a wildcard for the hostname root. Both must exist in <code>wrangler.toml</code>; routes added only via the dashboard are silently deleted on the next <code>wrangler deploy</code>.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="phase-ii-cloudflare-bot-protection-blocking-ci">
+        <h2>Phase II — Cloudflare Bot Protection Blocking CI</h2>
+        <div class="phase-marker"><span class="phase-num">Phase II</span><span class="phase-title">Cloudflare Bot Protection Blocking CI</span></div>
+        <p>The weekly digest workflow fetched from <code>api.atlas-systems.uk/site-pulse</code> to include site visit data. The site-pulse endpoint responded correctly from a browser and from <code>curl</code> on a local machine. From GitHub Actions, the same request returned a 403.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p>Cloudflare&#x27;s free-tier Bot Fight Mode issued a Managed Challenge to the request. A GitHub Actions runner presents as a bare <code>curl</code> user agent from a Microsoft Azure datacenter IP, which exactly matches the heuristic profile for automated traffic. The challenge page is HTML, not JSON, so the downstream <code>jq</code> parse failed silently and the weekly digest posted zero site visits every week.</p></div>
+        <p>The free-tier Bot Fight Mode cannot be selectively bypassed by WAF custom rules. The &quot;Skip&quot; action in custom rules does not reach this specific mechanism on the free plan. Turning Bot Fight Mode off entirely for the zone was the available option given the constraint of not upgrading the Cloudflare plan. The trade-off is acceptable for this site: all routes are read-only public APIs with no authentication surface to protect.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>Bot Fight Mode disabled zone-wide. The decision is documented in the site-pulse README so the reason is recoverable when reviewing security settings later.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="phase-iii-the-zone-name-trap">
+        <h2>Phase III — The zone_name Trap</h2>
+        <div class="phase-marker"><span class="phase-num">Phase III</span><span class="phase-title">The zone_name Trap</span></div>
+        <p>Four of the five Workers had their route registered with <code>zone_name = &quot;atlas-systems.uk&quot;</code> in <code>wrangler.toml</code>. The moment <code>deploy.yml</code> started running these as automated CI deploys, every one of them failed with &quot;Could not find zone for atlas-systems.uk&quot;, despite working perfectly when deployed locally.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p>The scoped CI token cannot resolve a zone name to a zone ID, since that lookup requires account-level membership access the token deliberately does not have. The full mechanical breakdown of why a narrower token loses this specific capability is in the CI/CD piece; the short version is that the narrower the token, the less it can introspect.</p></div>
+        <p>The fix was the same one carried forward into every Worker built afterward: <code>zone_id</code> in place of <code>zone_name</code>, everywhere, permanently.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>All five routes switched to literal <code>zone_id</code> values. This became a hard rule for the estate well before it had a name; the CI/CD rollout the following month made it official policy.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="phase-iv-package-lock-json-absent-from-worker-repos">
+        <h2>Phase IV — package-lock.json Absent from Worker Repos</h2>
+        <div class="phase-marker"><span class="phase-num">Phase IV</span><span class="phase-title">package-lock.json Absent from Worker Repos</span></div>
+        <p><code>npm ci</code>, used in every deploy workflow for its reproducibility guarantee, requires a lock file that matches <code>package.json</code> exactly. Three Worker repos had <code>package.json</code> files that were edited through GitHub&#x27;s web interface to add <code>wrangler</code> as a devDependency, but no corresponding <code>npm install</code> was ever run locally to generate the lock file. CI failed on first run for each of these repos.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p>GitHub&#x27;s file editor has no knowledge of npm&#x27;s dependency graph. Editing <code>package.json</code> through the web interface does not generate or update <code>package-lock.json</code>. <code>npm ci</code> refuses to install from a <code>package.json</code> when no corresponding lock file exists, by design.</p></div>
+        <p>Running <code>npm install</code> locally after any <code>package.json</code> change generates the correct lock file. The pattern now is: any <code>package.json</code> edit, wherever it is made, requires a follow-up local <code>npm install</code> and a committed lock file before the next CI run.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>Lock files committed to all five Worker repos. The lesson applies permanently: <code>npm ci</code> and hand-edited <code>package.json</code> files are incompatible without a locally-generated lock.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="ci-cd-automation">
+        <h2>CI/CD Automation</h2>
+        <p>Before this build, every Worker deployed via a manual terminal command. There was no gate preventing broken code from shipping, no record of when a deploy happened, and no notification if it failed. The five Worker repos now have identical <code>deploy.yml</code> GitHub Actions workflows that trigger on every push to <code>main</code>.</p>
+        <p>The workflow shape is: install dependencies with <code>npm ci</code>; run tests if they exist (only <code>atlas-notify</code> currently has a test suite); run <code>npx wrangler deploy</code> with scoped CI credentials; post the outcome, pass or fail, to the <code>api-deploys</code> Discord channel. The <code>atlas-notify</code> workflow has three jobs: test, deploy (gated on test passing), and notify. The other four have two: deploy and notify. The difference reflects the current state of test coverage; the pattern is ready to accept a test job in any repo without restructuring the workflow. This per-repo shape is the version that exists today; it is not the final one. The next piece of work replaces these five individual <code>deploy.yml</code> files with two reusable workflows shared across the whole estate.</p>
+        <div class="callout"><div class="callout-label">Credential Scope</div><p>CI uses a dedicated <code>CF_WORKERS_DEPLOY_TOKEN</code> with Workers Scripts Edit, Account Settings Read, Workers KV Storage Edit, and Zone Workers Routes Edit (all zones). This token is separate from the Cloudflare Pages read token used by <code>deploy-watch</code>, and both are separate from the Cloudflare Analytics token used by <code>site-pulse</code>. Scoping tokens to the minimum required permission per use case means a compromised CI token cannot read deployment history, and a compromised analytics token cannot modify Workers.</p></div>
+        <p>All ten repos now have GitHub webhooks posting to <code>atlas-notify</code>, which formats them as push embeds in the <code>push-log</code> Discord channel. Previously only three repos were wired up. The other seven were added in a single pass; the webhook setup is identical for every repo, same payload URL, same content type, same secret, same event selection.</p>
+        <p>The weekly digest workflow runs on a Sunday cron and pulls commit counts, PR activity, new repos, and site visit data from real API endpoints rather than estimating from the GitHub events feed. The commit count fix in particular was material: querying each repo&#x27;s <code>/commits</code> endpoint directly with an author filter returns ground truth; the events feed&#x27;s <code>distinct_size</code> field was returning zero for rapid successive pushes to the same branch, making a busy week of work look like no activity.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="personal-tooling">
+        <h2>Personal Tooling</h2>
+        <p><code>atlas-vault</code> is a personal streaming data backup vault: a Cloudflare Worker that accepts authenticated POST requests containing exported watch history and stores them in KV under dated keys. The design is deliberately narrow. The previous version of this tool was a generic CORS proxy that captured any response whose URL contained certain keywords, regardless of which user generated the request. The GDPR problem was structural, not configurational; the fix was a rewrite, not a patch.</p>
+        <p>The new version only stores what the owner explicitly posts to it. The trigger is a Tampermonkey browser script that runs when <code>aether.cx</code> loads, reads the relevant <code>localStorage</code> keys containing watch history and bookmarks, and POSTs them to the vault endpoint if the last backup was not made today. It runs silently in the background and requires no manual action after the initial setup.</p>
+        <p>A daily cron sends a Discord report into <code>vault-backups</code> summarising the backup state: total library size, number of titles tracked, the most recently watched title with watch percentage, the currently active show with episode count, and a random pick from the full library. The report is generated live from the stored JSON each time, not from static fields, so the numbers are always accurate to the last backup.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="outcomes">
+        <h2>Outcomes</h2>
+        <div class="outcomes-grid"><div class="outcome-cell"><div class="outcome-label">Workers with automated CI/CD</div><div class="outcome-value">5 of 5 (was 0)</div></div><div class="outcome-cell"><div class="outcome-label">Repos posting to push-log</div><div class="outcome-value">10 of 10 (was 3)</div></div><div class="outcome-cell"><div class="outcome-label">Discord channels active</div><div class="outcome-value">7, one per signal class</div></div><div class="outcome-cell"><div class="outcome-label">Cost</div><div class="outcome-value">£0 across all infrastructure</div></div></div>
+        <p>The system now documents its own operation. Every push appears in push-log. Every Worker deploy produces a coloured outcome embed in api-deploys within about a minute. Every test run posts to ci-cd. The live signal section on the homepage shows real frontend deploy data, real backend health checks, and real GitHub activity, all from live API endpoints. The status page at status.atlas-systems.uk checks all four Workers in the browser on page load and refreshes every 30 seconds.</p>
+        <p>The transferable principle is the difference between infrastructure that runs and infrastructure that reports. A system that works silently and a system that works visibly are functionally identical until something breaks; at that point, the visible one has the history you need and the silent one requires archaeology. Two pieces of work followed this one. The per-repo <code>deploy.yml</code> pattern built here got replaced within weeks by a single reusable workflow shared across the whole estate, documented in full in the CI/CD piece; and the Discord-only event stream this system produces eventually got a second home, a live dashboard on the Lab page that reads the same events without anyone needing to scroll through a channel history to find them.</p>
+      </section>
+    </article>
+  </div>
+
+  <footer class="article-footer">
+    <a href="/writing/overclocking-specular-core/" class="footer-back">
+    <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    ← W-04 — SPECULAR-CORE
+  </a>
+  <span class="footer-next">Latest article</span>
+  </footer>
+
+</main>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-item a');
+  const sections = document.querySelectorAll('section[id]');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        tocLinks.forEach(a => a.classList.remove('active'));
+        const active = document.querySelector(`.toc-item a[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+<script src="/js/transitions.js"></script>
+<script type="module" src="/static/js/estate-shell.js?v=20260723-interface-v2"></script>
+<script type="module" src="/static/js/estate-search/global-search.js"></script>
+
+</body>
+</html>
