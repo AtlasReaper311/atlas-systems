@@ -28,7 +28,7 @@ const directorPlan = {
 };
 
 test("Atlas APU track form is a complete 32-bar cycle", () => {
-  assert.match(ATLAS_APU_TRACK_BUILD_ID, /atlas-chip-laws-v2$/);
+  assert.match(ATLAS_APU_TRACK_BUILD_ID, /atlas-chip-laws-v3$/);
   assert.equal(APU_TRACK_PHRASES, 16);
   assert.equal(APU_TRACK_BARS, 32);
   assert.equal(APU_FORM.reduce((total, section) => total + section.phrases, 0), 16);

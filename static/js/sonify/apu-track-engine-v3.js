@@ -3,7 +3,7 @@ import {
   APU_TRACK_PHRASES,
   ATLAS_APU_TRACK_BUILD_ID,
   arrangementForPhrase,
-} from "./apu-arranger.js?v=20260726-system-symphony-atlas-chip-laws-v2";
+} from "./apu-arranger.js?v=20260726-system-symphony-atlas-chip-laws-v3";
 import {
   APU_TRACK_STEPS,
   bassEventForTrackStep,
@@ -14,7 +14,7 @@ import {
   secondaryPulseEventForTrackStep,
   serviceEventForTrackStep,
   transitionEventForTrackStep,
-} from "./apu-track-sequencer.js?v=20260726-system-symphony-atlas-chip-laws-v2";
+} from "./apu-track-sequencer.js?v=20260726-system-symphony-atlas-chip-laws-v3";
 import { createCompositionDirector } from "./composition-director.js?v=20260720-system-symphony-loop-production-v2";
 import { midiToFrequencyHz } from "./mapping.js?v=20260720-system-symphony-loop-production-v2";
 import {
@@ -171,6 +171,7 @@ export function createApuTrackEngine({
   let pendingIncidentCount = 0;
   let servicePoolCursor = 0;
   let lastStateTransition = null;
+  let lastTransitionEvent = null;
   let currentEngineControls = engineControlsForFrame();
 
   const director = createCompositionDirector({ seed: "ATLAS-APU-TRACK" });
@@ -539,10 +540,42 @@ export function createApuTrackEngine({
   }
 
   function playTransition(time, step) {
-    const event = transitionEventForTrackStep(currentFrame, currentArrangement, step);
+    const event = transitionEventForTrackStep(
+      currentFrame,
+      currentArrangement,
+      step,
+      lastStateTransition,
+      stepIndex,
+    );
     if (!event) return;
-    if (["rise", "drop", "restart"].includes(event.type)) {
-      nodes.noiseAccent.triggerAttackRelease(event.type === "drop" ? 0.11 : 0.065, time, Math.min(0.26, event.velocity));
+    lastTransitionEvent = Object.freeze({
+      type: event.type,
+      stepIndex,
+      phraseIndex: trackPhraseIndex,
+    });
+    if (event.bassDrop) {
+      nodes.padSub.triggerAttackRelease(
+        midiToFrequencyHz(event.bassDrop.midi),
+        event.bassDrop.duration,
+        time,
+        Math.min(0.3, event.bassDrop.velocity),
+      );
+    }
+    if (event.noise) {
+      nodes.noiseAccent.triggerAttackRelease(
+        event.noise.duration,
+        time,
+        Math.min(0.24, event.noise.velocity),
+      );
+    }
+    for (const note of event.notes ?? []) {
+      const voice = note.voice === "deployment" ? nodes.deployment : nodes.incident;
+      voice.triggerAttackRelease(
+        midiToFrequencyHz(note.midi),
+        note.duration,
+        time,
+        Math.min(0.46, note.velocity),
+      );
     }
   }
 
@@ -727,6 +760,7 @@ export function createApuTrackEngine({
         state: stateKey(currentFrame),
         pendingState: pendingFrame ? stateKey(pendingFrame) : null,
         lastStateTransition,
+        lastTransitionEvent,
         engineControlsBuildId: ATLAS_APU_ENGINE_CONTROLS_BUILD_ID,
         scorePlanGuard: currentEngineControls.guard,
         scorePlanMovement: currentEngineControls.movement,

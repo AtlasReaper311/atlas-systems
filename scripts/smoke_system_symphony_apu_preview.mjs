@@ -25,6 +25,7 @@ const pageErrors = [];
 const audioRequests = [];
 const failedRequests = [];
 const stateTransitions = [];
+const transitionEvents = [];
 let evidence = null;
 
 page.on("console", (message) => {
@@ -92,16 +93,23 @@ async function collectEvidence() {
   });
 }
 
-async function waitForStateTransition(state, policy) {
-  await page.waitForFunction(({ expectedState, expectedPolicy }) => {
+async function waitForStateTransition(state, policy, eventType) {
+  await page.waitForFunction(({ expectedState, expectedPolicy, expectedEventType }) => {
     const diagnostics = globalThis.__ATLAS_APU__?.getDiagnostics?.();
+    const transitionStep = diagnostics?.lastStateTransition?.stepIndex;
+    const eventStep = diagnostics?.lastTransitionEvent?.stepIndex;
     return diagnostics?.state === expectedState
       && diagnostics?.lastStateTransition?.to === expectedState
       && diagnostics?.lastStateTransition?.policy === expectedPolicy
+      && diagnostics?.lastTransitionEvent?.type === expectedEventType
+      && Number.isFinite(transitionStep)
+      && Number.isFinite(eventStep)
+      && eventStep >= transitionStep
       && Object.keys(diagnostics?.channelFailures ?? {}).length === 0;
-  }, { expectedState: state, expectedPolicy: policy }, { timeout: 10_000, polling: 100 });
+  }, { expectedState: state, expectedPolicy: policy, expectedEventType: eventType }, { timeout: 10_000, polling: 100 });
   const snapshot = await collectEvidence();
   stateTransitions.push(snapshot.diagnostics.lastStateTransition);
+  transitionEvents.push(snapshot.diagnostics.lastTransitionEvent);
 }
 
 async function writeBundle(fileName, error = null) {
@@ -125,6 +133,7 @@ async function writeBundle(fileName, error = null) {
       error: error ? { name: error.name, message: error.message, stack: error.stack } : null,
       evidence,
       stateTransitions,
+      transitionEvents,
       audioRequests,
       failedRequests,
       consoleErrors,
@@ -159,13 +168,13 @@ try {
   }, null, { timeout: 15_000, polling: 100 });
 
   await page.getByRole("button", { name: "Critical", exact: true }).click();
-  await waitForStateTransition("critical", "hard-choke");
+  await waitForStateTransition("critical", "hard-choke", "interrupt-drop");
 
   await page.getByRole("button", { name: "Unknown", exact: true }).click();
-  await waitForStateTransition("unknown", "one-bar-decay");
+  await waitForStateTransition("unknown", "one-bar-decay", "melody-dropout");
 
   await page.getByRole("button", { name: "Healthy", exact: true }).click();
-  await waitForStateTransition("healthy", "crossfade");
+  await waitForStateTransition("healthy", "crossfade", "carrier-resolve");
 
   // Continue through bars 15-16 so transport, state transitions, mastering and
   // the monitoring-only worklet all remain active during a long browser run.
@@ -189,7 +198,7 @@ try {
 
   evidence = await collectEvidence();
 
-  assert.match(evidence.buildId ?? "", /atlas-chip-laws-v2$/);
+  assert.match(evidence.buildId ?? "", /atlas-chip-laws-v3$/);
   assert.equal(evidence.documentBuild, evidence.buildId);
   assert.match(evidence.loudnessBuildId ?? "", /loudness-meter-v3$/);
   assert.match(evidence.masteringRuntimeBuildId ?? "", /mastering-runtime-v2$/);
@@ -260,6 +269,11 @@ try {
     { to: "critical", policy: "hard-choke" },
     { to: "unknown", policy: "one-bar-decay" },
     { to: "healthy", policy: "crossfade" },
+  ]);
+  assert.deepEqual(transitionEvents.map(({ type }) => type), [
+    "interrupt-drop",
+    "melody-dropout",
+    "carrier-resolve",
   ]);
   assert.deepEqual(audioRequests, [], "the APU track preview requested an audio asset");
 

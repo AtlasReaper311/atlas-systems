@@ -170,3 +170,74 @@ test("Atlas chip laws create audible state contrast beyond mix changes", () => {
   assert.equal(padChordForTrackStep(unknownFrame, unknown, 0)?.duration, "1m");
   assert.equal(rhythmEventsForTrackStep(unknownFrame, unknown, 1).hat, null);
 });
+
+test("state transition signatures produce bounded audible APU events", () => {
+  const arrangement = arrangementForPhrase(frame, plan, 3);
+  const start = 96;
+  const pressure = transitionEventForTrackStep(
+    { ...frame, scoreState: "warning", scale: [0, 1, 3, 5, 7, 8, 10] },
+    arrangement,
+    0,
+    { from: "healthy", to: "warning", stepIndex: start },
+    start,
+  );
+  const interrupt = transitionEventForTrackStep(
+    { ...frame, scoreState: "critical", scale: [0, 1, 4, 5, 7, 8, 10] },
+    arrangement,
+    0,
+    { from: "warning", to: "critical", stepIndex: start },
+    start,
+  );
+  const bloom = [0, 2, 4, 6, 10].map((delta) => transitionEventForTrackStep(
+    frame,
+    arrangement,
+    delta,
+    { from: "critical", to: "healthy", stepIndex: start },
+    start + delta,
+  ));
+  const resolve = transitionEventForTrackStep(
+    frame,
+    arrangement,
+    8,
+    { from: "unknown", to: "healthy", stepIndex: start },
+    start + 8,
+  );
+  const dropout = transitionEventForTrackStep(
+    { ...frame, scoreState: "unknown", scale: [0, 2, 5, 7, 10] },
+    arrangement,
+    15,
+    { from: "healthy", to: "unknown", stepIndex: start },
+    start + 15,
+  );
+
+  assert.equal(pressure.type, "pressure-ramp");
+  assert.equal(pressure.notes[0].voice, "incident");
+  assert.ok(pressure.notes[0].velocity <= 0.46);
+
+  assert.equal(interrupt.type, "interrupt-drop");
+  assert.ok(interrupt.bassDrop);
+  assert.ok(interrupt.noise);
+  assert.ok(interrupt.noise.velocity <= 0.24);
+
+  assert.deepEqual(bloom.map((event) => event?.type), [
+    "recovery-bloom",
+    "recovery-bloom",
+    "recovery-bloom",
+    "recovery-bloom",
+    "recovery-bloom",
+  ]);
+  assert.ok(bloom.every((event) => event.notes[0].voice === "deployment"));
+  assert.ok(bloom.at(-1).notes[0].velocity > bloom[0].notes[0].velocity);
+
+  assert.equal(resolve.type, "carrier-resolve");
+  assert.equal(resolve.notes[0].voice, "deployment");
+
+  assert.equal(dropout.type, "melody-dropout");
+  assert.ok(dropout.noise);
+  assert.deepEqual(dropout.notes, []);
+
+  assert.equal(
+    transitionEventForTrackStep(frame, arrangement, 16, { from: "critical", to: "healthy", stepIndex: start }, start + 16),
+    null,
+  );
+});

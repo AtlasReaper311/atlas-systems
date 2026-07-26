@@ -72,6 +72,8 @@ test("track engine source keeps crusher off the full master and schedules pulse 
   assert.match(source, /setPulseWidth\(nodes\.primary, event\.dutyCycle, pulseWidthLeadTime\(time\)\)/);
   assert.match(source, /setPulseWidth\(nodes\.secondary, event\.dutyCycle, pulseWidthLeadTime\(time\)\)/);
   assert.match(source, /setPulseWidth\(slot\.synth, event\.identity\.dutyCycle, pulseWidthLeadTime\(time\)\)/);
+  assert.match(source, /transitionEventForTrackStep\(\s*currentFrame,\s*currentArrangement,\s*step,\s*lastStateTransition,\s*stepIndex,/);
+  assert.match(source, /lastTransitionEvent/);
 });
 
 test("track engine consumes guarded score-plan controls without sample playback nodes", () => {

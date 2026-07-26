@@ -104,7 +104,7 @@ try {
   }, null, { timeout: 20_000, polling: 100 });
 
   evidence = await collectEvidence();
-  assert.match(evidence.buildId ?? "", /atlas-apu-live-v4$/);
+  assert.match(evidence.buildId ?? "", /atlas-apu-live-v5$/);
   assert.equal(evidence.documentBuild, evidence.buildId);
   assert.equal(evidence.previewData, false);
   assert.equal(evidence.source, "live");

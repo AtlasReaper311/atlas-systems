@@ -12,8 +12,8 @@ import {
 import {
   ATLAS_APU_TRACK_BUILD_ID,
   arrangementTimeline,
-} from "../../static/js/sonify/apu-arranger.js?v=20260726-system-symphony-atlas-chip-laws-v2";
-import { createApuTrackEngine } from "../../static/js/sonify/apu-track-engine-v2.js?v=20260726-system-symphony-atlas-chip-laws-v2";
+} from "../../static/js/sonify/apu-arranger.js?v=20260726-system-symphony-atlas-chip-laws-v3";
+import { createApuTrackEngine } from "../../static/js/sonify/apu-track-engine-v2.js?v=20260726-system-symphony-atlas-chip-laws-v3";
 import {
   APU_HYBRID_STATE_BUILD_ID,
   APU_HYBRID_STATE_KEYS,
