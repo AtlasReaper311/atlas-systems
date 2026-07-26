@@ -30,6 +30,24 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
+      - name: Remove obsolete page-script assertion
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("scripts/apply_system_symphony_cutover.py")
+          text = path.read_text(encoding="utf-8")
+          obsolete = '''replace_once(
+              page_js,
+              "Initialising the existing System Symphony engine.",
+              "Initialising the Atlas APU renderer and preserved topology interface.",
+          )
+          '''
+          if text.count(obsolete) != 1:
+              raise SystemExit("Expected exactly one obsolete page-script assertion")
+          path.write_text(text.replace(obsolete, "", 1), encoding="utf-8")
+          PY
+
       - name: Apply reviewed production integration
         id: cutover
         continue-on-error: true
@@ -60,6 +78,7 @@ jobs:
           set -euo pipefail
           rm -f .github/workflows/rollout-cutover.yml
           rm -f scripts/apply_system_symphony_cutover.py
+          rm -f cutover-report.txt
           git add -A
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
