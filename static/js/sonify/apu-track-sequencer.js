@@ -26,13 +26,57 @@ const PRIMARY_PATTERNS = Object.freeze({
 
 const BASS_PATTERNS = Object.freeze({
   none: Object.freeze([]),
-  foundation: Object.freeze([{ step: 0, degree: 0, duration: "4n" }, { step: 8, degree: 0, duration: "8n" }, { step: 16, degree: 0, duration: "4n" }, { step: 24, degree: 4, duration: "8n" }]),
-  groove: Object.freeze([{ step: 0, degree: 0, duration: "8n" }, { step: 6, degree: 4, duration: "16n" }, { step: 8, degree: 0, duration: "8n" }, { step: 14, degree: 2, duration: "16n" }, { step: 16, degree: 0, duration: "8n" }, { step: 22, degree: 4, duration: "16n" }, { step: 24, degree: 2, duration: "8n" }, { step: 30, degree: 4, duration: "16n" }]),
-  walk: Object.freeze([{ step: 0, degree: 0, duration: "8n" }, { step: 4, degree: 1, duration: "8n" }, { step: 8, degree: 2, duration: "8n" }, { step: 12, degree: 4, duration: "8n" }, { step: 16, degree: 0, duration: "8n" }, { step: 20, degree: 1, duration: "8n" }, { step: 24, degree: 2, duration: "8n" }, { step: 28, degree: 4, duration: "8n" }]),
-  rise: Object.freeze([{ step: 0, degree: 0, duration: "8n" }, { step: 4, degree: 1, duration: "8n" }, { step: 8, degree: 2, duration: "8n" }, { step: 12, degree: 3, duration: "8n" }, { step: 16, degree: 4, duration: "8n" }, { step: 20, degree: 5, duration: "8n" }, { step: 24, degree: 6, duration: "8n" }, { step: 28, degree: 7, duration: "8n" }]),
-  climax: Object.freeze(Array.from({ length: 16 }, (_, index) => Object.freeze({ step: index * 2, degree: index % 4 === 3 ? 4 : index % 3 === 1 ? 2 : 0, duration: "16n" }))),
-  sustain: Object.freeze([{ step: 0, degree: 0, duration: "1m" }, { step: 16, degree: 0, duration: "1m" }]),
-  reprise: Object.freeze([{ step: 0, degree: 0, duration: "4n" }, { step: 8, degree: 4, duration: "8n" }, { step: 16, degree: 0, duration: "4n" }, { step: 24, degree: 2, duration: "8n" }]),
+  foundation: Object.freeze([
+    Object.freeze({ step: 0, degree: 0, duration: "4n" }),
+    Object.freeze({ step: 8, degree: 0, duration: "8n" }),
+    Object.freeze({ step: 16, degree: 0, duration: "4n" }),
+    Object.freeze({ step: 24, degree: 4, duration: "8n" }),
+  ]),
+  groove: Object.freeze([
+    Object.freeze({ step: 0, degree: 0, duration: "8n" }),
+    Object.freeze({ step: 6, degree: 4, duration: "16n" }),
+    Object.freeze({ step: 8, degree: 0, duration: "8n" }),
+    Object.freeze({ step: 14, degree: 2, duration: "16n" }),
+    Object.freeze({ step: 16, degree: 0, duration: "8n" }),
+    Object.freeze({ step: 22, degree: 4, duration: "16n" }),
+    Object.freeze({ step: 24, degree: 2, duration: "8n" }),
+    Object.freeze({ step: 30, degree: 4, duration: "16n" }),
+  ]),
+  walk: Object.freeze([
+    Object.freeze({ step: 0, degree: 0, duration: "8n" }),
+    Object.freeze({ step: 4, degree: 1, duration: "8n" }),
+    Object.freeze({ step: 8, degree: 2, duration: "8n" }),
+    Object.freeze({ step: 12, degree: 4, duration: "8n" }),
+    Object.freeze({ step: 16, degree: 0, duration: "8n" }),
+    Object.freeze({ step: 20, degree: 1, duration: "8n" }),
+    Object.freeze({ step: 24, degree: 2, duration: "8n" }),
+    Object.freeze({ step: 28, degree: 4, duration: "8n" }),
+  ]),
+  rise: Object.freeze([
+    Object.freeze({ step: 0, degree: 0, duration: "8n" }),
+    Object.freeze({ step: 4, degree: 1, duration: "8n" }),
+    Object.freeze({ step: 8, degree: 2, duration: "8n" }),
+    Object.freeze({ step: 12, degree: 3, duration: "8n" }),
+    Object.freeze({ step: 16, degree: 4, duration: "8n" }),
+    Object.freeze({ step: 20, degree: 5, duration: "8n" }),
+    Object.freeze({ step: 24, degree: 6, duration: "8n" }),
+    Object.freeze({ step: 28, degree: 7, duration: "8n" }),
+  ]),
+  climax: Object.freeze(Array.from({ length: 16 }, (_, index) => Object.freeze({
+    step: index * 2,
+    degree: index % 4 === 3 ? 4 : index % 3 === 1 ? 2 : 0,
+    duration: "16n",
+  }))),
+  sustain: Object.freeze([
+    Object.freeze({ step: 0, degree: 0, duration: "1m" }),
+    Object.freeze({ step: 16, degree: 0, duration: "1m" }),
+  ]),
+  reprise: Object.freeze([
+    Object.freeze({ step: 0, degree: 0, duration: "4n" }),
+    Object.freeze({ step: 8, degree: 4, duration: "8n" }),
+    Object.freeze({ step: 16, degree: 0, duration: "4n" }),
+    Object.freeze({ step: 24, degree: 2, duration: "8n" }),
+  ]),
 });
 
 const modulo = (value, length) => ((Math.trunc(value) % length) + length) % length;
@@ -130,11 +174,17 @@ export function quantizeMidiToHarmony(frame, arrangement, step, midi, minimum = 
 }
 
 function omissionContext(frame, arrangement, step, serviceHash = 0) {
-  return { state: frame.scoreState, barIndex: barIndexFor(arrangement, step), stepIndex: wrappedStep(step), serviceHash, phraseIndex: arrangement?.phraseIndex ?? 0 };
+  return {
+    state: frame.scoreState,
+    barIndex: barIndexFor(arrangement, step),
+    stepIndex: wrappedStep(step),
+    serviceHash,
+    phraseIndex: arrangement?.phraseIndex ?? 0,
+  };
 }
 
-function omitted(frame, arrangement, step, serviceHash = 0, preserveDownbeat = false) {
-  if (preserveDownbeat && wrappedStep(step) % 16 === 0) return false;
+function omitted(frame, arrangement, step, serviceHash = 0, preserveAnchor = false) {
+  if (preserveAnchor) return false;
   return shouldOmitEvent(omissionContext(frame, arrangement, step, serviceHash));
 }
 
@@ -142,36 +192,109 @@ function rhythmVelocity(arrangement, base) {
   return clamp(base * (0.78 + (arrangement?.energy ?? 0.4) * 0.22), 0.04, 0.92);
 }
 
+function baseRhythm(pattern, position, localPhrase = 0) {
+  if (pattern === "sparse") {
+    return {
+      kick: position === 0 || position === 16,
+      snare: position === 8 || position === 24,
+      hat: [7, 15, 23, 31].includes(position),
+      openHat: false,
+      noiseAccent: false,
+    };
+  }
+  if (pattern === "groove") {
+    return {
+      kick: [0, 6, 16, 22].includes(position),
+      snare: position === 8 || position === 24,
+      hat: position % 4 === 2,
+      openHat: position === 14 || position === 30,
+      noiseAccent: false,
+    };
+  }
+  if (pattern === "drive") {
+    return {
+      kick: [0, 6, 10, 16, 22, 26].includes(position),
+      snare: position === 8 || position === 24,
+      hat: [3, 7, 11, 15, 19, 23, 27, 31].includes(position),
+      openHat: position === 15 || position === 31,
+      noiseAccent: false,
+    };
+  }
+  if (pattern === "build") {
+    return {
+      kick: [0, 8, 16, 24].includes(position) || (localPhrase > 0 && [6, 14, 22, 30].includes(position)),
+      snare: position === 8 || position === 24 || (localPhrase > 0 && [28, 30].includes(position)),
+      hat: localPhrase > 0
+        ? [1, 5, 9, 13, 17, 21, 25, 29].includes(position)
+        : [2, 6, 10, 14, 18, 22, 26, 30].includes(position),
+      openHat: position === 15 || position === 31,
+      noiseAccent: position === 31,
+    };
+  }
+  if (pattern === "peak") {
+    return {
+      kick: [0, 4, 6, 10, 16, 20, 22, 26].includes(position),
+      snare: [8, 14, 24, 30].includes(position),
+      hat: [1, 3, 5, 9, 11, 13, 17, 19, 21, 25, 27, 29].includes(position),
+      openHat: [7, 15, 23, 31].includes(position),
+      noiseAccent: position === 15 || position === 31,
+    };
+  }
+  if (pattern === "release") {
+    return {
+      kick: position === 0,
+      snare: false,
+      hat: false,
+      openHat: false,
+      noiseAccent: position === 0,
+    };
+  }
+  if (pattern === "recovery") {
+    return {
+      kick: position === 0 || position === 16,
+      snare: position === 8 || position === 24,
+      hat: [6, 14, 22, 30].includes(position),
+      openHat: false,
+      noiseAccent: false,
+    };
+  }
+  return { kick: false, snare: false, hat: false, openHat: false, noiseAccent: false };
+}
+
 export function rhythmEventsForTrackStep(frame = {}, arrangement = null, step = 0) {
   const position = wrappedStep(step);
   const state = normalizedStateIdentity(frame.scoreState).id;
   const pattern = arrangement?.drumPattern ?? "none";
   const fill = arrangement?.fillEnabled && position >= 28;
-  let kick = false;
-  let snare = false;
-  let hat = false;
-  let openHat = false;
-  let noiseAccent = false;
+  const base = baseRhythm(pattern, position, arrangement?.sectionLocalPhrase ?? 0);
+  let { kick, snare, hat, openHat, noiseAccent } = base;
 
-  if (state === "healthy") {
-    kick = [0, 6, 16, 22].includes(position);
-    snare = position === 8 || position === 24;
-    hat = [2, 7, 10, 15, 18, 23, 26, 31].includes(position);
-    openHat = position === 15 || position === 31;
-  } else if (state === "warning") {
-    kick = [0, 6, 10, 16, 22, 26].includes(position);
-    snare = [8, 24, 30].includes(position);
-    hat = position % 2 === 1 && !omitted(frame, arrangement, step, 11);
-    noiseAccent = [15, 31].includes(position);
-  } else if (state === "critical") {
-    kick = [0, 4, 6, 10, 16, 20, 22, 26].includes(position);
-    snare = [8, 14, 24, 30].includes(position);
-    hat = [1, 3, 5, 9, 11, 13, 17, 19, 21, 25, 27, 29].includes(position);
-    openHat = [7, 15, 23, 31].includes(position);
-    noiseAccent = [0, 8, 16, 24, 31].includes(position);
-  } else {
-    kick = pattern !== "none" && position === 0 && !omitted(frame, arrangement, step, 29, true);
-    noiseAccent = [7, 23].includes(position) && !omitted(frame, arrangement, step, 31);
+  if (pattern !== "none" && pattern !== "release") {
+    if (state === "healthy") {
+      if (["groove", "drive"].includes(pattern)) {
+        hat = [2, 7, 10, 15, 18, 23, 26, 31].includes(position);
+        openHat = position === 15 || position === 31;
+      }
+      noiseAccent = noiseAccent && position === 31;
+    } else if (state === "warning") {
+      hat = position % 2 === 1 && !omitted(frame, arrangement, step, 11);
+      noiseAccent = noiseAccent || [15, 31].includes(position);
+      snare = snare || (pattern !== "sparse" && position === 30);
+    } else if (state === "critical") {
+      if (pattern !== "sparse" && pattern !== "recovery") {
+        kick = [0, 4, 6, 10, 16, 20, 22, 26].includes(position);
+        snare = [8, 14, 24, 30].includes(position);
+        hat = [1, 3, 5, 9, 11, 13, 17, 19, 21, 25, 27, 29].includes(position);
+        openHat = [7, 15, 23, 31].includes(position);
+        noiseAccent = [0, 8, 16, 24, 31].includes(position);
+      }
+    } else {
+      kick = position === 0 && !omitted(frame, arrangement, step, 29, true);
+      snare = false;
+      hat = false;
+      openHat = false;
+      noiseAccent = [7, 23].includes(position) && !omitted(frame, arrangement, step, 31);
+    }
   }
 
   if (fill && state !== "unknown") {
@@ -196,7 +319,7 @@ export function bassEventForTrackStep(frame = {}, arrangement = null, step = 0) 
   const identity = normalizedStateIdentity(frame.scoreState);
   const pattern = BASS_PATTERNS[arrangement?.bassPattern ?? "none"] ?? BASS_PATTERNS.none;
   const event = pattern.find((candidate) => candidate.step === position);
-  if (!event || omitted(frame, arrangement, step, 41, true)) return null;
+  if (!event || omitted(frame, arrangement, step, 41, position % 16 === 0)) return null;
   const scale = normalizedScale(frame);
   const harmony = activeHarmony(arrangement, position);
   let degree = (harmony.rootDegree ?? 0) + event.degree;
@@ -235,7 +358,12 @@ export function primaryPulseEventForTrackStep(frame = {}, arrangement = null, st
   if (eventIndex === -1 || omitted(frame, arrangement, step, 67, position % 16 === 0)) return null;
   const degrees = melodyDegreeSequence(arrangement, pattern, false);
   const midi = foldMidi(scaleMidi(normalizedScale(frame), arrangement?.section === "peak" ? 77 : 65, degrees[eventIndex]), 58, 88);
-  return Object.freeze({ midi, duration: identity.leadGate, velocity: clamp(0.16 + (arrangement?.mix?.primary ?? 0) * 0.3, 0.1, 0.56), dutyCycle: identity.primaryDutyCycle });
+  return Object.freeze({
+    midi,
+    duration: identity.leadGate,
+    velocity: clamp(0.16 + (arrangement?.mix?.primary ?? 0) * 0.3, 0.1, 0.56),
+    dutyCycle: identity.primaryDutyCycle,
+  });
 }
 
 export function secondaryPulseEventForTrackStep(frame = {}, arrangement = null, step = 0) {
@@ -246,7 +374,7 @@ export function secondaryPulseEventForTrackStep(frame = {}, arrangement = null, 
   if (counter === "answer") pattern = [4, 12, 20, 28];
   if (counter === "counter" || counter === "octave") pattern = [2, 6, 10, 14, 18, 22, 26, 30];
   const eventIndex = pattern.indexOf(position);
-  if (eventIndex === -1 || omitted(frame, arrangement, step, 79)) return null;
+  if (eventIndex === -1 || omitted(frame, arrangement, step, 79, eventIndex === 0)) return null;
   const degrees = melodyDegreeSequence(arrangement, pattern, true);
   return Object.freeze({
     midi: foldMidi(scaleMidi(normalizedScale(frame), counter === "octave" ? 65 : 53, degrees[eventIndex]), 53, 86),
@@ -266,7 +394,8 @@ export function serviceEventForTrackStep(frame = {}, arrangement = null, step = 
   if (position % stride !== offset % stride) return null;
   const voiceIndex = modulo((arrangement?.phraseIndex ?? 0) * 5 + position * 3, voices.length);
   const voice = voices[voiceIndex];
-  if (!voice || omitted(frame, arrangement, step, voice.hash ?? 0)) return null;
+  const preserveAnchor = position === offset;
+  if (!voice || omitted(frame, arrangement, step, voice.hash ?? 0, preserveAnchor)) return null;
   if (!voice.measured && frame.scoreState !== "unknown" && position % 8 !== offset) return null;
   const motif = Array.isArray(voice.motifMidi) && voice.motifMidi.length ? voice.motifMidi : [voice.registerMidi ?? 53];
   const identity = chipIdentityForVoice(voice);
