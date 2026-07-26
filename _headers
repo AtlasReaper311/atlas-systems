@@ -5,7 +5,7 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   X-XSS-Protection: 1; mode=block
   Strict-Transport-Security: max-age=31536000; includeSubDomains
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' https://api.atlas-systems.uk https://ramone.atlas-systems.uk https://corpus.atlas-systems.uk https://static.cloudflareinsights.com; img-src 'self' data: https://res.cloudinary.com; media-src 'self' https://res.cloudinary.com;
+  Content-Security-Policy: default-src 'self'; script-src 'self' blob: 'unsafe-inline' https://static.cloudflareinsights.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' blob: https://api.atlas-systems.uk https://ramone.atlas-systems.uk https://corpus.atlas-systems.uk https://static.cloudflareinsights.com; img-src 'self' data: https://res.cloudinary.com; media-src 'self' https://res.cloudinary.com;
   Cache-Control: no-cache, max-age=0, must-revalidate
 
 /lab/console/*
@@ -27,6 +27,10 @@
   Cache-Control: no-cache, max-age=0, must-revalidate
   X-Atlas-System-Symphony-Build: 20260720-system-symphony-loop-production-v2
 
+/lab/system-symphony-apu/*
+  X-Robots-Tag: noindex, nofollow
+  X-Atlas-System-Symphony-Build: 20260726-system-symphony-hybrid-state-v1
+
 /static/js/sonify/*
   Cache-Control: no-cache, max-age=0, must-revalidate
-  X-Atlas-System-Symphony-Build: 20260720-system-symphony-loop-production-v2
+  X-Atlas-System-Symphony-Build: 20260726-system-symphony-hybrid-state-v1
