@@ -76,7 +76,7 @@ jobs:
       (startsWith(github.event.pull_request.head.ref, 'feat/system-symphony-') ||
        startsWith(github.event.pull_request.head.ref, 'fix/system-symphony-'))
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
     environment:
       name: pages-preview
       url: ${{ steps.deploy.outputs.deployment_url }}
@@ -149,7 +149,28 @@ jobs:
           PREVIEW_URL: ${{ steps.deploy.outputs.deployment_url }}
           APU_BROWSER: firefox
           APU_SMOKE_OUTPUT_DIR: ${{ runner.temp }}/system-symphony-apu-smoke/firefox
-        run: node scripts/smoke_system_symphony_apu_hybrid.mjs
+        run: |
+          set -euo pipefail
+          if ! command -v pulseaudio >/dev/null 2>&1 || ! command -v pactl >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y pulseaudio pulseaudio-utils
+          fi
+          export XDG_RUNTIME_DIR="${RUNNER_TEMP}/atlas-pulse-runtime"
+          mkdir -p "${XDG_RUNTIME_DIR}"
+          chmod 700 "${XDG_RUNTIME_DIR}"
+          pulseaudio --daemonize=yes --exit-idle-time=-1 --log-target=stderr
+          export PULSE_SERVER="unix:${XDG_RUNTIME_DIR}/pulse/native"
+          trap 'pulseaudio --kill >/dev/null 2>&1 || true' EXIT
+          for attempt in 1 2 3 4 5; do
+            if pactl info >/dev/null 2>&1; then
+              break
+            fi
+            sleep 1
+          done
+          pactl info >/dev/null
+          pactl load-module module-null-sink sink_name=atlas_ci sink_properties=device.description=AtlasCI >/dev/null
+          pactl set-default-sink atlas_ci
+          node scripts/smoke_system_symphony_apu_hybrid.mjs
 
       - name: Upload current System Symphony smoke evidence
         if: always()
