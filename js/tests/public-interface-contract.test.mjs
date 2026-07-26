@@ -277,7 +277,9 @@ test("deploy webhook secret is documented without exposing a value", () => {
   assert.match(workflow, /secrets\.DISCORD_DEPLOY_WEBHOOK/);
   assert.match(docs, /## `DISCORD_DEPLOY_WEBHOOK`/);
   assert.match(docs, /Repository secret/);
-  assert.doesNotMatch(docs, /https:\/\/discord(?:app)?\.com\/api\/webhooks\//);
+  assert.equal(docs.includes("/api/webhooks/"), false);
+  assert.equal(docs.includes("discord.com/api"), false);
+  assert.equal(docs.includes("discordapp.com/api"), false);
 });
 
 test("production route verification cannot fail from a closed grep pipe", () => {
