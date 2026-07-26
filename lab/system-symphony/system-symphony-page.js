@@ -86,7 +86,7 @@ function routeModeLabel() {
 }
 
 function telemetrySourceLabel(host, detail = {}) {
-  const key = detail.source?.key ?? host?.dataset.source ?? "connecting";
+  const key = host?.dataset.source ?? detail.source?.key ?? "connecting";
   if (key === "demo") return "replay";
   if (key === "preview") return "fixture";
   if (key === "stale") return "live stale";
