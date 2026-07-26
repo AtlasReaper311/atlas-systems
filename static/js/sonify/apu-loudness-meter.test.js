@@ -12,9 +12,23 @@ import {
 
 const directory = dirname(fileURLToPath(import.meta.url));
 
-function fakeWorkletNode(name, options) {
+function fakeConnectableNode(name = "node") {
   return {
     name,
+    connections: [],
+    disconnections: [],
+    connect(destination) {
+      this.connections.push(destination);
+    },
+    disconnect(destination) {
+      this.disconnections.push(destination ?? null);
+    },
+  };
+}
+
+function fakeWorkletNode(name, options) {
+  const node = {
+    ...fakeConnectableNode(name),
     options,
     messages: [],
     disposed: false,
@@ -28,8 +42,27 @@ function fakeWorkletNode(name, options) {
       },
       owner: null,
     },
-    disconnect() {
-      this.disposed = true;
+  };
+  const disconnect = node.disconnect.bind(node);
+  node.disconnect = (destination) => {
+    disconnect(destination);
+    if (destination === undefined) node.disposed = true;
+  };
+  return node;
+}
+
+function fakeSilentContext(sampleRate = 48000) {
+  const destination = fakeConnectableNode("destination");
+  const sinks = [];
+  return {
+    sampleRate,
+    destination,
+    sinks,
+    createGain() {
+      const sink = fakeConnectableNode("silent-sink");
+      sink.gain = { value: 1 };
+      sinks.push(sink);
+      return sink;
     },
   };
 }
@@ -56,14 +89,15 @@ test("the controller rejects unsupported contexts before touching the source", a
   assert.equal(connected, false);
 });
 
-test("the controller uses Tone's context factory so source and worklet share one node dialect", async () => {
+test("the controller uses Tone's context factory and an independent zero-gain sink", async () => {
   let node = null;
   const moduleRegistrations = [];
   const statusEvents = [];
   const metricEvents = [];
-  const connections = [];
-  const disconnections = [];
+  const sourceConnections = [];
+  const sourceDisconnections = [];
   const createdNodes = [];
+  const standardizedContext = fakeSilentContext(48000);
 
   const toneContext = {
     sampleRate: 48000,
@@ -77,6 +111,7 @@ test("the controller uses Tone's context factory so source and worklet share one
       return node;
     },
     rawContext: {
+      ...standardizedContext,
       _nativeAudioContext: {
         sampleRate: 48000,
         audioWorklet: {
@@ -90,10 +125,10 @@ test("the controller uses Tone's context factory so source and worklet share one
 
   const source = {
     connect(destination) {
-      connections.push(destination);
+      sourceConnections.push(destination);
     },
     disconnect(destination) {
-      disconnections.push(destination);
+      sourceDisconnections.push(destination);
     },
   };
 
@@ -110,9 +145,20 @@ test("the controller uses Tone's context factory so source and worklet share one
   }]);
   assert.equal(createdNodes.length, 1);
   assert.equal(node.name, APU_LOUDNESS_PROCESSOR_NAME);
-  assert.equal(node.options.numberOfOutputs, 0);
-  assert.equal(node.options.channelCount, 2);
-  assert.deepEqual(connections, [node]);
+  assert.equal(node.options.numberOfInputs, 1);
+  assert.equal(node.options.numberOfOutputs, 1);
+  assert.equal("channelCount" in node.options, false);
+  assert.equal("channelCountMode" in node.options, false);
+  assert.equal("channelInterpretation" in node.options, false);
+  assert.equal("outputChannelCount" in node.options, false);
+  assert.deepEqual(sourceConnections, [node]);
+
+  assert.equal(standardizedContext.sinks.length, 1);
+  const sink = standardizedContext.sinks[0];
+  assert.equal(sink.gain.value, 0);
+  assert.deepEqual(sink.connections, [standardizedContext.destination]);
+  assert.deepEqual(node.connections, [sink]);
+
   assert.equal(meter.getStatus().status, "loading");
   assert.equal(meter.getStatus().dialect, "tone-context");
 
@@ -130,7 +176,9 @@ test("the controller uses Tone's context factory so source and worklet share one
   assert.deepEqual(node.messages, [{ type: "reset" }]);
 
   meter.dispose();
-  assert.deepEqual(disconnections, [node]);
+  assert.deepEqual(sourceDisconnections, [node]);
+  assert.deepEqual(node.disconnections, [sink, null]);
+  assert.deepEqual(sink.disconnections, [null]);
   assert.equal(node.portClosed, true);
   assert.equal(node.disposed, true);
   assert.equal(meter.getStatus().disposed, true);
@@ -141,11 +189,11 @@ test("the controller retains a native-context fallback outside Tone", async (con
   const previousBaseAudioContext = globalThis.BaseAudioContext;
   let node = null;
   const moduleUrls = [];
-  const connections = [];
+  const sourceConnections = [];
 
   class FakeBaseAudioContext {
     constructor() {
-      this.sampleRate = 44100;
+      Object.assign(this, fakeSilentContext(44100));
       this.audioWorklet = {
         addModule: async (url) => moduleUrls.push(url),
       };
@@ -173,14 +221,17 @@ test("the controller retains a native-context fallback outside Tone", async (con
   const nativeContext = new FakeBaseAudioContext();
   const source = {
     connect(destination) {
-      connections.push(destination);
+      sourceConnections.push(destination);
     },
     disconnect() {},
   };
 
   const meter = await createApuLoudnessMeter({ context: nativeContext, source });
   assert.deepEqual(moduleUrls, [APU_LOUDNESS_WORKLET_URL]);
-  assert.deepEqual(connections, [node]);
+  assert.deepEqual(sourceConnections, [node]);
+  assert.equal(nativeContext.sinks.length, 1);
+  assert.equal(nativeContext.sinks[0].gain.value, 0);
+  assert.deepEqual(node.connections, [nativeContext.sinks[0]]);
   assert.equal(meter.getStatus().dialect, "native-context");
   meter.dispose();
 });
