@@ -90,9 +90,9 @@ function nativeWorkletFactory(context) {
 
 function workletFactory(context) {
   // Tone.js wraps standardized-audio-context. Its Context methods create a
-  // worklet node in the same node dialect as Tone.Destination. A one-output
-  // worklet is required by that wrapper, so the output terminates at an
-  // explicit zero-gain sink connected directly to the raw context destination.
+  // worklet node in the same node dialect as Tone.Destination. The worklet
+  // output terminates at an explicit zero-gain sink connected directly to the
+  // raw context destination, so the meter never returns audio to System Symphony.
   return toneWorkletFactory(context) ?? nativeWorkletFactory(context);
 }
 
@@ -167,10 +167,6 @@ export async function createApuLoudnessMeter({
     node = factory.createNode(APU_LOUDNESS_PROCESSOR_NAME, {
       numberOfInputs: 1,
       numberOfOutputs: 1,
-      outputChannelCount: [1],
-      channelCount: 2,
-      channelCountMode: "explicit",
-      channelInterpretation: "speakers",
       processorOptions: {
         maxBlockHistory,
       },
