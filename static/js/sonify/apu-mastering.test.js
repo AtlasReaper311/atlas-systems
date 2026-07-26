@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  APU_MASTERING_BROWSER_CALIBRATION_DB,
   APU_MASTERING_DEFAULT_USER_GAIN,
   APU_MASTERING_LIMITER_CEILING_DB,
   APU_MASTERING_MAX_ESTIMATED_TRUE_PEAK_DBTP,
@@ -11,15 +12,16 @@ import {
   masteringTargetWindow,
 } from "./apu-mastering.js";
 
-test("mastering policy raises active states while preserving Lost Signal distance", () => {
+test("mastering policy applies the measured browser calibration and preserves Lost Signal distance", () => {
   assert.equal(APU_MASTERING_DEFAULT_USER_GAIN, 0.7);
   assert.equal(APU_MASTERING_LIMITER_CEILING_DB, -1);
+  assert.equal(APU_MASTERING_BROWSER_CALIBRATION_DB, 6);
   assert.ok(APU_MASTERING_MAX_ESTIMATED_TRUE_PEAK_DBTP <= -0.8);
 
-  assert.equal(APU_MASTERING_PROFILES.healthy.masterGainDb, -2);
-  assert.equal(APU_MASTERING_PROFILES.warning.masterGainDb, -2);
-  assert.equal(APU_MASTERING_PROFILES.critical.masterGainDb, -2);
-  assert.equal(APU_MASTERING_PROFILES.unknown.masterGainDb, -11);
+  assert.equal(APU_MASTERING_PROFILES.healthy.masterGainDb, 4);
+  assert.equal(APU_MASTERING_PROFILES.warning.masterGainDb, 4);
+  assert.equal(APU_MASTERING_PROFILES.critical.masterGainDb, 4);
+  assert.equal(APU_MASTERING_PROFILES.unknown.masterGainDb, -5);
   assert.ok(APU_MASTERING_PROFILES.unknown.masterGainDb < APU_MASTERING_PROFILES.healthy.masterGainDb);
 });
 
