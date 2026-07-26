@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, follow">
+  <meta name="description" content="Atlas APU ROM Library: static System SYMPHONY cartridges and incident arcs for deterministic replay inspection.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Atlas APU ROM Library // Atlas Systems</title>
+  <link rel="canonical" href="https://atlas-systems.uk/lab/system-symphony/roms/">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260724-maturity-completion">
+  <link rel="stylesheet" href="/static/css/estate-search.css">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
+  <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h-fixes">
+  <link rel="stylesheet" href="/lab/system-symphony/system-symphony-page.css?v=20260726-flagship-ia-v1">
+</head>
+<body class="symphony-page">
+  <nav aria-label="Primary navigation">
+    <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
+    <ul class="nav-links">
+      <li><a href="/work/">Work</a></li><li><a href="/writing/">Writing</a></li>
+      <li><a href="/lab/" aria-current="page">Lab</a></li><li><a href="/systems/">Systems</a></li>
+      <li><a href="/about/">About</a></li>
+    </ul>
+  </nav>
+  <main class="focus-main symphony-page-main">
+    <header class="symphony-flagship symphony-route-hero" aria-labelledby="rom-title">
+      <p class="focus-breadcrumb">Lab / System SYMPHONY / fixture ROMs</p>
+      <h1 id="rom-title" class="focus-title">Atlas APU ROM Library</h1>
+      <p class="focus-lede">Collectible System SYMPHONY cartridges: deterministic, replayable, and honest about fixture source state until live persistence is approved.</p>
+      <div class="symphony-panel-actions">
+        <a class="focus-action primary" href="/lab/system-symphony/">Open instrument</a>
+        <a class="focus-action" href="/lab/system-symphony/replay/">Open replay route</a>
+        <a class="focus-action" href="/lab/system-symphony/black-box/archive.json">Archive JSON</a>
+      </div>
+      <p class="symphony-replay-status" data-rom-status aria-live="polite">Loading static cartridge archive.</p>
+    </header>
+
+    <section class="focus-section" aria-labelledby="rom-grid-title">
+      <div class="focus-section-head">
+        <div><p class="focus-breadcrumb">ROM shelf</p><h2 id="rom-grid-title">Browse replayable cartridges.</h2></div>
+        <p>Healthy, warning, critical, unknown, recovery, historic incident, and fixture categories are presented as cartridge identities, not raw JSON dumps.</p>
+      </div>
+      <div class="symphony-rom-grid" data-rom-library></div>
+    </section>
+
+    <section class="focus-section" aria-labelledby="rom-inspect-title">
+      <div class="focus-section-head">
+        <div><p class="focus-breadcrumb">Inspect</p><h2 id="rom-inspect-title">Selected cartridge JSON.</h2></div>
+        <p>The UI labels source and sample-free status from this data. Fixture cartridges never claim to be live.</p>
+      </div>
+      <details class="symphony-proof-json" open>
+        <summary>Inspect selected ROM JSON</summary>
+        <pre class="symphony-cartridge-json" data-rom-json tabindex="0" aria-label="Selected ROM JSON">Loading static archive.</pre>
+      </details>
+    </section>
+  </main>
+  <script type="module" src="/lab/shared/shell.js?v=20260725-batch-h-fixes"></script>
+  <script type="module" src="/lab/system-symphony/rom-library.js?v=20260726-flagship-ia-v1"></script>
+</body>
+</html>

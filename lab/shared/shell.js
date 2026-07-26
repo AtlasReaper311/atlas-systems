@@ -3,6 +3,7 @@
 const LAB_ROUTES = [
   { label: "Lab home", href: "/lab/" },
   { label: "System Symphony", href: "/lab/system-symphony/" },
+  { label: "APU ROMs", href: "/lab/system-symphony/roms/" },
   { label: "System Map", href: "/lab/system-map/" },
   { label: "Operations", href: "/lab/console/" },
   { label: "Proof Chain", href: "/lab/proof-chain/" },

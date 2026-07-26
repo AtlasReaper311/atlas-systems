@@ -29,6 +29,15 @@ const PROOF_PANELS = new Set(["cartridge", "blackbox", "incident"]);
 const REPLAY_PROFILES = new Set(["custom", "healthy", "warning", "critical", "unknown"]);
 const REPLAY_ROUTE = "/lab/system-symphony/replay/";
 const INCIDENT_ARC_FRAME_MS = 10000;
+const APU_ROLE_LABELS = Object.freeze({
+  clock: "Clock",
+  pulse: "Pulse",
+  memory: "Memory",
+  thermal: "Thermal",
+  signal: "Signal",
+  contention: "Contention",
+  recovery: "Recovery",
+});
 const MOVEMENTS = Object.freeze({
   healthy: "Green Clock",
   warning: "Warning Pressure",
@@ -70,6 +79,11 @@ function setCartridgeField(name, value) {
 
 function setProofText(id, value) {
   setText(id, value ?? "unknown");
+}
+
+function setProofPair(name, value) {
+  setProofText(`page-proof-${name}`, value);
+  setProofText(`trust-proof-${name}`, value);
 }
 
 function commitIdentity() {
@@ -182,14 +196,18 @@ function syncSummary(host) {
     measurementSummary,
   );
   const movement = MOVEMENTS[stateKey] ?? MOVEMENTS.unknown;
-  setProofText("page-proof-engine", SYSTEM_SYMPHONY_BUILD_ID);
-  setProofText("page-proof-commit", compactCommit(commitIdentity()));
-  setProofText("page-proof-source", telemetrySourceLabel(host));
-  setProofText("page-proof-route", routeModeLabel());
+  setProofPair("engine", SYSTEM_SYMPHONY_BUILD_ID);
+  setProofPair("commit", compactCommit(commitIdentity()));
+  setProofPair("source", telemetrySourceLabel(host));
+  setProofPair("route", routeModeLabel());
   document.querySelector("[data-page-movement]")?.replaceChildren(document.createTextNode(movement));
   document.querySelector("[data-page-source-label]")?.replaceChildren(document.createTextNode(sourceLabel));
   document.querySelector("[data-page-now-state]")?.replaceChildren(document.createTextNode(metricText(host, "state")));
   document.querySelector("[data-page-measured-label]")?.replaceChildren(document.createTextNode(playMeasured));
+  document.querySelector("[data-cover-movement]")?.replaceChildren(document.createTextNode(movement));
+  document.querySelector("[data-cover-source]")?.replaceChildren(document.createTextNode(telemetrySourceLabel(host)));
+  const cover = document.querySelector("[data-current-cartridge-cover]");
+  if (cover) cover.dataset.state = stateKey;
   const pageAudio = document.querySelector("[data-page-audio-toggle]");
   if (pageAudio) {
     pageAudio.textContent = running ? "Stop listening" : "Start listening";
@@ -198,6 +216,7 @@ function syncSummary(host) {
   const status = byId("page-source-status");
   status.dataset.state = stateKey === "critical" ? "failure" : stateKey === "warning" ? "warning" : stateKey === "healthy" ? "healthy" : "unknown";
   status.textContent = `Instrument ${stateKey}; source ${source}. Live mode remains read-only.`;
+  highlightApuRole(host.dataset.apuRoleHighlight);
 }
 
 function syncMode(mode, { push = true } = {}) {
@@ -214,7 +233,7 @@ function syncMode(mode, { push = true } = {}) {
     panel.hidden = panel.dataset.symphonyModePanel !== nextMode;
     panel.classList.toggle("is-active", panel.dataset.symphonyModePanel === nextMode);
   }
-  setProofText("page-proof-route", nextMode.toUpperCase());
+  setProofPair("route", nextMode.toUpperCase());
   if (!push) return;
   const url = new URL(window.location.href);
   if (nextMode === "play") url.searchParams.delete("symphonyMode");
@@ -250,6 +269,58 @@ function selectProofPanel(panel = "cartridge", { scroll = false } = {}) {
     scrollToPanel(target);
   }
   window.requestAnimationFrame(pinHorizontalScroll);
+}
+
+function setTrustLayer(open) {
+  const layer = document.querySelector("[data-trust-layer]");
+  const toggle = document.querySelector("[data-trust-toggle]");
+  if (!layer || !toggle) return;
+  layer.hidden = !open;
+  toggle.setAttribute("aria-expanded", String(open));
+  if (open) layer.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+function setTrustStatus(message) {
+  const status = document.querySelector("[data-trust-status]");
+  if (status) status.textContent = message;
+}
+
+function sourceHonestyMessage(source) {
+  if (source === "live") return "Live source: current bounded public telemetry.";
+  if (source === "live stale") return "Stale source: live request failed; last-known values remain inspectable.";
+  if (source === "fixture") return "Fixture source: static preview data, not live estate state.";
+  if (source === "replay") return "Replay source: browser-only deterministic playback.";
+  return "Connecting source: no live claim is available yet.";
+}
+
+function roleSummary(plan, role) {
+  const entry = plan?.roles?.[role];
+  if (!entry) return `${APU_ROLE_LABELS[role] ?? role}: waiting for the first score plan.`;
+  const parts = Object.entries(entry)
+    .filter(([, value]) => value !== null && value !== undefined && typeof value !== "object")
+    .slice(0, 4)
+    .map(([key, value]) => `${key} ${value}`);
+  return `${entry.role ?? APU_ROLE_LABELS[role] ?? role}: ${entry.lane ?? "diagnostic lane"}${parts.length ? ` / ${parts.join(" / ")}` : ""}.`;
+}
+
+function highlightApuRole(role) {
+  const selected = APU_ROLE_LABELS[role] ? role : "";
+  const label = APU_ROLE_LABELS[selected] ?? "";
+  for (const button of document.querySelectorAll("[data-apu-role-highlight]")) {
+    button.setAttribute("aria-pressed", String(button.dataset.apuRoleHighlight === selected));
+  }
+  const status = document.querySelector("[data-apu-role-status]");
+  if (status) status.textContent = selected
+    ? roleSummary(latestCartridge?.scorePlan, selected)
+    : "Select a role to see its current chip law. Switch the source to Atlas APU audition, then inspect a service to solo or mute it.";
+  const host = document.getElementById(HOST_ID);
+  if (!host) return;
+  host.dataset.apuRoleHighlight = selected;
+  const rows = host.querySelectorAll("[data-service-table] tr");
+  for (const row of rows) {
+    const roleCell = row.children[4];
+    row.classList.toggle("is-role-highlight", Boolean(label) && roleCell?.textContent?.includes(label));
+  }
 }
 
 function clickConsoleAudio(host) {
@@ -414,22 +485,33 @@ function renderCartridge(payload) {
   setCartridgeField("sampleFree", payload.sampleFree);
   setCartridgeField("replaySeed", payload.replaySeed);
 
-  setProofText("page-proof-commit", payload.commit);
-  setProofText("page-proof-engine", payload.engineVersion);
-  setProofText("page-proof-source", payload.source);
-  setProofText("page-proof-frame-time", payload.frameTime);
-  setProofText("page-proof-route", payload.routeMode);
-  setProofText("page-proof-frame-seed", payload.frameSeed);
-  setProofText("page-proof-sample-free", payload.sampleFreeGuard);
+  setProofPair("commit", payload.commit);
+  setProofPair("engine", payload.engineVersion);
+  setProofPair("source", payload.source);
+  setProofPair("frame-time", payload.frameTime);
+  setProofPair("route", payload.routeMode);
+  setProofPair("frame-seed", payload.frameSeed);
+  setProofPair("sample-free", payload.sampleFreeGuard);
   const proofReplay = byId("page-proof-replay");
   if (proofReplay) {
     proofReplay.href = payload.replayUrl;
     proofReplay.textContent = "available";
   }
+  const trustReplay = byId("trust-proof-replay");
+  if (trustReplay) {
+    trustReplay.href = payload.replayUrl;
+    trustReplay.textContent = "available";
+  }
+  document.querySelector("[data-cover-movement]")?.replaceChildren(document.createTextNode(payload.movement ?? "Unknown Drift"));
+  document.querySelector("[data-cover-source]")?.replaceChildren(document.createTextNode(payload.source ?? "connecting"));
+  const cover = document.querySelector("[data-current-cartridge-cover]");
+  if (cover) cover.dataset.state = payload.dominantState ?? "unknown";
   const json = document.querySelector("[data-cartridge-json]");
   if (json) json.textContent = JSON.stringify(payload, null, 2);
   const status = document.querySelector("[data-cartridge-status]");
   if (status) status.textContent = `Cartridge armed: ${payload.dominantState} / ${payload.source}.`;
+  setTrustStatus(sourceHonestyMessage(payload.source));
+  highlightApuRole(document.getElementById(HOST_ID)?.dataset.apuRoleHighlight);
 }
 
 function refreshCartridge(host, detail = host.__atlasApuFrame ?? {}) {
@@ -902,7 +984,19 @@ function installModeControls(host) {
     opener.addEventListener("click", (event) => {
       event.preventDefault();
       syncMode("trace");
+      setTrustLayer(true);
       selectProofPanel(opener.dataset.proofOpen, { scroll: true });
+    });
+  }
+  document.querySelector("[data-trust-toggle]")?.addEventListener("click", () => {
+    const layer = document.querySelector("[data-trust-layer]");
+    setTrustLayer(layer?.hidden !== false);
+  });
+  document.querySelector("[data-trust-close]")?.addEventListener("click", () => setTrustLayer(false));
+  for (const roleButton of document.querySelectorAll("[data-apu-role-highlight]")) {
+    roleButton.addEventListener("click", () => {
+      const pressed = roleButton.getAttribute("aria-pressed") === "true";
+      highlightApuRole(pressed ? "" : roleButton.dataset.apuRoleHighlight);
     });
   }
   document.querySelector("[data-page-audio-toggle]")?.addEventListener("click", () => clickConsoleAudio(host));
@@ -924,8 +1018,12 @@ function installModeControls(host) {
     event.target.value = event.target.value.toUpperCase();
     refreshCartridge(host);
   });
-  document.querySelector("[data-cartridge-copy]")?.addEventListener("click", copyCartridgeJson);
-  document.querySelector("[data-cartridge-download]")?.addEventListener("click", downloadCartridgeJson);
+  for (const copyButton of document.querySelectorAll("[data-cartridge-copy]")) {
+    copyButton.addEventListener("click", copyCartridgeJson);
+  }
+  for (const downloadButton of document.querySelectorAll("[data-cartridge-download]")) {
+    downloadButton.addEventListener("click", downloadCartridgeJson);
+  }
   host.addEventListener("atlas-apu-frame", (event) => {
     refreshCartridge(host, event.detail);
   });
