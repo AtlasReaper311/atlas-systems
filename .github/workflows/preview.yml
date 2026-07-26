@@ -13,6 +13,8 @@ on:
       - "_headers"
       - "lab/**"
       - "scripts/smoke_system_symphony_preview.mjs"
+      - "scripts/smoke_system_symphony_apu_preview.mjs"
+      - "scripts/smoke_system_symphony_apu_hybrid.mjs"
       - "static/js/sonify/**"
 
 permissions:
@@ -43,11 +45,53 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Validate HTML
+        run: npx --yes html-validate@9.7.1 "**/*.html"
+
+      - name: Run public interface tests
+        run: node --test js/tests/public-interface-contract.test.mjs
+
+      - name: Run remaining main-site tests
+        id: main-site
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          files=()
+          for path in js/tests/*.test.mjs; do
+            if [ "${path}" != "js/tests/public-interface-contract.test.mjs" ]; then
+              files+=("${path}")
+            fi
+          done
+          if [ "${#files[@]}" -gt 0 ]; then
+            node --test --test-concurrency=1 "${files[@]}" 2>&1 | tee preview-main-site-test-report.txt
+          else
+            printf '%s\n' 'No remaining main-site tests found.' | tee preview-main-site-test-report.txt
+          fi
+
+      - name: Upload preview main-site test report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        with:
+          name: preview-main-site-test-report
+          path: preview-main-site-test-report.txt
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Enforce preview main-site test result
+        if: steps.main-site.outcome != 'success'
+        run: |
+          cat preview-main-site-test-report.txt
+          exit 1
+
+      - name: Run Lab tests
+        run: node --test lab/tests/*.test.mjs
+
+      - name: Run System Symphony tests
+        run: node --test static/js/sonify/*.test.js
+
       - name: Validate static site and Pages output
         run: |
           set -euo pipefail
-          npx --yes html-validate@9.7.1 "**/*.html"
-          node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
           python3 scripts/generate_sitemap.py --check-only
           python3 scripts/verify_pages_output.py .
           python3 - <<'PY'
@@ -74,7 +118,7 @@ jobs:
       (startsWith(github.event.pull_request.head.ref, 'feat/system-symphony-') ||
        startsWith(github.event.pull_request.head.ref, 'fix/system-symphony-'))
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     environment:
       name: pages-preview
       url: ${{ steps.deploy.outputs.deployment_url }}
@@ -126,21 +170,65 @@ jobs:
       - name: Install pinned browser smoke tooling
         run: npm install --no-save --ignore-scripts playwright@1.61.1
 
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Install Chromium and Firefox
+        run: npx playwright install --with-deps chromium firefox
 
-      - name: Verify System Symphony live data and audio
+      - name: Verify current System Symphony live data and audio
         env:
           PREVIEW_URL: ${{ steps.deploy.outputs.deployment_url }}
           SMOKE_OUTPUT_DIR: ${{ runner.temp }}/system-symphony-smoke
         run: node scripts/smoke_system_symphony_preview.mjs
 
-      - name: Upload System Symphony smoke evidence
+      - name: Verify hybrid Atlas APU in Chromium
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.deployment_url }}
+          APU_BROWSER: chromium
+          APU_SMOKE_OUTPUT_DIR: ${{ runner.temp }}/system-symphony-apu-smoke/chromium
+        run: node scripts/smoke_system_symphony_apu_hybrid.mjs
+
+      - name: Verify hybrid Atlas APU in Firefox
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.deployment_url }}
+          APU_BROWSER: firefox
+          APU_SMOKE_OUTPUT_DIR: ${{ runner.temp }}/system-symphony-apu-smoke/firefox
+        run: |
+          set -euo pipefail
+          if ! command -v pulseaudio >/dev/null 2>&1 || ! command -v pactl >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y pulseaudio pulseaudio-utils
+          fi
+          export XDG_RUNTIME_DIR="${RUNNER_TEMP}/atlas-pulse-runtime"
+          mkdir -p "${XDG_RUNTIME_DIR}"
+          chmod 700 "${XDG_RUNTIME_DIR}"
+          pulseaudio --daemonize=yes --exit-idle-time=-1 --log-target=stderr
+          export PULSE_SERVER="unix:${XDG_RUNTIME_DIR}/pulse/native"
+          trap 'pulseaudio --kill >/dev/null 2>&1 || true' EXIT
+          for attempt in 1 2 3 4 5; do
+            if pactl info >/dev/null 2>&1; then
+              break
+            fi
+            sleep 1
+          done
+          pactl info >/dev/null
+          pactl load-module module-null-sink sink_name=atlas_ci sink_properties=device.description=AtlasCI >/dev/null
+          pactl set-default-sink atlas_ci
+          node scripts/smoke_system_symphony_apu_hybrid.mjs
+
+      - name: Upload current System Symphony smoke evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
         with:
           name: system-symphony-preview-smoke
           path: ${{ runner.temp }}/system-symphony-smoke
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload hybrid Atlas APU smoke evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        with:
+          name: system-symphony-apu-hybrid-smoke
+          path: ${{ runner.temp }}/system-symphony-apu-smoke
           if-no-files-found: error
           retention-days: 7
 
@@ -153,11 +241,13 @@ jobs:
           {
             echo "## Cloudflare Pages preview"
             echo
-            echo "${PREVIEW_URL}"
+            echo "Current instrument: ${PREVIEW_URL}/lab/system-symphony/"
+            echo
+            echo "Hybrid Atlas APU candidate: ${PREVIEW_URL}/lab/system-symphony-apu/"
             echo
             echo "Atomic deployment: ${ATOMIC_URL}"
             echo
-            echo "Browser smoke verified Tone.js, bounded same-origin preview evidence, the restored PR #43 palette exclusions, the full sample library, and the Start Audio path."
+            echo "Browser smoke verified the current production-comparison route plus the hybrid Atlas APU in Chromium and Firefox. The APU checks require a running Tone.js context, explicit fixture evidence states, a mixed state vector, per-state loudness measurements, six channel cards and zero audio asset requests."
             echo
             echo "This is a non-production branch deployment. atlas-systems.uk is unchanged."
           } >>"${GITHUB_STEP_SUMMARY}"

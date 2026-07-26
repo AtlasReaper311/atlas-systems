@@ -1,10 +1,10 @@
-import "../../static/js/sonify/ui.js?v=20260720-system-symphony-loop-production-v2";
+import "../../static/js/sonify/ui.js?v=20260726-system-symphony-atlas-apu-live-v1";
 
 const OBJECTIVES_URL = "https://api.atlas-systems.uk/v1/reliability/objectives";
 const SHELL_FIX_STYLESHEET = "/static/css/batch-h-shell-fixes.css?v=20260725-browser-evidence";
 const HOST_ID = "system-symphony-widget";
 const HOST_WAIT_MS = 5000;
-const PAGE_OUTPUT_GAIN_PERCENT = 50;
+const PAGE_OUTPUT_GAIN_PERCENT = 70;
 
 const byId = (id) => document.getElementById(id);
 

@@ -1,0 +1,79 @@
+.apu-form-panel {
+  padding: 20px 28px 24px;
+  border-bottom: 1px solid var(--apu-border);
+  background: rgba(8, 8, 13, 0.44);
+}
+
+.apu-form-panel .apu-scope-head {
+  margin-bottom: 12px;
+}
+
+.apu-form-timeline {
+  display: grid;
+  grid-template-columns: repeat(32, minmax(22px, 1fr));
+  gap: 4px;
+  min-width: 920px;
+}
+
+.apu-form-panel {
+  overflow-x: auto;
+}
+
+.apu-form-section {
+  grid-column: span var(--section-bars);
+  min-height: 62px;
+  padding: 9px 10px;
+  border: 1px solid var(--apu-border);
+  border-radius: 7px;
+  background: var(--apu-panel-deep);
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.apu-form-section strong,
+.apu-form-section span {
+  display: block;
+}
+
+.apu-form-section strong {
+  overflow: hidden;
+  color: var(--apu-dim);
+  font-size: 0.69rem;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.apu-form-section span {
+  margin-top: 6px;
+  color: var(--apu-faint);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+}
+
+.apu-form-section[data-active="true"] {
+  border-color: var(--apu-accent);
+  background: rgba(245, 166, 35, 0.14);
+  transform: translateY(-2px);
+}
+
+.apu-form-section[data-active="true"] strong,
+.apu-form-section[data-active="true"] span {
+  color: var(--apu-text);
+}
+
+.apu-main[data-section="peak"] .apu-console {
+  box-shadow: 0 28px 100px rgba(245, 166, 35, 0.12);
+}
+
+@media (max-width: 620px) {
+  .apu-form-panel {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .apu-form-section {
+    transform: none !important;
+  }
+}

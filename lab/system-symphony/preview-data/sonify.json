@@ -1,15 +1,16 @@
 {
   "preview": true,
+  "fixture_id": "system-symphony-evidence-hybrid-v1",
   "timestamp": "2026-07-25T12:15:00.000Z",
   "estate": {
-    "overall_health": 0.881,
+    "overall_health": 0.988,
     "active_incidents": 0,
-    "known_service_ratio": 0.857
+    "known_service_ratio": 0.905
   },
   "services": [
     {"name":"ramone-memory","status":"healthy","health_detail":"Non-production preview fixture","evidence_source":"preview:ramone-memory","measured_at":"2026-07-25T12:15:00.000Z","latency_ms":31,"uptime_pct":99.9,"error_rate":0,"last_deploy_secs_ago":null},
     {"name":"atlas-corpus","status":"healthy","health_detail":"Non-production preview fixture","evidence_source":"preview:atlas-corpus","measured_at":"2026-07-25T12:15:00.000Z","latency_ms":44,"uptime_pct":99.8,"error_rate":0,"last_deploy_secs_ago":null},
-    {"name":"specular-telemetry","status":"degraded","health_detail":"Preview includes a bounded warning state","evidence_source":"preview:specular-telemetry","measured_at":"2026-07-25T12:15:00.000Z","latency_ms":214,"uptime_pct":98.7,"error_rate":0.01,"last_deploy_secs_ago":null},
+    {"name":"specular-telemetry","status":"degraded","health_detail":"Preview includes one bounded warning state","evidence_source":"preview:specular-telemetry","measured_at":"2026-07-25T12:15:00.000Z","latency_ms":214,"uptime_pct":98.7,"error_rate":0.01,"last_deploy_secs_ago":null},
     {"name":"atlas-api-public","status":"healthy","health_detail":"Non-production preview fixture","evidence_source":"preview:atlas-api-public","measured_at":"2026-07-25T12:15:00.000Z","latency_ms":18,"uptime_pct":100,"error_rate":0,"last_deploy_secs_ago":null},
     {"name":"atlas-api-index","status":"healthy","health_detail":"Non-production preview fixture","evidence_source":"preview:atlas-api-index","measured_at":"2026-07-25T12:15:00.000Z","latency_ms":22,"uptime_pct":100,"error_rate":0,"last_deploy_secs_ago":null},
     {"name":"atlas-notify","status":"healthy","health_detail":"Non-production preview fixture","evidence_source":"preview:atlas-notify","measured_at":"2026-07-25T12:15:00.000Z","latency_ms":27,"uptime_pct":99.9,"error_rate":0,"last_deploy_secs_ago":null},

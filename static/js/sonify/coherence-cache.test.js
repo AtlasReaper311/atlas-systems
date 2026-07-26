@@ -4,10 +4,10 @@ import test from "node:test";
 
 import {
   LIVE_STATE_TRANSITION_SECONDS,
-  SYSTEM_SYMPHONY_BUILD_ID,
   canCommitLiveFrameAtStep,
   liveStateConfirmationFrames,
 } from "./engine.js";
+import { SYSTEM_SYMPHONY_BUILD_ID as LIVE_APU_BUILD_ID } from "./apu-production-engine.js";
 import { resolveSamplePalette } from "./samples.js";
 
 test("live state changes require persistence before harmonic state replacement", () => {
@@ -56,15 +56,15 @@ test("Ghost Circuit keeps its richer sample pools", () => {
   assert.equal(palettes.some((palette) => palette.metal !== "perc-stick"), true);
 });
 
-test("cache contract exposes and revalidates the active System SYMPHONY build", () => {
+test("cache contract exposes and revalidates the active Atlas APU build", () => {
   const headers = fs.readFileSync("_headers", "utf8");
   const symphonyPage = fs.readFileSync("lab/system-symphony/system-symphony-page.js", "utf8");
   const ui = fs.readFileSync("static/js/sonify/ui.js", "utf8");
-  assert.equal(SYSTEM_SYMPHONY_BUILD_ID, "20260720-system-symphony-loop-production-v2");
+  assert.equal(LIVE_APU_BUILD_ID, "20260726-system-symphony-atlas-apu-live-v1");
   assert.match(headers, /\/static\/js\/sonify\/\*[\s\S]*Cache-Control: no-cache, max-age=0, must-revalidate/);
-  assert.match(headers, new RegExp(`X-Atlas-System-Symphony-Build: ${SYSTEM_SYMPHONY_BUILD_ID}`));
-  assert.match(symphonyPage, new RegExp(`ui\\.js\\?v=${SYSTEM_SYMPHONY_BUILD_ID}`));
-  assert.match(ui, new RegExp(`engine\\.js\\?v=${SYSTEM_SYMPHONY_BUILD_ID}`));
+  assert.match(headers, new RegExp(`X-Atlas-System-Symphony-Build: ${LIVE_APU_BUILD_ID}`));
+  assert.match(symphonyPage, new RegExp(`ui\\.js\\?v=${LIVE_APU_BUILD_ID}`));
+  assert.match(ui, new RegExp(`apu-production-engine\\.js\\?v=${LIVE_APU_BUILD_ID}`));
   assert.match(ui, /__ATLAS_SYSTEM_SYMPHONY_BUILD__/);
 });
 
