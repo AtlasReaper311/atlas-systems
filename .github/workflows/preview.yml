@@ -52,8 +52,10 @@ jobs:
         run: node --test js/tests/public-interface-contract.test.mjs
 
       - name: Run remaining main-site tests
+        id: main-site
+        continue-on-error: true
         run: |
-          set -euo pipefail
+          set -o pipefail
           files=()
           for path in js/tests/*.test.mjs; do
             if [ "${path}" != "js/tests/public-interface-contract.test.mjs" ]; then
@@ -61,8 +63,25 @@ jobs:
             fi
           done
           if [ "${#files[@]}" -gt 0 ]; then
-            node --test "${files[@]}"
+            node --test "${files[@]}" 2>&1 | tee preview-main-site-test-report.txt
+          else
+            printf '%s\n' 'No remaining main-site tests found.' | tee preview-main-site-test-report.txt
           fi
+
+      - name: Upload preview main-site test report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        with:
+          name: preview-main-site-test-report
+          path: preview-main-site-test-report.txt
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Enforce preview main-site test result
+        if: steps.main-site.outcome != 'success'
+        run: |
+          cat preview-main-site-test-report.txt
+          exit 1
 
       - name: Run Lab tests
         run: node --test lab/tests/*.test.mjs
