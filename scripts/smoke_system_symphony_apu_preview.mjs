@@ -16,7 +16,7 @@ await fs.mkdir(outputDirectory, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({
-  viewport: { width: 1440, height: 1400 },
+  viewport: { width: 1440, height: 1600 },
   reducedMotion: "reduce",
 });
 
@@ -44,6 +44,7 @@ async function collectEvidence() {
   return page.evaluate(() => {
     const root = document.querySelector("[data-apu-root]");
     const metric = (name) => root?.querySelector(`[data-metric="${name}"]`)?.textContent?.trim() ?? null;
+    const loudnessText = (name) => root?.querySelector(`[data-loudness="${name}"]`)?.textContent?.trim() ?? null;
     const arrangement = globalThis.__ATLAS_APU__?.getArrangement?.() ?? null;
     const timeline = globalThis.__ATLAS_APU__?.getTimeline?.() ?? [];
     const diagnostics = globalThis.__ATLAS_APU__?.getDiagnostics?.() ?? null;
@@ -56,6 +57,7 @@ async function collectEvidence() {
       source: root?.dataset.source ?? null,
       state: root?.dataset.state ?? null,
       section: root?.dataset.section ?? null,
+      loudnessStatus: root?.dataset.loudnessStatus ?? null,
       statusText: root?.querySelector("[data-status]")?.textContent?.trim() ?? null,
       metricState: metric("state"),
       metricScene: metric("scene"),
@@ -63,6 +65,15 @@ async function collectEvidence() {
       metricPosition: metric("position"),
       metricPhase: metric("phase"),
       metricComponents: metric("components"),
+      loudnessStatusText: loudnessText("status"),
+      loudnessMomentaryText: loudnessText("momentary"),
+      loudnessShortTermText: loudnessText("short-term"),
+      loudnessIntegratedText: loudnessText("integrated"),
+      loudnessTruePeakText: loudnessText("true-peak"),
+      loudnessMethodText: loudnessText("method"),
+      loudnessControllerStatus: globalThis.__ATLAS_APU_LOUDNESS__?.getStatus?.() ?? null,
+      loudnessMetrics: globalThis.__ATLAS_APU_LOUDNESS__?.getMetrics?.() ?? null,
+      rawLoudnessMetrics: globalThis.__ATLAS_APU_LOUDNESS__?.getRawMetrics?.() ?? null,
       serviceRows: root?.querySelectorAll("[data-service]").length ?? 0,
       channelCards: root?.querySelectorAll("[data-channel]").length ?? 0,
       timelineSections: root?.querySelectorAll("[data-form-section]").length ?? 0,
@@ -134,6 +145,11 @@ try {
       && globalThis.__ATLAS_APU__?.getArrangement?.()?.section;
   }, null, { timeout: 15_000 });
 
+  await page.waitForFunction(() => {
+    const status = globalThis.__ATLAS_APU_LOUDNESS__?.getStatus?.();
+    return status?.status === "running" && status?.processorReady === true;
+  }, null, { timeout: 15_000, polling: 100 });
+
   await page.getByRole("button", { name: "Critical", exact: true }).click();
   await waitForStateTransition("critical", "hard-choke");
 
@@ -143,14 +159,20 @@ try {
   await page.getByRole("button", { name: "Healthy", exact: true }).click();
   await waitForStateTransition("healthy", "crossfade");
 
-  // Continue through bars 15-16 so the corrected transport remains proven after
-  // three state changes, direct envelope choking and a full-bar decay transition.
+  // Continue through bars 15-16 so transport, state transitions and the
+  // monitoring-only worklet all remain active during a long browser run.
   await page.waitForFunction(() => {
     const arrangement = globalThis.__ATLAS_APU__?.getArrangement?.();
     const diagnostics = globalThis.__ATLAS_APU__?.getDiagnostics?.();
+    const loudness = globalThis.__ATLAS_APU_LOUDNESS__?.getMetrics?.();
     return arrangement?.section === "theme-b"
       && Number(diagnostics?.trackPhraseIndex) >= 7
-      && Number(diagnostics?.stepIndex) > 32 * 7;
+      && Number(diagnostics?.stepIndex) > 32 * 7
+      && loudness?.ready === true
+      && Number.isFinite(loudness?.momentaryLufs)
+      && Number.isFinite(loudness?.shortTermLufs)
+      && Number.isFinite(loudness?.integratedLufs)
+      && Number.isFinite(loudness?.sessionTruePeakDbtp);
   }, null, { timeout: 55_000, polling: 250 });
 
   evidence = await collectEvidence();
@@ -181,6 +203,24 @@ try {
   assert.deepEqual(evidence.diagnostics.channelFailures, {});
   assert.equal(evidence.toneState, "running");
   assert.equal(evidence.engineRunning, true);
+
+  assert.equal(evidence.loudnessStatus, "running");
+  assert.equal(evidence.loudnessControllerStatus.status, "running");
+  assert.equal(evidence.loudnessControllerStatus.processorReady, true);
+  assert.equal(evidence.loudnessMetrics.ready, true);
+  assert.ok(Number.isFinite(evidence.loudnessMetrics.momentaryLufs));
+  assert.ok(Number.isFinite(evidence.loudnessMetrics.shortTermLufs));
+  assert.ok(Number.isFinite(evidence.loudnessMetrics.integratedLufs));
+  assert.ok(Number.isFinite(evidence.loudnessMetrics.sessionTruePeakDbtp));
+  assert.ok(evidence.loudnessMetrics.blockCount > 0);
+  assert.ok(evidence.loudnessMetrics.gatedBlockCount > 0);
+  assert.match(evidence.loudnessMetrics.truePeakMethod, /4x-cubic-estimate/);
+  assert.match(evidence.loudnessMetrics.compliance, /BS\.1770-5/);
+  assert.match(evidence.loudnessMomentaryText ?? "", /LUFS/);
+  assert.match(evidence.loudnessIntegratedText ?? "", /LUFS/);
+  assert.match(evidence.loudnessTruePeakText ?? "", /dBTP est\./);
+  assert.match(evidence.loudnessMethodText ?? "", /normalised above the user volume control/);
+
   assert.deepEqual(stateTransitions.map(({ to, policy }) => ({ to, policy })), [
     { to: "critical", policy: "hard-choke" },
     { to: "unknown", policy: "one-bar-decay" },
