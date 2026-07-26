@@ -57,6 +57,7 @@ async function collectEvidence() {
       source: root?.dataset.source ?? null,
       state: root?.dataset.state ?? null,
       section: root?.dataset.section ?? null,
+      volumeValue: root?.querySelector("[data-volume]")?.value ?? null,
       loudnessStatus: root?.dataset.loudnessStatus ?? null,
       statusText: root?.querySelector("[data-status]")?.textContent?.trim() ?? null,
       metricState: metric("state"),
@@ -80,6 +81,7 @@ async function collectEvidence() {
       activeTimelineSections: root?.querySelectorAll('[data-form-section][data-active="true"]').length ?? 0,
       timeline,
       arrangement,
+      mastering: arrangement?.stateIdentity?.mastering ?? null,
       diagnostics,
       toneState: globalThis.Tone?.getContext?.().state ?? null,
       engineRunning: globalThis.__ATLAS_APU__?.isRunning?.() === true,
@@ -159,8 +161,8 @@ try {
   await page.getByRole("button", { name: "Healthy", exact: true }).click();
   await waitForStateTransition("healthy", "crossfade");
 
-  // Continue through bars 15-16 so transport, state transitions and the
-  // monitoring-only worklet all remain active during a long browser run.
+  // Continue through bars 15-16 so transport, state transitions, mastering and
+  // the monitoring-only worklet all remain active during a long browser run.
   await page.waitForFunction(() => {
     const arrangement = globalThis.__ATLAS_APU__?.getArrangement?.();
     const diagnostics = globalThis.__ATLAS_APU__?.getDiagnostics?.();
@@ -183,6 +185,7 @@ try {
   assert.equal(evidence.running, "true");
   assert.equal(evidence.noSamples, "true");
   assert.equal(evidence.source, "simulated");
+  assert.equal(evidence.volumeValue, "70");
   assert.equal(evidence.metricState, "Healthy");
   assert.ok(Number.parseInt(evidence.metricComponents ?? "0", 10) > 0);
   assert.ok(evidence.serviceRows > 0);
@@ -197,6 +200,10 @@ try {
   assert.equal(evidence.arrangement.cycleBarEnd, 16);
   assert.equal(evidence.metricSection, "Theme B");
   assert.match(evidence.metricPosition ?? "", /Bars 15-16 \/ 32/);
+  assert.equal(evidence.mastering.state, "healthy");
+  assert.equal(evidence.mastering.masterGainDb, -2);
+  assert.equal(evidence.mastering.programmeTrimDb, 8);
+  assert.equal(evidence.mastering.targetIntegratedLufs, -22);
   assert.ok(evidence.diagnostics.stepIndex > 32 * 7);
   assert.ok(evidence.diagnostics.trackPhraseIndex >= 7);
   assert.equal(evidence.diagnostics.state, "healthy");
@@ -212,6 +219,9 @@ try {
   assert.ok(Number.isFinite(evidence.loudnessMetrics.shortTermLufs));
   assert.ok(Number.isFinite(evidence.loudnessMetrics.integratedLufs));
   assert.ok(Number.isFinite(evidence.loudnessMetrics.sessionTruePeakDbtp));
+  assert.ok(evidence.loudnessMetrics.integratedLufs > -27, "mastered programme remained below the lower acceptance bound");
+  assert.ok(evidence.loudnessMetrics.integratedLufs < -12, "mastered programme exceeded the upper acceptance bound");
+  assert.ok(evidence.loudnessMetrics.sessionTruePeakDbtp <= -0.8, "estimated true peak exceeded the mastering guard");
   assert.ok(evidence.loudnessMetrics.blockCount > 0);
   assert.ok(evidence.loudnessMetrics.gatedBlockCount > 0);
   assert.match(evidence.loudnessMetrics.truePeakMethod, /4x-cubic-estimate/);
@@ -220,6 +230,9 @@ try {
   assert.match(evidence.loudnessIntegratedText ?? "", /LUFS/);
   assert.match(evidence.loudnessTruePeakText ?? "", /dBTP est\./);
   assert.match(evidence.loudnessMethodText ?? "", /normalised above the user volume control/);
+
+  const integratedCompensation = evidence.loudnessMetrics.integratedLufs - evidence.rawLoudnessMetrics.integratedLufs;
+  assert.ok(integratedCompensation > 3 && integratedCompensation < 3.2, "70% user-gain compensation was not preserved");
 
   assert.deepEqual(stateTransitions.map(({ to, policy }) => ({ to, policy })), [
     { to: "critical", policy: "hard-choke" },
