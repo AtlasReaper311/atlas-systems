@@ -5,6 +5,7 @@ import test from "node:test";
 const page = readFileSync("lab/system-symphony/index.html", "utf8");
 const adapter = readFileSync("lab/system-symphony/system-symphony-page.js", "utf8");
 const pageCss = readFileSync("lab/system-symphony/system-symphony-page.css", "utf8");
+const previewEndpoints = readFileSync("lab/system-symphony/preview-endpoints.js", "utf8");
 const sharedCss = readFileSync("static/css/systems-focus.css", "utf8");
 const labShell = readFileSync("lab/shared/shell.js", "utf8");
 const ui = readFileSync("static/js/sonify/ui.js", "utf8");
@@ -51,6 +52,8 @@ test("PLAY stays minimal while TRACE and REPLAY reveal proof deliberately", () =
   assert.ok(adapter.includes("clickConsoleAudio"));
   assert.ok(adapter.includes("applyReplay"));
   assert.ok(adapter.includes("navigator.clipboard"));
+  assert.ok(page.includes("preview-endpoints.js?v=20260726-phase5-replay-preview"));
+  assert.ok(previewEndpoints.includes('host.dataset.source === "demo"'));
 });
 
 test("the page reuses the current engine instead of forking audio logic", () => {
