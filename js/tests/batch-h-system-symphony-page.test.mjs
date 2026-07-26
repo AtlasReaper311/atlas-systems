@@ -192,6 +192,7 @@ test("the page reuses the current engine instead of forking audio logic", () => 
 test("audio still requires the explicit Start control and supports rejection recovery", () => {
   assert.ok(ui.includes("data-audio-toggle>Start</button>"));
   assert.ok(page.includes("data-page-audio-toggle"));
+  assert.ok(page.includes("data-page-audio-toggle data-audio-toggle"));
   assert.ok(ui.includes("AUDIO_CONTEXT_BLOCKED_CODE"));
   assert.ok(ui.includes("Retry audio"));
   assert.ok(engine.includes("export const AUDIO_CONTEXT_BLOCKED_CODE"));
