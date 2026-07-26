@@ -89,7 +89,7 @@ test("the controller rejects unsupported contexts before touching the source", a
   assert.equal(connected, false);
 });
 
-test("the controller uses Tone's context factory and an independent zero-gain sink", async () => {
+test("the controller uses Tone defaults and an independent zero-gain sink", async () => {
   let node = null;
   const moduleRegistrations = [];
   const statusEvents = [];
@@ -145,12 +145,7 @@ test("the controller uses Tone's context factory and an independent zero-gain si
   }]);
   assert.equal(createdNodes.length, 1);
   assert.equal(node.name, APU_LOUDNESS_PROCESSOR_NAME);
-  assert.equal(node.options.numberOfInputs, 1);
-  assert.equal(node.options.numberOfOutputs, 1);
-  assert.equal("channelCount" in node.options, false);
-  assert.equal("channelCountMode" in node.options, false);
-  assert.equal("channelInterpretation" in node.options, false);
-  assert.equal("outputChannelCount" in node.options, false);
+  assert.equal(node.options, undefined, "Tone path must use registered processor defaults");
   assert.deepEqual(sourceConnections, [node]);
 
   assert.equal(standardizedContext.sinks.length, 1);
@@ -184,7 +179,7 @@ test("the controller uses Tone's context factory and an independent zero-gain si
   assert.equal(meter.getStatus().disposed, true);
 });
 
-test("the controller retains a native-context fallback outside Tone", async (context) => {
+test("the controller retains explicit native options outside Tone", async (context) => {
   const previousAudioWorkletNode = globalThis.AudioWorkletNode;
   const previousBaseAudioContext = globalThis.BaseAudioContext;
   let node = null;
@@ -226,9 +221,12 @@ test("the controller retains a native-context fallback outside Tone", async (con
     disconnect() {},
   };
 
-  const meter = await createApuLoudnessMeter({ context: nativeContext, source });
+  const meter = await createApuLoudnessMeter({ context: nativeContext, source, maxBlockHistory: 1234 });
   assert.deepEqual(moduleUrls, [APU_LOUDNESS_WORKLET_URL]);
   assert.deepEqual(sourceConnections, [node]);
+  assert.equal(node.options.numberOfInputs, 1);
+  assert.equal(node.options.numberOfOutputs, 1);
+  assert.equal(node.options.processorOptions.maxBlockHistory, 1234);
   assert.equal(nativeContext.sinks.length, 1);
   assert.equal(nativeContext.sinks[0].gain.value, 0);
   assert.deepEqual(node.connections, [nativeContext.sinks[0]]);
