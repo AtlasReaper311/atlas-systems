@@ -1,8 +1,8 @@
 import { APU_LOUDNESS_DSP_BUILD_ID } from "./apu-loudness-dsp.js?v=20260726-system-symphony-loudness-dsp-v1";
 
-export const APU_LOUDNESS_METER_BUILD_ID = "20260726-system-symphony-loudness-meter-v1";
+export const APU_LOUDNESS_METER_BUILD_ID = "20260726-system-symphony-loudness-meter-v2";
 export const APU_LOUDNESS_PROCESSOR_NAME = "atlas-apu-loudness-meter";
-export const APU_LOUDNESS_WORKLET_URL = "/static/js/sonify/apu-loudness-worklet.js?v=20260726-system-symphony-loudness-meter-v1";
+export const APU_LOUDNESS_WORKLET_URL = "/static/js/sonify/apu-loudness-worklet.js?v=20260726-system-symphony-loudness-meter-v2";
 
 function describeError(error) {
   const name = typeof error?.name === "string" && error.name ? error.name : "Error";
