@@ -8,6 +8,7 @@ const pageCss = readFileSync("lab/system-symphony/system-symphony-page.css", "ut
 const previewEndpoints = readFileSync("lab/system-symphony/preview-endpoints.js", "utf8");
 const sharedCss = readFileSync("static/css/systems-focus.css", "utf8");
 const labShell = readFileSync("lab/shared/shell.js", "utf8");
+const headers = readFileSync("_headers", "utf8");
 const ui = readFileSync("static/js/sonify/ui.js", "utf8");
 const engine = readFileSync("static/js/sonify/engine.js", "utf8");
 
@@ -60,6 +61,42 @@ test("the page exposes an auditable Atlas APU cartridge and proof strip", () => 
   assert.ok(adapter.includes("application/json"));
 });
 
+test("the lab page exposes the Phase 9 static black-box flight recorder", () => {
+  assert.ok(page.includes("ATLAS BLACK BOX FLIGHT RECORDER"));
+  assert.ok(page.includes("data-flight-recorder"));
+  assert.ok(page.includes('href="/lab/system-symphony/black-box/archive.json"'));
+  assert.ok(page.includes("Live persistence is not enabled."));
+  assert.ok(adapter.includes("atlas-apu-flight-recorder.js"));
+  assert.ok(adapter.includes("FLIGHT_RECORDER_ARCHIVE_URL"));
+  assert.ok(adapter.includes("createAtlasApuBlackBoxCartridge"));
+  assert.ok(adapter.includes("materializeBlackBoxArchive"));
+  assert.ok(adapter.includes("validateBlackBoxCartridge"));
+  assert.ok(adapter.includes("cartridgeSummary"));
+  assert.ok(adapter.includes("renderFlightRecorderArchive"));
+  assert.ok(adapter.includes("data-flight-recorder-inspect"));
+  assert.ok(adapter.includes("symphonyCartridge"));
+  assert.ok(headers.includes("/lab/system-symphony/black-box/*"));
+  assert.ok(headers.includes("20260726-system-symphony-atlas-apu-black-box-v1"));
+});
+
+test("the lab page exposes the Phase 10 incident boss-track replay", () => {
+  assert.ok(page.includes("INCIDENT REPLAY AS A MOVEMENT"));
+  assert.ok(page.includes("data-incident-arc"));
+  assert.ok(page.includes("data-incident-arc-play"));
+  assert.ok(page.includes("data-incident-arc-timeline"));
+  assert.ok(page.includes("data-incident-arc-impact"));
+  assert.ok(page.includes('href="/lab/system-symphony/black-box/incident-arcs.json"'));
+  assert.ok(page.includes("Incident boss tracks are static fixture evidence"));
+  assert.ok(adapter.includes("atlas-apu-incident-arc.js"));
+  assert.ok(adapter.includes("INCIDENT_ARC_ARCHIVE_URL"));
+  assert.ok(adapter.includes("materializeIncidentArcArchive"));
+  assert.ok(adapter.includes("validateIncidentArc"));
+  assert.ok(adapter.includes("incidentArcSummary"));
+  assert.ok(adapter.includes("playIncidentArc"));
+  assert.ok(adapter.includes("symphonyIncident"));
+  assert.ok(adapter.includes("symphonyIncidentStep"));
+});
+
 test("the replay entry route canonicalizes Phase 7 replay links", () => {
   const replay = readFileSync("lab/system-symphony/replay/index.html", "utf8");
   assert.ok(replay.includes("/lab/system-symphony/"));
@@ -68,12 +105,18 @@ test("the replay entry route canonicalizes Phase 7 replay links", () => {
   assert.ok(replay.includes("symphonySeed"));
   assert.ok(replay.includes('params.get("frame")'));
   assert.ok(replay.includes('params.get("seed")'));
+  assert.ok(replay.includes('params.get("cartridge")'));
+  assert.ok(replay.includes("symphonyCartridge"));
+  assert.ok(replay.includes('params.get("incident")'));
+  assert.ok(replay.includes("symphonyIncident"));
 });
 
 test("PLAY stays minimal while TRACE and REPLAY reveal proof deliberately", () => {
   assert.ok(pageCss.includes('[data-symphony-mode="play"] .symphony-page-host .symphony-service-section'));
   assert.ok(pageCss.includes('[data-symphony-mode="play"] .symphony-page-host .symphony-inspector'));
   assert.ok(pageCss.includes('[data-symphony-mode="play"] .symphony-cartridge'));
+  assert.ok(pageCss.includes('[data-symphony-mode="play"] .symphony-flight-recorder'));
+  assert.ok(pageCss.includes('[data-symphony-mode="play"] .symphony-incident-replay'));
   assert.ok(pageCss.includes('[data-symphony-mode="trace"] .symphony-page-host .symphony-performance'));
   assert.ok(pageCss.includes('[data-symphony-mode="replay"] .symphony-page-host .symphony-service-section'));
   assert.ok(adapter.includes("clickConsoleAudio"));

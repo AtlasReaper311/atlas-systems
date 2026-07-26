@@ -156,6 +156,50 @@
         <pre class="symphony-cartridge-json" data-cartridge-json tabindex="0" aria-label="Current cartridge JSON">Waiting for first score frame.</pre>
         <p class="symphony-replay-status" data-cartridge-status aria-live="polite">Cartridge will update when the first evidence frame arrives.</p>
       </section>
+      <section id="atlas-apu-flight-recorder" class="symphony-flight-recorder" aria-labelledby="atlas-apu-flight-recorder-title" data-flight-recorder>
+        <div class="symphony-cartridge__header">
+          <div>
+            <p class="symphony-panel-kicker">STATIC ARCHIVE</p>
+            <h2 id="atlas-apu-flight-recorder-title">ATLAS BLACK BOX FLIGHT RECORDER</h2>
+          </div>
+          <a class="focus-action" href="/lab/system-symphony/black-box/archive.json">Archive JSON</a>
+        </div>
+        <p class="symphony-flight-recorder__note">Saved fixture frames materialise into full Atlas APU cartridges in the browser. Live persistence is not enabled.</p>
+        <dl class="symphony-flight-recorder__proof" role="group" aria-label="Flight recorder archive proof">
+          <div><dt>Archive</dt><dd data-flight-recorder-field="archive">loading</dd></div>
+          <div><dt>Cartridges</dt><dd data-flight-recorder-field="count">0</dd></div>
+          <div><dt>Selected</dt><dd data-flight-recorder-field="selected">none</dd></div>
+          <div><dt>Schema</dt><dd data-flight-recorder-field="schema">pending</dd></div>
+        </dl>
+        <section class="symphony-flight-recorder__list" data-flight-recorder-list aria-label="Archived Atlas APU cartridges"></section>
+        <pre class="symphony-cartridge-json symphony-flight-recorder__json" data-flight-recorder-json tabindex="0" aria-label="Selected archived cartridge JSON">Loading static archive.</pre>
+        <p class="symphony-replay-status" data-flight-recorder-status aria-live="polite">Flight recorder archive is static fixture evidence until live persistence is approved.</p>
+      </section>
+      <section id="atlas-apu-incident-replay" class="symphony-incident-replay" aria-labelledby="atlas-apu-incident-replay-title" data-incident-arc>
+        <div class="symphony-cartridge__header">
+          <div>
+            <p class="symphony-panel-kicker">BOSS TRACK</p>
+            <h2 id="atlas-apu-incident-replay-title">INCIDENT REPLAY AS A MOVEMENT</h2>
+          </div>
+          <div class="symphony-cartridge__actions">
+            <button class="focus-action primary" type="button" data-incident-arc-play>Play arc</button>
+            <button class="focus-action" type="button" data-incident-arc-prev>Previous</button>
+            <button class="focus-action" type="button" data-incident-arc-next>Next</button>
+            <button class="focus-action" type="button" data-incident-arc-stop>Stop</button>
+            <a class="focus-action" href="/lab/system-symphony/black-box/incident-arcs.json">Arc JSON</a>
+          </div>
+        </div>
+        <dl class="symphony-incident-replay__proof" role="group" aria-label="Incident replay proof">
+          <div><dt>Archive</dt><dd data-incident-arc-field="archive">loading</dd></div>
+          <div><dt>Arcs</dt><dd data-incident-arc-field="count">0</dd></div>
+          <div><dt>Selected</dt><dd data-incident-arc-field="selected">none</dd></div>
+          <div><dt>Path</dt><dd data-incident-arc-field="path">pending</dd></div>
+        </dl>
+        <section class="symphony-incident-replay__timeline" data-incident-arc-timeline aria-label="Incident replay timeline"></section>
+        <section class="symphony-incident-replay__impact" data-incident-arc-impact aria-label="Affected services"></section>
+        <pre class="symphony-cartridge-json symphony-incident-replay__json" data-incident-arc-json tabindex="0" aria-label="Selected incident arc JSON">Loading incident arc archive.</pre>
+        <p class="symphony-replay-status" data-incident-arc-status aria-live="polite">Incident boss tracks are static fixture evidence until live persistence is approved.</p>
+      </section>
       <p id="page-source-status" class="focus-status-line" data-state="unknown" aria-live="polite">Initialising the Atlas APU renderer and preserved topology interface.</p>
     </header>
 

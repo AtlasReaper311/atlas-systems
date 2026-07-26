@@ -32,6 +32,11 @@
   X-Robots-Tag: noindex, nofollow
   X-Atlas-System-Symphony-Build: 20260726-system-symphony-atlas-apu-live-v7
 
+/lab/system-symphony/black-box/*
+  Cache-Control: no-cache, max-age=0, must-revalidate
+  X-Robots-Tag: noindex, nofollow
+  X-Atlas-System-Symphony-Build: 20260726-system-symphony-atlas-apu-black-box-v1
+
 /lab/system-symphony-apu/*
   X-Robots-Tag: noindex, nofollow
   X-Atlas-System-Symphony-Build: 20260726-system-symphony-atlas-chip-laws-v3

@@ -269,6 +269,8 @@ body.symphony-page {
 .symphony-flagship[data-symphony-mode="play"] .symphony-page-host .symphony-inspector,
 .symphony-flagship[data-symphony-mode="play"] .symphony-page-host .symphony-legend,
 .symphony-flagship[data-symphony-mode="play"] .symphony-cartridge,
+.symphony-flagship[data-symphony-mode="play"] .symphony-flight-recorder,
+.symphony-flagship[data-symphony-mode="play"] .symphony-incident-replay,
 .symphony-flagship[data-symphony-mode="replay"] .symphony-page-host .symphony-service-section {
   display: none;
 }
@@ -442,6 +444,244 @@ body.symphony-page {
   white-space: pre;
 }
 
+.symphony-flight-recorder {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid rgba(74, 222, 128, 0.22);
+  border-radius: 8px;
+  background:
+    linear-gradient(rgba(74, 222, 128, 0.035) 1px, transparent 1px),
+    #06070a;
+  background-size: 100% 20px;
+}
+
+.symphony-flight-recorder__note {
+  max-width: 76ch;
+  margin: 0;
+  color: var(--text-dim, #b7b7ae);
+  font-size: 13px;
+}
+
+.symphony-flight-recorder__proof {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.symphony-flight-recorder__proof div {
+  min-width: 0;
+  padding: 12px;
+  background: rgba(10, 10, 15, 0.96);
+}
+
+.symphony-flight-recorder__proof dt {
+  color: var(--text-faint, #888894);
+  font: 600 9px/1.35 var(--mono, monospace);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.symphony-flight-recorder__proof dd {
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+  color: var(--text, #e8e8e0);
+  font: 600 11px/1.35 var(--mono, monospace);
+}
+
+.symphony-flight-recorder__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.symphony-flight-recorder-card {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(12, 12, 18, 0.92);
+}
+
+.symphony-flight-recorder-card h3 {
+  margin: 0 0 0.55rem;
+  color: var(--text, #e8e8e0);
+  font: 600 13px/1.25 var(--mono, monospace);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.symphony-flight-recorder-card p {
+  margin: 0.35rem 0 0;
+  overflow-wrap: anywhere;
+  color: var(--text-faint, #888894);
+  font: 500 11px/1.45 var(--mono, monospace);
+}
+
+.symphony-flight-recorder-card[data-state="healthy"] {
+  border-color: rgba(74, 222, 128, 0.28);
+}
+
+.symphony-flight-recorder-card[data-state="warning"] {
+  border-color: rgba(245, 166, 35, 0.34);
+}
+
+.symphony-flight-recorder-card[data-state="critical"] {
+  border-color: rgba(239, 68, 68, 0.34);
+}
+
+.symphony-flight-recorder-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.symphony-flight-recorder-card__actions .focus-action {
+  min-height: 38px;
+}
+
+.symphony-flight-recorder-card__actions [aria-pressed="true"] {
+  border-color: rgba(74, 222, 128, 0.55);
+  color: #b8f7d0;
+}
+
+.symphony-flight-recorder__json {
+  min-height: 220px;
+}
+
+.symphony-incident-replay {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid rgba(239, 68, 68, 0.24);
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(239, 68, 68, 0.06), rgba(74, 222, 128, 0.035)),
+    #07070b;
+}
+
+.symphony-incident-replay__proof {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.symphony-incident-replay__proof div {
+  min-width: 0;
+  padding: 12px;
+  background: rgba(10, 10, 15, 0.96);
+}
+
+.symphony-incident-replay__proof dt {
+  color: var(--text-faint, #888894);
+  font: 600 9px/1.35 var(--mono, monospace);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.symphony-incident-replay__proof dd {
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+  color: var(--text, #e8e8e0);
+  font: 600 11px/1.35 var(--mono, monospace);
+}
+
+.symphony-incident-replay__timeline {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.symphony-incident-stage {
+  position: relative;
+  min-width: 0;
+  min-height: 136px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(12, 12, 18, 0.92);
+}
+
+.symphony-incident-stage::before {
+  content: "";
+  display: block;
+  width: 32px;
+  height: 3px;
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.symphony-incident-stage.is-active {
+  border-color: rgba(245, 166, 35, 0.75);
+  box-shadow: 0 0 0 1px rgba(245, 166, 35, 0.2), 0 0 22px rgba(245, 166, 35, 0.1);
+}
+
+.symphony-incident-stage[data-state="healthy"]::before {
+  background: #4ade80;
+}
+
+.symphony-incident-stage[data-state="warning"]::before {
+  background: #f5a623;
+}
+
+.symphony-incident-stage[data-state="critical"]::before {
+  background: #ef4444;
+}
+
+.symphony-incident-stage h3 {
+  margin: 0 0 0.55rem;
+  color: var(--text, #e8e8e0);
+  font: 600 12px/1.25 var(--mono, monospace);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.symphony-incident-stage p {
+  margin: 0.35rem 0 0;
+  overflow-wrap: anywhere;
+  color: var(--text-faint, #888894);
+  font: 500 11px/1.45 var(--mono, monospace);
+}
+
+.symphony-incident-replay__impact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.symphony-incident-impact {
+  min-height: 32px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  color: var(--text, #e8e8e0);
+  font: 600 10px/1.25 var(--mono, monospace);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.symphony-incident-impact.is-active {
+  border-color: rgba(239, 68, 68, 0.55);
+  color: #ffd5d5;
+}
+
+.symphony-incident-replay__json {
+  min-height: 220px;
+}
+
 .symphony-replay-entry {
   min-height: calc(100vh - 84px);
   display: grid;
@@ -533,7 +773,11 @@ body.symphony-page {
   }
 
   .symphony-proof-strip dl,
-  .symphony-cartridge-grid {
+  .symphony-cartridge-grid,
+  .symphony-flight-recorder__proof,
+  .symphony-flight-recorder__list,
+  .symphony-incident-replay__proof,
+  .symphony-incident-replay__timeline {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -600,7 +844,11 @@ body.symphony-page {
   }
 
   .symphony-proof-strip dl,
-  .symphony-cartridge-grid {
+  .symphony-cartridge-grid,
+  .symphony-flight-recorder__proof,
+  .symphony-flight-recorder__list,
+  .symphony-incident-replay__proof,
+  .symphony-incident-replay__timeline {
     grid-template-columns: 1fr;
   }
 

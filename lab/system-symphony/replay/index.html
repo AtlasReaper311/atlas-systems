@@ -31,6 +31,9 @@
       target.searchParams.set("symphonyScene", params.get("scene") || params.get("state") || "custom");
       target.searchParams.set("symphonySeed", params.get("seed") || "A7A5");
       if (params.has("frame")) target.searchParams.set("symphonyFrame", params.get("frame"));
+      if (params.has("cartridge")) target.searchParams.set("symphonyCartridge", params.get("cartridge"));
+      if (params.has("incident")) target.searchParams.set("symphonyIncident", params.get("incident"));
+      if (params.has("step")) target.searchParams.set("symphonyIncidentStep", params.get("step"));
       if (params.has("source")) target.searchParams.set("symphonySource", params.get("source"));
       if (params.has("symphonyPreviewData")) target.searchParams.set("symphonyPreviewData", params.get("symphonyPreviewData"));
       const link = document.querySelector("[data-replay-entry-link]");
