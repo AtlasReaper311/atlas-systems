@@ -273,10 +273,11 @@ function selectProofPanel(panel = "cartridge", { scroll = false } = {}) {
 
 function setTrustLayer(open) {
   const layer = document.querySelector("[data-trust-layer]");
-  const toggle = document.querySelector("[data-trust-toggle]");
-  if (!layer || !toggle) return;
+  if (!layer) return;
   layer.hidden = !open;
-  toggle.setAttribute("aria-expanded", String(open));
+  for (const toggle of document.querySelectorAll("[data-trust-toggle]")) {
+    toggle.setAttribute("aria-expanded", String(open));
+  }
   if (open) layer.scrollIntoView({ block: "nearest", behavior: "smooth" });
 }
 
@@ -983,10 +984,12 @@ function installModeControls(host) {
       selectProofPanel(opener.dataset.proofOpen, { scroll: true });
     });
   }
-  document.querySelector("[data-trust-toggle]")?.addEventListener("click", () => {
-    const layer = document.querySelector("[data-trust-layer]");
-    setTrustLayer(layer?.hidden !== false);
-  });
+  for (const trustToggle of document.querySelectorAll("[data-trust-toggle]")) {
+    trustToggle.addEventListener("click", () => {
+      const layer = document.querySelector("[data-trust-layer]");
+      setTrustLayer(layer?.hidden !== false);
+    });
+  }
   document.querySelector("[data-trust-close]")?.addEventListener("click", () => setTrustLayer(false));
   for (const roleButton of document.querySelectorAll("[data-apu-role-highlight]")) {
     roleButton.addEventListener("click", () => {

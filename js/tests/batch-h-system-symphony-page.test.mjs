@@ -19,9 +19,12 @@ const engine = readFileSync("static/js/sonify/engine.js", "utf8");
 test("System Symphony has a dedicated canonical product page", () => {
   assert.ok(page.includes('<link rel="canonical" href="https://atlas-systems.uk/lab/system-symphony/">'));
   assert.ok(page.includes("System SYMPHONY"));
-  assert.ok(page.includes("Now Playing: Atlas Estate."));
+  assert.ok(page.includes("NOW PLAYING"));
   assert.ok(page.includes("sample-free fictional chip"));
-  assert.ok(page.includes("8-bit diagnostic cartridge"));
+  assert.ok(page.includes("Atlas APU-01"));
+  assert.ok(page.includes("Sleeve generated from seed"));
+  assert.ok(page.includes("Current frame &middot; 7 APU roles &times; 16 steps"));
+  assert.ok(page.includes("Unmeasured &mdash; not silent, not healthy"));
   assert.ok(page.includes("data-symphony-page-host"));
   assert.ok(page.includes('href="/lab/system-symphony/roms/"'));
   assert.ok(page.includes('href="/lab/system-symphony/build-log/"'));
@@ -230,7 +233,7 @@ test("the live UI presents service mappings as APU roles, not legacy instruments
 
 test("the inline instrument covers governed viewport and motion contracts", () => {
   assert.ok(sharedCss.includes("min-width: 320px"));
-  assert.ok(pageCss.includes("width: min(calc(100% - 32px), 1640px)"));
+  assert.ok(pageCss.includes("width: min(calc(100% - 32px), 1440px)"));
   for (const width of [375, 768, 1024]) {
     assert.ok(pageCss.includes(`max-width: ${width}px`), `missing ${width}px breakpoint`);
   }

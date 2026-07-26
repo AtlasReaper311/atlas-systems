@@ -352,21 +352,22 @@ function syncProductStatus() {
 
 function setTrustDrawer(open, { restoreFocus = true } = {}) {
   const layer = document.querySelector("[data-trust-layer]");
-  const toggle = document.querySelector("[data-trust-toggle]");
+  const toggles = [...document.querySelectorAll("[data-trust-toggle]")];
+  const toggle = toggles[0];
   if (!layer) return;
 
   if (open) {
     trustReturnTarget = document.activeElement instanceof HTMLElement ? document.activeElement : toggle;
     layer.hidden = false;
     document.body.classList.add("symphony-trust-open");
-    toggle?.setAttribute("aria-expanded", "true");
+    for (const trustToggle of toggles) trustToggle.setAttribute("aria-expanded", "true");
     window.requestAnimationFrame(() => layer.querySelector("[data-trust-close]")?.focus({ preventScroll: true }));
     return;
   }
 
   layer.hidden = true;
   document.body.classList.remove("symphony-trust-open");
-  toggle?.setAttribute("aria-expanded", "false");
+  for (const trustToggle of toggles) trustToggle.setAttribute("aria-expanded", "false");
   if (restoreFocus && trustReturnTarget?.isConnected) {
     trustReturnTarget.focus({ preventScroll: true });
   }
