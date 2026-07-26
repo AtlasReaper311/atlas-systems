@@ -1,15 +1,26 @@
 {
   "preview": true,
   "components": [
-    {"id":"atlas-systems","label":"Atlas Systems","layer":"surface","kind":"site","depends_on":["atlas-api-public","specular-sonify"]},
-    {"id":"status","label":"Public Status","layer":"surface","kind":"site","depends_on":["atlas-api-public"]},
-    {"id":"atlas-api-public","label":"Public API","layer":"public-api","kind":"worker","depends_on":["atlas-notify"]},
-    {"id":"atlas-api-index","label":"API Index","layer":"public-api","kind":"worker","depends_on":[]},
-    {"id":"specular-sonify","label":"Specular Sonify","layer":"observability","kind":"worker","depends_on":["atlas-api-public","specular-edge"]},
+    {"id":"atlas-systems","label":"Atlas Systems","layer":"surface","kind":"site","depends_on":["github-pulse","site-pulse","deploy-watch","atlas-api-public"]},
+    {"id":"status","label":"Public Status","layer":"surface","kind":"site","depends_on":["atlas-api-public","atlas-api-index"]},
+    {"id":"atlas-doc-viewer","label":"Atlas Doc Viewer","layer":"surface","kind":"site","depends_on":[]},
+    {"id":"atlas-api-public","label":"Public API","layer":"public-api","kind":"worker","depends_on":["atlas-api-index","github-pulse","specular-telemetry","atlas-corpus"]},
+    {"id":"atlas-api-index","label":"API Index","layer":"public-api","kind":"worker","depends_on":["atlas-notify"]},
+    {"id":"atlas-notify","label":"atlas-notify","layer":"observability","kind":"worker","depends_on":[]},
+    {"id":"github-pulse","label":"github-pulse","layer":"observability","kind":"worker","depends_on":[]},
+    {"id":"site-pulse","label":"site-pulse","layer":"observability","kind":"worker","depends_on":[]},
     {"id":"deploy-watch","label":"Deploy Watch","layer":"observability","kind":"worker","depends_on":["atlas-systems"]},
+    {"id":"atlas-blackbox","label":"atlas-blackbox","layer":"observability","kind":"worker","depends_on":["specular-telemetry","atlas-notify"]},
+    {"id":"specular-telemetry","label":"Specular Telemetry","layer":"observability","kind":"local-service","depends_on":[]},
+    {"id":"specular-sonify","label":"Specular Sonify","layer":"observability","kind":"worker","depends_on":["specular-telemetry"]},
+    {"id":"atlas-quota-watch","label":"atlas-quota-watch","layer":"observability","kind":"worker","depends_on":["atlas-notify"]},
+    {"id":"atlas-journey-watch","label":"atlas-journey-watch","layer":"observability","kind":"github-actions","depends_on":["atlas-systems","status","atlas-api-public","atlas-api-index"]},
     {"id":"specular-edge","label":"Specular Edge","layer":"edge","kind":"worker","depends_on":["specular-telemetry"]},
-    {"id":"specular-telemetry","label":"Specular Telemetry","layer":"edge","kind":"local-service","depends_on":[]},
     {"id":"atlas-corpus","label":"Atlas Corpus","layer":"local-ai","kind":"local-service","depends_on":["ramone-memory"]},
-    {"id":"ramone-memory","label":"Ramone Memory","layer":"local-ai","kind":"local-service","depends_on":[]}
+    {"id":"ramone-edge","label":"ramone-edge","layer":"local-ai","kind":"worker","depends_on":["specular-edge","ramone-memory"]},
+    {"id":"ramone-memory","label":"Ramone Memory","layer":"local-ai","kind":"local-service","depends_on":[]},
+    {"id":"ramone-trigger","label":"ramone-trigger","layer":"local-ai","kind":"worker","depends_on":[]},
+    {"id":"atlas-dep-audit","label":"atlas-dep-audit","layer":"infra","kind":"github-actions","depends_on":["atlas-api-public"]},
+    {"id":"atlas-badges","label":"atlas-badges","layer":"reusable-kit","kind":"tool","depends_on":[]}
   ]
 }
