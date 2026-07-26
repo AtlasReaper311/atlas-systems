@@ -1,7 +1,7 @@
 import {
   APU_LOUDNESS_METER_BUILD_ID,
   createApuLoudnessMeter,
-} from "./apu-loudness-meter.js?v=20260726-system-symphony-loudness-meter-v1";
+} from "./apu-loudness-meter.js?v=20260726-system-symphony-loudness-meter-v2";
 
 const root = document.querySelector("[data-apu-root]");
 const volumeInput = root?.querySelector("[data-volume]");
