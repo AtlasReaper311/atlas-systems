@@ -1,7 +1,8 @@
-export const APU_MASTERING_BUILD_ID = "20260726-system-symphony-mastering-v1";
+export const APU_MASTERING_BUILD_ID = "20260726-system-symphony-mastering-v2";
 export const APU_MASTERING_DEFAULT_USER_GAIN = 0.7;
 export const APU_MASTERING_LIMITER_CEILING_DB = -1;
 export const APU_MASTERING_MAX_ESTIMATED_TRUE_PEAK_DBTP = -0.8;
+export const APU_MASTERING_BROWSER_CALIBRATION_DB = 6;
 
 const freezeProfile = (profile) => Object.freeze({ ...profile });
 
@@ -10,8 +11,8 @@ export const APU_MASTERING_PROFILES = Object.freeze({
     state: "healthy",
     label: "Explorer master",
     baseGainDb: -10,
-    programmeTrimDb: 8,
-    masterGainDb: -2,
+    programmeTrimDb: 14,
+    masterGainDb: 4,
     targetIntegratedLufs: -22,
     toleranceDb: 4,
   }),
@@ -19,8 +20,8 @@ export const APU_MASTERING_PROFILES = Object.freeze({
     state: "warning",
     label: "Grid Pressure master",
     baseGainDb: -10.5,
-    programmeTrimDb: 8.5,
-    masterGainDb: -2,
+    programmeTrimDb: 14.5,
+    masterGainDb: 4,
     targetIntegratedLufs: -21,
     toleranceDb: 4,
   }),
@@ -28,8 +29,8 @@ export const APU_MASTERING_PROFILES = Object.freeze({
     state: "critical",
     label: "Boss Protocol master",
     baseGainDb: -11,
-    programmeTrimDb: 9,
-    masterGainDb: -2,
+    programmeTrimDb: 15,
+    masterGainDb: 4,
     targetIntegratedLufs: -19,
     toleranceDb: 4,
   }),
@@ -37,8 +38,8 @@ export const APU_MASTERING_PROFILES = Object.freeze({
     state: "unknown",
     label: "Lost Signal master",
     baseGainDb: -18,
-    programmeTrimDb: 7,
-    masterGainDb: -11,
+    programmeTrimDb: 13,
+    masterGainDb: -5,
     targetIntegratedLufs: -27,
     toleranceDb: 5,
   }),
