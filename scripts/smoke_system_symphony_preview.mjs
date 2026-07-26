@@ -162,6 +162,11 @@ try {
   await page.waitForFunction(() => (
     window.__symphonyEngine?.getSampleLoadStats?.()?.backgroundComplete === true
   ), null, { timeout: 90_000 });
+  await page.waitForFunction(() => {
+    const snapshot = window.__symphonyEngine?.getCompositionSnapshot?.();
+    return Boolean(snapshot?.arrangement?.section)
+      && snapshot?.diagnostics?.scorePlanGuard?.active === true;
+  }, null, { timeout: 45_000, polling: 100 });
 
   const audioState = await page.evaluate(() => {
     const host = document.getElementById("system-symphony-widget");
