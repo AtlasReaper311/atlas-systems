@@ -111,39 +111,44 @@ export function shouldOmitEvent(context = {}) {
   return normalized < identity.omissionThreshold;
 }
 
+function grammar(motif, bass, drums, counter) {
+  return Object.freeze({ motif, bass, drums, counter });
+}
+
 export function statePatternGrammar(state, section) {
   const identity = normalizedStateIdentity(state);
-  const isPeak = section === "build" || section === "peak";
+
   if (identity.id === "healthy") {
-    return Object.freeze({
-      motif: isPeak ? "ascending" : "statement",
-      bass: isPeak ? "rise" : "walk",
-      drums: isPeak ? "build" : "groove",
-      counter: "counter",
-    });
+    if (section === "establish") return grammar("statement", "foundation", "sparse", "none");
+    if (section === "theme-a") return grammar("statement", "groove", "groove", "counter");
+    if (section === "variation") return grammar("variation", "walk", "groove", "counter");
+    if (section === "theme-b") return grammar("answer", "walk", "drive", "counter");
+    if (section === "build") return grammar("ascending", "rise", "build", "counter");
+    if (section === "peak") return grammar("climax", "climax", "peak", "octave");
+    if (section === "recovery") return grammar("recovery", "reprise", "recovery", "answer");
+    return grammar("fragment", "none", "none", "none");
   }
+
   if (identity.id === "warning") {
-    return Object.freeze({
-      motif: isPeak ? "climax" : "variation",
-      bass: isPeak ? "climax" : "groove",
-      drums: isPeak ? "peak" : "drive",
-      counter: "answer",
-    });
+    if (section === "establish") return grammar("statement", "groove", "drive", "answer");
+    if (section === "theme-a") return grammar("variation", "groove", "drive", "answer");
+    if (section === "variation") return grammar("answer", "groove", "drive", "counter");
+    if (section === "theme-b") return grammar("variation", "groove", "drive", "counter");
+    if (section === "build") return grammar("climax", "climax", "build", "counter");
+    if (section === "peak") return grammar("climax", "climax", "peak", "octave");
+    if (section === "recovery") return grammar("recovery", "reprise", "recovery", "answer");
+    return grammar("fragment", "none", "none", "none");
   }
+
   if (identity.id === "critical") {
-    return Object.freeze({
-      motif: "climax",
-      bass: "climax",
-      drums: isPeak ? "peak" : "build",
-      counter: "octave",
-    });
+    if (section === "establish") return grammar("statement", "foundation", "sparse", "none");
+    if (section === "recovery") return grammar("recovery", "reprise", "recovery", "answer");
+    return grammar("climax", "climax", section === "peak" ? "peak" : "build", "octave");
   }
-  return Object.freeze({
-    motif: "fragment",
-    bass: section === "release" || section === "breathe" ? "none" : "sustain",
-    drums: section === "peak" ? "release" : "none",
-    counter: section === "theme-b" ? "answer" : "none",
-  });
+
+  if (section === "theme-b") return grammar("answer", "sustain", "none", "answer");
+  if (section === "recovery") return grammar("recovery", "reprise", "none", "answer");
+  return grammar("fragment", section === "release" || section === "breathe" ? "none" : "sustain", "none", "none");
 }
 
 export function stateMixModifiers(state) {
