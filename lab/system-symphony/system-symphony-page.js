@@ -497,11 +497,6 @@ function renderCartridge(payload) {
     proofReplay.href = payload.replayUrl;
     proofReplay.textContent = "available";
   }
-  const trustReplay = byId("trust-proof-replay");
-  if (trustReplay) {
-    trustReplay.href = payload.replayUrl;
-    trustReplay.textContent = "available";
-  }
   document.querySelector("[data-cover-movement]")?.replaceChildren(document.createTextNode(payload.movement ?? "Unknown Drift"));
   document.querySelector("[data-cover-source]")?.replaceChildren(document.createTextNode(payload.source ?? "connecting"));
   const cover = document.querySelector("[data-current-cartridge-cover]");

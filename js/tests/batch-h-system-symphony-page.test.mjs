@@ -67,7 +67,7 @@ test("the page exposes an auditable Atlas APU cartridge and proof strip", () => 
   assert.ok(page.includes("trust-proof-route"));
   assert.ok(page.includes("trust-proof-frame-seed"));
   assert.ok(page.includes("trust-proof-sample-free"));
-  assert.ok(page.includes("trust-proof-replay"));
+  assert.ok(page.includes("page-proof-replay"));
   assert.ok(page.includes('href="/lab/system-symphony/replay/"'));
   assert.ok(adapter.includes("buildAtlasApuScorePlan"));
   assert.ok(adapter.includes("window.__ATLAS_APU_CARTRIDGE__"));
