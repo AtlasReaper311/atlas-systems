@@ -58,7 +58,7 @@ test("the controller rejects unsupported contexts before touching the source", a
 
 test("the controller uses Tone's context factory so source and worklet share one node dialect", async () => {
   let node = null;
-  const moduleUrls = [];
+  const moduleRegistrations = [];
   const statusEvents = [];
   const metricEvents = [];
   const connections = [];
@@ -67,8 +67,8 @@ test("the controller uses Tone's context factory so source and worklet share one
 
   const toneContext = {
     sampleRate: 48000,
-    async addAudioWorkletModule(url) {
-      moduleUrls.push(url);
+    async addAudioWorkletModule(url, name) {
+      moduleRegistrations.push({ url, name });
     },
     createAudioWorkletNode(name, options) {
       node = fakeWorkletNode(name, options);
@@ -104,7 +104,10 @@ test("the controller uses Tone's context factory so source and worklet share one
     onMetrics: (metrics) => metricEvents.push(metrics),
   });
 
-  assert.deepEqual(moduleUrls, [APU_LOUDNESS_WORKLET_URL]);
+  assert.deepEqual(moduleRegistrations, [{
+    url: APU_LOUDNESS_WORKLET_URL,
+    name: APU_LOUDNESS_PROCESSOR_NAME,
+  }]);
   assert.equal(createdNodes.length, 1);
   assert.equal(node.name, APU_LOUDNESS_PROCESSOR_NAME);
   assert.equal(node.options.numberOfOutputs, 0);
