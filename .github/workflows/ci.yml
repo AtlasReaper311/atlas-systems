@@ -54,7 +54,7 @@ jobs:
             fi
           done
           if [ "${#files[@]}" -gt 0 ]; then
-            node --test "${files[@]}" 2>&1 | tee main-site-test-report.txt
+            node --test --test-concurrency=1 "${files[@]}" 2>&1 | tee main-site-test-report.txt
           else
             printf '%s\n' 'No additional main-site tests found.' | tee main-site-test-report.txt
           fi
