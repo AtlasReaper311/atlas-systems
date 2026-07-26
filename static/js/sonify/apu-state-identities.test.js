@@ -92,5 +92,8 @@ test("state envelope and duty-cycle contracts remain measurably different", () =
   assert.equal(APU_STATE_IDENTITIES.warning.primaryDutyCycle, 0.125);
   assert.equal(APU_STATE_IDENTITIES.critical.transitionPolicy, "hard-choke");
   assert.equal(APU_STATE_IDENTITIES.unknown.transitionPolicy, "one-bar-decay");
-  assert.ok(APU_STATE_IDENTITIES.unknown.masterGainDb < APU_STATE_IDENTITIES.healthy.masterGainDb);
+  assert.equal(APU_STATE_IDENTITIES.unknown.masterGainDb, APU_STATE_IDENTITIES.healthy.masterGainDb);
+  assert.ok(APU_STATE_IDENTITIES.unknown.omissionThreshold > APU_STATE_IDENTITIES.healthy.omissionThreshold);
+  assert.ok(APU_STATE_IDENTITIES.unknown.dynamicRangeDb > APU_STATE_IDENTITIES.healthy.dynamicRangeDb);
+  assert.equal(APU_STATE_IDENTITIES.unknown.leadGate, "2n");
 });
