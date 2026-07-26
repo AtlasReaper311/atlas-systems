@@ -48,8 +48,21 @@ jobs:
       - name: Validate HTML
         run: npx --yes html-validate@9.7.1 "**/*.html"
 
-      - name: Run main-site tests
-        run: node --test js/tests/*.test.mjs
+      - name: Run public interface tests
+        run: node --test js/tests/public-interface-contract.test.mjs
+
+      - name: Run remaining main-site tests
+        run: |
+          set -euo pipefail
+          files=()
+          for path in js/tests/*.test.mjs; do
+            if [ "${path}" != "js/tests/public-interface-contract.test.mjs" ]; then
+              files+=("${path}")
+            fi
+          done
+          if [ "${#files[@]}" -gt 0 ]; then
+            node --test "${files[@]}"
+          fi
 
       - name: Run Lab tests
         run: node --test lab/tests/*.test.mjs
