@@ -1,9 +1,9 @@
 import {
   APU_MASTERING_BUILD_ID,
   masteringProfileForState,
-} from "./apu-mastering.js?v=20260726-system-symphony-mastering-v2";
+} from "./apu-mastering.js?v=20260726-system-symphony-mastering-v3";
 
-export const APU_MASTERING_RUNTIME_BUILD_ID = "20260726-system-symphony-mastering-runtime-v1";
+export const APU_MASTERING_RUNTIME_BUILD_ID = "20260726-system-symphony-mastering-runtime-v2";
 export const APU_MASTERING_RUNTIME_POLL_MS = 100;
 
 export function requiredDestinationTrimDb(upstreamGainDb, targetGainDb) {
@@ -77,6 +77,7 @@ function applyCalibration() {
     state,
     upstreamGainDb: Number.isFinite(Number(upstreamGainDb)) ? Number(upstreamGainDb) : null,
     targetGainDb: profile.masterGainDb,
+    targetIntegratedLufs: profile.targetIntegratedLufs,
     appliedTrimDb,
     active: Boolean(volume && arrangement),
   });
