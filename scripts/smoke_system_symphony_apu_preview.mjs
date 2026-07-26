@@ -182,7 +182,7 @@ try {
 
   assert.match(evidence.buildId ?? "", /state-identities-v1$/);
   assert.equal(evidence.documentBuild, evidence.buildId);
-  assert.match(evidence.loudnessBuildId ?? "", /loudness-meter-v2$/);
+  assert.match(evidence.loudnessBuildId ?? "", /loudness-meter-v3$/);
   assert.equal(evidence.ready, "true");
   assert.equal(evidence.running, "true");
   assert.equal(evidence.noSamples, "true");
