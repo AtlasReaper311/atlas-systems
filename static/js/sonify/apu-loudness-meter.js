@@ -29,7 +29,7 @@ function toneWorkletFactory(context) {
   if (!toneContext) return null;
   return Object.freeze({
     sampleRate: toneContext.sampleRate ?? context?.sampleRate ?? null,
-    addModule: (url) => toneContext.addAudioWorkletModule(url),
+    addModule: (url) => toneContext.addAudioWorkletModule(url, APU_LOUDNESS_PROCESSOR_NAME),
     createNode: (name, options) => toneContext.createAudioWorkletNode(name, options),
     dialect: "tone-context",
   });
