@@ -6,7 +6,7 @@ import {
   APU_TRACK_SPECTRUM_SIZE,
   APU_TRACK_WAVEFORM_SIZE,
   createApuTrackEngine as createBaseApuTrackEngine,
-} from "./apu-track-engine-v3.js?v=20260726-system-symphony-state-identities-v1";
+} from "./apu-track-engine-v3.js?v=20260726-atlas-apu-engine-controls-v1";
 
 export {
   APU_TRACK_AUDIO_START_TIMEOUT_MS,

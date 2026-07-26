@@ -159,7 +159,7 @@ try {
   assert.equal(audioState.toneContextState, "running", JSON.stringify(audioState, null, 2));
   assert.equal(audioState.hostSource, "preview", JSON.stringify(audioState, null, 2));
   assert.equal(audioState.hostRunning, "1", JSON.stringify(audioState, null, 2));
-  assert.match(audioState.buildId ?? "", /atlas-apu-live-v1$/);
+  assert.match(audioState.buildId ?? "", /atlas-apu-live-v2$/);
   assert.equal(audioState.documentBuild, audioState.buildId);
   assert.equal(audioState.sampleStats?.coreReady, true, JSON.stringify(audioState, null, 2));
   assert.equal(audioState.sampleStats?.sampleFree, true, JSON.stringify(audioState, null, 2));
@@ -171,6 +171,9 @@ try {
   assert.equal(audioState.samplePalette?.section, "sample-free", JSON.stringify(audioState, null, 2));
   assert.equal(audioState.samplePalette?.bassLoop, null);
   assert.ok(audioState.composition?.arrangement?.section, JSON.stringify(audioState, null, 2));
+  assert.equal(audioState.composition?.diagnostics?.scorePlanGuard?.active, true, JSON.stringify(audioState, null, 2));
+  assert.equal(audioState.composition?.diagnostics?.scorePlanGuard?.mode, "score-plan", JSON.stringify(audioState, null, 2));
+  assert.equal(audioState.composition?.diagnostics?.sampleFree, true, JSON.stringify(audioState, null, 2));
   assert.ok(audioState.topologyNodes > 0, JSON.stringify(audioState, null, 2));
   assert.ok(audioState.serviceRows > 0, JSON.stringify(audioState, null, 2));
   assert.equal(audioState.stateWeightCards, 4);

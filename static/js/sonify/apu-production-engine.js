@@ -1,11 +1,11 @@
 import {
   APU_TRACK_DEFAULT_GAIN,
   createApuTrackEngine,
-} from "./apu-track-engine-v2.js?v=20260726-system-symphony-atlas-apu-live-v1";
+} from "./apu-track-engine-v2.js?v=20260726-system-symphony-atlas-apu-live-v2";
 
 export const AUDIO_CONTEXT_BLOCKED_CODE = "audio-context-blocked";
 export const DEFAULT_USER_GAIN = APU_TRACK_DEFAULT_GAIN;
-export const SYSTEM_SYMPHONY_BUILD_ID = "20260726-system-symphony-atlas-apu-live-v1";
+export const SYSTEM_SYMPHONY_BUILD_ID = "20260726-system-symphony-atlas-apu-live-v2";
 
 function noAssetStats() {
   return Object.freeze({

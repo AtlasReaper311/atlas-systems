@@ -4,8 +4,9 @@ import {
   clamp,
   computeVoiceParams,
 } from "./mapping.js?v=20260720-system-symphony-loop-production-v2";
+import { buildAtlasApuScorePlan } from "./atlas-apu-score-plan.js?v=20260726-atlas-apu-score-plan-v2";
 
-export const APU_HYBRID_STATE_BUILD_ID = "20260726-system-symphony-evidence-hybrid-v1";
+export const APU_HYBRID_STATE_BUILD_ID = "20260726-system-symphony-evidence-hybrid-v2";
 export const APU_HYBRID_STATE_KEYS = Object.freeze(["healthy", "warning", "critical", "unknown"]);
 export const APU_EVIDENCE_STATES = Object.freeze([
   "current",
@@ -249,7 +250,7 @@ export function buildHybridFrame(frame = {}, merged = {}) {
   });
   const measuredComponents = voices.filter((voice) => voice.measured).length;
 
-  return Object.freeze({
+  const hybridFrame = {
     ...frame,
     scoreState: vector.dominant,
     scoreLabel: score.label,
@@ -283,5 +284,10 @@ export function buildHybridFrame(frame = {}, merged = {}) {
     previewEstateDerived: preview && !simulated,
     modulation: blendedModulation(frame, vector.weights),
     voices: Object.freeze(voices),
+  };
+
+  return Object.freeze({
+    ...hybridFrame,
+    scorePlan: buildAtlasApuScorePlan(hybridFrame),
   });
 }

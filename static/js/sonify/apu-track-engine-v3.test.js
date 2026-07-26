@@ -69,3 +69,15 @@ test("track engine source keeps crusher off the full master and schedules pulse 
   assert.match(source, /setPulseWidth\(nodes\.secondary, event\.dutyCycle, pulseWidthLeadTime\(time\)\)/);
   assert.match(source, /setPulseWidth\(slot\.synth, event\.identity\.dutyCycle, pulseWidthLeadTime\(time\)\)/);
 });
+
+test("track engine consumes guarded score-plan controls without sample playback nodes", () => {
+  const source = fs.readFileSync("static/js/sonify/apu-track-engine-v3.js", "utf8");
+
+  assert.match(source, /engineControlsForFrame\(frame\)/);
+  assert.match(source, /currentEngineControls\.buses/);
+  assert.match(source, /scorePlanGuard: currentEngineControls\.guard/);
+  assert.match(source, /sampleFree: currentEngineControls\.sampleFree/);
+  assert.doesNotMatch(source, /new Tone\.Player/);
+  assert.doesNotMatch(source, /new Tone\.Sampler/);
+  assert.doesNotMatch(source, /new Tone\.GrainPlayer/);
+});

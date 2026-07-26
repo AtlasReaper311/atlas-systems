@@ -275,8 +275,15 @@ try {
   }, null, { timeout: 40_000, polling: 250 });
 
   evidence = await collectEvidence();
-  assert.match(evidence.hybridBuildId ?? "", /evidence-hybrid-v1$/);
+  assert.match(evidence.hybridBuildId ?? "", /evidence-hybrid-v2$/);
   assert.equal(evidence.documentHybridBuild, evidence.hybridBuildId);
+  assert.equal(evidence.frame?.scorePlan?.chip, "ATLAS-APU-01");
+  assert.equal(evidence.frame?.scorePlan?.tempo?.grid, "16-step");
+  assert.equal(evidence.frame?.scorePlan?.source, "preview");
+  assert.equal(evidence.diagnostics?.scorePlanGuard?.active, true);
+  assert.equal(evidence.diagnostics?.scorePlanGuard?.mode, "score-plan");
+  assert.equal(evidence.diagnostics?.sampleFree, true);
+  assert.equal(evidence.diagnostics?.scorePlanMovement, "Green Clock");
   assert.match(evidence.loudnessBuildId ?? "", /loudness-meter-v3$/);
   assert.match(evidence.masteringRuntimeBuildId ?? "", /mastering-runtime-v2$/);
   assert.equal(evidence.ready, "true");

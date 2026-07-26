@@ -17,6 +17,10 @@ import {
 } from "./apu-track-sequencer.js?v=20260726-system-symphony-state-identities-v1";
 import { createCompositionDirector } from "./composition-director.js?v=20260720-system-symphony-loop-production-v2";
 import { midiToFrequencyHz } from "./mapping.js?v=20260720-system-symphony-loop-production-v2";
+import {
+  ATLAS_APU_ENGINE_CONTROLS_BUILD_ID,
+  engineControlsForFrame,
+} from "./atlas-apu-engine-controls.js?v=20260726-atlas-apu-engine-controls-v1";
 
 export const APU_TRACK_AUDIO_START_TIMEOUT_MS = 8000;
 export const APU_TRACK_DEFAULT_GAIN = 0.5;
@@ -163,6 +167,7 @@ export function createApuTrackEngine({
   let pendingIncidentCount = 0;
   let servicePoolCursor = 0;
   let lastStateTransition = null;
+  let currentEngineControls = engineControlsForFrame();
 
   const director = createCompositionDirector({ seed: "ATLAS-APU-TRACK" });
   const channelFailures = new Map();
@@ -354,46 +359,50 @@ export function createApuTrackEngine({
 
   function applyScene(frame, at = undefined, duration = 0.5) {
     if (!initialized || !frame || !currentArrangement) return;
+    currentEngineControls = engineControlsForFrame(frame);
     const scene = sceneForFrame(frame, currentDirectorPlan);
     const profile = scene.profile;
     const timbre = currentArrangement.timbre ?? {};
+    const scoreTimbre = currentEngineControls.timbre;
     const compression = compressionForRange(timbre.dynamicRangeDb ?? 12);
     safeRamp(nodes.transport.bpm, APU_TRACK_BPM, 0.08, at);
     safeRamp(nodes.masterVolume.volume, timbre.masterGainDb ?? scene.masterGainDb, duration, at);
-    safeRamp(nodes.masterFilter.frequency, scene.masterFilterHz, duration, at);
-    safeRamp(nodes.masterHighpass.frequency, scene.masterHpHz, duration, at);
+    safeRamp(nodes.masterFilter.frequency, scene.masterFilterHz * (scoreTimbre?.masterFilterScale ?? 1), duration, at);
+    safeRamp(nodes.masterHighpass.frequency, scene.masterHpHz * (scoreTimbre?.masterHighpassScale ?? 1), duration, at);
     safeRamp(nodes.compressor.threshold, compression.threshold, duration, at);
     safeRamp(nodes.compressor.ratio, compression.ratio, duration, at);
     safeRamp(nodes.compressor.attack, compression.attack, duration, at);
     safeRamp(nodes.compressor.release, compression.release, duration, at);
-    setBits(nodes.chipColor, profile.crusherBits);
-    safeRamp(nodes.chipColor.wet, profile.crusherWet, duration, at);
-    safeRamp(nodes.delayReturn.gain, profile.delayWet, duration, at);
-    safeRamp(nodes.reverbReturn.gain, profile.reverbWet, duration, at);
-    safeRamp(nodes.hatFilter.frequency, Math.max(2800, profile.noiseBrightnessHz), duration, at);
-    safeRamp(nodes.telemetryHumGain.gain, stateKey(frame) === "unknown" ? 0.045 : 0, duration, at);
+    setBits(nodes.chipColor, scoreTimbre?.chipBits ?? profile.crusherBits);
+    safeRamp(nodes.chipColor.wet, scoreTimbre?.chipWet ?? profile.crusherWet, duration, at);
+    safeRamp(nodes.delayReturn.gain, scoreTimbre?.delayGain ?? profile.delayWet, duration, at);
+    safeRamp(nodes.reverbReturn.gain, scoreTimbre?.reverbGain ?? profile.reverbWet, duration, at);
+    safeRamp(nodes.hatFilter.frequency, scoreTimbre?.hatFilterHz ?? Math.max(2800, profile.noiseBrightnessHz), duration, at);
+    safeRamp(nodes.telemetryHumGain.gain, scoreTimbre?.telemetryHumGain ?? (stateKey(frame) === "unknown" ? 0.045 : 0), duration, at);
   }
 
   function applyArrangementMix(at = undefined, duration = 0.18) {
     if (!currentArrangement) return;
     const mix = currentArrangement.mix;
     const timbre = currentArrangement.timbre ?? {};
+    const scoreBuses = currentEngineControls.buses;
+    const scoreTimbre = currentEngineControls.timbre;
     const width = clamp(timbre.stereoWidth ?? 0.5, 0, 1);
-    safeRamp(nodes.primaryBus.gain, mix.primary, duration, at);
-    safeRamp(nodes.secondaryBus.gain, mix.secondary, duration, at);
-    safeRamp(nodes.serviceBus.gain, mix.services, duration, at);
-    safeRamp(nodes.bassBus.gain, mix.bass, duration, at);
-    safeRamp(nodes.drumBus.gain, mix.drums, duration, at);
-    safeRamp(nodes.padBus.gain, mix.pad, duration, at);
-    safeRamp(nodes.accentBus.gain, mix.accent, duration, at);
-    safeRamp(nodes.primaryFilter.frequency, timbre.leadCutoffHz ?? 4800, duration, at);
-    safeRamp(nodes.secondaryFilter.frequency, timbre.counterCutoffHz ?? 3300, duration, at);
+    safeRamp(nodes.primaryBus.gain, clamp(mix.primary * (scoreBuses?.primary ?? 1), 0, 1), duration, at);
+    safeRamp(nodes.secondaryBus.gain, clamp(mix.secondary * (scoreBuses?.secondary ?? 1), 0, 1), duration, at);
+    safeRamp(nodes.serviceBus.gain, clamp(mix.services * (scoreBuses?.services ?? 1), 0, 1), duration, at);
+    safeRamp(nodes.bassBus.gain, clamp(mix.bass * (scoreBuses?.bass ?? 1), 0, 1), duration, at);
+    safeRamp(nodes.drumBus.gain, clamp(mix.drums * (scoreBuses?.drums ?? 1), 0, 1), duration, at);
+    safeRamp(nodes.padBus.gain, clamp(mix.pad * (scoreBuses?.pad ?? 1), 0, 1), duration, at);
+    safeRamp(nodes.accentBus.gain, clamp(mix.accent * (scoreBuses?.accent ?? 1), 0, 1), duration, at);
+    safeRamp(nodes.primaryFilter.frequency, (timbre.leadCutoffHz ?? 4800) * (scoreTimbre?.leadFilterScale ?? 1), duration, at);
+    safeRamp(nodes.secondaryFilter.frequency, (timbre.counterCutoffHz ?? 3300) * (scoreTimbre?.counterFilterScale ?? 1), duration, at);
     const scene = sceneForFrame(currentFrame, currentDirectorPlan);
-    safeRamp(nodes.padFilter.frequency, scene.profile.padCutoffHz * (timbre.padCutoffScale ?? 1), duration, at);
+    safeRamp(nodes.padFilter.frequency, scene.profile.padCutoffHz * (timbre.padCutoffScale ?? 1) * (scoreTimbre?.padFilterScale ?? 1), duration, at);
     safeRamp(nodes.primaryPanner.pan, -0.42 * width, duration, at);
     safeRamp(nodes.secondaryPanner.pan, 0.42 * width, duration, at);
-    setPulseWidth(nodes.primary, timbre.primaryDutyCycle ?? 0.5, at);
-    setPulseWidth(nodes.secondary, timbre.counterDutyCycle ?? 0.25, at);
+    setPulseWidth(nodes.primary, scoreTimbre?.primaryDutyCycle ?? timbre.primaryDutyCycle ?? 0.5, at);
+    setPulseWidth(nodes.secondary, scoreTimbre?.counterDutyCycle ?? timbre.counterDutyCycle ?? 0.25, at);
   }
 
   function applyStateTransition(previousFrame, nextFrame, at) {
@@ -708,6 +717,10 @@ export function createApuTrackEngine({
         state: stateKey(currentFrame),
         pendingState: pendingFrame ? stateKey(pendingFrame) : null,
         lastStateTransition,
+        engineControlsBuildId: ATLAS_APU_ENGINE_CONTROLS_BUILD_ID,
+        scorePlanGuard: currentEngineControls.guard,
+        scorePlanMovement: currentEngineControls.movement,
+        sampleFree: currentEngineControls.sampleFree,
         channelFailures: Object.freeze(Object.fromEntries(channelFailures)),
       });
     },

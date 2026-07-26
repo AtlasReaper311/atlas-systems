@@ -10,9 +10,9 @@ import {
   DEFAULT_USER_GAIN,
   SYSTEM_SYMPHONY_BUILD_ID,
   createEngine,
-} from "./apu-production-engine.js?v=20260726-system-symphony-atlas-apu-live-v1";
+} from "./apu-production-engine.js?v=20260726-system-symphony-atlas-apu-live-v2";
 import { createPoller } from "./poller.js?v=20260720-system-symphony-loop-production-v2";
-import { buildHybridFrame } from "./apu-hybrid-state.js?v=20260726-system-symphony-evidence-hybrid-v1";
+import { buildHybridFrame } from "./apu-hybrid-state.js?v=20260726-system-symphony-evidence-hybrid-v2";
 import {
   applyDemoProfileToServices,
   buildDependencyGraph,

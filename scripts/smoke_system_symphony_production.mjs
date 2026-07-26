@@ -104,7 +104,7 @@ try {
   }, null, { timeout: 20_000, polling: 100 });
 
   evidence = await collectEvidence();
-  assert.match(evidence.buildId ?? "", /atlas-apu-live-v1$/);
+  assert.match(evidence.buildId ?? "", /atlas-apu-live-v2$/);
   assert.equal(evidence.documentBuild, evidence.buildId);
   assert.equal(evidence.previewData, false);
   assert.equal(evidence.source, "live");
@@ -124,6 +124,9 @@ try {
   assert.equal(evidence.sampleStats?.totalAssets, 0);
   assert.equal(evidence.samplePalette?.section, "sample-free");
   assert.ok(evidence.composition?.arrangement?.section);
+  assert.equal(evidence.composition?.diagnostics?.scorePlanGuard?.active, true, JSON.stringify(evidence, null, 2));
+  assert.equal(evidence.composition?.diagnostics?.scorePlanGuard?.mode, "score-plan", JSON.stringify(evidence, null, 2));
+  assert.equal(evidence.composition?.diagnostics?.sampleFree, true, JSON.stringify(evidence, null, 2));
   assert.deepEqual(audioRequests, [], "production APU requested an audio asset");
   assert.deepEqual(failedRequests, []);
   assert.deepEqual(pageErrors, []);
