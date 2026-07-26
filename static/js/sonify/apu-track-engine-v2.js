@@ -1,4 +1,4 @@
-import { APU_MASTERING_DEFAULT_USER_GAIN } from "./apu-mastering.js?v=20260726-system-symphony-mastering-v1";
+import { APU_MASTERING_DEFAULT_USER_GAIN } from "./apu-mastering.js?v=20260726-system-symphony-mastering-v2";
 import {
   APU_TRACK_AUDIO_START_TIMEOUT_MS,
   APU_TRACK_BPM,
