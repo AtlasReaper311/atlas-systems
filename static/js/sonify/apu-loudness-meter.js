@@ -70,7 +70,10 @@ function toneWorkletFactory(context) {
   return Object.freeze({
     sampleRate: toneContext.sampleRate ?? audioContext.sampleRate ?? context?.sampleRate ?? null,
     addModule: (url) => toneContext.addAudioWorkletModule(url, APU_LOUDNESS_PROCESSOR_NAME),
-    createNode: (name, options) => toneContext.createAudioWorkletNode(name, options),
+    // Tone 14.8 delegates to standardized-audio-context. Chromium rejects the
+    // explicit AudioWorkletNode options accepted by the native fallback, so use
+    // the registered processor's one-input/one-output defaults on this path.
+    createNode: (name) => toneContext.createAudioWorkletNode(name),
     createSilentSink: () => createZeroGainSink(audioContext),
     dialect: "tone-context",
   });
