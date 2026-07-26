@@ -1,9 +1,13 @@
 name: Import approved System Symphony stack
 
 on:
-  push:
+  pull_request:
     branches:
-      - feat/system-symphony-apu-production-rollout
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 permissions:
   contents: write
@@ -15,6 +19,7 @@ concurrency:
 jobs:
   import-stack:
     name: Merge approved APU stack onto current main
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/system-symphony-apu-production-rollout'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
