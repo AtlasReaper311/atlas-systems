@@ -63,6 +63,17 @@ test("the page retains the topology alternative and explicit evidence counts", (
   }
 });
 
+test("the live UI presents service mappings as APU roles, not legacy instruments", () => {
+  assert.ok(ui.includes("Atlas APU live instrument"));
+  assert.ok(ui.includes("APU topology panel"));
+  assert.ok(ui.includes("Service role score"));
+  assert.ok(ui.includes("<th>APU role</th>"));
+  assert.ok(ui.includes("function apuRoleLabel"));
+  assert.doesNotMatch(ui, /<th>Instrument<\/th>/);
+  assert.doesNotMatch(ui, /Estate orchestra/);
+  assert.doesNotMatch(ui, /voice\.instrumentLabel[),]/);
+});
+
 test("the inline instrument covers governed viewport and motion contracts", () => {
   assert.ok(sharedCss.includes("min-width: 320px"));
   assert.ok(pageCss.includes("width: min(calc(100% - 48px), 1560px)"));

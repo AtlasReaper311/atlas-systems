@@ -123,7 +123,7 @@ function template() {
       <div class="symphony-widget__signal" aria-hidden="true"></div>
       <div class="symphony-widget__topline">
         <div>
-          <p class="symphony-kicker">Atlas telemetry instrument</p>
+          <p class="symphony-kicker">Atlas APU live instrument</p>
           <h2 id="symphony-widget-title">SYSTEM <em>SYMPHONY</em></h2>
         </div>
         <span class="symphony-source-badge" data-source-badge>CONNECTING</span>
@@ -164,7 +164,7 @@ function template() {
 
         <p class="symphony-important-status" data-important-status aria-live="polite"></p>
 
-        <aside class="symphony-help" data-help hidden aria-label="Telemetry to music mapping">
+        <aside class="symphony-help" data-help hidden aria-label="Telemetry to APU role mapping">
           <div class="symphony-section-heading">
             <div><span>Reference</span><h3>What you are hearing</h3></div>
             <button class="symphony-button symphony-button--icon" type="button" data-help-close>Close help</button>
@@ -264,9 +264,9 @@ function template() {
 
           <section class="symphony-orchestra" aria-labelledby="symphony-orchestra-title">
             <div class="symphony-section-heading">
-              <div><span>02</span><h3 id="symphony-orchestra-title">Estate orchestra</h3></div>
+              <div><span>02</span><h3 id="symphony-orchestra-title">APU topology panel</h3></div>
               <div class="symphony-section-heading__tools">
-                <p>Nodes pulse when their voice sounds. Arrows are declared dependencies, not live traffic.</p>
+                <p>Nodes pulse when their APU role sounds. Arrows are declared dependencies, not live traffic.</p>
                 <div class="symphony-segmented symphony-filter" role="group" aria-label="Filter estate components">
                   <button type="button" data-component-filter="all" aria-pressed="true">All</button>
                   <button type="button" data-component-filter="measured" aria-pressed="false">Measured</button>
@@ -341,12 +341,12 @@ function template() {
 
           <section class="symphony-service-section" aria-labelledby="symphony-services-title">
             <div class="symphony-section-heading">
-              <div><span>03</span><h3 id="symphony-services-title">Service score</h3></div>
+              <div><span>03</span><h3 id="symphony-services-title">Service role score</h3></div>
               <p>Measured health is authoritative. Topology-only components remain explicitly Unmeasured.</p>
             </div>
             <div class="symphony-table-wrap">
               <table>
-                <thead><tr><th>Service / component</th><th>Layer</th><th>Status</th><th>Latency</th><th>Instrument</th><th>Source</th><th><span class="visually-hidden">Inspect</span></th></tr></thead>
+                <thead><tr><th>Service / component</th><th>Layer</th><th>Status</th><th>Latency</th><th>APU role</th><th>Source</th><th><span class="visually-hidden">Inspect</span></th></tr></thead>
                 <tbody data-service-table></tbody>
               </table>
             </div>
@@ -434,6 +434,17 @@ export function initSystemSymphony() {
       key: voice.status,
       label: STATUS_LABELS[voice.status] ?? STATUS_LABELS.unknown,
     };
+  }
+
+  function apuRoleLabel(voice) {
+    const raw = String(voice?.instrumentLabel ?? "").toLowerCase();
+    if (/pulse|lead|arp/.test(raw)) return "Pulse clock";
+    if (/counter|fm|diagnostic/.test(raw)) return "Contention bus";
+    if (/bass|triangle|foundation/.test(raw)) return "Thermal rail";
+    if (/noise|drum|hat|rhythm/.test(raw)) return "Signal noise";
+    if (/pad|memory|carrier|wavetable/.test(raw)) return "Memory field";
+    if (/event|accent|deploy|incident|recovery/.test(raw)) return "Recovery bus";
+    return "APU voice";
   }
 
   function visibleVoices(frame = currentFrame) {
@@ -787,11 +798,11 @@ export function initSystemSymphony() {
         transform: `translate(${position.x} ${position.y})`,
         tabindex: "0",
         role: "button",
-        "aria-label": `${voice.displayName}, ${presentation.label}, ${voice.instrumentLabel}`,
+        "aria-label": `${voice.displayName}, ${presentation.label}, ${apuRoleLabel(voice)}`,
       });
       group.dataset.node = voice.name;
       const title = svgElement("title");
-      title.textContent = `${voice.displayName}: ${presentation.label} / ${voice.instrumentLabel}`;
+      title.textContent = `${voice.displayName}: ${presentation.label} / ${apuRoleLabel(voice)}`;
       const circle = svgElement("circle", { r: 13 });
       const core = svgElement("circle", { r: 4, class: "symphony-node__core" });
       const label = svgElement("text", { y: 28, "text-anchor": "middle" });
@@ -842,7 +853,7 @@ export function initSystemSymphony() {
         voice.layer,
         presentation.label,
         formatLatency(voice.latency_ms),
-        voice.instrumentLabel,
+        apuRoleLabel(voice),
         voice.evidenceLabel ?? (voice.demoSimulated ? "Simulated profile" : voice.measured ? "Current measurement" : "Topology only"),
       ];
       values.forEach((value, index) => {
@@ -900,7 +911,7 @@ export function initSystemSymphony() {
     }
 
     name.textContent = voice.displayName;
-    identity.textContent = `${voice.instrumentLabel} / ${voice.registerLabel} register / pan ${voice.pan.toFixed(2)} / ${voice.motifLabel}`;
+    identity.textContent = `${apuRoleLabel(voice)} / ${voice.registerLabel} register / pan ${voice.pan.toFixed(2)} / ${voice.motifLabel}`;
     description.textContent = voice.description ?? "No topology description supplied.";
     details.replaceChildren();
     const presentation = presentationForVoice(voice);
