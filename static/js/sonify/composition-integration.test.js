@@ -97,17 +97,33 @@ test("mix architecture exposes conservative hard ceilings", () => {
   assert.ok(MIX_LIMITS.masterGainDbMin <= MIX_LIMITS.masterGainDbMax);
 });
 
-test("the sonification runtime contains no AudioWorklet telemetry path", () => {
+test("the production sonification runtime contains no AudioWorklet telemetry path", () => {
   const directory = dirname(fileURLToPath(import.meta.url));
-  const javascriptFiles = readdirSync(directory).filter((name) => (
-    name.endsWith(".js") && !name.endsWith(".test.js")
+  const previewOnlyWorkletFiles = new Set([
+    "apu-loudness-dsp.js",
+    "apu-loudness-meter.js",
+    "apu-loudness-ui.js",
+    "apu-loudness-worklet.js",
+  ]);
+  const productionJavascriptFiles = readdirSync(directory).filter((name) => (
+    name.endsWith(".js")
+    && !name.endsWith(".test.js")
+    && !previewOnlyWorkletFiles.has(name)
   ));
-  for (const name of javascriptFiles) {
+
+  for (const name of productionJavascriptFiles) {
     const source = readFileSync(join(directory, name), "utf8");
     assert.equal(
-      /AudioWorkletNode|audioWorklet\.addModule/.test(source),
+      /AudioWorkletNode|audioWorklet\.addModule|apu-loudness/.test(source),
       false,
-      `${name} must not create an AudioWorklet telemetry path`,
+      `${name} must not create or load an AudioWorklet telemetry path`,
     );
   }
+
+  const repositoryRoot = join(directory, "..", "..", "..");
+  const productionRoute = readFileSync(join(repositoryRoot, "lab", "system-symphony", "index.html"), "utf8");
+  const previewRoute = readFileSync(join(repositoryRoot, "lab", "system-symphony-apu", "index.html"), "utf8");
+
+  assert.equal(/apu-loudness/.test(productionRoute), false, "production route must not load the preview loudness meter");
+  assert.equal(/apu-loudness-ui\.js/.test(previewRoute), true, "isolated APU preview must explicitly load the loudness UI");
 });

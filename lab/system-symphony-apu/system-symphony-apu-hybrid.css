@@ -1,0 +1,118 @@
+.apu-fixture-banner {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0 0 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(245, 166, 35, 0.42);
+  background: rgba(245, 166, 35, 0.08);
+}
+
+.apu-fixture-banner[hidden] {
+  display: none;
+}
+
+.apu-fixture-banner strong {
+  color: var(--accent, #f5a623);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.apu-fixture-banner span {
+  color: var(--text-dim, #aaa9a0);
+  line-height: 1.55;
+}
+
+.apu-state-vector {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.apu-state-weight {
+  position: relative;
+  display: grid;
+  gap: 0.55rem;
+  min-width: 0;
+  padding: 0.85rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.apu-state-weight::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 0.24rem;
+  content: "";
+  background: linear-gradient(
+    90deg,
+    var(--accent, #f5a623) 0 var(--state-weight, 0%),
+    rgba(255, 255, 255, 0.07) var(--state-weight, 0%) 100%
+  );
+}
+
+.apu-state-weight[data-dominant="true"] {
+  border-color: rgba(245, 166, 35, 0.5);
+  background: rgba(245, 166, 35, 0.07);
+}
+
+.apu-state-weight span {
+  color: var(--text-faint, #777783);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.apu-state-weight strong {
+  color: var(--text, #e8e8e0);
+  font-size: 1.05rem;
+}
+
+.apu-dominant-reason {
+  margin: 0.9rem 0 0;
+  color: var(--text-dim, #aaa9a0);
+  line-height: 1.55;
+}
+
+.apu-evidence-label {
+  display: block;
+  color: var(--text, #e8e8e0);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.apu-table-wrap td small {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--text-faint, #777783);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.66rem;
+  overflow-wrap: anywhere;
+}
+
+.apu-table-wrap tr[data-evidence-state="reported-unknown"],
+.apu-table-wrap tr[data-evidence-state="topology-only"] {
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.apu-table-wrap tr[data-evidence-state="stale"] {
+  background: rgba(245, 166, 35, 0.04);
+}
+
+@media (max-width: 860px) {
+  .apu-state-vector {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .apu-state-vector {
+    grid-template-columns: 1fr;
+  }
+}
