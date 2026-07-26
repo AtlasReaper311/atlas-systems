@@ -1,10 +1,11 @@
 import "../../static/js/sonify/ui.js?v=20260726-system-symphony-atlas-apu-live-v4";
+import { DEFAULT_USER_GAIN } from "../../static/js/sonify/apu-production-engine.js?v=20260726-system-symphony-atlas-apu-live-v4";
 
 const OBJECTIVES_URL = "https://api.atlas-systems.uk/v1/reliability/objectives";
 const SHELL_FIX_STYLESHEET = "/static/css/batch-h-shell-fixes.css?v=20260725-browser-evidence";
 const HOST_ID = "system-symphony-widget";
 const HOST_WAIT_MS = 5000;
-const PAGE_OUTPUT_GAIN_PERCENT = 70;
+const PAGE_OUTPUT_GAIN_PERCENT = Math.round(DEFAULT_USER_GAIN * 100);
 
 const byId = (id) => document.getElementById(id);
 

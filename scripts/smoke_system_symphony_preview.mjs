@@ -178,9 +178,9 @@ try {
   assert.ok(audioState.serviceRows > 0, JSON.stringify(audioState, null, 2));
   assert.equal(audioState.stateWeightCards, 4);
   assert.ok(audioState.dominantReason, JSON.stringify(audioState, null, 2));
-  assert.equal(audioState.pageOutputGain, 70);
+  assert.equal(audioState.pageOutputGain, 62);
   assert.ok(audioState.sliderValues.length >= 2);
-  assert.ok(audioState.sliderValues.every((value) => value === 70));
+  assert.ok(audioState.sliderValues.every((value) => value === 62));
   assert.deepEqual(audioRequests, [], "the live-route APU requested an audio asset");
 
   const fatalConsole = consoleMessages.filter(({ text }) => (

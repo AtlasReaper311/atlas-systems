@@ -111,9 +111,9 @@ try {
   assert.equal(evidence.running, "1");
   assert.equal(evidence.engineRunning, true);
   assert.equal(evidence.toneState, "running");
-  assert.equal(evidence.pageOutputGain, 70);
+  assert.equal(evidence.pageOutputGain, 62);
   assert.ok(evidence.sliderValues.length >= 2);
-  assert.ok(evidence.sliderValues.every((value) => value === 70));
+  assert.ok(evidence.sliderValues.every((value) => value === 62));
   assert.equal(evidence.topologyPresent, true);
   assert.ok(evidence.topologyNodes > 0, "production topology map has no nodes");
   assert.ok(evidence.serviceRows > 0, "production service table has no rows");
