@@ -41,6 +41,10 @@ function directiveSources(name) {
   return found.slice(name.length).trim().split(/\s+/).filter(Boolean);
 }
 
+function hasExactToken(tokens, expected) {
+  return tokens.some((token) => token === expected);
+}
+
 function redirectRules() {
   return redirects
     .split("\n")
@@ -57,10 +61,10 @@ test("media-src covers local Symphony audio and the Cloudinary demo host", () =>
 
   // static/audio/system-symphony/* is loaded through `new Audio()` in
   // static/js/sonify/asset-loader.js, which CSP governs with media-src.
-  assert.ok(media.includes("'self'"), "media-src must keep 'self' for local audio assets");
+  assert.ok(hasExactToken(media, "'self'"), "media-src must keep 'self' for local audio assets");
 
   // work/index.html plays the Velocity theme stems from Cloudinary.
-  assert.ok(media.includes(CLOUDINARY), "media-src must allow the Cloudinary demo host");
+  assert.ok(hasExactToken(media, CLOUDINARY), "media-src must allow the Cloudinary demo host");
 });
 
 test("every remote media host referenced in source is allowed by media-src", () => {
@@ -76,7 +80,7 @@ test("every remote media host referenced in source is allowed by media-src", () 
   }
 
   for (const host of hosts) {
-    assert.ok(media.includes(host), `${host} serves media but is absent from media-src`);
+    assert.ok(hasExactToken(media, host), `${host} serves media but is absent from media-src`);
   }
 });
 
