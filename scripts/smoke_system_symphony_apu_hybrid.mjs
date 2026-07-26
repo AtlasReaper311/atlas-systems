@@ -23,7 +23,20 @@ const stateWindows = Object.freeze({
 
 await fs.mkdir(outputDirectory, { recursive: true });
 
-const browser = await browserType.launch({ headless: true });
+const launchOptions = browserName === "firefox"
+  ? {
+    headless: true,
+    firefoxUserPrefs: {
+      "media.autoplay.default": 0,
+      "media.autoplay.ask-permission": false,
+      "media.autoplay.blocking_policy": 0,
+      "media.autoplay.block-webaudio": false,
+      "media.allowed-to-play.enabled": true,
+      "media.block-autoplay-until-in-foreground": false,
+    },
+  }
+  : { headless: true };
+const browser = await browserType.launch(launchOptions);
 const page = await browser.newPage({
   viewport: { width: 1440, height: 1800 },
   reducedMotion: "reduce",
@@ -78,6 +91,7 @@ async function collectEvidence() {
       source: root?.dataset.source ?? null,
       noSamples: root?.dataset.apuNoSamples ?? null,
       volumeValue: root?.querySelector("[data-volume]")?.value ?? null,
+      statusText: root?.querySelector("[data-status]")?.textContent?.trim() ?? null,
       fixtureBannerHidden: root?.querySelector("[data-preview-fixture-banner]")?.hidden ?? null,
       fixtureBannerText: root?.querySelector("[data-preview-fixture-banner]")?.textContent?.trim() ?? null,
       dominantReasonText: root?.querySelector("[data-dominant-reason]")?.textContent?.trim() ?? null,
