@@ -5,7 +5,7 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   X-XSS-Protection: 1; mode=block
   Strict-Transport-Security: max-age=31536000; includeSubDomains
-  Content-Security-Policy: default-src 'self'; script-src 'self' blob: 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' blob: https://api.atlas-systems.uk https://ramone.atlas-systems.uk https://corpus.atlas-systems.uk https://static.cloudflareinsights.com; img-src 'self' data: https://res.cloudinary.com;
+  Content-Security-Policy: default-src 'self'; script-src 'self' blob: 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' blob: https://api.atlas-systems.uk https://ramone.atlas-systems.uk https://corpus.atlas-systems.uk https://static.cloudflareinsights.com; img-src 'self' data: https://res.cloudinary.com; media-src 'self' https://res.cloudinary.com;
   Cache-Control: no-cache, max-age=0, must-revalidate
 
 /lab/console/*
