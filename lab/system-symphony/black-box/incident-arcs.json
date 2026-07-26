@@ -1,0 +1,481 @@
+{
+  "archiveVersion": "20260726-atlas-apu-incident-arc-static-v1",
+  "schemaVersion": "atlas-apu-incident-arc/v1",
+  "generatedFrom": "static Phase 10 fixture incident arc; no live persistence",
+  "generatedAt": "2026-07-26T18:20:00.000Z",
+  "source": "fixture",
+  "incidentArcs": [
+    {
+      "incidentId": "INC-APU-20260726-001",
+      "title": "Public API Interrupt And Recovery",
+      "movementName": "Interrupt Drop / Recovery Bloom",
+      "source": "fixture",
+      "replaySeed": "B055",
+      "engineVersion": "20260726-system-symphony-atlas-apu-live-v7",
+      "commit": "c41d7624df550652c93373f60238a1259bafbf7a",
+      "stateTransitionPath": ["warning", "critical", "warning", "healthy"],
+      "notes": [
+        "Static fixture arc for deterministic replay validation.",
+        "No live incident persistence is enabled in Phase 10."
+      ],
+      "frames": [
+        {
+          "id": "api-pressure-warning-001",
+          "phase": "warning",
+          "label": "Grid pressure rises",
+          "routeMode": "REPLAY",
+          "replaySeed": "B055",
+          "frame": {
+            "timestamp": "2026-07-26T13:24:04.000Z",
+            "evidenceMode": "preview",
+            "previewEstateDerived": true,
+            "stale": false,
+            "previousScoreState": "healthy",
+            "scoreState": "warning",
+            "scoreLabel": "Warning",
+            "stateVector": {
+              "healthy": 0.42,
+              "warning": 0.39,
+              "critical": 0.09,
+              "unknown": 0.1
+            },
+            "totalComponents": 5,
+            "measuredComponents": 4,
+            "warningCount": 2,
+            "failureCount": 0,
+            "unknownCount": 1,
+            "unmeasuredCount": 1,
+            "activeIncidents": 0,
+            "knownServiceRatio": 0.8,
+            "dominantStateReason": "Warning pressure leads because two measured services are degraded while one topology node is unmeasured.",
+            "modulation": {
+              "pressure": 0.39,
+              "incidentPressure": 0.09,
+              "errorPressure": 0.18,
+              "latencyPressure": 0.46,
+              "healthPressure": 0.58,
+              "coveragePressure": 0.1,
+              "spectralOpenness": 0.74,
+              "staleDecay": 0,
+              "hybridStateVector": {
+                "healthy": 0.42,
+                "warning": 0.39,
+                "critical": 0.09,
+                "unknown": 0.1
+              }
+            },
+            "voices": [
+              {
+                "name": "atlas-systems",
+                "displayName": "atlas-systems",
+                "status": "healthy",
+                "measured": true,
+                "evidenceState": "current",
+                "evidence_source": "archive:atlas-systems",
+                "measured_at": "2026-07-26T13:24:04.000Z",
+                "latency_ms": 42,
+                "uptime_pct": 99.95,
+                "error_rate": 0,
+                "depends_on": ["atlas-api-public"]
+              },
+              {
+                "name": "atlas-api-public",
+                "displayName": "atlas-api-public",
+                "status": "degraded",
+                "measured": true,
+                "evidenceState": "current",
+                "evidence_source": "archive:atlas-api-public",
+                "measured_at": "2026-07-26T13:24:04.000Z",
+                "latency_ms": 280,
+                "uptime_pct": 99.1,
+                "error_rate": 0.014,
+                "depends_on": ["github-pulse"]
+              },
+              {
+                "name": "specular-sonify",
+                "displayName": "specular-sonify",
+                "status": "degraded",
+                "measured": true,
+                "evidenceState": "current",
+                "evidence_source": "archive:specular-sonify",
+                "measured_at": "2026-07-26T13:24:04.000Z",
+                "latency_ms": 230,
+                "uptime_pct": 99.7,
+                "error_rate": 0.006,
+                "depends_on": ["atlas-api-public"]
+              },
+              {
+                "name": "deploy-watch",
+                "displayName": "deploy-watch",
+                "status": "healthy",
+                "measured": true,
+                "evidenceState": "current",
+                "evidence_source": "archive:deploy-watch",
+                "measured_at": "2026-07-26T13:24:04.000Z",
+                "latency_ms": 36,
+                "uptime_pct": 99.95,
+                "error_rate": 0,
+                "depends_on": []
+              },
+              {
+                "name": "atlas-dep-audit",
+                "displayName": "atlas-dep-audit",
+                "status": "unknown",
+                "measured": false,
+                "evidenceState": "topology-only",
+                "evidence_source": null,
+                "measured_at": null,
+                "latency_ms": null,
+                "uptime_pct": null,
+                "error_rate": null,
+                "depends_on": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "api-interrupt-critical-001",
+          "phase": "critical",
+          "label": "Interrupt drop",
+          "routeMode": "REPLAY",
+          "replaySeed": "B055",
+          "frame": {
+            "timestamp": "2026-07-26T13:28:44.000Z",
+            "evidenceMode": "preview",
+            "previewEstateDerived": true,
+            "stale": false,
+            "previousScoreState": "warning",
+            "scoreState": "critical",
+            "scoreLabel": "Critical",
+            "stateVector": {
+              "healthy": 0.0967,
+              "warning": 0.241,
+              "critical": 0.4834,
+              "unknown": 0.1789
+            },
+            "totalComponents": 5,
+            "measuredComponents": 4,
+            "warningCount": 1,
+            "failureCount": 1,
+            "unknownCount": 1,
+            "unmeasuredCount": 1,
+            "activeIncidents": 1,
+            "knownServiceRatio": 0.8,
+            "dominantStateReason": "Critical overrides the mix because the public API is down and one active incident is present.",
+            "modulation": {
+              "pressure": 0.478328,
+              "incidentPressure": 0.4834,
+              "errorPressure": 0.401068,
+              "latencyPressure": 0.1884,
+              "healthPressure": 0.9033,
+              "coveragePressure": 0.1789,
+              "spectralOpenness": 0.881166,
+              "staleDecay": 0.062615,
+              "hybridStateVector": {
+                "healthy": 0.0967,
+                "warning": 0.241,
+                "critical": 0.4834,
+                "unknown": 0.1789
+              }
+            },
+            "voices": [
+              {
+                "name": "atlas-systems",
+                "displayName": "atlas-systems",
+                "status": "healthy",
+                "measured": true,
+                "evidenceState": "current",
+                "evidence_source": "archive:atlas-systems",
+                "measured_at": "2026-07-26T13:28:44.000Z",
+                "latency_ms": 32,
+                "uptime_pct": 99.95,
+                "error_rate": 0,
+                "depends_on": ["atlas-api-public"]
+              },
+              {
+                "name": "atlas-api-public",
+                "displayName": "atlas-api-public",
+                "status": "down",
+                "measured": true,
+                "evidenceState": "current",
+                "evidence_source": "archive:atlas-api-public",
+                "measured_at": "2026-07-26T13:28:44.000Z",
+                "latency_ms": null,
+                "uptime_pct": 92.4,
+                "error_rate": 0.08,
+                "depends_on": ["github-pulse"]
+              },
+              {
+                "name": "specular-sonify",
+                "displayName": "specular-sonify",
+                "status": "degraded",
+                "measured": true,
+                "evidenceState": "current",
+                "evidence_source": "archive:specular-sonify",
+                "measured_at": "2026-07-26T13:28:44.000Z",
+                "latency_ms": 310,
+                "uptime_pct": 99.95,
+                "error_rate": 0.016,
+                "depends_on": ["atlas-api-public"]
+              },
+              {
+                "name": "deploy-watch",
+                "displayName": "deploy-watch",
+                "status": "healthy",
+                "measured": true,
+                "evidenceState": "current",
+                "evidence_source": "archive:deploy-watch",
+                "measured_at": "2026-07-26T13:28:44.000Z",
+                "latency_ms": 34,
+                "uptime_pct": 99.95,
+                "error_rate": 0,
+                "depends_on": []
+              },
+              {
+                "name": "atlas-dep-audit",
+                "displayName": "atlas-dep-audit",
+                "status": "unknown",
+                "measured": false,
+                "evidenceState": "topology-only",
+                "evidence_source": null,
+                "measured_at": null,
+                "latency_ms": null,
+                "uptime_pct": null,
+                "error_rate": null,
+                "depends_on": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "api-recovery-warning-001",
+          "phase": "recovery",
+          "label": "Pressure release",
+          "routeMode": "REPLAY",
+          "replaySeed": "B055",
+          "frame": {
+            "timestamp": "2026-07-26T13:33:14.000Z",
+            "evidenceMode": "preview",
+            "previewEstateDerived": true,
+            "stale": false,
+            "previousScoreState": "critical",
+            "scoreState": "warning",
+            "scoreLabel": "Warning",
+            "stateVector": {
+              "healthy": 0.52,
+              "warning": 0.31,
+              "critical": 0.05,
+              "unknown": 0.12
+            },
+            "totalComponents": 5,
+            "measuredComponents": 4,
+            "warningCount": 1,
+            "failureCount": 0,
+            "unknownCount": 1,
+            "unmeasuredCount": 1,
+            "activeIncidents": 0,
+            "knownServiceRatio": 0.8,
+            "dominantStateReason": "Recovery is audible: the active incident cleared, with residual warning pressure still present.",
+            "modulation": {
+              "pressure": 0.31,
+              "incidentPressure": 0.05,
+              "errorPressure": 0.08,
+              "latencyPressure": 0.28,
+              "healthPressure": 0.48,
+              "coveragePressure": 0.12,
+              "spectralOpenness": 0.82,
+              "staleDecay": 0,
+              "hybridStateVector": {
+                "healthy": 0.52,
+                "warning": 0.31,
+                "critical": 0.05,
+                "unknown": 0.12
+              }
+            },
+            "voices": [
+              {
+                "name": "atlas-systems",
+                "displayName": "atlas-systems",
+                "status": "healthy",
+                "measured": true,
+                "evidenceState": "current",
+                "evidence_source": "archive:atlas-systems",
+                "measured_at": "2026-07-26T13:33:14.000Z",
+                "latency_ms": 38,
+                "uptime_pct": 99.95,
+                "error_rate": 0,
+                "depends_on": ["atlas-api-public"]
+              },
+              {
+                "name": "atlas-api-public",
+                "displayName": "atlas-api-public",
+                "status": "degraded",
+                "measured": true,
+                "evidenceState": "current",
+                "evidence_source": "archive:atlas-api-public",
+                "measured_at": "2026-07-26T13:33:14.000Z",
+                "latency_ms": 180,
+                "uptime_pct": 99.4,
+                "error_rate": 0.004,
+                "depends_on": ["github-pulse"]
+              },
+              {
+                "name": "specular-sonify",
+                "displayName": "specular-sonify",
+                "status": "healthy",
+                "measured": true,
+                "evidenceState": "current",
+                "evidence_source": "archive:specular-sonify",
+                "measured_at": "2026-07-26T13:33:14.000Z",
+                "latency_ms": 90,
+                "uptime_pct": 99.95,
+                "error_rate": 0.001,
+                "depends_on": ["atlas-api-public"]
+              },
+              {
+                "name": "deploy-watch",
+                "displayName": "deploy-watch",
+                "status": "healthy",
+                "measured": true,
+                "evidenceState": "current",
+                "evidence_source": "archive:deploy-watch",
+                "measured_at": "2026-07-26T13:33:14.000Z",
+                "latency_ms": 34,
+                "uptime_pct": 99.95,
+                "error_rate": 0,
+                "depends_on": []
+              },
+              {
+                "name": "atlas-dep-audit",
+                "displayName": "atlas-dep-audit",
+                "status": "unknown",
+                "measured": false,
+                "evidenceState": "topology-only",
+                "evidence_source": null,
+                "measured_at": null,
+                "latency_ms": null,
+                "uptime_pct": null,
+                "error_rate": null,
+                "depends_on": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "api-recovered-healthy-001",
+          "phase": "recovered",
+          "label": "Recovery bloom",
+          "routeMode": "REPLAY",
+          "replaySeed": "B055",
+          "frame": {
+            "timestamp": "2026-07-26T13:37:04.000Z",
+            "evidenceMode": "preview",
+            "previewEstateDerived": true,
+            "stale": false,
+            "previousScoreState": "critical",
+            "scoreState": "healthy",
+            "scoreLabel": "Healthy",
+            "stateVector": {
+              "healthy": 0.91,
+              "warning": 0.05,
+              "critical": 0,
+              "unknown": 0.04
+            },
+            "totalComponents": 5,
+            "measuredComponents": 5,
+            "warningCount": 0,
+            "failureCount": 0,
+            "unknownCount": 0,
+            "unmeasuredCount": 0,
+            "activeIncidents": 0,
+            "knownServiceRatio": 1,
+            "dominantStateReason": "Recovery marker: measured services returned to healthy and the incident pressure resolved.",
+            "modulation": {
+              "pressure": 0.05,
+              "incidentPressure": 0,
+              "errorPressure": 0,
+              "latencyPressure": 0.08,
+              "healthPressure": 0.09,
+              "coveragePressure": 0,
+              "spectralOpenness": 0.96,
+              "staleDecay": 0,
+              "hybridStateVector": {
+                "healthy": 0.91,
+                "warning": 0.05,
+                "critical": 0,
+                "unknown": 0.04
+              }
+            },
+            "voices": [
+              {
+                "name": "atlas-systems",
+                "displayName": "atlas-systems",
+                "status": "healthy",
+                "measured": true,
+                "evidenceState": "current",
+                "evidence_source": "archive:atlas-systems",
+                "measured_at": "2026-07-26T13:37:04.000Z",
+                "latency_ms": 32,
+                "uptime_pct": 99.95,
+                "error_rate": 0,
+                "depends_on": ["atlas-api-public"]
+              },
+              {
+                "name": "atlas-api-public",
+                "displayName": "atlas-api-public",
+                "status": "healthy",
+                "measured": true,
+                "evidenceState": "current",
+                "evidence_source": "archive:atlas-api-public",
+                "measured_at": "2026-07-26T13:37:04.000Z",
+                "latency_ms": 40,
+                "uptime_pct": 99.95,
+                "error_rate": 0,
+                "depends_on": ["github-pulse"]
+              },
+              {
+                "name": "specular-sonify",
+                "displayName": "specular-sonify",
+                "status": "healthy",
+                "measured": true,
+                "evidenceState": "current",
+                "evidence_source": "archive:specular-sonify",
+                "measured_at": "2026-07-26T13:37:04.000Z",
+                "latency_ms": 44,
+                "uptime_pct": 99.95,
+                "error_rate": 0,
+                "depends_on": ["atlas-api-public"]
+              },
+              {
+                "name": "deploy-watch",
+                "displayName": "deploy-watch",
+                "status": "healthy",
+                "measured": true,
+                "evidenceState": "current",
+                "evidence_source": "archive:deploy-watch",
+                "measured_at": "2026-07-26T13:37:04.000Z",
+                "latency_ms": 30,
+                "uptime_pct": 99.95,
+                "error_rate": 0,
+                "depends_on": []
+              },
+              {
+                "name": "atlas-dep-audit",
+                "displayName": "atlas-dep-audit",
+                "status": "healthy",
+                "measured": true,
+                "evidenceState": "current",
+                "evidence_source": "archive:atlas-dep-audit",
+                "measured_at": "2026-07-26T13:37:04.000Z",
+                "latency_ms": 58,
+                "uptime_pct": 99.9,
+                "error_rate": 0,
+                "depends_on": []
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

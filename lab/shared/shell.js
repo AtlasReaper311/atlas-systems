@@ -3,6 +3,7 @@
 const LAB_ROUTES = [
   { label: "Lab home", href: "/lab/" },
   { label: "System Symphony", href: "/lab/system-symphony/" },
+  { label: "APU ROMs", href: "/lab/system-symphony/roms/" },
   { label: "System Map", href: "/lab/system-map/" },
   { label: "Operations", href: "/lab/console/" },
   { label: "Proof Chain", href: "/lab/proof-chain/" },
@@ -14,6 +15,7 @@ const LAB_ROUTES = [
 
 const PRODUCTION_ORIGIN = "https://atlas-systems.uk";
 const SEARCH_CSS = "/static/css/estate-search.css";
+const SYSTEM_SYMPHONY_ROUTE = "/lab/system-symphony/";
 
 function normalizePath(pathname) {
   if (pathname === "/") return pathname;
@@ -22,6 +24,10 @@ function normalizePath(pathname) {
 
 function currentPath() {
   return normalizePath(window.location.pathname);
+}
+
+function isSystemSymphonyPath(pathname = currentPath()) {
+  return pathname.startsWith(SYSTEM_SYMPHONY_ROUTE);
 }
 
 function ensureStylesheet(href) {
@@ -129,6 +135,13 @@ function installMetadata() {
   ensureMeta("twitter:description", description);
 }
 
+async function installRouteEnhancements() {
+  if (!isSystemSymphonyPath()) return;
+  await import("/lab/system-symphony/system-symphony-navigation.js?v=20260726-navigation-ia-v1");
+  if (currentPath() !== SYSTEM_SYMPHONY_ROUTE) return;
+  await import("/lab/system-symphony/trace-role-bridge.js?v=20260726-phase-d-role-routing-v1");
+}
+
 async function installLabShell() {
   ensureStylesheet(SEARCH_CSS);
   installMetadata();
@@ -137,8 +150,9 @@ async function installLabShell() {
   installFooter();
   await import("/static/js/estate-shell.js?v=20260723-interface-v2");
   await import("/static/js/estate-search/global-search.js");
+  await installRouteEnhancements();
 }
 
 void installLabShell();
 
-export { LAB_ROUTES, normalizePath };
+export { LAB_ROUTES, isSystemSymphonyPath, normalizePath };

@@ -1,0 +1,45 @@
+.symphony-page-host [data-service-table] tr.is-role-dimmed {
+  opacity: 0.38;
+}
+
+.symphony-page-host .symphony-node.is-role-highlight circle:first-of-type {
+  stroke: var(--accent, #f5a623);
+  stroke-width: 3px;
+  filter: drop-shadow(0 0 8px rgba(245, 166, 35, 0.42));
+}
+
+.symphony-page-host .symphony-node.is-role-highlight text {
+  fill: var(--text, #e8e8e0);
+  font-weight: 600;
+}
+
+.symphony-page-host .symphony-node.is-role-dimmed,
+.symphony-page-host .symphony-edge.is-role-dimmed {
+  opacity: 0.2;
+}
+
+.symphony-page-host .symphony-edge.is-role-route {
+  opacity: 1;
+  stroke: var(--accent, #f5a623);
+  stroke-width: 2.5px;
+  stroke-dasharray: 5 4;
+}
+
+.symphony-page-host[data-trace-role="clock"] .symphony-edge {
+  opacity: 0.78;
+  stroke: rgba(245, 166, 35, 0.72);
+  stroke-width: 2px;
+  stroke-dasharray: 3 7;
+}
+
+.symphony-page-host[data-trace-role="clock"] .symphony-node circle:first-of-type {
+  stroke: rgba(245, 166, 35, 0.76);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .symphony-page-host .symphony-node,
+  .symphony-page-host .symphony-edge,
+  .symphony-page-host [data-service-table] tr {
+    transition: none;
+  }
+}

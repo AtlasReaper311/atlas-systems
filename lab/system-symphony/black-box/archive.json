@@ -1,0 +1,213 @@
+{
+  "archiveVersion": "20260726-atlas-apu-static-archive-v1",
+  "schemaVersion": "atlas-apu-black-box/v1",
+  "generatedFrom": "static Phase 9 fixture frames; no live persistence",
+  "generatedAt": "2026-07-26T18:05:00.000Z",
+  "source": "fixture",
+  "frames": [
+    {
+      "id": "green-clock-static-001",
+      "title": "Green Clock static fixture",
+      "source": "fixture",
+      "routeMode": "PLAY",
+      "replaySeed": "A7A5",
+      "engineVersion": "20260726-system-symphony-atlas-apu-live-v7",
+      "commit": "c41d7624df550652c93373f60238a1259bafbf7a",
+      "frame": {
+        "timestamp": "2026-07-26T13:22:04.000Z",
+        "evidenceMode": "preview",
+        "previewEstateDerived": true,
+        "stale": false,
+        "scoreState": "healthy",
+        "scoreLabel": "Healthy",
+        "stateVector": {
+          "healthy": 1,
+          "warning": 0,
+          "critical": 0,
+          "unknown": 0
+        },
+        "totalComponents": 4,
+        "measuredComponents": 4,
+        "warningCount": 0,
+        "failureCount": 0,
+        "unknownCount": 0,
+        "unmeasuredCount": 0,
+        "activeIncidents": 0,
+        "knownServiceRatio": 1,
+        "dominantStateReason": "Healthy supplies the harmonic grammar; 4 healthy, 0 warning, 0 critical, 0 unknown remain audible as blended operational layers.",
+        "modulation": {
+          "pressure": 0,
+          "incidentPressure": 0,
+          "errorPressure": 0,
+          "latencyPressure": 0,
+          "healthPressure": 0,
+          "coveragePressure": 0,
+          "spectralOpenness": 1,
+          "staleDecay": 0,
+          "hybridStateVector": {
+            "healthy": 1,
+            "warning": 0,
+            "critical": 0,
+            "unknown": 0
+          }
+        },
+        "voices": [
+          {
+            "name": "atlas-systems",
+            "displayName": "atlas-systems",
+            "status": "healthy",
+            "measured": true,
+            "evidenceState": "current",
+            "evidence_source": "archive:atlas-systems",
+            "measured_at": "2026-07-26T13:22:04.000Z",
+            "latency_ms": 32,
+            "uptime_pct": 99.95,
+            "error_rate": 0,
+            "depends_on": ["atlas-api-public"]
+          },
+          {
+            "name": "atlas-api-public",
+            "displayName": "atlas-api-public",
+            "status": "healthy",
+            "measured": true,
+            "evidenceState": "current",
+            "evidence_source": "archive:atlas-api-public",
+            "measured_at": "2026-07-26T13:22:04.000Z",
+            "latency_ms": 32,
+            "uptime_pct": 99.95,
+            "error_rate": 0,
+            "depends_on": []
+          },
+          {
+            "name": "deploy-watch",
+            "displayName": "deploy-watch",
+            "status": "healthy",
+            "measured": true,
+            "evidenceState": "current",
+            "evidence_source": "archive:deploy-watch",
+            "measured_at": "2026-07-26T13:22:04.000Z",
+            "latency_ms": 32,
+            "uptime_pct": 99.95,
+            "error_rate": 0,
+            "depends_on": []
+          },
+          {
+            "name": "github-pulse",
+            "displayName": "github-pulse",
+            "status": "healthy",
+            "measured": true,
+            "evidenceState": "current",
+            "evidence_source": "archive:github-pulse",
+            "measured_at": "2026-07-26T13:22:04.000Z",
+            "latency_ms": 32,
+            "uptime_pct": 99.95,
+            "error_rate": 0,
+            "depends_on": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "critical-choke-static-001",
+      "title": "Critical Choke static fixture",
+      "source": "fixture",
+      "routeMode": "REPLAY",
+      "replaySeed": "C0DE",
+      "engineVersion": "20260726-system-symphony-atlas-apu-live-v7",
+      "commit": "c41d7624df550652c93373f60238a1259bafbf7a",
+      "frame": {
+        "timestamp": "2026-07-26T13:28:44.000Z",
+        "evidenceMode": "preview",
+        "previewEstateDerived": true,
+        "stale": false,
+        "scoreState": "critical",
+        "scoreLabel": "Critical",
+        "stateVector": {
+          "healthy": 0.0967,
+          "warning": 0.241,
+          "critical": 0.4834,
+          "unknown": 0.1789
+        },
+        "totalComponents": 4,
+        "measuredComponents": 3,
+        "warningCount": 1,
+        "failureCount": 1,
+        "unknownCount": 1,
+        "unmeasuredCount": 1,
+        "activeIncidents": 1,
+        "knownServiceRatio": 0.75,
+        "dominantStateReason": "Critical overrides the mix because 1 active incident is present.",
+        "modulation": {
+          "pressure": 0.478328,
+          "incidentPressure": 0.4834,
+          "errorPressure": 0.401068,
+          "latencyPressure": 0.1884,
+          "healthPressure": 0.9033,
+          "coveragePressure": 0.1789,
+          "spectralOpenness": 0.881166,
+          "staleDecay": 0.062615,
+          "hybridStateVector": {
+            "healthy": 0.0967,
+            "warning": 0.241,
+            "critical": 0.4834,
+            "unknown": 0.1789
+          }
+        },
+        "voices": [
+          {
+            "name": "atlas-systems",
+            "displayName": "atlas-systems",
+            "status": "healthy",
+            "measured": true,
+            "evidenceState": "current",
+            "evidence_source": "archive:atlas-systems",
+            "measured_at": "2026-07-26T13:28:44.000Z",
+            "latency_ms": 32,
+            "uptime_pct": 99.95,
+            "error_rate": 0,
+            "depends_on": ["atlas-api-public"]
+          },
+          {
+            "name": "atlas-api-public",
+            "displayName": "atlas-api-public",
+            "status": "down",
+            "measured": true,
+            "evidenceState": "current",
+            "evidence_source": "archive:atlas-api-public",
+            "measured_at": "2026-07-26T13:28:44.000Z",
+            "latency_ms": null,
+            "uptime_pct": 92.4,
+            "error_rate": 0.08,
+            "depends_on": ["github-pulse"]
+          },
+          {
+            "name": "specular-sonify",
+            "displayName": "specular-sonify",
+            "status": "degraded",
+            "measured": true,
+            "evidenceState": "current",
+            "evidence_source": "archive:specular-sonify",
+            "measured_at": "2026-07-26T13:28:44.000Z",
+            "latency_ms": 310,
+            "uptime_pct": 99.95,
+            "error_rate": 0.016,
+            "depends_on": ["atlas-api-public"]
+          },
+          {
+            "name": "atlas-dep-audit",
+            "displayName": "atlas-dep-audit",
+            "status": "unknown",
+            "measured": false,
+            "evidenceState": "topology-only",
+            "evidence_source": null,
+            "measured_at": null,
+            "latency_ms": null,
+            "uptime_pct": null,
+            "error_rate": null,
+            "depends_on": []
+          }
+        ]
+      }
+    }
+  ]
+}

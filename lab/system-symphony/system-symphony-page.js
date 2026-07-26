@@ -5,15 +5,39 @@ import {
 } from "../../static/js/sonify/apu-production-engine.js?v=20260726-system-symphony-atlas-apu-live-v7";
 import { buildAtlasApuScorePlan } from "../../static/js/sonify/atlas-apu-score-plan.js?v=20260726-atlas-apu-score-plan-v3";
 import { scorePlanGuardForFrame } from "../../static/js/sonify/atlas-apu-engine-controls.js?v=20260726-atlas-apu-engine-controls-v4";
+import {
+  cartridgeSummary,
+  createAtlasApuBlackBoxCartridge,
+  materializeBlackBoxArchive,
+  validateBlackBoxCartridge,
+} from "../../static/js/sonify/atlas-apu-flight-recorder.js?v=20260726-atlas-apu-black-box-v1";
+import {
+  incidentArcSummary,
+  materializeIncidentArcArchive,
+  validateIncidentArc,
+} from "../../static/js/sonify/atlas-apu-incident-arc.js?v=20260726-atlas-apu-incident-arc-v1";
 
 const OBJECTIVES_URL = "https://api.atlas-systems.uk/v1/reliability/objectives";
 const SHELL_FIX_STYLESHEET = "/static/css/batch-h-shell-fixes.css?v=20260725-browser-evidence";
+const FLIGHT_RECORDER_ARCHIVE_URL = "/lab/system-symphony/black-box/archive.json?v=20260726-phase9-flight-recorder";
+const INCIDENT_ARC_ARCHIVE_URL = "/lab/system-symphony/black-box/incident-arcs.json?v=20260726-phase10-incident-boss-track";
 const HOST_ID = "system-symphony-widget";
 const HOST_WAIT_MS = 5000;
 const PAGE_OUTPUT_GAIN_PERCENT = Math.round(DEFAULT_USER_GAIN * 100);
 const PAGE_MODES = new Set(["play", "trace", "replay"]);
+const PROOF_PANELS = new Set(["cartridge", "blackbox", "incident"]);
 const REPLAY_PROFILES = new Set(["custom", "healthy", "warning", "critical", "unknown"]);
 const REPLAY_ROUTE = "/lab/system-symphony/replay/";
+const INCIDENT_ARC_FRAME_MS = 10000;
+const APU_ROLE_LABELS = Object.freeze({
+  clock: "Clock",
+  pulse: "Pulse",
+  memory: "Memory",
+  thermal: "Thermal",
+  signal: "Signal",
+  contention: "Contention",
+  recovery: "Recovery",
+});
 const MOVEMENTS = Object.freeze({
   healthy: "Green Clock",
   warning: "Warning Pressure",
@@ -22,6 +46,12 @@ const MOVEMENTS = Object.freeze({
 });
 
 let latestCartridge = null;
+let archivedCartridges = [];
+let incidentArcs = [];
+let selectedIncidentArc = null;
+let incidentArcIndex = 0;
+let incidentArcTimer = null;
+let activeProofPanel = "cartridge";
 
 const byId = (id) => document.getElementById(id);
 
@@ -51,6 +81,11 @@ function setProofText(id, value) {
   setText(id, value ?? "unknown");
 }
 
+function setProofPair(name, value) {
+  setProofText(`page-proof-${name}`, value);
+  setProofText(`trust-proof-${name}`, value);
+}
+
 function commitIdentity() {
   const value = document.querySelector('meta[name="build-commit"]')?.content
     || document.documentElement.dataset.buildCommit
@@ -62,12 +97,6 @@ function commitIdentity() {
 function compactCommit(value) {
   const textValue = String(value ?? "").trim();
   return /^[0-9a-f]{40}$/i.test(textValue) ? textValue.slice(0, 7) : textValue || "unavailable";
-}
-
-function formatIsoTime(value) {
-  if (!value) return "pending";
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? String(value) : date.toISOString();
 }
 
 function formatPercentValue(value) {
@@ -167,14 +196,18 @@ function syncSummary(host) {
     measurementSummary,
   );
   const movement = MOVEMENTS[stateKey] ?? MOVEMENTS.unknown;
-  setProofText("page-proof-engine", SYSTEM_SYMPHONY_BUILD_ID);
-  setProofText("page-proof-commit", compactCommit(commitIdentity()));
-  setProofText("page-proof-source", telemetrySourceLabel(host));
-  setProofText("page-proof-route", routeModeLabel());
+  setProofPair("engine", SYSTEM_SYMPHONY_BUILD_ID);
+  setProofPair("commit", compactCommit(commitIdentity()));
+  setProofPair("source", telemetrySourceLabel(host));
+  setProofPair("route", routeModeLabel());
   document.querySelector("[data-page-movement]")?.replaceChildren(document.createTextNode(movement));
   document.querySelector("[data-page-source-label]")?.replaceChildren(document.createTextNode(sourceLabel));
   document.querySelector("[data-page-now-state]")?.replaceChildren(document.createTextNode(metricText(host, "state")));
   document.querySelector("[data-page-measured-label]")?.replaceChildren(document.createTextNode(playMeasured));
+  document.querySelector("[data-cover-movement]")?.replaceChildren(document.createTextNode(movement));
+  document.querySelector("[data-cover-source]")?.replaceChildren(document.createTextNode(telemetrySourceLabel(host)));
+  const cover = document.querySelector("[data-current-cartridge-cover]");
+  if (cover) cover.dataset.state = stateKey;
   const pageAudio = document.querySelector("[data-page-audio-toggle]");
   if (pageAudio) {
     pageAudio.textContent = running ? "Stop listening" : "Start listening";
@@ -183,6 +216,7 @@ function syncSummary(host) {
   const status = byId("page-source-status");
   status.dataset.state = stateKey === "critical" ? "failure" : stateKey === "warning" ? "warning" : stateKey === "healthy" ? "healthy" : "unknown";
   status.textContent = `Instrument ${stateKey}; source ${source}. Live mode remains read-only.`;
+  highlightApuRole(host.dataset.apuRoleHighlight);
 }
 
 function syncMode(mode, { push = true } = {}) {
@@ -199,7 +233,7 @@ function syncMode(mode, { push = true } = {}) {
     panel.hidden = panel.dataset.symphonyModePanel !== nextMode;
     panel.classList.toggle("is-active", panel.dataset.symphonyModePanel === nextMode);
   }
-  setProofText("page-proof-route", nextMode.toUpperCase());
+  setProofPair("route", nextMode.toUpperCase());
   if (!push) return;
   const url = new URL(window.location.href);
   if (nextMode === "play") url.searchParams.delete("symphonyMode");
@@ -207,9 +241,98 @@ function syncMode(mode, { push = true } = {}) {
   window.history.replaceState({}, "", url);
 }
 
+function scrollToPanel(target) {
+  if (!target) return;
+  const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - 96);
+  window.scrollTo({ top, left: 0, behavior: "auto" });
+}
+
+function pinHorizontalScroll() {
+  if (window.scrollX === 0) return;
+  window.scrollTo({ top: window.scrollY, left: 0, behavior: "auto" });
+}
+
+function selectProofPanel(panel = "cartridge", { scroll = false } = {}) {
+  const nextPanel = PROOF_PANELS.has(panel) ? panel : "cartridge";
+  activeProofPanel = nextPanel;
+  const consoleNode = document.querySelector("[data-proof-console]");
+  for (const tab of document.querySelectorAll("[data-proof-tab]")) {
+    const selected = tab.dataset.proofTab === nextPanel;
+    tab.setAttribute("aria-selected", String(selected));
+    tab.tabIndex = selected ? 0 : -1;
+  }
+  for (const proofPanel of document.querySelectorAll("[data-proof-panel]")) {
+    proofPanel.hidden = proofPanel.dataset.proofPanel !== nextPanel;
+  }
+  if (scroll) {
+    const target = document.querySelector(`[data-proof-panel="${nextPanel}"]`) ?? consoleNode;
+    scrollToPanel(target);
+  }
+  window.requestAnimationFrame(pinHorizontalScroll);
+}
+
+function setTrustLayer(open) {
+  const layer = document.querySelector("[data-trust-layer]");
+  const toggle = document.querySelector("[data-trust-toggle]");
+  if (!layer || !toggle) return;
+  layer.hidden = !open;
+  toggle.setAttribute("aria-expanded", String(open));
+  if (open) layer.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+function setTrustStatus(message) {
+  const status = document.querySelector("[data-trust-status]");
+  if (status) status.textContent = message;
+}
+
+function sourceHonestyMessage(source) {
+  if (source === "live") return "Live source: current bounded public telemetry.";
+  if (source === "live stale") return "Stale source: live request failed; last-known values remain inspectable.";
+  if (source === "fixture") return "Fixture source: static preview data, not live estate state.";
+  if (source === "replay") return "Replay source: browser-only deterministic playback.";
+  return "Connecting source: no live claim is available yet.";
+}
+
+function roleSummary(plan, role) {
+  const entry = plan?.roles?.[role];
+  if (!entry) return `${APU_ROLE_LABELS[role] ?? role}: waiting for the first score plan.`;
+  const parts = Object.entries(entry)
+    .filter(([, value]) => value !== null && value !== undefined && typeof value !== "object")
+    .slice(0, 4)
+    .map(([key, value]) => `${key} ${value}`);
+  return `${entry.role ?? APU_ROLE_LABELS[role] ?? role}: ${entry.lane ?? "diagnostic lane"}${parts.length ? ` / ${parts.join(" / ")}` : ""}.`;
+}
+
+function highlightApuRole(role) {
+  const selected = APU_ROLE_LABELS[role] ? role : "";
+  const label = APU_ROLE_LABELS[selected] ?? "";
+  for (const button of document.querySelectorAll("[data-apu-role-highlight]")) {
+    button.setAttribute("aria-pressed", String(button.dataset.apuRoleHighlight === selected));
+  }
+  const status = document.querySelector("[data-apu-role-status]");
+  if (status) status.textContent = selected
+    ? roleSummary(latestCartridge?.scorePlan, selected)
+    : "Select a role to see its current chip law. Switch the source to Atlas APU audition, then inspect a service to solo or mute it.";
+  const host = document.getElementById(HOST_ID);
+  if (!host) return;
+  host.dataset.apuRoleHighlight = selected;
+  const rows = host.querySelectorAll("[data-service-table] tr");
+  for (const row of rows) {
+    const roleCell = row.children[4];
+    row.classList.toggle("is-role-highlight", Boolean(label) && roleCell?.textContent?.includes(label));
+  }
+}
+
 function clickConsoleAudio(host) {
   const button = host.querySelector(".symphony-console [data-audio-toggle]");
   button?.click();
+  return host.dataset.running === "1";
+}
+
+function ensureConsoleAudioRunning(host) {
+  if (!host) return false;
+  if (host.dataset.running === "1") return true;
+  return clickConsoleAudio(host);
 }
 
 function makeReplayUrl({
@@ -274,6 +397,30 @@ function movementScale(plan, frame) {
   return "unknown";
 }
 
+function decorateCartridgeForDisplay(payload, frame = {}) {
+  const plan = payload?.scorePlan ?? {};
+  const transition = payload?.transition ?? plan.transition ?? {};
+  const roles = plan.roles ?? {};
+  const signalDensity = Number(roles.signal?.density);
+  return Object.freeze({
+    ...payload,
+    title: "ATLAS APU CARTRIDGE",
+    dominantLabel: payload?.dominantLabel ?? plan.dominantLabel ?? frame.scoreLabel ?? "Unknown",
+    movement: payload?.movement ?? payload?.movementName ?? plan.movement ?? "Unknown Drift",
+    tempo: payload?.tempo ?? `${plan.tempo?.bpm ?? frame.bpm ?? 100} BPM`,
+    grid: payload?.grid ?? plan.tempo?.grid ?? "16-step",
+    scale: payload?.scale ?? movementScale(plan, frame),
+    clockPattern: payload?.clockPattern ?? `${roles.clock?.state ?? "steady"} / ${roles.clock?.grid ?? "16-step"}`,
+    pulseMotif: payload?.pulseMotif ?? `${plan.motif?.name ?? roles.pulse?.motif ?? "unknown motif"} / duty ${plan.motif?.dutyCycle ?? roles.pulse?.dutyCycle ?? "unknown"}`,
+    memoryBehavior: payload?.memoryBehavior ?? roles.memory?.state ?? "unknown",
+    thermalBassPattern: payload?.thermalBassPattern ?? `${roles.thermal?.pattern ?? plan.bassPattern ?? "unknown"} / pressure ${formatPercentValue(roles.thermal?.pressure)}`,
+    signalNoiseDensity: payload?.signalNoiseDensity ?? `${roles.signal?.pattern ?? plan.noisePattern ?? "unknown"} / ${Number.isFinite(signalDensity) ? formatPercentValue(signalDensity) : "unknown"}`,
+    contentionAlerts: payload?.contentionAlerts ?? `${roles.contention?.alerts ?? 0} / ${roles.contention?.counterline ?? plan.counterline ?? "unknown"}`,
+    recoveryAccents: payload?.recoveryAccents ?? (roles.recovery?.active ? "active" : "inactive"),
+    transitionSignature: payload?.transitionSignature ?? `${transition.id ?? "steady-state"} / ${transition.gesture ?? "current movement continues"}`,
+  });
+}
+
 function buildCartridge(host, detail = {}) {
   const frame = detail.frame ?? host.__atlasApuFrame?.frame;
   if (!frame) return null;
@@ -282,43 +429,15 @@ function buildCartridge(host, detail = {}) {
   if (!plan) return null;
   const commit = commitIdentity();
   const replaySeed = currentReplaySeed();
-  const transition = plan.transition ?? {};
-  const roles = plan.roles ?? {};
-  const signalDensity = Number(roles.signal?.density);
-  const frameTime = formatIsoTime(plan.timestamp ?? frame.timestamp ?? frame.lastSuccessfulAt ?? plan.frameId);
   const diagnosticGuard = detail.composition?.diagnostics?.scorePlanGuard;
   const guard = diagnosticGuard?.active === true
     ? diagnosticGuard
     : scorePlanGuardForFrame({ scorePlan: plan });
   const sampleFree = sampleFreeStatus(detail, plan);
-
-  return Object.freeze({
-    title: "ATLAS APU CARTRIDGE",
-    frameId: String(plan.frameId ?? plan.seed),
-    frameTime,
-    dominantState: plan.dominantState ?? frame.scoreState ?? "unknown",
-    dominantLabel: plan.dominantLabel ?? frame.scoreLabel ?? "Unknown",
-    movement: plan.movement ?? "Unknown Drift",
-    stateVector: plan.stateVector ?? frame.stateVector ?? {},
-    tempo: `${plan.tempo?.bpm ?? frame.bpm ?? 100} BPM`,
-    grid: plan.tempo?.grid ?? "16-step",
-    scale: movementScale(plan, frame),
-    clockPattern: `${roles.clock?.state ?? "steady"} / ${roles.clock?.grid ?? "16-step"}`,
-    pulseMotif: `${plan.motif?.name ?? roles.pulse?.motif ?? "unknown motif"} / duty ${plan.motif?.dutyCycle ?? roles.pulse?.dutyCycle ?? "unknown"}`,
-    memoryBehavior: roles.memory?.state ?? "unknown",
-    thermalBassPattern: `${roles.thermal?.pattern ?? plan.bassPattern ?? "unknown"} / pressure ${formatPercentValue(roles.thermal?.pressure)}`,
-    signalNoiseDensity: `${roles.signal?.pattern ?? plan.noisePattern ?? "unknown"} / ${Number.isFinite(signalDensity) ? formatPercentValue(signalDensity) : "unknown"}`,
-    contentionAlerts: `${roles.contention?.alerts ?? 0} / ${roles.contention?.counterline ?? plan.counterline ?? "unknown"}`,
-    recoveryAccents: roles.recovery?.active ? "active" : "inactive",
-    transitionSignature: `${transition.id ?? "steady-state"} / ${transition.gesture ?? "current movement continues"}`,
-    frameSeed: plan.seed ?? "pending",
-    engineVersion: SYSTEM_SYMPHONY_BUILD_ID,
-    scorePlanVersion: plan.buildId ?? "unknown",
-    engineControlsVersion: detail.composition?.diagnostics?.engineControlsBuildId ?? "pending",
-    commit: compactCommit(commit),
+  const blackBoxCartridge = createAtlasApuBlackBoxCartridge({
+    frame,
+    scorePlan: plan,
     source,
-    sampleFree,
-    sampleFreeGuard: guard?.active === true ? `${sampleFree} / ${guard.mode}` : `${sampleFree} / pending`,
     routeMode: routeModeLabel(),
     replaySeed,
     replayUrl: makeReplayUrl({
@@ -328,9 +447,16 @@ function buildCartridge(host, detail = {}) {
       source,
       replaySeed,
     }).href,
-    evidence: plan.evidence ?? {},
-    scorePlan: plan,
+    engineVersion: SYSTEM_SYMPHONY_BUILD_ID,
+    commit,
+    sampleFreeGuardStatus: guard?.active === true ? `${sampleFree} / ${guard.mode}` : `${sampleFree} / pending`,
+    build: {
+      engineControlsVersion: detail.composition?.diagnostics?.engineControlsBuildId ?? "pending",
+    },
+    origin: window.location.origin,
   });
+
+  return decorateCartridgeForDisplay(blackBoxCartridge, frame);
 }
 
 function renderCartridge(payload) {
@@ -359,26 +485,383 @@ function renderCartridge(payload) {
   setCartridgeField("sampleFree", payload.sampleFree);
   setCartridgeField("replaySeed", payload.replaySeed);
 
-  setProofText("page-proof-commit", payload.commit);
-  setProofText("page-proof-engine", payload.engineVersion);
-  setProofText("page-proof-source", payload.source);
-  setProofText("page-proof-frame-time", payload.frameTime);
-  setProofText("page-proof-route", payload.routeMode);
-  setProofText("page-proof-frame-seed", payload.frameSeed);
-  setProofText("page-proof-sample-free", payload.sampleFreeGuard);
+  setProofPair("commit", payload.commit);
+  setProofPair("engine", payload.engineVersion);
+  setProofPair("source", payload.source);
+  setProofPair("frame-time", payload.frameTime);
+  setProofPair("route", payload.routeMode);
+  setProofPair("frame-seed", payload.frameSeed);
+  setProofPair("sample-free", payload.sampleFreeGuard);
   const proofReplay = byId("page-proof-replay");
   if (proofReplay) {
     proofReplay.href = payload.replayUrl;
     proofReplay.textContent = "available";
   }
+  document.querySelector("[data-cover-movement]")?.replaceChildren(document.createTextNode(payload.movement ?? "Unknown Drift"));
+  document.querySelector("[data-cover-source]")?.replaceChildren(document.createTextNode(payload.source ?? "connecting"));
+  const cover = document.querySelector("[data-current-cartridge-cover]");
+  if (cover) cover.dataset.state = payload.dominantState ?? "unknown";
   const json = document.querySelector("[data-cartridge-json]");
   if (json) json.textContent = JSON.stringify(payload, null, 2);
   const status = document.querySelector("[data-cartridge-status]");
   if (status) status.textContent = `Cartridge armed: ${payload.dominantState} / ${payload.source}.`;
+  setTrustStatus(sourceHonestyMessage(payload.source));
+  highlightApuRole(document.getElementById(HOST_ID)?.dataset.apuRoleHighlight);
 }
 
 function refreshCartridge(host, detail = host.__atlasApuFrame ?? {}) {
   renderCartridge(buildCartridge(host, detail));
+}
+
+function setFlightRecorderField(name, value) {
+  const node = document.querySelector(`[data-flight-recorder-field="${name}"]`);
+  if (node) node.textContent = String(value ?? "unknown");
+}
+
+function setFlightRecorderStatus(message) {
+  const status = document.querySelector("[data-flight-recorder-status]");
+  if (status) status.textContent = message;
+}
+
+function renderFlightRecorderJson(cartridge) {
+  const json = document.querySelector("[data-flight-recorder-json]");
+  if (!json) return;
+  json.textContent = cartridge
+    ? JSON.stringify(cartridge, null, 2)
+    : "Select a static archive cartridge to inspect its black-box proof.";
+}
+
+function selectArchivedCartridge(cartridge, host, { armReplay = true } = {}) {
+  if (!cartridge) return;
+  const displayCartridge = decorateCartridgeForDisplay(cartridge, cartridge.telemetrySnapshot);
+  const validation = validateBlackBoxCartridge(cartridge);
+  renderFlightRecorderJson(cartridge);
+  setFlightRecorderField("selected", cartridge.cartridgeId ?? cartridge.seed ?? "pending");
+  setFlightRecorderField("schema", validation.valid ? cartridge.schemaVersion : `invalid: ${validation.missing.join(", ")}`);
+  const summary = cartridgeSummary(cartridge);
+  if (armReplay) {
+    selectProofPanel("blackbox");
+    renderCartridge(displayCartridge);
+    const seed = document.querySelector("[data-page-replay-seed]");
+    const profile = document.querySelector("[data-page-replay-profile]");
+    if (seed) seed.value = normaliseReplaySeed(cartridge.replaySeed);
+    if (profile) profile.value = normaliseReplayProfile(cartridge.dominantState);
+    syncMode("replay");
+    applyReplay(host);
+    setReplayStatus(`Archived fixture cartridge armed: ${summary}.`);
+  }
+  setFlightRecorderStatus(`Inspecting static fixture cartridge ${cartridge.cartridgeId}. Live persistence is not enabled.`);
+  for (const button of document.querySelectorAll("[data-flight-recorder-inspect]")) {
+    button.setAttribute("aria-pressed", String(button.dataset.flightRecorderInspect === cartridge.cartridgeId));
+  }
+}
+
+function renderFlightRecorderArchive(archive, host) {
+  archivedCartridges = [...(archive.cartridges ?? [])];
+  const list = document.querySelector("[data-flight-recorder-list]");
+  setFlightRecorderField("archive", archive.archiveVersion ?? "static");
+  setFlightRecorderField("count", archivedCartridges.length);
+  setFlightRecorderField("schema", archive.schemaVersion ?? "unknown");
+  if (!list) return;
+  list.replaceChildren();
+  for (const cartridge of archivedCartridges) {
+    const validation = validateBlackBoxCartridge(cartridge);
+    const item = document.createElement("article");
+    item.className = "symphony-flight-recorder-card";
+    item.dataset.state = cartridge.dominantState ?? "unknown";
+
+    const heading = document.createElement("h3");
+    heading.textContent = cartridge.movementName ?? cartridge.movement ?? "Unknown Drift";
+    const proof = document.createElement("p");
+    proof.textContent = `${cartridge.source} / ${cartridge.seed} / ${cartridge.sampleFreeGuardStatus}`;
+    const meta = document.createElement("p");
+    meta.textContent = validation.valid
+      ? `Schema ${cartridge.schemaVersion} / commit ${cartridge.commit}`
+      : `Invalid cartridge: ${validation.missing.join(", ")}`;
+
+    const actions = document.createElement("div");
+    actions.className = "symphony-flight-recorder-card__actions";
+    const inspect = document.createElement("button");
+    inspect.type = "button";
+    inspect.className = "focus-action";
+    inspect.dataset.flightRecorderInspect = cartridge.cartridgeId;
+    inspect.setAttribute("aria-pressed", "false");
+    inspect.textContent = "Inspect";
+    inspect.addEventListener("click", () => selectArchivedCartridge(cartridge, host));
+    const replay = document.createElement("a");
+    replay.className = "focus-action";
+    replay.href = cartridge.replayUrl;
+    replay.textContent = "Replay";
+    actions.append(inspect, replay);
+    item.append(heading, proof, meta, actions);
+    list.append(item);
+  }
+  const params = new URLSearchParams(window.location.search);
+  const requested = params.get("symphonyCartridge") ?? params.get("cartridge");
+  const selected = archivedCartridges.find((cartridge) => cartridge.cartridgeId === requested) ?? null;
+  if (selected) selectArchivedCartridge(selected, host, { armReplay: true });
+  else if (archivedCartridges[0]) selectArchivedCartridge(archivedCartridges[0], host, { armReplay: false });
+  else {
+    renderFlightRecorderJson(null);
+    setFlightRecorderStatus("Flight recorder archive is empty. Live persistence is not enabled.");
+  }
+}
+
+async function loadFlightRecorderArchive(host) {
+  try {
+    const response = await fetch(FLIGHT_RECORDER_ARCHIVE_URL, {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    if (!response.ok) throw new Error(`archive answered ${response.status}`);
+    const archive = materializeBlackBoxArchive(await response.json(), {
+      origin: window.location.origin,
+    });
+    renderFlightRecorderArchive(archive, host);
+    setFlightRecorderStatus(`${archive.cartridges.length} static fixture cartridges available. Live persistence is not enabled.`);
+  } catch (error) {
+    console.warn("system-symphony-page: flight recorder archive unavailable", error);
+    archivedCartridges = [];
+    setFlightRecorderField("archive", "unavailable");
+    setFlightRecorderField("count", "0");
+    setFlightRecorderField("selected", "none");
+    setFlightRecorderField("schema", "unavailable");
+    renderFlightRecorderJson(null);
+    setFlightRecorderStatus("Static flight recorder archive is unavailable. Live instrument behavior is unchanged.");
+  }
+}
+
+function setIncidentArcField(name, value) {
+  const node = document.querySelector(`[data-incident-arc-field="${name}"]`);
+  if (node) node.textContent = String(value ?? "unknown");
+}
+
+function setIncidentArcStatus(message) {
+  const status = document.querySelector("[data-incident-arc-status]");
+  if (status) status.textContent = message;
+}
+
+function renderIncidentProgress({ playing = false } = {}) {
+  const progress = document.querySelector("[data-incident-arc-progress]");
+  const bar = document.querySelector("[data-incident-arc-progress-bar]");
+  if (!progress || !bar || !selectedIncidentArc) return;
+  const cartridge = selectedIncidentArc.frameCartridges[incidentArcIndex];
+  if (!cartridge) {
+    progress.hidden = true;
+    return;
+  }
+  progress.hidden = false;
+  progress.dataset.playing = String(playing);
+  progress.dataset.state = cartridge.dominantState ?? "unknown";
+  progress.style.setProperty("--incident-frame-ms", `${INCIDENT_ARC_FRAME_MS}ms`);
+  progress.setAttribute(
+    "aria-label",
+    `Holding incident stage ${incidentArcIndex + 1} of ${selectedIncidentArc.frameCartridges.length} for ${INCIDENT_ARC_FRAME_MS / 1000} seconds.`,
+  );
+  bar.style.animation = "none";
+  bar.style.transform = "scaleX(0)";
+  if (playing) {
+    void bar.offsetWidth;
+    bar.style.animation = `symphony-incident-progress ${INCIDENT_ARC_FRAME_MS}ms linear forwards`;
+  }
+}
+
+function renderIncidentArcJson(arc) {
+  const json = document.querySelector("[data-incident-arc-json]");
+  if (!json) return;
+  json.textContent = arc
+    ? JSON.stringify(arc, null, 2)
+    : "Select a static incident arc to inspect its movement JSON.";
+}
+
+function clearIncidentArcTimer() {
+  if (incidentArcTimer === null) return;
+  window.clearInterval(incidentArcTimer);
+  incidentArcTimer = null;
+}
+
+function updateIncidentUrl(arc, index) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("symphonyMode", "replay");
+  url.searchParams.set("symphonyIncident", arc.incidentId);
+  url.searchParams.set("symphonyIncidentStep", String(index + 1));
+  window.history.replaceState({}, "", url);
+}
+
+function renderIncidentTimeline(arc) {
+  const timeline = document.querySelector("[data-incident-arc-timeline]");
+  if (!timeline) return;
+  timeline.replaceChildren();
+  for (const cartridge of arc?.frameCartridges ?? []) {
+    const stage = document.createElement("button");
+    stage.type = "button";
+    stage.className = "symphony-incident-stage";
+    stage.dataset.incidentArcStep = String(cartridge.incidentFrame.index);
+    stage.dataset.state = cartridge.dominantState ?? "unknown";
+    stage.setAttribute("aria-pressed", String(cartridge.incidentFrame.index === incidentArcIndex));
+    stage.classList.toggle("is-active", cartridge.incidentFrame.index === incidentArcIndex);
+
+    const heading = document.createElement("h3");
+    heading.textContent = cartridge.incidentFrame.label;
+    const state = document.createElement("p");
+    state.textContent = `${cartridge.dominantLabel} / ${cartridge.movementName}`;
+    const proof = document.createElement("p");
+    proof.textContent = `${cartridge.frameTime} / ${cartridge.seed}`;
+    stage.append(heading, state, proof);
+    stage.addEventListener("click", () => {
+      clearIncidentArcTimer();
+      armIncidentArcFrame(arc, cartridge.incidentFrame.index);
+    });
+    timeline.append(stage);
+  }
+}
+
+function renderIncidentImpact(arc, activeCartridge) {
+  const impact = document.querySelector("[data-incident-arc-impact]");
+  if (!impact) return;
+  impact.replaceChildren();
+  const activeNames = new Set((activeCartridge?.telemetrySnapshot?.voices ?? [])
+    .filter((voice) => voice.status !== "healthy" || voice.measured === false)
+    .map((voice) => voice.name));
+  for (const service of arc?.affectedServices ?? []) {
+    const badge = document.createElement("span");
+    badge.className = "symphony-incident-impact";
+    badge.classList.toggle("is-active", activeNames.has(service.name));
+    badge.textContent = `${service.displayName} / ${service.statuses.join("+")}`;
+    impact.append(badge);
+  }
+}
+
+function armIncidentArcFrame(arc = selectedIncidentArc, index = incidentArcIndex, { updateUrl = true, playing = false } = {}) {
+  if (!arc) return false;
+  const boundedIndex = Math.max(0, Math.min(index, arc.frameCartridges.length - 1));
+  const cartridge = arc.frameCartridges[boundedIndex];
+  if (!cartridge) return false;
+  incidentArcIndex = boundedIndex;
+  selectedIncidentArc = arc;
+  selectProofPanel("incident");
+  renderCartridge(decorateCartridgeForDisplay(cartridge, cartridge.telemetrySnapshot));
+  renderIncidentTimeline(arc);
+  renderIncidentImpact(arc, cartridge);
+  renderIncidentProgress({ playing });
+  setIncidentArcField("selected", `${arc.incidentId} / ${boundedIndex + 1} of ${arc.frameCartridges.length}`);
+  setIncidentArcField("path", arc.stateTransitionPath.join(" -> "));
+  const seed = document.querySelector("[data-page-replay-seed]");
+  const profile = document.querySelector("[data-page-replay-profile]");
+  if (seed) seed.value = normaliseReplaySeed(cartridge.replaySeed);
+  if (profile) profile.value = normaliseReplayProfile(cartridge.dominantState);
+  syncMode("replay");
+  const host = document.getElementById(HOST_ID);
+  if (host) applyReplay(host);
+  if (updateUrl) updateIncidentUrl(arc, boundedIndex);
+  const hold = `${INCIDENT_ARC_FRAME_MS / 1000}s hold`;
+  const prefix = playing ? "Performing" : "Armed";
+  setIncidentArcStatus(`${prefix} stage ${boundedIndex + 1} of ${arc.frameCartridges.length}: ${cartridge.incidentFrame.label} / ${cartridge.source} / ${hold}.`);
+  return true;
+}
+
+function selectIncidentArc(arc, { armReplay = false, index = 0 } = {}) {
+  if (!arc) return;
+  selectedIncidentArc = arc;
+  incidentArcIndex = Math.max(0, Math.min(index, arc.frameCartridges.length - 1));
+  const validation = validateIncidentArc(arc);
+  renderIncidentArcJson(arc);
+  renderIncidentTimeline(arc);
+  renderIncidentImpact(arc, arc.frameCartridges[incidentArcIndex]);
+  setIncidentArcField("selected", arc.incidentId);
+  setIncidentArcField("path", arc.stateTransitionPath.join(" -> "));
+  setIncidentArcStatus(validation.valid
+    ? `Ready: ${incidentArcSummary(arc)}. Static fixture evidence only.`
+    : `Invalid incident arc: ${validation.missing.join(", ")}.`);
+  if (armReplay) armIncidentArcFrame(arc, incidentArcIndex);
+}
+
+function playIncidentArc({ startAudio = false } = {}) {
+  if (!selectedIncidentArc) {
+    setIncidentArcStatus("No incident arc is available.");
+    return;
+  }
+  const host = document.getElementById(HOST_ID);
+  const audioRunning = startAudio ? ensureConsoleAudioRunning(host) : host?.dataset.running === "1";
+  clearIncidentArcTimer();
+  armIncidentArcFrame(selectedIncidentArc, 0, { playing: true });
+  setIncidentArcStatus(`${audioRunning ? "Boss track playing" : "Timeline playing silently"}: warning -> critical -> recovery, ${INCIDENT_ARC_FRAME_MS / 1000}s per frame.`);
+  incidentArcTimer = window.setInterval(() => {
+    const nextIndex = incidentArcIndex + 1;
+    if (nextIndex >= selectedIncidentArc.frameCartridges.length) {
+      clearIncidentArcTimer();
+      renderIncidentProgress({ playing: false });
+      setIncidentArcStatus(`Incident arc complete: ${selectedIncidentArc.recoveryMarker?.label ?? "sequence ended"}.`);
+      return;
+    }
+    armIncidentArcFrame(selectedIncidentArc, nextIndex, { playing: true });
+  }, INCIDENT_ARC_FRAME_MS);
+}
+
+function installIncidentArcControls() {
+  document.querySelector("[data-incident-arc-audition]")?.addEventListener("click", () => playIncidentArc({ startAudio: true }));
+  document.querySelector("[data-incident-arc-play]")?.addEventListener("click", () => playIncidentArc());
+  document.querySelector("[data-incident-arc-stop]")?.addEventListener("click", () => {
+    clearIncidentArcTimer();
+    renderIncidentProgress({ playing: false });
+    setIncidentArcStatus("Incident arc playback stopped.");
+  });
+  document.querySelector("[data-incident-arc-prev]")?.addEventListener("click", () => {
+    clearIncidentArcTimer();
+    renderIncidentProgress({ playing: false });
+    armIncidentArcFrame(selectedIncidentArc, incidentArcIndex - 1);
+  });
+  document.querySelector("[data-incident-arc-next]")?.addEventListener("click", () => {
+    clearIncidentArcTimer();
+    renderIncidentProgress({ playing: false });
+    armIncidentArcFrame(selectedIncidentArc, incidentArcIndex + 1);
+  });
+  window.addEventListener("pagehide", clearIncidentArcTimer, { once: true });
+}
+
+function renderIncidentArcArchive(archive) {
+  incidentArcs = [...(archive.incidentArcs ?? [])];
+  setIncidentArcField("archive", archive.archiveVersion ?? "static");
+  setIncidentArcField("count", incidentArcs.length);
+  const params = new URLSearchParams(window.location.search);
+  const requested = params.get("symphonyIncident") ?? params.get("incident");
+  const requestedStep = Math.max(0, (Number(params.get("symphonyIncidentStep")) || 1) - 1);
+  const selected = incidentArcs.find((arc) => arc.incidentId === requested)
+    ?? incidentArcs[0]
+    ?? null;
+  if (selected) {
+    selectIncidentArc(selected, {
+      armReplay: Boolean(requested),
+      index: requested ? requestedStep : 0,
+    });
+  } else {
+    renderIncidentArcJson(null);
+    setIncidentArcStatus("Incident arc archive is empty. Live persistence is not enabled.");
+  }
+}
+
+async function loadIncidentArcArchive() {
+  try {
+    const response = await fetch(INCIDENT_ARC_ARCHIVE_URL, {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    if (!response.ok) throw new Error(`incident archive answered ${response.status}`);
+    const archive = materializeIncidentArcArchive(await response.json(), {
+      origin: window.location.origin,
+    });
+    renderIncidentArcArchive(archive);
+  } catch (error) {
+    console.warn("system-symphony-page: incident arc archive unavailable", error);
+    incidentArcs = [];
+    selectedIncidentArc = null;
+    setIncidentArcField("archive", "unavailable");
+    setIncidentArcField("count", "0");
+    setIncidentArcField("selected", "none");
+    setIncidentArcField("path", "unavailable");
+    renderIncidentArcJson(null);
+    setIncidentArcStatus("Static incident arc archive is unavailable. Live instrument behavior is unchanged.");
+  }
 }
 
 function applyReplay(host) {
@@ -444,6 +927,7 @@ function downloadCartridgeJson() {
 function installModeControls(host) {
   const params = new URLSearchParams(window.location.search);
   const initialMode = normaliseMode(params.get("symphonyMode"));
+  const initialProofPanel = params.get("symphonyProof");
   const initialProfile = normaliseReplayProfile(params.get("symphonyScene"));
   const initialSeed = normaliseReplaySeed(params.get("symphonySeed"));
   let replayRetryTimer = null;
@@ -452,6 +936,7 @@ function installModeControls(host) {
   if (profile) profile.value = initialProfile;
   if (seed) seed.value = initialSeed;
   syncMode(initialMode, { push: false });
+  selectProofPanel(PROOF_PANELS.has(initialProofPanel) ? initialProofPanel : activeProofPanel);
   for (const tab of document.querySelectorAll("[data-symphony-mode-tab]")) {
     tab.addEventListener("click", () => {
       const mode = normaliseMode(tab.dataset.symphonyModeTab);
@@ -474,7 +959,39 @@ function installModeControls(host) {
     link.addEventListener("click", (event) => {
       event.preventDefault();
       syncMode(link.dataset.symphonyModeLink);
-      byId("symphony-trace-surface")?.scrollIntoView({ block: "start" });
+      scrollToPanel(byId("symphony-trace-surface"));
+    });
+  }
+  for (const tab of document.querySelectorAll("[data-proof-tab]")) {
+    tab.addEventListener("click", () => selectProofPanel(tab.dataset.proofTab));
+    tab.addEventListener("keydown", (event) => {
+      if (!["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+      event.preventDefault();
+      const tabs = [...document.querySelectorAll("[data-proof-tab]")];
+      const index = tabs.indexOf(tab);
+      const offset = event.key === "ArrowRight" ? 1 : -1;
+      const next = tabs[(index + offset + tabs.length) % tabs.length];
+      next.focus();
+      next.click();
+    });
+  }
+  for (const opener of document.querySelectorAll("[data-proof-open]")) {
+    opener.addEventListener("click", (event) => {
+      event.preventDefault();
+      syncMode("trace");
+      setTrustLayer(true);
+      selectProofPanel(opener.dataset.proofOpen, { scroll: true });
+    });
+  }
+  document.querySelector("[data-trust-toggle]")?.addEventListener("click", () => {
+    const layer = document.querySelector("[data-trust-layer]");
+    setTrustLayer(layer?.hidden !== false);
+  });
+  document.querySelector("[data-trust-close]")?.addEventListener("click", () => setTrustLayer(false));
+  for (const roleButton of document.querySelectorAll("[data-apu-role-highlight]")) {
+    roleButton.addEventListener("click", () => {
+      const pressed = roleButton.getAttribute("aria-pressed") === "true";
+      highlightApuRole(pressed ? "" : roleButton.dataset.apuRoleHighlight);
     });
   }
   document.querySelector("[data-page-audio-toggle]")?.addEventListener("click", () => clickConsoleAudio(host));
@@ -496,8 +1013,12 @@ function installModeControls(host) {
     event.target.value = event.target.value.toUpperCase();
     refreshCartridge(host);
   });
-  document.querySelector("[data-cartridge-copy]")?.addEventListener("click", copyCartridgeJson);
-  document.querySelector("[data-cartridge-download]")?.addEventListener("click", downloadCartridgeJson);
+  for (const copyButton of document.querySelectorAll("[data-cartridge-copy]")) {
+    copyButton.addEventListener("click", copyCartridgeJson);
+  }
+  for (const downloadButton of document.querySelectorAll("[data-cartridge-download]")) {
+    downloadButton.addEventListener("click", downloadCartridgeJson);
+  }
   host.addEventListener("atlas-apu-frame", (event) => {
     refreshCartridge(host, event.detail);
   });
@@ -612,7 +1133,10 @@ async function initialisePage() {
     const host = await waitForInstrumentHost();
     convertConsoleToRegion(host, pageHost);
     installModeControls(host);
+    installIncidentArcControls();
     syncSummary(host);
+    await loadFlightRecorderArchive(host);
+    await loadIncidentArcArchive();
     const observer = new MutationObserver(() => syncSummary(host));
     observer.observe(host, {
       attributes: true,
