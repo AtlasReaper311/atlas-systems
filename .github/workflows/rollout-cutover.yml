@@ -30,7 +30,25 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
+      - name: Detect completed cutover
+        id: guard
+        shell: bash
+        run: |
+          if [ -f .system-symphony-cutover-applied ]; then
+            echo "already_applied=true" >>"${GITHUB_OUTPUT}"
+          else
+            echo "already_applied=false" >>"${GITHUB_OUTPUT}"
+          fi
+
+      - name: Preserve connector-owned workflow files
+        if: steps.guard.outputs.already_applied == 'false'
+        run: |
+          cp .github/workflows/deploy.yml "${RUNNER_TEMP}/deploy.yml"
+          cp .github/workflows/rollout-cutover.yml "${RUNNER_TEMP}/rollout-cutover.yml"
+          cp scripts/apply_system_symphony_cutover.py "${RUNNER_TEMP}/apply_system_symphony_cutover.py"
+
       - name: Remove obsolete page-script assertion
+        if: steps.guard.outputs.already_applied == 'false'
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -49,6 +67,7 @@ jobs:
           PY
 
       - name: Apply reviewed production integration
+        if: steps.guard.outputs.already_applied == 'false'
         id: cutover
         continue-on-error: true
         shell: bash
@@ -57,7 +76,7 @@ jobs:
           python3 scripts/apply_system_symphony_cutover.py 2>&1 | tee cutover-report.txt
 
       - name: Upload cutover diagnostics
-        if: always()
+        if: steps.guard.outputs.already_applied == 'false' && always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
         with:
           name: system-symphony-cutover-report
@@ -66,19 +85,21 @@ jobs:
           retention-days: 7
 
       - name: Enforce cutover result
-        if: steps.cutover.outcome != 'success'
+        if: steps.guard.outputs.already_applied == 'false' && steps.cutover.outcome != 'success'
         run: |
           cat cutover-report.txt
           exit 1
 
-      - name: Commit the cutover and remove temporary tooling
-        if: steps.cutover.outcome == 'success'
+      - name: Commit application cutover
+        if: steps.guard.outputs.already_applied == 'false' && steps.cutover.outcome == 'success'
         shell: bash
         run: |
           set -euo pipefail
-          rm -f .github/workflows/rollout-cutover.yml
-          rm -f scripts/apply_system_symphony_cutover.py
+          cp "${RUNNER_TEMP}/deploy.yml" .github/workflows/deploy.yml
+          cp "${RUNNER_TEMP}/rollout-cutover.yml" .github/workflows/rollout-cutover.yml
+          cp "${RUNNER_TEMP}/apply_system_symphony_cutover.py" scripts/apply_system_symphony_cutover.py
           rm -f cutover-report.txt
+          printf '%s\n' 'Connector cleanup pending' > .system-symphony-cutover-applied
           git add -A
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
