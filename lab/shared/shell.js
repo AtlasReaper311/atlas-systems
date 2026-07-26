@@ -139,6 +139,7 @@ async function installRouteEnhancements() {
   if (!isSystemSymphonyPath()) return;
   await import("/lab/system-symphony/system-symphony-navigation.js?v=20260726-navigation-ia-v1");
   if (currentPath() !== SYSTEM_SYMPHONY_ROUTE) return;
+  await import("/lab/system-symphony/system-symphony-mode-links.js?v=20260726-mode-links-v1");
   await import("/lab/system-symphony/trace-role-bridge.js?v=20260726-phase-d-role-routing-v1");
 }
 
