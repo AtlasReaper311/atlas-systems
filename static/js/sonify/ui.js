@@ -10,7 +10,7 @@ import {
   DEFAULT_USER_GAIN,
   SYSTEM_SYMPHONY_BUILD_ID,
   createEngine,
-} from "./apu-production-engine.js?v=20260726-system-symphony-atlas-apu-live-v5";
+} from "./apu-production-engine.js?v=20260726-system-symphony-atlas-apu-live-v6";
 import { createPoller } from "./poller.js?v=20260720-system-symphony-loop-production-v2";
 import { buildHybridFrame } from "./apu-hybrid-state.js?v=20260726-system-symphony-evidence-hybrid-v2";
 import {
@@ -226,7 +226,7 @@ function template() {
                   </div>
                   <p>Focus ducks the backing for A/B listening. Hear arp and Hear riff isolate each Ghost Circuit voice.</p>
                 </div>
-                <div class="symphony-performance__actions" hidden>
+                <div class="symphony-performance__actions">
                   <button class="symphony-button symphony-button--primary" type="button" data-randomise-score>Randomise score</button>
                   <label class="symphony-performance__seed"><span>Score seed</span><input type="text" value="${DEFAULT_PERFORMANCE_SEED}" minlength="4" maxlength="8" pattern="[0-9A-Fa-f]{4,8}" spellcheck="false" autocomplete="off" data-performance-seed aria-describedby="symphony-performance-status" /></label>
                   <button class="symphony-button" type="button" data-replay-seed>Replay seed</button>

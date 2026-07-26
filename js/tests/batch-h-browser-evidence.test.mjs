@@ -25,7 +25,7 @@ test("Batch H evidence checks the corrected headers and failure states", () => {
   assert.ok(runner.includes('waitForSelector(".atlas-header__brand"'));
   assert.ok(runner.includes('waitForSelector(".atlas-header__actions"'));
   assert.ok(runner.includes('waitForSelector(".atlas-search-control"'));
-  assert.ok(runner.includes('document.querySelector(".focus-hero")'));
+  assert.ok(runner.includes('document.querySelector(".focus-hero, .symphony-flagship")'));
   assert.ok(runner.includes("header obscures the focused page hero"));
   assert.ok(runner.includes("global search control is missing"));
   assert.ok(runner.includes("unavailable evidence was rendered entirely healthy"));

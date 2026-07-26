@@ -114,6 +114,38 @@ try {
     document.getElementById("system-symphony-widget")?.dataset?.source === "preview"
   ), null, { timeout: 30_000 });
 
+  const modeState = await page.evaluate(() => {
+    const flagship = document.querySelector("[data-symphony-flagship]");
+    return {
+      defaultMode: flagship?.dataset?.symphonyMode ?? null,
+      tabLabels: [...document.querySelectorAll("[data-symphony-mode-tab]")].map((tab) => tab.textContent?.trim()),
+      activePanels: [...document.querySelectorAll("[data-symphony-mode-panel]:not([hidden])")]
+        .map((panel) => panel.dataset.symphonyModePanel),
+      playPanel: !document.querySelector('[data-symphony-mode-panel="play"]')?.hidden,
+      tracePanel: !document.querySelector('[data-symphony-mode-panel="trace"]')?.hidden,
+      replayPanel: !document.querySelector('[data-symphony-mode-panel="replay"]')?.hidden,
+      replaySeed: document.querySelector("[data-page-replay-seed]")?.value ?? null,
+      replayProfile: document.querySelector("[data-page-replay-profile]")?.value ?? null,
+    };
+  });
+  assert.equal(modeState.defaultMode, "play", JSON.stringify(modeState, null, 2));
+  assert.deepEqual(modeState.tabLabels, ["PLAY", "TRACE", "REPLAY"], JSON.stringify(modeState, null, 2));
+  assert.deepEqual(modeState.activePanels, ["play"], JSON.stringify(modeState, null, 2));
+  assert.equal(modeState.playPanel, true, JSON.stringify(modeState, null, 2));
+  assert.equal(modeState.tracePanel, false, JSON.stringify(modeState, null, 2));
+  assert.equal(modeState.replayPanel, false, JSON.stringify(modeState, null, 2));
+  assert.equal(modeState.replaySeed, "A7A5", JSON.stringify(modeState, null, 2));
+  assert.equal(modeState.replayProfile, "custom", JSON.stringify(modeState, null, 2));
+
+  await page.locator('[data-symphony-mode-tab="trace"]').click();
+  await page.waitForFunction(() => (
+    document.querySelector("[data-symphony-flagship]")?.dataset?.symphonyMode === "trace"
+  ), null, { timeout: 5_000 });
+  await page.locator('[data-symphony-mode-tab="play"]').click();
+  await page.waitForFunction(() => (
+    document.querySelector("[data-symphony-flagship]")?.dataset?.symphonyMode === "play"
+  ), null, { timeout: 5_000 });
+
   const audioButton = page.locator("[data-audio-toggle]:visible").first();
   await audioButton.waitFor({ state: "visible", timeout: 20_000 });
   await audioButton.click();
@@ -159,7 +191,7 @@ try {
   assert.equal(audioState.toneContextState, "running", JSON.stringify(audioState, null, 2));
   assert.equal(audioState.hostSource, "preview", JSON.stringify(audioState, null, 2));
   assert.equal(audioState.hostRunning, "1", JSON.stringify(audioState, null, 2));
-  assert.match(audioState.buildId ?? "", /atlas-apu-live-v5$/);
+  assert.match(audioState.buildId ?? "", /atlas-apu-live-v6$/);
   assert.equal(audioState.documentBuild, audioState.buildId);
   assert.equal(audioState.sampleStats?.coreReady, true, JSON.stringify(audioState, null, 2));
   assert.equal(audioState.sampleStats?.sampleFree, true, JSON.stringify(audioState, null, 2));

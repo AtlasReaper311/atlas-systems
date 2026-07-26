@@ -110,7 +110,7 @@ async function openWithRetry(page, route) {
       await page.waitForSelector(".atlas-header__actions", { timeout: 15_000 });
       await page.waitForSelector(".atlas-search-control", { timeout: 15_000 });
       await page.waitForSelector("main.focus-main", { timeout: 15_000 });
-      await page.waitForSelector(".focus-hero", { timeout: 15_000 });
+      await page.waitForSelector(".focus-hero, .symphony-flagship", { timeout: 15_000 });
       await page.evaluate(() => document.fonts?.ready || Promise.resolve());
       await page.waitForTimeout(1_000);
       return url;
@@ -148,7 +148,7 @@ async function inspectPage(page) {
       .sort((a, b) => b.width - a.width)
       .slice(0, 12);
     const header = document.querySelector(".atlas-header");
-    const hero = document.querySelector(".focus-hero");
+    const hero = document.querySelector(".focus-hero, .symphony-flagship");
     const mobileNav = document.querySelector(".atlas-mobile-nav");
     const mobileVisible = Boolean(mobileNav) && getComputedStyle(mobileNav).display !== "none";
     const statusStates = [...document.querySelectorAll(".focus-status-line[data-state], .focus-state[data-state]")]
