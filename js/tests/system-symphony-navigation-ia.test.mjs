@@ -26,6 +26,16 @@ test("the product bar consolidates modes, ROMs, prototypes, state, and audio", (
   assert.ok(navigation.includes("dataset.productSource"));
 });
 
+test("the live status observer cannot observe the product bar that it updates", () => {
+  const observerStart = navigation.indexOf("function installStatusObserver()");
+  const observerEnd = navigation.indexOf("function installMenuBehavior()", observerStart);
+  const observer = navigation.slice(observerStart, observerEnd);
+  assert.ok(observer.includes('document.querySelector("[data-symphony-flagship]")'));
+  assert.ok(!observer.includes('document.querySelector("main")'));
+  assert.ok(navigation.includes("state.textContent !== stateText"));
+  assert.ok(navigation.includes("status.dataset.state !== stateKey"));
+});
+
 test("PLAY TRACE and REPLAY govern complete workspace surfaces", () => {
   assert.ok(navigation.includes('host.dataset.modeSurface = "trace"'));
   assert.ok(navigation.includes('summary.dataset.modeSurface = "trace"'));
