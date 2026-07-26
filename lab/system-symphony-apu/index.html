@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <meta name="description" content="Atlas APU track preview with sample-free state identities and a monitoring-only browser loudness meter.">
+  <meta name="description" content="Atlas APU track preview with sample-free state identities, controlled mastering and a monitoring-only browser loudness meter.">
   <meta name="theme-color" content="#0a0a0f">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
@@ -27,9 +27,9 @@
 
   <main class="apu-main" data-apu-root data-ready="false" data-running="false" data-source="connecting" data-state="unknown" data-section="standby" data-loudness-status="idle">
     <header class="apu-hero">
-      <p class="apu-kicker">System Symphony / state identity and loudness preview</p>
+      <p class="apu-kicker">System Symphony / state identity, mastering and loudness preview</p>
       <h1>The estate becomes a measurable game soundtrack.</h1>
-      <p class="apu-lede">Atlas APU moves through a deterministic 32-bar form while Healthy, Warning, Critical and Unknown use separate musical grammars. A monitoring-only AudioWorklet reports loudness and peak evidence without entering the audible signal path.</p>
+      <p class="apu-lede">Atlas APU moves through a deterministic 32-bar form while Healthy, Warning, Critical and Unknown use separate musical grammars. A controlled mastering policy uses the available headroom, while a monitoring-only AudioWorklet reports loudness and peak evidence without entering the audible signal path.</p>
       <div class="apu-boundary" role="status">
         <strong>Preview boundary</strong>
         <span>This route does not replace the current production instrument and cannot change estate state.</span>
@@ -46,7 +46,7 @@
           <button type="button" class="apu-button apu-button-primary" data-audio-toggle>Start audio</button>
           <label class="apu-volume">
             <span>Volume</span>
-            <input type="range" min="0" max="100" step="1" value="50" data-volume aria-label="Atlas APU volume">
+            <input type="range" min="0" max="100" step="1" value="70" data-volume aria-label="Atlas APU volume">
           </label>
         </div>
       </div>
@@ -149,10 +149,10 @@
         <div><span>03</span><h2 id="apu-notes-title">What this preview proves</h2></div>
       </div>
       <div class="apu-note-grid">
-        <article><h3>State identity</h3><p>Healthy, Warning, Critical and Unknown now change composition, rhythm, envelopes, role allocation and spatial treatment.</p></article>
+        <article><h3>State identity</h3><p>Healthy, Warning, Critical and Unknown change composition, rhythm, envelopes, role allocation and spatial treatment.</p></article>
         <article><h3>Quantised transitions</h3><p>Critical chokes the old pad and counterline at the bar boundary; Unknown dissolves over one full 2.4-second bar.</p></article>
+        <article><h3>Controlled mastering</h3><p>State-specific programme trims use the measured headroom while preserving Lost Signal as the quieter uncertainty state.</p></article>
         <article><h3>Measured output</h3><p>A sink-only AudioWorklet applies K-weighting, overlapping gates and peak estimation without entering the audible path.</p></article>
-        <article><h3>Honest evidence</h3><p>Integrated loudness is labelled by sample-rate method, while true peak remains an explicit four-times cubic estimate.</p></article>
       </div>
       <div class="apu-links">
         <a href="/lab/system-symphony/">Compare current production instrument</a>
@@ -164,7 +164,7 @@
 
   <script src="/lab/system-symphony/preview-endpoints.js?v=20260725-numbered-previews"></script>
   <script src="/vendor/tone.min.js?v=20260708-sonify"></script>
-  <script type="module" src="/lab/system-symphony-apu/system-symphony-apu.js?v=20260726-atlas-apu-track-v2"></script>
-  <script type="module" src="/static/js/sonify/apu-loudness-ui.js?v=20260726-system-symphony-loudness-meter-v1"></script>
+  <script type="module" src="/lab/system-symphony-apu/system-symphony-apu.js?v=20260726-atlas-apu-mastering-v1"></script>
+  <script type="module" src="/static/js/sonify/apu-loudness-ui.js?v=20260726-atlas-apu-mastering-v1"></script>
 </body>
 </html>
