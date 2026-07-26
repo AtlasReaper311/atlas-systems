@@ -31,9 +31,30 @@ jobs:
           persist-credentials: true
 
       - name: Apply reviewed production integration
-        run: python3 scripts/apply_system_symphony_cutover.py
+        id: cutover
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          python3 scripts/apply_system_symphony_cutover.py 2>&1 | tee cutover-report.txt
+
+      - name: Upload cutover diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        with:
+          name: system-symphony-cutover-report
+          path: cutover-report.txt
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Enforce cutover result
+        if: steps.cutover.outcome != 'success'
+        run: |
+          cat cutover-report.txt
+          exit 1
 
       - name: Commit the cutover and remove temporary tooling
+        if: steps.cutover.outcome == 'success'
         shell: bash
         run: |
           set -euo pipefail
