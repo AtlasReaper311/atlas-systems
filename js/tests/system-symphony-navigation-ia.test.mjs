@@ -11,7 +11,7 @@ test("System Symphony navigation enhancement is scoped to the product route fami
   assert.ok(shell.includes("pathname.startsWith(SYSTEM_SYMPHONY_ROUTE)"));
   assert.ok(shell.includes("system-symphony-navigation.js?v=20260726-navigation-ia-v1"));
   assert.ok(shell.includes("if (currentPath() !== SYSTEM_SYMPHONY_ROUTE) return;"));
-  assert.ok(shell.includes("trace-role-bridge.js?v=20260726-phase-d-role-routing-v1"));
+  assert.ok(shell.includes("trace-role-bridge.js?v=20260726-phase-d-link-routing-v2"));
 });
 
 test("the product bar consolidates modes, ROMs, prototypes, state, and audio", () => {
