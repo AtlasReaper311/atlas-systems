@@ -344,9 +344,10 @@ function syncProductStatus() {
   const status = document.querySelector(".symphony-product-status");
   const state = document.querySelector("[data-product-state]");
   const source = document.querySelector("[data-product-source]");
-  if (state) state.textContent = stateText;
-  if (source) source.textContent = sourceText;
-  if (status) status.dataset.state = normalizeState(stateText);
+  if (state && state.textContent !== stateText) state.textContent = stateText;
+  if (source && source.textContent !== sourceText) source.textContent = sourceText;
+  const stateKey = normalizeState(stateText);
+  if (status && status.dataset.state !== stateKey) status.dataset.state = stateKey;
 }
 
 function setTrustDrawer(open, { restoreFocus = true } = {}) {
@@ -438,17 +439,12 @@ function installModeObservers() {
 }
 
 function installStatusObserver() {
-  const roots = [
-    document.querySelector("[data-symphony-flagship]"),
-    document.querySelector("main"),
-  ].filter(Boolean);
-  if (roots.length === 0) return;
-  const observer = new MutationObserver(syncProductStatus);
-  for (const root of roots) {
-    observer.observe(root, { childList: true, characterData: true, subtree: true, attributes: true });
-  }
-  window.addEventListener("pagehide", () => observer.disconnect(), { once: true });
+  const flagship = document.querySelector("[data-symphony-flagship]");
   syncProductStatus();
+  if (!flagship) return;
+  const observer = new MutationObserver(syncProductStatus);
+  observer.observe(flagship, { childList: true, characterData: true, subtree: true });
+  window.addEventListener("pagehide", () => observer.disconnect(), { once: true });
 }
 
 function installMenuBehavior() {
