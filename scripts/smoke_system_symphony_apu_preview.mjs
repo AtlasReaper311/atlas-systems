@@ -24,6 +24,7 @@ const consoleErrors = [];
 const pageErrors = [];
 const audioRequests = [];
 const failedRequests = [];
+const stateTransitions = [];
 let evidence = null;
 
 page.on("console", (message) => {
@@ -75,6 +76,18 @@ async function collectEvidence() {
   });
 }
 
+async function waitForStateTransition(state, policy) {
+  await page.waitForFunction(({ expectedState, expectedPolicy }) => {
+    const diagnostics = globalThis.__ATLAS_APU__?.getDiagnostics?.();
+    return diagnostics?.state === expectedState
+      && diagnostics?.lastStateTransition?.to === expectedState
+      && diagnostics?.lastStateTransition?.policy === expectedPolicy
+      && Object.keys(diagnostics?.channelFailures ?? {}).length === 0;
+  }, { expectedState: state, expectedPolicy: policy }, { timeout: 10_000, polling: 100 });
+  const snapshot = await collectEvidence();
+  stateTransitions.push(snapshot.diagnostics.lastStateTransition);
+}
+
 async function writeBundle(fileName, error = null) {
   try {
     evidence = evidence ?? await collectEvidence();
@@ -95,6 +108,7 @@ async function writeBundle(fileName, error = null) {
       route,
       error: error ? { name: error.name, message: error.message, stack: error.stack } : null,
       evidence,
+      stateTransitions,
       audioRequests,
       failedRequests,
       consoleErrors,
@@ -120,9 +134,17 @@ try {
       && globalThis.__ATLAS_APU__?.getArrangement?.()?.section;
   }, null, { timeout: 15_000 });
 
-  // The original smoke test stopped after 1.8 seconds, long before the reported
-  // failure at the end of Variation. Run through bars 15-16 so transport,
-  // transition voices and percussion are proven beyond that boundary.
+  await page.getByRole("button", { name: "Critical", exact: true }).click();
+  await waitForStateTransition("critical", "hard-choke");
+
+  await page.getByRole("button", { name: "Unknown", exact: true }).click();
+  await waitForStateTransition("unknown", "one-bar-decay");
+
+  await page.getByRole("button", { name: "Healthy", exact: true }).click();
+  await waitForStateTransition("healthy", "crossfade");
+
+  // Continue through bars 15-16 so the corrected transport remains proven after
+  // three state changes, direct envelope choking and a full-bar decay transition.
   await page.waitForFunction(() => {
     const arrangement = globalThis.__ATLAS_APU__?.getArrangement?.();
     const diagnostics = globalThis.__ATLAS_APU__?.getDiagnostics?.();
@@ -133,13 +155,13 @@ try {
 
   evidence = await collectEvidence();
 
-  assert.match(evidence.buildId ?? "", /atlas-apu-track-v2$/);
+  assert.match(evidence.buildId ?? "", /state-identities-v1$/);
   assert.equal(evidence.documentBuild, evidence.buildId);
   assert.equal(evidence.ready, "true");
   assert.equal(evidence.running, "true");
   assert.equal(evidence.noSamples, "true");
-  assert.equal(evidence.source, "preview");
-  assert.notEqual(evidence.metricState, "Unknown");
+  assert.equal(evidence.source, "simulated");
+  assert.equal(evidence.metricState, "Healthy");
   assert.ok(Number.parseInt(evidence.metricComponents ?? "0", 10) > 0);
   assert.ok(evidence.serviceRows > 0);
   assert.equal(evidence.channelCards, 6);
@@ -155,9 +177,15 @@ try {
   assert.match(evidence.metricPosition ?? "", /Bars 15-16 \/ 32/);
   assert.ok(evidence.diagnostics.stepIndex > 32 * 7);
   assert.ok(evidence.diagnostics.trackPhraseIndex >= 7);
+  assert.equal(evidence.diagnostics.state, "healthy");
   assert.deepEqual(evidence.diagnostics.channelFailures, {});
   assert.equal(evidence.toneState, "running");
   assert.equal(evidence.engineRunning, true);
+  assert.deepEqual(stateTransitions.map(({ to, policy }) => ({ to, policy })), [
+    { to: "critical", policy: "hard-choke" },
+    { to: "unknown", policy: "one-bar-decay" },
+    { to: "healthy", policy: "crossfade" },
+  ]);
   assert.deepEqual(audioRequests, [], "the APU track preview requested an audio asset");
 
   const materialFailures = failedRequests.filter(({ url }) => !url.includes("cloudflareinsights.com"));
