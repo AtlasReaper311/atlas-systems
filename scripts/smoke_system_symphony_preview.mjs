@@ -175,6 +175,11 @@ try {
       documentBuild: document.documentElement.dataset.systemSymphonyBuild ?? null,
       samplePalette: window.__symphonyEngine?.getSamplePalette?.() ?? null,
       composition: window.__symphonyEngine?.getCompositionSnapshot?.() ?? null,
+      cartridge: window.__ATLAS_APU_CARTRIDGE__ ?? null,
+      cartridgeJson: document.querySelector("[data-cartridge-json]")?.textContent?.trim() ?? null,
+      proofReplayHref: document.getElementById("page-proof-replay")?.href ?? null,
+      proofSampleFree: document.getElementById("page-proof-sample-free")?.textContent?.trim() ?? null,
+      proofSource: document.getElementById("page-proof-source")?.textContent?.trim() ?? null,
       topologyNodes: host?.querySelectorAll("[data-node]").length ?? 0,
       serviceRows: host?.querySelectorAll("[data-service-table] tr").length ?? 0,
       stateWeightCards: host?.querySelectorAll("[data-state-weight]").length ?? 0,
@@ -191,7 +196,7 @@ try {
   assert.equal(audioState.toneContextState, "running", JSON.stringify(audioState, null, 2));
   assert.equal(audioState.hostSource, "preview", JSON.stringify(audioState, null, 2));
   assert.equal(audioState.hostRunning, "1", JSON.stringify(audioState, null, 2));
-  assert.match(audioState.buildId ?? "", /atlas-apu-live-v6$/);
+  assert.match(audioState.buildId ?? "", /atlas-apu-live-v7$/);
   assert.equal(audioState.documentBuild, audioState.buildId);
   assert.equal(audioState.sampleStats?.coreReady, true, JSON.stringify(audioState, null, 2));
   assert.equal(audioState.sampleStats?.sampleFree, true, JSON.stringify(audioState, null, 2));
@@ -206,6 +211,15 @@ try {
   assert.equal(audioState.composition?.diagnostics?.scorePlanGuard?.active, true, JSON.stringify(audioState, null, 2));
   assert.equal(audioState.composition?.diagnostics?.scorePlanGuard?.mode, "score-plan", JSON.stringify(audioState, null, 2));
   assert.equal(audioState.composition?.diagnostics?.sampleFree, true, JSON.stringify(audioState, null, 2));
+  assert.equal(audioState.cartridge?.title, "ATLAS APU CARTRIDGE", JSON.stringify(audioState, null, 2));
+  assert.match(audioState.cartridge?.frameSeed ?? "", /^APU-[0-9A-F]{8}$/);
+  assert.equal(audioState.cartridge?.source, "fixture", JSON.stringify(audioState, null, 2));
+  assert.equal(audioState.cartridge?.sampleFree, "yes", JSON.stringify(audioState, null, 2));
+  assert.match(audioState.cartridge?.replayUrl ?? "", /\/lab\/system-symphony\/replay\/\?frame=APU-/);
+  assert.ok(audioState.cartridgeJson?.includes('"scorePlan"'), JSON.stringify(audioState, null, 2));
+  assert.match(audioState.proofReplayHref ?? "", /\/lab\/system-symphony\/replay\/\?frame=APU-/);
+  assert.match(audioState.proofSampleFree ?? "", /^yes \/ score-plan$/);
+  assert.equal(audioState.proofSource, "fixture");
   assert.ok(audioState.topologyNodes > 0, JSON.stringify(audioState, null, 2));
   assert.ok(audioState.serviceRows > 0, JSON.stringify(audioState, null, 2));
   assert.equal(audioState.stateWeightCards, 4);
@@ -235,6 +249,7 @@ try {
     sampleReady: window.__symphonyEngine?.isSampleReady?.() ?? false,
     sampleStats: window.__symphonyEngine?.getSampleLoadStats?.() ?? null,
     samplePalette: window.__symphonyEngine?.getSamplePalette?.() ?? null,
+    cartridge: window.__ATLAS_APU_CARTRIDGE__ ?? null,
     audioButtons: [...document.querySelectorAll("[data-audio-toggle]")].map((button) => ({
       text: button.textContent?.trim() ?? "",
       disabled: button.disabled,

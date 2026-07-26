@@ -10,7 +10,7 @@ import {
   DEFAULT_USER_GAIN,
   SYSTEM_SYMPHONY_BUILD_ID,
   createEngine,
-} from "./apu-production-engine.js?v=20260726-system-symphony-atlas-apu-live-v6";
+} from "./apu-production-engine.js?v=20260726-system-symphony-atlas-apu-live-v7";
 import { createPoller } from "./poller.js?v=20260720-system-symphony-loop-production-v2";
 import { buildHybridFrame } from "./apu-hybrid-state.js?v=20260726-system-symphony-evidence-hybrid-v2";
 import {
@@ -1029,6 +1029,19 @@ export function initSystemSymphony() {
     renderDialog(frame);
     announceImportant(frame);
     setRunningUi();
+    const detail = Object.freeze({
+      frame: clone(frame),
+      mode,
+      source: sourceState(frame),
+      performance: performanceArrangement ? clone(performanceArrangement) : null,
+      performanceSeed,
+      buildId: SYSTEM_SYMPHONY_BUILD_ID,
+      sampleStats: engine.getSampleLoadStats(),
+      samplePalette: engine.getSamplePalette(),
+      composition: engine.getCompositionSnapshot(),
+    });
+    host.__atlasApuFrame = detail;
+    host.dispatchEvent(new CustomEvent("atlas-apu-frame", { bubbles: true, detail }));
   }
 
   function currentDemoFrame() {

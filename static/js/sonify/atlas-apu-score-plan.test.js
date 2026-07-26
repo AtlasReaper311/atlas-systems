@@ -58,11 +58,11 @@ test("hybrid frames expose an auditable Atlas APU score plan", () => {
   const frame = hybridFrame();
   const plan = frame.scorePlan;
 
-  assert.match(ATLAS_APU_SCORE_PLAN_BUILD_ID, /score-plan-v2$/);
+  assert.match(ATLAS_APU_SCORE_PLAN_BUILD_ID, /score-plan-v3$/);
   assert.match(plan.themesBuildId, /state-themes-v1$/);
   assert.equal(plan.chip, ATLAS_APU_CHIP_ID);
   assert.equal(plan.engine, "Atlas APU");
-  assert.equal(plan.source, "preview");
+  assert.equal(plan.source, "fixture");
   assert.equal(plan.dominantState, "healthy");
   assert.equal(plan.movement, "Green Clock");
   assert.equal(plan.theme.emotionalIntent, "open, heroic, stable");

@@ -12,9 +12,9 @@ import {
   ATLAS_APU_GRID,
   ATLAS_APU_ROLE_KEYS,
   ATLAS_APU_SCORE_PLAN_BUILD_ID,
-} from "./atlas-apu-score-plan.js?v=20260726-atlas-apu-score-plan-v2";
+} from "./atlas-apu-score-plan.js?v=20260726-atlas-apu-score-plan-v3";
 
-export const ATLAS_APU_ENGINE_CONTROLS_BUILD_ID = "20260726-atlas-apu-engine-controls-v3";
+export const ATLAS_APU_ENGINE_CONTROLS_BUILD_ID = "20260726-atlas-apu-engine-controls-v4";
 
 const STATE_CHIP_COLOR = Object.freeze({
   healthy: Object.freeze({ bits: 14, wet: 0.035, hum: 0 }),

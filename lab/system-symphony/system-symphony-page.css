@@ -178,6 +178,52 @@ body.symphony-page {
   text-transform: uppercase;
 }
 
+.symphony-proof-strip {
+  margin-top: 22px;
+  border: 1px solid rgba(245, 166, 35, 0.2);
+  background:
+    linear-gradient(90deg, rgba(245, 166, 35, 0.09), rgba(74, 222, 128, 0.045)),
+    rgba(10, 10, 15, 0.88);
+}
+
+.symphony-proof-strip dl {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  margin: 0;
+}
+
+.symphony-proof-strip div {
+  min-width: 0;
+  padding: 11px 12px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.symphony-proof-strip div:last-child {
+  border-right: 0;
+}
+
+.symphony-proof-strip dt,
+.symphony-cartridge-grid dt {
+  color: var(--text-faint, #888894);
+  font: 600 9px/1.35 var(--mono, monospace);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.symphony-proof-strip dd,
+.symphony-proof-strip a,
+.symphony-cartridge-grid dd {
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+  color: var(--text, #e8e8e0);
+  font: 600 11px/1.35 var(--mono, monospace);
+}
+
+.symphony-proof-strip a {
+  text-decoration-color: rgba(245, 166, 35, 0.65);
+  text-underline-offset: 3px;
+}
+
 .symphony-page-summary {
   margin-top: 18px;
 }
@@ -222,6 +268,7 @@ body.symphony-page {
 .symphony-flagship[data-symphony-mode="play"] .symphony-page-host .symphony-service-section,
 .symphony-flagship[data-symphony-mode="play"] .symphony-page-host .symphony-inspector,
 .symphony-flagship[data-symphony-mode="play"] .symphony-page-host .symphony-legend,
+.symphony-flagship[data-symphony-mode="play"] .symphony-cartridge,
 .symphony-flagship[data-symphony-mode="replay"] .symphony-page-host .symphony-service-section {
   display: none;
 }
@@ -330,6 +377,78 @@ body.symphony-page {
   scroll-margin-top: 112px;
 }
 
+.symphony-cartridge {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid rgba(245, 166, 35, 0.28);
+  border-radius: 8px;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    #07070b;
+  background-size: 100% 18px;
+}
+
+.symphony-cartridge__header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.symphony-cartridge h2 {
+  margin: 0.25rem 0 0;
+  color: var(--text, #e8e8e0);
+  font: 600 18px/1.15 var(--mono, monospace);
+  letter-spacing: 0.08em;
+}
+
+.symphony-cartridge__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.symphony-cartridge-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.symphony-cartridge-grid div {
+  min-width: 0;
+  padding: 12px;
+  background: rgba(10, 10, 15, 0.96);
+}
+
+.symphony-cartridge-json {
+  min-height: 180px;
+  max-height: 360px;
+  overflow: auto;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background: #050507;
+  color: #b8f7d0;
+  font: 500 11px/1.55 var(--mono, monospace);
+  white-space: pre;
+}
+
+.symphony-replay-entry {
+  min-height: calc(100vh - 84px);
+  display: grid;
+  align-content: center;
+  gap: 16px;
+}
+
 .symphony-page-explanation {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -412,6 +531,24 @@ body.symphony-page {
   .symphony-page-host .symphony-performance {
     width: 100%;
   }
+
+  .symphony-proof-strip dl,
+  .symphony-cartridge-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .symphony-proof-strip div:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .symphony-cartridge__header {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .symphony-cartridge__actions {
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 768px) {
@@ -460,6 +597,21 @@ body.symphony-page {
 
   .symphony-page-keyboard {
     columns: 1;
+  }
+
+  .symphony-proof-strip dl,
+  .symphony-cartridge-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .symphony-proof-strip div,
+  .symphony-proof-strip div:nth-child(2n) {
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .symphony-proof-strip div:last-child {
+    border-bottom: 0;
   }
 }
 

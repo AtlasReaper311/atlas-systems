@@ -44,15 +44,42 @@ test("the flagship page exposes PLAY TRACE and REPLAY as first-class modes", () 
   assert.ok(adapter.includes("symphonySeed"));
 });
 
+test("the page exposes an auditable Atlas APU cartridge and proof strip", () => {
+  assert.ok(page.includes("ATLAS APU CARTRIDGE"));
+  assert.ok(page.includes("data-cartridge-panel"));
+  assert.ok(page.includes("data-cartridge-copy"));
+  assert.ok(page.includes("data-cartridge-download"));
+  assert.ok(page.includes("page-proof-commit"));
+  assert.ok(page.includes("page-proof-frame-seed"));
+  assert.ok(page.includes("page-proof-sample-free"));
+  assert.ok(page.includes('href="/lab/system-symphony/replay/"'));
+  assert.ok(adapter.includes("buildAtlasApuScorePlan"));
+  assert.ok(adapter.includes("window.__ATLAS_APU_CARTRIDGE__"));
+  assert.ok(adapter.includes("makeReplayUrl"));
+  assert.ok(adapter.includes("navigator.clipboard"));
+  assert.ok(adapter.includes("application/json"));
+});
+
+test("the replay entry route canonicalizes Phase 7 replay links", () => {
+  const replay = readFileSync("lab/system-symphony/replay/index.html", "utf8");
+  assert.ok(replay.includes("/lab/system-symphony/"));
+  assert.ok(replay.includes("symphonyMode"));
+  assert.ok(replay.includes("symphonyScene"));
+  assert.ok(replay.includes("symphonySeed"));
+  assert.ok(replay.includes('params.get("frame")'));
+  assert.ok(replay.includes('params.get("seed")'));
+});
+
 test("PLAY stays minimal while TRACE and REPLAY reveal proof deliberately", () => {
   assert.ok(pageCss.includes('[data-symphony-mode="play"] .symphony-page-host .symphony-service-section'));
   assert.ok(pageCss.includes('[data-symphony-mode="play"] .symphony-page-host .symphony-inspector'));
+  assert.ok(pageCss.includes('[data-symphony-mode="play"] .symphony-cartridge'));
   assert.ok(pageCss.includes('[data-symphony-mode="trace"] .symphony-page-host .symphony-performance'));
   assert.ok(pageCss.includes('[data-symphony-mode="replay"] .symphony-page-host .symphony-service-section'));
   assert.ok(adapter.includes("clickConsoleAudio"));
   assert.ok(adapter.includes("applyReplay"));
   assert.ok(adapter.includes("navigator.clipboard"));
-  assert.ok(page.includes("preview-endpoints.js?v=20260726-phase5-replay-preview"));
+  assert.ok(page.includes("preview-endpoints.js?v=20260726-phase6-cartridge-proof"));
   assert.ok(previewEndpoints.includes('host.dataset.source === "demo"'));
 });
 

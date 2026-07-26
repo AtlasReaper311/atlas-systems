@@ -19,7 +19,7 @@ import {
   themeForTransition,
 } from "./atlas-apu-state-themes.js?v=20260726-atlas-apu-state-themes-v1";
 
-export const ATLAS_APU_SCORE_PLAN_BUILD_ID = "20260726-atlas-apu-score-plan-v2";
+export const ATLAS_APU_SCORE_PLAN_BUILD_ID = "20260726-atlas-apu-score-plan-v3";
 export const ATLAS_APU_CHIP_ID = "ATLAS-APU-01";
 export const ATLAS_APU_GRID = "16-step";
 
@@ -98,8 +98,9 @@ function stateKey(value) {
 function sourceMode(frame = {}, options = {}) {
   if (options.sourceMode) return String(options.sourceMode);
   if (frame.replay === true) return "replay";
+  if (frame.evidenceMode === "preview") return "fixture";
   if (frame.evidenceMode) return String(frame.evidenceMode);
-  if (frame.previewEstateDerived) return "preview";
+  if (frame.previewEstateDerived) return "fixture";
   return "live";
 }
 

@@ -20,7 +20,7 @@ import { midiToFrequencyHz } from "./mapping.js?v=20260720-system-symphony-loop-
 import {
   ATLAS_APU_ENGINE_CONTROLS_BUILD_ID,
   engineControlsForFrame,
-} from "./atlas-apu-engine-controls.js?v=20260726-atlas-apu-engine-controls-v3";
+} from "./atlas-apu-engine-controls.js?v=20260726-atlas-apu-engine-controls-v4";
 import {
   APU_MASTERING_DEFAULT_USER_GAIN,
   APU_MASTERING_LIMITER_CEILING_DB,

@@ -43,7 +43,7 @@ test("valid score plans activate the guarded engine-control path", () => {
   const guard = scorePlanGuardForFrame(frame);
   const controls = engineControlsForFrame(frame);
 
-  assert.match(ATLAS_APU_ENGINE_CONTROLS_BUILD_ID, /engine-controls-v3$/);
+  assert.match(ATLAS_APU_ENGINE_CONTROLS_BUILD_ID, /engine-controls-v4$/);
   assert.equal(guard.active, true);
   assert.equal(guard.mode, "score-plan");
   assert.equal(guard.sampleFree, true);

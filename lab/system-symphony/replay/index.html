@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>System Symphony Replay // Atlas Systems</title>
+  <link rel="canonical" href="https://atlas-systems.uk/lab/system-symphony/replay/">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260724-maturity-completion">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
+  <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h-fixes">
+  <link rel="stylesheet" href="/lab/system-symphony/system-symphony-page.css?v=20260726-phase6-cartridge-proof">
+</head>
+<body class="symphony-page">
+  <main class="focus-main symphony-page-main">
+    <section class="symphony-flagship symphony-replay-entry" aria-labelledby="replay-title">
+      <p class="focus-breadcrumb">Lab / Atlas APU cartridge / replay link</p>
+      <h1 id="replay-title" class="focus-title">System SYMPHONY Replay</h1>
+      <p class="focus-lede">Resolving deterministic replay parameters into the Atlas APU instrument.</p>
+      <p class="focus-status-line" data-state="unknown">If this page does not move automatically, use the replay link below.</p>
+      <p><a class="focus-action primary" href="/lab/system-symphony/?symphonyMode=replay" data-replay-entry-link>Open replay</a></p>
+    </section>
+  </main>
+  <script>
+    (() => {
+      const params = new URLSearchParams(window.location.search);
+      const target = new URL("/lab/system-symphony/", window.location.origin);
+      target.searchParams.set("symphonyMode", "replay");
+      target.searchParams.set("symphonyScene", params.get("scene") || params.get("state") || "custom");
+      target.searchParams.set("symphonySeed", params.get("seed") || "A7A5");
+      if (params.has("frame")) target.searchParams.set("symphonyFrame", params.get("frame"));
+      if (params.has("source")) target.searchParams.set("symphonySource", params.get("source"));
+      if (params.has("symphonyPreviewData")) target.searchParams.set("symphonyPreviewData", params.get("symphonyPreviewData"));
+      const link = document.querySelector("[data-replay-entry-link]");
+      if (link) link.href = target.href;
+      window.location.replace(target.href);
+    })();
+  </script>
+</body>
+</html>

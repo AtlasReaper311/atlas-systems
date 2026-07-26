@@ -43,5 +43,5 @@ test("production adapter exposes the established System Symphony engine contract
 test("production adapter keeps the approved first-listen and blocked-audio contracts", () => {
   assert.equal(DEFAULT_USER_GAIN, 0.62);
   assert.equal(AUDIO_CONTEXT_BLOCKED_CODE, "audio-context-blocked");
-  assert.match(SYSTEM_SYMPHONY_BUILD_ID, /atlas-apu-live-v6$/);
+  assert.match(SYSTEM_SYMPHONY_BUILD_ID, /atlas-apu-live-v7$/);
 });
