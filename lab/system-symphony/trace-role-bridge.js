@@ -171,6 +171,6 @@ function initialiseTraceRoleBridge() {
   observer.observe(document.body, { childList: true, subtree: true });
 }
 
-initialiseTraceRoleBridge();
+if (typeof document !== "undefined") initialiseTraceRoleBridge();
 
 export { applyRoleRouting, roleKeyFromLabel };
