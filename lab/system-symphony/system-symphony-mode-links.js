@@ -35,16 +35,29 @@ function installSystemSymphonyModeLinks() {
   links.setAttribute("aria-label", "System Symphony modes");
 
   for (const mode of MODES) {
+    const control = tabs.querySelector(`[data-symphony-mode-tab="${mode.key}"]`);
+    if (!control) continue;
+
+    control.dataset.symphonyModeControl = mode.key;
+    control.removeAttribute("data-symphony-mode-tab");
+
     const link = document.createElement("a");
     link.className = "symphony-product-mode-link";
     link.href = modeHref(mode.key);
     link.textContent = mode.label;
+    link.dataset.symphonyModeTab = mode.key;
     link.dataset.symphonyModeRoute = mode.key;
+    link.setAttribute("role", "tab");
+    link.setAttribute("aria-controls", control.getAttribute("aria-controls") || "");
+    link.setAttribute("aria-selected", control.getAttribute("aria-selected") || "false");
+    link.tabIndex = control.tabIndex;
     link.addEventListener("click", (event) => {
-      const tab = flagship.querySelector(`[data-symphony-mode-tab="${mode.key}"]`);
-      if (!tab) return;
       event.preventDefault();
-      tab.click();
+      control.click();
+      window.requestAnimationFrame(() => {
+        const active = String(flagship.dataset.symphonyMode ?? "play").toLowerCase();
+        if (active !== mode.key) window.location.assign(link.href);
+      });
     });
     links.appendChild(link);
   }
@@ -58,7 +71,10 @@ function installSystemSymphonyModeLinks() {
   const syncCurrentMode = () => {
     const current = String(flagship.dataset.symphonyMode ?? "play").toLowerCase();
     for (const link of links.querySelectorAll("[data-symphony-mode-route]")) {
-      if (link.dataset.symphonyModeRoute === current) {
+      const selected = link.dataset.symphonyModeRoute === current;
+      link.setAttribute("aria-selected", String(selected));
+      link.tabIndex = selected ? 0 : -1;
+      if (selected) {
         link.setAttribute("aria-current", "page");
       } else {
         link.removeAttribute("aria-current");
