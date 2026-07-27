@@ -18,17 +18,9 @@ export const CARD_SIGNATURES = Object.freeze([
   "console",
 ]);
 
-export const CARD_FIELD_TARGETS = Object.freeze({
-  "system-map": Object.freeze({
-    preset: "card",
-    seed: "atlas-system-map-card-v1",
-  }),
-});
-
 const SIGNATURE_SET = new Set(CARD_SIGNATURES);
 const SVG_NS = "http://www.w3.org/2000/svg";
 const SPRITE_PATH = new URL("../media/card-signatures.svg", import.meta.url).href;
-const ATLAS_FIELD_MODULE_PATH = new URL("./atlas-field.js", import.meta.url).href;
 const SPRITE_ID = "atlas-card-signature-sprite";
 let spritePromise;
 
@@ -62,30 +54,11 @@ async function installSprite(documentNode) {
   documentNode.body.prepend(sprite);
 }
 
-async function installCardField(card, signature) {
-  const options = CARD_FIELD_TARGETS[card.id];
-  if (!options) return;
-
-  signature.classList.add("card-signature--atlas-field");
-  try {
-    const { createAtlasField } = await import(ATLAS_FIELD_MODULE_PATH);
-    const controller = createAtlasField(signature, options);
-    if (!controller) throw new Error("canvas context unavailable");
-    card.dataset.atlasFieldReady = "true";
-  } catch (error) {
-    signature.classList.remove("card-signature--atlas-field");
-    console.warn(
-      `[card-signatures] AtlasField unavailable for #${card.id}: ${error.message}; preserving SVG signature`,
-    );
-  }
-}
-
 export async function enhanceCardSignatures(root = document) {
   const documentNode = root.ownerDocument ?? root;
   spritePromise ??= installSprite(documentNode);
   await spritePromise;
 
-  const fieldTasks = [];
   const cards = root.querySelectorAll(".system-card[data-visual][data-motif]");
   for (const card of cards) {
     if (card.dataset.cardSignatureReady === "true") {
@@ -118,10 +91,7 @@ export async function enhanceCardSignatures(root = document) {
     signature.append(svg, motif);
     card.append(signature);
     card.dataset.cardSignatureReady = "true";
-    fieldTasks.push(installCardField(card, signature));
   }
-
-  await Promise.all(fieldTasks);
 }
 
 function startEnhancement() {
