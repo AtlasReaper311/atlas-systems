@@ -117,6 +117,17 @@ export function arrangementForPhrase(frame = {}, directorPlan = null, phraseInde
     // melody authority and D2 is not allowed to replace them.
     motifMode: baseline.motifMode,
     motifDegrees: baseline.motifDegrees,
+    melodyAuthority: Object.freeze({
+      sourceBuildId: baseline.buildId,
+      motifMode: baseline.motifMode,
+      motifDegrees: baseline.motifDegrees,
+      primaryMix: baseline.mix.primary,
+      leadTimbre: Object.freeze({
+        leadCutoffHz: baseline.timbre.leadCutoffHz,
+        leadDrive: baseline.timbre.leadDrive,
+        primaryDutyCycle: baseline.timbre.primaryDutyCycle,
+      }),
+    }),
     mix: developedMix(baseline.mix, development.mix),
     timbre: developedTimbre(baseline.timbre, development.timbre),
     songPlan,

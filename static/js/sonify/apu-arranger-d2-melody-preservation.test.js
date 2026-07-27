@@ -32,13 +32,15 @@ test("D2 preserves every baseline melody-authority field across the full form", 
       const baseline = baselineArrangementForPhrase(frame, directorPlan, phrase);
       const developed = arrangementForPhrase(frame, directorPlan, phrase);
       assert.equal(developed.motifMode, baseline.motifMode, `${state}/${phrase}/mode`);
-      assert.strictEqual(developed.motifDegrees, baseline.motifDegrees, `${state}/${phrase}/degrees-reference`);
+      assert.strictEqual(developed.motifDegrees, developed.melodyAuthority.motifDegrees, `${state}/${phrase}/degrees-reference`);
       assert.deepEqual(developed.motifDegrees, baseline.motifDegrees, `${state}/${phrase}/degrees`);
+      assert.ok(Object.isFrozen(developed.motifDegrees), `${state}/${phrase}/degrees-frozen`);
       assert.deepEqual(developed.harmony, baseline.harmony, `${state}/${phrase}/harmony`);
       assert.equal(developed.drumPattern, baseline.drumPattern, `${state}/${phrase}/drums`);
       assert.equal(developed.bassPattern, baseline.bassPattern, `${state}/${phrase}/bass`);
       assert.equal(developed.counterPattern, baseline.counterPattern, `${state}/${phrase}/counter`);
       assert.equal(developed.mix.primary, baseline.mix.primary, `${state}/${phrase}/primary-mix`);
+      assert.equal(developed.melodyAuthority.primaryMix, baseline.mix.primary, `${state}/${phrase}/authority-primary-mix`);
       assert.equal(developed.timbre.leadCutoffHz, baseline.timbre.leadCutoffHz, `${state}/${phrase}/lead-cutoff`);
       assert.equal(developed.timbre.leadDrive, baseline.timbre.leadDrive, `${state}/${phrase}/lead-drive`);
       assert.equal(developed.timbre.primaryDutyCycle, baseline.timbre.primaryDutyCycle, `${state}/${phrase}/duty`);
