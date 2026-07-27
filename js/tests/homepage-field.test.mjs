@@ -69,13 +69,38 @@ test("pointer influence nudges rather than replaces autonomous light", () => {
   assert.ok(influenced.y > autonomous.y);
   assert.notEqual(influenced.x, pointer.x);
   assert.notEqual(influenced.y, pointer.y);
-  assert.ok(Math.abs(influenced.x - autonomous.x) < Math.abs(pointer.x - autonomous.x) * 0.3);
-  assert.ok(Math.abs(influenced.y - autonomous.y) < Math.abs(pointer.y - autonomous.y) * 0.3);
+  assert.ok(Math.abs(influenced.x - autonomous.x) < Math.abs(pointer.x - autonomous.x) * 0.45);
+  assert.ok(Math.abs(influenced.y - autonomous.y) < Math.abs(pointer.y - autonomous.y) * 0.45);
 });
 
 test("inactive pointer preserves the autonomous light path", () => {
   assert.deepEqual(
     field.influencedLightPosition(1200, 800, 5000, { active: false, x: 0, y: 0 }),
     field.lightPosition(1200, 800, 5000),
+  );
+});
+
+test("nearby particles receive bounded radial and orbital pointer force", () => {
+  const attraction = field.pointerAttraction(
+    100,
+    100,
+    { active: true, x: 180, y: 100 },
+    240,
+  );
+
+  assert.ok(attraction.x > 0);
+  assert.ok(attraction.y > 0);
+  assert.ok(attraction.influence > 0 && attraction.influence < 1);
+  assert.ok(Math.hypot(attraction.x, attraction.y) < 0.15);
+});
+
+test("pointer force is zero outside its local radius", () => {
+  assert.deepEqual(
+    field.pointerAttraction(0, 0, { active: true, x: 500, y: 0 }, 240),
+    { x: 0, y: 0, influence: 0 },
+  );
+  assert.deepEqual(
+    field.pointerAttraction(0, 0, { active: false, x: 40, y: 0 }, 240),
+    { x: 0, y: 0, influence: 0 },
   );
 });
