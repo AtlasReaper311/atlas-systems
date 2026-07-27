@@ -42,7 +42,7 @@
         <h1>Lorenz FM.</h1>
         <p class="lede">A deterministic chaotic system drives a small browser-native synthesiser. The mathematics advances on a fixed simulation clock, while Web Audio receives smoothed carrier, modulation, filter, and stereo targets.</p>
       </div>
-      <div class="study-boundary" aria-label="Interface classification">
+      <div class="study-boundary" role="group" aria-label="Interface classification">
         <span>Experiment</span>
         <span>Generated</span>
         <span>Browser local</span>
@@ -69,7 +69,7 @@
         <div class="scope-labels" aria-hidden="true"><span>X / Z phase projection</span><span>fixed-step RK4</span></div>
       </div>
 
-      <div class="control-grid" aria-label="Audio controls">
+      <div class="control-grid" role="group" aria-label="Audio controls">
         <div class="control">
           <div class="control-heading"><label for="master-volume">Output</label><output id="master-volume-output" for="master-volume">80%</output></div>
           <input id="master-volume" type="range" min="0" max="120" step="1" value="80">
