@@ -53,9 +53,9 @@ function clonePlain(value) {
 }
 
 export function deepFreeze(value) {
-  if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
-  Object.freeze(value);
+  if (!value || typeof value !== "object") return value;
   for (const child of Object.values(value)) deepFreeze(child);
+  if (!Object.isFrozen(value)) Object.freeze(value);
   return value;
 }
 
