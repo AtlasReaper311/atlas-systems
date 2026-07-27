@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="/lab/speculum/speculum.css?v=20260727-clarity-pass-v2">
   <link rel="stylesheet" href="/lab/speculum/speculum-layout-v3.css?v=20260727-layout-v3">
   <link rel="stylesheet" href="/lab/speculum/speculum-investigation-v4.css?v=20260727-investigation-v4">
+  <link rel="stylesheet" href="/lab/speculum/speculum-polish-v5.css?v=20260727-polish-v5">
 </head>
 <body>
   <header class="masthead">
@@ -59,6 +60,11 @@
             <span class="key-item"><span class="node-mark is-external" aria-hidden="true"></span>external</span>
           </div>
         </div>
+        <div class="field-bar-actions" role="group" aria-label="Field presentation and export">
+          <button type="button" class="field-action" id="spc-present" aria-pressed="false">Presentation</button>
+          <button type="button" class="field-action" id="spc-export">Export frame</button>
+          <span class="field-action-status" id="spc-polish-status" role="status" aria-live="polite"></span>
+        </div>
       </div>
 
       <div class="field-canvas">
@@ -67,6 +73,8 @@
           role="img"
           aria-label="A generated field of public Atlas Systems components arranged in concentric role rings. Periodic observers rotate a beam at their reviewed cadence. The full relationship data is available as a table below."
         ></canvas>
+
+        <div class="spc-trace-completion" id="spc-trace-completion" aria-hidden="true"></div>
 
         <div class="reduced" id="spc-reduced" hidden>
           <p>Motion is reduced in your system settings, so the field is frozen.</p>
@@ -179,5 +187,6 @@
   </footer>
 
   <script type="module" src="/lab/speculum/speculum.js?v=20260727-investigation-v4"></script>
+  <script type="module" src="/lab/speculum/speculum-polish-v5.js?v=20260727-polish-v5"></script>
 </body>
 </html>
