@@ -104,6 +104,10 @@ try {
   const response = await page.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
   assert.equal(response?.ok(), true, `Lab preview answered ${response?.status()}`);
 
+  const card = page.locator("#system-map.featured");
+  await card.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(250);
+
   await page.waitForFunction(() => {
     const card = document.querySelector("#system-map.featured");
     const canvas = card?.querySelector(":scope > canvas.atlas-field-canvas");
