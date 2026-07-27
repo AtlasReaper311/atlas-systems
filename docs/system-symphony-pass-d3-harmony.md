@@ -9,12 +9,12 @@ Pass D3 keeps that result intact. Harmonic development may support the establish
 The final listener-approved reference is Explorer on PR #144:
 
 - an exact fast descending lead shimmer before Theme A Variation;
-- a clear cutout before Peak;
+- a bass-only withdrawal before Peak while notes and drums continue;
 - a complete uninterrupted Peak melody;
 - a warmer Peak register;
 - a controlled loudness journey.
 
-That framework now becomes the common structural language for all four states without making their notes, pacing or character identical.
+That framework becomes the common structural language for all four states without making their notes, pacing or character identical.
 
 ## Harmonic journey
 
@@ -83,10 +83,10 @@ The opening-to-middle loudness jump affected all four states. The corrected enve
 
 ## Three signature moments
 
-Every 16-phrase cycle now contains exactly three guaranteed authored signature-gesture moments:
+Every 16-phrase cycle contains exactly three guaranteed authored signature-gesture moments:
 
 1. phrase 4, the end of Theme A: a descending hand-off into Variation;
-2. phrase 10, the end of Build: a restrained ascending launch followed by silence;
+2. phrase 10, the end of Build: a restrained ascending launch into the pre-Peak transition;
 3. phrase 14, Recovery: a softer descending callback.
 
 A selected legacy `shimmer` is suppressed at those three phrases so two lead arcs never stack. Legacy authored shimmer ornaments remain available elsewhere, preserving the existing ornament vocabulary and allowing occasional extra echoes of the signature language.
@@ -114,16 +114,16 @@ Boss Protocol uses fewer, heavier root-and-fifth-shaped gestures with a maximum 
 
 Lost Signal uses lower, slower, fragmented descendants of the same gesture family with a maximum offset of 12 semitones. The pattern is recognisable but interrupted, delayed and distant.
 
-## State-specific pre-Peak cutouts
+## State-specific pre-Peak transitions
 
-Phrase 10 ends with a real performance silence. Both ordinary events and ornaments are omitted inside the cutout window.
+Phrase 10 ends differently by state.
 
-- Explorer: steps `24–31`, a clear drop;
-- Grid Pressure: steps `27–31`, a short diagnostic vacuum;
-- Boss Protocol: steps `26–31`, a hard choke;
-- Lost Signal: steps `20–31`, a longer signal-loss void.
+- Explorer: steps `24–31` remove only the bass category. Primary and secondary notes, drums, pads, services, accents and ornaments continue into Peak.
+- Grid Pressure: steps `27–31` remain a short diagnostic full cutout.
+- Boss Protocol: steps `26–31` remain a hard full choke.
+- Lost Signal: steps `20–31` remain a longer signal-loss void.
 
-The state-specific ascending launch always completes before its cutout begins.
+The state-specific ascending launch always completes before the transition window begins.
 
 ## Complete warm Peak lines
 
@@ -157,7 +157,7 @@ Public adapters add:
 - harmonic region and cadence intent;
 - the narrowed global dynamic envelope;
 - deterministic four-state signature gestures;
-- state-specific cutout policy;
+- state-specific pre-Peak transition policy;
 - complete Peak-note protection;
 - state-specific warm Peak register shifts;
 - the small approved Boss bass velocity trim.
@@ -173,8 +173,10 @@ Tests require:
 - no duplicate shimmer at a guaranteed signature moment;
 - legacy authored shimmers remaining available elsewhere;
 - state-specific register ceilings;
-- exact cutout start steps and silence across every performance category;
-- no ornament scheduled inside a cutout;
+- Explorer omitting only bass during its pre-Peak window;
+- Explorer melody, drums and ornaments remaining active through that window;
+- exact full-cutout start steps for Grid Pressure, Boss Protocol and Lost Signal;
+- no ornament scheduled inside the three darker-state cutouts;
 - complete Peak primary-event counts of Explorer 16, Grid Pressure 16, Boss Protocol 8 and Lost Signal 2;
 - no state-level or phase-level omission of Peak primary notes;
 - the reviewed state-specific Peak octave policy;
@@ -184,18 +186,8 @@ Tests require:
 - evidence-aware cadence restrictions;
 - deterministic frozen trace output.
 
-## Listener gate
+## Listener approval
 
-The final numbered preview must be judged as a complete four-track soundtrack.
+The listener approved the complete four-state pass after one final correction: Explorer's pre-Peak transition must be a bass withdrawal rather than literal silence. The remaining musical work was accepted for merge once this exact correction passed validation.
 
-Listen for:
-
-1. three meaningful members of the descending-shimmer family in each state;
-2. ascending gestures remaining sparse and purposeful;
-3. each pre-Peak cutout feeling like its state rather than a copied mute;
-4. complete, warm and uninterrupted Peak lines;
-5. Explorer remaining the most expansive and memorable state;
-6. Grid Pressure, Boss Protocol and Lost Signal staying lower, darker and distinct;
-7. no regression to the approved global volume envelope or Boss low-end balance.
-
-This PR remains draft until listener approval. Merge does not prove or perform production deployment.
+A merge does not prove or perform production deployment.
