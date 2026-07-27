@@ -1,0 +1,168 @@
+.atlas-page-header {
+  --atlas-header-copy-width: 760px;
+  position: relative;
+  isolation: isolate;
+  min-height: clamp(430px, 58vh, 620px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  padding: calc(var(--atlas-header-height, 56px) + 5rem) 0 4rem !important;
+  border-bottom: 1px solid var(--border);
+}
+
+body:has(.atlas-page-header) main {
+  padding-top: 0;
+}
+
+.atlas-page-header > :not(.atlas-field-canvas) {
+  position: relative;
+  z-index: 3;
+}
+
+.atlas-page-header .section-label,
+.atlas-page-header .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin: 0 0 1.5rem;
+  color: var(--accent);
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+
+.atlas-page-header .section-label::before,
+.atlas-page-header .eyebrow::before {
+  content: "";
+  flex: none;
+  width: 24px;
+  height: 1px;
+  background: currentColor;
+}
+
+.atlas-page-header h1,
+.atlas-page-header .page-heading {
+  max-width: 850px;
+  margin: 0 0 1.25rem;
+  color: var(--text);
+  font: 400 clamp(2.8rem, 7vw, 5.25rem)/1 var(--serif);
+  letter-spacing: -.02em;
+}
+
+.atlas-page-header .page-sub,
+.atlas-page-header .lede {
+  max-width: var(--atlas-header-copy-width);
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.atlas-page-header .page-actions {
+  margin-top: 28px;
+}
+
+.atlas-page-header > .directory-header-field-canvas {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.atlas-page-header::before,
+.atlas-page-header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.atlas-page-header::after {
+  z-index: 2;
+  background: linear-gradient(90deg, rgba(10,10,15,.97) 0%, rgba(10,10,15,.82) 38%, rgba(10,10,15,.28) 72%, rgba(10,10,15,.7) 100%);
+}
+
+.atlas-header-composition--topology-current > .directory-header-field-canvas {
+  opacity: .54;
+  filter: saturate(.88) brightness(.92);
+  transform: scaleX(1.18);
+  transform-origin: center;
+  mask-image: linear-gradient(90deg, transparent 2%, #000 30%, #000 94%, transparent 100%);
+}
+
+.atlas-header-composition--topology-current::before {
+  background:
+    radial-gradient(circle at 76% 31%, rgba(56,189,248,.28) 0 2px, transparent 3px),
+    radial-gradient(circle at 84% 48%, rgba(74,222,128,.24) 0 2px, transparent 3px),
+    radial-gradient(circle at 68% 64%, rgba(56,189,248,.2) 0 2px, transparent 3px),
+    linear-gradient(90deg, transparent 58%, rgba(56,189,248,.16) 58% 58.15%, transparent 58.15% 100%),
+    linear-gradient(11deg, transparent 66%, rgba(74,222,128,.11) 66% 66.2%, transparent 66.2% 100%),
+    repeating-linear-gradient(0deg, transparent 0 31px, rgba(255,255,255,.025) 31px 32px);
+  opacity: .82;
+}
+
+.atlas-header-composition--build-fragments > .directory-header-field-canvas {
+  opacity: .46;
+  filter: saturate(.8) contrast(1.08) brightness(.9);
+  clip-path: polygon(38% 0, 100% 0, 100% 100%, 25% 100%);
+  mask-image: linear-gradient(105deg, transparent 20%, #000 48%, #000 100%);
+}
+
+.atlas-header-composition--build-fragments::before {
+  background:
+    linear-gradient(90deg, transparent 56%, rgba(245,166,35,.18) 56% 61%, transparent 61% 100%) 0 22% / 100% 1px no-repeat,
+    linear-gradient(90deg, transparent 70%, rgba(56,189,248,.13) 70% 82%, transparent 82% 100%) 0 44% / 100% 1px no-repeat,
+    linear-gradient(90deg, transparent 48%, rgba(232,232,224,.09) 48% 72%, transparent 72% 100%) 0 72% / 100% 1px no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 47px, rgba(255,255,255,.025) 47px 48px),
+    repeating-linear-gradient(0deg, transparent 0 47px, rgba(255,255,255,.02) 47px 48px);
+  opacity: .75;
+}
+
+.atlas-header-composition--editorial-drift > .directory-header-field-canvas {
+  opacity: .31;
+  filter: sepia(.16) saturate(.62) brightness(.88);
+  transform: rotate(-2deg) scale(1.08);
+  mask-image: linear-gradient(112deg, transparent 18%, #000 50%, #000 91%, transparent 100%);
+}
+
+.atlas-header-composition--editorial-drift::before {
+  background:
+    repeating-linear-gradient(0deg, transparent 0 39px, rgba(232,232,224,.025) 39px 40px),
+    linear-gradient(112deg, transparent 0 64%, rgba(245,166,35,.08) 64% 64.2%, transparent 64.2% 100%);
+  opacity: .7;
+}
+
+.atlas-page-header--writing::after {
+  background: linear-gradient(90deg, rgba(10,10,15,.98) 0%, rgba(10,10,15,.88) 45%, rgba(10,10,15,.42) 78%, rgba(10,10,15,.78) 100%);
+}
+
+@media (max-width: 760px) {
+  .atlas-page-header {
+    min-height: 390px;
+    padding: calc(var(--atlas-header-height, 56px) + 3.5rem) 0 3rem !important;
+  }
+
+  .atlas-page-header h1,
+  .atlas-page-header .page-heading {
+    font-size: clamp(2.45rem, 13vw, 4rem);
+  }
+
+  .atlas-page-header .page-sub,
+  .atlas-page-header .lede {
+    max-width: 100%;
+    font-size: 14px;
+  }
+
+  .atlas-header-composition--build-fragments > .directory-header-field-canvas {
+    clip-path: polygon(20% 0, 100% 0, 100% 100%, 8% 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atlas-page-header > .directory-header-field-canvas {
+    transform: none;
+  }
+}
