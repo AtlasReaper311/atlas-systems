@@ -1,0 +1,179 @@
+.study-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2rem;
+  align-items: end;
+}
+
+.study-boundary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.study-boundary span {
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--border);
+  background: rgba(17,17,24,0.82);
+  color: var(--text-dim);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.instrument-shell {
+  background: rgba(17,17,24,0.92);
+  border: 1px solid var(--border);
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+.instrument-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.transport {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.scope-shell {
+  position: relative;
+  margin-top: 1.5rem;
+  background: #07070b;
+  border: 1px solid var(--border-hi);
+  overflow: hidden;
+}
+
+#lorenz-scope {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  min-height: 320px;
+  border: 0;
+}
+
+.scope-labels {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0.8rem;
+  pointer-events: none;
+  color: var(--text-faint);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.control-grid,
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.control,
+.telemetry {
+  min-width: 0;
+  padding: 0.9rem;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+}
+
+.control-heading,
+.telemetry {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.control label,
+.telemetry span {
+  color: var(--text-dim);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.control output,
+.telemetry strong {
+  color: var(--text);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.control input[type="range"] {
+  width: 100%;
+  margin-top: 0.85rem;
+  accent-color: var(--accent);
+}
+
+.equation {
+  overflow-x: auto;
+  margin: 1rem 0 0;
+  padding: 1rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 12px;
+  white-space: pre;
+}
+
+.mapping-list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 1rem 0 0;
+}
+
+.mapping-list div {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  gap: 1rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.mapping-list dt {
+  color: var(--accent);
+}
+
+.mapping-list dd {
+  margin: 0;
+  color: var(--text-dim);
+}
+
+.return-link {
+  display: inline-block;
+  margin-top: 1rem;
+}
+
+@media (max-width: 820px) {
+  .study-header {
+    grid-template-columns: 1fr;
+  }
+
+  .study-boundary {
+    justify-content: flex-start;
+  }
+
+  .instrument-head {
+    flex-direction: column;
+  }
+
+  .transport {
+    justify-content: flex-start;
+  }
+
+  .control-grid,
+  .telemetry-grid {
+    grid-template-columns: 1fr;
+  }
+}
