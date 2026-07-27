@@ -26,7 +26,8 @@ const ROLE_LABELS = Object.freeze({
 const STATES = Object.freeze(["healthy", "warning", "critical", "unknown"]);
 const STEPS = 16;
 const RIBBON_LENGTH = 60;
-const BOOT_MS = 1050;
+const BOOT_MS = 2600;
+const BOOT_SESSION_KEY = "atlas-system-symphony-cartridge-boot-v1";
 
 const reduceMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
 
@@ -241,10 +242,19 @@ function runBoot() {
     boot.remove();
     return;
   }
+  try {
+    if (window.sessionStorage?.getItem(BOOT_SESSION_KEY) === "played") {
+      boot.remove();
+      return;
+    }
+    window.sessionStorage?.setItem(BOOT_SESSION_KEY, "played");
+  } catch {
+    // Storage can be disabled; the animation remains harmlessly one-shot per page load.
+  }
   boot.dataset.running = "true";
   window.setTimeout(() => {
     boot.dataset.running = "false";
-    window.setTimeout(() => boot.remove(), 400);
+    window.setTimeout(() => boot.remove(), 520);
   }, BOOT_MS);
 }
 

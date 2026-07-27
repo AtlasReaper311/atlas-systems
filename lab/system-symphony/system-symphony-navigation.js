@@ -1,7 +1,7 @@
 "use strict";
 
 const ROOT_ROUTE = "/lab/system-symphony/";
-const NAV_STYLESHEET = "/lab/system-symphony/system-symphony-navigation.css?v=20260727-stage-2a-format-fixes";
+const NAV_STYLESHEET = "/lab/system-symphony/system-symphony-navigation.css?v=20260727-stage-2a-polish-fixes";
 const MODE_NAMES = new Set(["play", "trace", "replay"]);
 
 let trustReturnTarget = null;
@@ -41,6 +41,17 @@ function currentMode() {
   const flagship = document.querySelector("[data-symphony-flagship]");
   const value = String(flagship?.dataset.symphonyMode ?? "play").toLowerCase();
   return MODE_NAMES.has(value) ? value : "play";
+}
+
+function syncProductModeLinks(mode = currentMode()) {
+  for (const link of document.querySelectorAll(".symphony-product-mode-link")) {
+    const linkMode = link.dataset.symphonyModeRoute ?? link.dataset.symphonyModeTab;
+    if (!MODE_NAMES.has(linkMode)) continue;
+    const selected = linkMode === mode;
+    link.setAttribute("aria-selected", String(selected));
+    if (selected) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  }
 }
 
 function createTextLink(label, href, { current = false, className = "" } = {}) {
@@ -310,6 +321,7 @@ function selectProofTab(panel) {
 function syncModeSurfaces({ userInitiated = false } = {}) {
   if (!isRootRoute()) return;
   const mode = currentMode();
+  syncProductModeLinks(mode);
   for (const surface of document.querySelectorAll("[data-mode-surface]")) {
     surface.hidden = !modeSurfaceMatches(surface, mode);
   }

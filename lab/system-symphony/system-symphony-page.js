@@ -704,13 +704,19 @@ function renderIncidentTimeline(arc) {
     stage.setAttribute("aria-pressed", String(cartridge.incidentFrame.index === incidentArcIndex));
     stage.classList.toggle("is-active", cartridge.incidentFrame.index === incidentArcIndex);
 
+    const badge = document.createElement("span");
+    badge.className = "symphony-incident-stage__badge";
+    badge.textContent = `Stage ${cartridge.incidentFrame.index + 1}`;
+
     const heading = document.createElement("h3");
     heading.textContent = cartridge.incidentFrame.label;
     const state = document.createElement("p");
+    state.className = "symphony-incident-stage__state";
     state.textContent = `${cartridge.dominantLabel} / ${cartridge.movementName}`;
     const proof = document.createElement("p");
+    proof.className = "symphony-incident-stage__proof";
     proof.textContent = `${cartridge.frameTime} / ${cartridge.seed}`;
-    stage.append(heading, state, proof);
+    stage.append(badge, heading, state, proof);
     stage.addEventListener("click", () => {
       clearIncidentArcTimer();
       armIncidentArcFrame(arc, cartridge.incidentFrame.index);

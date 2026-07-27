@@ -137,7 +137,7 @@ function installMetadata() {
 
 async function installRouteEnhancements() {
   if (!isSystemSymphonyPath()) return;
-  await import("/lab/system-symphony/system-symphony-navigation.js?v=20260727-stage-2a-format-fixes");
+  await import("/lab/system-symphony/system-symphony-navigation.js?v=20260727-stage-2a-polish-fixes");
   if (currentPath() !== SYSTEM_SYMPHONY_ROUTE) return;
   await import("/lab/system-symphony/trace-role-bridge.js?v=20260726-phase-d-role-routing-v1");
 }
