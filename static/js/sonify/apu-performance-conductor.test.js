@@ -12,7 +12,7 @@ import {
 
 const plan = (silenceBudget, density, ornaments = []) => ({ silenceBudget, density, ornaments, phase: "groove" });
 
-test("build id identifies density-aware conductor", () => assert.match(APU_PERFORMANCE_CONDUCTOR_BUILD_ID, /v2$/));
+test("build id identifies density-aware conductor", () => assert.match(APU_PERFORMANCE_CONDUCTOR_BUILD_ID, /v3$/));
 
 test("silence decisions are deterministic", () => {
   const args = { perfPlan: plan(0.4, 0.5), category: "primary", stepIndex: 12, phraseIndex: 2, seedHash: 7 };
@@ -29,9 +29,31 @@ test("higher density keeps at least as many events as lower density", () => {
   assert.ok(highKept > lowKept);
 });
 
+test("continuity anchors survive even the sparsest phase", () => {
+  const sparse = plan(1, 0);
+  for (const step of [0, 4, 8, 12, 16, 20, 24, 28]) {
+    assert.equal(shouldOmitForPhase({ perfPlan: sparse, category: "rhythm", stepIndex: step, phraseIndex: 9 }), false);
+  }
+  for (const step of [0, 8, 16, 24]) {
+    assert.equal(shouldOmitForPhase({ perfPlan: sparse, category: "bass", stepIndex: step, phraseIndex: 9 }), false);
+  }
+  for (const step of [0, 16]) {
+    assert.equal(shouldOmitForPhase({ perfPlan: sparse, category: "pad", stepIndex: step, phraseIndex: 9 }), false);
+  }
+});
+
+test("sparse phases still leave room away from continuity anchors", () => {
+  const sparse = plan(1, 0);
+  let omitted = 0;
+  for (let step = 1; step < 32; step += 2) {
+    if (shouldOmitForPhase({ perfPlan: sparse, category: "secondary", stepIndex: step, phraseIndex: 9 })) omitted += 1;
+  }
+  assert.ok(omitted > 0);
+});
+
 test("density adds real rhythmic events, not only velocity", () => {
   assert.deepEqual(supplementalRhythmForDensity(plan(0, 0.3), 2, 0), []);
-  assert.equal(supplementalRhythmForDensity(plan(0, 0.7), 2, 0)[0].voice, "hat");
+  assert.equal(supplementalRhythmForDensity(plan(0, 0.5), 2, 0)[0].voice, "hat");
   assert.ok(supplementalRhythmForDensity(plan(0, 0.95), 12, 0).some((event) => event.voice === "noiseAccent"));
 });
 
