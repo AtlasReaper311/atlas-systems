@@ -59,45 +59,62 @@ test("velocity scaling never boosts above one", () => {
   }
 });
 
-test("every state receives a bounded connective arpeggio", () => {
+test("every state receives prominent additive D4 runs only at composed phrases", () => {
   for (const state of ["healthy", "warning", "critical", "unknown"]) {
-    const instructions = connectiveArpeggioInstructionsForPhrase(
+    const rest = connectiveArpeggioInstructionsForPhrase(
       plan(0.2, 0.7, [], { state, phraseIndex: 2, bars: 4 }),
     );
-    assert.equal(instructions.length, 3, state);
+    assert.deepEqual(rest, [], `${state}/rest`);
+
+    const instructions = connectiveArpeggioInstructionsForPhrase(
+      plan(0.2, 0.7, [], { state, phraseIndex: 1, bars: 2 }),
+    );
+    assert.ok(instructions.length >= 6 && instructions.length <= 13, state);
     assert.ok(Object.isFrozen(instructions));
     assert.ok(instructions.every((instruction) => Object.isFrozen(instruction)));
-    assert.ok(instructions.every((instruction) => instruction.ornament === "connective-arp"));
-    assert.ok(instructions.every((instruction) => instruction.offsetSteps >= 0 && instruction.offsetSteps < 32));
-    assert.ok(instructions.every((instruction) => instruction.velocity >= 0.1 && instruction.velocity <= 0.3));
+    assert.ok(instructions.every((instruction) => instruction.ornament === "d4-arpeggio"));
+    assert.ok(instructions.every((instruction) => instruction.additive === true));
+    assert.ok(instructions.every((instruction) => instruction.offsetSteps >= 0 && instruction.offsetSteps <= 15));
+    assert.ok(instructions.every((instruction) => instruction.velocity >= 0.12 && instruction.velocity <= 0.3));
+    for (let index = 1; index < instructions.length; index += 1) {
+      assert.equal(instructions[index].offsetSteps - instructions[index - 1].offsetSteps, 1);
+    }
   }
 });
 
-test("connective arpeggios vary deterministic contour and phrase position", () => {
+test("D4 runs vary deterministic contour and phrase position", () => {
   const first = connectiveArpeggioInstructionsForPhrase(
-    plan(0.2, 0.7, [], { state: "healthy", phraseIndex: 0, bars: 0 }),
+    plan(0.2, 0.7, [], { state: "healthy", phraseIndex: 1, bars: 2 }),
   );
   const second = connectiveArpeggioInstructionsForPhrase(
-    plan(0.2, 0.7, [], { state: "healthy", phraseIndex: 1, bars: 2 }),
+    plan(0.2, 0.7, [], { state: "healthy", phraseIndex: 6, bars: 12 }),
   );
   assert.notDeepEqual(first.map((event) => event.midiOffset), second.map((event) => event.midiOffset));
   assert.notDeepEqual(first.map((event) => event.offsetSteps), second.map((event) => event.offsetSteps));
   assert.deepEqual(
     second,
     connectiveArpeggioInstructionsForPhrase(
-      plan(0.2, 0.7, [], { state: "healthy", phraseIndex: 1, bars: 2 }),
+      plan(0.2, 0.7, [], { state: "healthy", phraseIndex: 6, bars: 12 }),
     ),
   );
 });
 
-test("all authored ornaments remain audible beside connective arpeggios", () => {
-  const names = ["ripple", "stab", "tick", "swell", "glitch", "shimmer", "flourish", "structural", "reprise"];
+test("authored non-arp ornaments remain audible beside additive D4 runs", () => {
+  const names = ["ripple", "stab", "tick", "swell", "glitch", "flourish", "structural", "reprise"];
   for (const name of names) {
     const instructions = ornamentInstructionsForPhrase(
-      plan(0, 1, [{ name, size: "test", bar: 4 }], { phraseIndex: 2, bars: 4 }),
+      plan(0, 1, [{ name, size: "test", bar: 2 }], { phraseIndex: 1, bars: 2 }),
     );
-    assert.ok(instructions.some((instruction) => instruction.ornament === "connective-arp"), name);
+    assert.ok(instructions.some((instruction) => instruction.ornament === "d4-arpeggio"), name);
     assert.ok(instructions.some((instruction) => instruction.ornament === name), name);
     assert.ok(instructions.every((instruction) => instruction.offsetSteps >= 0 && instruction.offsetSteps < 32));
   }
+});
+
+test("legacy shimmer is replaced rather than double-stacked on D4 passages", () => {
+  const instructions = ornamentInstructionsForPhrase(
+    plan(0, 1, [{ name: "shimmer", size: "test", bar: 8 }], { phraseIndex: 4, bars: 8 }),
+  );
+  assert.ok(instructions.some((instruction) => instruction.ornament === "d4-arpeggio"));
+  assert.ok(!instructions.some((instruction) => instruction.ornament === "shimmer"));
 });

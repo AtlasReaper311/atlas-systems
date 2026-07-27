@@ -7,6 +7,10 @@ import {
   fnv1aHex,
   stableStringify,
 } from "./apu-score-trace-d2-baseline.js?v=20260727-system-symphony-pass-d0-score-trace-v1";
+import {
+  APU_ARPEGGIO_COMPOSER_D4_BUILD_ID,
+  arpeggioPlanForPhrase,
+} from "./apu-arpeggio-composer-d4.js?v=20260727-system-symphony-pass-d4-arpeggio-composer-v3";
 
 export {
   APU_SCORE_TRACE_BUILD_ID,
@@ -33,25 +37,58 @@ function voicingTrace(value) {
   })));
 }
 
+function arpeggioTrace(arrangement = {}) {
+  const plan = arpeggioPlanForPhrase({
+    state: arrangement.scoreState,
+    phraseIndex: arrangement.phraseIndex,
+    cycleNumber: arrangement.cycleNumber,
+    cyclePhrase: arrangement.cyclePhrase,
+    section: arrangement.section,
+    songPlan: arrangement.songPlan,
+  });
+  return Object.freeze({
+    buildId: APU_ARPEGGIO_COMPOSER_D4_BUILD_ID,
+    active: plan.active,
+    additive: plan.instructions.length > 0
+      ? plan.instructions.every((instruction) => instruction.additive === true)
+      : true,
+    protectedEvent: plan.protectedEvent,
+    protectedColourLayers: plan.instructions.filter((instruction) => instruction.protectedColourLayer).length,
+    role: plan.role,
+    arpFunction: plan.arpFunction,
+    contour: plan.contour,
+    timbreRole: plan.timbreRole,
+    voices: Object.freeze([...new Set(plan.instructions.map((instruction) => instruction.voice))]),
+    window: plan.window
+      ? Object.freeze({
+        startStep: plan.window.startStep,
+        endStep: plan.window.endStep,
+      })
+      : null,
+    spaceCategories: Object.freeze([...plan.spaceCategories]),
+    noteCount: plan.instructions.length,
+  });
+}
+
 export function createScoreTraceEntry(input = {}) {
   const baseline = baselineCreateScoreTraceEntry(input);
   const journey = input?.arrangement?.harmonicJourney;
-  if (!journey) return baseline;
-
+  const arp = arpeggioTrace(input?.arrangement ?? {});
   const { deterministicSignature: ignored, ...basePayload } = baseline;
   const payload = {
     ...basePayload,
-    harmonicRegion: journey.region ?? null,
-    harmonicDestination: journey.destination ?? null,
-    cadenceIntent: journey.cadenceIntent ?? null,
-    resolutionPermitted: Boolean(journey.resolutionPermitted),
-    supportHarmony: harmonyTrace(journey.supportHarmony),
-    supportVoicings: voicingTrace(journey.supportVoicings),
+    harmonicRegion: journey?.region ?? null,
+    harmonicDestination: journey?.destination ?? null,
+    cadenceIntent: journey?.cadenceIntent ?? null,
+    resolutionPermitted: Boolean(journey?.resolutionPermitted),
+    supportHarmony: harmonyTrace(journey?.supportHarmony),
+    supportVoicings: voicingTrace(journey?.supportVoicings),
+    arpeggio: arp,
     decisionSources: Object.freeze([
       ...new Set([
         ...(Array.isArray(baseline.decisionSources) ? baseline.decisionSources : []),
-        "apu-harmonic-journey",
-        "apu-voice-leading",
+        ...(journey ? ["apu-harmonic-journey", "apu-voice-leading"] : []),
+        "apu-arpeggio-composer-d4",
       ]),
     ]),
   };
