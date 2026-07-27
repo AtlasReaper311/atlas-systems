@@ -1,0 +1,89 @@
+name: Apply Lab field cache fix
+
+on:
+  push:
+    branches:
+      - feat/system-map-atlas-field-card
+    paths:
+      - ".github/workflows/lab-field-cache-fix.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: feat/system-map-atlas-field-card
+          fetch-depth: 0
+      - name: Patch cache boundary and browser evidence
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          html_path = Path("lab/index.html")
+          html = html_path.read_text()
+          old_shell = '/lab/shared/shell.js?v=20260723-interface-v2'
+          new_shell = '/lab/shared/shell.js?v=20260727-lab-fields-cache-v1'
+          if old_shell not in html:
+              raise SystemExit("expected stale Lab shell reference was not found")
+          html_path.write_text(html.replace(old_shell, new_shell, 1))
+
+          test_path = Path("js/tests/lab-fields.test.mjs")
+          tests = test_path.read_text()
+          old_test = '''test("Lab shell mounts the fields only on the Lab directory route", () => {\n  const shell = fs.readFileSync("lab/shared/shell.js", "utf8");\n  assert.match(shell, /const LAB_HOME_ROUTE = "\\/lab\\/"/);'''
+          new_test = '''test("Lab shell mounts the fields only on the Lab directory route", () => {\n  const markup = fs.readFileSync("lab/index.html", "utf8");\n  const shell = fs.readFileSync("lab/shared/shell.js", "utf8");\n  assert.match(markup, /\\/lab\\/shared\\/shell\\.js\\?v=20260727-lab-fields-cache-v1/);\n  assert.match(shell, /const LAB_HOME_ROUTE = "\\/lab\\/"/);'''
+          if old_test not in tests:
+              raise SystemExit("expected Lab shell test block was not found")
+          test_path.write_text(tests.replace(old_test, new_test, 1))
+
+          evidence_path = Path("scripts/capture_interface_evidence.mjs")
+          evidence = evidence_path.read_text()
+          old_return = '''    return {\n      title: document.title,'''
+          new_return = '''    const atlasFields = [...document.querySelectorAll(".atlas-field-canvas")].map((canvas) => {\n      const rect = canvas.getBoundingClientRect();\n      return {\n        preset: canvas.dataset.atlasFieldPreset || null,\n        mode: canvas.dataset.mode || null,\n        frame: Number(canvas.dataset.frame || 0),\n        width: Math.round(rect.width),\n        height: Math.round(rect.height),\n      };\n    });\n\n    return {\n      title: document.title,'''
+          if old_return not in evidence:
+              raise SystemExit("expected inspectPage return block was not found")
+          evidence = evidence.replace(old_return, new_return, 1)
+
+          old_fields = '''      cardRouteOverflows: cardLayout.filter((item) => item.routeOverflow > 1),\n    };'''
+          new_fields = '''      cardRouteOverflows: cardLayout.filter((item) => item.routeOverflow > 1),\n      atlasFieldCount: atlasFields.length,\n      atlasFields,\n    };'''
+          if old_fields not in evidence:
+              raise SystemExit("expected card evidence fields were not found")
+          evidence = evidence.replace(old_fields, new_fields, 1)
+
+          old_semantics = '''  if (evidence.cardRouteOverflows.length) {\n    values.push(`${prefix}: card CTA overflows ${JSON.stringify(evidence.cardRouteOverflows)}`);\n  }\n  return values;'''
+          new_semantics = '''  if (evidence.cardRouteOverflows.length) {\n    values.push(`${prefix}: card CTA overflows ${JSON.stringify(evidence.cardRouteOverflows)}`);\n  }\n  if (routeName === "lab") {\n    if (evidence.atlasFieldCount !== 2) {\n      values.push(`${prefix}: expected two AtlasField canvases, found ${evidence.atlasFieldCount}`);\n    }\n    const inactiveFields = evidence.atlasFields.filter(\n      (field) => field.width < 1 || field.height < 1 || (field.mode !== "static" && field.frame < 1),\n    );\n    if (inactiveFields.length) {\n      values.push(`${prefix}: inactive AtlasField canvases ${JSON.stringify(inactiveFields)}`);\n    }\n  }\n  return values;'''
+          if old_semantics not in evidence:
+              raise SystemExit("expected semantic failure tail was not found")
+          evidence = evidence.replace(old_semantics, new_semantics, 1)
+
+          old_open = '''    await openWithRetry(page, url);\n    await page.evaluate(async () => {'''
+          new_open = '''    await openWithRetry(page, url);\n    if (routeName === "lab") {\n      await page.waitForFunction(() => {\n        const fields = [...document.querySelectorAll(".atlas-field-canvas")];\n        return fields.length === 2 && fields.every((canvas) => {\n          const rect = canvas.getBoundingClientRect();\n          const rendered = canvas.dataset.mode === "static" || Number(canvas.dataset.frame || 0) > 0;\n          return rect.width > 0 && rect.height > 0 && rendered;\n        });\n      }, null, { timeout: 15_000 });\n    }\n    await page.evaluate(async () => {'''
+          if old_open not in evidence:
+              raise SystemExit("expected capturePage open block was not found")
+          evidence_path.write_text(evidence.replace(old_open, new_open, 1))
+          PY
+      - name: Regenerate static performance baseline
+        run: python3 scripts/measure_static_performance.py
+      - name: Validate patched sources
+        run: |
+          node --check lab/shared/lab-fields.js
+          node --check lab/shared/shell.js
+          node --check scripts/capture_interface_evidence.mjs
+          node --test js/tests/lab-fields.test.mjs
+      - name: Commit corrected Lab field loading
+        run: |
+          rm .github/workflows/lab-field-cache-fix.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lab/index.html
+          git add lab/shared/shell.js
+          git add js/tests/lab-fields.test.mjs
+          git add scripts/capture_interface_evidence.mjs
+          git add data/performance-baseline.json
+          git add .github/workflows/lab-field-cache-fix.yml
+          git commit -m "Fix Lab field asset cache boundary"
+          git push origin HEAD:feat/system-map-atlas-field-card
