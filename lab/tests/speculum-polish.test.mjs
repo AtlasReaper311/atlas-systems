@@ -29,6 +29,15 @@ test('rail regions remain in strict flow and presentation mode expands the field
   assert.match(css, /@media \(max-width: 353px\)[\s\S]*width:\s*calc\(100% \+ 32px\)[\s\S]*border-left:\s*0[\s\S]*border-right:\s*0/);
 });
 
+test('pointer input is mapped into the canvas logical coordinate system', () => {
+  assert.match(js, /function remapPointerEvent\(event\)/);
+  assert.match(js, /logicalWidth = canvas\.width \/ dpr/);
+  assert.match(js, /logicalHeight = canvas\.height \/ dpr/);
+  assert.match(js, /clientX: rect\.left \+ \(event\.clientX - rect\.left\) \* scaleX/);
+  assert.match(js, /clientY: rect\.top \+ \(event\.clientY - rect\.top\) \* scaleY/);
+  assert.match(js, /canvas\.addEventListener\('pointerdown', remapPointerEvent, \{ signal, capture: true \}\)/);
+});
+
 test('completion pulse is restrained and honours reduced motion', () => {
   assert.match(css, /@keyframes spc-trace-travel/);
   assert.match(css, /@keyframes spc-trace-arrival/);
