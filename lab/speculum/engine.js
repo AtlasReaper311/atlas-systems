@@ -149,8 +149,8 @@ export function createEngine(canvas, nodes, ringOrder) {
     s.dispatched += 1;
     chords.push({ from: s, to: t, life: 1 });
     rings.push({ x: t.x, y: t.y, life: 1 });
-    if (chords.length > 90) chords.splice(0, chords.length - 90);
-    if (rings.length > 60) rings.splice(0, rings.length - 60);
+    if (chords.length > 48) chords.splice(0, chords.length - 48);
+    if (rings.length > 36) rings.splice(0, rings.length - 36);
     listeners.observation.forEach((fn) => fn(s.node, t.node, simTime));
   }
 
@@ -185,16 +185,16 @@ export function createEngine(canvas, nodes, ringOrder) {
         // lose trigonometric precision.
         v.beam = norm(v.beam + rotation);
       }
-      v.lit *= Math.exp(-dtReal / 0.85);
+      v.lit *= Math.exp(-dtReal / 0.58);
       if (v.lit < 0.002) v.lit = 0;
     });
 
     for (let i = chords.length - 1; i >= 0; i -= 1) {
-      chords[i].life -= dtReal / 2.2;
+      chords[i].life -= dtReal / 1.35;
       if (chords[i].life <= 0) chords.splice(i, 1);
     }
     for (let i = rings.length - 1; i >= 0; i -= 1) {
-      rings[i].life -= dtReal / 0.9;
+      rings[i].life -= dtReal / 0.62;
       if (rings[i].life <= 0) rings.splice(i, 1);
     }
   }
@@ -250,12 +250,12 @@ export function createEngine(canvas, nodes, ringOrder) {
     }
     for (let y = (cy % 80) - 80; y < height; y += 80) {
       ctx.moveTo(0, Math.round(y) + 0.5);
-      ctx.lineTo(width, Math.round(y) + 0.5);
+      ctx.lineTo(width, Math.round(y) + 0.5, height);
     }
     ctx.stroke();
 
     // Ring guides. Almost invisible, but they tell you the field has structure.
-    ctx.strokeStyle = 'rgba(255,255,255,0.022)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.035)';
     [1, 2, 3, 4].forEach((ring) => {
       ctx.beginPath();
       ctx.arc(cx, cy, radius * RING_SCALE[ring], 0, TAU);
@@ -270,10 +270,9 @@ export function createEngine(canvas, nodes, ringOrder) {
       n.reports.forEach((id) => {
         const t = view.get(id);
         if (!t) return;
-        const inFocus = !focus || (focus.has(n.id) && focus.has(id));
-        ctx.strokeStyle = inFocus
-          ? 'rgba(232,232,224,0.16)'
-          : 'rgba(232,232,224,0.035)';
+        const connected = focus && focus.has(n.id) && focus.has(id);
+        const alpha = focus ? (connected ? 0.22 : 0.018) : 0.055;
+        ctx.strokeStyle = `rgba(232,232,224,${alpha})`;
         ctx.beginPath();
         ctx.moveTo(s.x, s.y);
         const mx = (s.x + t.x) / 2;
@@ -289,15 +288,15 @@ export function createEngine(canvas, nodes, ringOrder) {
     view.forEach((v) => {
       const { cadence, state } = v.node;
       if (cadence <= 0 || state !== 'live' || v.reach <= 0) return;
-      const inFocus = !focus || focus.has(v.node.id);
-      const base = inFocus ? 1 : 0.18;
+      const inFocus = focus && focus.has(v.node.id);
+      const base = focus ? (inFocus ? 1 : 0.08) : 0.42;
       const unverified = evidence && !v.node.verified;
 
       const a = v.beam;
-      const trail = 0.9;
+      const trail = 0.34;
       const grad = ctx.createRadialGradient(v.x, v.y, 0, v.x, v.y, v.reach);
-      grad.addColorStop(0, `rgba(${PALETTE.accentRGB},${0.16 * base})`);
-      grad.addColorStop(0.55, `rgba(${PALETTE.accentRGB},${0.05 * base})`);
+      grad.addColorStop(0, `rgba(${PALETTE.accentRGB},${0.09 * base})`);
+      grad.addColorStop(0.62, `rgba(${PALETTE.accentRGB},${0.022 * base})`);
       grad.addColorStop(1, `rgba(${PALETTE.accentRGB},0)`);
 
       if (!unverified) {
@@ -321,7 +320,7 @@ export function createEngine(canvas, nodes, ringOrder) {
       }
 
       // Leading edge.
-      ctx.strokeStyle = `rgba(${PALETTE.accentRGB},${(unverified ? 0.28 : 0.5) * base})`;
+      ctx.strokeStyle = `rgba(${PALETTE.accentRGB},${(unverified ? 0.24 : 0.42) * base})`;
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(v.x, v.y);
@@ -335,8 +334,9 @@ export function createEngine(canvas, nodes, ringOrder) {
     ctx.globalCompositeOperation = 'lighter';
     ctx.lineWidth = 1;
     chords.forEach((c) => {
-      const inFocus = !focus || (focus.has(c.from.node.id) && focus.has(c.to.node.id));
-      const alpha = c.life * c.life * (inFocus ? 0.62 : 0.1);
+      const connected = focus && focus.has(c.from.node.id) && focus.has(c.to.node.id);
+      const strength = focus ? (connected ? 0.72 : 0.05) : 0.34;
+      const alpha = c.life * c.life * strength;
       ctx.strokeStyle = `rgba(${PALETTE.accentRGB},${alpha})`;
       const mx = (c.from.x + c.to.x) / 2;
       const my = (c.from.y + c.to.y) / 2;
@@ -347,7 +347,7 @@ export function createEngine(canvas, nodes, ringOrder) {
     });
     rings.forEach((r) => {
       const s = 5 + (1 - r.life) * 13;
-      ctx.strokeStyle = `rgba(${PALETTE.textRGB},${r.life * 0.4})`;
+      ctx.strokeStyle = `rgba(${PALETTE.textRGB},${r.life * 0.3})`;
       ctx.strokeRect(r.x - s / 2, r.y - s / 2, s, s);
     });
     ctx.globalCompositeOperation = 'source-over';
@@ -428,10 +428,13 @@ export function createEngine(canvas, nodes, ringOrder) {
     const n = v.node;
     const inFocus = !focus || focus.has(n.id);
     let alpha = 0;
-    if (force || alwaysLabels) alpha = inFocus ? 0.75 : 0.1;
-    alpha = Math.max(alpha, v.lit * 0.9 * (inFocus ? 1 : 0.2));
-    if (focus && focus.has(n.id)) alpha = Math.max(alpha, 0.85);
-    if (alpha < 0.03) return;
+    if (force || alwaysLabels) alpha = inFocus ? 0.72 : 0.08;
+    const recent = Math.max(0, (v.lit - 0.42) / 0.58);
+    alpha = Math.max(alpha, recent * 0.72 * (inFocus ? 1 : 0.16));
+    const active = focusId();
+    if (active === n.id) alpha = Math.max(alpha, 0.95);
+    else if (focus && focus.has(n.id)) alpha = Math.max(alpha, 0.58);
+    if (alpha < 0.04) return;
 
     const left = v.x < cx;
     ctx.font = '10px "IBM Plex Mono", ui-monospace, monospace';
@@ -461,7 +464,7 @@ export function createEngine(canvas, nodes, ringOrder) {
     drawBeams(focus);
     drawChords(focus);
     view.forEach((v) => drawNode(v, focus));
-    view.forEach((v) => drawLabel(v, focus, v.node.kind === 'product' || v.node.kind === 'machine'));
+    view.forEach((v) => drawLabel(v, focus, v.node.kind === 'product'));
   }
 
   /* ------------------------------------------------------------------ */
