@@ -45,6 +45,7 @@ on:
       - "lab/anomaly/**"
       - "lab/conformance/**"
       - "lab/reliability/**"
+      - "lab/speculum/**"
       - "data/performance-baseline.json"
       - "og/**"
       - "scripts/og/**"
