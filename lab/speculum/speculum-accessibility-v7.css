@@ -1,0 +1,59 @@
+/* SPECULUM / accessibility pass v7
+ *
+ * Preserve the instrument hierarchy through spacing, typography, and borders
+ * rather than low-contrast text. Independently scrollable rail regions expose
+ * a visible keyboard focus target.
+ */
+
+:root {
+  --text-faint: var(--text-dim);
+}
+
+.eyebrow,
+.eyebrow span,
+.snapshot-label,
+.stats,
+.field-bar,
+.field-bar span,
+.field-bar-copy p:last-child,
+.key-item,
+.field-action-status,
+.label,
+.label .sample,
+.hint,
+.detail .spc-meta,
+.detail .spc-source,
+.detail .spc-sub,
+.detail .spc-idle,
+.detail .spc-idle-note,
+.dossier-badge,
+.dossier-term,
+.dossier-source,
+.ledger-context,
+.ledger .spc-t,
+.ledger-empty,
+.count,
+footer p {
+  color: var(--text-dim) !important;
+  opacity: 1;
+}
+
+.label .sample {
+  opacity: 1;
+}
+
+.controls:focus-visible,
+.detail:focus-visible,
+.ledger:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -3px;
+}
+
+.controls:focus-visible {
+  background: rgba(245, 166, 35, 0.025);
+}
+
+.detail:focus-visible,
+.ledger:focus-visible {
+  background-color: rgba(245, 166, 35, 0.018);
+}
