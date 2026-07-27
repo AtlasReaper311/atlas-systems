@@ -130,6 +130,7 @@ export function createRawChipVoice(Tone, output, {
 
   let disposed = false;
   let activeWaveKind = waveKind;
+  let preparedWave = waveForKind(context, activeWaveKind);
   let detuneCents = 0;
   const active = new Set();
   const attack = clamp(envelope.attack ?? 0.004, 0.001, 1);
@@ -148,6 +149,7 @@ export function createRawChipVoice(Tone, output, {
   const detune = createValueParam(0, updateActiveDetune);
   const width = createValueParam(DUTY_FOR_KIND[activeWaveKind] ?? 0.5, (value) => {
     activeWaveKind = chipWaveKindForDuty(value);
+    preparedWave = waveForKind(context, activeWaveKind);
   });
 
   function stopRecord(record, at = context.currentTime) {
@@ -171,6 +173,7 @@ export function createRawChipVoice(Tone, output, {
     setWaveKind(nextKind) {
       if (!APU_CHIP_WAVE_KINDS.includes(nextKind)) return false;
       activeWaveKind = nextKind;
+      preparedWave = waveForKind(context, activeWaveKind);
       if (DUTY_FOR_KIND[nextKind]) width.value = DUTY_FOR_KIND[nextKind];
       return true;
     },
@@ -196,7 +199,7 @@ export function createRawChipVoice(Tone, output, {
       const releaseEnd = noteOff + release;
       const oscillator = context.createOscillator();
       const gain = context.createGain();
-      oscillator.setPeriodicWave(waveForKind(context, activeWaveKind));
+      oscillator.setPeriodicWave(preparedWave);
       oscillator.frequency.setValueAtTime(clamp(frequency, 20, 20000), startAt);
       if (oscillator.detune) oscillator.detune.setValueAtTime(detuneCents, startAt);
       gain.gain.setValueAtTime(0, startAt);
