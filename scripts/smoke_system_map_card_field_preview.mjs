@@ -12,6 +12,7 @@ const outputDir = process.env.SYSTEM_MAP_FIELD_OUTPUT_DIR
   ?? path.join(process.cwd(), ".tmp", "system-map-card-field-preview-smoke");
 const pageUrl = new URL(`/lab/?atlas-field-preview=${encodeURIComponent(expectedSha)}`, previewUrl).href;
 const expectedEntrypoints = Object.freeze({
+  shell: "/lab/shared/shell.js?v=20260723-interface-v2",
   stylesheet: "/lab/shared/system-map-card-field.css?v=20260727-system-map-card-field-v1",
   module: "/lab/shared/system-map-card-field.js?v=20260727-system-map-card-field-v1",
 });
@@ -35,9 +36,14 @@ async function collectEvidence() {
     const card = document.querySelector("#system-map.featured");
     const canvases = card?.querySelectorAll(":scope > canvas.atlas-field-canvas") ?? [];
     const canvas = canvases[0] ?? null;
+    const resources = new Set(performance.getEntriesByType("resource").map((entry) => {
+      const resourceUrl = new URL(entry.name);
+      return `${resourceUrl.pathname}${resourceUrl.search}`;
+    }));
     const entrypoints = {
+      shell: document.querySelector(`script[type="module"][src="${expected.shell}"]`)?.getAttribute("src") ?? null,
       stylesheet: document.querySelector(`link[rel="stylesheet"][href="${expected.stylesheet}"]`)?.getAttribute("href") ?? null,
-      module: document.querySelector(`script[type="module"][src="${expected.module}"]`)?.getAttribute("src") ?? null,
+      module: resources.has(expected.module) ? expected.module : null,
     };
 
     if (!canvas) {
