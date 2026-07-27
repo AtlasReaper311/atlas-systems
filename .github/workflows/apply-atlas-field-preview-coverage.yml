@@ -1,0 +1,49 @@
+name: Apply AtlasField preview coverage
+
+on:
+  push:
+    branches:
+      - fix/homepage-field-deploy-diagnostic
+    paths:
+      - ".github/workflows/apply-atlas-field-preview-coverage.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repair branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: fix/homepage-field-deploy-diagnostic
+          fetch-depth: 0
+
+      - name: Add reusable renderer to governed preview paths
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          workflow = Path(".github/workflows/interface-preview.yml")
+          source = workflow.read_text(encoding="utf-8")
+          first_anchor = '      - "static/js/homepage-interactions.js"\n'
+          first_insert = first_anchor + '      - "static/js/atlas-field.js"\n'
+          second_anchor = '      - "js/tests/homepage-field.test.mjs"\n'
+          second_insert = second_anchor + '      - "js/tests/homepage-field-runtime-state.test.mjs"\n'
+          if source.count(first_anchor) != 1 or source.count(second_anchor) != 1:
+              raise SystemExit("AtlasField preview coverage anchors are not unique")
+          source = source.replace(first_anchor, first_insert)
+          source = source.replace(second_anchor, second_insert)
+          workflow.write_text(source, encoding="utf-8")
+          Path(".github/workflows/apply-atlas-field-preview-coverage.yml").unlink()
+          PY
+
+      - name: Commit preview coverage
+        run: |
+          git config user.name "Atlas Systems Repair"
+          git config user.email "actions@users.noreply.github.com"
+          git add .github/workflows/interface-preview.yml
+          git add .github/workflows/apply-atlas-field-preview-coverage.yml
+          git commit -m "Cover AtlasField changes in governed previews"
+          git push origin HEAD:fix/homepage-field-deploy-diagnostic
