@@ -8,9 +8,8 @@
  * Ownership contract:
  *
  *   - State identities own base per-state omission via omissionThreshold.
- *   - This conductor STACKS a phase silence budget on top: if the state
- *     identity keeps an event, the phase can still cause it to be
- *     omitted when the current phase asks for more space.
+ *   - This conductor applies a bounded phase silence budget after the state
+ *     decision while preserving rhythm, bass, and pad continuity anchors.
  *   - Density is a target for how full the phrase should feel. It
  *     scales percussion accent presence and secondary voice activity.
  *   - Ornaments schedule extra deterministic notes at 4/8/16 bar
@@ -27,7 +26,7 @@
  * ask for?). The engine invokes these checks at every play* site.
  */
 
-export const APU_PERFORMANCE_CONDUCTOR_BUILD_ID = "20260727-apu-performance-conductor-v2";
+export const APU_PERFORMANCE_CONDUCTOR_BUILD_ID = "20260727-apu-performance-conductor-v3";
 
 const clamp = (value, minimum, maximum) => {
   const numeric = Number(value);
@@ -51,14 +50,23 @@ function fnv1a(text) {
 // Higher = more likely to be dropped when phase asks for silence.
 // Values chosen so the melodic voices thin out first, drums keep pulse.
 const SILENCE_WEIGHTS = Object.freeze({
-  rhythm: 0.4,    // drums keep pulse even in intro
-  bass: 0.5,      // bass thins moderately
-  pad: 0.6,       // pads thin freely (they're texture)
-  primary: 0.8,   // lead thins strongly
-  secondary: 1.0, // counter voice thins the most
-  service: 0.7,   // services thin moderately
-  accent: 0.9,    // accents thin strongly
+  rhythm: 0.22,    // the pulse should survive sparse phases
+  bass: 0.28,      // retain harmonic direction without constant weight
+  pad: 0.35,       // preserve a quiet connective bed
+  primary: 0.65,   // lead can still breathe
+  secondary: 0.82, // counter voice thins first
+  service: 0.52,   // service identity remains audible but secondary
+  accent: 0.72,    // accents remain selective
 });
+
+const CONTINUITY_ANCHORS = Object.freeze({
+  rhythm: 4,
+  bass: 8,
+  pad: 16,
+});
+
+const PASS_C_SILENCE_SCALE = 0.62;
+const PASS_C_DENSITY_GAP_SCALE = 0.55;
 
 // Density affects velocity/gate presence. Lower density = quieter accents.
 const ACTIVITY_WEIGHTS = Object.freeze({
@@ -99,11 +107,19 @@ export function shouldOmitForPhase({ perfPlan, category, stepIndex, phraseIndex,
   if (!perfPlan) return false;
   const budget = clamp(perfPlan.silenceBudget, 0, 1);
   if (budget <= 0) return false;
+  const localStep = ((Math.trunc(stepIndex) % 32) + 32) % 32;
+  const anchorEvery = CONTINUITY_ANCHORS[category];
+  if (anchorEvery && localStep % anchorEvery === 0) return false;
+
   const weight = SILENCE_WEIGHTS[category] ?? 0.5;
   const density = clamp(perfPlan.density, 0, 1);
   const activityWeight = ACTIVITY_WEIGHTS[category] ?? 0.5;
-  const densityGap = (1 - density) * activityWeight;
-  const threshold = clamp(budget * weight + densityGap, 0, 0.92);
+  const densityGap = (1 - density) * activityWeight * PASS_C_DENSITY_GAP_SCALE;
+  const threshold = clamp(
+    budget * PASS_C_SILENCE_SCALE * weight + densityGap,
+    0,
+    0.72,
+  );
   // Deterministic hash per (category, phrase, step); no randomness.
   const hash = fnv1a(`silence:${category}:${phraseIndex}:${stepIndex}:${seedHash}`);
   const normalized = hash / 0x7fffffff;
@@ -121,7 +137,6 @@ export function velocityScaleForDensity(perfPlan, category) {
   return clamp(range.min + (range.max - range.min) * density, 0.1, 1.0);
 }
 
-
 /**
  * Add bounded rhythmic activity when a phase asks for genuine density.
  * The engine only uses these instructions when the sequencer did not already
@@ -132,10 +147,10 @@ export function supplementalRhythmForDensity(perfPlan, step, phraseIndex = 0) {
   const density = clamp(perfPlan.density, 0, 1);
   const localStep = ((Math.trunc(step) % 32) + 32) % 32;
   const out = [];
-  if (density >= 0.58 && localStep % 4 === 2) {
+  if (density >= 0.46 && localStep % 4 === 2) {
     out.push(Object.freeze({ voice: "hat", velocity: 0.16 + density * 0.16, duration: "32n" }));
   }
-  if (density >= 0.76 && localStep % 8 === 6) {
+  if (density >= 0.72 && localStep % 8 === 6) {
     out.push(Object.freeze({ voice: "hat", velocity: 0.18 + density * 0.15, duration: "32n" }));
   }
   if (density >= 0.9 && localStep === (12 + (Math.abs(Math.trunc(phraseIndex)) % 2) * 16)) {
