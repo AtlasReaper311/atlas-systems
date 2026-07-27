@@ -27,6 +27,7 @@ on:
       - "static/media/card-signatures.svg"
       - "static/vendor/atlas-interface/**"
       - "static/js/homepage-interactions.js"
+      - "static/js/atlas-field.js"
       - "static/js/card-signatures.js"
       - "static/js/estate-shell.js"
       - "static/js/estate-status.js"
