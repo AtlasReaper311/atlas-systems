@@ -43,10 +43,10 @@
       "route": "/lab/almost/",
       "html_bytes": 4913,
       "first_party_request_count": 5,
-      "referenced_asset_bytes": 31495,
-      "total_static_bytes": 36408,
+      "referenced_asset_bytes": 34461,
+      "total_static_bytes": 39374,
       "largest_referenced_asset": "lab/almost/almost.js",
-      "largest_referenced_asset_bytes": 13824
+      "largest_referenced_asset_bytes": 16790
     },
     {
       "route": "/writing/",
@@ -58,5 +58,5 @@
       "largest_referenced_asset_bytes": 23671
     }
   ],
-  "sha256": "561e3f5026b5a170fc41f76d240c230c701487ec600cdf285c88f9a1e11a0a23"
+  "sha256": "965e517bd69048bbc8e4b15aac347b7abb0d2f9b3fd59be8c41aef3a1006ab15"
 }

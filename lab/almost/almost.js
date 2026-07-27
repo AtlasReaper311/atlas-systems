@@ -28,6 +28,7 @@ const marksOutput = document.querySelector("#marks-output");
 const elapsedOutput = document.querySelector("#elapsed-output");
 const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
 const TRACE_COUNT = 112;
+const TIMELINE_SLOTS = 96;
 const BACKGROUND = "#07070b";
 
 let viewWidth = 1;
@@ -45,9 +46,12 @@ let totalDelayMs = 0;
 let longestDelayMs = 0;
 let marks = 0;
 let traceCursor = 0;
+let timeline = [];
+let signalBlooms = [];
 let running = !motionPreference.matches;
 let runningBeforeHide = running;
 let lastReadoutAt = 0;
+let lastSignalAt = 0;
 let lastSample = timingSample(DEFAULT_FRAME_MS, DEFAULT_FRAME_MS);
 
 function seedFromLocation() {
@@ -233,6 +237,85 @@ function drawLiveClock(now, sample) {
   context.fill();
 }
 
+function emitSignalBloom(now, sample) {
+  if (sample.kind === "near") return;
+  if (sample.kind === "drag" && now - lastSignalAt < 900) return;
+  lastSignalAt = now;
+  signalBlooms.push({
+    bornAt: now,
+    kind: sample.kind,
+    weight: clamp(sample.normalized, 0.24, 1),
+  });
+  signalBlooms = signalBlooms.slice(-8);
+}
+
+function drawSignalBlooms(now) {
+  if (!signalBlooms.length) return;
+
+  const span = Math.min(viewWidth, viewHeight);
+  const centreX = viewWidth / 2;
+  const centreY = viewHeight / 2;
+  signalBlooms = signalBlooms.filter((bloom) => now - bloom.bornAt < 1600);
+
+  for (const bloom of signalBlooms) {
+    const age = clamp((now - bloom.bornAt) / 1600, 0, 1);
+    const ease = 1 - Math.pow(1 - age, 2.6);
+    const radius = span * (0.13 + ease * 0.31);
+    const alpha = (1 - age) * (bloom.kind === "stall" ? 0.24 : 0.13) * bloom.weight;
+    const colour = bloom.kind === "stall" ? "226, 75, 74" : "245, 166, 35";
+
+    context.beginPath();
+    context.arc(centreX, centreY, radius, 0, TAU);
+    context.strokeStyle = `rgba(${colour}, ${alpha})`;
+    context.lineWidth = 1.2 + bloom.weight * 2.2;
+    context.stroke();
+  }
+}
+
+function recordTimingSample(sample) {
+  timeline.push({
+    kind: sample.kind,
+    normalized: sample.normalized,
+  });
+  if (timeline.length > TIMELINE_SLOTS) timeline = timeline.slice(-TIMELINE_SLOTS);
+}
+
+function drawTimingStrip(now) {
+  const stripWidth = clamp(viewWidth * 0.34, 240, 520);
+  const slotWidth = stripWidth / TIMELINE_SLOTS;
+  const x = (viewWidth - stripWidth) / 2;
+  const y = viewHeight - clamp(viewHeight * 0.08, 48, 70);
+
+  context.fillStyle = "rgba(7, 7, 11, 0.58)";
+  context.fillRect(x - 10, y - 10, stripWidth + 20, 24);
+
+  context.beginPath();
+  context.moveTo(x, y + 7);
+  context.lineTo(x + stripWidth, y + 7);
+  context.strokeStyle = "rgba(236, 234, 224, 0.08)";
+  context.lineWidth = 1;
+  context.stroke();
+
+  const emptySlots = TIMELINE_SLOTS - timeline.length;
+  for (let index = 0; index < timeline.length; index += 1) {
+    const sample = timeline[index];
+    const age = (emptySlots + index) / TIMELINE_SLOTS;
+    const height = 4 + sample.normalized * 16;
+    const tickX = x + (emptySlots + index) * slotWidth;
+    const alpha = 0.18 + age * 0.58;
+    let colour = `rgba(245, 166, 35, ${alpha})`;
+    if (sample.kind === "drag") colour = `rgba(236, 234, 224, ${alpha})`;
+    if (sample.kind === "stall") colour = `rgba(226, 75, 74, ${alpha})`;
+
+    context.fillStyle = colour;
+    context.fillRect(tickX, y + 7 - height, Math.max(1, slotWidth * 0.52), height);
+  }
+
+  const head = (now * 0.006) % stripWidth;
+  context.fillStyle = "rgba(245, 166, 35, 0.72)";
+  context.fillRect(x + head, y - 14, 1, 25);
+}
+
 function drawTrace(trace, point, sample) {
   const previous = trace.previous;
   trace.previous = point;
@@ -282,6 +365,9 @@ function drawFrame(now, sample) {
     context.fillStyle = `rgba(7, 7, 11, ${decay})`;
     context.fillRect(0, 0, viewWidth, viewHeight);
 
+    emitSignalBloom(now, sample);
+    drawSignalBlooms(now);
+
     const strokes = sample.kind === "stall" ? 24 : sample.kind === "drag" ? 13 : 7;
     const elapsed = previousElapsed + now - startedAt;
     for (let index = 0; index < strokes; index += 1) {
@@ -310,6 +396,7 @@ function drawFrame(now, sample) {
 
     preserveVoid();
     drawLiveClock(now, sample);
+    drawTimingStrip(now);
   });
 }
 
@@ -330,6 +417,7 @@ function frame(now) {
   lastSample = timingSample(delta, baselineMs);
   totalDelayMs += lastSample.latenessMs;
   longestDelayMs = Math.max(longestDelayMs, lastSample.latenessMs);
+  recordTimingSample(lastSample);
   drawFrame(now, lastSample);
   renderReadout(now);
   animationFrame = requestAnimationFrame(frame);
@@ -373,6 +461,9 @@ function reset(nextSeed, shouldExpose = true) {
   longestDelayMs = 0;
   marks = 0;
   traceCursor = 0;
+  timeline = [];
+  signalBlooms = [];
+  lastSignalAt = 0;
   previousElapsed = 0;
   startedAt = performance.now();
   lastFrameAt = null;
