@@ -1,8 +1,4 @@
-.page-intro.lab-intro-atlas-field {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-}
+@import url("/static/css/atlas-field-consumer.css?v=20260728-consumer-contract-v1");
 
 .page-intro.lab-intro-atlas-field::after {
   content: "";
@@ -15,23 +11,16 @@
 }
 
 .page-intro.lab-intro-atlas-field > .atlas-field-canvas {
-  position: absolute;
   inset: -28px -4vw;
-  z-index: 0;
-  display: block;
   width: calc(100% + 8vw);
   height: calc(100% + 56px);
   opacity: .42;
-  pointer-events: none;
-  mix-blend-mode: screen;
   filter: saturate(1.12) brightness(.9) contrast(.98);
   -webkit-mask-image: radial-gradient(ellipse 82% 94% at 66% 48%, #000 0%, rgba(0, 0, 0, .82) 52%, rgba(0, 0, 0, .25) 82%, transparent 100%);
   mask-image: radial-gradient(ellipse 82% 94% at 66% 48%, #000 0%, rgba(0, 0, 0, .82) 52%, rgba(0, 0, 0, .25) 82%, transparent 100%);
 }
 
 .page-intro.lab-intro-atlas-field > :not(.atlas-field-canvas) {
-  position: relative;
-  z-index: 2;
   text-shadow: 0 1px 14px rgba(10, 10, 15, .94);
 }
 

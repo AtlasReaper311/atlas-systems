@@ -24,6 +24,12 @@
 /static/js/atlas-field.js
   Cache-Control: no-store, max-age=0
 
+/static/js/atlas-field-consumer.js
+  Cache-Control: no-store, max-age=0
+
+/static/css/atlas-field-consumer.css
+  Cache-Control: no-store, max-age=0
+
 /css/home-v2-base.css
   Cache-Control: no-store, max-age=0
 
