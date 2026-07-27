@@ -1,14 +1,10 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
-import {
-  CARD_FIELD_TARGETS,
-  CARD_SIGNATURES,
-} from "../../static/js/card-signatures.js";
+import { CARD_SIGNATURES } from "../../static/js/card-signatures.js";
 
 function cardRecords(markup) {
   return [...markup.matchAll(/<a\b[^>]*class="[^"]*\bsystem-card\b[^"]*"[^>]*>/g)].map(([tag]) => ({
-    id: tag.match(/\bid="([^"]+)"/)?.[1] ?? null,
     visual: tag.match(/\bdata-visual="([^"]+)"/)?.[1] ?? null,
     motif: tag.match(/\bdata-motif="([^"]+)"/)?.[1] ?? null,
   }));
@@ -34,19 +30,6 @@ test("every current Lab and Systems card resolves to a specialised SVG signature
   assert.deepEqual(visuals, [...CARD_SIGNATURES].sort());
 });
 
-test("the featured System Map card is the only AtlasField card demonstration", () => {
-  const labCards = cardRecords(fs.readFileSync("lab/index.html", "utf8"));
-  const targetedCards = labCards.filter(({ id }) => id && CARD_FIELD_TARGETS[id]);
-
-  assert.deepEqual(targetedCards, [{ id: "system-map", visual: "map", motif: "TOPO" }]);
-  assert.deepEqual(CARD_FIELD_TARGETS["system-map"], {
-    preset: "card",
-    seed: "atlas-system-map-card-v1",
-  });
-  assert.ok(Object.isFrozen(CARD_FIELD_TARGETS));
-  assert.ok(Object.isFrozen(CARD_FIELD_TARGETS["system-map"]));
-});
-
 test("Lab and Systems load the signature assets", () => {
   for (const path of ["lab/index.html", "systems/index.html"]) {
     const markup = fs.readFileSync(path, "utf8");
@@ -64,15 +47,8 @@ test("Lab and Systems load the signature assets", () => {
   assert.match(css, /> \.card-signature\s*\{[^}]*grid-row:\s*6/s);
   assert.match(css, /width:\s*clamp\(160px,\s*52%,\s*280px\)/);
   assert.match(css, /max-width:\s*620px[^]*grid-row:\s*6/);
-  assert.match(css, /\.card-signature--atlas-field \.atlas-field-canvas\s*\{[^}]*position:\s*absolute[^}]*inset:\s*0[^}]*pointer-events:\s*none/s);
-  assert.match(css, /\.card-signature--atlas-field \.card-signature__diagram\s*\{[^}]*z-index:\s*1/s);
-  assert.match(css, /\.card-signature--atlas-field \.card-signature__motif\s*\{[^}]*z-index:\s*3/s);
   const script = fs.readFileSync("static/js/card-signatures.js", "utf8");
   assert.match(script, /fetch\(SPRITE_PATH/);
-  assert.match(script, /new URL\("\.\/atlas-field\.js", import\.meta\.url\)/);
-  assert.match(script, /import\(ATLAS_FIELD_MODULE_PATH\)/);
-  assert.match(script, /createAtlasField\(signature, options\)/);
-  assert.match(script, /preserving SVG signature/);
   assert.match(script, /preserving CSS motif fallback/);
 });
 
@@ -80,7 +56,6 @@ test("governed preview validates card layout and watches every signature asset",
   const workflow = fs.readFileSync(".github/workflows/interface-preview.yml", "utf8");
   for (const path of [
     "static/css/card-signatures.css",
-    "static/js/atlas-field.js",
     "static/js/card-signatures.js",
     "static/media/card-signatures.svg",
     "js/tests/card-signatures.test.mjs",
