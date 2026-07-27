@@ -140,6 +140,7 @@ async function installRouteEnhancements() {
   await import("/lab/system-symphony/system-symphony-navigation.js?v=20260727-stage-2a-polish-fixes");
   if (currentPath() !== SYSTEM_SYMPHONY_ROUTE) return;
   await import("/lab/system-symphony/trace-role-bridge.js?v=20260726-phase-d-role-routing-v1");
+  await import("/lab/system-symphony/rack-instrument.js?v=20260727-rack-b-v1");
 }
 
 async function installLabShell() {
