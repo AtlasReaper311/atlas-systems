@@ -12,7 +12,10 @@ import {
 const html = readFileSync(new URL("../speculum/index.html", import.meta.url), "utf8");
 const bootSource = readFileSync(new URL("../speculum/speculum.js", import.meta.url), "utf8");
 const engineSource = readFileSync(new URL("../speculum/engine.js", import.meta.url), "utf8");
-const layoutSource = readFileSync(new URL("../speculum/speculum-layout-v3.css", import.meta.url), "utf8");
+const investigationCss = readFileSync(
+  new URL("../speculum/speculum-investigation-v4.css", import.meta.url),
+  "utf8",
+);
 
 const byId = new Map(NODES.map((entry) => [entry.id, entry]));
 
@@ -28,7 +31,7 @@ function createCanvasStub() {
 
   return {
     getContext: () => context,
-    getBoundingClientRect: () => ({ width: 1100, height: 720, left: 0, top: 0 }),
+    getBoundingClientRect: () => ({ width: 1100, height: 900, left: 0, top: 0 }),
   };
 }
 
@@ -141,13 +144,42 @@ test("compressed frames preserve every complete sweep", async () => {
   }
 });
 
+test("frozen stepping, reset, and guided trace remain deterministic", async () => {
+  globalThis.window = { devicePixelRatio: 1 };
+  globalThis.requestAnimationFrame = () => 0;
+  globalThis.cancelAnimationFrame = () => {};
+
+  const { createEngine } = await import("../speculum/engine.js");
+  const engine = createEngine(createCanvasStub(), NODES, RING_ORDER);
+  engine.layout();
+  engine.setPaused(true);
+
+  let observations = 0;
+  engine.on("observation", () => { observations += 1; });
+  const advanced = engine.stepToNextObservation();
+  assert.ok(advanced > 0);
+  assert.ok(observations > 0);
+  assert.ok(engine.getSimTime() > 0);
+
+  const traceIds = ["SPECULAR-CORE", "specular-telemetry", "specular-edge", "atlas-api-public", "atlas-systems"];
+  engine.setTrace(traceIds, 2);
+  assert.deepEqual(engine.getTrace(), { ids: traceIds, index: 2 });
+  engine.setTraceStep(4);
+  assert.equal(engine.getTrace().index, 4);
+  engine.clearTrace();
+  assert.equal(engine.getTrace(), null);
+
+  engine.reset();
+  assert.equal(engine.getSimTime(), 0);
+  assert.equal(engine.counters().total, 0);
+});
+
 test("route uses local assets and states its evidence boundary", () => {
   assert.match(html, /<title>Speculum \/\/ Atlas Systems<\/title>/);
   assert.ok(html.includes('<link rel="canonical" href="https://atlas-systems.uk/lab/speculum/">'));
   assert.match(html, /\/static\/vendor\/atlas-interface\/v0\.2\.0\/atlas-fonts\.css/);
-  assert.match(html, /\/lab\/speculum\/speculum\.css/);
-  assert.match(html, /\/lab\/speculum\/speculum-layout-v3\.css/);
-  assert.match(html, /\/lab\/speculum\/speculum\.js/);
+  assert.match(html, /speculum-layout-v3\.css/);
+  assert.match(html, /speculum-investigation-v4\.css/);
   assert.match(html, /reviewed public snapshot/i);
   assert.match(html, /Private repository identities and private relationships are absent\./);
   assert.match(html, /This is not a live\s+health surface/);
@@ -160,29 +192,40 @@ test("mount lifecycle removes timers, listeners, observers, and engine subscript
   assert.match(bootSource, /unsubscribeObservation\(\)/);
   assert.match(bootSource, /clearInterval\(readoutTimer\)/);
   assert.match(bootSource, /clearInterval\(detailTimer\)/);
-  assert.match(bootSource, /ro\.disconnect\(\)/);
-  assert.match(bootSource, /io\.disconnect\(\)/);
+  assert.match(bootSource, /resizeObserver\.disconnect\(\)/);
+  assert.match(bootSource, /intersectionObserver\.disconnect\(\)/);
+  assert.match(bootSource, /clearInterval\(traceTimer\)/);
 });
 
-test("clarity pass bounds simultaneous visual density", () => {
-  assert.match(html, /Public attention field/);
-  assert.match(html, /Hover to inspect · click to pin · Esc clears/);
-  assert.match(bootSource, /const LEDGER_MAX = 14/);
-  assert.match(engineSource, /chords\.length > 48/);
-  assert.match(engineSource, /const trail = 0\.34/);
-  assert.match(engineSource, /v\.node\.kind === 'product'\)\);/);
-  assert.doesNotMatch(engineSource, /v\.node\.kind === 'product' \|\| v\.node\.kind === 'machine'/);
+test("investigation controls explain evidence and reduce ambiguity", () => {
+  for (const id of [
+    "spc-reset",
+    "spc-step",
+    "spc-trace",
+    "spc-ledger-all",
+    "spc-ledger-focus",
+    "spc-ledger-pause",
+  ]) {
+    assert.ok(html.includes(`id="${id}"`), id);
+  }
+  assert.match(html, /schedule verified/);
+  assert.match(html, /schedule assumed/);
+  assert.match(html, /non-periodic/);
+  assert.doesNotMatch(`${bootSource}\n${engineSource}`, /confirmed/);
+  assert.match(bootSource, /Schedule verified/);
+  assert.match(bootSource, /Not applicable/);
+  assert.match(bootSource, /const LEDGER_MAX = 60/);
+  assert.match(bootSource, /repeated paths are grouped/);
+  assert.match(engineSource, /const RING_LABELS/);
+  assert.match(engineSource, /function drawArrow/);
+  assert.match(engineSource, /stepToNextObservation/);
+  assert.match(engineSource, /setTrace\(ids, index = 0\)/);
 });
 
-test("expanded layout gives the field, detail pane, and ledger independent room", () => {
-  assert.match(layoutSource, /--max:\s*1480px/);
-  assert.match(layoutSource, /--rail:\s*400px/);
-  assert.match(layoutSource, /height:\s*clamp\(900px,\s*90vh,\s*1120px\)/);
-  assert.match(
-    layoutSource,
-    /grid-template-rows:\s*auto minmax\(250px,\s*0\.9fr\) minmax\(340px,\s*1\.1fr\)/,
-  );
-  assert.match(layoutSource, /\.detail\s*\{[^}]*overflow-y:\s*auto/s);
-  assert.match(layoutSource, /\.ledger\s*\{[^}]*overflow-y:\s*auto/s);
-  assert.match(layoutSource, /mask-image:\s*none/);
+test("investigation layout preserves independent rail regions", () => {
+  assert.match(investigationCss, /grid-template-rows: auto minmax\(300px, 0\.95fr\) minmax\(380px, 1\.05fr\)/);
+  assert.match(investigationCss, /\.dossier-grid/);
+  assert.match(investigationCss, /\.ledger-toolbar/);
+  assert.match(investigationCss, /\.trace-progress/);
+  assert.match(investigationCss, /overflow-wrap: anywhere/);
 });
