@@ -13,7 +13,10 @@ import {
   ATLAS_APU_TRACK_BUILD_ID,
   arrangementTimeline,
 } from "../../static/js/sonify/apu-arranger.js?v=20260726-system-symphony-atlas-chip-laws-v3";
-import { createApuTrackEngine } from "../../static/js/sonify/apu-track-engine-v2.js?v=20260726-system-symphony-atlas-chip-laws-v3";
+import {
+  APU_TRACK_PASS_C_V3_BUILD_ID,
+  createApuTrackEngine,
+} from "../../static/js/sonify/apu-track-engine-v3.js?v=20260727-system-symphony-pass-c-v3";
 import {
   APU_HYBRID_STATE_BUILD_ID,
   APU_HYBRID_STATE_KEYS,
@@ -226,9 +229,11 @@ function renderFrame(frame) {
   root.dataset.state = frame.scoreState ?? "unknown";
   root.dataset.build = ATLAS_APU_TRACK_BUILD_ID;
   root.dataset.hybridBuild = APU_HYBRID_STATE_BUILD_ID;
+  root.dataset.passCV3Build = APU_TRACK_PASS_C_V3_BUILD_ID;
   root.dataset.ready = "true";
   document.documentElement.dataset.atlasApuBuild = ATLAS_APU_TRACK_BUILD_ID;
   document.documentElement.dataset.atlasApuHybridBuild = APU_HYBRID_STATE_BUILD_ID;
+  document.documentElement.dataset.atlasApuPassCV3Build = APU_TRACK_PASS_C_V3_BUILD_ID;
 
   setMetric("state", frame.scoreLabel ?? formatStatus(frame.scoreState));
   setMetric("scene", scene.label);
@@ -306,6 +311,11 @@ const engine = createApuTrackEngine({
     setStatus(`Audio engine error: ${error.message}`, "stale");
   },
 });
+
+const initialReplayIncident = window.__ATLAS_APU_REPLAY_INCIDENT__;
+if (initialReplayIncident && typeof initialReplayIncident === "object") {
+  engine.setReplayIncident(initialReplayIncident, { seed: "ATLAS-APU-REPLAY-V3" });
+}
 
 const poller = createPoller({
   onFrame(frame, info) {
@@ -407,6 +417,7 @@ root.dataset.apuNoSamples = "true";
 window.__ATLAS_APU__ = Object.freeze({
   buildId: ATLAS_APU_TRACK_BUILD_ID,
   hybridBuildId: APU_HYBRID_STATE_BUILD_ID,
+  passCV3BuildId: APU_TRACK_PASS_C_V3_BUILD_ID,
   getFrame: () => currentFrame,
   getScene: () => engine.getScene(),
   getArrangement: () => currentArrangement ?? engine.getArrangement(),
@@ -414,6 +425,8 @@ window.__ATLAS_APU__ = Object.freeze({
   getStateVector: () => currentFrame?.stateVector ?? null,
   getDominantReason: () => currentFrame?.dominantStateReason ?? null,
   getDiagnostics: () => engine.getDiagnostics(),
+  getReplayPlan: () => engine.getReplayPlan(),
+  setReplayIncident: (incident, options = {}) => engine.setReplayIncident(incident, options),
   isRunning: () => engine.isRunning(),
 });
 

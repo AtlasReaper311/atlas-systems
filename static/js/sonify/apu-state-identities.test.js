@@ -6,6 +6,7 @@ import {
   APU_STATE_IDENTITIES,
   deterministicEventHash,
   shouldOmitEvent,
+  stateMixModifiers,
   statePatternGrammar,
 } from "./apu-state-identities.js";
 import {
@@ -93,7 +94,18 @@ test("state envelope and duty-cycle contracts remain measurably different", () =
   assert.equal(APU_STATE_IDENTITIES.critical.transitionPolicy, "hard-choke");
   assert.equal(APU_STATE_IDENTITIES.unknown.transitionPolicy, "one-bar-decay");
   assert.equal(APU_STATE_IDENTITIES.unknown.masterGainDb, APU_STATE_IDENTITIES.healthy.masterGainDb);
-  assert.ok(APU_STATE_IDENTITIES.unknown.omissionThreshold > APU_STATE_IDENTITIES.healthy.omissionThreshold);
+  assert.ok(APU_STATE_IDENTITIES.unknown.omissionThreshold > APU_STATE_IDENTITIES.warning.omissionThreshold);
+  assert.ok(APU_STATE_IDENTITIES.unknown.omissionThreshold < 0.4);
   assert.ok(APU_STATE_IDENTITIES.unknown.dynamicRangeDb > APU_STATE_IDENTITIES.healthy.dynamicRangeDb);
   assert.equal(APU_STATE_IDENTITIES.unknown.leadGate, "2n");
+});
+
+test("Lost Signal remains restrained but no longer falls below its audible floors", () => {
+  const mix = stateMixModifiers("unknown");
+  assert.ok(mix.primary >= 0.6);
+  assert.ok(mix.secondary >= 0.45);
+  assert.ok(mix.services >= 0.5);
+  assert.ok(mix.bass >= 0.5);
+  assert.ok(mix.drums >= 0.3);
+  assert.equal(mix.pad, 1.18);
 });
