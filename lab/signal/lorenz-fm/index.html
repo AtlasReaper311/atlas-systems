@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Lorenz FM is an isolated Signal Garden study that maps a deterministic chaotic attractor to browser-native frequency modulation, filtering, and stereo movement.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Lorenz FM // Atlas Systems</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="canonical" href="https://atlas-systems.uk/lab/signal/lorenz-fm/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Lorenz FM // Atlas Systems">
+  <meta property="og:description" content="An isolated Signal Garden study that turns deterministic Lorenz chaos into audible modulation.">
+  <meta property="og:url" content="https://atlas-systems.uk/lab/signal/lorenz-fm/">
+  <meta property="og:site_name" content="Atlas Systems">
+  <meta property="og:image" content="https://atlas-systems.uk/og/signal-garden.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Lorenz FM algorithm study in Signal Garden. // Atlas Systems">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Lorenz FM // Atlas Systems">
+  <meta name="twitter:description" content="An isolated Signal Garden study that turns deterministic Lorenz chaos into audible modulation.">
+  <meta name="twitter:image" content="https://atlas-systems.uk/og/signal-garden.png">
+  <meta name="twitter:image:alt" content="Lorenz FM algorithm study in Signal Garden. // Atlas Systems">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/lab/shared/systems.css">
+  <link rel="stylesheet" href="/lab/signal/lorenz-fm/lorenz-fm.css">
+</head>
+<body>
+  <nav aria-label="Primary navigation">
+    <a class="wordmark" href="/">Atlas<span>_</span>Systems</a>
+  </nav>
+
+  <main>
+    <header class="hero study-header">
+      <div>
+        <div class="eyebrow">Signal Garden // algorithm study 01</div>
+        <h1>Lorenz FM.</h1>
+        <p class="lede">A deterministic chaotic system drives a small browser-native synthesiser. The mathematics advances on a fixed simulation clock, while Web Audio receives smoothed carrier, modulation, filter, and stereo targets.</p>
+      </div>
+      <div class="study-boundary" aria-label="Interface classification">
+        <span>Experiment</span>
+        <span>Generated</span>
+        <span>Browser local</span>
+      </div>
+    </header>
+
+    <section class="section instrument-shell" aria-labelledby="instrument-title">
+      <div class="instrument-head">
+        <div>
+          <div class="eyebrow">Procedural FM // Lorenz.01</div>
+          <h2 id="instrument-title">Deterministic chaos as modulation</h2>
+          <p class="note">Start at a conservative level. The output passes through a limiter, but headphones still deserve restraint.</p>
+        </div>
+        <div class="transport">
+          <button class="primary" id="start-audio" type="button">Start audio</button>
+          <button id="stop-audio" type="button" disabled>Stop</button>
+          <button id="reset-system" type="button" disabled>Reset trajectory</button>
+          <span class="status" id="audio-status" aria-live="polite">idle</span>
+        </div>
+      </div>
+
+      <div class="scope-shell">
+        <canvas id="lorenz-scope" width="900" height="675" role="img" aria-label="Live projection of the Lorenz attractor trajectory"></canvas>
+        <div class="scope-labels" aria-hidden="true"><span>X / Z phase projection</span><span>fixed-step RK4</span></div>
+      </div>
+
+      <div class="control-grid" aria-label="Audio controls">
+        <div class="control">
+          <div class="control-heading"><label for="master-volume">Output</label><output id="master-volume-output" for="master-volume">80%</output></div>
+          <input id="master-volume" type="range" min="0" max="120" step="1" value="80">
+        </div>
+        <div class="control">
+          <div class="control-heading"><label for="chaos-rate">Trajectory rate</label><output id="chaos-rate-output" for="chaos-rate">1.00×</output></div>
+          <input id="chaos-rate" type="range" min="0.25" max="2" step="0.05" value="1">
+        </div>
+        <div class="control">
+          <div class="control-heading"><label for="fm-depth">FM depth</label><output id="fm-depth-output" for="fm-depth">82 Hz</output></div>
+          <input id="fm-depth" type="range" min="0" max="180" step="1" value="82">
+        </div>
+      </div>
+
+      <div class="telemetry-grid" aria-live="polite">
+        <div class="telemetry"><span>Lorenz X</span><strong id="val-x">0.1000</strong></div>
+        <div class="telemetry"><span>Lorenz Y</span><strong id="val-y">0.0000</strong></div>
+        <div class="telemetry"><span>Lorenz Z</span><strong id="val-z">0.0000</strong></div>
+        <div class="telemetry"><span>Carrier</span><strong id="val-carrier">55.52 Hz</strong></div>
+        <div class="telemetry"><span>Modulator</span><strong id="val-modulator">18.00 Hz</strong></div>
+        <div class="telemetry"><span>Filter</span><strong id="val-cutoff">1716.00 Hz</strong></div>
+        <div class="telemetry"><span>Stereo pan</span><strong id="val-pan">0.004</strong></div>
+        <div class="telemetry"><span>Simulation time</span><strong id="val-elapsed">0.00 s</strong></div>
+      </div>
+    </section>
+
+    <section class="section grid grid-2" aria-label="Lorenz FM explanation">
+      <article class="panel">
+        <div class="eyebrow">System law</div>
+        <h2>Three coupled equations</h2>
+        <p>The Lorenz attractor is deterministic. It contains no random-number source, yet tiny differences in state eventually produce different trajectories.</p>
+        <pre class="equation"><code>dx/dt = σ(y - x)
+dy/dt = x(ρ - z) - y
+dz/dt = xy - βz
+
+σ = 10, ρ = 28, β = 8/3</code></pre>
+      </article>
+      <article class="panel panel-deep">
+        <div class="eyebrow">Signal mapping</div>
+        <h2>State becomes sound</h2>
+        <dl class="mapping-list">
+          <div><dt>X</dt><dd>Carrier frequency and stereo position.</dd></div>
+          <div><dt>Y</dt><dd>Triangle modulator frequency.</dd></div>
+          <div><dt>Z</dt><dd>Low-pass filter cutoff around the attractor centre.</dd></div>
+        </dl>
+      </article>
+    </section>
+
+    <section class="section grid grid-2" aria-label="Integration boundary">
+      <article class="panel">
+        <div class="eyebrow">Why this is isolated</div>
+        <h2>No existing instrument changed</h2>
+        <p>This study does not alter Signal Garden's AudioWorklet, System SYMPHONY, telemetry sonification, or any live data source. It exists to judge the attractor as an audible control law before it earns a place in a larger engine.</p>
+      </article>
+      <article class="panel">
+        <div class="eyebrow">Possible promotion</div>
+        <h2>From study to modulation source</h2>
+        <p>If the behaviour is musically useful, the same fixed-step attractor can later drive Signal Garden density, FM colour, resonator decay, and spatial migration inside the audio-thread ownership boundary.</p>
+        <a class="return-link" href="/lab/signal/">Return to Signal Garden →</a>
+      </article>
+    </section>
+  </main>
+
+  <script type="module" src="/lab/signal/lorenz-fm/controller.js"></script>
+</body>
+</html>
