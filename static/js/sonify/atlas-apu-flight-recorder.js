@@ -5,7 +5,7 @@
  * replayable proof object derived from a bounded System SYMPHONY frame.
  */
 
-import { buildAtlasApuScorePlan } from "./atlas-apu-score-plan.js?v=20260726-atlas-apu-score-plan-v3";
+import { buildAtlasApuScorePlan } from "./atlas-apu-score-plan.js?v=20260727-apu-critical-headroom-v1";
 
 export const ATLAS_APU_BLACK_BOX_SCHEMA_VERSION = "atlas-apu-black-box/v1";
 export const ATLAS_APU_BLACK_BOX_BUILD_ID = "20260726-atlas-apu-black-box-v1";

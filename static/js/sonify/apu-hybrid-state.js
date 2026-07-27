@@ -4,7 +4,7 @@ import {
   clamp,
   computeVoiceParams,
 } from "./mapping.js?v=20260720-system-symphony-loop-production-v2";
-import { buildAtlasApuScorePlan } from "./atlas-apu-score-plan.js?v=20260726-atlas-apu-score-plan-v3";
+import { buildAtlasApuScorePlan } from "./atlas-apu-score-plan.js?v=20260727-apu-critical-headroom-v1";
 
 export const APU_HYBRID_STATE_BUILD_ID = "20260726-system-symphony-evidence-hybrid-v2";
 export const APU_HYBRID_STATE_KEYS = Object.freeze(["healthy", "warning", "critical", "unknown"]);

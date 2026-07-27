@@ -12,7 +12,7 @@ import {
   clamp,
   stableHash,
 } from "./mapping.js?v=20260720-system-symphony-loop-production-v2";
-import { normalizedStateIdentity } from "./apu-state-identities.js?v=20260726-system-symphony-state-identities-v4";
+import { normalizedStateIdentity } from "./apu-state-identities.js?v=20260727-apu-critical-headroom-v1";
 import {
   ATLAS_APU_STATE_THEMES_BUILD_ID,
   themeForState,

@@ -3,7 +3,7 @@ import {
   APU_TRACK_PHRASES,
   ATLAS_APU_TRACK_BUILD_ID,
   arrangementForPhrase,
-} from "./apu-arranger.js?v=20260726-system-symphony-atlas-chip-laws-v3";
+} from "./apu-arranger.js?v=20260727-apu-critical-headroom-v1";
 import {
   APU_TRACK_STEPS,
   bassEventForTrackStep,
@@ -20,7 +20,7 @@ import { midiToFrequencyHz } from "./mapping.js?v=20260720-system-symphony-loop-
 import {
   ATLAS_APU_ENGINE_CONTROLS_BUILD_ID,
   engineControlsForFrame,
-} from "./atlas-apu-engine-controls.js?v=20260726-atlas-apu-engine-controls-v4";
+} from "./atlas-apu-engine-controls.js?v=20260727-apu-critical-headroom-v1";
 import {
   APU_MASTERING_DEFAULT_USER_GAIN,
   APU_MASTERING_LIMITER_CEILING_DB,

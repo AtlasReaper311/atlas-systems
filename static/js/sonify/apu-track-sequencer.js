@@ -1,5 +1,5 @@
 import { chipIdentityForVoice, clamp } from "./apu-palette.js?v=20260725-system-symphony-atlas-apu-preview-v1";
-import { normalizedStateIdentity, shouldOmitEvent } from "./apu-state-identities.js?v=20260726-system-symphony-state-identities-v4";
+import { normalizedStateIdentity, shouldOmitEvent } from "./apu-state-identities.js?v=20260727-apu-critical-headroom-v1";
 
 export const APU_TRACK_STEPS = 32;
 export const TONIC_MIDI = 41;

@@ -1,6 +1,6 @@
 import { masteringProfileForState } from "./apu-mastering.js?v=20260726-system-symphony-mastering-v4";
 
-export const APU_STATE_IDENTITY_BUILD_ID = "20260726-system-symphony-state-identities-v4";
+export const APU_STATE_IDENTITY_BUILD_ID = "20260727-system-symphony-state-identities-critical-headroom-v1";
 export const APU_STATE_KEYS = Object.freeze(["healthy", "warning", "critical", "unknown"]);
 
 const freezeArray = (values) => Object.freeze([...values]);
@@ -74,7 +74,7 @@ export const APU_STATE_IDENTITIES = Object.freeze({
     stereoWidth: 0.12,
     omissionThreshold: 0.08,
     mastering: CRITICAL_MASTERING,
-    masterGainDb: CRITICAL_MASTERING.masterGainDb,
+    masterGainDb: CRITICAL_MASTERING.masterGainDb - 1,
     dynamicRangeDb: 5,
     transitionPolicy: "hard-choke",
     tensionPolicy: "bounded-alarm",
@@ -169,7 +169,7 @@ export function stateMixModifiers(state) {
   const identity = normalizedStateIdentity(state);
   if (identity.id === "healthy") return Object.freeze({ primary: 1, secondary: 1.1, services: 0.9, bass: 0.95, drums: 0.88, pad: 1, accent: 0.75 });
   if (identity.id === "warning") return Object.freeze({ primary: 0.92, secondary: 1.08, services: 1.15, bass: 1.08, drums: 1.08, pad: 0.62, accent: 1.1 });
-  if (identity.id === "critical") return Object.freeze({ primary: 1.08, secondary: 0.96, services: 0.72, bass: 1.18, drums: 1.18, pad: 0.18, accent: 1.25 });
+  if (identity.id === "critical") return Object.freeze({ primary: 1.02, secondary: 0.92, services: 0.68, bass: 1.04, drums: 1.02, pad: 0.18, accent: 1.06 });
   return Object.freeze({ primary: 0.52, secondary: 0.38, services: 0.42, bass: 0.46, drums: 0.18, pad: 1.18, accent: 0.28 });
 }
 

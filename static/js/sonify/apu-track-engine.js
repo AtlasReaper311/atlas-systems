@@ -10,7 +10,7 @@ import {
   APU_TRACK_PHRASES,
   ATLAS_APU_TRACK_BUILD_ID,
   arrangementForPhrase,
-} from "./apu-arranger.js?v=20260725-system-symphony-atlas-apu-track-v1";
+} from "./apu-arranger.js?v=20260727-apu-critical-headroom-v1";
 import {
   APU_TRACK_STEPS,
   bassEventForTrackStep,

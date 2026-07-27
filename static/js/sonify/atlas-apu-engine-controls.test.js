@@ -43,7 +43,7 @@ test("valid score plans activate the guarded engine-control path", () => {
   const guard = scorePlanGuardForFrame(frame);
   const controls = engineControlsForFrame(frame);
 
-  assert.match(ATLAS_APU_ENGINE_CONTROLS_BUILD_ID, /engine-controls-v4$/);
+  assert.match(ATLAS_APU_ENGINE_CONTROLS_BUILD_ID, /critical-headroom-v1$/);
   assert.equal(guard.active, true);
   assert.equal(guard.mode, "score-plan");
   assert.equal(guard.sampleFree, true);
@@ -86,8 +86,10 @@ test("theme controls make critical urgent and unknown carrier-led", () => {
   ]));
 
   assert.equal(critical.movement, "Critical Choke");
-  assert.ok(critical.buses.drums > 1);
-  assert.ok(critical.buses.bass > 1);
+  assert.ok(critical.buses.drums > critical.buses.pad);
+  assert.ok(critical.buses.bass > critical.buses.pad);
+  assert.ok(critical.buses.drums <= 1);
+  assert.ok(critical.buses.bass <= 1);
   assert.ok(critical.buses.pad < 0.5);
   assert.equal(critical.timbre.chipBits, 7);
   assert.ok(critical.timbre.chipWet <= 0.175);

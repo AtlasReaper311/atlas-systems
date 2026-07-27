@@ -5,7 +5,7 @@ import {
   stateMixModifiers,
   statePatternGrammar,
   stateTimbreModifiers,
-} from "./apu-state-identities.js?v=20260726-system-symphony-state-identities-v4";
+} from "./apu-state-identities.js?v=20260727-apu-critical-headroom-v1";
 
 export const ATLAS_APU_TRACK_BUILD_ID = "20260726-system-symphony-atlas-chip-laws-v3";
 export const APU_TRACK_PHRASES = 16;

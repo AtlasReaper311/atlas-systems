@@ -12,9 +12,9 @@ import {
   ATLAS_APU_GRID,
   ATLAS_APU_ROLE_KEYS,
   ATLAS_APU_SCORE_PLAN_BUILD_ID,
-} from "./atlas-apu-score-plan.js?v=20260726-atlas-apu-score-plan-v3";
+} from "./atlas-apu-score-plan.js?v=20260727-apu-critical-headroom-v1";
 
-export const ATLAS_APU_ENGINE_CONTROLS_BUILD_ID = "20260726-atlas-apu-engine-controls-v4";
+export const ATLAS_APU_ENGINE_CONTROLS_BUILD_ID = "20260727-atlas-apu-engine-controls-critical-headroom-v1";
 
 const STATE_CHIP_COLOR = Object.freeze({
   healthy: Object.freeze({ bits: 14, wet: 0.035, hum: 0 }),
@@ -69,10 +69,10 @@ function busScalesFor(plan = {}) {
       primary: 0.88,
       secondary: 0.78,
       services: 0.68,
-      bass: 1.04,
-      drums: 1.03,
+      bass: 0.96,
+      drums: 0.92,
       pad: 0.36,
-      accent: recoveryActive ? 0.96 : 0.82,
+      accent: recoveryActive ? 0.88 : 0.72,
     });
   }
 

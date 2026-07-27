@@ -3,8 +3,8 @@ import {
   DEFAULT_USER_GAIN,
   SYSTEM_SYMPHONY_BUILD_ID,
 } from "../../static/js/sonify/apu-production-engine.js?v=20260726-system-symphony-atlas-apu-live-v7";
-import { buildAtlasApuScorePlan } from "../../static/js/sonify/atlas-apu-score-plan.js?v=20260726-atlas-apu-score-plan-v3";
-import { scorePlanGuardForFrame } from "../../static/js/sonify/atlas-apu-engine-controls.js?v=20260726-atlas-apu-engine-controls-v4";
+import { buildAtlasApuScorePlan } from "../../static/js/sonify/atlas-apu-score-plan.js?v=20260727-apu-critical-headroom-v1";
+import { scorePlanGuardForFrame } from "../../static/js/sonify/atlas-apu-engine-controls.js?v=20260727-apu-critical-headroom-v1";
 import {
   cartridgeSummary,
   createAtlasApuBlackBoxCartridge,
