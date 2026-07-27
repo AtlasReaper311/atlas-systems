@@ -1,7 +1,7 @@
 "use strict";
 
 const ROOT_ROUTE = "/lab/system-symphony/";
-const NAV_STYLESHEET = "/lab/system-symphony/system-symphony-navigation.css?v=20260726-navigation-ia-v1";
+const NAV_STYLESHEET = "/lab/system-symphony/system-symphony-navigation.css?v=20260727-stage-2a-format-fixes";
 const MODE_NAMES = new Set(["play", "trace", "replay"]);
 
 let trustReturnTarget = null;

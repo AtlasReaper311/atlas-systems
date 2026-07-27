@@ -86,7 +86,7 @@ test("the lab route adds scoped System Symphony side routes without public cutov
   for (const html of [roms, buildLog, radio]) {
     assert.ok(html.includes('<meta name="robots" content="noindex, follow">'));
     assert.ok(html.includes('/lab/shared/shell.js?v=20260725-batch-h-fixes'));
-    assert.ok(html.includes('/lab/system-symphony/system-symphony-page.css?v=20260726-flagship-ia-v1'));
+    assert.ok(html.includes('/lab/system-symphony/system-symphony-page.css?v=20260727-stage-2a-format-fixes'));
     assert.ok(html.includes('href="/lab/system-symphony/'));
   }
   assert.ok(roms.includes("Atlas APU ROM Library"));

@@ -432,13 +432,7 @@ body.symphony-page { overflow-x: hidden; }
   text-transform: uppercase;
 }
 
-/* -------------------------------------------- ROM cards on .system-card -- */
-
-/* .symphony-rom-card is retired. ROM, build-log and route cards now use the
-   governed .system-card / directory-card contract from
-   static/css/v2-directory-pages.css + static/css/card-signatures.css, so
-   card-signatures.js can enhance them and the browser evidence matrix applies.
-   Only the grid container is owned here. */
+/* ------------------------------------------------------------ ROM cards -- */
 
 .symphony-rom-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 .symphony-rom-grid--compact { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -449,6 +443,165 @@ body.symphony-page { overflow-x: hidden; }
 .symphony-rom-grid .system-card[data-cartridge-state="critical"] { --card-accent: var(--bad); }
 .symphony-rom-grid .system-card[data-cartridge-state="unknown"] { --card-accent: var(--unknown); }
 .symphony-rom-grid .system-card[data-cartridge-state="recovery"] { --card-accent: var(--blue); }
+.symphony-rom-card[data-state="healthy"] { --card-accent: var(--good); }
+.symphony-rom-card[data-state="warning"] { --card-accent: var(--warning); }
+.symphony-rom-card[data-state="critical"] { --card-accent: var(--bad); }
+.symphony-rom-card[data-state="unknown"] { --card-accent: var(--unknown); }
+.symphony-rom-card[data-state="recovery"] { --card-accent: var(--blue); }
+
+.symphony-rom-card,
+.symphony-flight-recorder-card,
+.symphony-incident-stage {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(10, 10, 15, .92);
+}
+
+.symphony-rom-card {
+  display: grid;
+  grid-template-rows: minmax(230px, .8fr) auto;
+}
+
+.symphony-rom-card__cover {
+  position: relative;
+  min-height: 230px;
+  display: grid;
+  align-content: space-between;
+  gap: 14px;
+  padding: 18px;
+  border-bottom: 1px solid var(--border);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--card-accent, var(--accent)) 24%, transparent), transparent),
+    linear-gradient(rgba(255, 255, 255, .045) 1px, transparent 1px),
+    rgba(6, 6, 10, .96);
+  background-size: auto, 100% 22px, auto;
+}
+
+.symphony-rom-card__cover::after {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border: 1px solid color-mix(in srgb, var(--card-accent, var(--accent)) 32%, transparent);
+  opacity: .6;
+  pointer-events: none;
+}
+
+.symphony-rom-card__cover span,
+.symphony-rom-card__cover em {
+  position: relative;
+  z-index: 1;
+  color: var(--text-faint);
+  font: 700 10px/1.4 var(--mono);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.symphony-rom-card__cover strong {
+  position: relative;
+  z-index: 1;
+  max-width: 10ch;
+  color: var(--text);
+  font: 400 clamp(2rem, 4vw, 3.25rem)/.95 var(--serif);
+}
+
+.symphony-rom-card__body {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding: 18px;
+}
+
+.symphony-rom-card__body h2,
+.symphony-flight-recorder-card h3 {
+  margin: 0;
+  color: var(--text);
+  font: 400 clamp(1.6rem, 3vw, 2.4rem)/1 var(--serif);
+}
+
+.symphony-rom-card__body p,
+.symphony-flight-recorder-card p,
+.symphony-incident-stage p,
+.symphony-flight-recorder__note {
+  margin: 0;
+  color: var(--text-dim);
+  font: 500 13px/1.55 var(--mono);
+}
+
+.symphony-rom-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--border);
+}
+
+.symphony-rom-meta div { min-width: 0; padding: 10px; background: rgba(7, 7, 11, .96); }
+.symphony-rom-meta dt { color: var(--text-faint); font: 700 9px/1.35 var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+.symphony-rom-meta dd { margin: 5px 0 0; overflow-wrap: anywhere; color: var(--text); font: 600 11px/1.35 var(--mono); }
+.symphony-rom-actions,
+.symphony-flight-recorder-card__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.symphony-flight-recorder__list,
+.symphony-incident-replay__timeline {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.symphony-flight-recorder-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.symphony-flight-recorder-card h3,
+.symphony-incident-stage h3 {
+  margin: 0;
+  color: var(--text);
+}
+
+.symphony-incident-replay__timeline { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.symphony-incident-stage {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.symphony-incident-stage[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, rgba(10, 10, 15, .92));
+}
+
+.symphony-incident-replay__impact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.symphony-incident-impact {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font: 700 11px/1 var(--mono);
+}
+
+.symphony-incident-impact.is-active {
+  border-color: color-mix(in srgb, var(--warning) 55%, transparent);
+  color: var(--warning);
+}
 
 /* ------------------------------------------------------ injected console -- */
 
@@ -541,6 +694,7 @@ body.symphony-page { overflow-x: hidden; }
   .symphony-proof-strip div { flex: 1 1 40%; }
   .symphony-rom-grid,
   .symphony-rom-grid--compact { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .symphony-incident-replay__timeline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .symphony-cartridge-grid,
   .symphony-trust-grid,
   .symphony-flight-recorder__proof,
@@ -559,6 +713,8 @@ body.symphony-page { overflow-x: hidden; }
   .symphony-play-readout div:nth-child(-n + 2) { border-bottom: 1px solid var(--border); }
   .symphony-rom-grid,
   .symphony-rom-grid--compact,
+  .symphony-flight-recorder__list,
+  .symphony-incident-replay__timeline,
   .symphony-cartridge-grid,
   .symphony-trust-grid,
   .symphony-flight-recorder__proof,

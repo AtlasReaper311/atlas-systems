@@ -9,7 +9,7 @@ const navigationCss = readFileSync("lab/system-symphony/system-symphony-navigati
 test("System Symphony navigation enhancement is scoped to the product route family", () => {
   assert.ok(shell.includes("function isSystemSymphonyPath"));
   assert.ok(shell.includes("pathname.startsWith(SYSTEM_SYMPHONY_ROUTE)"));
-  assert.ok(shell.includes("system-symphony-navigation.js?v=20260726-navigation-ia-v1"));
+  assert.ok(shell.includes("system-symphony-navigation.js?v=20260727-stage-2a-format-fixes"));
   assert.ok(shell.includes("if (currentPath() !== SYSTEM_SYMPHONY_ROUTE) return;"));
   assert.ok(shell.includes("trace-role-bridge.js?v=20260726-phase-d-role-routing-v1"));
 });

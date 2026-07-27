@@ -227,6 +227,8 @@ function syncMode(mode, { push = true } = {}) {
   for (const tab of flagship.querySelectorAll("[data-symphony-mode-tab]")) {
     const selected = tab.dataset.symphonyModeTab === nextMode;
     tab.setAttribute("aria-selected", String(selected));
+    if (selected) tab.setAttribute("aria-current", "page");
+    else tab.removeAttribute("aria-current");
     tab.tabIndex = selected ? 0 : -1;
   }
   for (const panel of flagship.querySelectorAll("[data-symphony-mode-panel]")) {
