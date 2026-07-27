@@ -29,7 +29,12 @@
  * cutoff, or a ducking depth that would silence a bus.
  */
 
-export const APU_MIX_DIRECTOR_BUILD_ID = "20260727-apu-mix-director-v1";
+export const APU_MIX_DIRECTOR_BUILD_ID = "20260727-apu-mix-director-v2";
+
+export const APU_MIX_LISTENER_POLISH = Object.freeze({
+  bassGainMul: 0.82,
+  kickBassDuckDepthMul: 1.18,
+});
 
 // ---------------------------------------------------------------------------
 // Bus roles
@@ -211,19 +216,29 @@ export function mixDirectiveFor({ state = "healthy", phase = "groove" } = {}) {
   const buses = {};
   for (const busName of APU_MIX_BUSES) {
     const base = stateBase.buses[busName];
+    const listenerGainMul = busName === "bass" ? APU_MIX_LISTENER_POLISH.bassGainMul : 1;
     buses[busName] = Object.freeze({
-      gainMul:   clamp(base.gainMul * phaseMod.gainMul, SAFETY.gainMulMin, SAFETY.gainMulMax),
+      gainMul:   clamp(base.gainMul * phaseMod.gainMul * listenerGainMul, SAFETY.gainMulMin, SAFETY.gainMulMax),
       highcutHz: clamp(base.highcutHz, SAFETY.highcutMinHz, SAFETY.highcutMaxHz),
       width:     clamp(base.width * phaseMod.widthMul, SAFETY.widthMin, SAFETY.widthMax),
     });
   }
 
-  const ducking = DUCKING_RULES.map((rule) => Object.freeze({
-    source: rule.source,
-    target: rule.target,
-    depthDb: clamp(rule.baseDepthDb * phaseMod.duckDepthMul, SAFETY.duckDepthMinDb, SAFETY.duckDepthMaxDb),
-    releaseMs: clamp(rule.releaseMs, SAFETY.duckReleaseMinMs, SAFETY.duckReleaseMaxMs),
-  }));
+  const ducking = DUCKING_RULES.map((rule) => {
+    const listenerDepthMul = rule.source === "kick" && rule.target === "bass"
+      ? APU_MIX_LISTENER_POLISH.kickBassDuckDepthMul
+      : 1;
+    return Object.freeze({
+      source: rule.source,
+      target: rule.target,
+      depthDb: clamp(
+        rule.baseDepthDb * phaseMod.duckDepthMul * listenerDepthMul,
+        SAFETY.duckDepthMinDb,
+        SAFETY.duckDepthMaxDb,
+      ),
+      releaseMs: clamp(rule.releaseMs, SAFETY.duckReleaseMinMs, SAFETY.duckReleaseMaxMs),
+    });
+  });
 
   const chipWobble = Object.freeze({
     rateHz: clamp(stateBase.wobble.rateHz, SAFETY.wobbleRateMinHz, SAFETY.wobbleRateMaxHz),
