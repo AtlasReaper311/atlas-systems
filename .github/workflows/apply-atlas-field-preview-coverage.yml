@@ -1,4 +1,4 @@
-name: Apply AtlasField preview coverage
+name: Apply AtlasField runtime asset identity
 
 on:
   pull_request:
@@ -21,30 +21,37 @@ jobs:
           ref: fix/homepage-field-deploy-diagnostic
           fetch-depth: 0
 
-      - name: Add reusable renderer to governed preview paths
+      - name: Publish a fresh AtlasField runtime identity
         run: |
           python3 - <<'PY'
           from pathlib import Path
 
-          workflow = Path(".github/workflows/interface-preview.yml")
-          source = workflow.read_text(encoding="utf-8")
-          first_anchor = '      - "static/js/homepage-interactions.js"\n'
-          first_insert = first_anchor + '      - "static/js/atlas-field.js"\n'
-          second_anchor = '      - "js/tests/homepage-field.test.mjs"\n'
-          second_insert = second_anchor + '      - "js/tests/homepage-field-runtime-state.test.mjs"\n'
-          if source.count(first_anchor) != 1 or source.count(second_anchor) != 1:
-              raise SystemExit("AtlasField preview coverage anchors are not unique")
-          source = source.replace(first_anchor, first_insert)
-          source = source.replace(second_anchor, second_insert)
-          workflow.write_text(source, encoding="utf-8")
-          Path(".github/workflows/apply-atlas-field-preview-coverage.yml").unlink()
+          old = "20260727-atlas-field-production-v1"
+          new = "20260727-atlas-field-production-v2"
+          paths = [
+              Path("index.html"),
+              Path("static/js/homepage-interactions.js"),
+              Path("static/js/live/homepage-truth.js"),
+              Path("scripts/smoke_homepage_atlas_field_production.mjs"),
+              Path("js/tests/homepage-entrypoint-cache.test.mjs"),
+              Path("js/tests/homepage-field.test.mjs"),
+          ]
+          for path in paths:
+              source = path.read_text(encoding="utf-8")
+              if old not in source:
+                  raise SystemExit(f"missing AtlasField v1 identity in {path}")
+              path.write_text(source.replace(old, new), encoding="utf-8")
           PY
 
-      - name: Commit preview coverage
+      - name: Commit runtime identity
         run: |
           git config user.name "Atlas Systems Repair"
           git config user.email "actions@users.noreply.github.com"
-          git add .github/workflows/interface-preview.yml
-          git add .github/workflows/apply-atlas-field-preview-coverage.yml
-          git commit -m "Cover AtlasField changes in governed previews"
+          git add index.html
+          git add static/js/homepage-interactions.js
+          git add static/js/live/homepage-truth.js
+          git add scripts/smoke_homepage_atlas_field_production.mjs
+          git add js/tests/homepage-entrypoint-cache.test.mjs
+          git add js/tests/homepage-field.test.mjs
+          git commit -m "Publish repaired AtlasField runtime identity"
           git push origin HEAD:fix/homepage-field-deploy-diagnostic
