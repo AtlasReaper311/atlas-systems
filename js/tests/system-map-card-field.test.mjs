@@ -44,6 +44,11 @@ test("Lab shell mounts fresh field assets only on the Lab directory", () => {
   assert.match(introModule, /atlas-field\.js\?v=20260727-atlas-field-production-v2/);
 });
 
+test("Lab field mounts are idempotent", () => {
+  assert.match(introModule, /atlasIntroFieldState === "ready"[\s\S]*querySelector\(":scope > canvas\.atlas-field-canvas"\)/);
+  assert.match(cardModule, /atlasFieldState === "ready"[\s\S]*querySelector\(":scope > canvas\.atlas-field-canvas"\)/);
+});
+
 test("Lab field bootstrap assets cannot be retained stale", () => {
   for (const asset of [
     "/lab/shared/shell.js",
