@@ -11,6 +11,7 @@ import {
 
 const html = readFileSync(new URL("../speculum/index.html", import.meta.url), "utf8");
 const bootSource = readFileSync(new URL("../speculum/speculum.js", import.meta.url), "utf8");
+const engineSource = readFileSync(new URL("../speculum/engine.js", import.meta.url), "utf8");
 
 const byId = new Map(NODES.map((entry) => [entry.id, entry]));
 
@@ -159,4 +160,14 @@ test("mount lifecycle removes timers, listeners, observers, and engine subscript
   assert.match(bootSource, /clearInterval\(detailTimer\)/);
   assert.match(bootSource, /ro\.disconnect\(\)/);
   assert.match(bootSource, /io\.disconnect\(\)/);
+});
+
+test("clarity pass bounds simultaneous visual density", () => {
+  assert.match(html, /Public attention field/);
+  assert.match(html, /Hover to inspect · click to pin · Esc clears/);
+  assert.match(bootSource, /const LEDGER_MAX = 14/);
+  assert.match(engineSource, /chords\.length > 48/);
+  assert.match(engineSource, /const trail = 0\.34/);
+  assert.match(engineSource, /v\.node\.kind === 'product'\)\);/);
+  assert.doesNotMatch(engineSource, /v\.node\.kind === 'product' \|\| v\.node\.kind === 'machine'/);
 });
