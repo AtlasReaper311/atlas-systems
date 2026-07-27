@@ -1,40 +1,88 @@
 /**
  * SPECULUM / boot
  *
- * Wires the engine to the page. Owns the ledger, the clock, the detail
- * readout, and the keyboard.
- *
- * The ledger is a sample, not a log. At high time compression the field
- * produces far more observations per second than a person can read, so the
- * ledger takes the newest few every flush and the counter reports the real
- * total. Saying "sample" in the header is cheaper than pretending.
+ * Wires the deterministic engine to the route, including the grouped ledger,
+ * node dossier, evidence controls, and one guided relationship trace.
  */
 
 import { NODES, RING_ORDER, SNAPSHOT, formatPeriod, summarise } from './topology.js';
 import { createEngine } from './engine.js';
 
 const SPEEDS = [
-  { value: 1, label: '1x', hint: 'real time. almost nothing moves. this is the true picture' },
-  { value: 60, label: '60x', hint: 'one minute per second' },
-  { value: 3600, label: '3600x', hint: 'one hour per second. the weekly audits finally turn' },
+  { value: 1, label: 'Real · 1×', hint: 'Real · literal cadence. Most weekly movement is imperceptible.' },
+  { value: 60, label: 'Observe · 60×', hint: 'Observe · one simulated minute per second.' },
+  { value: 3600, label: 'Sweep · 3600×', hint: 'Sweep · one simulated hour per second. Repeated ledger paths are grouped.' },
+  { value: 86400, label: 'Week · 86400×', hint: 'Week · one simulated day per second. High-frequency observations are grouped.' },
 ];
 
-const LEDGER_MAX = 14;
+const TRACE = Object.freeze({
+  ids: ['SPECULAR-CORE', 'specular-telemetry', 'specular-edge', 'atlas-api-public', 'atlas-systems'],
+  steps: [
+    {
+      title: 'Local source',
+      copy: 'SPECULAR-CORE hosts the local telemetry, model, corpus, memory, and automation services represented in this public snapshot.',
+    },
+    {
+      title: 'Sample the machine',
+      copy: 'specular-telemetry observes the host and Ollama on its verified thirty-second sampler.',
+    },
+    {
+      title: 'Project to the edge',
+      copy: 'specular-edge exposes a read-only, last-known-good projection of the local telemetry surface.',
+    },
+    {
+      title: 'Evaluate the public spine',
+      copy: 'atlas-api-public includes specular-edge in its reviewed ten-minute reliability evaluation.',
+    },
+    {
+      title: 'Reach the portfolio',
+      copy: 'atlas-systems reads the public API projection. This trace explains declared relationships; it does not claim a live run occurred.',
+    },
+  ],
+});
+
+const LEDGER_MAX = 60;
+const BUFFER_MAX = 600;
 const FLUSH_MS = 180;
-const FLUSH_TAKE = 3;
+const TRACE_MS = 1400;
 
 function el(id) {
   return document.getElementById(id);
 }
 
-function pad(n) {
-  return String(n).padStart(2, '0');
+function pad(value) {
+  return String(value).padStart(2, '0');
 }
 
 function formatClock(epochMs) {
-  const d = new Date(epochMs);
-  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} `
-    + `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}Z`;
+  const date = new Date(epochMs);
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} `
+    + `${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}Z`;
+}
+
+function scheduleLabel(entry) {
+  if (entry.cadence > 0) return `${entry.cadenceKind} every ${formatPeriod(entry.cadence)}`;
+  const labels = {
+    request: 'request-driven',
+    event: 'event-driven',
+    manual: 'manual',
+    boot: 'boot-triggered',
+    continuous: 'continuous host process',
+    external: 'external dependency',
+  };
+  return labels[entry.cadenceKind] || 'not periodic';
+}
+
+function setPressed(button, value) {
+  if (button) button.setAttribute('aria-pressed', String(Boolean(value)));
+}
+
+function appendText(parent, tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  node.textContent = text;
+  parent.appendChild(node);
+  return node;
 }
 
 export function mount(root) {
@@ -45,9 +93,8 @@ export function mount(root) {
   const { signal } = controller;
   const engine = createEngine(canvas, NODES, RING_ORDER);
   const stats = summarise(NODES);
-  const startEpoch = Date.now();
+  let startEpoch = Date.now();
 
-  /* -- header counts, derived not written ---------------------------- */
   const statsEl = el('spc-stats');
   if (statsEl) {
     statsEl.textContent = [
@@ -55,302 +102,582 @@ export function mount(root) {
       `${stats.emitters} periodic emitters`,
       `${stats.gazes} attention edges`,
       `${stats.conduits} report paths`,
-      `${stats.assumed} unverified periods`,
+      `${stats.assumed} assumed periods`,
       `reviewed ${SNAPSHOT.reviewedAt}`,
     ].join('  ·  ');
   }
 
-  /* -- ledger --------------------------------------------------------- */
   const ledger = el('spc-ledger');
+  const ledgerContext = el('spc-ledger-context');
+  const ledgerAllButton = el('spc-ledger-all');
+  const ledgerFocusButton = el('spc-ledger-focus');
+  const ledgerPauseButton = el('spc-ledger-pause');
   const buffer = [];
+  let ledgerEntries = [];
+  let ledgerFilter = 'all';
+  let ledgerPaused = false;
   let seen = 0;
+
+  function ledgerFocusIds() {
+    const activeTrace = engine.getTrace();
+    if (activeTrace) return new Set(activeTrace.ids.slice(0, activeTrace.index + 1));
+    const pinned = engine.getPinned();
+    return pinned ? new Set([pinned]) : null;
+  }
+
+  function setLedgerFilter(next) {
+    ledgerFilter = next === 'focus' ? 'focus' : 'all';
+    setPressed(ledgerAllButton, ledgerFilter === 'all');
+    setPressed(ledgerFocusButton, ledgerFilter === 'focus');
+    renderLedger();
+  }
+
+  function renderLedger() {
+    if (!ledger) return;
+    const focusIds = ledgerFocusIds();
+    if (ledgerFocusButton) ledgerFocusButton.disabled = !focusIds;
+    const visible = ledgerEntries.filter((entry) => {
+      if (ledgerFilter !== 'focus') return true;
+      return focusIds ? focusIds.has(entry.fromId) || focusIds.has(entry.toId) : false;
+    });
+
+    ledger.textContent = '';
+    if (ledgerContext) {
+      if (ledgerPaused) ledgerContext.textContent = 'Feed paused · simulation continues · buffered observations remain bounded';
+      else if (ledgerFilter === 'focus' && focusIds) ledgerContext.textContent = 'Focused relationships · repeated paths are grouped';
+      else if (ledgerFilter === 'focus') ledgerContext.textContent = 'Pin a node or run the guided trace to filter the ledger';
+      else ledgerContext.textContent = 'All generated observations · repeated paths are grouped';
+    }
+
+    if (visible.length === 0) {
+      const empty = document.createElement('li');
+      empty.className = 'ledger-empty';
+      empty.textContent = ledgerFilter === 'focus'
+        ? 'No grouped observations involve the current focus yet.'
+        : 'The simulation has not generated an observation yet.';
+      ledger.appendChild(empty);
+      return;
+    }
+
+    visible.forEach((entry, index) => {
+      const li = document.createElement('li');
+      if (index === 0) li.className = 'is-newest';
+      const time = document.createElement('span');
+      time.className = 'spc-t';
+      time.textContent = formatClock(entry.at).slice(11, 19);
+      const path = document.createElement('span');
+      path.className = 'spc-path';
+      path.textContent = `${entry.fromLabel} → ${entry.toLabel}`;
+      li.appendChild(time);
+      li.appendChild(path);
+      if (entry.count > 1) {
+        const count = document.createElement('span');
+        count.className = 'spc-count-badge';
+        count.textContent = `×${entry.count.toLocaleString('en-GB')}`;
+        li.appendChild(count);
+      }
+      ledger.appendChild(li);
+    });
+  }
+
+  function mergeBufferedObservations() {
+    if (ledgerPaused || buffer.length === 0) return;
+    const grouped = new Map();
+    buffer.splice(0).forEach((entry) => {
+      const existing = grouped.get(entry.key);
+      if (existing) {
+        existing.count += 1;
+        existing.at = Math.max(existing.at, entry.at);
+      } else {
+        grouped.set(entry.key, { ...entry, count: 1 });
+      }
+    });
+
+    Array.from(grouped.values())
+      .sort((left, right) => right.at - left.at)
+      .forEach((entry) => {
+        const existingIndex = ledgerEntries.findIndex((candidate) => candidate.key === entry.key);
+        if (existingIndex >= 0) {
+          const existing = ledgerEntries.splice(existingIndex, 1)[0];
+          entry.count += existing.count;
+        }
+        ledgerEntries.unshift(entry);
+      });
+
+    ledgerEntries = ledgerEntries
+      .sort((left, right) => right.at - left.at)
+      .slice(0, LEDGER_MAX);
+    renderLedger();
+  }
 
   const unsubscribeObservation = engine.on('observation', (from, to) => {
     seen += 1;
-    buffer.push({ from: from.label, to: to.label, at: startEpoch + engine.getSimTime() * 1000 });
-    if (buffer.length > 200) buffer.splice(0, buffer.length - 200);
+    buffer.push({
+      key: `${from.id}->${to.id}`,
+      fromId: from.id,
+      toId: to.id,
+      fromLabel: from.label,
+      toLabel: to.label,
+      at: startEpoch + engine.getSimTime() * 1000,
+    });
+    if (buffer.length > BUFFER_MAX) buffer.splice(0, buffer.length - BUFFER_MAX);
   });
 
-  function flush() {
-    if (!ledger || buffer.length === 0) return;
-    const take = buffer.splice(-FLUSH_TAKE, FLUSH_TAKE).reverse();
-    take.forEach((entry) => {
-      const li = document.createElement('li');
-      const t = document.createElement('span');
-      t.className = 'spc-t';
-      t.textContent = formatClock(entry.at).slice(11, 19);
-      const body = document.createElement('span');
-      body.className = 'spc-path';
-      body.textContent = `${entry.from} → ${entry.to}`;
-      li.appendChild(t);
-      li.appendChild(body);
-      ledger.insertBefore(li, ledger.firstChild);
-    });
-    while (ledger.childElementCount > LEDGER_MAX) {
-      ledger.removeChild(ledger.lastChild);
-    }
-    buffer.length = 0;
-  }
-
-  /* -- clock and counters --------------------------------------------- */
   const clockEl = el('spc-clock');
   const countEl = el('spc-count');
 
   function tickReadouts() {
     if (clockEl) clockEl.textContent = formatClock(startEpoch + engine.getSimTime() * 1000);
     if (countEl) {
-      const c = engine.counters();
-      // Notifications and state changes are outside this generated simulation.
-      // The fixed clause prevents an observation count from becoming a false
-      // operational claim.
+      const counters = engine.counters();
       countEl.textContent = `${seen.toLocaleString('en-GB')} generated observations  ·  `
-        + `${c.onProduct.toLocaleString('en-GB')} reached atlas-systems  ·  `
+        + `${counters.onProduct.toLocaleString('en-GB')} reached atlas-systems  ·  `
         + 'no live state';
     }
   }
 
-  const readoutTimer = window.setInterval(() => { flush(); tickReadouts(); }, FLUSH_MS);
+  const readoutTimer = window.setInterval(() => {
+    mergeBufferedObservations();
+    tickReadouts();
+  }, FLUSH_MS);
 
-  /* -- detail readout -------------------------------------------------- */
   const detail = el('spc-detail');
-  let lastFocus = '\u0000';
+  let lastDetailKey = '\u0000';
+  let traceIndex = null;
+  let traceTimer = 0;
 
-  function scheduleLabel(entry) {
-    if (entry.cadence > 0) return `${entry.cadenceKind} every ${formatPeriod(entry.cadence)}`;
-    const labels = {
-      request: 'request-driven',
-      event: 'event-driven',
-      manual: 'manual',
-      boot: 'boot-triggered',
-      continuous: 'continuous host process',
-      external: 'external dependency',
-    };
-    return labels[entry.cadenceKind] || 'not periodic';
+  function addDossierRow(grid, term, value, className) {
+    const row = document.createElement('div');
+    row.className = 'dossier-row';
+    appendText(row, 'span', 'dossier-term', term);
+    appendText(row, 'span', `dossier-value${className ? ` ${className}` : ''}`, value);
+    grid.appendChild(row);
   }
 
-  function renderDetail() {
+  function relationButtons(title, ids) {
+    if (!detail || ids.length === 0) return;
+    const group = document.createElement('div');
+    group.className = 'relation-group';
+    appendText(group, 'p', 'spc-sub', title);
+    const list = document.createElement('div');
+    list.className = 'relation-list';
+    ids.forEach((id) => {
+      const node = engine.getNode(id);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'relation-button';
+      button.dataset.focusId = id;
+      button.textContent = node ? node.label : id;
+      list.appendChild(button);
+    });
+    group.appendChild(list);
+    detail.appendChild(group);
+  }
+
+  function renderTraceDetail(activeTrace) {
     if (!detail) return;
+    const step = TRACE.steps[activeTrace.index];
+    const head = document.createElement('div');
+    head.className = 'dossier-head';
+    const titleWrap = document.createElement('div');
+    appendText(titleWrap, 'h3', '', 'Guided trace');
+    appendText(titleWrap, 'p', 'spc-meta', 'local telemetry → public portfolio');
+    head.appendChild(titleWrap);
+    const badges = document.createElement('div');
+    badges.className = 'dossier-badges';
+    appendText(badges, 'span', 'dossier-badge is-trace', `step ${activeTrace.index + 1}/${TRACE.ids.length}`);
+    head.appendChild(badges);
+    detail.appendChild(head);
+
+    appendText(detail, 'p', 'trace-step', step.title);
+    appendText(detail, 'p', 'trace-copy', step.copy);
+
+    const progress = document.createElement('div');
+    progress.className = 'trace-progress';
+    TRACE.ids.forEach((_, index) => {
+      const marker = document.createElement('span');
+      if (index < activeTrace.index) marker.className = 'is-complete';
+      if (index === activeTrace.index) marker.className = 'is-current';
+      progress.appendChild(marker);
+    });
+    detail.appendChild(progress);
+
+    const grid = document.createElement('div');
+    grid.className = 'dossier-grid';
+    addDossierRow(grid, 'Current node', (engine.getNode(TRACE.ids[activeTrace.index]) || {}).label || TRACE.ids[activeTrace.index]);
+    addDossierRow(grid, 'Evidence', 'Declared relationships from the reviewed public snapshot');
+    addDossierRow(grid, 'Boundary', 'Explanatory traversal · not a live execution claim');
+    detail.appendChild(grid);
+
+    const actions = document.createElement('div');
+    actions.className = 'dossier-actions';
+    const end = document.createElement('button');
+    end.type = 'button';
+    end.dataset.traceClear = 'true';
+    end.textContent = 'End trace';
+    actions.appendChild(end);
+    detail.appendChild(actions);
+  }
+
+  function renderNodeDossier(id) {
+    if (!detail) return;
+    const node = engine.getNode(id);
+    if (!node) return;
+    const pinned = engine.getPinned() === id;
+    const watchedBy = NODES.filter((candidate) => candidate.watches.includes(id));
+
+    const head = document.createElement('div');
+    head.className = 'dossier-head';
+    const titleWrap = document.createElement('div');
+    appendText(titleWrap, 'h3', '', node.label);
+    appendText(titleWrap, 'p', 'spc-meta', `${node.kind} · ${node.lifecycle}`);
+    head.appendChild(titleWrap);
+    const badges = document.createElement('div');
+    badges.className = 'dossier-badges';
+    if (pinned) appendText(badges, 'span', 'dossier-badge is-pinned', 'pinned');
+    if (node.state !== 'live') appendText(badges, 'span', 'dossier-badge', node.state);
+    head.appendChild(badges);
+    detail.appendChild(head);
+
+    appendText(detail, 'p', 'spc-note', node.note);
+
+    const grid = document.createElement('div');
+    grid.className = 'dossier-grid';
+    addDossierRow(grid, 'Operation', scheduleLabel(node));
+    if (node.cadence > 0) {
+      addDossierRow(
+        grid,
+        'Evidence',
+        node.verified ? 'Schedule verified' : 'Schedule assumed',
+        node.verified ? 'is-verified' : 'is-assumed',
+      );
+      if (node.source) addDossierRow(grid, 'Source', node.source);
+    } else {
+      addDossierRow(grid, 'Evidence', `Not applicable · ${scheduleLabel(node)}`);
+    }
+    addDossierRow(
+      grid,
+      'Relations',
+      `${node.watches.length} observes · ${watchedBy.length} observed by · ${node.reports.length} reports to`,
+    );
+    detail.appendChild(grid);
+
+    if (pinned) {
+      const actions = document.createElement('div');
+      actions.className = 'dossier-actions';
+      const clear = document.createElement('button');
+      clear.type = 'button';
+      clear.dataset.clearFocus = 'true';
+      clear.textContent = 'Clear focus';
+      actions.appendChild(clear);
+      detail.appendChild(actions);
+    }
+
+    relationButtons('observes', node.watches);
+    relationButtons('observed by', watchedBy.map((candidate) => candidate.id));
+    relationButtons('reports to', node.reports);
+  }
+
+  function renderDetail(force = false) {
+    if (!detail) return;
+    const activeTrace = engine.getTrace();
     const id = engine.getHovered();
-    if (id === lastFocus) return;
-    lastFocus = id;
+    const key = activeTrace ? `trace:${activeTrace.index}` : `node:${id || ''}:${engine.getPinned() || ''}`;
+    if (!force && key === lastDetailKey) return;
+    lastDetailKey = key;
     detail.textContent = '';
 
-    if (!id) {
-      const p = document.createElement('p');
-      p.className = 'spc-idle';
-      p.textContent = 'Point at a node. Click to pin it.';
-      detail.appendChild(p);
-      const note = document.createElement('p');
-      note.className = 'spc-idle-note';
-      note.textContent = 'Related paths brighten while the rest of the field recedes.';
-      detail.appendChild(note);
+    if (activeTrace) {
+      renderTraceDetail(activeTrace);
       return;
     }
 
-    const n = engine.getNode(id);
-    const head = document.createElement('h3');
-    head.textContent = n.label;
-    detail.appendChild(head);
-
-    const meta = document.createElement('p');
-    meta.className = 'spc-meta';
-    const bits = [n.kind];
-    if (engine.getPinned() === id) bits.unshift('pinned');
-    if (n.state !== 'live') bits.push(n.state);
-    bits.push(scheduleLabel(n));
-    if (n.cadence > 0) bits.push(n.verified ? 'period verified' : 'period unverified');
-    if (n.alias) bits.push(`deploys as ${n.alias}`);
-    meta.textContent = bits.join('  ·  ');
-    detail.appendChild(meta);
-
-    const note = document.createElement('p');
-    note.className = 'spc-note';
-    note.textContent = n.note;
-    detail.appendChild(note);
-
-    if (n.source) {
-      const source = document.createElement('p');
-      source.className = 'spc-source';
-      source.textContent = `source: ${n.source}`;
-      detail.appendChild(source);
+    if (!id) {
+      appendText(detail, 'p', 'spc-idle', 'Point at a node. Click to pin it.');
+      appendText(
+        detail,
+        'p',
+        'spc-idle-note',
+        'Pinned focus reveals directional observation and report paths, filters the ledger, and makes neighbouring nodes selectable.',
+      );
+      return;
     }
 
-    const watchers = NODES.filter((o) => o.watches.includes(id)).map((o) => o.label);
-    const list = (title, items) => {
-      if (items.length === 0) return;
-      const h = document.createElement('p');
-      h.className = 'spc-sub';
-      h.textContent = title;
-      detail.appendChild(h);
-      const ul = document.createElement('ul');
-      items.forEach((v) => {
-        const li = document.createElement('li');
-        li.textContent = v;
-        ul.appendChild(li);
-      });
-      detail.appendChild(ul);
-    };
-    list('looks at', n.watches.map((w) => (engine.getNode(w) || { label: w }).label));
-    list('is looked at by', watchers);
-    list('reports to', n.reports.map((w) => (engine.getNode(w) || { label: w }).label));
+    renderNodeDossier(id);
   }
 
-  const detailTimer = window.setInterval(renderDetail, 120);
+  const detailTimer = window.setInterval(() => renderDetail(), 120);
 
-  /* -- accessible table ------------------------------------------------ */
-  /* Generated from the same array the canvas reads, so the text version and
-   * the picture cannot disagree. */
+  function clearTrace() {
+    if (traceTimer) window.clearInterval(traceTimer);
+    traceTimer = 0;
+    traceIndex = null;
+    engine.clearTrace();
+    const button = el('spc-trace');
+    if (button) button.textContent = 'Guided trace';
+    lastDetailKey = '\u0000';
+    renderDetail(true);
+    renderLedger();
+  }
+
+  function startTrace() {
+    if (traceTimer) window.clearInterval(traceTimer);
+    traceIndex = 0;
+    engine.setTrace(TRACE.ids, traceIndex);
+    setLedgerFilter('focus');
+    const button = el('spc-trace');
+    if (button) button.textContent = 'Stop trace';
+    lastDetailKey = '\u0000';
+    renderDetail(true);
+    renderLedger();
+
+    traceTimer = window.setInterval(() => {
+      if (traceIndex === null) return;
+      if (traceIndex >= TRACE.ids.length - 1) {
+        window.clearInterval(traceTimer);
+        traceTimer = 0;
+        if (button) button.textContent = 'Replay trace';
+        return;
+      }
+      traceIndex += 1;
+      engine.setTraceStep(traceIndex);
+      lastDetailKey = '\u0000';
+      renderDetail(true);
+      renderLedger();
+    }, TRACE_MS);
+  }
+
+  if (detail) {
+    detail.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const focusButton = target.closest('[data-focus-id]');
+      if (focusButton) {
+        clearTrace();
+        engine.setPinned(focusButton.dataset.focusId);
+        setLedgerFilter('focus');
+        lastDetailKey = '\u0000';
+        renderDetail(true);
+        return;
+      }
+      if (target.closest('[data-clear-focus]')) {
+        engine.clearPin();
+        setLedgerFilter('all');
+        lastDetailKey = '\u0000';
+        renderDetail(true);
+        return;
+      }
+      if (target.closest('[data-trace-clear]')) clearTrace();
+    }, { signal });
+  }
+
   const tableHost = el('spc-table');
   if (tableHost) {
     const table = document.createElement('table');
     const head = document.createElement('thead');
-    const hr = document.createElement('tr');
-    ['Node', 'Role', 'Operation', 'Evidence', 'Source', 'Looks at', 'Reports to'].forEach((h) => {
+    const row = document.createElement('tr');
+    ['Node', 'Role', 'Operation', 'Evidence', 'Source', 'Looks at', 'Reports to'].forEach((label) => {
       const th = document.createElement('th');
       th.scope = 'col';
-      th.textContent = h;
-      hr.appendChild(th);
+      th.textContent = label;
+      row.appendChild(th);
     });
-    head.appendChild(hr);
+    head.appendChild(row);
     table.appendChild(head);
 
     const body = document.createElement('tbody');
-    NODES.forEach((n) => {
+    const nameOf = (id) => (NODES.find((candidate) => candidate.id === id) || { label: id }).label;
+    NODES.forEach((node) => {
       const tr = document.createElement('tr');
-      const cell = (text, cls) => {
+      const cell = (text, className) => {
         const td = document.createElement('td');
         td.textContent = text;
-        if (cls) td.className = cls;
+        if (className) td.className = className;
         tr.appendChild(td);
       };
-      cell(n.alias ? `${n.label} (${n.alias})` : n.label);
-      cell(`${n.kind}, ${n.lifecycle}`);
-      cell(scheduleLabel(n));
-      if (n.cadence > 0) cell(n.verified ? 'verified' : 'unverified', n.verified ? 'flag-ok' : 'flag-assumed');
-      else cell('not applicable');
-      cell(n.source || 'not applicable');
-      const nameOf = (id) => (NODES.find((o) => o.id === id) || { label: id }).label;
-      cell(n.watches.map(nameOf).join(', ') || 'none');
-      cell(n.reports.map(nameOf).join(', ') || 'none');
+      cell(node.label);
+      cell(`${node.kind}, ${node.lifecycle}`);
+      cell(scheduleLabel(node));
+      if (node.cadence > 0) {
+        cell(node.verified ? 'schedule verified' : 'schedule assumed', node.verified ? 'flag-ok' : 'flag-assumed');
+      } else {
+        cell('not applicable');
+      }
+      cell(node.source || 'not applicable');
+      cell(node.watches.map(nameOf).join(', ') || 'none');
+      cell(node.reports.map(nameOf).join(', ') || 'none');
       body.appendChild(tr);
     });
     table.appendChild(body);
     tableHost.appendChild(table);
   }
 
-  /* -- pointer --------------------------------------------------------- */
-  function localPoint(ev) {
-    const r = canvas.getBoundingClientRect();
-    return { x: ev.clientX - r.left, y: ev.clientY - r.top };
+  function localPoint(event) {
+    const rect = canvas.getBoundingClientRect();
+    return { x: event.clientX - rect.left, y: event.clientY - rect.top };
   }
 
-  canvas.addEventListener('pointermove', (ev) => engine.setPointer(localPoint(ev)), { signal });
+  canvas.addEventListener('pointermove', (event) => engine.setPointer(localPoint(event)), { signal });
   canvas.addEventListener('pointerleave', () => engine.setPointer(null), { signal });
-  canvas.addEventListener('pointerdown', (ev) => {
-    engine.setPointer(localPoint(ev));
+  canvas.addEventListener('pointerdown', (event) => {
+    const activeTrace = engine.getTrace();
+    if (activeTrace) clearTrace();
+    engine.setPointer(localPoint(event));
     const id = engine.getHovered();
-    if (id) {
-      engine.pin(id);
-      lastFocus = '\u0000';
-    }
+    if (!id) return;
+    const pinned = engine.pin(id);
+    setLedgerFilter(pinned ? 'focus' : 'all');
+    lastDetailKey = '\u0000';
+    renderDetail(true);
   }, { signal });
 
-  /* -- controls -------------------------------------------------------- */
   const speedWrap = el('spc-speeds');
   if (speedWrap) {
-    SPEEDS.forEach((s) => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.textContent = s.label;
-      b.title = s.hint;
-      b.dataset.speed = String(s.value);
-      b.setAttribute('aria-pressed', String(s.value === engine.getSpeed()));
-      b.addEventListener('click', () => {
-        engine.setSpeed(s.value);
-        Array.from(speedWrap.children).forEach((c) => {
-          c.setAttribute('aria-pressed', String(c === b));
-        });
+    SPEEDS.forEach((entry) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = entry.label;
+      button.title = entry.hint;
+      button.dataset.speed = String(entry.value);
+      setPressed(button, entry.value === engine.getSpeed());
+      button.addEventListener('click', () => {
+        engine.setSpeed(entry.value);
+        Array.from(speedWrap.children).forEach((child) => setPressed(child, child === button));
         const hint = el('spc-speed-hint');
-        if (hint) hint.textContent = s.hint;
+        if (hint) hint.textContent = entry.hint;
       }, { signal });
-      speedWrap.appendChild(b);
+      speedWrap.appendChild(button);
     });
   }
 
-  function toggle(id, fn, initial) {
-    const b = el(id);
-    if (!b) return;
-    let on = Boolean(initial);
-    b.setAttribute('aria-pressed', String(on));
-    b.addEventListener('click', () => {
-      on = !on;
-      b.setAttribute('aria-pressed', String(on));
-      fn(on);
-    }, { signal });
+  const evidenceButton = el('spc-evidence');
+  const labelsButton = el('spc-labels');
+  const pauseButton = el('spc-pause');
+  let evidenceOn = false;
+  let labelsOn = false;
+  let pauseOn = false;
+
+  function setEvidence(value) {
+    evidenceOn = Boolean(value);
+    setPressed(evidenceButton, evidenceOn);
+    engine.setEvidence(evidenceOn);
   }
 
-  toggle('spc-evidence', (v) => engine.setEvidence(v), false);
-  toggle('spc-labels', (v) => engine.setLabels(v), false);
-  toggle('spc-pause', (v) => engine.setPaused(v), false);
+  function setLabels(value) {
+    labelsOn = Boolean(value);
+    setPressed(labelsButton, labelsOn);
+    engine.setLabels(labelsOn);
+  }
 
-  window.addEventListener('keydown', (ev) => {
-    const target = ev.target;
+  function setFreeze(value) {
+    pauseOn = Boolean(value);
+    setPressed(pauseButton, pauseOn);
+    engine.setPaused(pauseOn);
+  }
+
+  evidenceButton?.addEventListener('click', () => setEvidence(!evidenceOn), { signal });
+  labelsButton?.addEventListener('click', () => setLabels(!labelsOn), { signal });
+  pauseButton?.addEventListener('click', () => setFreeze(!pauseOn), { signal });
+
+  el('spc-reset')?.addEventListener('click', () => {
+    clearTrace();
+    startEpoch = Date.now();
+    seen = 0;
+    buffer.length = 0;
+    ledgerEntries = [];
+    engine.reset();
+    renderLedger();
+    tickReadouts();
+  }, { signal });
+
+  el('spc-step')?.addEventListener('click', () => {
+    clearTrace();
+    setFreeze(true);
+    engine.stepToNextObservation();
+    mergeBufferedObservations();
+    tickReadouts();
+    lastDetailKey = '\u0000';
+    renderDetail(true);
+  }, { signal });
+
+  el('spc-trace')?.addEventListener('click', () => {
+    if (engine.getTrace() && traceTimer) clearTrace();
+    else startTrace();
+  }, { signal });
+
+  ledgerAllButton?.addEventListener('click', () => setLedgerFilter('all'), { signal });
+  ledgerFocusButton?.addEventListener('click', () => setLedgerFilter('focus'), { signal });
+  ledgerPauseButton?.addEventListener('click', () => {
+    ledgerPaused = !ledgerPaused;
+    setPressed(ledgerPauseButton, ledgerPaused);
+    ledgerPauseButton.textContent = ledgerPaused ? 'Resume feed' : 'Pause feed';
+    if (!ledgerPaused) mergeBufferedObservations();
+    renderLedger();
+  }, { signal });
+
+  window.addEventListener('keydown', (event) => {
+    const target = event.target;
     if (target instanceof Element && target.closest('input, textarea, select, button, [contenteditable="true"]')) return;
-    const key = ev.key.toLowerCase();
-    if (key === 'e') el('spc-evidence')?.click();
-    if (key === 'l') el('spc-labels')?.click();
-    if (key === ' ') { ev.preventDefault(); el('spc-pause')?.click(); }
-    if (key === 'escape' && engine.getPinned()) {
-      engine.pin(engine.getPinned());
-      lastFocus = '\u0000';
+    const key = event.key.toLowerCase();
+    if (key === 'e') setEvidence(!evidenceOn);
+    if (key === 'l') setLabels(!labelsOn);
+    if (key === ' ') { event.preventDefault(); setFreeze(!pauseOn); }
+    if (key === 'r') el('spc-reset')?.click();
+    if (key === 'n') el('spc-step')?.click();
+    if (key === 't') el('spc-trace')?.click();
+    if (key === 'escape') {
+      if (engine.getTrace()) clearTrace();
+      else if (engine.getPinned()) {
+        engine.clearPin();
+        setLedgerFilter('all');
+        lastDetailKey = '\u0000';
+        renderDetail(true);
+      }
     }
   }, { signal });
 
-  /* -- lifecycle -------------------------------------------------------- */
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   let allowedToRun = !reduced.matches;
-
-  const ro = new ResizeObserver(() => {
+  const resizeObserver = new ResizeObserver(() => {
     engine.layout();
     if (!allowedToRun) engine.renderOnce();
   });
-  ro.observe(canvas);
+  resizeObserver.observe(canvas);
   engine.layout();
 
   let visible = true;
-  const io = new IntersectionObserver((entries) => {
+  const intersectionObserver = new IntersectionObserver((entries) => {
     visible = entries[0].isIntersecting;
     sync();
   }, { threshold: 0.02 });
-  io.observe(canvas);
-
-  document.addEventListener('visibilitychange', sync, { signal });
+  intersectionObserver.observe(canvas);
 
   function sync() {
     if (allowedToRun && visible && !document.hidden) engine.start();
     else engine.stop();
   }
 
+  document.addEventListener('visibilitychange', sync, { signal });
+
   if (!allowedToRun) {
-    engine.setLabels(true);
+    setLabels(true);
     engine.renderOnce();
     const banner = el('spc-reduced');
     if (banner) {
       banner.hidden = false;
-      const b = banner.querySelector('button');
-      if (b) {
-        b.addEventListener('click', () => {
-          allowedToRun = true;
-          banner.hidden = true;
-          sync();
-        }, { signal });
-      }
+      const button = banner.querySelector('button');
+      button?.addEventListener('click', () => {
+        allowedToRun = true;
+        banner.hidden = true;
+        sync();
+      }, { signal });
     }
   } else {
     sync();
   }
 
-  renderDetail();
+  renderLedger();
+  renderDetail(true);
   tickReadouts();
 
   return {
@@ -360,8 +687,9 @@ export function mount(root) {
       unsubscribeObservation();
       window.clearInterval(readoutTimer);
       window.clearInterval(detailTimer);
-      ro.disconnect();
-      io.disconnect();
+      if (traceTimer) window.clearInterval(traceTimer);
+      resizeObserver.disconnect();
+      intersectionObserver.disconnect();
       engine.stop();
     },
   };
