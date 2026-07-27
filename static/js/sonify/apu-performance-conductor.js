@@ -10,8 +10,7 @@ import {
   APU_ARPEGGIO_COMPOSER_D4_BUILD_ID,
   arpeggioInstructionsForPhrase,
   arpeggioPlanForPhrase,
-  shouldCreateArpeggioSpace,
-} from "./apu-arpeggio-composer-d4.js?v=20260727-system-symphony-pass-d4-arpeggio-composer-v2";
+} from "./apu-arpeggio-composer-d4.js?v=20260727-system-symphony-pass-d4-arpeggio-composer-v3";
 import {
   isPeakPhraseIndex,
   isPrePeakCutoutStep,
@@ -61,16 +60,15 @@ function isExplorerPlan(perfPlan = {}) {
 
 export function shouldOmitForPhase(args = {}) {
   if (isPrePeakCutoutStep(args.perfPlan, args.stepIndex)) {
-    // Explorer's listener-approved drop removes only bass. The darker states
-    // retain their existing full state-shaped transition treatments.
+    // Explorer's listener-approved transition removes only bass. The darker
+    // states retain their existing state-specific pre-Peak treatment.
     if (isExplorerPlan(args.perfPlan)) return args.category === "bass";
     return true;
   }
   if (args.category === "primary" && isPeakPlan(args.perfPlan)) return false;
-  // A foreground arp is a temporary orchestration hierarchy. Its scheduled
-  // ornament voice remains audible while the declared per-step score voices
-  // yield inside the bounded passage window.
-  if (shouldCreateArpeggioSpace(args)) return true;
+
+  // D4 arpeggios are additive ornaments. They never create silence, replace
+  // the melody or change any omission decision.
   return d1aShouldOmitForPhase(args);
 }
 
@@ -121,10 +119,9 @@ function polishedLegacyInstruction(perfPlan, instruction) {
 }
 
 function preparedComposedInstruction(instruction) {
-  // D4 emits the actual audible chip voice. The protected Explorer core always
-  // remains on primary; later cycles add quiet colour rather than replacing it.
   return withListenerMetadata(instruction, {
     audibleTimbreVoice: instruction.voice,
+    additive: true,
   });
 }
 
@@ -134,19 +131,16 @@ function baselineInstructionsForPhrase(perfPlan, instructions) {
   const d4Plan = arpeggioPlanForPhrase(perfPlan);
 
   return instructions
-    // D4 is the sole arpeggio composition authority. Retain non-arp state
-    // responses and authored percussion/pad ornaments from the earlier layer.
+    // D4 is the only active arp author. Earlier connective and state arps are
+    // removed to prevent duplicate note clouds, while every non-arp score layer
+    // remains untouched.
     .filter((instruction) => !["connective-arp", "state-arp"].includes(instruction.ornament))
-    // Do not double-stack a legacy shimmer on a composed D4 passage.
     .filter((instruction) => !(d4Plan.active && instruction.ornament === "shimmer"))
-    // Explorer Peak keeps the complete approved lead without the old sparkle overlay.
     .filter((instruction) => !(
       state === "healthy"
       && isPeakPlan(perfPlan)
       && instruction.ornament === "explorer-sparkle-answer"
     ))
-    // Grid, Boss and Lost Signal retain their state-specific full cutouts.
-    // Explorer ornaments continue while only its bass category drops out.
     .filter((instruction) => !(
       state !== "healthy"
       && Number.isFinite(cutoutStart)
