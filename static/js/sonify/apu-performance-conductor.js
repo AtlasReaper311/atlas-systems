@@ -1,5 +1,6 @@
 import {
   APU_PERFORMANCE_CONDUCTOR_BUILD_ID as D1A_PERFORMANCE_CONDUCTOR_BUILD_ID,
+  connectiveArpeggioInstructionsForPhrase as d1aConnectiveArpeggioInstructionsForPhrase,
   describeConductor,
   ornamentInstructionsForPhrase as d1aOrnamentInstructionsForPhrase,
   performanceCategories,
@@ -7,19 +8,15 @@ import {
   supplementalRhythmForDensity,
 } from "./apu-performance-conductor-d1a-baseline.js?v=20260727-system-symphony-pass-d1a-state-orchestration-v1";
 import {
-  APU_ARPEGGIO_COMPOSER_D4_BUILD_ID,
-  arpeggioInstructionsForPhrase,
-  arpeggioPlanForPhrase,
-} from "./apu-arpeggio-composer-d4.js?v=20260727-system-symphony-pass-d4-arpeggio-composer-v3";
-import {
+  APU_D3_SIGNATURE_GESTURE_BUILD_ID,
   isPeakPhraseIndex,
   isPrePeakCutoutStep,
   peakRegisterShiftForState,
   prePeakCutoutStartStep,
+  signatureGestureInstructionsForPhrase,
 } from "./apu-signature-gestures-d3.js?v=20260727-system-symphony-pass-d3-signature-gestures-v1";
 
 export {
-  arpeggioPlanForPhrase,
   describeConductor,
   performanceCategories,
   supplementalRhythmForDensity,
@@ -29,8 +26,6 @@ export const APU_PERFORMANCE_CONDUCTOR_BUILD_ID =
   D1A_PERFORMANCE_CONDUCTOR_BUILD_ID;
 export const APU_D3_LISTENER_POLISH_BUILD_ID =
   "20260727-system-symphony-pass-d3-listener-polish-v4";
-export const APU_D4_ARPEGGIO_PERFORMANCE_BUILD_ID =
-  APU_ARPEGGIO_COMPOSER_D4_BUILD_ID;
 
 const DENSITY_TARGETS = Object.freeze({
   rhythm: Object.freeze({ min: 0.72, max: 0.9 }),
@@ -60,15 +55,13 @@ function isExplorerPlan(perfPlan = {}) {
 
 export function shouldOmitForPhase(args = {}) {
   if (isPrePeakCutoutStep(args.perfPlan, args.stepIndex)) {
-    // Explorer's listener-approved transition removes only bass. The darker
-    // states retain their existing state-specific pre-Peak treatment.
+    // Listener correction: Explorer's pre-Peak drop is a bass withdrawal, not
+    // a full mute. Melody, drums, pads, services and accents keep carrying the
+    // phrase into Peak. The darker state-specific cutouts remain unchanged.
     if (isExplorerPlan(args.perfPlan)) return args.category === "bass";
     return true;
   }
   if (args.category === "primary" && isPeakPlan(args.perfPlan)) return false;
-
-  // D4 arpeggios are additive ornaments. They never create silence, replace
-  // the melody or change any omission decision.
   return d1aShouldOmitForPhase(args);
 }
 
@@ -94,7 +87,7 @@ function withListenerMetadata(instruction, overrides = {}) {
   });
 }
 
-function polishedLegacyInstruction(perfPlan, instruction) {
+function polishedInstruction(perfPlan, instruction) {
   const melodic = instruction.voice === "primary" || instruction.voice === "secondary";
   const state = perfPlan?.state ?? "unknown";
 
@@ -118,48 +111,45 @@ function polishedLegacyInstruction(perfPlan, instruction) {
   return instruction;
 }
 
-function preparedComposedInstruction(instruction) {
-  return withListenerMetadata(instruction, {
-    audibleTimbreVoice: instruction.voice,
-    additive: true,
-  });
-}
-
 function baselineInstructionsForPhrase(perfPlan, instructions) {
   const state = perfPlan?.state ?? "unknown";
   const cutoutStart = prePeakCutoutStartStep(perfPlan);
-  const d4Plan = arpeggioPlanForPhrase(perfPlan);
+  const signatureMoment = signatureGestureInstructionsForPhrase(perfPlan).length > 0;
 
   return instructions
-    // D4 is the only active arp author. Earlier connective and state arps are
-    // removed to prevent duplicate note clouds, while every non-arp score layer
-    // remains untouched.
-    .filter((instruction) => !["connective-arp", "state-arp"].includes(instruction.ornament))
-    .filter((instruction) => !(d4Plan.active && instruction.ornament === "shimmer"))
+    // Keep the legacy ornament vocabulary, but suppress a selected shimmer at
+    // the three guaranteed signature moments so two lead arcs never stack.
+    .filter((instruction) => !(signatureMoment && instruction.ornament === "shimmer"))
+    // Explorer Peak keeps the complete approved lead without the later D1A overlay.
     .filter((instruction) => !(
       state === "healthy"
       && isPeakPlan(perfPlan)
-      && instruction.ornament === "explorer-sparkle-answer"
+      && ["state-arp", "explorer-sparkle-answer"].includes(instruction.ornament)
     ))
+    // Grid, Boss and Lost Signal retain their state-specific full cutouts.
+    // Explorer ornaments continue while only its bass category drops out.
     .filter((instruction) => !(
       state !== "healthy"
       && Number.isFinite(cutoutStart)
       && Number.isFinite(instruction.offsetSteps)
       && instruction.offsetSteps >= cutoutStart
     ))
-    .map((instruction) => polishedLegacyInstruction(perfPlan, instruction));
+    .map((instruction) => polishedInstruction(perfPlan, instruction));
 }
 
 export function connectiveArpeggioInstructionsForPhrase(perfPlan) {
-  return arpeggioInstructionsForPhrase(perfPlan);
+  const baseline = d1aConnectiveArpeggioInstructionsForPhrase(perfPlan);
+  return Object.freeze(baselineInstructionsForPhrase(perfPlan, baseline));
 }
 
 export function ornamentInstructionsForPhrase(perfPlan) {
   const baseline = d1aOrnamentInstructionsForPhrase(perfPlan);
-  const polishedLegacy = baselineInstructionsForPhrase(perfPlan, baseline);
-  const composedArpeggios = arpeggioInstructionsForPhrase(perfPlan);
+  const polished = baselineInstructionsForPhrase(perfPlan, baseline);
+  const signatures = signatureGestureInstructionsForPhrase(perfPlan);
   return Object.freeze([
-    ...polishedLegacy,
-    ...composedArpeggios.map((instruction) => preparedComposedInstruction(instruction)),
+    ...polished,
+    ...signatures.map((instruction) => withListenerMetadata(instruction, {
+      signatureGestureBuildId: APU_D3_SIGNATURE_GESTURE_BUILD_ID,
+    })),
   ]);
 }

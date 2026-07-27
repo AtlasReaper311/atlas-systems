@@ -104,20 +104,14 @@ test("Boss bass keeps pitch and rhythm with a small velocity trim", () => {
   }
 });
 
-test("score trace records harmonic and D4 arpeggio decisions", () => {
+test("D3 trace records harmonic destination without losing baseline evidence", () => {
   resetMelodyPreservingD2Planner();
   const frame = frames[0];
-  const arrangement = arrangementForPhrase(frame, directorPlan, 4);
+  const arrangement = arrangementForPhrase(frame, directorPlan, 15);
   const trace = createScoreTraceEntry({ frame, directorPlan, arrangement });
   assert.equal(trace.harmonicRegion, arrangement.harmonicRegion);
   assert.equal(trace.cadenceIntent, arrangement.cadenceIntent);
   assert.ok(Array.isArray(trace.supportHarmony));
-  assert.equal(trace.arpeggio.active, true);
-  assert.equal(trace.arpeggio.protectedEvent, true);
-  assert.equal(trace.arpeggio.noteCount, 3);
-  assert.equal(trace.arpeggio.arpFunction, "connector");
-  assert.deepEqual(trace.arpeggio.voices, ["primary"]);
   assert.ok(trace.decisionSources.includes("apu-harmonic-journey"));
-  assert.ok(trace.decisionSources.includes("apu-arpeggio-composer-d4"));
   assert.match(trace.deterministicSignature, /^[0-9a-f]{8}$/);
 });
