@@ -59,7 +59,7 @@ test("velocity scaling never boosts above one", () => {
   }
 });
 
-test("every state receives bounded D4 passages only at composed phrases", () => {
+test("every state receives prominent additive D4 runs only at composed phrases", () => {
   for (const state of ["healthy", "warning", "critical", "unknown"]) {
     const rest = connectiveArpeggioInstructionsForPhrase(
       plan(0.2, 0.7, [], { state, phraseIndex: 2, bars: 4 }),
@@ -69,16 +69,20 @@ test("every state receives bounded D4 passages only at composed phrases", () => 
     const instructions = connectiveArpeggioInstructionsForPhrase(
       plan(0.2, 0.7, [], { state, phraseIndex: 1, bars: 2 }),
     );
-    assert.ok(instructions.length >= 2 && instructions.length <= 5, state);
+    assert.ok(instructions.length >= 6 && instructions.length <= 13, state);
     assert.ok(Object.isFrozen(instructions));
     assert.ok(instructions.every((instruction) => Object.isFrozen(instruction)));
     assert.ok(instructions.every((instruction) => instruction.ornament === "d4-arpeggio"));
-    assert.ok(instructions.every((instruction) => instruction.offsetSteps >= 0 && instruction.offsetSteps < 32));
-    assert.ok(instructions.every((instruction) => instruction.velocity >= 0.1 && instruction.velocity <= 0.3));
+    assert.ok(instructions.every((instruction) => instruction.additive === true));
+    assert.ok(instructions.every((instruction) => instruction.offsetSteps >= 0 && instruction.offsetSteps <= 15));
+    assert.ok(instructions.every((instruction) => instruction.velocity >= 0.12 && instruction.velocity <= 0.3));
+    for (let index = 1; index < instructions.length; index += 1) {
+      assert.equal(instructions[index].offsetSteps - instructions[index - 1].offsetSteps, 1);
+    }
   }
 });
 
-test("D4 passages vary deterministic contour and phrase position", () => {
+test("D4 runs vary deterministic contour and phrase position", () => {
   const first = connectiveArpeggioInstructionsForPhrase(
     plan(0.2, 0.7, [], { state: "healthy", phraseIndex: 1, bars: 2 }),
   );
@@ -95,7 +99,7 @@ test("D4 passages vary deterministic contour and phrase position", () => {
   );
 });
 
-test("authored non-arp ornaments remain audible beside D4 passages", () => {
+test("authored non-arp ornaments remain audible beside additive D4 runs", () => {
   const names = ["ripple", "stab", "tick", "swell", "glitch", "flourish", "structural", "reprise"];
   for (const name of names) {
     const instructions = ornamentInstructionsForPhrase(
