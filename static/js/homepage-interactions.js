@@ -23,6 +23,8 @@ const HERO_FIELD_LIMITS = Object.freeze({
   reduced: 420,
 });
 
+const ZERO_POINTER_FORCE = Object.freeze({ x: 0, y: 0, influence: 0 });
+
 function hashSeed(value) {
   let hash = 2166136261;
   for (const character of String(value)) {
@@ -82,11 +84,37 @@ function influencedLightPosition(width, height, timestamp, pointer = {}) {
   if (!pointer.active) return autonomous;
   const pointerX = clamp(Number(pointer.x) || 0, 0, width);
   const pointerY = clamp(Number(pointer.y) || 0, 0, height);
-  const influence = 0.28;
+  const influence = 0.42;
   return Object.freeze({
     x: autonomous.x * (1 - influence) + pointerX * influence,
     y: autonomous.y * (1 - influence) + pointerY * influence,
   });
+}
+
+function pointerAttraction(x, y, pointer = {}, radius = 0) {
+  if (!pointer.active || radius <= 0) return ZERO_POINTER_FORCE;
+
+  const pointerX = Number(pointer.x);
+  const pointerY = Number(pointer.y);
+  if (!Number.isFinite(pointerX) || !Number.isFinite(pointerY)) return ZERO_POINTER_FORCE;
+
+  const deltaX = pointerX - x;
+  const deltaY = pointerY - y;
+  const distance = Math.hypot(deltaX, deltaY);
+  if (distance >= radius || distance === 0) return ZERO_POINTER_FORCE;
+
+  const falloff = clamp(1 - distance / radius, 0, 1);
+  const influence = falloff * falloff;
+  const unitX = deltaX / distance;
+  const unitY = deltaY / distance;
+  const radialStrength = 0.14 * influence;
+  const orbitalStrength = 0.035 * influence;
+
+  return {
+    x: unitX * radialStrength - unitY * orbitalStrength,
+    y: unitY * radialStrength + unitX * orbitalStrength,
+    influence,
+  };
 }
 
 function initTerminal() {
@@ -157,7 +185,7 @@ function initHeroField() {
   const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
   const saveData = Boolean(navigator.connection?.saveData);
   const deviceMemory = Number(navigator.deviceMemory || 8);
-  const random = createSeededRandom(hashSeed("atlas-systems-home-field-v3"));
+  const random = createSeededRandom(hashSeed("atlas-systems-home-field-v4"));
 
   let width = 1;
   let height = 1;
@@ -186,7 +214,7 @@ function initHeroField() {
     activeCount = count;
   }
 
-  function advanceParticle(index, time, distanceScale = 1) {
+  function advanceParticle(index, time, distanceScale = 1, pointerRadius = 0) {
     const x = particles[index];
     const y = particles[index + 1];
     let velocityX = particles[index + 2];
@@ -195,6 +223,12 @@ function initHeroField() {
 
     velocityX = velocityX * 0.93 + Math.cos(angle) * 0.3;
     velocityY = velocityY * 0.93 + Math.sin(angle) * 0.3;
+
+    if (pointer.active && pointerRadius > 0) {
+      const attraction = pointerAttraction(x, y, pointer, pointerRadius);
+      velocityX += attraction.x;
+      velocityY += attraction.y;
+    }
 
     const nextX = x + velocityX * distanceScale;
     const nextY = y + velocityY * distanceScale;
@@ -261,7 +295,7 @@ function initHeroField() {
     const styles = [
       ["rgba(102, 143, 132, 0.18)", 0.7],
       ["rgba(177, 188, 169, 0.25)", 0.9],
-      ["rgba(255, 244, 205, 0.42)", 1.15],
+      ["rgba(255, 244, 205, 0.38)", 1.08],
     ];
     paths.forEach((path, index) => {
       context.strokeStyle = styles[index][0];
@@ -296,8 +330,8 @@ function initHeroField() {
       light.y,
       radius,
     );
-    halo.addColorStop(0, "rgba(255, 249, 222, 0.09)");
-    halo.addColorStop(0.28, "rgba(201, 211, 187, 0.038)");
+    halo.addColorStop(0, "rgba(255, 249, 222, 0.075)");
+    halo.addColorStop(0.28, "rgba(201, 211, 187, 0.032)");
     halo.addColorStop(1, "rgba(10, 10, 15, 0)");
     context.fillStyle = halo;
     context.fillRect(light.x - radius, light.y - radius, radius * 2, radius * 2);
@@ -306,7 +340,7 @@ function initHeroField() {
   function resolveLight(timestamp) {
     const target = influencedLightPosition(width, height, timestamp, pointer);
     if (!renderedLight) renderedLight = { ...target };
-    const smoothing = pointer.active ? 0.045 : 0.025;
+    const smoothing = pointer.active ? 0.065 : 0.025;
     renderedLight.x += (target.x - renderedLight.x) * smoothing;
     renderedLight.y += (target.y - renderedLight.y) * smoothing;
     return renderedLight;
@@ -314,13 +348,13 @@ function initHeroField() {
 
   function strokeDomainPaths(domainPaths) {
     const domainStyles = [
-      "rgba(74, 222, 128, 0.105)",
-      "rgba(245, 166, 35, 0.12)",
-      "rgba(56, 189, 248, 0.095)",
+      "rgba(74, 222, 128, 0.16)",
+      "rgba(245, 166, 35, 0.18)",
+      "rgba(56, 189, 248, 0.15)",
     ];
     domainPaths.forEach((path, index) => {
       context.strokeStyle = domainStyles[index];
-      context.lineWidth = 0.72;
+      context.lineWidth = 0.8;
       context.stroke(path);
     });
   }
@@ -339,6 +373,7 @@ function initHeroField() {
 
     const light = resolveLight(timestamp);
     const lightRadius = Math.max(230, Math.min(width, height) * 0.46);
+    const pointerRadius = Math.max(220, Math.min(width, height) * 0.34);
     context.globalCompositeOperation = "lighter";
     drawLightHalo(light, lightRadius * 0.58);
 
@@ -349,7 +384,7 @@ function initHeroField() {
     const particleLimit = Math.min(activeCount * 4, particles.length);
 
     for (let index = 0; index < particleLimit; index += 4) {
-      const segment = advanceParticle(index, simulationTime, 1.08);
+      const segment = advanceParticle(index, simulationTime, 1.08, pointerRadius);
       const distance = Math.hypot(segment.nextX - light.x, segment.nextY - light.y);
       const influence = clamp(1 - distance / lightRadius, 0, 1);
       const energy = clamp((segment.speed - 0.5) / 3.4, 0, 1);
@@ -358,18 +393,18 @@ function initHeroField() {
       paths[bucket].moveTo(segment.x, segment.y);
       paths[bucket].lineTo(segment.nextX, segment.nextY);
 
-      if (energy > 0.24 || influence > 0.24) {
+      if (energy > 0.18 || influence > 0.18) {
         const position = segment.nextX / width;
         const domain = position < 0.37 ? 0 : position < 0.67 ? 1 : 2;
         domainPaths[domain].moveTo(segment.x, segment.y);
         domainPaths[domain].lineTo(segment.nextX, segment.nextY);
       }
 
-      if (influence > 0.32 && segment.speed > 1.15) {
+      if (influence > 0.36 && segment.speed > 1.25) {
         glowPath.moveTo(segment.x, segment.y);
         glowPath.lineTo(segment.nextX, segment.nextY);
       }
-      if (influence > 0.68 && segment.speed > 1.8) {
+      if (influence > 0.74 && segment.speed > 2) {
         corePath.moveTo(segment.x, segment.y);
         corePath.lineTo(segment.nextX, segment.nextY);
       }
@@ -388,8 +423,8 @@ function initHeroField() {
     const styles = [
       ["rgba(80, 120, 111, 0.12)", 0.68],
       ["rgba(119, 155, 141, 0.17)", 0.78],
-      ["rgba(172, 187, 164, 0.23)", 0.9],
-      ["rgba(229, 222, 185, 0.31)", 1.02],
+      ["rgba(172, 187, 164, 0.22)", 0.88],
+      ["rgba(229, 222, 185, 0.26)", 0.96],
     ];
 
     paths.forEach((path, index) => {
@@ -401,15 +436,15 @@ function initHeroField() {
     strokeDomainPaths(domainPaths);
 
     context.save();
-    context.shadowBlur = 14;
-    context.shadowColor = "rgba(232, 236, 207, 0.72)";
-    context.strokeStyle = "rgba(221, 225, 199, 0.32)";
-    context.lineWidth = 1.35;
+    context.shadowBlur = 11;
+    context.shadowColor = "rgba(232, 236, 207, 0.52)";
+    context.strokeStyle = "rgba(221, 225, 199, 0.24)";
+    context.lineWidth = 1.15;
     context.stroke(glowPath);
     context.restore();
 
-    context.strokeStyle = "rgba(255, 248, 214, 0.68)";
-    context.lineWidth = 0.82;
+    context.strokeStyle = "rgba(255, 248, 214, 0.46)";
+    context.lineWidth = 0.72;
     context.stroke(corePath);
     context.restore();
 
@@ -524,6 +559,7 @@ if (globalThis.__ATLAS_TEST__) {
     hashSeed,
     influencedLightPosition,
     lightPosition,
+    pointerAttraction,
   });
 }
 
