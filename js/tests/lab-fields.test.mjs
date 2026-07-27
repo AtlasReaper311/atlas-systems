@@ -19,7 +19,7 @@ test("Lab fields expose exactly one ambient header and one System Map card targe
 test("Lab shell mounts the fields only on the Lab directory route", () => {
   const markup = fs.readFileSync("lab/index.html", "utf8");
   const shell = fs.readFileSync("lab/shared/shell.js", "utf8");
-  assert.match(markup, /\/lab\/shared\/shell\.js\?v=20260727-lab-fields-cache-v1/);
+  assert.match(markup, /\/lab\/shared\/shell\.js\?v=20260727-lab-fields-cache-v2/);
   assert.match(shell, /const LAB_HOME_ROUTE = "\/lab\/"/);
   assert.match(shell, /\/lab\/shared\/lab-fields\.css/);
   assert.match(shell, /\/lab\/shared\/lab-fields\.js/);
