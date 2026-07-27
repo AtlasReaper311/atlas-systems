@@ -95,12 +95,9 @@ test("nearby particles receive bounded radial and orbital pointer force", () => 
 });
 
 test("pointer force is zero outside its local radius", () => {
-  assert.deepEqual(
-    field.pointerAttraction(0, 0, { active: true, x: 500, y: 0 }, 240),
-    { x: 0, y: 0, influence: 0 },
-  );
-  assert.deepEqual(
-    field.pointerAttraction(0, 0, { active: false, x: 40, y: 0 }, 240),
-    { x: 0, y: 0, influence: 0 },
-  );
+  const outside = field.pointerAttraction(0, 0, { active: true, x: 500, y: 0 }, 240);
+  const inactive = field.pointerAttraction(0, 0, { active: false, x: 40, y: 0 }, 240);
+
+  assert.deepEqual([outside.x, outside.y, outside.influence], [0, 0, 0]);
+  assert.deepEqual([inactive.x, inactive.y, inactive.influence], [0, 0, 0]);
 });
