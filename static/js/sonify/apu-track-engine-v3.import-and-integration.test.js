@@ -200,6 +200,7 @@ test("graph starts with public PeriodicWave voices and no Transport scheduleOnce
   const { createApuTrackEngine } = await engineModule();
   const engine = createApuTrackEngine();
   engine.applyFrame(healthyFrame);
+  engine.queueDeployment({ identity: "periodic-wave-proof" });
   await engine.start();
   assert.equal(recorder.scheduled.length, 1);
   recorder.scheduled[0].callback(1);
