@@ -83,13 +83,13 @@ The opening-to-middle loudness jump affected all four states. The corrected enve
 
 ## Three signature moments
 
-Every 16-phrase cycle now contains exactly three authored signature-gesture moments:
+Every 16-phrase cycle now contains exactly three guaranteed authored signature-gesture moments:
 
 1. phrase 4, the end of Theme A: a descending hand-off into Variation;
 2. phrase 10, the end of Build: a restrained ascending launch followed by silence;
 3. phrase 14, Recovery: a softer descending callback.
 
-Incidental legacy `shimmer` ornaments are removed so these moments remain structural events rather than decorative wallpaper.
+A selected legacy `shimmer` is suppressed at those three phrases so two lead arcs never stack. Legacy authored shimmer ornaments remain available elsewhere, preserving the existing ornament vocabulary and allowing occasional extra echoes of the signature language.
 
 ### Explorer
 
@@ -166,11 +166,12 @@ Public adapters add:
 
 Tests require:
 
-- exactly three signature moments per state and cycle;
+- exactly three guaranteed signature moments per state and cycle;
 - twelve distinct state-and-moment gesture labels;
 - descent, restrained ascent, descent direction order;
 - the exact Explorer `24 → 19 → 12` shimmer at steps `28 → 29 → 30`;
-- no incidental legacy shimmer duplication;
+- no duplicate shimmer at a guaranteed signature moment;
+- legacy authored shimmers remaining available elsewhere;
 - state-specific register ceilings;
 - exact cutout start steps and silence across every performance category;
 - no ornament scheduled inside a cutout;
