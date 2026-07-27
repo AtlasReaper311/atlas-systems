@@ -47,8 +47,6 @@ on:
       - "lab/anomaly/**"
       - "lab/conformance/**"
       - "lab/reliability/**"
-      - "lab/speculum/**"
-      - "lab/tests/speculum*.test.mjs"
       - "data/performance-baseline.json"
       - "og/**"
       - "scripts/og/**"
@@ -58,7 +56,6 @@ on:
       - "scripts/capture_interface_evidence.mjs"
       - "scripts/capture_batch_h_evidence.mjs"
       - "scripts/smoke_system_map_card_field_preview.mjs"
-      - "scripts/capture_speculum_evidence.mjs"
       - "scripts/generate_sitemap.py"
       - "scripts/verify_interface_bundle.py"
       - "sitemap.xml"
@@ -91,7 +88,6 @@ jobs:
           node --check scripts/capture_interface_evidence.mjs
           node --check scripts/capture_batch_h_evidence.mjs
           node --check scripts/smoke_system_map_card_field_preview.mjs
-          node --check scripts/capture_speculum_evidence.mjs
           node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
           python3 scripts/verify_interface_bundle.py
           python3 scripts/generate_sitemap.py --check-only
@@ -217,7 +213,6 @@ jobs:
           sparse-checkout: |
             scripts/capture_interface_evidence.mjs
             scripts/capture_batch_h_evidence.mjs
-            scripts/capture_speculum_evidence.mjs
             scripts/smoke_system_map_card_field_preview.mjs
           sparse-checkout-cone-mode: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
@@ -229,13 +224,12 @@ jobs:
           mkdir -p "${RUNNER_TEMP}/interface-evidence"
           cp scripts/capture_interface_evidence.mjs "${RUNNER_TEMP}/interface-evidence/"
           cp scripts/capture_batch_h_evidence.mjs "${RUNNER_TEMP}/interface-evidence/"
-          cp scripts/capture_speculum_evidence.mjs "${RUNNER_TEMP}/interface-evidence/"
           cp scripts/smoke_system_map_card_field_preview.mjs "${RUNNER_TEMP}/interface-evidence/"
           cd "${RUNNER_TEMP}/interface-evidence"
           npm init -y >/dev/null
           npm install --save-exact playwright@1.61.1 @axe-core/playwright@4.12.1
           npm audit --audit-level=high
-          npx playwright install --with-deps chromium firefox
+          npx playwright install --with-deps firefox
       - name: Verify System Map card AtlasField pixels
         working-directory: ${{ runner.temp }}/interface-evidence
         env:
@@ -247,9 +241,6 @@ jobs:
       - name: Capture Batch H browser and viewport matrix
         working-directory: ${{ runner.temp }}/interface-evidence
         run: node capture_batch_h_evidence.mjs
-      - name: Capture Speculum stateful viewport matrix
-        working-directory: ${{ runner.temp }}/interface-evidence
-        run: node capture_speculum_evidence.mjs
       - name: Upload visual and accessibility evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
@@ -272,16 +263,5 @@ jobs:
             ${{ runner.temp }}/interface-evidence/batch-h-evidence.json
             ${{ runner.temp }}/interface-evidence/batch-h-capture-error.txt
             ${{ runner.temp }}/interface-evidence/batch-h-screenshots/*.png
-          if-no-files-found: error
-          retention-days: 14
-      - name: Upload Speculum visual and accessibility evidence
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
-        with:
-          name: speculum-preview-evidence
-          path: |
-            ${{ runner.temp }}/interface-evidence/speculum-evidence.json
-            ${{ runner.temp }}/interface-evidence/speculum-capture-error.txt
-            ${{ runner.temp }}/interface-evidence/speculum-screenshots/*.png
           if-no-files-found: error
           retention-days: 14
