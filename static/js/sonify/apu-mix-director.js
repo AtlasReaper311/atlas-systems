@@ -29,10 +29,11 @@
  * cutoff, or a ducking depth that would silence a bus.
  */
 
-export const APU_MIX_DIRECTOR_BUILD_ID = "20260727-apu-mix-director-v2";
+export const APU_MIX_DIRECTOR_BUILD_ID = "20260727-apu-mix-director-v3";
 
 export const APU_MIX_LISTENER_POLISH = Object.freeze({
   bassGainMul: 0.82,
+  criticalBassGainMul: 0.85,
   kickBassDuckDepthMul: 1.18,
 });
 
@@ -217,8 +218,15 @@ export function mixDirectiveFor({ state = "healthy", phase = "groove" } = {}) {
   for (const busName of APU_MIX_BUSES) {
     const base = stateBase.buses[busName];
     const listenerGainMul = busName === "bass" ? APU_MIX_LISTENER_POLISH.bassGainMul : 1;
+    const stateBassGainMul = busName === "bass" && stateKey === "critical"
+      ? APU_MIX_LISTENER_POLISH.criticalBassGainMul
+      : 1;
     buses[busName] = Object.freeze({
-      gainMul:   clamp(base.gainMul * phaseMod.gainMul * listenerGainMul, SAFETY.gainMulMin, SAFETY.gainMulMax),
+      gainMul:   clamp(
+        base.gainMul * phaseMod.gainMul * listenerGainMul * stateBassGainMul,
+        SAFETY.gainMulMin,
+        SAFETY.gainMulMax,
+      ),
       highcutHz: clamp(base.highcutHz, SAFETY.highcutMinHz, SAFETY.highcutMaxHz),
       width:     clamp(base.width * phaseMod.widthMul, SAFETY.widthMin, SAFETY.widthMax),
     });
