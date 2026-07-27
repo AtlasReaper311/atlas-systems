@@ -5,6 +5,10 @@
  * gesture. The topology and cadence model remain untouched.
  */
 
+.reduced[hidden] {
+  display: none !important;
+}
+
 .field-bar-actions {
   display: flex;
   align-items: center;
