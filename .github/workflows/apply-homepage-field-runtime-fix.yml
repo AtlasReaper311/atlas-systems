@@ -1,0 +1,48 @@
+name: Apply homepage AtlasField runtime fix
+
+on:
+  push:
+    branches:
+      - fix/homepage-field-deploy-diagnostic
+    paths:
+      - ".github/workflows/apply-homepage-field-runtime-fix.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repair branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: fix/homepage-field-deploy-diagnostic
+          fetch-depth: 0
+
+      - name: Clone the frozen light position before animation mutates it
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          renderer = Path("static/js/atlas-field.js")
+          source = renderer.read_text(encoding="utf-8")
+          before = "    renderedLight = lightPosition(width, height, 0);"
+          after = "    renderedLight = { ...lightPosition(width, height, 0) };"
+          if source.count(before) != 1:
+              raise SystemExit(f"expected exactly one mutable-light patch anchor, found {source.count(before)}")
+          renderer.write_text(source.replace(before, after), encoding="utf-8")
+
+          Path(".github/workflows/diagnose-homepage-atlas-field.yml").unlink()
+          Path(".github/workflows/apply-homepage-field-runtime-fix.yml").unlink()
+          PY
+
+      - name: Commit branch repair
+        run: |
+          git config user.name "Atlas Systems Repair"
+          git config user.email "actions@users.noreply.github.com"
+          git add static/js/atlas-field.js
+          git add .github/workflows/diagnose-homepage-atlas-field.yml
+          git add .github/workflows/apply-homepage-field-runtime-fix.yml
+          git commit -m "Fix AtlasField mutable light state"
+          git push origin HEAD:fix/homepage-field-deploy-diagnostic
