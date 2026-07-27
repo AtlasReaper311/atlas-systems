@@ -1,0 +1,35 @@
+.song-plan-current {
+  display: grid;
+  gap: 1rem;
+}
+
+.song-plan-current > dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.song-plan-current dt {
+  color: var(--text-faint, #777782);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.song-plan-current dd {
+  margin: 0.2rem 0 0;
+  color: var(--text, #e8e8e0);
+  overflow-wrap: anywhere;
+}
+
+.song-plan-memory-alert {
+  border: 1px solid rgba(245, 166, 35, 0.24);
+  background: rgba(245, 166, 35, 0.07);
+  padding: 0.75rem;
+}
+
+.song-plan-memory-alert[data-resolved="true"] {
+  border-color: rgba(105, 211, 158, 0.26);
+  background: rgba(105, 211, 158, 0.07);
+}
