@@ -13,13 +13,15 @@ import {
   normalizePerformanceSeed,
 } from "./performance.js";
 
-test("performance scenes retain health identity and add musical names", () => {
+test("performance scenes use the canonical APU state names", () => {
   assert.deepEqual(
     Object.values(PERFORMANCE_SCENES).map((scene) => scene.name),
-    ["NIGHT DRIVE", "GRID PRESSURE", "REDLINE PROTOCOL", "GHOST SIGNAL"],
+    ["EXPLORER", "GRID PRESSURE", "BOSS PROTOCOL", "LOST SIGNAL"],
   );
-  assert.equal(PERFORMANCE_SCENES.healthy.label, "Healthy // Night Drive");
-  assert.equal(PERFORMANCE_SCENES.unknown.label, "Unknown // Ghost Signal");
+  assert.equal(PERFORMANCE_SCENES.healthy.label, "Healthy // Explorer");
+  assert.equal(PERFORMANCE_SCENES.warning.label, "Warning // Grid Pressure");
+  assert.equal(PERFORMANCE_SCENES.critical.label, "Critical // Boss Protocol");
+  assert.equal(PERFORMANCE_SCENES.unknown.label, "Unknown // Lost Signal");
 });
 
 test("seed formatting and replay validation are stable", () => {
@@ -59,7 +61,7 @@ test("the same seed, state and macros always replay the same arrangement", () =>
     space: 74,
   });
   assert.deepEqual(replay, first);
-  assert.equal(first.sceneName, "NIGHT DRIVE");
+  assert.equal(first.sceneName, "EXPLORER");
   assert.equal(first.seed, "7F3A");
   assert.equal(first.schemaVersion, PERFORMANCE_SCHEMA_VERSION);
   assert.match(first.id, new RegExp(`^v${PERFORMANCE_SCHEMA_VERSION}:`));
