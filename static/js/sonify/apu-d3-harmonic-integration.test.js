@@ -33,7 +33,7 @@ const frames = ["healthy", "warning", "critical", "unknown"].map((scoreState) =>
   stale: scoreState === "unknown",
 }));
 
-test("D3 preserves every primary event and baseline harmony", () => {
+test("D3 preserves primary events except the reviewed Explorer Peak octave shift", () => {
   for (const frame of frames) {
     resetD2Baseline();
     resetMelodyPreservingD2Planner();
@@ -44,11 +44,18 @@ test("D3 preserves every primary event and baseline harmony", () => {
       assert.equal(candidate.motifMode, baseline.motifMode);
       assert.deepEqual(candidate.motifDegrees, baseline.motifDegrees);
       for (let step = 0; step < 32; step += 1) {
-        assert.deepEqual(
-          primaryPulseEventForTrackStep(frame, candidate, step),
-          baselinePrimaryEvent(frame, baseline, step),
-          `${frame.scoreState}/phrase-${phrase}/step-${step}`,
-        );
+        const before = baselinePrimaryEvent(frame, baseline, step);
+        const after = primaryPulseEventForTrackStep(frame, candidate, step);
+        const explorerPeak = frame.scoreState === "healthy" && candidate.section === "peak";
+        if (!explorerPeak || !before) {
+          assert.deepEqual(after, before, `${frame.scoreState}/phrase-${phrase}/step-${step}`);
+          continue;
+        }
+        assert.deepEqual(after, Object.freeze({
+          ...before,
+          midi: before.midi - 12,
+          registerAdjustmentSemitones: -12,
+        }), `${frame.scoreState}/phrase-${phrase}/step-${step}`);
       }
     }
   }
