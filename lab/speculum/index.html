@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Speculum is a time-compressed browser rendering of periodic attention paths across the reviewed public Atlas Systems topology.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Speculum // Atlas Systems</title>
+  <link rel="canonical" href="https://atlas-systems.uk/lab/speculum/">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/lab/speculum/speculum.css?v=20260727-public-snapshot-v1">
+</head>
+<body>
+  <header class="masthead">
+    <p class="eyebrow"><a href="/">atlas-systems</a> <span>/</span> <a href="/lab/">lab</a> <span>/</span> speculum</p>
+  </header>
+
+  <main>
+    <section class="intro">
+      <p class="snapshot-label">Explore / systems artwork / reviewed public snapshot</p>
+      <h1>Speculum</h1>
+      <p class="thesis">The estate keeps building eyes for itself.</p>
+      <p class="lede">
+        Periodic observers sweep at their reviewed cadence. When a beam crosses a declared
+        attention target, the target lights, a chord appears, and a line lands in the ledger.
+        Request-driven, event-driven, manual, and continuous components remain still.
+      </p>
+      <p class="stats" id="spc-stats"></p>
+    </section>
+
+    <section id="speculum" class="field" aria-labelledby="field-heading">
+      <h2 id="field-heading" class="sr-only">Generated public attention field</h2>
+
+      <div class="field-canvas">
+        <canvas
+          id="spc-canvas"
+          role="img"
+          aria-label="A generated field of public Atlas Systems components arranged in concentric role rings. Periodic observers rotate a beam at their reviewed cadence. The full relationship data is available as a table below."
+        ></canvas>
+
+        <div class="reduced" id="spc-reduced" hidden>
+          <p>Motion is reduced in your system settings, so the field is frozen.</p>
+          <button type="button">Run it anyway</button>
+        </div>
+
+        <p class="clock"><span id="spc-clock"></span></p>
+        <p class="count" id="spc-count"></p>
+      </div>
+
+      <aside class="rail">
+        <div class="controls">
+          <div class="control">
+            <p class="label">Time</p>
+            <div class="btns" id="spc-speeds" role="group" aria-label="Time compression"></div>
+            <p class="hint" id="spc-speed-hint">one minute per second</p>
+          </div>
+          <div class="control">
+            <p class="label">View</p>
+            <div class="btns">
+              <button type="button" id="spc-evidence">Evidence</button>
+              <button type="button" id="spc-labels">Labels</button>
+              <button type="button" id="spc-pause">Freeze</button>
+            </div>
+            <p class="hint">Evidence exposes reviewed schedule provenance. Keys: E, L, space.</p>
+          </div>
+        </div>
+
+        <div class="detail" id="spc-detail"></div>
+
+        <div class="ledger-wrap">
+          <p class="label">Ledger <span class="sample">sample, not a log</span></p>
+          <ol class="ledger" id="spc-ledger" aria-live="off"></ol>
+        </div>
+      </aside>
+    </section>
+
+    <section class="prose">
+      <h2>What this draws</h2>
+      <p>
+        Rings are roles. The centre is the public site. The first ring contains runtime services.
+        The second contains periodic observers and the local host they can see from inside. The
+        third contains public policy, reusable tooling, and source substrate. The outer ring holds
+        dependencies outside the repository projection.
+      </p>
+      <p>
+        Beam length is reach. Rotation speed is the reviewed period, so the thirty-second local
+        telemetry sampler moves visibly while weekly dependency and resource audits barely turn.
+        At <code>1x</code>, almost nothing moves. That is the least flattering and most literal view.
+      </p>
+      <p>
+        The ledger is generated simulation output, not operational evidence. Notifications and
+        state changes are deliberately not simulated. This page does not claim that a workflow ran,
+        a service changed condition, or an alert was delivered.
+      </p>
+
+      <h2>Evidence boundary</h2>
+      <p>
+        The topology is a reviewed public snapshot dated 27 July 2026. Repository classification
+        comes from the Atlas Infra public classification projection. Runtime relationships come
+        from the public estate manifest and direct repository configuration. Periods come from the
+        owning repository's current workflow, Worker configuration, timer documentation, or sampler
+        documentation.
+      </p>
+      <p>
+        Private repository identities and private relationships are absent. This is not a live
+        health surface and makes no network request. <a href="https://status.atlas-systems.uk/">Status</a>
+        remains the public source for current service condition.
+      </p>
+
+      <details class="table-wrap">
+        <summary>Read the topology as a table</summary>
+        <div id="spc-table"></div>
+      </details>
+    </section>
+  </main>
+
+  <footer>
+    <p>Static browser simulation. No network calls, third-party scripts, storage, or production mutation.</p>
+  </footer>
+
+  <script type="module" src="/lab/speculum/speculum.js?v=20260727-public-snapshot-v1"></script>
+</body>
+</html>
