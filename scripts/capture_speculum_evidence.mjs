@@ -46,6 +46,8 @@ async function layoutSnapshot(page) {
         width: box.width,
         height: box.height,
         display: style.display,
+        visibility: style.visibility,
+        opacity: style.opacity,
         overflowY: style.overflowY,
       };
     };
@@ -76,18 +78,30 @@ function assertRailLayout(snapshot, label) {
   assert(!snapshot.controlsOverlapDetail, `${label}: controls overlap the node dossier`);
   assert(!snapshot.detailOverlapLedger, `${label}: node dossier overlaps the ledger`);
   assert(snapshot.canvas?.width > 0 && snapshot.canvas?.height > 0, `${label}: canvas has no rendered area`);
+  assert(snapshot.canvas?.display !== 'none', `${label}: canvas display is none`);
+  assert(snapshot.canvas?.visibility !== 'hidden', `${label}: canvas visibility is hidden`);
 }
 
 async function waitForBase(page, label) {
   await page.goto(routeUrl(label), { waitUntil: 'networkidle' });
-  await page.locator('#spc-canvas').waitFor({ state: 'visible' });
+  await page.locator('#spc-canvas').waitFor({ state: 'attached' });
   await page.locator('#spc-present').waitFor({ state: 'visible' });
+  await page.waitForFunction(() => {
+    const canvas = document.querySelector('#spc-canvas');
+    if (!(canvas instanceof HTMLCanvasElement)) return false;
+    const box = canvas.getBoundingClientRect();
+    const style = getComputedStyle(canvas);
+    return box.width > 0
+      && box.height > 0
+      && style.display !== 'none'
+      && style.visibility !== 'hidden';
+  }, null, { timeout: 30000 });
   await page.waitForFunction(() => document.querySelectorAll('#spc-speeds button').length === 4);
 }
 
 async function openCentreDossier(page) {
   const box = await page.locator('#spc-canvas').boundingBox();
-  assert(box, 'canvas bounding box is unavailable');
+  assert(box && box.width > 0 && box.height > 0, 'canvas bounding box is unavailable');
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
   await page.waitForFunction(() => document.querySelector('#spc-detail h3')?.textContent?.trim() === 'atlas-systems');
 }
