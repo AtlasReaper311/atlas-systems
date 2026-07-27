@@ -13,6 +13,9 @@ import {
   serviceEventForTrackStep,
   transitionEventForTrackStep,
 } from "./apu-track-sequencer-d2-baseline.js?v=20260726-system-symphony-atlas-chip-laws-v3";
+import {
+  peakRegisterShiftForState,
+} from "./apu-signature-gestures-d3.js?v=20260727-system-symphony-pass-d3-signature-gestures-v1";
 
 export {
   APU_TRACK_STEPS,
@@ -34,27 +37,28 @@ const clamp = (value, minimum, maximum) => {
   return numeric;
 };
 
-function isExplorerPeak(frame = {}, arrangement = null) {
-  return frame?.scoreState === "healthy" && arrangement?.section === "peak";
+function peakRegisterShift(frame = {}, arrangement = null) {
+  if (arrangement?.section !== "peak") return 0;
+  return peakRegisterShiftForState(frame?.scoreState);
 }
 
-function lowerLeadOneOctave(event) {
-  if (!event || !Number.isFinite(event.midi)) return event;
+function shiftLeadRegister(event, semitones) {
+  if (!event || !Number.isFinite(event.midi) || semitones === 0) return event;
   return Object.freeze({
     ...event,
-    midi: event.midi - 12,
-    registerAdjustmentSemitones: -12,
+    midi: event.midi + semitones,
+    registerAdjustmentSemitones: semitones,
   });
 }
 
 export function primaryPulseEventForTrackStep(frame = {}, arrangement = null, step = 0) {
   const baseline = baselinePrimaryPulseEventForTrackStep(frame, arrangement, step);
-  return isExplorerPeak(frame, arrangement) ? lowerLeadOneOctave(baseline) : baseline;
+  return shiftLeadRegister(baseline, peakRegisterShift(frame, arrangement));
 }
 
 export function secondaryPulseEventForTrackStep(frame = {}, arrangement = null, step = 0) {
   const baseline = baselineSecondaryPulseEventForTrackStep(frame, arrangement, step);
-  return isExplorerPeak(frame, arrangement) ? lowerLeadOneOctave(baseline) : baseline;
+  return shiftLeadRegister(baseline, peakRegisterShift(frame, arrangement));
 }
 
 export function bassEventForTrackStep(frame = {}, arrangement = null, step = 0) {
