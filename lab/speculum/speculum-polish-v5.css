@@ -260,6 +260,20 @@ body.spc-presentation .field {
   }
 }
 
+/* At very narrow widths the 16px page gutters otherwise leave the canvas
+ * below the engine's 320px interaction floor. Make the instrument full-bleed
+ * and remove only its side borders so visual and pointer coordinates remain
+ * identical without introducing horizontal overflow. */
+@media (max-width: 353px) {
+  .field {
+    width: calc(100% + 32px);
+    margin-left: -16px;
+    margin-right: -16px;
+    border-left: 0;
+    border-right: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .spc-trace-completion,
   .spc-trace-completion.is-active { transition: none; }
