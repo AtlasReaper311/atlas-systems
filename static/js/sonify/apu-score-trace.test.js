@@ -65,6 +65,8 @@ test("score trace entries are deterministic and deeply frozen", () => {
   assert.equal(first.deterministicSignature, second.deterministicSignature);
   assert.ok(Object.isFrozen(first));
   assert.ok(Object.isFrozen(first.harmony));
+  assert.ok(Object.isFrozen(first.harmony[0]));
+  assert.ok(Object.isFrozen(first.ornaments[0]));
   assert.ok(Object.isFrozen(first.evidenceSource));
   assert.equal(first.stateTitle, "Explorer");
   assert.equal(first.foregroundVoice, "pad");
