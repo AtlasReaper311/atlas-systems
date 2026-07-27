@@ -145,6 +145,7 @@ The score trace records:
 - arp function;
 - `up`, `down` or `tornado` contour;
 - actual chip voice;
+- additive status;
 - protected-event status;
 - run window;
 - empty orchestration-space categories;
@@ -170,6 +171,19 @@ Tests require:
 - deterministic cycle variation;
 - state-specific register ceilings;
 - D4 decisions in the deterministic score trace.
+
+## Validated candidate
+
+Final listener candidate:
+
+- base `main`: `442983289809f764f9950080c584f2ef250497c5`;
+- head: `2bd9ea885c7fa5206b714babef62eb2aba88a17c`;
+- seventeen commits ahead and zero behind `main`;
+- full repository and System Symphony report enforcement green;
+- CodeQL, Scorecard and public-interface checks green;
+- numbered Pages preview green;
+- current soundtrack smoke green;
+- Chromium and Firefox hybrid APU smoke green.
 
 ## Listener gate
 
