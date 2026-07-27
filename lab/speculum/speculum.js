@@ -19,9 +19,9 @@ const SPEEDS = [
   { value: 3600, label: '3600x', hint: 'one hour per second. the weekly audits finally turn' },
 ];
 
-const LEDGER_MAX = 26;
-const FLUSH_MS = 120;
-const FLUSH_TAKE = 4;
+const LEDGER_MAX = 14;
+const FLUSH_MS = 180;
+const FLUSH_TAKE = 3;
 
 function el(id) {
   return document.getElementById(id);
@@ -80,6 +80,7 @@ export function mount(root) {
       t.className = 'spc-t';
       t.textContent = formatClock(entry.at).slice(11, 19);
       const body = document.createElement('span');
+      body.className = 'spc-path';
       body.textContent = `${entry.from} → ${entry.to}`;
       li.appendChild(t);
       li.appendChild(body);
@@ -102,9 +103,9 @@ export function mount(root) {
       // Notifications and state changes are outside this generated simulation.
       // The fixed clause prevents an observation count from becoming a false
       // operational claim.
-      countEl.textContent = `${seen.toLocaleString('en-GB')} observations  ·  `
-        + `${c.onProduct.toLocaleString('en-GB')} of them at atlas-systems  ·  `
-        + 'notification and state-change simulation disabled';
+      countEl.textContent = `${seen.toLocaleString('en-GB')} generated observations  ·  `
+        + `${c.onProduct.toLocaleString('en-GB')} reached atlas-systems  ·  `
+        + 'no live state';
     }
   }
 
@@ -139,6 +140,10 @@ export function mount(root) {
       p.className = 'spc-idle';
       p.textContent = 'Point at a node. Click to pin it.';
       detail.appendChild(p);
+      const note = document.createElement('p');
+      note.className = 'spc-idle-note';
+      note.textContent = 'Related paths brighten while the rest of the field recedes.';
+      detail.appendChild(note);
       return;
     }
 
@@ -150,6 +155,7 @@ export function mount(root) {
     const meta = document.createElement('p');
     meta.className = 'spc-meta';
     const bits = [n.kind];
+    if (engine.getPinned() === id) bits.unshift('pinned');
     if (n.state !== 'live') bits.push(n.state);
     bits.push(scheduleLabel(n));
     if (n.cadence > 0) bits.push(n.verified ? 'period verified' : 'period unverified');
@@ -189,7 +195,7 @@ export function mount(root) {
     list('reports to', n.reports.map((w) => (engine.getNode(w) || { label: w }).label));
   }
 
-  const detailTimer = window.setInterval(renderDetail, 90);
+  const detailTimer = window.setInterval(renderDetail, 120);
 
   /* -- accessible table ------------------------------------------------ */
   /* Generated from the same array the canvas reads, so the text version and
