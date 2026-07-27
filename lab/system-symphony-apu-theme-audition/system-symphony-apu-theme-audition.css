@@ -236,21 +236,21 @@ button[aria-pressed="true"] {
 
 .step-grid {
   display: grid;
-  grid-template-columns: repeat(16, minmax(24px, 1fr));
-  gap: 4px;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: 6px;
   margin-top: 16px;
 }
 
 .step-cell {
   position: relative;
-  min-height: 48px;
+  min-height: 62px;
   display: grid;
   place-items: end center;
-  padding: 4px;
+  padding: 6px;
   border: 1px solid var(--audition-border);
   background: var(--audition-deep);
-  color: var(--audition-faint);
-  font-size: 0.64rem;
+  color: var(--audition-dim);
+  font-size: 0.68rem;
 }
 
 .step-cell[data-bar="2"] {
@@ -267,15 +267,15 @@ button[aria-pressed="true"] {
 }
 
 .step-cell.has-primary::before {
-  top: 8px;
-  width: 12px;
-  height: 12px;
+  top: 11px;
+  width: 14px;
+  height: 14px;
   background: var(--audition-accent);
   box-shadow: 0 0 16px rgba(245, 166, 35, 0.38);
 }
 
 .step-cell.has-echo::after {
-  top: 25px;
+  top: 29px;
   width: 7px;
   height: 7px;
   border: 1px solid var(--audition-green);
@@ -412,7 +412,7 @@ th {
   }
 
   .step-grid {
-    grid-template-columns: repeat(8, minmax(24px, 1fr));
+    grid-template-columns: repeat(2, minmax(72px, 1fr)) !important;
   }
 
   .panel-heading {
