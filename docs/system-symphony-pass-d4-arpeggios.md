@@ -177,8 +177,8 @@ Tests require:
 Final listener candidate:
 
 - base `main`: `442983289809f764f9950080c584f2ef250497c5`;
-- head: `2bd9ea885c7fa5206b714babef62eb2aba88a17c`;
-- seventeen commits ahead and zero behind `main`;
+- head: `bd819fb3d3ecb88aa7e8dfe485738c952d205740`;
+- eighteen commits ahead and zero behind `main`;
 - full repository and System Symphony report enforcement green;
 - CodeQL, Scorecard and public-interface checks green;
 - numbered Pages preview green;
