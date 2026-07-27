@@ -14,7 +14,8 @@
   <link rel="manifest" href="/site.webmanifest">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/lab/speculum/speculum.css?v=20260727-clarity-pass-v2">
-  <link rel="stylesheet" href="/lab/speculum/speculum-layout-v3.css?v=20260727-height-rail-v3">
+  <link rel="stylesheet" href="/lab/speculum/speculum-layout-v3.css?v=20260727-layout-v3">
+  <link rel="stylesheet" href="/lab/speculum/speculum-investigation-v4.css?v=20260727-investigation-v4">
 </head>
 <body>
   <header class="masthead">
@@ -38,8 +39,26 @@
       <h2 id="field-heading" class="sr-only">Generated public attention field</h2>
 
       <div class="field-bar">
-        <p><strong>Public attention field</strong><span>reviewed snapshot</span></p>
-        <p>Hover to inspect · click to pin · Esc clears</p>
+        <div class="field-bar-copy">
+          <p><strong>Public attention field</strong><span>reviewed snapshot</span></p>
+          <p>Hover to inspect · click to pin · Esc clears</p>
+        </div>
+        <div class="field-keys" aria-label="Field legend">
+          <div class="evidence-key" aria-label="Schedule evidence">
+            <span class="key-title">Evidence</span>
+            <span class="key-item"><span class="evidence-mark is-verified" aria-hidden="true"></span>schedule verified</span>
+            <span class="key-item"><span class="evidence-mark is-assumed" aria-hidden="true"></span>schedule assumed</span>
+            <span class="key-item"><span class="evidence-mark is-na" aria-hidden="true"></span>non-periodic</span>
+          </div>
+          <div class="node-key" aria-label="Node shapes">
+            <span class="key-title">Nodes</span>
+            <span class="key-item"><span class="node-mark is-product" aria-hidden="true"></span>product</span>
+            <span class="key-item"><span class="node-mark is-observer" aria-hidden="true"></span>observer</span>
+            <span class="key-item"><span class="node-mark is-service" aria-hidden="true"></span>service/tool</span>
+            <span class="key-item"><span class="node-mark is-machine" aria-hidden="true"></span>machine</span>
+            <span class="key-item"><span class="node-mark is-external" aria-hidden="true"></span>external</span>
+          </div>
+        </div>
       </div>
 
       <div class="field-canvas">
@@ -63,7 +82,7 @@
           <div class="control">
             <p class="label">Time</p>
             <div class="btns" id="spc-speeds" role="group" aria-label="Time compression"></div>
-            <p class="hint" id="spc-speed-hint">one minute per second</p>
+            <p class="hint" id="spc-speed-hint">Observe · one simulated minute per second</p>
           </div>
           <div class="control">
             <p class="label">View</p>
@@ -72,14 +91,33 @@
               <button type="button" id="spc-labels">Labels</button>
               <button type="button" id="spc-pause">Freeze</button>
             </div>
-            <p class="hint">Evidence exposes reviewed schedule provenance. Keys: E, L, space.</p>
+            <p class="hint">Evidence marks verified schedule sources. Keys: E, L, space.</p>
+          </div>
+          <div class="control">
+            <p class="label">Playback</p>
+            <div class="btns playback-btns">
+              <button type="button" id="spc-reset">Reset</button>
+              <button type="button" id="spc-step">Next event</button>
+              <button type="button" id="spc-trace">Guided trace</button>
+            </div>
+            <p class="hint">Reset: R · next event: N · trace: T. Next event freezes the field first.</p>
           </div>
         </div>
 
         <div class="detail" id="spc-detail"></div>
 
         <div class="ledger-wrap">
-          <p class="label">Ledger <span class="sample">sample, not a log</span></p>
+          <div class="ledger-heading">
+            <p class="label">Ledger <span class="sample">simulation output</span></p>
+            <div class="ledger-toolbar">
+              <div class="btns compact" role="group" aria-label="Ledger filter">
+                <button type="button" id="spc-ledger-all" aria-pressed="true">All</button>
+                <button type="button" id="spc-ledger-focus" aria-pressed="false">Focused</button>
+              </div>
+              <button type="button" class="ledger-pause" id="spc-ledger-pause" aria-pressed="false">Pause feed</button>
+            </div>
+            <p class="ledger-context" id="spc-ledger-context">All generated observations · repeated paths are grouped</p>
+          </div>
           <ol class="ledger" id="spc-ledger" aria-live="off"></ol>
         </div>
       </aside>
@@ -96,7 +134,18 @@
       <p>
         Beam length is reach. Rotation speed is the reviewed period, so the thirty-second local
         telemetry sampler moves visibly while weekly dependency and resource audits barely turn.
-        At <code>1x</code>, almost nothing moves. That is the least flattering and most literal view.
+        At <code>Real · 1×</code>, almost nothing moves. That is the least flattering and most literal view.
+      </p>
+      <p>
+        In Evidence mode a green dot means the periodic schedule has an inspected source. A hollow
+        amber dot would mark an assumed period; this snapshot currently contains none. Nodes without
+        a dot are request-driven, event-driven, manual, continuous, boot-triggered, or external rather
+        than unverified.
+      </p>
+      <p>
+        Pinning a node filters the investigation to its declared observation and report paths. The
+        guided trace follows one deterministic route from local telemetry to the public site. It is an
+        explanatory traversal of declared relationships, not a claim that those components just ran.
       </p>
       <p>
         The ledger is generated simulation output, not operational evidence. Notifications and
@@ -129,6 +178,6 @@
     <p>Static browser simulation. No network calls, third-party scripts, storage, or production mutation.</p>
   </footer>
 
-  <script type="module" src="/lab/speculum/speculum.js?v=20260727-clarity-pass-v2"></script>
+  <script type="module" src="/lab/speculum/speculum.js?v=20260727-investigation-v4"></script>
 </body>
 </html>
