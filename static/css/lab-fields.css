@@ -1,0 +1,89 @@
+.lab-intro-atlas-field {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.lab-intro-atlas-field > .atlas-field-canvas {
+  position: absolute;
+  inset: -20px -4vw;
+  z-index: 0;
+  display: block;
+  width: calc(100% + 8vw);
+  height: calc(100% + 40px);
+  opacity: .82;
+  pointer-events: none;
+  filter: saturate(1.18) brightness(1.12);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
+}
+
+.lab-intro-atlas-field::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(10, 10, 15, .92) 0%, rgba(10, 10, 15, .44) 42%, rgba(10, 10, 15, .16) 72%, rgba(10, 10, 15, .68) 100%);
+}
+
+.lab-intro-atlas-field > :not(.atlas-field-canvas) {
+  position: relative;
+  z-index: 2;
+}
+
+#system-map.lab-system-map-atlas-field {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+#system-map.lab-system-map-atlas-field > .atlas-field-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: .96;
+  pointer-events: none;
+  filter: saturate(1.32) brightness(1.24);
+  -webkit-mask-image: linear-gradient(135deg, #000 0%, #000 66%, transparent 100%);
+  mask-image: linear-gradient(135deg, #000 0%, #000 66%, transparent 100%);
+}
+
+#system-map.lab-system-map-atlas-field > :not(.atlas-field-canvas) {
+  position: relative;
+  z-index: 2;
+}
+
+#system-map.lab-system-map-atlas-field > .card-signature {
+  z-index: 3;
+  background: rgba(10, 10, 15, .28);
+  opacity: .86;
+}
+
+#system-map.lab-system-map-atlas-field > h3,
+#system-map.lab-system-map-atlas-field > p,
+#system-map.lab-system-map-atlas-field > .data-mode,
+#system-map.lab-system-map-atlas-field > .card-route,
+#system-map.lab-system-map-atlas-field > .card-top {
+  text-shadow: 0 1px 12px rgba(10, 10, 15, .9);
+}
+
+@media (max-width: 620px) {
+  .lab-intro-atlas-field > .atlas-field-canvas {
+    opacity: .62;
+  }
+
+  #system-map.lab-system-map-atlas-field > .atlas-field-canvas {
+    opacity: .78;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-intro-atlas-field > .atlas-field-canvas,
+  #system-map.lab-system-map-atlas-field > .atlas-field-canvas {
+    filter: saturate(1.08) brightness(1.05);
+  }
+}
