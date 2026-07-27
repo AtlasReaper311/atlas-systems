@@ -97,10 +97,10 @@
           <span id="motif-map-title">Two-bar motif map</span>
           <strong>32 sixteenth-note steps at 100 BPM</strong>
         </div>
-        <div class="step-grid" data-step-grid aria-label="Motif event positions"></div>
-        <div class="legend" aria-label="Motif map legend">
-          <span><i class="primary-marker"></i>Primary motif</span>
-          <span><i class="echo-marker"></i>Delayed answer or echo</span>
+        <div class="step-grid" data-step-grid role="img" aria-label="Motif event positions across two bars"></div>
+        <div class="legend" role="list" aria-label="Motif map legend">
+          <span role="listitem"><i class="primary-marker" aria-hidden="true"></i>Primary motif</span>
+          <span role="listitem"><i class="echo-marker" aria-hidden="true"></i>Delayed answer or echo</span>
         </div>
       </section>
 
@@ -114,7 +114,9 @@
             <thead>
               <tr><th scope="col">Voice</th><th scope="col">Step</th><th scope="col">Theme degree</th><th scope="col">Note</th><th scope="col">Gate</th><th scope="col">Source anchor</th></tr>
             </thead>
-            <tbody data-event-table></tbody>
+            <tbody data-event-table>
+              <tr><td colspan="6">Building the initial motif plan.</td></tr>
+            </tbody>
           </table>
         </div>
       </section>
