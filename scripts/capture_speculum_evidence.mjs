@@ -100,12 +100,11 @@ async function canvasDiagnostics(page) {
         minWidth: style.minWidth,
         height: style.height,
         gridArea: style.gridArea,
-        gridTemplateColumns: style.gridTemplateColumns,
         overflow: style.overflow,
       };
     };
     return {
-      viewport: { width: innerWidth, height: innerHeight },
+      viewport: { width: innerWidth, height: innerHeight, scrollY },
       document: {
         clientWidth: document.documentElement.clientWidth,
         scrollWidth: document.documentElement.scrollWidth,
@@ -116,6 +115,7 @@ async function canvasDiagnostics(page) {
       fieldCanvas: inspect('.field-canvas'),
       canvas: inspect('#spc-canvas'),
       rail: inspect('.rail'),
+      detailHeading: document.querySelector('#spc-detail h3')?.textContent?.trim() || null,
       stylesheets: [...document.styleSheets].map((sheet) => sheet.href || 'inline'),
     };
   });
@@ -144,11 +144,38 @@ async function waitForBase(page, label) {
   await page.waitForFunction(() => document.querySelectorAll('#spc-speeds button').length === 4);
 }
 
-async function openCentreDossier(page) {
-  const box = await page.locator('#spc-canvas').boundingBox();
-  assert(box && box.width > 0 && box.height > 0, 'canvas bounding box is unavailable');
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-  await page.waitForFunction(() => document.querySelector('#spc-detail h3')?.textContent?.trim() === 'atlas-systems');
+async function openCentreDossier(page, label = 'centre-dossier') {
+  const canvas = page.locator('#spc-canvas');
+  await canvas.scrollIntoViewIfNeeded();
+  await page.evaluate(() => {
+    document.querySelector('#spc-canvas')?.scrollIntoView({ block: 'center', inline: 'center' });
+  });
+  await page.waitForTimeout(120);
+
+  const box = await canvas.boundingBox();
+  const viewport = page.viewportSize();
+  assert(box && box.width > 0 && box.height > 0, `${label}: canvas bounding box is unavailable`);
+  assert(viewport, `${label}: viewport is unavailable`);
+
+  const centre = { x: box.width / 2, y: box.height / 2 };
+  const viewportY = box.y + centre.y;
+  assert(
+    viewportY >= 0 && viewportY <= viewport.height,
+    `${label}: canvas centre remains outside the viewport after scrolling (${viewportY} not within 0..${viewport.height})`,
+  );
+
+  try {
+    await canvas.click({ position: centre, force: true });
+    await page.waitForFunction(
+      () => document.querySelector('#spc-detail h3')?.textContent?.trim() === 'atlas-systems',
+      null,
+      { timeout: 15000 },
+    );
+  } catch (error) {
+    const diagnostics = await canvasDiagnostics(page);
+    await page.screenshot({ path: path.join(SCREENSHOTS, `${label}-interaction-failure.png`), fullPage: true });
+    throw new Error(`${label}: centre node did not open after an in-viewport click: ${JSON.stringify(diagnostics)}; ${error.message}`);
+  }
 }
 
 async function populateLedger(page) {
@@ -201,7 +228,7 @@ async function runViewport(browser, viewport) {
   await waitForBase(page, viewport.name);
   const initial = await layoutSnapshot(page);
   assertRailLayout(initial, viewport.name);
-  await openCentreDossier(page);
+  await openCentreDossier(page, viewport.name);
   const dossier = await layoutSnapshot(page);
   assertRailLayout(dossier, `${viewport.name}/dossier`);
   await populateLedger(page);
@@ -227,10 +254,7 @@ async function runTextZoom(browser) {
 
 async function runBrowserZoom() {
   const browser = await chromium.launch();
-  const context = await browser.newContext({
-    viewport: { width: 720, height: 500 },
-    deviceScaleFactor: 2,
-  });
+  const context = await browser.newContext({ viewport: { width: 720, height: 500 }, deviceScaleFactor: 2 });
   const page = await context.newPage();
   await waitForBase(page, 'browser-zoom-200');
   const snapshot = await layoutSnapshot(page);
@@ -241,10 +265,7 @@ async function runBrowserZoom() {
 }
 
 async function runReducedMotion(browser) {
-  const context = await browser.newContext({
-    viewport: { width: 390, height: 900 },
-    reducedMotion: 'reduce',
-  });
+  const context = await browser.newContext({ viewport: { width: 390, height: 900 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
   await waitForBase(page, 'reduced-motion');
   await page.locator('#spc-reduced').waitFor({ state: 'visible' });
@@ -259,7 +280,7 @@ async function runInteractive(browser) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, acceptDownloads: true });
   const page = await context.newPage();
   await waitForBase(page, 'interactive');
-  await openCentreDossier(page);
+  await openCentreDossier(page, 'interactive');
   await populateLedger(page);
   await verifyPresentation(page);
   await verifyExport(page);
