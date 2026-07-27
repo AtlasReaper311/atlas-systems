@@ -271,7 +271,9 @@ export function arpeggioPlanForPhrase(perfPlan = {}) {
   const profile = STATE_PROFILES[context.state];
   const shape = shapeForContext(context);
   const contour = profile[shape];
-  const start = START_BY_FUNCTION[context.arpFunction] ?? 1;
+  const preferredStart = START_BY_FUNCTION[context.arpFunction] ?? 1;
+  const latestSafeStart = Math.max(0, 15 - (contour.length - 1));
+  const start = Math.min(preferredStart, latestSafeStart);
   const instructions = Object.freeze(contour.map((midiOffset, index) => Object.freeze({
     voice: profile.voice,
     offsetSteps: start + index,
