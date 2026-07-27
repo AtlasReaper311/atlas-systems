@@ -85,6 +85,7 @@ test("page names its local source and exposes essential controls", () => {
   assert.match(html, /It does not finish\./);
   assert.match(source, /prefers-reduced-motion: reduce/);
   assert.match(source, /document\.hidden/);
+  assert.match(source, /chapterForElapsed/);
   assert.match(source, /drawSignalBlooms/);
   assert.match(source, /drawTimingStrip/);
   assert.match(source, /toBlob/);

@@ -29,6 +29,7 @@ const elapsedOutput = document.querySelector("#elapsed-output");
 const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
 const TRACE_COUNT = 112;
 const TIMELINE_SLOTS = 96;
+const CHAPTER_MS = 14_000;
 const BACKGROUND = "#07070b";
 
 let viewWidth = 1;
@@ -237,16 +238,28 @@ function drawLiveClock(now, sample) {
   context.fill();
 }
 
+function chapterForElapsed(elapsed) {
+  const index = Math.floor(elapsed / CHAPTER_MS) % 4;
+  const progress = (elapsed % CHAPTER_MS) / CHAPTER_MS;
+  return {
+    index,
+    progress,
+    speed: [1, 0.68, 1.42, 0.92][index],
+    spread: [1, 1.18, 0.84, 1.05][index],
+  };
+}
+
 function emitSignalBloom(now, sample) {
-  if (sample.kind === "near") return;
-  if (sample.kind === "drag" && now - lastSignalAt < 900) return;
+  if (sample.kind !== "stall") return;
+  if (now - lastSignalAt < 2400) return;
   lastSignalAt = now;
   signalBlooms.push({
     bornAt: now,
     kind: sample.kind,
-    weight: clamp(sample.normalized, 0.24, 1),
+    phase: random() * TAU,
+    weight: clamp(sample.normalized, 0.18, 0.72),
   });
-  signalBlooms = signalBlooms.slice(-8);
+  signalBlooms = signalBlooms.slice(-3);
 }
 
 function drawSignalBlooms(now) {
@@ -260,15 +273,40 @@ function drawSignalBlooms(now) {
   for (const bloom of signalBlooms) {
     const age = clamp((now - bloom.bornAt) / 1600, 0, 1);
     const ease = 1 - Math.pow(1 - age, 2.6);
-    const radius = span * (0.13 + ease * 0.31);
-    const alpha = (1 - age) * (bloom.kind === "stall" ? 0.24 : 0.13) * bloom.weight;
-    const colour = bloom.kind === "stall" ? "226, 75, 74" : "245, 166, 35";
+    const radius = span * (0.18 + ease * 0.24);
+    const alpha = (1 - age) * 0.11 * bloom.weight;
+    const start = bloom.phase + ease * 0.8;
+    const end = start + TAU * (0.54 + bloom.weight * 0.18);
 
     context.beginPath();
-    context.arc(centreX, centreY, radius, 0, TAU);
-    context.strokeStyle = `rgba(${colour}, ${alpha})`;
-    context.lineWidth = 1.2 + bloom.weight * 2.2;
+    context.arc(centreX, centreY, radius, start, end);
+    context.strokeStyle = `rgba(226, 75, 74, ${alpha})`;
+    context.lineWidth = 0.8 + bloom.weight * 1.2;
     context.stroke();
+  }
+}
+
+function drawChapterSweep(now, chapter) {
+  const span = Math.min(viewWidth, viewHeight);
+  const centreX = viewWidth / 2;
+  const centreY = viewHeight / 2;
+  const base = span * (0.235 + chapter.index * 0.018);
+  const angle = chapter.progress * TAU + chapter.index * 0.9;
+  const arc = TAU * (0.07 + chapter.index * 0.018);
+
+  context.beginPath();
+  context.arc(centreX, centreY, base, angle, angle + arc);
+  context.strokeStyle = "rgba(245, 166, 35, 0.24)";
+  context.lineWidth = 1.4;
+  context.stroke();
+
+  const nodeCount = 2 + chapter.index;
+  for (let index = 0; index < nodeCount; index += 1) {
+    const nodeAngle = angle + index * (arc / Math.max(1, nodeCount - 1));
+    const x = centreX + Math.cos(nodeAngle) * base * (1 + Math.sin(now * 0.0008 + index) * 0.018);
+    const y = centreY + Math.sin(nodeAngle) * base * 0.82;
+    context.fillStyle = `rgba(236, 234, 224, ${0.14 + index * 0.025})`;
+    context.fillRect(x - 1, y - 1, 2, 2);
   }
 }
 
@@ -357,6 +395,8 @@ function drawTrace(trace, point, sample) {
 
 function drawFrame(now, sample) {
   withCanvasScale(() => {
+    const elapsed = previousElapsed + now - startedAt;
+    const chapter = chapterForElapsed(elapsed);
     const decay = clamp(
       1 - Math.exp(-sample.deltaMs / (sample.kind === "stall" ? 110_000 : 55_000)),
       0.00008,
@@ -367,19 +407,32 @@ function drawFrame(now, sample) {
 
     emitSignalBloom(now, sample);
     drawSignalBlooms(now);
+    drawChapterSweep(now, chapter);
 
-    const strokes = sample.kind === "stall" ? 24 : sample.kind === "drag" ? 13 : 7;
-    const elapsed = previousElapsed + now - startedAt;
+    const strokes = (sample.kind === "stall" ? 18 : sample.kind === "drag" ? 12 : 8)
+      + chapter.index;
     for (let index = 0; index < strokes; index += 1) {
       const trace = traces[traceCursor % traces.length];
       traceCursor += 1;
-      const point = pointForTrace(
+      const rawPoint = pointForTrace(
         trace,
-        elapsed + index * 1.7,
+        elapsed * chapter.speed + index * 2.1 + chapter.index * 900,
         sample,
         viewWidth,
         viewHeight,
       );
+      const point = {
+        x: clamp(
+          viewWidth / 2 + (rawPoint.x - viewWidth / 2) * chapter.spread,
+          0,
+          viewWidth,
+        ),
+        y: clamp(
+          viewHeight / 2 + (rawPoint.y - viewHeight / 2) * (2 - chapter.spread),
+          0,
+          viewHeight,
+        ),
+      };
       drawTrace(trace, point, sample);
       marks += 1;
     }
