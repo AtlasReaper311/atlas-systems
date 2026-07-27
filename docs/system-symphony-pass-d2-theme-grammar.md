@@ -4,7 +4,7 @@
 
 Pass D2 turns the approved D1 song plan into a recognisable musical identity.
 
-The first D2 delivery is intentionally an isolated audible audition. It defines the shared theme genome and lets the four state transformations be reviewed before the existing System Symphony arranger and sequencer consume it.
+The first D2 delivery is intentionally an isolated audible audition. It defines the shared theme genome and lets the state transformations be reviewed before the existing System Symphony arranger and sequencer consume it.
 
 This prevents an unapproved central melody from being threaded through the full soundtrack.
 
@@ -35,7 +35,7 @@ The theme is identified as `ATLAS_THEME` and uses this scale-relative degree seq
 0, 2, 4, 1, 5, 4, 2, 0
 ```
 
-Its primary rhythm occupies two bars at 100 BPM:
+Its production-intent rhythm occupies two bars at 100 BPM:
 
 ```text
 0, 3, 7, 10, 16, 19, 23, 28
@@ -59,7 +59,7 @@ Explorer presents the complete motif with the widest range and the clearest retu
 
 ### Grid Pressure
 
-Grid Pressure preserves all eight source events but compresses intervals, shifts alternating attacks, shortens gates, repeats one diagnostic cell and withholds the final home note. Delayed answers reinforce the strained interpretation.
+Grid Pressure preserves all eight source events but compresses intervals, shifts alternating attacks, shortens gates, repeats one diagnostic cell and withholds the final home note. The grammar also defines delayed answers for later full-track integration.
 
 ### Boss Protocol
 
@@ -67,11 +67,30 @@ Boss Protocol reduces the genome to short root-and-fifth cells. It uses stronger
 
 ### Lost Signal
 
-Lost Signal retains four source landmarks, lengthens the gates and adds two delayed echoes. It withholds the final home note so the phrase remains distant and incomplete without becoming empty or unrelated.
+Lost Signal retains four source landmarks, lengthens the gates and defines two delayed echoes. It withholds the final home note so the phrase remains distant and incomplete without becoming empty or unrelated.
 
 ### Recovery
 
-The recovery profile first records an unhealthy state in D1 memory and then supplies an explicit evidence-backed recovery movement. D1 emits a recovery reprise and D2 restores the complete Explorer motif with a home ending.
+The grammar can restore the complete Explorer motif when D1 supplies an evidence-backed recovery reprise. Recovery remains covered by pure-data tests but is not part of the simplified first-listen control surface.
+
+## Why the audition was simplified
+
+The first review surface was technically faithful but perceptually overloaded. It played exact 100 BPM state rhythms, exposed multiple phrase-role transforms, allowed looping and included a second echo voice. Listener feedback correctly identified that the theme was difficult to isolate and the result felt scrambled.
+
+The revised audition therefore separates **theme recognition** from **production arrangement**.
+
+The default review path now uses:
+
+- one monophonic triangle voice;
+- equal spacing between notes;
+- a slower 72 BPM listening tempo;
+- no echoes;
+- no looping;
+- no phrase-role selector;
+- Explorer as an invariant first reference;
+- a clear pause before the selected state transformation.
+
+This does not change the D2 grammar or the intended 100 BPM System Symphony transport. It changes only the human-review method.
 
 ## Audition route
 
@@ -84,25 +103,26 @@ The route:
 - fetches no live estate evidence;
 - uses no audio samples;
 - uses the existing browser Tone.js dependency;
-- plays only the primary motif and its delayed answer or echo;
-- exposes state, phrase role, cycle role, requested transform, played transform, cadence and retained anchors;
-- can loop one two-bar phrase or play it once;
+- plays one clean voice with no overlapping echoes;
+- offers Explorer-only, selected-state-only and direct A/B comparison controls;
+- displays the selected state note sequence and source indices;
 - does not import or modify the current System Symphony engine.
 
 ## Listener review
 
-Review the motif in this order:
+Use the controls in this order:
 
-1. Learn Explorer Statement until the opening, high anchor and ending are recognisable.
-2. Switch to Grid Pressure and check that the same landmarks remain audible under rhythmic strain.
-3. Switch to Boss Protocol and check that the compressed cells still feel derived from Explorer.
-4. Switch to Lost Signal and check that the sparse landmarks remain attributable to the theme.
-5. Select Recovery and check that the complete Explorer identity returns and resolves.
+1. Play Explorer only until its overall rise and return are familiar.
+2. Select Grid Pressure, Boss Protocol or Lost Signal.
+3. Use the comparison button. Explorer plays first, followed by a clear pause and the selected transformation.
+4. Ask only whether the second phrase sounds descended from the first.
 
 Approval should answer two questions:
 
 1. Is the Explorer statement memorable enough to become the flagship theme?
 2. Do the other three states sound like transformations of that theme rather than unrelated melodies?
+
+If the direct comparison remains confusing, D2 must revise the theme or transformation rather than asking the listener to decode more detail.
 
 ## Validation boundary
 
@@ -120,7 +140,7 @@ D2A pure-data tests prove:
 - cycle development without theme replacement;
 - no runtime randomness, wall-clock decisions, Tone.js ownership or sample-player references in the grammar module.
 
-Browser validation must additionally prove that the audition route loads, unlocks audio after user action, loops without browser errors and remains independent from the existing System Symphony routes.
+Browser validation must additionally prove that the clear-listening route loads, unlocks audio after user action and remains independent from the existing System Symphony routes.
 
 ## Next gate
 
