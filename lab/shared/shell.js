@@ -16,6 +16,9 @@ const LAB_ROUTES = [
 
 const PRODUCTION_ORIGIN = "https://atlas-systems.uk";
 const SEARCH_CSS = "/static/css/estate-search.css";
+const LAB_HOME_ROUTE = "/lab/";
+const LAB_FIELDS_CSS = "/static/css/lab-fields.css?v=20260727-visible-lab-fields-v2";
+const LAB_FIELDS_MODULE = "/static/js/lab-fields.js?v=20260727-visible-lab-fields-v2";
 const SYSTEM_SYMPHONY_ROUTE = "/lab/system-symphony/";
 
 function normalizePath(pathname) {
@@ -136,6 +139,13 @@ function installMetadata() {
   ensureMeta("twitter:description", description);
 }
 
+async function installLabDirectoryFields() {
+  if (currentPath() !== LAB_HOME_ROUTE) return;
+  ensureStylesheet(LAB_FIELDS_CSS);
+  const { initLabFields } = await import(LAB_FIELDS_MODULE);
+  await initLabFields();
+}
+
 async function installRouteEnhancements() {
   if (!isSystemSymphonyPath()) return;
   await import("/lab/system-symphony/system-symphony-navigation.js?v=20260727-stage-2a-polish-fixes");
@@ -151,6 +161,7 @@ async function installLabShell() {
   installFooter();
   await import("/static/js/estate-shell.js?v=20260723-interface-v2");
   await import("/static/js/estate-search/global-search.js");
+  await installLabDirectoryFields();
   await installRouteEnhancements();
 }
 
