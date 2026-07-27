@@ -104,6 +104,49 @@ export function mountSpeculumPolish(root) {
   let presentationOrigin = null;
   let traceComplete = false;
   let traceTimer = 0;
+  let dispatchingMappedPointer = false;
+
+  function remapPointerEvent(event) {
+    if (dispatchingMappedPointer) return;
+    if (event.type === 'pointermove' && event.pointerType !== 'mouse') return;
+
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const logicalWidth = canvas.width / dpr;
+    const logicalHeight = canvas.height / dpr;
+    const scaleX = logicalWidth / rect.width;
+    const scaleY = logicalHeight / rect.height;
+    if (Math.abs(scaleX - 1) < 0.001 && Math.abs(scaleY - 1) < 0.001) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const mapped = new PointerEvent(event.type, {
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      pointerId: event.pointerId,
+      pointerType: event.pointerType,
+      isPrimary: event.isPrimary,
+      button: event.button,
+      buttons: event.buttons,
+      pressure: event.pressure,
+      width: event.width,
+      height: event.height,
+      tiltX: event.tiltX,
+      tiltY: event.tiltY,
+      clientX: rect.left + (event.clientX - rect.left) * scaleX,
+      clientY: rect.top + (event.clientY - rect.top) * scaleY,
+      ctrlKey: event.ctrlKey,
+      shiftKey: event.shiftKey,
+      altKey: event.altKey,
+      metaKey: event.metaKey,
+    });
+
+    dispatchingMappedPointer = true;
+    canvas.dispatchEvent(mapped);
+    dispatchingMappedPointer = false;
+  }
 
   function setStatus(message) {
     if (status) status.textContent = message;
@@ -201,6 +244,8 @@ export function mountSpeculumPolish(root) {
     }
   }
 
+  canvas.addEventListener('pointerdown', remapPointerEvent, { signal, capture: true });
+  canvas.addEventListener('pointermove', remapPointerEvent, { signal, capture: true });
   presentButton?.addEventListener('click', () => setPresenting(!presenting), { signal });
   exportButton?.addEventListener('click', exportFrame, { signal });
 
