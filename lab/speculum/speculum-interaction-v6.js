@@ -24,7 +24,7 @@ function pointerInit(event, clientX, clientY) {
   };
 }
 
-export function logicalEventToCssPoint(canvas, event, devicePixelRatio = window.devicePixelRatio || 1) {
+export function logicalEventToCssPoint(canvas, event, devicePixelRatio = globalThis.devicePixelRatio || 1) {
   const rect = canvas.getBoundingClientRect();
   if (rect.width <= 0 || rect.height <= 0) return null;
 
@@ -98,5 +98,7 @@ function boot() {
   if (canvas instanceof HTMLCanvasElement) installResolvedPointerDown(canvas);
 }
 
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
-else boot();
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
+  else boot();
+}
