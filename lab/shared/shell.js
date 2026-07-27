@@ -16,7 +16,10 @@ const LAB_ROUTES = [
 
 const PRODUCTION_ORIGIN = "https://atlas-systems.uk";
 const SEARCH_CSS = "/static/css/estate-search.css";
+const LAB_HOME_ROUTE = "/lab/";
 const SYSTEM_SYMPHONY_ROUTE = "/lab/system-symphony/";
+const SYSTEM_MAP_CARD_FIELD_CSS = "/lab/shared/system-map-card-field.css?v=20260727-system-map-card-field-v1";
+const SYSTEM_MAP_CARD_FIELD_MODULE = "/lab/shared/system-map-card-field.js?v=20260727-system-map-card-field-v1";
 
 function normalizePath(pathname) {
   if (pathname === "/") return pathname;
@@ -136,6 +139,19 @@ function installMetadata() {
   ensureMeta("twitter:description", description);
 }
 
+async function installSystemMapCardField() {
+  if (currentPath() !== LAB_HOME_ROUTE) return;
+  ensureStylesheet(SYSTEM_MAP_CARD_FIELD_CSS);
+  try {
+    const { mountSystemMapCardField } = await import(SYSTEM_MAP_CARD_FIELD_MODULE);
+    mountSystemMapCardField();
+  } catch (error) {
+    const card = document.querySelector("#system-map.featured");
+    if (card) card.dataset.atlasFieldState = "unavailable";
+    console.error("System Map card AtlasField bootstrap unavailable", error);
+  }
+}
+
 async function installRouteEnhancements() {
   if (!isSystemSymphonyPath()) return;
   await import("/lab/system-symphony/system-symphony-navigation.js?v=20260727-stage-2a-polish-fixes");
@@ -151,6 +167,7 @@ async function installLabShell() {
   installFooter();
   await import("/static/js/estate-shell.js?v=20260723-interface-v2");
   await import("/static/js/estate-search/global-search.js");
+  await installSystemMapCardField();
   await installRouteEnhancements();
 }
 
