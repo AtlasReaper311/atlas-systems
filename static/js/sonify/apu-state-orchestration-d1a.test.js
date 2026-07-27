@@ -97,3 +97,12 @@ test("Lost Signal is no longer pad-dominant in the state mix", () => {
   assert.ok(lost.buses.secondary.gainMul > lost.buses.pad.gainMul);
   assert.match(describeD1AStateOrchestration(plan("unknown", 0)), /Lost Signal/);
 });
+
+test("Boss power chords enter after intro and clear for afterglow", () => {
+  const intro = stateFeatureInstructionsForPhrase(plan("critical", 0, "intro"));
+  const groove = stateFeatureInstructionsForPhrase(plan("critical", 0, "groove"));
+  const afterglow = stateFeatureInstructionsForPhrase(plan("critical", 0, "afterglow"));
+  assert.equal(intro.filter((event) => event.ornament === "boss-power-chord").length, 0);
+  assert.equal(groove.filter((event) => event.ornament === "boss-power-chord").length, 4);
+  assert.equal(afterglow.filter((event) => event.ornament === "boss-power-chord").length, 0);
+});
