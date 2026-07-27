@@ -30,7 +30,9 @@ export const SYSTEM_MAP_CARD_FIELD = Object.freeze({
 export function mountSystemMapCardField(root = document) {
   const host = root.querySelector(SYSTEM_MAP_CARD_FIELD.selector);
   if (!host) return null;
-  if (host.dataset.atlasFieldState === "ready") return host.querySelector(":scope > canvas.atlas-field-canvas");
+  if (host.dataset.atlasFieldState === "ready") {
+    return createAtlasField(host, SYSTEM_MAP_CARD_FIELD.options);
+  }
 
   try {
     const controller = createAtlasField(host, SYSTEM_MAP_CARD_FIELD.options);
@@ -47,14 +49,4 @@ export function mountSystemMapCardField(root = document) {
     console.error("System Map card AtlasField unavailable", error);
     return null;
   }
-}
-
-function initialise() {
-  mountSystemMapCardField();
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initialise, { once: true });
-} else {
-  initialise();
 }
