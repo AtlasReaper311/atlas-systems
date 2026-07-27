@@ -77,6 +77,18 @@ function lightPosition(width, height, timestamp) {
   });
 }
 
+function influencedLightPosition(width, height, timestamp, pointer = {}) {
+  const autonomous = lightPosition(width, height, timestamp);
+  if (!pointer.active) return autonomous;
+  const pointerX = clamp(Number(pointer.x) || 0, 0, width);
+  const pointerY = clamp(Number(pointer.y) || 0, 0, height);
+  const influence = 0.28;
+  return Object.freeze({
+    x: autonomous.x * (1 - influence) + pointerX * influence,
+    y: autonomous.y * (1 - influence) + pointerY * influence,
+  });
+}
+
 function initTerminal() {
   const input = document.getElementById("terminal-text");
   const output = document.getElementById("terminal-output");
@@ -145,7 +157,7 @@ function initHeroField() {
   const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
   const saveData = Boolean(navigator.connection?.saveData);
   const deviceMemory = Number(navigator.deviceMemory || 8);
-  const random = createSeededRandom(hashSeed("atlas-systems-home-field-v2"));
+  const random = createSeededRandom(hashSeed("atlas-systems-home-field-v3"));
 
   let width = 1;
   let height = 1;
@@ -158,6 +170,8 @@ function initHeroField() {
   let isVisible = true;
   let averageFrameTime = 16.7;
   let previousTimestamp = 0;
+  let pointer = { active: false, x: 0, y: 0 };
+  let renderedLight = null;
 
   function seedParticle(index) {
     particles[index] = random() * width;
@@ -221,6 +235,7 @@ function initHeroField() {
     context.clearRect(0, 0, width, height);
     targetCount = chooseParticleBudget(width, height, { coarsePointer, saveData, deviceMemory });
     allocateParticles(motionQuery.matches ? HERO_FIELD_LIMITS.reduced : targetCount);
+    renderedLight = lightPosition(width, height, 0);
     warmField();
     if (motionQuery.matches) drawStaticField();
   }
@@ -281,11 +296,33 @@ function initHeroField() {
       light.y,
       radius,
     );
-    halo.addColorStop(0, "rgba(255, 249, 222, 0.095)");
-    halo.addColorStop(0.28, "rgba(201, 211, 187, 0.04)");
+    halo.addColorStop(0, "rgba(255, 249, 222, 0.09)");
+    halo.addColorStop(0.28, "rgba(201, 211, 187, 0.038)");
     halo.addColorStop(1, "rgba(10, 10, 15, 0)");
     context.fillStyle = halo;
     context.fillRect(light.x - radius, light.y - radius, radius * 2, radius * 2);
+  }
+
+  function resolveLight(timestamp) {
+    const target = influencedLightPosition(width, height, timestamp, pointer);
+    if (!renderedLight) renderedLight = { ...target };
+    const smoothing = pointer.active ? 0.045 : 0.025;
+    renderedLight.x += (target.x - renderedLight.x) * smoothing;
+    renderedLight.y += (target.y - renderedLight.y) * smoothing;
+    return renderedLight;
+  }
+
+  function strokeDomainPaths(domainPaths) {
+    const domainStyles = [
+      "rgba(74, 222, 128, 0.105)",
+      "rgba(245, 166, 35, 0.12)",
+      "rgba(56, 189, 248, 0.095)",
+    ];
+    domainPaths.forEach((path, index) => {
+      context.strokeStyle = domainStyles[index];
+      context.lineWidth = 0.72;
+      context.stroke(path);
+    });
   }
 
   function render(timestamp) {
@@ -300,12 +337,13 @@ function initHeroField() {
     context.fillStyle = "rgba(10, 10, 15, 0.018)";
     context.fillRect(0, 0, width, height);
 
-    const light = lightPosition(width, height, timestamp);
+    const light = resolveLight(timestamp);
     const lightRadius = Math.max(230, Math.min(width, height) * 0.46);
     context.globalCompositeOperation = "lighter";
     drawLightHalo(light, lightRadius * 0.58);
 
     const paths = [new Path2D(), new Path2D(), new Path2D(), new Path2D()];
+    const domainPaths = [new Path2D(), new Path2D(), new Path2D()];
     const glowPath = new Path2D();
     const corePath = new Path2D();
     const particleLimit = Math.min(activeCount * 4, particles.length);
@@ -319,6 +357,13 @@ function initHeroField() {
 
       paths[bucket].moveTo(segment.x, segment.y);
       paths[bucket].lineTo(segment.nextX, segment.nextY);
+
+      if (energy > 0.24 || influence > 0.24) {
+        const position = segment.nextX / width;
+        const domain = position < 0.37 ? 0 : position < 0.67 ? 1 : 2;
+        domainPaths[domain].moveTo(segment.x, segment.y);
+        domainPaths[domain].lineTo(segment.nextX, segment.nextY);
+      }
 
       if (influence > 0.32 && segment.speed > 1.15) {
         glowPath.moveTo(segment.x, segment.y);
@@ -353,6 +398,8 @@ function initHeroField() {
       context.stroke(path);
     });
 
+    strokeDomainPaths(domainPaths);
+
     context.save();
     context.shadowBlur = 14;
     context.shadowColor = "rgba(232, 236, 207, 0.72)";
@@ -368,6 +415,7 @@ function initHeroField() {
 
     canvas.dataset.mode = "animated";
     canvas.dataset.frame = String(frame);
+    canvas.dataset.pointer = pointer.active ? "influenced" : "autonomous";
     animationFrame = window.requestAnimationFrame(render);
   }
 
@@ -386,6 +434,20 @@ function initHeroField() {
     }
   }
 
+  function updatePointer(event) {
+    if (coarsePointer || motionQuery.matches) return;
+    const bounds = canvas.getBoundingClientRect();
+    pointer = {
+      active: true,
+      x: clamp(event.clientX - bounds.left, 0, bounds.width),
+      y: clamp(event.clientY - bounds.top, 0, bounds.height),
+    };
+  }
+
+  function releasePointer() {
+    pointer = { ...pointer, active: false };
+  }
+
   const resizeObserver = new ResizeObserver(resize);
   resizeObserver.observe(hero);
 
@@ -395,8 +457,15 @@ function initHeroField() {
   }, { rootMargin: "160px 0px", threshold: 0.01 });
   visibilityObserver.observe(hero);
 
+  if (!coarsePointer) {
+    hero.addEventListener("pointermove", updatePointer, { passive: true });
+    hero.addEventListener("pointerleave", releasePointer, { passive: true });
+    hero.addEventListener("pointercancel", releasePointer, { passive: true });
+  }
+
   document.addEventListener("visibilitychange", updatePlayback);
   motionQuery.addEventListener?.("change", () => {
+    releasePointer();
     resize();
     updatePlayback();
   });
@@ -453,6 +522,7 @@ if (globalThis.__ATLAS_TEST__) {
     createSeededRandom,
     fieldAngle,
     hashSeed,
+    influencedLightPosition,
     lightPosition,
   });
 }
