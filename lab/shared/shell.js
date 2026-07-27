@@ -11,6 +11,7 @@ const LAB_ROUTES = [
   { label: "Reliability", href: "/systems/reliability/" },
   { label: "Conformance", href: "/lab/conformance/" },
   { label: "Shape Detector", href: "/lab/anomaly/" },
+  { label: "Almost", href: "/lab/almost/" },
 ];
 
 const PRODUCTION_ORIGIN = "https://atlas-systems.uk";
