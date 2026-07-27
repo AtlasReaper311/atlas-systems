@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Almost is an endless browser-native drawing made from seeded geometry and the imperfect timing of the viewer's own tab.">
+  <meta name="theme-color" content="#07070b">
+  <title>Almost // Atlas Systems</title>
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/lab/shared/systems.css">
+  <link rel="stylesheet" href="/lab/almost/almost.css">
+  <link rel="canonical" href="https://atlas-systems.uk/lab/almost/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Almost // Atlas Systems">
+  <meta property="og:description" content="An endless local drawing made from imperfect frame intervals.">
+  <meta property="og:url" content="https://atlas-systems.uk/lab/almost/">
+  <meta property="og:site_name" content="Atlas Systems">
+  <meta property="og:image" content="https://atlas-systems.uk/og/almost.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Almost. A clock made of missed moments. // Atlas Systems">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Almost // Atlas Systems">
+  <meta name="twitter:description" content="An endless local drawing made from imperfect frame intervals.">
+  <meta name="twitter:image" content="https://atlas-systems.uk/og/almost.png">
+  <meta name="twitter:image:alt" content="Almost. A clock made of missed moments. // Atlas Systems">
+</head>
+<body class="almost-page">
+  <nav aria-label="Primary navigation">
+    <a class="wordmark" href="/">Atlas<span>_</span>Systems</a>
+  </nav>
+
+  <main>
+    <section class="almost-stage" aria-labelledby="almost-title">
+      <canvas
+        id="almost-canvas"
+        width="1400"
+        height="820"
+        role="img"
+        aria-describedby="almost-description"
+        aria-label="An accumulating field of broken amber orbits. Browser scheduling delays bend the lines away from their expected path."
+      >
+        Almost draws broken amber orbits from local browser timing.
+      </canvas>
+
+      <header class="almost-title">
+        <p class="almost-index">Atlas Systems / local process 00</p>
+        <h1 id="almost-title">Almost<span>.</span></h1>
+        <p>A clock made of missed moments.</p>
+      </header>
+
+      <div class="almost-run">
+        <span id="run-state" data-state="running">accumulating</span>
+        <span>run <output id="run-seed">00000311</output></span>
+      </div>
+
+      <div class="almost-source">
+        <span>seeded geometry + local frame timing</span>
+        <span>network input / none</span>
+      </div>
+    </section>
+
+    <section class="almost-console" aria-label="Artwork controls and local timing">
+      <div class="almost-actions">
+        <button id="hold-button" type="button" aria-pressed="false">Hold</button>
+        <button id="new-button" type="button">New run</button>
+        <button id="save-button" type="button">Keep this frame</button>
+      </div>
+
+      <dl class="almost-readout">
+        <div>
+          <dt>State</dt>
+          <dd id="timing-state">almost exact</dd>
+        </div>
+        <div>
+          <dt>Expected interval</dt>
+          <dd><output id="baseline-output">16.67</output> ms</dd>
+        </div>
+        <div>
+          <dt>Delay kept</dt>
+          <dd><output id="delay-output">0.00</output> ms</dd>
+        </div>
+        <div>
+          <dt>Longest hesitation</dt>
+          <dd><output id="longest-output">0.00</output> ms</dd>
+        </div>
+        <div>
+          <dt>Marks</dt>
+          <dd id="marks-output">0</dd>
+        </div>
+        <div>
+          <dt>Elapsed</dt>
+          <dd id="elapsed-output">00:00</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="almost-afterword" id="almost-description" aria-labelledby="afterword-title">
+      <p class="almost-afterword-index" aria-hidden="true">00:00:00 →</p>
+      <div>
+        <p class="eyebrow">A useless instrument</p>
+        <h2 id="afterword-title">It does not tell the time.</h2>
+      </div>
+      <div class="almost-prose">
+        <p>It records the difference between when this browser means to draw and when it actually does. Near misses stay amber. Longer hesitations leave pale seams and red scars.</p>
+        <p>Nothing is fetched. Nothing is inferred about the estate. The seed defines the machine; this tab supplies the weather. Close it and the weather is gone.</p>
+        <p class="almost-last-line">It does not finish.</p>
+      </div>
+    </section>
+
+    <p class="almost-keys">Space / hold · N / new run · S / keep this frame</p>
+  </main>
+
+  <script type="module" src="/lab/almost/almost.js"></script>
+</body>
+</html>

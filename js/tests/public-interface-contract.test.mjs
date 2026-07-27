@@ -146,6 +146,7 @@ test("Lab route contract uses the dedicated map and operations routes", () => {
   assert.match(shell, /System Map", href: "\/lab\/system-map\//);
   assert.match(shell, /Operations", href: "\/lab\/console\//);
   assert.match(shell, /Shape Detector", href: "\/lab\/anomaly\//);
+  assert.match(shell, /Almost", href: "\/lab\/almost\//);
   const landing = fs.readFileSync("lab/index.html", "utf8");
   const ramonePosition = landing.indexOf('id="ramone-card"');
   const legendPosition = landing.indexOf('class="interface-legend"');
@@ -171,7 +172,7 @@ test("Lab and Systems cards carry operation-specific visual identities", () => {
   assert.ok((lab.match(/data-visual=/g) || []).length >= 15);
   assert.ok((systems.match(/data-visual=/g) || []).length >= 15);
 
-  for (const visual of ["ramone", "symphony", "signal", "map", "proof", "status", "conformance", "reliability", "api", "anomaly"]) {
+  for (const visual of ["ramone", "symphony", "signal", "map", "proof", "status", "conformance", "reliability", "api", "anomaly", "almost"]) {
     assert.match(directoryCss, new RegExp(`\\[data-visual="${visual}"\\]`));
   }
   assert.match(directoryCss, /prefers-reduced-motion:reduce/);

@@ -138,6 +138,14 @@
       "tagline": "Trajectory-aware anomaly evidence from SPECULAR-CORE."
     },
     {
+      "file": "almost",
+      "html": "lab/almost/index.html",
+      "route": "/lab/almost/",
+      "kicker": "Explore / Browser timing",
+      "title": ["Almost.", "A clock made of [missed moments.]"],
+      "tagline": "An endless local drawing made from imperfect frame intervals."
+    },
+    {
       "file": "overclocking-specular-core",
       "html": "writing/overclocking-specular-core/index.html",
       "route": "/writing/overclocking-specular-core/",
