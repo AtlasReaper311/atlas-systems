@@ -40,10 +40,14 @@ test("listener polish adds bounded connective hats at moderate density", () => {
 test("listener polish trims bass and strengthens kick separation", () => {
   assert.ok(Object.isFrozen(APU_MIX_LISTENER_POLISH));
   assert.ok(APU_MIX_LISTENER_POLISH.bassGainMul < 1);
+  assert.ok(APU_MIX_LISTENER_POLISH.criticalBassGainMul < 1);
   assert.ok(APU_MIX_LISTENER_POLISH.kickBassDuckDepthMul > 1);
 
   const healthy = mixDirectiveFor({ state: "healthy", phase: "groove" });
+  const warning = mixDirectiveFor({ state: "warning", phase: "groove" });
+  const critical = mixDirectiveFor({ state: "critical", phase: "groove" });
   assert.equal(healthy.buses.bass.gainMul, APU_MIX_LISTENER_POLISH.bassGainMul);
-  const kickBass = healthy.ducking.find((rule) => rule.source === "kick" && rule.target === "bass");
+  assert.ok(critical.buses.bass.gainMul < warning.buses.bass.gainMul);
+  const kickBass = critical.ducking.find((rule) => rule.source === "kick" && rule.target === "bass");
   assert.ok(kickBass.depthDb > 3.2);
 });
