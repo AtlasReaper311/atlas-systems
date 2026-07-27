@@ -7,8 +7,8 @@
       "route": "/",
       "html_bytes": 21140,
       "first_party_request_count": 21,
-      "referenced_asset_bytes": 140652,
-      "total_static_bytes": 161792,
+      "referenced_asset_bytes": 140651,
+      "total_static_bytes": 161791,
       "largest_referenced_asset": "lab/index.html",
       "largest_referenced_asset_bytes": 18644
     },
@@ -49,5 +49,5 @@
       "largest_referenced_asset_bytes": 23671
     }
   ],
-  "sha256": "cc2c9b5a0c3919b0acc7fe791b3fbc8706a077c89ff2a6be84c93c98ccd16fa4"
+  "sha256": "43cc00cc07f5810cca62d26c87a812847afbce2e13ba1d5f2c3de749fbdc94a7"
 }
