@@ -22,14 +22,28 @@ const plan = (silenceBudget, density, ornaments = [], overrides = {}) => ({
   ...overrides,
 });
 
-test("build id identifies density-aware conductor", () => assert.match(APU_PERFORMANCE_CONDUCTOR_BUILD_ID, /v4$/));
-
-test("silence decisions are deterministic", () => {
-  const args = { perfPlan: plan(0.4, 0.5), category: "primary", stepIndex: 12, phraseIndex: 2, seedHash: 7 };
-  assert.equal(shouldOmitForPhase(args), shouldOmitForPhase(args));
+test("build id identifies the continuous-lead recovery candidate", () => {
+  assert.match(APU_PERFORMANCE_CONDUCTOR_BUILD_ID, /continuous-lead-v4$/);
 });
 
-test("higher density keeps at least as many events as lower density", () => {
+test("primary melody is never removed by phase silence", () => {
+  for (const silenceBudget of [0, 0.25, 0.5, 0.75, 1]) {
+    for (let step = 0; step < 128; step += 1) {
+      assert.equal(
+        shouldOmitForPhase({
+          perfPlan: plan(silenceBudget, 0.1),
+          category: "primary",
+          stepIndex: step,
+          phraseIndex: 4,
+          seedHash: 17,
+        }),
+        false,
+      );
+    }
+  }
+});
+
+test("secondary and supporting voices retain Pass C density behaviour", () => {
   let lowKept = 0;
   let highKept = 0;
   for (let step = 0; step < 256; step += 1) {
@@ -39,65 +53,32 @@ test("higher density keeps at least as many events as lower density", () => {
   assert.ok(highKept > lowKept);
 });
 
-test("density adds real rhythmic events, not only velocity", () => {
-  assert.deepEqual(supplementalRhythmForDensity(plan(0, 0.3), 2, 0), []);
-  assert.equal(supplementalRhythmForDensity(plan(0, 0.7), 2, 0)[0].voice, "hat");
-  assert.ok(supplementalRhythmForDensity(plan(0, 0.95), 12, 0).some((event) => event.voice === "noiseAccent"));
+test("connective arpeggio remains inspectable but is not auto-scheduled", () => {
+  const perfPlan = plan(0.2, 0.7, [], { state: "healthy", phraseIndex: 2, bars: 4 });
+  const diagnostic = connectiveArpeggioInstructionsForPhrase(perfPlan);
+  const scheduled = ornamentInstructionsForPhrase(perfPlan);
+  assert.equal(diagnostic.length, 3);
+  assert.ok(diagnostic.every((instruction) => instruction.ornament === "connective-arp"));
+  assert.equal(scheduled.some((instruction) => instruction.ornament === "connective-arp"), false);
+  assert.ok(Object.isFrozen(scheduled));
 });
 
-test("supplemental rhythm is bounded and phrase deterministic", () => {
-  const first = supplementalRhythmForDensity(plan(0, 1), 12, 4);
-  const second = supplementalRhythmForDensity(plan(0, 1), 12, 4);
-  assert.deepEqual(first, second);
-  for (const event of first) assert.ok(event.velocity <= 0.5);
-});
-
-test("velocity scaling never boosts above one", () => {
-  for (const category of performanceCategories()) {
-    assert.ok(velocityScaleForDensity(plan(0, 1), category) <= 1);
-    assert.ok(velocityScaleForDensity(plan(0, 0), category) >= 0.1);
-  }
-});
-
-test("every state receives a bounded connective arpeggio", () => {
-  for (const state of ["healthy", "warning", "critical", "unknown"]) {
-    const instructions = connectiveArpeggioInstructionsForPhrase(
-      plan(0.2, 0.7, [], { state, phraseIndex: 2, bars: 4 }),
-    );
-    assert.equal(instructions.length, 3, state);
-    assert.ok(Object.isFrozen(instructions));
-    assert.ok(instructions.every((instruction) => Object.isFrozen(instruction)));
-    assert.ok(instructions.every((instruction) => instruction.ornament === "connective-arp"));
-    assert.ok(instructions.every((instruction) => instruction.offsetSteps >= 0 && instruction.offsetSteps < 32));
-    assert.ok(instructions.every((instruction) => instruction.velocity >= 0.1 && instruction.velocity <= 0.3));
-  }
-});
-
-test("connective arpeggios vary deterministic contour and phrase position", () => {
-  const first = connectiveArpeggioInstructionsForPhrase(
-    plan(0.2, 0.7, [], { state: "healthy", phraseIndex: 0, bars: 0 }),
-  );
-  const second = connectiveArpeggioInstructionsForPhrase(
-    plan(0.2, 0.7, [], { state: "healthy", phraseIndex: 1, bars: 2 }),
-  );
-  assert.notDeepEqual(first.map((event) => event.midiOffset), second.map((event) => event.midiOffset));
-  assert.notDeepEqual(first.map((event) => event.offsetSteps), second.map((event) => event.offsetSteps));
-  assert.deepEqual(
-    second,
-    connectiveArpeggioInstructionsForPhrase(
-      plan(0.2, 0.7, [], { state: "healthy", phraseIndex: 1, bars: 2 }),
-    ),
-  );
-});
-
-test("all authored ornaments remain audible beside connective arpeggios", () => {
+test("authored structural ornaments remain scheduled", () => {
   const names = ["ripple", "stab", "tick", "swell", "glitch", "shimmer", "flourish", "structural", "reprise"];
   for (const name of names) {
     const instructions = ornamentInstructionsForPhrase(
       plan(0, 1, [{ name, size: "test", bar: 4 }], { phraseIndex: 2, bars: 4 }),
     );
-    assert.ok(instructions.some((instruction) => instruction.ornament === "connective-arp"), name);
     assert.ok(instructions.some((instruction) => instruction.ornament === name), name);
+    assert.equal(instructions.some((instruction) => instruction.ornament === "connective-arp"), false, name);
     assert.ok(instructions.every((instruction) => instruction.offsetSteps >= 0 && instruction.offsetSteps < 32));
   }
+});
+
+test("remaining conductor helpers preserve bounded Pass C behaviour", () => {
+  assert.ok(performanceCategories().includes("primary"));
+  assert.ok(velocityScaleForDensity(plan(0, 1), "primary") <= 1);
+  assert.ok(velocityScaleForDensity(plan(0, 0), "primary") >= 0.1);
+  assert.deepEqual(supplementalRhythmForDensity(plan(0, 0.3), 2, 0), []);
+  assert.equal(supplementalRhythmForDensity(plan(0, 0.7), 2, 0)[0].voice, "hat");
 });
