@@ -2,6 +2,8 @@ import { subscribe as subscribeRegistry } from "./atlas-registry.js?v=20260720-e
 
 const TOPOLOGY_URL = "https://api.atlas-systems.uk/v1/topology";
 const DEPLOY_URL = "https://api.atlas-systems.uk/deploy-watch/latest";
+const HOMEPAGE_FIELD_CSS = "/css/home-v2-base.css?v=20260727-atlas-field-production-v1";
+const HOMEPAGE_FIELD_MODULE = "/static/js/atlas-field.js?v=20260727-atlas-field-production-v1";
 const POLL_MS = 60_000;
 
 const state = {
@@ -16,6 +18,37 @@ function setStateText(id, text, semanticState = "available") {
   if (!element) return;
   element.textContent = text;
   element.dataset.state = semanticState;
+}
+
+function ensureHomepageFieldStyles() {
+  if (document.head.querySelector('link[data-atlas-home-field="styles"]')) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = HOMEPAGE_FIELD_CSS;
+  link.dataset.atlasHomeField = "styles";
+  document.head.appendChild(link);
+}
+
+async function initHomepageFieldFallback() {
+  const hero = document.querySelector(".hero");
+  if (!hero) return;
+
+  const existing = hero.querySelector(":scope > canvas.atlas-field-canvas");
+  if (existing) {
+    hero.dataset.atlasFieldState = "ready";
+    return;
+  }
+
+  ensureHomepageFieldStyles();
+
+  try {
+    const { createAtlasField } = await import(HOMEPAGE_FIELD_MODULE);
+    const controller = createAtlasField(hero, { preset: "hero" });
+    hero.dataset.atlasFieldState = controller ? "ready" : "unavailable";
+  } catch (error) {
+    hero.dataset.atlasFieldState = "unavailable";
+    console.warn("AtlasField fallback could not initialise", error);
+  }
 }
 
 function declaredWorkers() {
@@ -173,6 +206,8 @@ function schedule() {
 }
 
 function init() {
+  void initHomepageFieldFallback();
+
   subscribeRegistry((snapshot) => {
     state.registry = snapshot;
     render();
