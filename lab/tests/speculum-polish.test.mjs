@@ -17,6 +17,7 @@ test('Speculum exposes bounded presentation and frame export controls', () => {
   assert.match(html, /id="spc-trace-completion"[^>]*aria-hidden="true"/);
   assert.match(html, /speculum-polish-v5\.css\?v=20260727-polish-v5/);
   assert.match(html, /speculum-polish-v5\.js\?v=20260727-polish-v5/);
+  assert.match(css, /\.reduced\[hidden\]\s*\{[\s\S]*display:\s*none\s*!important/);
 });
 
 test('rail regions remain in strict flow and presentation mode expands the field', () => {
@@ -58,6 +59,9 @@ test('browser evidence covers viewports, zoom, reduced motion, dossier, ledger, 
   assert.match(evidence, /verifyTraceCompletion/);
   assert.match(evidence, /controlsOverlapDetail/);
   assert.match(evidence, /detailOverlapLedger/);
+  assert.match(evidence, /waitFor\(\{ state: 'attached' \}\)/);
+  assert.match(evidence, /getBoundingClientRect\(\)/);
+  assert.doesNotMatch(evidence, /#spc-canvas'\)\.waitFor\(\{ state: 'visible' \}\)/);
 });
 
 test('governed preview workflow runs and retains Speculum evidence', () => {
