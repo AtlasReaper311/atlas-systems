@@ -10,7 +10,7 @@ const css = fs.readFileSync("lab/shared/system-map-card-field.css", "utf8");
 const moduleSource = fs.readFileSync("lab/shared/system-map-card-field.js", "utf8");
 const shell = fs.readFileSync("lab/shared/shell.js", "utf8");
 const headers = fs.readFileSync("_headers", "utf8");
-const previewWorkflow = fs.readFileSync(".github/workflows/system-map-card-field-preview-smoke.yml", "utf8");
+const previewWorkflow = fs.readFileSync(".github/workflows/interface-preview.yml", "utf8");
 
 test("System Map card field targets only the featured Lab card", () => {
   assert.equal(SYSTEM_MAP_CARD_FIELD.selector, "#system-map.featured");
@@ -51,7 +51,7 @@ test("System Map card field remains decorative and visibly composited", () => {
 
 test("governed preview runs a pixel-level System Map card field smoke", () => {
   assert.match(previewWorkflow, /smoke_system_map_card_field_preview\.mjs/);
+  assert.match(previewWorkflow, /Verify System Map card AtlasField pixels/);
   assert.match(previewWorkflow, /system-map-card-field-preview-smoke/);
-  assert.match(previewWorkflow, /interface-preview-approved/);
   assert.match(previewWorkflow, /playwright@1\.61\.1/);
 });
