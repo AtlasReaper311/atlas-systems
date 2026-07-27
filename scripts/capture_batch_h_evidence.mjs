@@ -6,23 +6,23 @@ import { chromium, firefox } from "playwright";
 const base = process.env.PREVIEW_URL;
 if (!base) throw new Error("PREVIEW_URL is required");
 
-const routes = [
+const routes = Object.freeze([
   ["observability", "/systems/observability/", "systems"],
   ["reliability", "/systems/reliability/", "systems"],
   ["evidence", "/systems/evidence/", "systems"],
   ["system-symphony", "/lab/system-symphony/", "lab"],
-];
-const viewports = [
+]);
+const viewports = Object.freeze([
   ["320", { width: 320, height: 760 }],
   ["375", { width: 375, height: 812 }],
   ["768", { width: 768, height: 900 }],
   ["1024", { width: 1024, height: 900 }],
   ["1440", { width: 1440, height: 1000 }],
-];
-const browsers = [
+]);
+const browsers = Object.freeze([
   ["chrome", () => chromium.launch({ channel: "chrome", headless: true })],
   ["firefox", () => firefox.launch({ headless: true })],
-];
+]);
 const fixtureHosts = new Set([
   "api.atlas-systems.uk",
   "corpus.atlas-systems.uk",
@@ -66,20 +66,27 @@ async function configureContext(context) {
       configurable: false,
       writable: false,
     });
+
     const NativeAudioContext = window.AudioContext || window.webkitAudioContext;
-    let audioContextCount = 0;
+    const audioContexts = [];
     if (NativeAudioContext) {
       const TrackedAudioContext = new Proxy(NativeAudioContext, {
-        construct(target, args, newTarget) {
-          audioContextCount += 1;
-          return Reflect.construct(target, args, newTarget);
+        construct(target, args) {
+          const instance = Reflect.construct(target, args, target);
+          audioContexts.push(instance);
+          return instance;
         },
       });
       if (window.AudioContext) window.AudioContext = TrackedAudioContext;
       if (window.webkitAudioContext) window.webkitAudioContext = TrackedAudioContext;
     }
+
     Object.defineProperty(window, "__ATLAS_AUDIO_CONTEXT_COUNT__", {
-      get: () => audioContextCount,
+      get: () => audioContexts.length,
+      configurable: false,
+    });
+    Object.defineProperty(window, "__ATLAS_AUDIO_CONTEXT_STATES__", {
+      get: () => audioContexts.map((item) => item?.state || "unknown"),
       configurable: false,
     });
   });
@@ -128,7 +135,10 @@ async function inspectPage(page) {
       if (!element || element === document.documentElement) return "html";
       if (element === document.body) return "body";
       if (element.id) return `#${CSS.escape(element.id)}`;
-      const classes = [...element.classList].slice(0, 3).map((name) => `.${CSS.escape(name)}`).join("");
+      const classes = [...element.classList]
+        .slice(0, 3)
+        .map((name) => `.${CSS.escape(name)}`)
+        .join("");
       return `${element.tagName.toLowerCase()}${classes}`;
     }
 
@@ -147,6 +157,7 @@ async function inspectPage(page) {
       .filter((item) => item.left < -1 || item.right > width + 1)
       .sort((a, b) => b.width - a.width)
       .slice(0, 12);
+
     const header = document.querySelector(".atlas-header");
     const hero = document.querySelector(".focus-hero, .symphony-flagship");
     const mobileNav = document.querySelector(".atlas-mobile-nav");
@@ -177,6 +188,7 @@ async function inspectPage(page) {
       statusStates,
       healthyStates: statusStates.filter((state) => state === "healthy").length,
       audioContextCount: window.__ATLAS_AUDIO_CONTEXT_COUNT__ || 0,
+      audioContextStates: window.__ATLAS_AUDIO_CONTEXT_STATES__ || [],
       audioToggleText: document.querySelector("[data-audio-toggle]")?.textContent?.trim() || null,
       modalCount: document.querySelectorAll('[aria-modal="true"]').length,
       inlineSymphonyRegion: Boolean(document.querySelector('.symphony-console[role="region"]')),
@@ -209,24 +221,43 @@ function semanticFailures(evidence, focus, browserName, viewportName, routeName,
   if (!evidence.title.includes("Atlas Systems")) values.push(`${prefix}: title omits Atlas Systems`);
   if (evidence.h1Count !== 1) values.push(`${prefix}: expected one h1, found ${evidence.h1Count}`);
   if (evidence.mainCount !== 1) values.push(`${prefix}: expected one main, found ${evidence.mainCount}`);
-  if (!evidence.headerPresent || !["fixed", "sticky"].includes(evidence.headerPosition)) values.push(`${prefix}: governed header is missing or not pinned`);
+  if (!evidence.headerPresent || !["fixed", "sticky"].includes(evidence.headerPosition)) {
+    values.push(`${prefix}: governed header is missing or not pinned`);
+  }
   if (!evidence.searchPresent) values.push(`${prefix}: global search control is missing`);
-  if (evidence.heroTop === null || evidence.headerBottom === null || evidence.heroTop < evidence.headerBottom) values.push(`${prefix}: header obscures the focused page hero`);
-  if (evidence.scrollWidth > evidence.width + 1) values.push(`${prefix}: horizontal overflow ${evidence.scrollWidth} > ${evidence.width}; ${JSON.stringify(evidence.overflow)}`);
+  if (evidence.heroTop === null || evidence.headerBottom === null || evidence.heroTop < evidence.headerBottom) {
+    values.push(`${prefix}: header obscures the focused page hero`);
+  }
+  if (evidence.scrollWidth > evidence.width + 1) {
+    values.push(`${prefix}: horizontal overflow ${evidence.scrollWidth} > ${evidence.width}; ${JSON.stringify(evidence.overflow)}`);
+  }
 
   const mobileExpected = Number(viewportName) < 768;
   if (mobileExpected !== evidence.mobileVisible) values.push(`${prefix}: mobile navigation visibility is incorrect`);
   if (mobileExpected && evidence.mobileActive !== 1) values.push(`${prefix}: active mobile ${activeSection} route is missing`);
-  if (mobileExpected && evidence.bodyPaddingBottom + 1 < evidence.mobileNavHeight) values.push(`${prefix}: mobile navigation can obscure content or focus`);
+  if (mobileExpected && evidence.bodyPaddingBottom + 1 < evidence.mobileNavHeight) {
+    values.push(`${prefix}: mobile navigation can obscure content or focus`);
+  }
   if (evidence.fixtureMode !== "deterministic-unavailable") values.push(`${prefix}: deterministic fixture mode is missing`);
-  if (evidence.canonical && !evidence.canonical.startsWith("https://atlas-systems.uk/")) values.push(`${prefix}: preview hostname entered canonical metadata`);
-  if (!focus.focusVisible || ["body", "html"].includes(focus.tag)) values.push(`${prefix}: keyboard focus is not visibly placed on an interactive control`);
-  if (routeName !== "system-symphony" && evidence.statusStates.length && evidence.healthyStates === evidence.statusStates.length) values.push(`${prefix}: unavailable evidence was rendered entirely healthy`);
+  if (evidence.canonical && !evidence.canonical.startsWith("https://atlas-systems.uk/")) {
+    values.push(`${prefix}: preview hostname entered canonical metadata`);
+  }
+  if (!focus.focusVisible || ["body", "html"].includes(focus.tag)) {
+    values.push(`${prefix}: keyboard focus is not visibly placed on an interactive control`);
+  }
+  if (routeName !== "system-symphony" && evidence.statusStates.length && evidence.healthyStates === evidence.statusStates.length) {
+    values.push(`${prefix}: unavailable evidence was rendered entirely healthy`);
+  }
 
   if (routeName === "system-symphony") {
-    if (evidence.audioContextCount !== 0) values.push(`${prefix}: audio context was created before user consent`);
-    if (evidence.audioToggleText !== "Start") values.push(`${prefix}: audio control did not remain at Start before consent`);
-    if (evidence.modalCount !== 0 || !evidence.inlineSymphonyRegion) values.push(`${prefix}: Symphony is not embedded as a non-modal page region`);
+    const runningContexts = evidence.audioContextStates.filter((state) => state === "running");
+    if (runningContexts.length) values.push(`${prefix}: audio context entered running state before user consent`);
+    if (!String(evidence.audioToggleText || "").startsWith("Start")) {
+      values.push(`${prefix}: audio control did not remain in a start state before consent`);
+    }
+    if (evidence.modalCount !== 0 || !evidence.inlineSymphonyRegion) {
+      values.push(`${prefix}: Symphony is not embedded as a non-modal page region`);
+    }
     if (evidence.activeElementInsideSymphony) values.push(`${prefix}: Symphony stole focus during page load`);
   }
   return values;
@@ -247,7 +278,9 @@ async function captureRoute(context, browserName, viewportName, routeName, route
     const blocking = violations.filter((item) => item.impact === "serious" || item.impact === "critical");
     const pageFailures = semanticFailures(evidence, focus, browserName, viewportName, routeName, activeSection);
     if (pageErrors.length) pageFailures.push(`${browserName}/${viewportName}/${routeName}: page errors ${JSON.stringify(pageErrors)}`);
-    if (blocking.length) pageFailures.push(`${browserName}/${viewportName}/${routeName}: serious accessibility findings ${JSON.stringify(blocking)}`);
+    if (blocking.length) {
+      pageFailures.push(`${browserName}/${viewportName}/${routeName}: serious accessibility findings ${JSON.stringify(blocking)}`);
+    }
 
     const fullPage = `batch-h-screenshots/${browserName}-${viewportName}-${routeName}-full.png`;
     const viewportShot = `batch-h-screenshots/${browserName}-${viewportName}-${routeName}-viewport.png`;
@@ -287,7 +320,10 @@ async function runNoJavaScriptAcceptance() {
           const page = await context.newPage();
           const prefix = `chrome/${viewportName}/${routeName}/no-js`;
           try {
-            const response = await page.goto(new URL(route, base).toString(), { waitUntil: "domcontentloaded", timeout: 30_000 });
+            const response = await page.goto(new URL(route, base).toString(), {
+              waitUntil: "domcontentloaded",
+              timeout: 30_000,
+            });
             if (!response?.ok()) throw new Error(`HTTP ${response?.status() ?? "no response"}`);
             const evidence = await page.evaluate(() => {
               const nav = document.querySelector('body > nav[aria-label="Primary navigation"]');
@@ -296,8 +332,13 @@ async function runNoJavaScriptAcceptance() {
                 navVisible: Boolean(nav) && getComputedStyle(nav).display !== "none" && nav.getBoundingClientRect().height > 0,
                 mainVisible: Boolean(main) && main.getBoundingClientRect().height > 0,
                 systemsLink: Boolean(nav?.querySelector('a[href="/systems/"]')),
-                iconCount: ["/favicon.ico", "/favicon-16x16.png", "/favicon-32x32.png", "/apple-touch-icon.png", "/site.webmanifest"]
-                  .filter((href) => document.head.querySelector(`link[href="${href}"]`)).length,
+                iconCount: [
+                  "/favicon.ico",
+                  "/favicon-16x16.png",
+                  "/favicon-32x32.png",
+                  "/apple-touch-icon.png",
+                  "/site.webmanifest",
+                ].filter((href) => document.head.querySelector(`link[href="${href}"]`)).length,
                 width: document.documentElement.clientWidth,
                 scrollWidth: document.documentElement.scrollWidth,
               };
@@ -306,7 +347,9 @@ async function runNoJavaScriptAcceptance() {
             if (!evidence.navVisible || !evidence.mainVisible) pageFailures.push(`${prefix}: source navigation or main content is hidden`);
             if (!evidence.systemsLink) pageFailures.push(`${prefix}: source navigation omits Systems`);
             if (evidence.iconCount !== 5) pageFailures.push(`${prefix}: source icon package is incomplete`);
-            if (evidence.scrollWidth > evidence.width + 1) pageFailures.push(`${prefix}: horizontal overflow ${evidence.scrollWidth} > ${evidence.width}`);
+            if (evidence.scrollWidth > evidence.width + 1) {
+              pageFailures.push(`${prefix}: horizontal overflow ${evidence.scrollWidth} > ${evidence.width}`);
+            }
             failures.push(...pageFailures);
             report.push({ browser: "chrome", viewport: viewportName, route, scenario: "no-js", evidence, failures: pageFailures });
           } catch (error) {
