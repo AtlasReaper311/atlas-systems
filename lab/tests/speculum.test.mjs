@@ -141,11 +141,12 @@ test("compressed frames preserve every complete sweep", async () => {
 
 test("route uses local assets and states its evidence boundary", () => {
   assert.match(html, /<title>Speculum \/\/ Atlas Systems<\/title>/);
-  assert.match(html, /<link rel="canonical" href="https:\/\/atlas-systems\.uk\/lab\/speculum\/">/);
+  assert.ok(html.includes('<link rel="canonical" href="https://atlas-systems.uk/lab/speculum/">'));
   assert.match(html, /\/static\/vendor\/atlas-interface\/v0\.2\.0\/atlas-fonts\.css/);
   assert.match(html, /\/lab\/speculum\/speculum\.css/);
   assert.match(html, /\/lab\/speculum\/speculum\.js/);
-  assert.doesNotMatch(html, /fonts\.(?:googleapis|gstatic)\.com/);
+  assert.equal(html.includes("fonts.googleapis.com"), false);
+  assert.equal(html.includes("fonts.gstatic.com"), false);
   assert.match(html, /reviewed public snapshot/i);
   assert.match(html, /Private repository identities and private relationships are absent\./);
   assert.match(html, /This is not a live\s+health surface/);
