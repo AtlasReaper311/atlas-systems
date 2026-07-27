@@ -79,14 +79,13 @@ test("track engine source keeps crusher off the full master and schedules pulse 
   assert.match(source, /pulseOscillatorForDutyCycle\(0\.125\)/);
   assert.match(source, /staircaseTriangleOscillator\(\)/);
   assert.match(source, /vrc6SawtoothOscillator\(\)/);
-  assert.match(source, /createLfsrNoiseBuffer\(rawContext, short\)/);
-  assert.match(source, /createLfsrNoiseVoice\(Tone, nodes\.drumBus, \{\s*short: false,/);
-  assert.match(source, /createLfsrNoiseVoice\(Tone, nodes\.hatFilter, \{\s*short: true,/);
-  assert.match(source, /createLfsrNoiseVoice\(Tone, nodes\.noiseAccentFilter, \{\s*short: true,/);
+  assert.match(source, /new Tone\.NoiseSynth\(\{\s*noise: \{ type: "white" \}/);
+  assert.match(source, /new Tone\.NoiseSynth\(\{\s*noise: \{ type: "pink" \}/);
+  assert.match(source, /nodes\.hat\.connect\(nodes\.hatFilter\)/);
+  assert.match(source, /nodes\.openHat\.connect\(nodes\.hatFilter\)/);
   assert.match(source, /oscillatorType: voice\.label/);
   assert.match(source, /nodes\.serviceBus\.chain\(nodes\.chipColor, nodes\.melodyBus\)/);
   assert.doesNotMatch(source, /nodes\.chipBus\.chain\(\s*nodes\.crusher,/);
-  assert.doesNotMatch(source, /new Tone\.NoiseSynth/);
   assert.match(source, /nodes\.noiseAccentFilter = new Tone\.Filter\(\{ type: "bandpass", frequency: 1500, Q: 1\.35 \}\)/);
   assert.match(source, /setPulseWidth\(nodes\.primary, event\.dutyCycle, pulseWidthLeadTime\(time\)\)/);
   assert.match(source, /setPulseWidth\(nodes\.secondary, event\.dutyCycle, pulseWidthLeadTime\(time\)\)/);

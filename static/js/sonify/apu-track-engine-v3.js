@@ -26,7 +26,6 @@ import {
   APU_MASTERING_LIMITER_CEILING_DB,
 } from "./apu-mastering.js?v=20260726-system-symphony-mastering-v4";
 import {
-  createLfsrNoiseBuffer,
   pulseOscillatorForDutyCycle,
   pulsePartialsForDutyCycle,
   staircaseTriangleOscillator,
@@ -130,96 +129,6 @@ function pulseWidthLeadTime(time) {
   return Number.isFinite(time)
     ? Math.max(0, time - APU_TRACK_PULSE_WIDTH_LEAD_SECONDS)
     : undefined;
-}
-
-function toneRawContext(Tone) {
-  const context = Tone.getContext?.();
-  return context?.rawContext ?? context?._context ?? context?.context ?? context;
-}
-
-function toneTargetInput(node) {
-  return node?.input ?? node?._input ?? node;
-}
-
-function dbToGain(Tone, value) {
-  if (typeof Tone.dbToGain === "function") return Tone.dbToGain(value);
-  return 10 ** ((Number(value) || 0) / 20);
-}
-
-function durationSeconds(Tone, duration, fallback = 0.05) {
-  if (Number.isFinite(duration)) return Math.max(0.001, duration);
-  try {
-    const seconds = Tone.Time(duration).toSeconds();
-    return Number.isFinite(seconds) ? Math.max(0.001, seconds) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function createLfsrNoiseVoice(Tone, output, {
-  short = false,
-  volumeDb = -24,
-  attack = 0.003,
-  release = 0.024,
-  playbackRate = 1,
-} = {}) {
-  const rawContext = toneRawContext(Tone);
-  if (!rawContext?.createBufferSource || !rawContext?.createGain) {
-    throw new Error("system-symphony-apu-track: native audio context is unavailable");
-  }
-  const buffer = createLfsrNoiseBuffer(rawContext, short);
-  const outputInput = toneTargetInput(output);
-  const activeSources = new Set();
-  const baseGain = dbToGain(Tone, volumeDb);
-
-  function releaseSource(record) {
-    if (!record) return;
-    activeSources.delete(record);
-    try {
-      record.source.disconnect();
-      record.envelope.disconnect();
-    } catch {
-      // Source cleanup is best-effort; ended nodes may already be disconnected.
-    }
-  }
-
-  return Object.freeze({
-    triggerAttackRelease(duration, time, velocity = 1) {
-      const startAt = Number.isFinite(time) ? Math.max(rawContext.currentTime, time) : rawContext.currentTime;
-      const hold = durationSeconds(Tone, duration);
-      const attackSeconds = Math.min(Math.max(0.001, attack), hold * 0.6);
-      const releaseSeconds = Math.max(0.003, release);
-      const stopAt = startAt + hold + releaseSeconds;
-      const peak = clamp((Number(velocity) || 0) * baseGain, 0, 1);
-      const source = rawContext.createBufferSource();
-      const envelope = rawContext.createGain();
-      const record = { source, envelope };
-
-      source.buffer = buffer;
-      source.loop = true;
-      if (source.playbackRate) source.playbackRate.value = Math.max(0.25, Number(playbackRate) || 1);
-      envelope.gain.setValueAtTime(0.0001, startAt);
-      envelope.gain.exponentialRampToValueAtTime(Math.max(0.0001, peak), startAt + attackSeconds);
-      envelope.gain.exponentialRampToValueAtTime(0.0001, stopAt);
-      source.connect(envelope);
-      envelope.connect(outputInput);
-      source.onended = () => releaseSource(record);
-      activeSources.add(record);
-      source.start(startAt);
-      source.stop(stopAt + 0.01);
-    },
-
-    dispose() {
-      for (const record of Array.from(activeSources)) {
-        try {
-          record.source.stop();
-        } catch {
-          // Stopping a source that has already ended is harmless.
-        }
-        releaseSource(record);
-      }
-    },
-  });
 }
 
 function createServiceVoice(Tone, output, index) {
@@ -426,39 +335,33 @@ export function createApuTrackEngine({
       envelope: { attack: 0.002, decay: 0.14, sustain: 0, release: 0.12 },
       volume: -11,
     }).connect(nodes.drumBus);
-    nodes.snare = createLfsrNoiseVoice(Tone, nodes.drumBus, {
-      short: false,
-      volumeDb: -19,
-      attack: 0.003,
-      release: 0.025,
-      playbackRate: 1,
+    nodes.snare = new Tone.NoiseSynth({
+      noise: { type: "white" },
+      envelope: { attack: 0.003, decay: 0.064, sustain: 0, release: 0.025 },
+      volume: -19,
+    }).connect(nodes.drumBus);
+    nodes.hat = new Tone.NoiseSynth({
+      noise: { type: "white" },
+      envelope: { attack: 0.002, decay: 0.018, sustain: 0 },
+      volume: -30,
+    });
+    nodes.openHat = new Tone.NoiseSynth({
+      noise: { type: "white" },
+      envelope: { attack: 0.003, decay: 0.08, sustain: 0, release: 0.032 },
+      volume: -31,
     });
     nodes.hatFilter = new Tone.Filter({ type: "highpass", frequency: 6100, Q: 0.5, rolloff: -24 });
-    nodes.hat = createLfsrNoiseVoice(Tone, nodes.hatFilter, {
-      short: true,
-      volumeDb: -30,
-      attack: 0.002,
-      release: 0.006,
-      playbackRate: 1.8,
-    });
-    nodes.openHat = createLfsrNoiseVoice(Tone, nodes.hatFilter, {
-      short: true,
-      volumeDb: -31,
-      attack: 0.003,
-      release: 0.032,
-      playbackRate: 1.15,
-    });
+    nodes.hat.connect(nodes.hatFilter);
+    nodes.openHat.connect(nodes.hatFilter);
     nodes.hatFilter.connect(nodes.drumBus);
 
-    nodes.noiseAccentFilter = new Tone.Filter({ type: "bandpass", frequency: 1500, Q: 1.35 });
-    nodes.noiseAccent = createLfsrNoiseVoice(Tone, nodes.noiseAccentFilter, {
-      short: true,
-      volumeDb: -25,
-      attack: 0.004,
-      release: 0.045,
-      playbackRate: 0.72,
+    nodes.noiseAccent = new Tone.NoiseSynth({
+      noise: { type: "pink" },
+      envelope: { attack: 0.004, decay: 0.095, sustain: 0, release: 0.045 },
+      volume: -25,
     });
-    nodes.noiseAccentFilter.connect(nodes.accentBus);
+    nodes.noiseAccentFilter = new Tone.Filter({ type: "bandpass", frequency: 1500, Q: 1.35 });
+    nodes.noiseAccent.chain(nodes.noiseAccentFilter, nodes.accentBus);
 
     nodes.telemetryHum = new Tone.Oscillator({ frequency: 55, type: "sine", volume: -34 });
     nodes.telemetryHumFilter = new Tone.Filter({ type: "lowpass", frequency: 240, Q: 0.8, rolloff: -24 });
