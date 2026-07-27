@@ -14,6 +14,11 @@ const pageUrl = new URL(
   `/?atlas-deploy=${encodeURIComponent(expectedSha)}&atlas-field-smoke=1`,
   siteUrl,
 ).href;
+const expectedEntrypoints = Object.freeze({
+  stylesheet: "/css/home-v2-base.css?v=20260727-atlas-field-production-v1",
+  interactions: "/static/js/homepage-interactions.js?v=20260727-atlas-field-production-v1",
+  truth: "/static/js/live/homepage-truth.js?v=20260727-atlas-field-production-v1",
+});
 
 await mkdir(outputDir, { recursive: true });
 
@@ -31,12 +36,18 @@ page.on("console", (message) => {
 page.on("pageerror", (error) => pageErrors.push(error.message));
 
 async function collectEvidence() {
-  return page.evaluate(() => {
+  return page.evaluate((expected) => {
+    const entrypoints = {
+      stylesheet: document.querySelector(`link[rel="stylesheet"][href="${expected.stylesheet}"]`)?.getAttribute("href") ?? null,
+      interactions: document.querySelector(`script[src="${expected.interactions}"]`)?.getAttribute("src") ?? null,
+      truth: document.querySelector(`script[type="module"][src="${expected.truth}"]`)?.getAttribute("src") ?? null,
+    };
     const hero = document.querySelector(".hero");
     const canvas = hero?.querySelector(":scope > canvas.atlas-field-canvas");
     if (!canvas) {
       return {
         location: location.href,
+        entrypoints,
         heroState: hero?.dataset.atlasFieldState ?? null,
         canvasPresent: false,
       };
@@ -64,6 +75,7 @@ async function collectEvidence() {
 
     return {
       location: location.href,
+      entrypoints,
       heroState: hero?.dataset.atlasFieldState ?? null,
       canvasPresent: true,
       mode: canvas.dataset.mode ?? null,
@@ -80,7 +92,7 @@ async function collectEvidence() {
       sampledPixels,
       luminousPixels,
     };
-  });
+  }, expectedEntrypoints);
 }
 
 try {
@@ -99,6 +111,7 @@ try {
   await page.waitForTimeout(750);
   evidence = await collectEvidence();
 
+  assert.deepEqual(evidence.entrypoints, expectedEntrypoints, JSON.stringify(evidence, null, 2));
   assert.equal(evidence.canvasPresent, true, JSON.stringify(evidence, null, 2));
   assert.equal(evidence.heroState, "ready", JSON.stringify(evidence, null, 2));
   assert.equal(evidence.preset, "hero", JSON.stringify(evidence, null, 2));
@@ -132,6 +145,7 @@ try {
       ok: failure === null,
       pageUrl,
       expectedSha,
+      expectedEntrypoints,
       failure: failure ? { name: failure.name, message: failure.message, stack: failure.stack } : null,
       evidence,
       pageErrors,
