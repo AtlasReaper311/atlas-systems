@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Deterministic System Symphony Pass D1 thematic-memory and song-plan inspector.">
+  <meta name="theme-color" content="#0a0a0f">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
+  <link rel="stylesheet" href="/lab/system-symphony-apu-trace/system-symphony-apu-trace.css?v=20260727-pass-d0-v1">
+  <link rel="stylesheet" href="/lab/system-symphony-apu-song-plan/system-symphony-apu-song-plan.css?v=20260727-pass-d1-v1">
+  <title>Pass D1 Song Plan // System Symphony</title>
+</head>
+<body>
+  <nav aria-label="Primary navigation">
+    <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
+    <ul class="nav-links">
+      <li><a href="/work/">Work</a></li>
+      <li><a href="/writing/">Writing</a></li>
+      <li><a href="/lab/" aria-current="page">Lab</a></li>
+      <li><a href="/systems/">Systems</a></li>
+      <li><a href="/about/">About</a></li>
+    </ul>
+  </nav>
+
+  <main class="trace-main" data-song-plan-root data-ready="false">
+    <header class="trace-hero">
+      <p class="trace-kicker">System Symphony / Pass D1</p>
+      <h1>The score remembers what it has already said.</h1>
+      <p>This diagnostic overlays one deterministic Atlas theme, explicit phrase roles and bounded thematic memory onto the D0 score journeys. It schedules no audio and does not change the approved D1A playback path.</p>
+      <div class="trace-boundary" role="status">
+        <strong>Design boundary</strong>
+        <span>Source baseline <code>084967b3e19ba7a763e6e44bc1b2169957035397</code>. Song plans are review data until a later phase wires them into audible motif and harmony decisions.</span>
+      </div>
+    </header>
+
+    <section class="trace-console" aria-labelledby="song-plan-title">
+      <div class="trace-console-head">
+        <div>
+          <p class="trace-kicker">ATLAS APU // bounded long-form memory</p>
+          <h2 id="song-plan-title">Pass D1 plan journeys</h2>
+        </div>
+        <div class="trace-actions">
+          <label>
+            <span>Journey</span>
+            <select data-journey-select aria-label="Song-plan journey"></select>
+          </label>
+          <button type="button" data-export-json>Export JSON</button>
+        </div>
+      </div>
+
+      <p class="trace-status" data-plan-status aria-live="polite">Building deterministic song plans.</p>
+
+      <section class="trace-metrics" aria-label="Selected journey summary">
+        <article><span>Journey</span><strong data-metric="journey">Waiting</strong></article>
+        <article><span>Phrases</span><strong data-metric="phrases">0</strong></article>
+        <article><span>Bars</span><strong data-metric="bars">0</strong></article>
+        <article><span>Digest</span><strong data-metric="digest">Waiting</strong></article>
+        <article><span>Base commit</span><strong data-metric="base">Waiting</strong></article>
+        <article><span>Plan build</span><strong data-metric="build">Waiting</strong></article>
+      </section>
+
+      <section class="trace-inspector" aria-labelledby="plan-inspector-title">
+        <div class="trace-section-head">
+          <div>
+            <span>01</span>
+            <h3 id="plan-inspector-title">Phrase and memory inspector</h3>
+          </div>
+          <label>
+            <span>Phrase</span>
+            <input type="range" min="0" max="0" step="1" value="0" data-phrase-range>
+          </label>
+        </div>
+        <div class="song-plan-current" data-current-plan>
+          <p>Select a journey to inspect its first phrase.</p>
+        </div>
+      </section>
+
+      <section class="trace-table-panel" aria-labelledby="plan-table-title">
+        <div class="trace-section-head">
+          <div>
+            <span>02</span>
+            <h3 id="plan-table-title">Song-plan ledger</h3>
+          </div>
+          <strong data-ledger-count>0 entries</strong>
+        </div>
+        <div class="trace-table-wrap" tabindex="0">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Phrase</th>
+                <th scope="col">State</th>
+                <th scope="col">Section</th>
+                <th scope="col">Cycle role</th>
+                <th scope="col">Phrase role</th>
+                <th scope="col">Theme transform</th>
+                <th scope="col">Harmony</th>
+                <th scope="col">Cadence</th>
+                <th scope="col">Arp / bass / rhythm</th>
+                <th scope="col">Memory</th>
+                <th scope="col">Signature</th>
+              </tr>
+            </thead>
+            <tbody data-plan-table>
+              <tr><td colspan="11">Building plan trace.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script type="module" src="/lab/system-symphony-apu-song-plan/system-symphony-apu-song-plan.js?v=20260727-pass-d1-v1"></script>
+</body>
+</html>
