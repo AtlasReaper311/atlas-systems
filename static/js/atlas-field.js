@@ -329,7 +329,7 @@ export function createAtlasField(host, options = {}) {
       resolved.density,
     );
     allocateParticles(motionQuery.matches ? resolved.density.reduced : targetCount);
-    renderedLight = lightPosition(width, height, 0);
+    renderedLight = { ...lightPosition(width, height, 0) };
     warmField();
     if (motionQuery.matches) drawStaticField();
   }

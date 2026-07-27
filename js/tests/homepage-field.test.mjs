@@ -114,8 +114,8 @@ test("unknown AtlasField presets fail closed", () => {
 
 test("homepage truth module independently restores the field and its current styles", () => {
   const source = fs.readFileSync("static/js/live/homepage-truth.js", "utf8");
-  assert.match(source, /HOMEPAGE_FIELD_CSS = "\/css\/home-v2-base\.css\?v=20260727-atlas-field-production-v1"/);
-  assert.match(source, /HOMEPAGE_FIELD_MODULE = "\/static\/js\/atlas-field\.js\?v=20260727-atlas-field-production-v1"/);
+  assert.match(source, /HOMEPAGE_FIELD_CSS = "\/css\/home-v2-base\.css\?v=20260727-atlas-field-production-v2"/);
+  assert.match(source, /HOMEPAGE_FIELD_MODULE = "\/static\/js\/atlas-field\.js\?v=20260727-atlas-field-production-v2"/);
   assert.match(source, /querySelector\(":scope > canvas\.atlas-field-canvas"\)/);
   assert.match(source, /createAtlasField\(hero, \{ preset: "hero" \}\)/);
   assert.match(source, /void initHomepageFieldFallback\(\)/);

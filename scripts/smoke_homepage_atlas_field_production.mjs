@@ -15,9 +15,9 @@ const pageUrl = new URL(
   siteUrl,
 ).href;
 const expectedEntrypoints = Object.freeze({
-  stylesheet: "/css/home-v2-base.css?v=20260727-atlas-field-production-v1",
-  interactions: "/static/js/homepage-interactions.js?v=20260727-atlas-field-production-v1",
-  truth: "/static/js/live/homepage-truth.js?v=20260727-atlas-field-production-v1",
+  stylesheet: "/css/home-v2-base.css?v=20260727-atlas-field-production-v2",
+  interactions: "/static/js/homepage-interactions.js?v=20260727-atlas-field-production-v2",
+  truth: "/static/js/live/homepage-truth.js?v=20260727-atlas-field-production-v2",
 });
 
 await mkdir(outputDir, { recursive: true });

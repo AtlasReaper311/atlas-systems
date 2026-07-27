@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 
-const version = "20260727-atlas-field-production-v1";
+const version = "20260727-atlas-field-production-v2";
 const expectedEntrypoints = [
   `/css/home-v2-base.css?v=${version}`,
   `/static/js/homepage-interactions.js?v=${version}`,
