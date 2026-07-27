@@ -6,6 +6,7 @@ on:
     types: [synchronize]
     paths:
       - ".github/workflows/apply-system-map-card-field-integration.yml"
+      - ".atlas/system-map-card-field-integration-trigger"
 
 permissions:
   contents: write
@@ -67,6 +68,7 @@ jobs:
           workflow.write_text(workflow_source, encoding="utf-8")
 
           Path(".github/workflows/apply-system-map-card-field-integration.yml").unlink()
+          Path(".atlas/system-map-card-field-integration-trigger").unlink()
           PY
 
       - name: Commit integration
@@ -77,5 +79,6 @@ jobs:
           git add lab/index.html
           git add .github/workflows/interface-preview.yml
           git add .github/workflows/apply-system-map-card-field-integration.yml
+          git add .atlas/system-map-card-field-integration-trigger
           git commit -m "Integrate System Map card field preview"
           git push origin HEAD:feat/system-map-card-atlas-field
