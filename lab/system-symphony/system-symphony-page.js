@@ -227,6 +227,8 @@ function syncMode(mode, { push = true } = {}) {
   for (const tab of flagship.querySelectorAll("[data-symphony-mode-tab]")) {
     const selected = tab.dataset.symphonyModeTab === nextMode;
     tab.setAttribute("aria-selected", String(selected));
+    if (selected) tab.setAttribute("aria-current", "page");
+    else tab.removeAttribute("aria-current");
     tab.tabIndex = selected ? 0 : -1;
   }
   for (const panel of flagship.querySelectorAll("[data-symphony-mode-panel]")) {
@@ -273,10 +275,11 @@ function selectProofPanel(panel = "cartridge", { scroll = false } = {}) {
 
 function setTrustLayer(open) {
   const layer = document.querySelector("[data-trust-layer]");
-  const toggle = document.querySelector("[data-trust-toggle]");
-  if (!layer || !toggle) return;
+  if (!layer) return;
   layer.hidden = !open;
-  toggle.setAttribute("aria-expanded", String(open));
+  for (const toggle of document.querySelectorAll("[data-trust-toggle]")) {
+    toggle.setAttribute("aria-expanded", String(open));
+  }
   if (open) layer.scrollIntoView({ block: "nearest", behavior: "smooth" });
 }
 
@@ -701,13 +704,19 @@ function renderIncidentTimeline(arc) {
     stage.setAttribute("aria-pressed", String(cartridge.incidentFrame.index === incidentArcIndex));
     stage.classList.toggle("is-active", cartridge.incidentFrame.index === incidentArcIndex);
 
+    const badge = document.createElement("span");
+    badge.className = "symphony-incident-stage__badge";
+    badge.textContent = `Stage ${cartridge.incidentFrame.index + 1}`;
+
     const heading = document.createElement("h3");
     heading.textContent = cartridge.incidentFrame.label;
     const state = document.createElement("p");
+    state.className = "symphony-incident-stage__state";
     state.textContent = `${cartridge.dominantLabel} / ${cartridge.movementName}`;
     const proof = document.createElement("p");
+    proof.className = "symphony-incident-stage__proof";
     proof.textContent = `${cartridge.frameTime} / ${cartridge.seed}`;
-    stage.append(heading, state, proof);
+    stage.append(badge, heading, state, proof);
     stage.addEventListener("click", () => {
       clearIncidentArcTimer();
       armIncidentArcFrame(arc, cartridge.incidentFrame.index);
@@ -983,10 +992,12 @@ function installModeControls(host) {
       selectProofPanel(opener.dataset.proofOpen, { scroll: true });
     });
   }
-  document.querySelector("[data-trust-toggle]")?.addEventListener("click", () => {
-    const layer = document.querySelector("[data-trust-layer]");
-    setTrustLayer(layer?.hidden !== false);
-  });
+  for (const trustToggle of document.querySelectorAll("[data-trust-toggle]")) {
+    trustToggle.addEventListener("click", () => {
+      const layer = document.querySelector("[data-trust-layer]");
+      setTrustLayer(layer?.hidden !== false);
+    });
+  }
   document.querySelector("[data-trust-close]")?.addEventListener("click", () => setTrustLayer(false));
   for (const roleButton of document.querySelectorAll("[data-apu-role-highlight]")) {
     roleButton.addEventListener("click", () => {

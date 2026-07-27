@@ -211,7 +211,8 @@
 .symphony-product-mode-link:hover,
 .symphony-product-mode-link:focus-visible,
 .symphony-product-link[aria-current="page"],
-.symphony-product-mode-link[aria-current="page"] {
+.symphony-product-mode-link[aria-current="page"],
+.symphony-product-mode-link[aria-selected="true"] {
   border-color: rgba(245, 166, 35, 0.5);
   background: rgba(245, 166, 35, 0.1);
   color: var(--accent, #f5a623);

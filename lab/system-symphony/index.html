@@ -31,11 +31,18 @@
   <link rel="stylesheet" href="/static/css/estate-search.css">
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
   <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h-fixes">
+  <link rel="stylesheet" href="/static/css/card-signatures.css?v=20260727-symphony-stage-2a">
   <link rel="stylesheet" href="/static/css/system-symphony.css?v=20260718-system-symphony-ghost-mix">
   <link rel="stylesheet" href="/static/css/system-symphony-apu-live.css?v=20260726-atlas-apu-live-v7">
-  <link rel="stylesheet" href="/lab/system-symphony/system-symphony-page.css?v=20260726-flagship-ia-v1">
+  <link rel="stylesheet" href="/lab/system-symphony/system-symphony-page.css?v=20260727-stage-2a-polish-fixes">
 </head>
 <body class="symphony-page">
+  <div class="symphony-boot" data-cartridge-boot data-running="true" aria-hidden="true">
+    <span>Atlas APU-01</span>
+    <strong>Cartridge inserted</strong>
+    <span class="symphony-boot__bar"><i></i></span>
+    <span>Reading bounded telemetry</span>
+  </div>
   <nav aria-label="Primary navigation">
     <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
     <ul class="nav-links">
@@ -45,12 +52,12 @@
     </ul>
   </nav>
   <main class="focus-main symphony-page-main">
-    <header id="instrument" class="symphony-flagship" data-symphony-flagship data-symphony-mode="play" aria-labelledby="symphony-page-title">
+    <header id="instrument" class="symphony-flagship" data-symphony-flagship data-symphony-mode="play" data-score-state="unknown" aria-labelledby="symphony-page-title">
       <div class="symphony-flagship__top">
         <div>
           <p class="focus-breadcrumb">Lab / Atlas APU cartridge / preview instrument</p>
           <h1 id="symphony-page-title" class="focus-title">System SYMPHONY</h1>
-          <p class="focus-lede">A sample-free fictional chip, styled as an 8-bit diagnostic cartridge, converts bounded Atlas infrastructure telemetry into deterministic, replayable, auditable music.</p>
+          <p class="focus-lede">Bounded Atlas infrastructure telemetry, converted by a sample-free fictional chip into deterministic, replayable, auditable music.</p>
         </div>
         <div class="symphony-mode-tabs" role="tablist" aria-label="System Symphony modes">
           <a id="symphony-mode-play" class="symphony-product-mode-link" href="/lab/system-symphony/" role="tab" aria-selected="true" aria-controls="symphony-panel-play" data-symphony-mode-tab="play">PLAY</a>
@@ -59,28 +66,21 @@
         </div>
       </div>
 
-      <nav class="symphony-destination-nav" aria-label="System Symphony lab routes">
-        <a href="/lab/system-symphony/roms/">ROM Library</a>
-        <a href="/lab/system-symphony/build-log/">Build Log Synth</a>
-        <a href="/lab/system-symphony/radio/">Signal Radio</a>
-      </nav>
-
       <div class="symphony-stage">
         <div class="symphony-flagship__panels">
           <section id="symphony-panel-play" class="symphony-mode-panel is-active" role="tabpanel" aria-labelledby="symphony-mode-play" data-symphony-mode-panel="play">
-            <p class="symphony-panel-kicker">PLAY</p>
-            <h2 data-page-now-playing>Now Playing: Atlas Estate.</h2>
-            <p class="symphony-panel-copy">Treat it like an instrument first. The estate state becomes movement, pressure, and texture; proof stays one deliberate step away.</p>
-            <dl class="symphony-play-readout" role="group" aria-label="Current score readout">
-              <div><dt>Movement</dt><dd data-page-movement>Unknown Drift</dd></div>
-              <div><dt>Source</dt><dd data-page-source-label>CONNECTING</dd></div>
-              <div><dt>State</dt><dd data-page-now-state>Unknown</dd></div>
-              <div><dt>Measured</dt><dd data-page-measured-label>0 / 0</dd></div>
-            </dl>
-            <div class="symphony-panel-actions">
-              <button class="focus-action primary" type="button" data-page-audio-toggle data-audio-toggle>Start listening</button>
-              <button class="focus-action" type="button" data-trust-toggle aria-expanded="false" aria-controls="symphony-trust-layer">Prove it</button>
+            <div class="symphony-transport">
+              <div class="symphony-transport__title">
+                <p class="symphony-panel-kicker">NOW PLAYING</p>
+                <h2 data-page-movement data-page-now-playing>Unknown Drift</h2>
+              </div>
+              <div class="symphony-panel-actions">
+                <button class="focus-action primary" type="button" data-page-audio-toggle data-audio-toggle>Start listening</button>
+                <button class="focus-action" type="button" data-trust-toggle aria-expanded="false" aria-controls="symphony-trust-layer">Prove it</button>
+                <span class="symphony-transport__meta"><span data-page-source-label>CONNECTING</span> &middot; <span data-page-now-state>Unknown</span> &middot; <span data-page-measured-label>0 / 0</span> measured</span>
+              </div>
             </div>
+            <p class="symphony-panel-copy">Treat it like an instrument first. The estate state becomes movement, pressure, and texture; proof stays one deliberate step away.</p>
           </section>
 
           <section id="symphony-panel-trace" class="symphony-mode-panel" role="tabpanel" aria-labelledby="symphony-mode-trace" data-symphony-mode-panel="trace" hidden>
@@ -119,12 +119,36 @@
           </section>
         </div>
 
-        <aside class="symphony-cartridge-cover" aria-label="Current cartridge cover" data-current-cartridge-cover data-state="unknown">
-          <span>ATLAS APU-01</span>
+        <aside class="symphony-cartridge-cover" aria-label="Current cartridge sleeve" data-current-cartridge-cover data-cartridge-sleeve data-state="unknown">
+          <span class="symphony-sleeve__art" data-sleeve-art aria-hidden="true"></span>
+          <span class="symphony-sleeve__scan" aria-hidden="true"></span>
+          <span class="symphony-sleeve__veil" aria-hidden="true"></span>
+          <span class="symphony-cartridge-cover__head">
+            <span>Atlas APU-01</span>
+            <span class="symphony-cartridge-cover__code" aria-hidden="true"></span>
+          </span>
           <strong data-cover-movement>Unknown Drift</strong>
-          <em data-cover-source>connecting</em>
+          <span class="symphony-cartridge-cover__foot">
+            <em data-cover-source>connecting</em>
+            <small data-sleeve-serial>APU-01 / A7A5</small>
+            <small>Sleeve generated from seed &middot; sample-free</small>
+          </span>
         </aside>
       </div>
+
+      <section class="symphony-score" aria-labelledby="symphony-score-title">
+        <div class="symphony-score__head">
+          <p id="symphony-score-title">Current frame &middot; 7 APU roles &times; 16 steps</p>
+          <p data-score-grid-seed>Seed A7A5 &middot; deterministic</p>
+        </div>
+        <div class="symphony-score-grid" data-score-grid data-running="false"></div>
+        <div class="symphony-score__legend">
+          <span><i data-cell="accent"></i>Accent hit</span>
+          <span><i data-cell="hit"></i>Voice sounds</span>
+          <span><i data-cell="rest"></i>Rest</span>
+          <span><i data-cell="unmeasured"></i>Unmeasured &mdash; not silent, not healthy</span>
+        </div>
+      </section>
 
       <aside class="symphony-proof-strip" aria-label="System Symphony proof strip">
         <dl>
@@ -134,12 +158,21 @@
           <div><dt>Commit</dt><dd id="page-proof-commit">unavailable</dd></div>
           <div><dt>Sample-free</dt><dd id="page-proof-sample-free">pending</dd></div>
         </dl>
+        <button class="symphony-proof-open" type="button" data-trust-toggle aria-expanded="false" aria-controls="symphony-trust-layer">Evidence</button>
       </aside>
+
+      <div class="symphony-frame-ribbon-wrap">
+        <div class="symphony-frame-ribbon-wrap__head">
+          <p data-frame-ribbon-count>Last 0 frames</p>
+          <p>Select a frame to replay it</p>
+        </div>
+        <div class="symphony-frame-ribbon" role="group" aria-label="Recent frame history" data-frame-ribbon></div>
+      </div>
 
       <section id="symphony-trust-layer" class="symphony-trust-layer" data-trust-layer hidden aria-labelledby="symphony-trust-title">
         <div class="symphony-trust-layer__head">
           <div>
-            <p class="symphony-panel-kicker">TRUST LAYER</p>
+            <p class="symphony-panel-kicker">EVIDENCE</p>
             <h2 id="symphony-trust-title">No fakery mode.</h2>
           </div>
           <button class="focus-action" type="button" data-trust-close>Close</button>
@@ -154,12 +187,24 @@
           <div><dt>Replay URL</dt><dd><a id="page-proof-replay" href="/lab/system-symphony/replay/">waiting</a></dd></div>
           <div><dt>Engine</dt><dd id="trust-proof-engine">loading</dd></div>
         </dl>
-        <div class="symphony-panel-actions">
-          <button class="focus-action primary" type="button" data-cartridge-download>Export current cartridge JSON</button>
-          <button class="focus-action" type="button" data-proof-open="cartridge">Inspect proof console</button>
+        <div class="symphony-evidence-jump" role="group" aria-label="Open a proof surface">
+          <button class="focus-action" type="button" data-proof-open="cartridge">Current cartridge</button>
+          <button class="focus-action" type="button" data-proof-open="blackbox">Black box</button>
+          <button class="focus-action" type="button" data-proof-open="incident">Boss track</button>
+          <button class="focus-action primary" type="button" data-cartridge-download>Export cartridge JSON</button>
         </div>
         <p class="symphony-replay-status" data-trust-status>Fixture, replay, stale, and live states are labelled from source data and route mode.</p>
       </section>
+
+      <div id="symphony-trace-surface" class="symphony-page-host" data-symphony-page-host aria-busy="true"></div>
+
+      <div class="focus-grid cols-4 symphony-page-summary" role="group" aria-label="System Symphony evidence summary">
+        <article class="focus-metric"><span>Instrument state</span><strong id="page-score-state">unknown</strong></article>
+        <article class="focus-metric"><span>Components</span><strong id="page-service-count">0</strong></article>
+        <article class="focus-metric"><span>Measured / unmeasured</span><strong id="page-measurement-count">0 / 0</strong></article>
+        <article class="focus-metric"><span>Approved objectives</span><strong id="page-objective-count">unknown</strong></article>
+      </div>
+      <p id="page-source-status" class="focus-status-line" data-state="unknown" aria-live="polite">Initialising the Atlas APU renderer and preserved topology interface.</p>
 
       <section class="symphony-proof-console" aria-labelledby="symphony-proof-console-title" data-proof-console>
         <div class="symphony-proof-console__header">
@@ -174,108 +219,137 @@
           </div>
         </div>
         <section id="atlas-apu-cartridge" class="symphony-cartridge" aria-labelledby="atlas-apu-cartridge-title" data-cartridge-panel data-proof-panel="cartridge">
-        <div class="symphony-cartridge__header">
-          <div>
-            <p class="symphony-panel-kicker">SCORE DEBUG</p>
-            <h2 id="atlas-apu-cartridge-title">ATLAS APU CARTRIDGE</h2>
+          <div class="symphony-cartridge__header">
+            <div>
+              <p class="symphony-panel-kicker">SCORE DEBUG</p>
+              <h2 id="atlas-apu-cartridge-title">ATLAS APU CARTRIDGE</h2>
+            </div>
+            <div class="symphony-cartridge__actions">
+              <button class="focus-action primary" type="button" data-cartridge-copy>Copy JSON</button>
+              <button class="focus-action" type="button" data-cartridge-download>Export JSON</button>
+            </div>
           </div>
-          <div class="symphony-cartridge__actions">
-            <button class="focus-action primary" type="button" data-cartridge-copy>Copy JSON</button>
-            <button class="focus-action" type="button" data-cartridge-download>Export JSON</button>
+          <dl class="symphony-cartridge-grid" role="group" aria-label="Current Atlas APU cartridge">
+            <div><dt>Frame time</dt><dd data-cartridge-field="frameTime">pending</dd></div>
+            <div><dt>Dominant state</dt><dd data-cartridge-field="dominantState">unknown</dd></div>
+            <div><dt>State vector</dt><dd data-cartridge-field="stateVector">pending</dd></div>
+            <div><dt>Tempo</dt><dd data-cartridge-field="tempo">100 BPM</dd></div>
+            <div><dt>Grid</dt><dd data-cartridge-field="grid">16-step</dd></div>
+            <div><dt>Scale</dt><dd data-cartridge-field="scale">pending</dd></div>
+            <div><dt>Clock pattern</dt><dd data-cartridge-field="clockPattern">pending</dd></div>
+            <div><dt>Pulse motif</dt><dd data-cartridge-field="pulseMotif">pending</dd></div>
+            <div><dt>Memory behavior</dt><dd data-cartridge-field="memoryBehavior">pending</dd></div>
+            <div><dt>Thermal bass pattern</dt><dd data-cartridge-field="thermalBass">pending</dd></div>
+            <div><dt>Signal/noise density</dt><dd data-cartridge-field="signalDensity">pending</dd></div>
+            <div><dt>Contention alerts</dt><dd data-cartridge-field="contentionAlerts">pending</dd></div>
+            <div><dt>Recovery accents</dt><dd data-cartridge-field="recoveryAccents">pending</dd></div>
+            <div><dt>Transition signature</dt><dd data-cartridge-field="transitionSignature">pending</dd></div>
+            <div><dt>Frame seed</dt><dd data-cartridge-field="frameSeed">pending</dd></div>
+            <div><dt>Engine version</dt><dd data-cartridge-field="engineVersion">loading</dd></div>
+            <div><dt>Commit</dt><dd data-cartridge-field="commit">unavailable</dd></div>
+            <div><dt>Source</dt><dd data-cartridge-field="source">connecting</dd></div>
+            <div><dt>Sample-free</dt><dd data-cartridge-field="sampleFree">pending</dd></div>
+            <div><dt>Replay seed</dt><dd data-cartridge-field="replaySeed">A7A5</dd></div>
+          </dl>
+          <details class="symphony-proof-json">
+            <summary>Inspect cartridge JSON</summary>
+            <pre class="symphony-cartridge-json" data-cartridge-json tabindex="0" aria-label="Current cartridge JSON">Waiting for first score frame.</pre>
+          </details>
+          <p class="symphony-replay-status" data-cartridge-status aria-live="polite">Cartridge will update when the first evidence frame arrives.</p>
+        </section>
+        <section id="atlas-apu-flight-recorder" class="symphony-flight-recorder" aria-labelledby="atlas-apu-flight-recorder-title" data-flight-recorder data-proof-panel="blackbox" hidden>
+          <div class="symphony-cartridge__header">
+            <div>
+              <p class="symphony-panel-kicker">STATIC ARCHIVE</p>
+              <h2 id="atlas-apu-flight-recorder-title">ATLAS BLACK BOX FLIGHT RECORDER</h2>
+            </div>
+            <a class="focus-action" href="/lab/system-symphony/black-box/archive.json">Archive JSON</a>
           </div>
-        </div>
-        <dl class="symphony-cartridge-grid" role="group" aria-label="Current Atlas APU cartridge">
-          <div><dt>Frame time</dt><dd data-cartridge-field="frameTime">pending</dd></div>
-          <div><dt>Dominant state</dt><dd data-cartridge-field="dominantState">unknown</dd></div>
-          <div><dt>State vector</dt><dd data-cartridge-field="stateVector">pending</dd></div>
-          <div><dt>Tempo</dt><dd data-cartridge-field="tempo">100 BPM</dd></div>
-          <div><dt>Grid</dt><dd data-cartridge-field="grid">16-step</dd></div>
-          <div><dt>Scale</dt><dd data-cartridge-field="scale">pending</dd></div>
-          <div><dt>Clock pattern</dt><dd data-cartridge-field="clockPattern">pending</dd></div>
-          <div><dt>Pulse motif</dt><dd data-cartridge-field="pulseMotif">pending</dd></div>
-          <div><dt>Memory behavior</dt><dd data-cartridge-field="memoryBehavior">pending</dd></div>
-          <div><dt>Thermal bass pattern</dt><dd data-cartridge-field="thermalBass">pending</dd></div>
-          <div><dt>Signal/noise density</dt><dd data-cartridge-field="signalDensity">pending</dd></div>
-          <div><dt>Contention alerts</dt><dd data-cartridge-field="contentionAlerts">pending</dd></div>
-          <div><dt>Recovery accents</dt><dd data-cartridge-field="recoveryAccents">pending</dd></div>
-          <div><dt>Transition signature</dt><dd data-cartridge-field="transitionSignature">pending</dd></div>
-          <div><dt>Frame seed</dt><dd data-cartridge-field="frameSeed">pending</dd></div>
-          <div><dt>Engine version</dt><dd data-cartridge-field="engineVersion">loading</dd></div>
-          <div><dt>Commit</dt><dd data-cartridge-field="commit">unavailable</dd></div>
-          <div><dt>Source</dt><dd data-cartridge-field="source">connecting</dd></div>
-          <div><dt>Sample-free</dt><dd data-cartridge-field="sampleFree">pending</dd></div>
-          <div><dt>Replay seed</dt><dd data-cartridge-field="replaySeed">A7A5</dd></div>
-        </dl>
-        <details class="symphony-proof-json">
-          <summary>Inspect cartridge JSON</summary>
-          <pre class="symphony-cartridge-json" data-cartridge-json tabindex="0" aria-label="Current cartridge JSON">Waiting for first score frame.</pre>
-        </details>
-        <p class="symphony-replay-status" data-cartridge-status aria-live="polite">Cartridge will update when the first evidence frame arrives.</p>
+          <p class="symphony-flight-recorder__note">Saved fixture frames materialise into full Atlas APU cartridges in the browser. Live persistence is not enabled.</p>
+          <dl class="symphony-flight-recorder__proof" role="group" aria-label="Flight recorder archive proof">
+            <div><dt>Archive</dt><dd data-flight-recorder-field="archive">loading</dd></div>
+            <div><dt>Cartridges</dt><dd data-flight-recorder-field="count">0</dd></div>
+            <div><dt>Selected</dt><dd data-flight-recorder-field="selected">none</dd></div>
+            <div><dt>Schema</dt><dd data-flight-recorder-field="schema">pending</dd></div>
+          </dl>
+          <section class="symphony-flight-recorder__list" data-flight-recorder-list aria-label="Archived Atlas APU cartridges"></section>
+          <details class="symphony-proof-json">
+            <summary>Inspect selected black-box JSON</summary>
+            <pre class="symphony-cartridge-json symphony-flight-recorder__json" data-flight-recorder-json tabindex="0" aria-label="Selected archived cartridge JSON">Loading static archive.</pre>
+          </details>
+          <p class="symphony-replay-status" data-flight-recorder-status aria-live="polite">Flight recorder archive is static fixture evidence until live persistence is approved.</p>
+        </section>
+        <section id="atlas-apu-incident-replay" class="symphony-incident-replay" aria-labelledby="atlas-apu-incident-replay-title" data-incident-arc data-proof-panel="incident" hidden>
+          <div class="symphony-cartridge__header">
+            <div>
+              <p class="symphony-panel-kicker">BOSS TRACK</p>
+              <h2 id="atlas-apu-incident-replay-title">INCIDENT REPLAY AS A MOVEMENT</h2>
+            </div>
+            <div class="symphony-cartridge__actions">
+              <button class="focus-action primary" type="button" data-incident-arc-audition>Start boss track</button>
+              <button class="focus-action" type="button" data-incident-arc-play>Play timeline</button>
+              <button class="focus-action" type="button" data-incident-arc-prev>Previous</button>
+              <button class="focus-action" type="button" data-incident-arc-next>Next</button>
+              <button class="focus-action" type="button" data-incident-arc-stop>Stop</button>
+              <a class="focus-action" href="/lab/system-symphony/black-box/incident-arcs.json">Arc JSON</a>
+            </div>
+          </div>
+          <dl class="symphony-incident-replay__proof" role="group" aria-label="Incident replay proof">
+            <div><dt>Archive</dt><dd data-incident-arc-field="archive">loading</dd></div>
+            <div><dt>Arcs</dt><dd data-incident-arc-field="count">0</dd></div>
+            <div><dt>Selected</dt><dd data-incident-arc-field="selected">none</dd></div>
+            <div><dt>Path</dt><dd data-incident-arc-field="path">pending</dd></div>
+          </dl>
+          <section class="symphony-incident-replay__timeline" data-incident-arc-timeline aria-label="Incident replay timeline"></section>
+          <section class="symphony-incident-replay__impact" data-incident-arc-impact aria-label="Affected services"></section>
+          <div class="symphony-incident-replay__progress" data-incident-arc-progress hidden>
+            <span data-incident-arc-progress-bar></span>
+          </div>
+          <details class="symphony-proof-json">
+            <summary>Inspect incident arc JSON</summary>
+            <pre class="symphony-cartridge-json symphony-incident-replay__json" data-incident-arc-json tabindex="0" aria-label="Selected incident arc JSON">Loading incident arc archive.</pre>
+          </details>
+          <p class="symphony-replay-status" data-incident-arc-status aria-live="polite">Incident boss tracks are static fixture evidence until live persistence is approved.</p>
+        </section>
       </section>
-      <section id="atlas-apu-flight-recorder" class="symphony-flight-recorder" aria-labelledby="atlas-apu-flight-recorder-title" data-flight-recorder data-proof-panel="blackbox" hidden>
-        <div class="symphony-cartridge__header">
-          <div>
-            <p class="symphony-panel-kicker">STATIC ARCHIVE</p>
-            <h2 id="atlas-apu-flight-recorder-title">ATLAS BLACK BOX FLIGHT RECORDER</h2>
-          </div>
-          <a class="focus-action" href="/lab/system-symphony/black-box/archive.json">Archive JSON</a>
-        </div>
-        <p class="symphony-flight-recorder__note">Saved fixture frames materialise into full Atlas APU cartridges in the browser. Live persistence is not enabled.</p>
-        <dl class="symphony-flight-recorder__proof" role="group" aria-label="Flight recorder archive proof">
-          <div><dt>Archive</dt><dd data-flight-recorder-field="archive">loading</dd></div>
-          <div><dt>Cartridges</dt><dd data-flight-recorder-field="count">0</dd></div>
-          <div><dt>Selected</dt><dd data-flight-recorder-field="selected">none</dd></div>
-          <div><dt>Schema</dt><dd data-flight-recorder-field="schema">pending</dd></div>
-        </dl>
-        <section class="symphony-flight-recorder__list" data-flight-recorder-list aria-label="Archived Atlas APU cartridges"></section>
-        <details class="symphony-proof-json">
-          <summary>Inspect selected black-box JSON</summary>
-          <pre class="symphony-cartridge-json symphony-flight-recorder__json" data-flight-recorder-json tabindex="0" aria-label="Selected archived cartridge JSON">Loading static archive.</pre>
-        </details>
-        <p class="symphony-replay-status" data-flight-recorder-status aria-live="polite">Flight recorder archive is static fixture evidence until live persistence is approved.</p>
-      </section>
-      <section id="atlas-apu-incident-replay" class="symphony-incident-replay" aria-labelledby="atlas-apu-incident-replay-title" data-incident-arc data-proof-panel="incident" hidden>
-        <div class="symphony-cartridge__header">
-          <div>
-            <p class="symphony-panel-kicker">BOSS TRACK</p>
-            <h2 id="atlas-apu-incident-replay-title">INCIDENT REPLAY AS A MOVEMENT</h2>
-          </div>
-          <div class="symphony-cartridge__actions">
-            <button class="focus-action primary" type="button" data-incident-arc-audition>Start boss track</button>
-            <button class="focus-action" type="button" data-incident-arc-play>Play timeline</button>
-            <button class="focus-action" type="button" data-incident-arc-prev>Previous</button>
-            <button class="focus-action" type="button" data-incident-arc-next>Next</button>
-            <button class="focus-action" type="button" data-incident-arc-stop>Stop</button>
-            <a class="focus-action" href="/lab/system-symphony/black-box/incident-arcs.json">Arc JSON</a>
-          </div>
-        </div>
-        <dl class="symphony-incident-replay__proof" role="group" aria-label="Incident replay proof">
-          <div><dt>Archive</dt><dd data-incident-arc-field="archive">loading</dd></div>
-          <div><dt>Arcs</dt><dd data-incident-arc-field="count">0</dd></div>
-          <div><dt>Selected</dt><dd data-incident-arc-field="selected">none</dd></div>
-          <div><dt>Path</dt><dd data-incident-arc-field="path">pending</dd></div>
-        </dl>
-        <section class="symphony-incident-replay__timeline" data-incident-arc-timeline aria-label="Incident replay timeline"></section>
-        <section class="symphony-incident-replay__impact" data-incident-arc-impact aria-label="Affected services"></section>
-        <div class="symphony-incident-replay__progress" data-incident-arc-progress hidden>
-          <span data-incident-arc-progress-bar></span>
-        </div>
-        <details class="symphony-proof-json">
-          <summary>Inspect incident arc JSON</summary>
-          <pre class="symphony-cartridge-json symphony-incident-replay__json" data-incident-arc-json tabindex="0" aria-label="Selected incident arc JSON">Loading incident arc archive.</pre>
-        </details>
-        <p class="symphony-replay-status" data-incident-arc-status aria-live="polite">Incident boss tracks are static fixture evidence until live persistence is approved.</p>
-      </section>
-      </section>
-      <div id="symphony-trace-surface" class="symphony-page-host" data-symphony-page-host aria-busy="true"></div>
-      <div class="focus-grid cols-4 symphony-page-summary" role="group" aria-label="System Symphony evidence summary">
-        <article class="focus-metric"><span>Instrument state</span><strong id="page-score-state">unknown</strong></article>
-        <article class="focus-metric"><span>Components</span><strong id="page-service-count">0</strong></article>
-        <article class="focus-metric"><span>Measured / unmeasured</span><strong id="page-measurement-count">0 / 0</strong></article>
-        <article class="focus-metric"><span>Approved objectives</span><strong id="page-objective-count">unknown</strong></article>
-      </div>
-      <p id="page-source-status" class="focus-status-line" data-state="unknown" aria-live="polite">Initialising the Atlas APU renderer and preserved topology interface.</p>
     </header>
+
+    <section class="focus-section" aria-labelledby="routes-title">
+      <div class="focus-section-head">
+        <div><p class="focus-breadcrumb">Suite</p><h2 id="routes-title">The rest of the cartridge</h2></div>
+        <p>Each route keeps its own URL and evidence contract. Signatures are decorative and hidden from assistive technology.</p>
+      </div>
+      <div class="symphony-rom-grid">
+        <a class="system-card directory-card" href="/lab/system-symphony/roms/" data-family="experience" data-visual="console" data-motif="ROM">
+          <div class="card-top"><span class="type-label">Lab route</span><span class="badge preview">Preview</span></div>
+          <h3>Atlas APU ROM Library</h3>
+          <p>Replayable fixture cartridges with honest source labels.</p>
+          <span class="data-mode">fixture / replay labelled</span>
+          <span class="card-route">Browse cartridges</span>
+        </a>
+        <a class="system-card directory-card" href="/lab/system-symphony/build-log/" data-family="verify" data-visual="proof" data-motif="BUILD">
+          <div class="card-top"><span class="type-label">Lab route</span><span class="badge experiment">Experiment</span></div>
+          <h3>Build Log Synth</h3>
+          <p>Reviewed commit history as deterministic APU movements.</p>
+          <span class="data-mode">static history</span>
+          <span class="card-route">Open build log</span>
+        </a>
+        <a class="system-card directory-card" href="/lab/system-symphony/radio/" data-family="explore" data-visual="signal" data-motif="RADIO">
+          <div class="card-top"><span class="type-label">Lab route</span><span class="badge experiment">Experiment</span></div>
+          <h3>Atlas Signal Radio</h3>
+          <p>Broadcast surface for the current channel and last incident.</p>
+          <span class="data-mode">presentation only</span>
+          <span class="card-route">Open radio</span>
+        </a>
+        <a class="system-card directory-card" href="/lab/system-symphony/replay/" data-family="observe" data-visual="symphony" data-motif="SEED">
+          <div class="card-top"><span class="type-label">Lab route</span><span class="badge tool">Tool</span></div>
+          <h3>Replay Link</h3>
+          <p>Resolve a scene, seed, and frame into the instrument.</p>
+          <span class="data-mode">deterministic</span>
+          <span class="card-route">Open replay</span>
+        </a>
+      </div>
+    </section>
 
     <section class="focus-section" aria-labelledby="mapping-title">
       <div class="focus-section-head">
@@ -298,7 +372,7 @@
         <li><kbd>Tab</kbd> and <kbd>Shift</kbd> + <kbd>Tab</kbd> move through all controls.</li>
         <li><kbd>Enter</kbd> or <kbd>Space</kbd> activates buttons and service rows.</li>
         <li><kbd>Arrow keys</kbd> operate volume and performance ranges.</li>
-        <li><kbd>Escape</kbd> closes Mapping help without dismissing the page instrument.</li>
+        <li><kbd>Escape</kbd> closes the evidence drawer and Mapping help without dismissing the page instrument.</li>
         <li>Reduced-motion preferences disable decorative animation and slow analyser updates.</li>
         <li>The Service role table is the non-visual alternative to the topology graphic.</li>
       </ul>
@@ -321,7 +395,9 @@
   </main>
   <script src="/lab/system-symphony/preview-endpoints.js?v=20260726-phase6-cartridge-proof"></script>
   <script src="/vendor/tone.min.js?v=20260708-sonify"></script>
+  <script type="module" src="/static/js/card-signatures.js?v=20260727-symphony-stage-2a"></script>
   <script type="module" src="/lab/shared/shell.js?v=20260725-batch-h-fixes"></script>
-  <script type="module" src="/lab/system-symphony/system-symphony-page.js?v=20260726-atlas-apu-live-v7"></script>
+  <script type="module" src="/lab/system-symphony/system-symphony-page.js?v=20260727-stage-2a-polish-fixes"></script>
+  <script type="module" src="/lab/system-symphony/symphony-flagship-2a.js?v=20260727-stage-2a-polish-fixes"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 "use strict";
 
 const ROOT_ROUTE = "/lab/system-symphony/";
-const NAV_STYLESHEET = "/lab/system-symphony/system-symphony-navigation.css?v=20260726-navigation-ia-v1";
+const NAV_STYLESHEET = "/lab/system-symphony/system-symphony-navigation.css?v=20260727-stage-2a-polish-fixes";
 const MODE_NAMES = new Set(["play", "trace", "replay"]);
 
 let trustReturnTarget = null;
@@ -41,6 +41,17 @@ function currentMode() {
   const flagship = document.querySelector("[data-symphony-flagship]");
   const value = String(flagship?.dataset.symphonyMode ?? "play").toLowerCase();
   return MODE_NAMES.has(value) ? value : "play";
+}
+
+function syncProductModeLinks(mode = currentMode()) {
+  for (const link of document.querySelectorAll(".symphony-product-mode-link")) {
+    const linkMode = link.dataset.symphonyModeRoute ?? link.dataset.symphonyModeTab;
+    if (!MODE_NAMES.has(linkMode)) continue;
+    const selected = linkMode === mode;
+    link.setAttribute("aria-selected", String(selected));
+    if (selected) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  }
 }
 
 function createTextLink(label, href, { current = false, className = "" } = {}) {
@@ -310,6 +321,7 @@ function selectProofTab(panel) {
 function syncModeSurfaces({ userInitiated = false } = {}) {
   if (!isRootRoute()) return;
   const mode = currentMode();
+  syncProductModeLinks(mode);
   for (const surface of document.querySelectorAll("[data-mode-surface]")) {
     surface.hidden = !modeSurfaceMatches(surface, mode);
   }
@@ -352,21 +364,22 @@ function syncProductStatus() {
 
 function setTrustDrawer(open, { restoreFocus = true } = {}) {
   const layer = document.querySelector("[data-trust-layer]");
-  const toggle = document.querySelector("[data-trust-toggle]");
+  const toggles = [...document.querySelectorAll("[data-trust-toggle]")];
+  const toggle = toggles[0];
   if (!layer) return;
 
   if (open) {
     trustReturnTarget = document.activeElement instanceof HTMLElement ? document.activeElement : toggle;
     layer.hidden = false;
     document.body.classList.add("symphony-trust-open");
-    toggle?.setAttribute("aria-expanded", "true");
+    for (const trustToggle of toggles) trustToggle.setAttribute("aria-expanded", "true");
     window.requestAnimationFrame(() => layer.querySelector("[data-trust-close]")?.focus({ preventScroll: true }));
     return;
   }
 
   layer.hidden = true;
   document.body.classList.remove("symphony-trust-open");
-  toggle?.setAttribute("aria-expanded", "false");
+  for (const trustToggle of toggles) trustToggle.setAttribute("aria-expanded", "false");
   if (restoreFocus && trustReturnTarget?.isConnected) {
     trustReturnTarget.focus({ preventScroll: true });
   }
