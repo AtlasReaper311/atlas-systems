@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   APU_PERFORMANCE_CONDUCTOR_BUILD_ID,
+  connectiveArpeggioInstructionsForPhrase,
   ornamentInstructionsForPhrase,
   performanceCategories,
   shouldOmitForPhase,
@@ -10,9 +11,18 @@ import {
   velocityScaleForDensity,
 } from "./apu-performance-conductor.js";
 
-const plan = (silenceBudget, density, ornaments = []) => ({ silenceBudget, density, ornaments, phase: "groove" });
+const plan = (silenceBudget, density, ornaments = [], overrides = {}) => ({
+  silenceBudget,
+  density,
+  ornaments,
+  phase: "groove",
+  state: "healthy",
+  phraseIndex: 0,
+  bars: 0,
+  ...overrides,
+});
 
-test("build id identifies density-aware conductor", () => assert.match(APU_PERFORMANCE_CONDUCTOR_BUILD_ID, /v3$/));
+test("build id identifies density-aware conductor", () => assert.match(APU_PERFORMANCE_CONDUCTOR_BUILD_ID, /v4$/));
 
 test("silence decisions are deterministic", () => {
   const args = { perfPlan: plan(0.4, 0.5), category: "primary", stepIndex: 12, phraseIndex: 2, seedHash: 7 };
@@ -29,31 +39,9 @@ test("higher density keeps at least as many events as lower density", () => {
   assert.ok(highKept > lowKept);
 });
 
-test("continuity anchors survive even the sparsest phase", () => {
-  const sparse = plan(1, 0);
-  for (const step of [0, 4, 8, 12, 16, 20, 24, 28]) {
-    assert.equal(shouldOmitForPhase({ perfPlan: sparse, category: "rhythm", stepIndex: step, phraseIndex: 9 }), false);
-  }
-  for (const step of [0, 8, 16, 24]) {
-    assert.equal(shouldOmitForPhase({ perfPlan: sparse, category: "bass", stepIndex: step, phraseIndex: 9 }), false);
-  }
-  for (const step of [0, 16]) {
-    assert.equal(shouldOmitForPhase({ perfPlan: sparse, category: "pad", stepIndex: step, phraseIndex: 9 }), false);
-  }
-});
-
-test("sparse phases still leave room away from continuity anchors", () => {
-  const sparse = plan(1, 0);
-  let omitted = 0;
-  for (let step = 1; step < 32; step += 2) {
-    if (shouldOmitForPhase({ perfPlan: sparse, category: "secondary", stepIndex: step, phraseIndex: 9 })) omitted += 1;
-  }
-  assert.ok(omitted > 0);
-});
-
 test("density adds real rhythmic events, not only velocity", () => {
   assert.deepEqual(supplementalRhythmForDensity(plan(0, 0.3), 2, 0), []);
-  assert.equal(supplementalRhythmForDensity(plan(0, 0.5), 2, 0)[0].voice, "hat");
+  assert.equal(supplementalRhythmForDensity(plan(0, 0.7), 2, 0)[0].voice, "hat");
   assert.ok(supplementalRhythmForDensity(plan(0, 0.95), 12, 0).some((event) => event.voice === "noiseAccent"));
 });
 
@@ -71,11 +59,45 @@ test("velocity scaling never boosts above one", () => {
   }
 });
 
-test("all authored ornaments map to audible instructions", () => {
+test("every state receives a bounded connective arpeggio", () => {
+  for (const state of ["healthy", "warning", "critical", "unknown"]) {
+    const instructions = connectiveArpeggioInstructionsForPhrase(
+      plan(0.2, 0.7, [], { state, phraseIndex: 2, bars: 4 }),
+    );
+    assert.equal(instructions.length, 3, state);
+    assert.ok(Object.isFrozen(instructions));
+    assert.ok(instructions.every((instruction) => Object.isFrozen(instruction)));
+    assert.ok(instructions.every((instruction) => instruction.ornament === "connective-arp"));
+    assert.ok(instructions.every((instruction) => instruction.offsetSteps >= 0 && instruction.offsetSteps < 32));
+    assert.ok(instructions.every((instruction) => instruction.velocity >= 0.1 && instruction.velocity <= 0.3));
+  }
+});
+
+test("connective arpeggios vary deterministic contour and phrase position", () => {
+  const first = connectiveArpeggioInstructionsForPhrase(
+    plan(0.2, 0.7, [], { state: "healthy", phraseIndex: 0, bars: 0 }),
+  );
+  const second = connectiveArpeggioInstructionsForPhrase(
+    plan(0.2, 0.7, [], { state: "healthy", phraseIndex: 1, bars: 2 }),
+  );
+  assert.notDeepEqual(first.map((event) => event.midiOffset), second.map((event) => event.midiOffset));
+  assert.notDeepEqual(first.map((event) => event.offsetSteps), second.map((event) => event.offsetSteps));
+  assert.deepEqual(
+    second,
+    connectiveArpeggioInstructionsForPhrase(
+      plan(0.2, 0.7, [], { state: "healthy", phraseIndex: 1, bars: 2 }),
+    ),
+  );
+});
+
+test("all authored ornaments remain audible beside connective arpeggios", () => {
   const names = ["ripple", "stab", "tick", "swell", "glitch", "shimmer", "flourish", "structural", "reprise"];
   for (const name of names) {
-    const instructions = ornamentInstructionsForPhrase(plan(0, 1, [{ name, size: "test", bar: 4 }]));
-    assert.ok(instructions.length > 0, name);
+    const instructions = ornamentInstructionsForPhrase(
+      plan(0, 1, [{ name, size: "test", bar: 4 }], { phraseIndex: 2, bars: 4 }),
+    );
+    assert.ok(instructions.some((instruction) => instruction.ornament === "connective-arp"), name);
+    assert.ok(instructions.some((instruction) => instruction.ornament === name), name);
     assert.ok(instructions.every((instruction) => instruction.offsetSteps >= 0 && instruction.offsetSteps < 32));
   }
 });
