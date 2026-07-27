@@ -13,18 +13,21 @@ import {
   ornamentInstructionsForPhrase,
   shouldOmitForPhase,
 } from "./apu-performance-conductor.js";
+import {
+  shouldOmitForPhase as baselineShouldOmitForPhase,
+} from "./apu-performance-conductor-d1a-baseline.js";
 
 const STATES = Object.freeze(["healthy", "warning", "critical", "unknown"]);
 const CYCLES = Object.freeze([
-  Object.freeze({ number: 0, role: "statement", colourVoice: null }),
-  Object.freeze({ number: 1, role: "development", colourVoice: "secondary" }),
-  Object.freeze({ number: 2, role: "contrast", colourVoice: "accent" }),
-  Object.freeze({ number: 3, role: "reprise", colourVoice: "secondary" }),
+  Object.freeze({ number: 0, role: "statement" }),
+  Object.freeze({ number: 1, role: "development" }),
+  Object.freeze({ number: 2, role: "contrast" }),
+  Object.freeze({ number: 3, role: "reprise" }),
 ]);
 
 function performancePlan(state, phraseIndex, overrides = {}) {
   return {
-    silenceBudget: 0,
+    silenceBudget: 0.2,
     density: 0.75,
     ornaments: [{ name: "shimmer", size: "medium", bar: phraseIndex * 2 }],
     phase: [11, 12].includes(phraseIndex % 16) ? "rupture" : "groove",
@@ -35,7 +38,21 @@ function performancePlan(state, phraseIndex, overrides = {}) {
   };
 }
 
-test("every cycle schedules seven meaningful passages while Peak stays clear", () => {
+function directionChanges(values) {
+  const directions = [];
+  for (let index = 1; index < values.length; index += 1) {
+    const difference = values[index] - values[index - 1];
+    if (difference === 0) continue;
+    directions.push(Math.sign(difference));
+  }
+  let changes = 0;
+  for (let index = 1; index < directions.length; index += 1) {
+    if (directions[index] !== directions[index - 1]) changes += 1;
+  }
+  return changes;
+}
+
+test("every cycle schedules exactly seven additive arp passages", () => {
   for (const { number, role } of CYCLES) {
     assert.equal(arpeggioPassageCountForCycleRole(role), 7);
     for (const state of STATES) {
@@ -53,139 +70,153 @@ test("every cycle schedules seven meaningful passages while Peak stays clear", (
   }
 });
 
-test("Explorer keeps the exact primary Theme A to Variation hand-off in every cycle", () => {
-  for (const { number, colourVoice } of CYCLES) {
+test("Explorer keeps the exact protected hand-off on primary in every cycle", () => {
+  for (const { number } of CYCLES) {
     const phraseIndex = number * 16 + APU_D4_PROTECTED_EXPLORER_HANDOFF.cyclePhrase;
     const input = performancePlan("healthy", phraseIndex);
     const plan = arpeggioPlanForPhrase(input);
     assert.equal(plan.active, true);
     assert.equal(plan.protectedEvent, true);
     assert.equal(plan.role, "answer");
+    assert.deepEqual(
+      plan.instructions.map((instruction) => instruction.offsetSteps),
+      APU_D4_PROTECTED_EXPLORER_HANDOFF.steps,
+    );
+    assert.deepEqual(
+      plan.instructions.map((instruction) => instruction.midiOffset),
+      APU_D4_PROTECTED_EXPLORER_HANDOFF.offsets,
+    );
+    assert.deepEqual(
+      plan.instructions.map((instruction) => instruction.velocity),
+      APU_D4_PROTECTED_EXPLORER_HANDOFF.velocities,
+    );
+    assert.ok(plan.instructions.every((instruction) => (
+      instruction.duration === APU_D4_PROTECTED_EXPLORER_HANDOFF.duration
+      && instruction.voice === "primary"
+      && instruction.protectedEvent
+      && instruction.additive
+      && !instruction.protectedColourLayer
+    )));
 
-    const core = plan.instructions.filter((instruction) => instruction.protectedEvent);
-    assert.equal(core.length, 3);
-    assert.deepEqual(core.map((instruction) => instruction.offsetSteps), APU_D4_PROTECTED_EXPLORER_HANDOFF.steps);
-    assert.deepEqual(core.map((instruction) => instruction.midiOffset), APU_D4_PROTECTED_EXPLORER_HANDOFF.offsets);
-    assert.deepEqual(core.map((instruction) => instruction.velocity), APU_D4_PROTECTED_EXPLORER_HANDOFF.velocities);
-    assert.ok(core.every((instruction) => instruction.duration === APU_D4_PROTECTED_EXPLORER_HANDOFF.duration));
-    assert.ok(core.every((instruction) => instruction.voice === "primary"));
-
-    const colour = plan.instructions.filter((instruction) => instruction.protectedColourLayer);
-    assert.equal(colour.length, colourVoice ? 3 : 0);
-    if (colourVoice) {
-      assert.ok(colour.every((instruction) => instruction.voice === colourVoice));
-      assert.deepEqual(colour.map((instruction) => instruction.offsetSteps), APU_D4_PROTECTED_EXPLORER_HANDOFF.steps);
-      assert.deepEqual(colour.map((instruction) => instruction.midiOffset), APU_D4_PROTECTED_EXPLORER_HANDOFF.offsets);
-      assert.ok(colour.every((instruction, index) => instruction.velocity < core[index].velocity));
-    }
-
-    const audible = ornamentInstructionsForPhrase(input);
-    const audibleCore = audible.filter((instruction) => instruction.protectedEvent);
-    assert.equal(audibleCore.length, 3);
-    assert.ok(audibleCore.every((instruction) => instruction.voice === "primary"));
-    assert.ok(audibleCore.every((instruction) => instruction.audibleTimbreVoice === "primary"));
-    const audibleColour = audible.filter((instruction) => instruction.protectedColourLayer);
-    assert.equal(audibleColour.length, colourVoice ? 3 : 0);
-    if (colourVoice) assert.ok(audibleColour.every((instruction) => instruction.audibleTimbreVoice === colourVoice));
+    const audible = ornamentInstructionsForPhrase(input)
+      .filter((instruction) => instruction.protectedEvent);
+    assert.equal(audible.length, 3);
+    assert.ok(audible.every((instruction) => instruction.voice === "primary"));
   }
 });
 
-test("performance scheduling replaces legacy arps without duplicating shimmer", () => {
-  const phraseIndex = 4;
-  const instructions = ornamentInstructionsForPhrase(performancePlan("healthy", phraseIndex));
-  const protectedArp = instructions.filter((instruction) => instruction.protectedEvent);
-  assert.equal(protectedArp.length, 3);
-  assert.deepEqual(protectedArp.map((instruction) => instruction.midiOffset), [24, 19, 12]);
-  assert.ok(!instructions.some((instruction) => instruction.ornament === "connective-arp"));
-  assert.ok(!instructions.some((instruction) => instruction.ornament === "state-arp"));
-  assert.ok(!instructions.some((instruction) => instruction.ornament === "shimmer"));
-});
-
-test("foreground arps become the bounded melodic foreground through orchestration space", () => {
-  const expectedVoices = Object.freeze({
-    healthy: "secondary",
-    warning: "accent",
-    critical: "accent",
-    unknown: "secondary",
-  });
+test("regular passages are long continuous up, down or tornado runs", () => {
+  const seenShapes = new Set();
   for (const state of STATES) {
-    const planInput = performancePlan(state, 10);
-    const plan = arpeggioPlanForPhrase(planInput);
-    assert.equal(plan.active, true);
-    assert.equal(plan.role, "foreground");
-    assert.ok(plan.window);
-    assert.ok(plan.instructions.every((instruction) => instruction.voice === expectedVoices[state]));
+    for (let phraseIndex = 0; phraseIndex < 64; phraseIndex += 1) {
+      const plan = arpeggioPlanForPhrase(performancePlan(state, phraseIndex));
+      if (!plan.active || plan.protectedEvent) continue;
+      assert.equal(plan.role, "feature");
+      assert.ok(plan.instructions.length >= 6, `${state}/${phraseIndex}`);
+      assert.ok(plan.instructions.length <= 13, `${state}/${phraseIndex}`);
+      assert.deepEqual(plan.spaceCategories, []);
+      assert.ok(["up", "down", "tornado"].includes(plan.contour));
+      seenShapes.add(plan.contour);
 
-    for (const category of ["primary", "secondary", "pad", "service"]) {
-      assert.equal(shouldCreateArpeggioSpace({
-        perfPlan: planInput,
-        category,
-        stepIndex: plan.window.startStep,
-      }), true, `${state}/${category}`);
-      assert.equal(shouldOmitForPhase({
-        perfPlan: planInput,
-        category,
-        stepIndex: plan.window.startStep,
-        phraseIndex: 10,
-      }), true, `${state}/${category}/performance`);
-    }
-    for (const category of ["bass", "rhythm", "accent"]) {
-      assert.equal(shouldCreateArpeggioSpace({
-        perfPlan: planInput,
-        category,
-        stepIndex: plan.window.startStep,
-      }), false, `${state}/${category}`);
+      const steps = plan.instructions.map((instruction) => instruction.offsetSteps);
+      for (let index = 1; index < steps.length; index += 1) {
+        assert.equal(steps[index] - steps[index - 1], 1, `${state}/${phraseIndex}/step-${index}`);
+      }
+      assert.ok(steps[0] >= 0);
+      assert.ok(steps.at(-1) <= 15, `${state}/${phraseIndex}/harmonic-half`);
+      assert.ok(plan.instructions.every((instruction) => (
+        instruction.additive
+        && instruction.harmonyHalf === 0
+        && instruction.ornament === "d4-arpeggio"
+      )));
+
+      const offsets = plan.instructions.map((instruction) => instruction.midiOffset);
+      if (plan.contour === "up") {
+        assert.ok(offsets.slice(1).every((value, index) => value > offsets[index]));
+        assert.equal(directionChanges(offsets), 0);
+      } else if (plan.contour === "down") {
+        assert.ok(offsets.slice(1).every((value, index) => value < offsets[index]));
+        assert.equal(directionChanges(offsets), 0);
+      } else {
+        assert.equal(directionChanges(offsets), 1);
+        assert.ok(Math.max(...offsets) > offsets[0]);
+        assert.ok(Math.max(...offsets) > offsets.at(-1));
+      }
     }
   }
+  assert.deepEqual([...seenShapes].sort(), ["down", "tornado", "up"]);
 });
 
-test("statement cycles contain at least three foreground spotlights", () => {
+test("D4 never creates gaps or changes score-layer omission", () => {
   for (const state of STATES) {
-    let foreground = 0;
-    for (let phraseIndex = 0; phraseIndex < 16; phraseIndex += 1) {
-      if (arpeggioPlanForPhrase(performancePlan(state, phraseIndex)).role === "foreground") foreground += 1;
-    }
-    assert.ok(foreground >= 3, `${state}/${foreground}`);
-  }
-});
-
-test("answer arps sit behind the lead and do not thin the arrangement", () => {
-  for (const state of STATES) {
-    const input = performancePlan(state, 1);
+    const input = performancePlan(state, 6);
     const plan = arpeggioPlanForPhrase(input);
     assert.equal(plan.active, true);
-    assert.equal(plan.role, "answer");
-    assert.deepEqual(plan.spaceCategories, []);
-    assert.ok(plan.instructions.every((instruction) => instruction.voice === "secondary"));
+    for (const category of ["primary", "secondary", "pad", "service", "bass", "rhythm", "accent"]) {
+      for (let stepIndex = 0; stepIndex < 32; stepIndex += 1) {
+        assert.equal(
+          shouldCreateArpeggioSpace({ perfPlan: input, category, stepIndex }),
+          false,
+          `${state}/${category}/${stepIndex}/space`,
+        );
+        assert.equal(
+          shouldOmitForPhase({ perfPlan: input, category, stepIndex, phraseIndex: 6 }),
+          baselineShouldOmitForPhase({ perfPlan: input, category, stepIndex, phraseIndex: 6 }),
+          `${state}/${category}/${stepIndex}/omission`,
+        );
+      }
+    }
   }
 });
 
-test("later cycles develop, contrast and reprise deterministically", () => {
+test("performance scheduling removes duplicate legacy arps without touching other music", () => {
   for (const state of STATES) {
-    const statement = arpeggioPlanForPhrase(performancePlan(state, 6));
-    const development = arpeggioPlanForPhrase(performancePlan(state, 16 + 6));
-    const contrast = arpeggioPlanForPhrase(performancePlan(state, 32 + 7));
-    const reprise = arpeggioPlanForPhrase(performancePlan(state, 48 + 6));
-    assert.equal(Object.isFrozen(statement), true);
-    assert.equal(Object.isFrozen(statement.instructions), true);
-    assert.notDeepEqual(
-      development.instructions.map((instruction) => instruction.midiOffset),
-      statement.instructions.map((instruction) => instruction.midiOffset),
-    );
-    assert.notEqual(contrast.timbreRole, development.timbreRole);
-    assert.ok(reprise.instructions.length >= statement.instructions.length);
-    assert.deepEqual(arpeggioPlanForPhrase(performancePlan(state, 16 + 6)), development);
+    const instructions = ornamentInstructionsForPhrase(performancePlan(state, 6));
+    const d4 = instructions.filter((instruction) => instruction.ornament === "d4-arpeggio");
+    assert.ok(d4.length >= 6, state);
+    assert.ok(d4.every((instruction) => instruction.additive));
+    assert.ok(!instructions.some((instruction) => instruction.ornament === "connective-arp"));
+    assert.ok(!instructions.some((instruction) => instruction.ornament === "state-arp"));
+    assert.ok(!instructions.some((instruction) => instruction.ornament === "shimmer"));
   }
 });
 
-test("darker states stay below Explorer's protected high arc", () => {
-  const ceilings = Object.freeze({ warning: 13, critical: 19, unknown: 12 });
+test("Peak remains complete and arp-free", () => {
+  for (const state of STATES) {
+    for (const phraseIndex of [11, 12]) {
+      const input = performancePlan(state, phraseIndex);
+      const plan = arpeggioPlanForPhrase(input);
+      assert.equal(plan.active, false);
+      assert.deepEqual(plan.instructions, []);
+      assert.ok(!ornamentInstructionsForPhrase(input)
+        .some((instruction) => instruction.ornament === "d4-arpeggio"));
+    }
+  }
+});
+
+test("state registers remain bounded and later cycles vary deterministically", () => {
+  const ceilings = Object.freeze({
+    healthy: 24,
+    warning: 15,
+    critical: 19,
+    unknown: 12,
+  });
+
   for (const [state, ceiling] of Object.entries(ceilings)) {
+    const signatures = new Set();
     for (let phraseIndex = 0; phraseIndex < 64; phraseIndex += 1) {
       const plan = arpeggioPlanForPhrase(performancePlan(state, phraseIndex));
       for (const instruction of plan.instructions) {
         assert.ok(instruction.midiOffset <= ceiling, `${state}/${phraseIndex}/${instruction.midiOffset}`);
       }
+      if (plan.active && !plan.protectedEvent) {
+        signatures.add(JSON.stringify(plan.instructions.map((instruction) => instruction.midiOffset)));
+        assert.deepEqual(
+          arpeggioPlanForPhrase(performancePlan(state, phraseIndex)),
+          plan,
+        );
+      }
     }
+    assert.ok(signatures.size >= 3, `${state}/variation`);
   }
 });
