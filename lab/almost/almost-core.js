@@ -83,10 +83,10 @@ export function pointForTrace(trace, timeMs, sample, width, height) {
 }
 
 export function sampleLabel(sample) {
-  if (sample.kind === "stall") return "a long hesitation";
-  if (sample.kind === "drag") return "arriving late";
-  if (sample.latenessMs > 1) return "nearly on time";
-  return "almost exact";
+  if (sample.kind === "stall") return "long pause";
+  if (sample.kind === "drag") return "late frame";
+  if (sample.latenessMs > 1) return "drawing";
+  return "drawing";
 }
 
 export function formatDuration(totalSeconds) {

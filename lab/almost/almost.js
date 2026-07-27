@@ -163,7 +163,7 @@ function updateRunState(state, label) {
 function updateControls() {
   holdButton.setAttribute("aria-pressed", String(!running));
   holdButton.textContent = running ? "Hold" : "Continue";
-  if (running) updateRunState("running", "accumulating");
+  if (running) updateRunState("running", "drawing");
   else updateRunState("held", motionPreference.matches ? "still by preference" : "held");
 }
 
@@ -202,28 +202,59 @@ function preserveVoid() {
   context.fillRect(Math.round(centreX), Math.round(centreY), 1, 1);
 }
 
+function drawLiveClock(now, sample) {
+  const span = Math.min(viewWidth, viewHeight);
+  const centreX = viewWidth / 2;
+  const centreY = viewHeight / 2;
+  const radius = span * 0.142;
+  const angle = (now * 0.00115) % TAU;
+  const x = centreX + Math.cos(angle) * radius;
+  const y = centreY + Math.sin(angle) * radius * 0.82;
+  const alpha = sample.kind === "stall" ? 0.42 : sample.kind === "drag" ? 0.34 : 0.26;
+
+  context.beginPath();
+  context.arc(centreX, centreY, radius, angle - 0.42, angle + 0.42);
+  context.strokeStyle = `rgba(245, 166, 35, ${alpha})`;
+  context.lineWidth = sample.kind === "stall" ? 1.4 : 1;
+  context.stroke();
+
+  context.beginPath();
+  context.moveTo(centreX, centreY);
+  context.lineTo(x, y);
+  context.strokeStyle = `rgba(236, 234, 224, ${sample.kind === "near" ? 0.18 : 0.28})`;
+  context.lineWidth = 0.7;
+  context.stroke();
+
+  context.beginPath();
+  context.arc(x, y, sample.kind === "stall" ? 3.8 : 2.8, 0, TAU);
+  context.fillStyle = sample.kind === "stall"
+    ? "rgba(226, 75, 74, 0.78)"
+    : "rgba(245, 166, 35, 0.82)";
+  context.fill();
+}
+
 function drawTrace(trace, point, sample) {
   const previous = trace.previous;
   trace.previous = point;
   if (!previous) return;
 
   const distance = Math.hypot(point.x - previous.x, point.y - previous.y);
-  const maximumJoin = Math.min(viewWidth, viewHeight) * (sample.kind === "stall" ? 0.34 : 0.12);
+  const maximumJoin = Math.min(viewWidth, viewHeight) * (sample.kind === "stall" ? 0.18 : 0.12);
   if (distance > maximumJoin) {
     context.fillStyle = sample.kind === "stall"
-      ? "rgba(226, 75, 74, 0.72)"
+      ? "rgba(226, 75, 74, 0.56)"
       : "rgba(236, 234, 224, 0.24)";
-    context.fillRect(point.x - 0.75, point.y - 0.75, 1.5, 1.5);
+    context.fillRect(point.x - 1, point.y - 1, 2, 2);
     return;
   }
 
   const baseAlpha = 0.028 + sample.normalized * 0.26;
   if (sample.kind === "stall") {
-    context.strokeStyle = `rgba(226, 75, 74, ${0.32 + random() * 0.28})`;
-    context.lineWidth = 1.1 + random() * 0.9;
+    context.strokeStyle = `rgba(226, 75, 74, ${0.22 + random() * 0.18})`;
+    context.lineWidth = 0.8 + random() * 0.55;
   } else if (sample.kind === "drag") {
-    context.strokeStyle = `rgba(236, 234, 224, ${baseAlpha + 0.08})`;
-    context.lineWidth = 0.75 + sample.normalized;
+    context.strokeStyle = `rgba(236, 234, 224, ${baseAlpha + 0.05})`;
+    context.lineWidth = 0.65 + sample.normalized * 0.72;
   } else {
     context.strokeStyle = `rgba(245, 166, 35, ${baseAlpha})`;
     context.lineWidth = 0.45 + random() * 0.55;
@@ -278,6 +309,7 @@ function drawFrame(now, sample) {
     }
 
     preserveVoid();
+    drawLiveClock(now, sample);
   });
 }
 

@@ -45,7 +45,9 @@ test("timing samples distinguish near frames, drag, and stalls", () => {
   assert.equal(timingSample(DEFAULT_FRAME_MS, DEFAULT_FRAME_MS).kind, "near");
   assert.equal(timingSample(30, DEFAULT_FRAME_MS).kind, "drag");
   assert.equal(timingSample(100, DEFAULT_FRAME_MS).kind, "stall");
-  assert.equal(sampleLabel(timingSample(100, DEFAULT_FRAME_MS)), "a long hesitation");
+  assert.equal(sampleLabel(timingSample(DEFAULT_FRAME_MS, DEFAULT_FRAME_MS)), "drawing");
+  assert.equal(sampleLabel(timingSample(30, DEFAULT_FRAME_MS)), "late frame");
+  assert.equal(sampleLabel(timingSample(100, DEFAULT_FRAME_MS)), "long pause");
   assert.equal(timingSample(-10, DEFAULT_FRAME_MS).latenessMs, 0);
   assert.equal(timingSample(5000, DEFAULT_FRAME_MS).normalized, 1);
 });

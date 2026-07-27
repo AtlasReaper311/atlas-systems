@@ -138,12 +138,14 @@ html {
   border-radius: 50%;
   background: var(--almost-amber);
   box-shadow: 0 0 18px rgba(245, 166, 35, 0.55);
+  animation: almost-live-pulse 1.1s ease-in-out infinite;
 }
 
 .almost-run span[data-state="held"]::before,
 .almost-run span[data-state="asleep"]::before {
   background: transparent;
   box-shadow: none;
+  animation: none;
 }
 
 .almost-source {
@@ -410,5 +412,22 @@ html {
 @media (prefers-reduced-motion: reduce) {
   .almost-stage::after {
     background: radial-gradient(circle at center, transparent 0 48%, rgba(7, 7, 11, 0.28) 100%);
+  }
+
+  .almost-run span:first-child::before {
+    animation: none;
+  }
+}
+
+@keyframes almost-live-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(245, 166, 35, 0.45);
+  }
+
+  50% {
+    transform: scale(1.7);
+    box-shadow: 0 0 22px rgba(245, 166, 35, 0.7);
   }
 }
