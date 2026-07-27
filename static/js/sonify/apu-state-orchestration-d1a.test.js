@@ -74,11 +74,24 @@ test("Lost Signal gains slow notes and delayed echoes without becoming fast", ()
   assert.ok(arps.slice(1).every((event, index) => event.offsetSteps - arps[index].offsetSteps === 8));
 });
 
-test("the conductor keeps the original connector and adds D1A material", () => {
+test("D1A remains inspectable while D4 owns active arpeggio playback", () => {
+  const expectedResponse = Object.freeze({
+    healthy: "explorer-sparkle-answer",
+    warning: "grid-diagnostic-response",
+    critical: "boss-power-chord",
+    unknown: "lost-signal-echo",
+  });
+
   for (const state of ["healthy", "warning", "critical", "unknown"]) {
-    const instructions = ornamentInstructionsForPhrase(plan(state, 4));
-    assert.ok(instructions.some((event) => event.ornament === "connective-arp"));
-    assert.ok(instructions.some((event) => event.ornament === "state-arp"));
+    const historical = stateFeatureInstructionsForPhrase(plan(state, 4));
+    assert.ok(historical.some((event) => event.ornament === "state-arp"), `${state}/historical-arp`);
+    assert.ok(historical.some((event) => event.ornament === expectedResponse[state]), `${state}/historical-response`);
+
+    const active = ornamentInstructionsForPhrase(plan(state, 4));
+    assert.ok(active.some((event) => event.ornament === "d4-arpeggio"), `${state}/d4`);
+    assert.ok(!active.some((event) => event.ornament === "connective-arp"), `${state}/connector`);
+    assert.ok(!active.some((event) => event.ornament === "state-arp"), `${state}/state-arp`);
+    assert.ok(active.some((event) => event.ornament === expectedResponse[state]), `${state}/response`);
   }
 });
 
