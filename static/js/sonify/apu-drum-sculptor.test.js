@@ -8,6 +8,7 @@ import {
   APU_DRUM_SCULPTOR_BUILD_ID,
   APU_DRUM_SCULPTOR_DEFAULT_MODE,
   APU_DRUM_SCULPTOR_KITS,
+  APU_DRUM_SCULPTOR_LATE_HIT_DROP_SECONDS,
   APU_DRUM_SCULPTOR_MODES,
   createDrumSculptorKit,
   curveVelocity,
@@ -119,6 +120,7 @@ test("build id and constants are frozen", () => {
   assert.ok(APU_DRUM_SCULPTOR_BUILD_ID.length > 0);
   assert.deepEqual([...APU_DRUM_SCULPTOR_MODES], ["polished", "authentic"]);
   assert.equal(APU_DRUM_SCULPTOR_DEFAULT_MODE, "polished");
+  assert.ok(APU_DRUM_SCULPTOR_LATE_HIT_DROP_SECONDS > 0);
   assert.ok(Object.isFrozen(APU_DRUM_SCULPTOR_KITS));
   assert.ok(Object.isFrozen(APU_DRUM_SCULPTOR_KITS.healthy));
 });
@@ -301,6 +303,28 @@ test("consecutive hits use different LFSR buffer offsets", () => {
   const offsets = ctx.bufferSourceStarts.map((s) => s.offset);
   const unique = new Set(offsets);
   assert.ok(unique.size >= 3, `three hits should produce >= 3 distinct offsets, got ${unique.size}`);
+});
+
+test("late scheduled hits are dropped instead of stacked onto current time", () => {
+  const ctx = stubAudioContext({ currentTime: 10 });
+  const kit = createDrumSculptorKit(ctx, stubOutputs());
+  kit.hat.triggerAttackRelease(0.015, 9.9, 0.8);
+  assert.equal(ctx.bufferSourceStarts.length, 0);
+  kit.hat.triggerAttackRelease(0.015, 9.99, 0.8);
+  assert.equal(ctx.bufferSourceStarts.length, 1);
+  assert.ok(ctx.bufferSourceStarts[0].time >= 10);
+});
+
+test("silence stops outstanding sculptor sources without rebuilding voices", () => {
+  const ctx = stubAudioContext();
+  const kit = createDrumSculptorKit(ctx, stubOutputs());
+  const hat = kit.hat;
+  kit.hat.triggerAttackRelease(0.015, 0, 0.8);
+  assert.ok(ctx.bufferSourceStarts.length > 0);
+  kit.silence();
+  assert.equal(kit.hat, hat);
+  kit.hat.triggerAttackRelease(0.015, 0.1, 0.8);
+  assert.ok(ctx.bufferSourceStarts.length > 1);
 });
 
 test("buffer offsets are deterministic across repeated instances", () => {

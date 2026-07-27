@@ -39,6 +39,7 @@ import { createLfsrNoiseBuffer } from "./apu-chip-oscillators.js";
 export const APU_DRUM_SCULPTOR_BUILD_ID = "20260727-apu-drum-sculptor-v1";
 export const APU_DRUM_SCULPTOR_MODES = Object.freeze(["polished", "authentic"]);
 export const APU_DRUM_SCULPTOR_DEFAULT_MODE = "polished";
+export const APU_DRUM_SCULPTOR_LATE_HIT_DROP_SECONDS = 0.035;
 
 const STATE_KEYS = Object.freeze(["healthy", "warning", "critical", "unknown"]);
 
@@ -174,6 +175,12 @@ function computeEnvelope({
   return { rampStart, rampEnd, holdEnd, releaseEnd, peak };
 }
 
+function scheduledStartTime(ctx, time) {
+  if (!Number.isFinite(time)) return ctx.currentTime;
+  if (time < ctx.currentTime - APU_DRUM_SCULPTOR_LATE_HIT_DROP_SECONDS) return null;
+  return Math.max(ctx.currentTime + 0.001, time);
+}
+
 // ---------------------------------------------------------------------------
 // Individual voice factories
 // ---------------------------------------------------------------------------
@@ -191,16 +198,15 @@ export function createKickVoice(ctx, outputInput, { kit, mode }) {
   return Object.freeze({
     voice: "kick",
     triggerAttackRelease(hold, time, velocity = 1) {
-      const startAt = Number.isFinite(time)
-        ? Math.max(ctx.currentTime, time)
-        : ctx.currentTime;
+      const startAt = scheduledStartTime(ctx, time);
+      if (startAt === null) return;
       const env = computeEnvelope({
         startAt,
         hold: hold || 0.14,
         attack: mode === "polished" ? 0.006 : 0.002,
         release: kit.kick.decay,
         velocity,
-        volumeDb: -11,
+        volumeDb: -13,
         mode,
       });
 
@@ -284,16 +290,15 @@ export function createSnareVoice(ctx, outputInput, { kit, mode, hitCounter }) {
   return Object.freeze({
     voice: "snare",
     triggerAttackRelease(hold, time, velocity = 1) {
-      const startAt = Number.isFinite(time)
-        ? Math.max(ctx.currentTime, time)
-        : ctx.currentTime;
+      const startAt = scheduledStartTime(ctx, time);
+      if (startAt === null) return;
       const env = computeEnvelope({
         startAt,
         hold: hold || 0.05,
         attack: mode === "polished" ? 0.005 : 0.002,
         release: kit.snare.noiseDecay,
         velocity,
-        volumeDb: -19,
+        volumeDb: -21,
         mode,
       });
 
@@ -376,14 +381,13 @@ export function createHatVoice(ctx, outputInput, {
   const decay = isOpen ? kit.openHat.decay : kit.hat.decay;
   const cutoff = isOpen ? kit.openHat.cutoffHz : kit.hat.cutoffHz;
   const softCap = isOpen ? kit.openHat.softCapHz : kit.hat.softCapHz;
-  const baseVolume = isOpen ? -31 : -30;
+  const baseVolume = isOpen ? -33 : -32;
 
   return Object.freeze({
     voice: isOpen ? "openHat" : "hat",
     triggerAttackRelease(hold, time, velocity = 1) {
-      const startAt = Number.isFinite(time)
-        ? Math.max(ctx.currentTime, time)
-        : ctx.currentTime;
+      const startAt = scheduledStartTime(ctx, time);
+      if (startAt === null) return;
       const env = computeEnvelope({
         startAt,
         hold: hold || (isOpen ? 0.075 : 0.015),
@@ -463,16 +467,15 @@ export function createNoiseAccentVoice(ctx, outputInput, { kit, mode, hitCounter
   return Object.freeze({
     voice: "noiseAccent",
     triggerAttackRelease(hold, time, velocity = 1) {
-      const startAt = Number.isFinite(time)
-        ? Math.max(ctx.currentTime, time)
-        : ctx.currentTime;
+      const startAt = scheduledStartTime(ctx, time);
+      if (startAt === null) return;
       const env = computeEnvelope({
         startAt,
         hold: hold || 0.085,
         attack: mode === "polished" ? 0.006 : 0.004,
         release: kit.accent.decay,
         velocity,
-        volumeDb: -25,
+        volumeDb: -28,
         mode,
       });
 
@@ -600,6 +603,10 @@ export function createDrumSculptorKit(ctx, outputs, {
       if (!isState(nextState) || nextState === activeState) return;
       activeState = nextState;
       kit = kitForState(activeState);
+    },
+
+    silence() {
+      for (const voice of voices) voice.dispose();
     },
 
     dispose() {

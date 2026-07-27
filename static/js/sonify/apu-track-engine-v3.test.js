@@ -82,6 +82,9 @@ test("track engine source keeps crusher off the full master and schedules pulse 
   assert.match(source, /createDrumSculptorKit\(rawContext,/);
   assert.match(source, /nodes\.drumKit\.kick/);
   assert.match(source, /nodes\.drumKit\?\.setState\?\.\(state\)/);
+  assert.match(source, /function silenceActiveVoices\(at = undefined\)/);
+  assert.match(source, /nodes\.transport\?\.pause\?\.\(\)/);
+  assert.match(source, /nodes\.drumKit\?\.silence\?\.\(\)/);
   assert.match(source, /leitmotifFor\(name, stateKey\(currentFrame\)\)/);
   assert.match(source, /describeLeitmotif\(leitmotif\)/);
   assert.match(source, /oscillatorType: voice\.label/);

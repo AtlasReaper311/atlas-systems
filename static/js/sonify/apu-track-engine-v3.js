@@ -721,6 +721,18 @@ export function createApuTrackEngine({
     }
   }
 
+  function silenceActiveVoices(at = undefined) {
+    nodes.primary?.triggerRelease?.(at);
+    nodes.secondary?.triggerRelease?.(at);
+    nodes.bass?.triggerRelease?.(at);
+    nodes.pad?.releaseAll?.(at);
+    nodes.padSub?.triggerRelease?.(at);
+    nodes.deployment?.releaseAll?.(at);
+    nodes.incident?.triggerRelease?.(at);
+    nodes.drumKit?.silence?.();
+    for (const voice of serviceVoices) voice.synth?.triggerRelease?.(at);
+  }
+
   function onStep(time) {
     if (!running || !currentFrame || !Number.isFinite(time)) return;
     const step = stepIndex % APU_TRACK_STEPS;
@@ -784,7 +796,11 @@ export function createApuTrackEngine({
     pause() {
       if (!initialized || !running) return;
       running = false;
-      safeRamp(nodes.output.gain, 0, 0.16);
+      const Tone = requireTone();
+      const at = typeof Tone.now === "function" ? Tone.now() : undefined;
+      nodes.transport?.pause?.();
+      safeRamp(nodes.output.gain, 0, 0.04, at);
+      silenceActiveVoices(at);
       onRunningChange?.(false);
     },
 
