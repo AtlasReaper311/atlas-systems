@@ -1,9 +1,9 @@
 name: Apply AtlasField preview coverage
 
 on:
-  push:
-    branches:
-      - fix/homepage-field-deploy-diagnostic
+  pull_request:
+    branches: [main]
+    types: [synchronize]
     paths:
       - ".github/workflows/apply-atlas-field-preview-coverage.yml"
 
@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   patch:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - name: Check out repair branch
