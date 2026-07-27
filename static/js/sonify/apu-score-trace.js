@@ -228,7 +228,8 @@ export function createScoreTraceRecorder({
   return Object.freeze({
     record(input) {
       const entry = createScoreTraceEntry(input);
-      history = [...history.slice(-(boundedLimit - 1)), entry];
+      const retained = boundedLimit > 1 ? history.slice(-(boundedLimit - 1)) : [];
+      history = [...retained, entry];
       onTrace?.(entry);
       return entry;
     },
