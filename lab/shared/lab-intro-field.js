@@ -31,7 +31,7 @@ export function mountLabIntroField(root = document) {
   const host = root.querySelector(LAB_INTRO_FIELD.selector);
   if (!host) return null;
   if (host.dataset.atlasIntroFieldState === "ready") {
-    return createAtlasField(host, LAB_INTRO_FIELD.options);
+    return host.querySelector(":scope > canvas.atlas-field-canvas");
   }
 
   try {
