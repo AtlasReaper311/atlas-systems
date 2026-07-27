@@ -1,0 +1,137 @@
+name: Speculum preview evidence
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+    paths:
+      - ".github/workflows/speculum-preview-evidence.yml"
+      - "lab/speculum/**"
+      - "lab/tests/speculum*.test.mjs"
+      - "scripts/capture_speculum_evidence.mjs"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.repository }}-speculum-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate Speculum source
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out pull request head
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
+        with:
+          node-version: "22"
+      - name: Validate route and evidence runner
+        run: |
+          set -euo pipefail
+          npx --yes html-validate@9.7.1 lab/speculum/index.html
+          node --check lab/speculum/engine.js
+          node --check lab/speculum/speculum.js
+          node --check lab/speculum/speculum-polish-v5.js
+          node --check scripts/capture_speculum_evidence.mjs
+          node --test lab/tests/speculum*.test.mjs
+          git diff --check
+
+  deploy:
+    name: Publish Speculum branch preview
+    needs: validate
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(github.event.pull_request.labels.*.name, 'interface-preview-approved')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: public-interface-preview
+      url: ${{ steps.preview.outputs.preview_url }}
+    outputs:
+      preview_url: ${{ steps.preview.outputs.preview_url }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CF_PAGES_DEPLOY_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      PROJECT_NAME: atlas-systems
+      PAGES_BRANCH: interface-pr-${{ github.event.pull_request.number }}
+      SOURCE_BRANCH: ${{ github.event.pull_request.head.ref }}
+    steps:
+      - name: Check out pull request head
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Guard production boundary
+        run: |
+          set -euo pipefail
+          test "${{ github.event.pull_request.base.ref }}" = "main"
+          test "${SOURCE_BRANCH}" != "main"
+          test "${SOURCE_BRANCH}" != "production"
+          test "${PAGES_BRANCH}" != "main"
+          test "${PAGES_BRANCH}" != "production"
+      - name: Prepare filtered Pages publish artifact
+        run: bash scripts/prepare_pages_publish.sh "${RUNNER_TEMP}/pages-publish"
+      - name: Publish branch preview
+        env:
+          PUBLISH_DIRECTORY: ${{ runner.temp }}/pages-publish
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4.113.0 pages deploy "${PUBLISH_DIRECTORY}" --project-name "${PROJECT_NAME}" --branch "${PAGES_BRANCH}" --commit-dirty=true
+      - name: Resolve stable preview URL
+        id: preview
+        env:
+          PREVIEW_URL: https://interface-pr-${{ github.event.pull_request.number }}.atlas-systems-44t.pages.dev
+        run: |
+          set -euo pipefail
+          echo "preview_url=${PREVIEW_URL}" >> "${GITHUB_OUTPUT}"
+          printf '## Speculum preview\n\n%s/lab/speculum/\n\nProduction is unchanged.\n' "${PREVIEW_URL}" >> "${GITHUB_STEP_SUMMARY}"
+
+  capture:
+    name: Capture Speculum stateful evidence
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PREVIEW_URL: ${{ needs.deploy.outputs.preview_url }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - name: Check out evidence runner
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          sparse-checkout: scripts/capture_speculum_evidence.mjs
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
+        with:
+          node-version: "22"
+      - name: Install pinned browser and accessibility tooling
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/speculum-evidence"
+          cp scripts/capture_speculum_evidence.mjs "${RUNNER_TEMP}/speculum-evidence/"
+          cd "${RUNNER_TEMP}/speculum-evidence"
+          npm init -y >/dev/null
+          npm install --save-exact playwright@1.61.1 @axe-core/playwright@4.12.1
+          npm audit --audit-level=high
+          npx playwright install --with-deps chromium firefox
+      - name: Capture stateful viewport matrix
+        working-directory: ${{ runner.temp }}/speculum-evidence
+        run: node capture_speculum_evidence.mjs
+      - name: Upload Speculum visual and accessibility evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        with:
+          name: speculum-preview-evidence
+          path: |
+            ${{ runner.temp }}/speculum-evidence/speculum-evidence.json
+            ${{ runner.temp }}/speculum-evidence/speculum-capture-error.txt
+            ${{ runner.temp }}/speculum-evidence/speculum-screenshots/*.png
+          if-no-files-found: error
+          retention-days: 14
