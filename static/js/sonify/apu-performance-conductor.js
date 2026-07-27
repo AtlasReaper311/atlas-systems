@@ -104,11 +104,12 @@ function polishedInstruction(perfPlan, instruction) {
 function baselineInstructionsForPhrase(perfPlan, instructions) {
   const state = perfPlan?.state ?? "unknown";
   const cutoutStart = prePeakCutoutStartStep(perfPlan);
+  const signatureMoment = signatureGestureInstructionsForPhrase(perfPlan).length > 0;
 
   return instructions
-    // Signature shimmers are now authored at exactly three structural moments.
-    // Remove incidental shimmer ornaments so the language does not become wallpaper.
-    .filter((instruction) => instruction.ornament !== "shimmer")
+    // Keep the legacy ornament vocabulary, but suppress a selected shimmer at
+    // the three guaranteed signature moments so two lead arcs never stack.
+    .filter((instruction) => !(signatureMoment && instruction.ornament === "shimmer"))
     // Explorer Peak keeps the complete approved lead without the later D1A overlay.
     .filter((instruction) => !(
       state === "healthy"
