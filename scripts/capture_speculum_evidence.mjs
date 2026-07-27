@@ -82,20 +82,65 @@ function assertRailLayout(snapshot, label) {
   assert(snapshot.canvas?.visibility !== 'hidden', `${label}: canvas visibility is hidden`);
 }
 
+async function canvasDiagnostics(page) {
+  return page.evaluate(() => {
+    const inspect = (selector) => {
+      const node = document.querySelector(selector);
+      if (!node) return null;
+      const box = node.getBoundingClientRect();
+      const style = getComputedStyle(node);
+      return {
+        selector,
+        box: { x: box.x, y: box.y, width: box.width, height: box.height },
+        display: style.display,
+        visibility: style.visibility,
+        opacity: style.opacity,
+        position: style.position,
+        width: style.width,
+        minWidth: style.minWidth,
+        height: style.height,
+        gridArea: style.gridArea,
+        gridTemplateColumns: style.gridTemplateColumns,
+        overflow: style.overflow,
+      };
+    };
+    return {
+      viewport: { width: innerWidth, height: innerHeight },
+      document: {
+        clientWidth: document.documentElement.clientWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        readyState: document.readyState,
+      },
+      main: inspect('main'),
+      field: inspect('#speculum'),
+      fieldCanvas: inspect('.field-canvas'),
+      canvas: inspect('#spc-canvas'),
+      rail: inspect('.rail'),
+      stylesheets: [...document.styleSheets].map((sheet) => sheet.href || 'inline'),
+    };
+  });
+}
+
 async function waitForBase(page, label) {
   await page.goto(routeUrl(label), { waitUntil: 'networkidle' });
   await page.locator('#spc-canvas').waitFor({ state: 'attached' });
   await page.locator('#spc-present').waitFor({ state: 'visible' });
-  await page.waitForFunction(() => {
-    const canvas = document.querySelector('#spc-canvas');
-    if (!(canvas instanceof HTMLCanvasElement)) return false;
-    const box = canvas.getBoundingClientRect();
-    const style = getComputedStyle(canvas);
-    return box.width > 0
-      && box.height > 0
-      && style.display !== 'none'
-      && style.visibility !== 'hidden';
-  }, null, { timeout: 30000 });
+  try {
+    await page.waitForFunction(() => {
+      const canvas = document.querySelector('#spc-canvas');
+      if (!(canvas instanceof HTMLCanvasElement)) return false;
+      const box = canvas.getBoundingClientRect();
+      const style = getComputedStyle(canvas);
+      return box.width > 0
+        && box.height > 0
+        && style.display !== 'none'
+        && style.visibility !== 'hidden';
+    }, null, { timeout: 15000 });
+  } catch (error) {
+    const diagnostics = await canvasDiagnostics(page);
+    await page.screenshot({ path: path.join(SCREENSHOTS, `${label}-geometry-failure.png`), fullPage: true });
+    throw new Error(`${label}: canvas geometry did not become usable: ${JSON.stringify(diagnostics)}; ${error.message}`);
+  }
   await page.waitForFunction(() => document.querySelectorAll('#spc-speeds button').length === 4);
 }
 
