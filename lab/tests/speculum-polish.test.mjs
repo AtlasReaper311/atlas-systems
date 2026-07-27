@@ -8,7 +8,7 @@ const html = read('lab/speculum/index.html');
 const css = read('lab/speculum/speculum-polish-v5.css');
 const js = read('lab/speculum/speculum-polish-v5.js');
 const evidence = read('scripts/capture_speculum_evidence.mjs');
-const workflow = read('.github/workflows/interface-preview.yml');
+const workflow = read('.github/workflows/speculum-preview-evidence.yml');
 
 test('Speculum exposes bounded presentation and frame export controls', () => {
   assert.match(html, /id="spc-present"[^>]*aria-pressed="false"/);
@@ -74,11 +74,11 @@ test('browser evidence covers viewports, zoom, reduced motion, dossier, ledger, 
   assert.doesNotMatch(evidence, /#spc-canvas'\)\.waitFor\(\{ state: 'visible' \}\)/);
 });
 
-test('governed preview workflow runs and retains Speculum evidence', () => {
+test('focused preview workflow runs and retains Speculum evidence', () => {
   assert.match(workflow, /lab\/speculum\/\*\*/);
   assert.match(workflow, /scripts\/capture_speculum_evidence\.mjs/);
   assert.match(workflow, /node --check scripts\/capture_speculum_evidence\.mjs/);
   assert.match(workflow, /playwright install --with-deps chromium firefox/);
-  assert.match(workflow, /Capture Speculum stateful viewport matrix/);
+  assert.match(workflow, /Capture stateful viewport matrix/);
   assert.match(workflow, /name: speculum-preview-evidence/);
 });
