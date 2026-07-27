@@ -99,6 +99,17 @@ test("recorder remains bounded and resettable", () => {
   assert.ok(APU_SCORE_TRACE_HISTORY_LIMIT >= 128);
 });
 
+test("one-entry recorder limit remains bounded", () => {
+  const recorder = createScoreTraceRecorder({ limit: 1 });
+  for (let index = 0; index < 4; index += 1) {
+    const next = input();
+    next.arrangement.phraseIndex = index;
+    recorder.record(next);
+  }
+  assert.equal(recorder.getHistory().length, 1);
+  assert.equal(recorder.getLatest().phraseIndex, 3);
+});
+
 test("trace payload does not retain arbitrary frame or credential fields", () => {
   const next = input();
   next.frame.NOTIFY_TOKEN = "not-for-trace";
