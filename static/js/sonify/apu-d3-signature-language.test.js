@@ -112,8 +112,41 @@ test("Explorer keeps the exact approved PR128 descending shimmer", () => {
   assert.ok(!instructions.some((instruction) => instruction.ornament === "shimmer"));
 });
 
-test("pre-Peak cutouts are state-specific and silence every performance category", () => {
-  for (const state of STATES) {
+test("Explorer pre-Peak drop removes bass only and keeps melody and drums alive", () => {
+  const state = "healthy";
+  const start = APU_D3_PRE_PEAK_CUTOUT_STARTS[state];
+  const plan = performancePlan(state, 10, { silenceBudget: 0, density: 1 });
+
+  for (const category of performanceCategories()) {
+    assert.equal(shouldOmitForPhase({
+      perfPlan: plan,
+      category,
+      stepIndex: start - 1,
+      phraseIndex: 10,
+    }), false, `${state}/${category}/before`);
+    assert.equal(shouldOmitForPhase({
+      perfPlan: plan,
+      category,
+      stepIndex: start,
+      phraseIndex: 10,
+    }), category === "bass", `${state}/${category}/start`);
+    assert.equal(shouldOmitForPhase({
+      perfPlan: plan,
+      category,
+      stepIndex: 31,
+      phraseIndex: 10,
+    }), category === "bass", `${state}/${category}/end`);
+  }
+
+  const instructions = ornamentInstructionsForPhrase(plan);
+  assert.ok(instructions.some((instruction) => instruction.gestureMoment === "prePeakLift"));
+  assert.ok(instructions.some((instruction) => (
+    Number.isFinite(instruction.offsetSteps) && instruction.offsetSteps >= start
+  )));
+});
+
+test("darker-state pre-Peak cutouts remain complete and state-specific", () => {
+  for (const state of ["warning", "critical", "unknown"]) {
     const start = APU_D3_PRE_PEAK_CUTOUT_STARTS[state];
     const plan = performancePlan(state, 10, { silenceBudget: 0, density: 1 });
     for (const category of performanceCategories()) {
