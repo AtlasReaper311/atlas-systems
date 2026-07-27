@@ -78,11 +78,11 @@ function normalizePath(pathname) {
   return pathname.endsWith("/") ? pathname : `${pathname}/`;
 }
 
-function compositionForPath(pathname) {
+export function compositionForPath(pathname) {
   const path = normalizePath(pathname);
-  if (path === "/systems/") return DIRECTORY_HEADER_COMPOSITIONS.systems;
-  if (path === "/work/") return DIRECTORY_HEADER_COMPOSITIONS.work;
-  if (path === "/writing/") return DIRECTORY_HEADER_COMPOSITIONS.writing;
+  if (path === "/systems/") return Object.freeze({ name: "systems", definition: DIRECTORY_HEADER_COMPOSITIONS.systems });
+  if (path === "/work/") return Object.freeze({ name: "work", definition: DIRECTORY_HEADER_COMPOSITIONS.work });
+  if (path === "/writing/") return Object.freeze({ name: "writing", definition: DIRECTORY_HEADER_COMPOSITIONS.writing });
   return null;
 }
 
@@ -95,10 +95,12 @@ function ensureStylesheet(href) {
 }
 
 export function mountDirectoryHeaderField(root = document, pathname = window.location.pathname) {
-  const definition = compositionForPath(pathname);
-  if (!definition) return null;
+  const composition = compositionForPath(pathname);
+  if (!composition) return null;
   HEADER_STYLESHEETS.forEach(ensureStylesheet);
-  return mountAtlasFieldConsumer(definition, root);
+  const documentNode = root.ownerDocument ?? root;
+  if (documentNode.body) documentNode.body.dataset.atlasDirectoryHeader = composition.name;
+  return mountAtlasFieldConsumer(composition.definition, root);
 }
 
 function startDirectoryHeaderField() {
