@@ -1,5 +1,5 @@
 export const APU_ARPEGGIO_COMPOSER_D4_BUILD_ID =
-  "20260727-system-symphony-pass-d4-arpeggio-composer-v2";
+  "20260727-system-symphony-pass-d4-arpeggio-composer-v3";
 
 export const APU_D4_CYCLE_ROLES = Object.freeze([
   "statement",
@@ -61,99 +61,52 @@ const ARP_FUNCTION_BY_SECTION = Object.freeze({
 });
 
 const START_BY_FUNCTION = Object.freeze({
-  connector: 8,
-  answer: 18,
-  lift: 4,
-  ostinato: 8,
-  fracture: 14,
-  reprise: 14,
-  cadence: 20,
+  connector: 2,
+  answer: 8,
+  lift: 1,
+  ostinato: 2,
+  fracture: 8,
+  reprise: 1,
+  cadence: 8,
 });
 
 const STATE_PROFILES = Object.freeze({
   healthy: Object.freeze({
     label: "Explorer",
-    spacing: 2,
+    voice: "secondary",
     duration: "32n",
-    answerVoice: "secondary",
-    foregroundVoice: "secondary",
-    foregroundVelocity: 0.25,
-    answerVelocity: 0.22,
-    spaceCategories: Object.freeze(["primary", "secondary", "pad", "service"]),
-    contours: Object.freeze({
-      connector: Object.freeze([0, 4, 7, 12]),
-      answer: Object.freeze([12, 7, 4, 0]),
-      lift: Object.freeze([0, 4, 7, 12, 16]),
-      ostinato: Object.freeze([0, 7, 12, 7]),
-      fracture: Object.freeze([12, 7, 4]),
-      reprise: Object.freeze([12, 7, 4, 0, 4]),
-      cadence: Object.freeze([7, 4, 0]),
-    }),
+    velocity: 0.28,
+    up: Object.freeze([0, 4, 7, 12, 16, 19, 24]),
+    down: Object.freeze([24, 19, 16, 12, 7, 4, 0]),
+    tornado: Object.freeze([0, 4, 7, 12, 16, 19, 24, 19, 16, 12, 7, 4, 0]),
   }),
   warning: Object.freeze({
     label: "Grid Pressure",
-    spacing: 2,
+    voice: "accent",
     duration: "32n",
-    answerVoice: "secondary",
-    foregroundVoice: "accent",
-    foregroundVelocity: 0.235,
-    answerVelocity: 0.21,
-    spaceCategories: Object.freeze(["primary", "secondary", "pad", "service"]),
-    contours: Object.freeze({
-      connector: Object.freeze([0, 3, 7, 10]),
-      answer: Object.freeze([10, 7, 3, 0]),
-      lift: Object.freeze([0, 3, 6, 10, 13]),
-      ostinato: Object.freeze([0, 3, 7, 3]),
-      fracture: Object.freeze([10, 3, 7, 0]),
-      reprise: Object.freeze([10, 7, 3, 0]),
-      cadence: Object.freeze([7, 3, 0]),
-    }),
+    velocity: 0.255,
+    up: Object.freeze([-5, 0, 3, 7, 10, 12, 15]),
+    down: Object.freeze([15, 12, 10, 7, 3, 0, -5]),
+    tornado: Object.freeze([-5, 0, 3, 7, 10, 12, 15, 12, 10, 7, 3, 0, -5]),
   }),
   critical: Object.freeze({
     label: "Boss Protocol",
-    spacing: 3,
+    voice: "accent",
     duration: "32n",
-    answerVoice: "secondary",
-    foregroundVoice: "accent",
-    foregroundVelocity: 0.23,
-    answerVelocity: 0.205,
-    spaceCategories: Object.freeze(["primary", "secondary", "pad", "service"]),
-    contours: Object.freeze({
-      connector: Object.freeze([0, 7, 12]),
-      answer: Object.freeze([12, 7, 0]),
-      lift: Object.freeze([0, 7, 12, 19]),
-      ostinato: Object.freeze([0, 12, 7, 12]),
-      fracture: Object.freeze([12, 0, 7]),
-      reprise: Object.freeze([12, 7, 0]),
-      cadence: Object.freeze([7, 0]),
-    }),
+    velocity: 0.25,
+    up: Object.freeze([-12, -5, 0, 7, 12, 19]),
+    down: Object.freeze([19, 12, 7, 0, -5, -12]),
+    tornado: Object.freeze([-12, -5, 0, 7, 12, 19, 12, 7, 0, -5, -12]),
   }),
   unknown: Object.freeze({
     label: "Lost Signal",
-    spacing: 4,
-    duration: "8n",
-    answerVoice: "secondary",
-    foregroundVoice: "secondary",
-    foregroundVelocity: 0.19,
-    answerVelocity: 0.165,
-    spaceCategories: Object.freeze(["primary", "secondary", "pad", "service"]),
-    contours: Object.freeze({
-      connector: Object.freeze([0, 5, 12]),
-      answer: Object.freeze([12, 5, 0]),
-      lift: Object.freeze([0, 5, 7, 12]),
-      ostinato: Object.freeze([0, 7, 5]),
-      fracture: Object.freeze([12, 0, 5]),
-      reprise: Object.freeze([7, 5, 0]),
-      cadence: Object.freeze([5, 0]),
-    }),
+    voice: "secondary",
+    duration: "32n",
+    velocity: 0.225,
+    up: Object.freeze([-12, -5, 0, 5, 7, 12]),
+    down: Object.freeze([12, 7, 5, 0, -5, -12]),
+    tornado: Object.freeze([-12, -5, 0, 5, 7, 12, 7, 5, 0, -5, -12]),
   }),
-});
-
-const PROTECTED_COLOUR_LAYERS = Object.freeze({
-  statement: null,
-  development: Object.freeze({ voice: "secondary", velocityScale: 0.42, label: "hollow-halo" }),
-  contrast: Object.freeze({ voice: "accent", velocityScale: 0.34, label: "narrow-spark" }),
-  reprise: Object.freeze({ voice: "secondary", velocityScale: 0.3, label: "soft-recall" }),
 });
 
 const modulo = (value, length) => ((Math.trunc(value) % length) + length) % length;
@@ -164,28 +117,6 @@ const safeCycleRole = (role, cycleNumber = 0) => {
   if (cycle === 0) return "statement";
   return ["development", "contrast", "reprise"][modulo(cycle - 1, 3)];
 };
-
-function freezeArray(values) {
-  return Object.freeze([...values]);
-}
-
-function rotate(values, amount) {
-  if (!values.length) return [];
-  const offset = modulo(amount, values.length);
-  return [...values.slice(offset), ...values.slice(0, offset)];
-}
-
-function transformedContour(base, cycleRole, cycleNumber) {
-  if (cycleRole === "statement") return [...base];
-  if (cycleRole === "development") {
-    return rotate(base, 1 + modulo(cycleNumber, Math.max(1, base.length - 1)));
-  }
-  if (cycleRole === "contrast") {
-    return rotate([...base].reverse(), modulo(cycleNumber, Math.max(1, base.length)));
-  }
-  if (base.length <= 2) return [...base];
-  return [...base, base[0]];
-}
 
 function phraseContext(perfPlan = {}) {
   const phraseIndex = Math.max(0, Math.trunc(perfPlan.phraseIndex ?? 0));
@@ -200,18 +131,24 @@ function phraseContext(perfPlan = {}) {
       ?? phraseIndex,
     16,
   );
-  const cycleRole = safeCycleRole(perfPlan.songPlan?.cycleRole ?? perfPlan.cycleRole, cycleNumber);
+  const cycleRole = safeCycleRole(
+    perfPlan.songPlan?.cycleRole ?? perfPlan.cycleRole,
+    cycleNumber,
+  );
   const state = safeState(perfPlan.state ?? perfPlan.songPlan?.state);
   const section = String(
     perfPlan.section
       ?? perfPlan.songPlan?.section
       ?? SECTION_BY_PHRASE[cyclePhrase],
   );
-  const arpFunction = String(
+  const requestedFunction = String(
     perfPlan.songPlan?.arpFunction
       ?? ARP_FUNCTION_BY_SECTION[section]
       ?? "connector",
   );
+  const arpFunction = START_BY_FUNCTION[requestedFunction] === undefined
+    ? "connector"
+    : requestedFunction;
   return Object.freeze({
     phraseIndex,
     cycleNumber,
@@ -219,7 +156,7 @@ function phraseContext(perfPlan = {}) {
     cycleRole,
     state,
     section,
-    arpFunction: START_BY_FUNCTION[arpFunction] === undefined ? "connector" : arpFunction,
+    arpFunction,
     bar: perfPlan.bars ?? phraseIndex * 2,
   });
 }
@@ -229,74 +166,81 @@ function isProtectedExplorerHandoff(context) {
     && context.cyclePhrase === APU_D4_PROTECTED_EXPLORER_HANDOFF.cyclePhrase;
 }
 
-function passageIsForeground(context) {
-  if (isProtectedExplorerHandoff(context)) return false;
-  if (["build", "release", "recovery"].includes(context.section)) return true;
-  if (context.cyclePhrase === 6) return true;
-  if (context.state !== "healthy" && context.cyclePhrase === 4) return true;
-  return context.cycleRole === "development" && [3, 6, 13].includes(context.cyclePhrase);
-}
-
-function protectedCoreInstructions(context) {
-  return APU_D4_PROTECTED_EXPLORER_HANDOFF.steps.map((offsetSteps, index) => Object.freeze({
-    voice: "primary",
-    offsetSteps,
-    midiOffset: APU_D4_PROTECTED_EXPLORER_HANDOFF.offsets[index],
-    velocity: APU_D4_PROTECTED_EXPLORER_HANDOFF.velocities[index],
-    duration: APU_D4_PROTECTED_EXPLORER_HANDOFF.duration,
-    ornament: "d4-arpeggio",
-    size: "phrase",
-    bar: context.bar,
-    state: context.state,
-    arpFunction: "protected-handoff",
-    arpRole: "answer",
-    contour: "descending-shimmer",
-    timbreRole: "primary-core",
-    protectedEvent: true,
-    protectedColourLayer: false,
-    arpeggioBuildId: APU_ARPEGGIO_COMPOSER_D4_BUILD_ID,
-  }));
-}
-
-function protectedColourInstructions(context) {
-  const layer = PROTECTED_COLOUR_LAYERS[context.cycleRole];
-  if (!layer) return [];
-  return APU_D4_PROTECTED_EXPLORER_HANDOFF.steps.map((offsetSteps, index) => Object.freeze({
-    voice: layer.voice,
-    offsetSteps,
-    midiOffset: APU_D4_PROTECTED_EXPLORER_HANDOFF.offsets[index],
-    velocity: Number((APU_D4_PROTECTED_EXPLORER_HANDOFF.velocities[index] * layer.velocityScale).toFixed(3)),
-    duration: APU_D4_PROTECTED_EXPLORER_HANDOFF.duration,
-    ornament: "d4-arpeggio-colour",
-    size: "phrase",
-    bar: context.bar,
-    state: context.state,
-    arpFunction: "protected-handoff-colour",
-    arpRole: "colour",
-    contour: "descending-shimmer",
-    timbreRole: layer.label,
-    protectedEvent: false,
-    protectedColourLayer: true,
-    arpeggioBuildId: APU_ARPEGGIO_COMPOSER_D4_BUILD_ID,
-  }));
-}
-
 function protectedExplorerPlan(context) {
-  const core = protectedCoreInstructions(context);
-  const colour = protectedColourInstructions(context);
-  const instructions = Object.freeze([...core, ...colour]);
+  const instructions = Object.freeze(
+    APU_D4_PROTECTED_EXPLORER_HANDOFF.steps.map((offsetSteps, index) => Object.freeze({
+      voice: "primary",
+      offsetSteps,
+      midiOffset: APU_D4_PROTECTED_EXPLORER_HANDOFF.offsets[index],
+      velocity: APU_D4_PROTECTED_EXPLORER_HANDOFF.velocities[index],
+      duration: APU_D4_PROTECTED_EXPLORER_HANDOFF.duration,
+      ornament: "d4-arpeggio",
+      size: "phrase",
+      bar: context.bar,
+      state: context.state,
+      arpFunction: "protected-handoff",
+      arpRole: "answer",
+      contour: "down",
+      timbreRole: "primary-protected-shimmer",
+      protectedEvent: true,
+      protectedColourLayer: false,
+      additive: true,
+      harmonyHalf: 1,
+      arpeggioBuildId: APU_ARPEGGIO_COMPOSER_D4_BUILD_ID,
+    })),
+  );
   return Object.freeze({
     ...context,
     active: true,
     protectedEvent: true,
     role: "answer",
-    contour: "descending-shimmer",
-    timbreRole: colour.length ? `primary-core+${colour[0].timbreRole}` : "primary-core",
+    contour: "down",
+    timbreRole: "primary-protected-shimmer",
     window: Object.freeze({ startStep: 28, endStep: 30 }),
     spaceCategories: Object.freeze([]),
     instructions,
     buildId: APU_ARPEGGIO_COMPOSER_D4_BUILD_ID,
   });
+}
+
+function shapeForContext(context) {
+  const base = Object.freeze({
+    connector: "up",
+    answer: "down",
+    lift: "tornado",
+    ostinato: "tornado",
+    fracture: "down",
+    reprise: "tornado",
+    cadence: "down",
+  })[context.arpFunction] ?? "tornado";
+
+  if (context.cycleRole === "statement") return base;
+  if (context.cycleRole === "development") {
+    return context.cyclePhrase % 2 === 0 ? "tornado" : "up";
+  }
+  if (context.cycleRole === "contrast") {
+    if (base === "up") return "down";
+    if (base === "down") return "up";
+    return "tornado";
+  }
+  if (context.cyclePhrase === 14) return "down";
+  return context.cyclePhrase % 2 === 0 ? "tornado" : base;
+}
+
+function velocityFor(profile, shape, index, length, cycleRole) {
+  const progress = length <= 1 ? 0 : index / (length - 1);
+  const center = 1 - Math.abs(progress * 2 - 1);
+  const shapeScale = shape === "tornado"
+    ? 0.94 + center * 0.06
+    : 1 - progress * 0.05;
+  const cycleScale = cycleRole === "development"
+    ? 1
+    : cycleRole === "contrast"
+      ? 0.97
+      : cycleRole === "reprise"
+        ? 0.94
+        : 0.99;
+  return Number(Math.max(0.12, profile.velocity * shapeScale * cycleScale).toFixed(3));
 }
 
 export function arpeggioPassageCountForCycleRole(cycleRole) {
@@ -306,6 +250,7 @@ export function arpeggioPassageCountForCycleRole(cycleRole) {
 export function arpeggioPlanForPhrase(perfPlan = {}) {
   const context = phraseContext(perfPlan);
   const scheduled = APU_D4_PASSAGE_PHRASES[context.cycleRole].includes(context.cyclePhrase);
+
   if (!scheduled || PEAK_PHRASES.includes(context.cyclePhrase)) {
     return Object.freeze({
       ...context,
@@ -324,38 +269,31 @@ export function arpeggioPlanForPhrase(perfPlan = {}) {
   if (isProtectedExplorerHandoff(context)) return protectedExplorerPlan(context);
 
   const profile = STATE_PROFILES[context.state];
-  const baseContour = profile.contours[context.arpFunction] ?? profile.contours.connector;
-  const contour = transformedContour(baseContour, context.cycleRole, context.cycleNumber);
-  const foreground = passageIsForeground(context);
-  const voice = foreground ? profile.foregroundVoice : profile.answerVoice;
-  const start = START_BY_FUNCTION[context.arpFunction] ?? START_BY_FUNCTION.connector;
-  const baseVelocity = foreground ? profile.foregroundVelocity : profile.answerVelocity;
-  const cycleVelocityScale = context.cycleRole === "development"
-    ? 1.02
-    : context.cycleRole === "contrast"
-      ? 0.96
-      : context.cycleRole === "reprise"
-        ? 0.92
-        : 1;
-  const instructions = contour.map((midiOffset, index) => Object.freeze({
-    voice,
-    offsetSteps: start + index * profile.spacing,
+  const shape = shapeForContext(context);
+  const contour = profile[shape];
+  const start = START_BY_FUNCTION[context.arpFunction] ?? 1;
+  const instructions = Object.freeze(contour.map((midiOffset, index) => Object.freeze({
+    voice: profile.voice,
+    offsetSteps: start + index,
     midiOffset,
-    velocity: Number(Math.max(0.1, baseVelocity * cycleVelocityScale - index * 0.008).toFixed(3)),
+    velocity: velocityFor(profile, shape, index, contour.length, context.cycleRole),
     duration: profile.duration,
     ornament: "d4-arpeggio",
     size: "phrase",
     bar: context.bar,
     state: context.state,
     arpFunction: context.arpFunction,
-    arpRole: foreground ? "foreground" : "answer",
-    contour: context.cycleRole,
-    timbreRole: `${context.state}-${context.cycleRole}-${context.arpFunction}-${voice}`,
+    arpRole: "feature",
+    contour: shape,
+    timbreRole: `${context.state}-${shape}-${profile.voice}`,
     protectedEvent: false,
     protectedColourLayer: false,
+    additive: true,
+    harmonyHalf: 0,
     arpeggioBuildId: APU_ARPEGGIO_COMPOSER_D4_BUILD_ID,
-  }));
-  const lastStep = instructions.length
+  })));
+
+  const endStep = instructions.length
     ? instructions[instructions.length - 1].offsetSteps
     : start;
 
@@ -363,15 +301,12 @@ export function arpeggioPlanForPhrase(perfPlan = {}) {
     ...context,
     active: true,
     protectedEvent: false,
-    role: foreground ? "foreground" : "answer",
-    contour: context.cycleRole,
-    timbreRole: `${context.state}-${context.cycleRole}-${context.arpFunction}-${voice}`,
-    window: Object.freeze({
-      startStep: Math.max(0, start - 1),
-      endStep: Math.min(31, lastStep + 1),
-    }),
-    spaceCategories: foreground ? freezeArray(profile.spaceCategories) : Object.freeze([]),
-    instructions: Object.freeze(instructions),
+    role: "feature",
+    contour: shape,
+    timbreRole: `${context.state}-${shape}-${profile.voice}`,
+    window: Object.freeze({ startStep: start, endStep }),
+    spaceCategories: Object.freeze([]),
+    instructions,
     buildId: APU_ARPEGGIO_COMPOSER_D4_BUILD_ID,
   });
 }
@@ -380,10 +315,7 @@ export function arpeggioInstructionsForPhrase(perfPlan = {}) {
   return arpeggioPlanForPhrase(perfPlan).instructions;
 }
 
-export function shouldCreateArpeggioSpace({ perfPlan, category, stepIndex } = {}) {
-  const plan = arpeggioPlanForPhrase(perfPlan);
-  if (!plan.active || plan.role !== "foreground" || !plan.window) return false;
-  if (!plan.spaceCategories.includes(category)) return false;
-  const localStep = modulo(stepIndex ?? 0, 32);
-  return localStep >= plan.window.startStep && localStep <= plan.window.endStep;
+export function shouldCreateArpeggioSpace() {
+  // D4 arpeggios are additive. They never mute, omit or replace any score layer.
+  return false;
 }
