@@ -25,7 +25,7 @@ export {
 export const APU_PERFORMANCE_CONDUCTOR_BUILD_ID =
   D1A_PERFORMANCE_CONDUCTOR_BUILD_ID;
 export const APU_D3_LISTENER_POLISH_BUILD_ID =
-  "20260727-system-symphony-pass-d3-listener-polish-v3";
+  "20260727-system-symphony-pass-d3-listener-polish-v4";
 
 const DENSITY_TARGETS = Object.freeze({
   rhythm: Object.freeze({ min: 0.72, max: 0.9 }),
@@ -49,8 +49,18 @@ function isPeakPlan(perfPlan = {}) {
   return isPeakPhraseIndex(perfPlan.phraseIndex ?? 0);
 }
 
+function isExplorerPlan(perfPlan = {}) {
+  return perfPlan?.state === "healthy";
+}
+
 export function shouldOmitForPhase(args = {}) {
-  if (isPrePeakCutoutStep(args.perfPlan, args.stepIndex)) return true;
+  if (isPrePeakCutoutStep(args.perfPlan, args.stepIndex)) {
+    // Listener correction: Explorer's pre-Peak drop is a bass withdrawal, not
+    // a full mute. Melody, drums, pads, services and accents keep carrying the
+    // phrase into Peak. The darker state-specific cutouts remain unchanged.
+    if (isExplorerPlan(args.perfPlan)) return args.category === "bass";
+    return true;
+  }
   if (args.category === "primary" && isPeakPlan(args.perfPlan)) return false;
   return d1aShouldOmitForPhase(args);
 }
@@ -116,9 +126,11 @@ function baselineInstructionsForPhrase(perfPlan, instructions) {
       && isPeakPlan(perfPlan)
       && ["state-arp", "explorer-sparkle-answer"].includes(instruction.ornament)
     ))
-    // The pre-Peak void is a real performance cutout, including ornaments.
+    // Grid, Boss and Lost Signal retain their state-specific full cutouts.
+    // Explorer ornaments continue while only its bass category drops out.
     .filter((instruction) => !(
-      Number.isFinite(cutoutStart)
+      state !== "healthy"
+      && Number.isFinite(cutoutStart)
       && Number.isFinite(instruction.offsetSteps)
       && instruction.offsetSteps >= cutoutStart
     ))
