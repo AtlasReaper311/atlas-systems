@@ -12,6 +12,7 @@ import {
 const html = readFileSync(new URL("../speculum/index.html", import.meta.url), "utf8");
 const bootSource = readFileSync(new URL("../speculum/speculum.js", import.meta.url), "utf8");
 const engineSource = readFileSync(new URL("../speculum/engine.js", import.meta.url), "utf8");
+const layoutSource = readFileSync(new URL("../speculum/speculum-layout-v3.css", import.meta.url), "utf8");
 
 const byId = new Map(NODES.map((entry) => [entry.id, entry]));
 
@@ -145,6 +146,7 @@ test("route uses local assets and states its evidence boundary", () => {
   assert.ok(html.includes('<link rel="canonical" href="https://atlas-systems.uk/lab/speculum/">'));
   assert.match(html, /\/static\/vendor\/atlas-interface\/v0\.2\.0\/atlas-fonts\.css/);
   assert.match(html, /\/lab\/speculum\/speculum\.css/);
+  assert.match(html, /\/lab\/speculum\/speculum-layout-v3\.css/);
   assert.match(html, /\/lab\/speculum\/speculum\.js/);
   assert.match(html, /reviewed public snapshot/i);
   assert.match(html, /Private repository identities and private relationships are absent\./);
@@ -170,4 +172,17 @@ test("clarity pass bounds simultaneous visual density", () => {
   assert.match(engineSource, /const trail = 0\.34/);
   assert.match(engineSource, /v\.node\.kind === 'product'\)\);/);
   assert.doesNotMatch(engineSource, /v\.node\.kind === 'product' \|\| v\.node\.kind === 'machine'/);
+});
+
+test("expanded layout gives the field, detail pane, and ledger independent room", () => {
+  assert.match(layoutSource, /--max:\s*1480px/);
+  assert.match(layoutSource, /--rail:\s*400px/);
+  assert.match(layoutSource, /height:\s*clamp\(900px,\s*90vh,\s*1120px\)/);
+  assert.match(
+    layoutSource,
+    /grid-template-rows:\s*auto minmax\(250px,\s*0\.9fr\) minmax\(340px,\s*1\.1fr\)/,
+  );
+  assert.match(layoutSource, /\.detail\s*\{[^}]*overflow-y:\s*auto/s);
+  assert.match(layoutSource, /\.ledger\s*\{[^}]*overflow-y:\s*auto/s);
+  assert.match(layoutSource, /mask-image:\s*none/);
 });
