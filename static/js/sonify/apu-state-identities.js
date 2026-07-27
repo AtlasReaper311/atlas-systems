@@ -1,6 +1,6 @@
 import { masteringProfileForState } from "./apu-mastering.js?v=20260726-system-symphony-mastering-v4";
 
-export const APU_STATE_IDENTITY_BUILD_ID = "20260727-system-symphony-state-identities-v5";
+export const APU_STATE_IDENTITY_BUILD_ID = "20260727-system-symphony-state-identities-v6";
 export const APU_STATE_KEYS = Object.freeze(["healthy", "warning", "critical", "unknown"]);
 
 const freezeArray = (values) => Object.freeze([...values]);
@@ -9,7 +9,7 @@ const HEALTHY_MASTERING = masteringProfileForState("healthy");
 const WARNING_MASTERING = masteringProfileForState("warning");
 const CRITICAL_MASTERING = masteringProfileForState("critical");
 const UNKNOWN_MASTERING = masteringProfileForState("unknown");
-const EXPLORER_PEAK_PHRASES = Object.freeze([11, 12]);
+const PEAK_PHRASES = Object.freeze([11, 12]);
 const PRIMARY_MELODY_EVENT_HASH = 67;
 
 export const APU_STATE_IDENTITIES = Object.freeze({
@@ -125,12 +125,12 @@ export function shouldOmitEvent(context = {}) {
   const identity = normalizedStateIdentity(context.state);
   const cyclePhrase = ((Math.trunc(context.phraseIndex ?? 0) % 16) + 16) % 16;
 
-  // Explorer Peak is an authored climax. Its primary melody must remain
-  // complete rather than being thinned by the state-level omission lottery.
+  // Peak is an authored melodic destination in every state. State identity may
+  // change its rhythm and notes, but deterministic omission may not punch holes
+  // in the primary line once the Peak begins.
   if (
-    identity.id === "healthy"
-    && Math.trunc(context.serviceHash ?? 0) === PRIMARY_MELODY_EVENT_HASH
-    && EXPLORER_PEAK_PHRASES.includes(cyclePhrase)
+    Math.trunc(context.serviceHash ?? 0) === PRIMARY_MELODY_EVENT_HASH
+    && PEAK_PHRASES.includes(cyclePhrase)
   ) {
     return false;
   }
