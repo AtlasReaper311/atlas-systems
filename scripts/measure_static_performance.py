@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 from urllib.parse import urlsplit
 
-ROUTES = ["/", "/systems/", "/lab/", "/lab/signal/", "/writing/"]
+ROUTES = ["/", "/systems/", "/lab/", "/lab/signal/", "/lab/almost/", "/writing/"]
 ASSET_PATTERN = re.compile(r'''(?:href|src)=["']([^"']+)["']''', re.IGNORECASE)
 REPORT_PATH = Path("data/performance-baseline.json")
 
