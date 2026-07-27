@@ -9,6 +9,7 @@ import {
   arrangementForPhrase,
   resetMelodyPreservingD2Planner,
 } from "./apu-arranger.js";
+import { peakRegisterShiftForState } from "./apu-signature-gestures-d3.js";
 import {
   bassEventForTrackStep as baselineBassEvent,
   padChordForTrackStep as baselinePadEvent,
@@ -33,7 +34,7 @@ const frames = ["healthy", "warning", "critical", "unknown"].map((scoreState) =>
   stale: scoreState === "unknown",
 }));
 
-test("D3 preserves primary events except the reviewed Explorer Peak octave shift", () => {
+test("D3 preserves primary events except the reviewed state-specific Peak octave policy", () => {
   for (const frame of frames) {
     resetD2Baseline();
     resetMelodyPreservingD2Planner();
@@ -46,15 +47,17 @@ test("D3 preserves primary events except the reviewed Explorer Peak octave shift
       for (let step = 0; step < 32; step += 1) {
         const before = baselinePrimaryEvent(frame, baseline, step);
         const after = primaryPulseEventForTrackStep(frame, candidate, step);
-        const explorerPeak = frame.scoreState === "healthy" && candidate.section === "peak";
-        if (!explorerPeak || !before) {
+        const shift = candidate.section === "peak"
+          ? peakRegisterShiftForState(frame.scoreState)
+          : 0;
+        if (!before || shift === 0) {
           assert.deepEqual(after, before, `${frame.scoreState}/phrase-${phrase}/step-${step}`);
           continue;
         }
         assert.deepEqual(after, Object.freeze({
           ...before,
-          midi: before.midi - 12,
-          registerAdjustmentSemitones: -12,
+          midi: before.midi + shift,
+          registerAdjustmentSemitones: shift,
         }), `${frame.scoreState}/phrase-${phrase}/step-${step}`);
       }
     }
