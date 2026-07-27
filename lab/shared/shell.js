@@ -17,8 +17,8 @@ const LAB_ROUTES = [
 const PRODUCTION_ORIGIN = "https://atlas-systems.uk";
 const SEARCH_CSS = "/static/css/estate-search.css";
 const LAB_HOME_ROUTE = "/lab/";
-const LAB_FIELDS_CSS = "/static/css/lab-fields.css?v=20260727-visible-lab-fields-v2";
-const LAB_FIELDS_MODULE = "/static/js/lab-fields.js?v=20260727-visible-lab-fields-v2";
+const LAB_FIELDS_CSS = "/lab/shared/lab-fields.css?v=20260727-visible-lab-fields-v2";
+const LAB_FIELDS_MODULE = "/lab/shared/lab-fields.js?v=20260727-visible-lab-fields-v2";
 const SYSTEM_SYMPHONY_ROUTE = "/lab/system-symphony/";
 
 function normalizePath(pathname) {
