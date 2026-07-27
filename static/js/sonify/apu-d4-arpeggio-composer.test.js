@@ -152,13 +152,9 @@ test("D4 never creates gaps or changes score-layer omission", () => {
     const input = performancePlan(state, 6);
     const plan = arpeggioPlanForPhrase(input);
     assert.equal(plan.active, true);
+    assert.equal(shouldCreateArpeggioSpace(), false, `${state}/space`);
     for (const category of ["primary", "secondary", "pad", "service", "bass", "rhythm", "accent"]) {
       for (let stepIndex = 0; stepIndex < 32; stepIndex += 1) {
-        assert.equal(
-          shouldCreateArpeggioSpace(),
-          false,
-          `${state}/${category}/${stepIndex}/space`,
-        );
         assert.equal(
           shouldOmitForPhase({ perfPlan: input, category, stepIndex, phraseIndex: 6 }),
           baselineShouldOmitForPhase({ perfPlan: input, category, stepIndex, phraseIndex: 6 }),
