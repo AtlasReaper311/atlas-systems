@@ -25,13 +25,6 @@
 .card-signature::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 0 76%, rgba(10, 10, 15, .7) 100%); }
 .card-signature__diagram { display: block; width: 100%; height: 100%; overflow: visible; }
 .card-signature__motif { position: absolute; right: 8px; bottom: 7px; z-index: 1; color: currentColor; font: 500 9px/1 var(--mono); letter-spacing: .13em; text-transform: uppercase; }
-.card-signature--atlas-field { isolation: isolate; background: rgba(10, 10, 15, .58); }
-.card-signature--atlas-field .atlas-field-canvas { position: absolute; inset: 0; z-index: 0; display: block; width: 100%; height: 100%; opacity: .86; pointer-events: none; transition: opacity .18s ease; }
-.card-signature--atlas-field .card-signature__diagram { position: relative; z-index: 1; opacity: .62; filter: drop-shadow(0 0 5px color-mix(in srgb, var(--card-accent) 28%, transparent)); }
-.card-signature--atlas-field::after { z-index: 2; }
-.card-signature--atlas-field .card-signature__motif { z-index: 3; }
-.system-card:hover .card-signature--atlas-field .atlas-field-canvas,
-.system-card:focus-visible .card-signature--atlas-field .atlas-field-canvas { opacity: 1; }
 .system-card .card-top { min-width: 0; align-items: flex-start; }
 .system-card .type-label { min-width: 0; text-wrap: balance; }
 .system-card .badge { flex: none; }
@@ -155,4 +148,4 @@
   }
   .card-signature__motif { right: 7px; bottom: 6px; font-size: 8px; }
 }
-@media (prefers-reduced-motion: reduce) { .card-signature { transition: none; } .card-signature--atlas-field .atlas-field-canvas { transition: none; } .system-card:hover .card-signature, .system-card:focus-visible .card-signature { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .card-signature { transition: none; } .system-card:hover .card-signature, .system-card:focus-visible .card-signature { transform: none; } }
