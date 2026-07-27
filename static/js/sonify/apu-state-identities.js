@@ -1,6 +1,6 @@
 import { masteringProfileForState } from "./apu-mastering.js?v=20260726-system-symphony-mastering-v4";
 
-export const APU_STATE_IDENTITY_BUILD_ID = "20260726-system-symphony-state-identities-v4";
+export const APU_STATE_IDENTITY_BUILD_ID = "20260727-system-symphony-state-identities-v5";
 export const APU_STATE_KEYS = Object.freeze(["healthy", "warning", "critical", "unknown"]);
 
 const freezeArray = (values) => Object.freeze([...values]);
@@ -95,7 +95,7 @@ export const APU_STATE_IDENTITIES = Object.freeze({
     padRole: "carrier-drift",
     accentRole: "telemetry-hum",
     stereoWidth: 0.62,
-    omissionThreshold: 0.4,
+    omissionThreshold: 0.28,
     mastering: UNKNOWN_MASTERING,
     masterGainDb: UNKNOWN_MASTERING.masterGainDb,
     dynamicRangeDb: 18,
@@ -170,7 +170,7 @@ export function stateMixModifiers(state) {
   if (identity.id === "healthy") return Object.freeze({ primary: 1, secondary: 1.1, services: 0.9, bass: 0.95, drums: 0.88, pad: 1, accent: 0.75 });
   if (identity.id === "warning") return Object.freeze({ primary: 0.92, secondary: 1.08, services: 1.15, bass: 1.08, drums: 1.08, pad: 0.62, accent: 1.1 });
   if (identity.id === "critical") return Object.freeze({ primary: 1.08, secondary: 0.96, services: 0.72, bass: 1.18, drums: 1.18, pad: 0.18, accent: 1.25 });
-  return Object.freeze({ primary: 0.52, secondary: 0.38, services: 0.42, bass: 0.46, drums: 0.18, pad: 1.18, accent: 0.28 });
+  return Object.freeze({ primary: 0.62, secondary: 0.48, services: 0.52, bass: 0.50, drums: 0.32, pad: 1.18, accent: 0.34 });
 }
 
 export function stateTimbreModifiers(state) {
