@@ -4,21 +4,20 @@ import {
   describeConductor,
   ornamentInstructionsForPhrase as d1aOrnamentInstructionsForPhrase,
   performanceCategories,
-  shouldOmitForPhase,
+  shouldOmitForPhase as d1aShouldOmitForPhase,
   supplementalRhythmForDensity,
 } from "./apu-performance-conductor-d1a-baseline.js?v=20260727-system-symphony-pass-d1a-state-orchestration-v1";
 
 export {
   describeConductor,
   performanceCategories,
-  shouldOmitForPhase,
   supplementalRhythmForDensity,
 };
 
 export const APU_PERFORMANCE_CONDUCTOR_BUILD_ID =
   D1A_PERFORMANCE_CONDUCTOR_BUILD_ID;
 export const APU_D3_LISTENER_POLISH_BUILD_ID =
-  "20260727-system-symphony-pass-d3-listener-polish-v1";
+  "20260727-system-symphony-pass-d3-listener-polish-v2";
 
 const DENSITY_TARGETS = Object.freeze({
   rhythm: Object.freeze({ min: 0.72, max: 0.9 }),
@@ -30,9 +29,8 @@ const DENSITY_TARGETS = Object.freeze({
   accent: Object.freeze({ min: 0.7, max: 0.9 }),
 });
 
-const EXPLORER_HANDOFF_PHRASE = 4;
+const EXPLORER_THEME_A_HANDOFF_PHRASE = 4;
 const EXPLORER_PEAK_PHRASES = Object.freeze([11, 12]);
-const EXPLORER_HANDOFF_CONTOUR = Object.freeze([0, 4, 7, 12, 7, 4]);
 
 const clamp = (value, minimum, maximum) => {
   const numeric = Number(value);
@@ -43,6 +41,16 @@ const clamp = (value, minimum, maximum) => {
 };
 
 const modulo = (value, length) => ((Math.trunc(value) % length) + length) % length;
+
+function isExplorerPeakPlan(perfPlan = {}) {
+  return perfPlan.state === "healthy"
+    && EXPLORER_PEAK_PHRASES.includes(modulo(perfPlan.phraseIndex ?? 0, 16));
+}
+
+export function shouldOmitForPhase(args = {}) {
+  if (args.category === "primary" && isExplorerPeakPlan(args.perfPlan)) return false;
+  return d1aShouldOmitForPhase(args);
+}
 
 export function velocityScaleForDensity(perfPlan, category) {
   if (!perfPlan) return 1;
@@ -71,32 +79,41 @@ function explorerInstruction(instruction, overrides = {}) {
 }
 
 function polishExplorerInstructions(perfPlan, instructions) {
-  const phraseIndex = Math.max(0, Math.trunc(perfPlan?.phraseIndex ?? 0));
-  const cyclePhrase = modulo(phraseIndex, 16);
+  const cyclePhrase = modulo(perfPlan?.phraseIndex ?? 0, 16);
+  const explorerPeak = EXPLORER_PEAK_PHRASES.includes(cyclePhrase);
 
-  const audible = EXPLORER_PEAK_PHRASES.includes(cyclePhrase)
+  const audible = explorerPeak
     ? instructions.filter((instruction) => ![
       "state-arp",
       "explorer-sparkle-answer",
     ].includes(instruction.ornament))
     : instructions;
 
-  let stateArpIndex = 0;
   return Object.freeze(audible.map((instruction) => {
+    const melodic = instruction.voice === "primary" || instruction.voice === "secondary";
+
+    // PR #128's authored shimmer is the high, fast descending lead arc at the
+    // end of Theme A. Preserve its exact register, timing and contour.
     if (
-      cyclePhrase === EXPLORER_HANDOFF_PHRASE
-      && instruction.ornament === "state-arp"
+      cyclePhrase === EXPLORER_THEME_A_HANDOFF_PHRASE
+      && instruction.ornament === "shimmer"
     ) {
-      const index = stateArpIndex;
-      stateArpIndex += 1;
-      return explorerInstruction(instruction, {
-        offsetSteps: 18 + index * 2,
-        midiOffset: EXPLORER_HANDOFF_CONTOUR[index % EXPLORER_HANDOFF_CONTOUR.length],
-        velocity: Number(Math.min(0.21, instruction.velocity ?? 0.21).toFixed(3)),
-        arpFunction: "theme-a-to-variation-handoff",
-        register: "bright-mid",
+      return Object.freeze({
+        ...instruction,
+        register: "bright-high-transition",
+        listenerPolishBuildId: APU_D3_LISTENER_POLISH_BUILD_ID,
       });
     }
+
+    // Explorer Peak should retain the full melodic contour but sit one octave
+    // lower. Bass, drums, pads and non-melodic accents are untouched.
+    if (explorerPeak && melodic && Number.isFinite(instruction.midiOffset)) {
+      return explorerInstruction(instruction, {
+        midiOffset: Number(instruction.midiOffset) - 12,
+        register: "peak-mid",
+      });
+    }
+
     return explorerInstruction(instruction, {
       register: instruction.register === "bright-wide" ? "bright-mid" : instruction.register,
     });
@@ -106,8 +123,12 @@ function polishExplorerInstructions(perfPlan, instructions) {
 export function connectiveArpeggioInstructionsForPhrase(perfPlan) {
   const baseline = d1aConnectiveArpeggioInstructionsForPhrase(perfPlan);
   if (perfPlan?.state !== "healthy") return baseline;
+  const explorerPeak = isExplorerPeakPlan(perfPlan);
   return Object.freeze(baseline.map((instruction) => explorerInstruction(instruction, {
-    register: "bright-mid",
+    ...(explorerPeak && Number.isFinite(instruction.midiOffset)
+      ? { midiOffset: Number(instruction.midiOffset) - 12 }
+      : {}),
+    register: explorerPeak ? "peak-mid" : "bright-mid",
   })));
 }
 
