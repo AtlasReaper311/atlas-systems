@@ -190,6 +190,23 @@ body.spc-presentation .field {
 }
 
 @media (max-width: 900px) {
+  .field {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "bar"
+      "canvas"
+      "rail";
+  }
+
+  .field-canvas,
+  #spc-canvas {
+    width: 100%;
+    min-width: 0;
+  }
+
   .field-bar-actions {
     width: 100%;
     min-width: 0;
@@ -198,6 +215,8 @@ body.spc-presentation .field {
   }
 
   .rail {
+    width: 100%;
+    min-width: 0;
     height: auto;
     overflow: visible;
   }
@@ -213,6 +232,13 @@ body.spc-presentation .field {
   .detail { min-height: 220px !important; }
   .ledger-wrap { min-height: 360px; }
   .ledger { max-height: 420px; overflow-y: auto; }
+
+  .field.is-presenting {
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      "bar"
+      "canvas";
+  }
 
   .field.is-presenting .field-bar-copy { display: none; }
   .field.is-presenting .field-bar-actions { margin-left: 0; }
