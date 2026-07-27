@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Isolated System Symphony Pass D2 Atlas theme audition across Explorer, Grid Pressure, Boss Protocol and Lost Signal.">
+  <meta name="theme-color" content="#0a0a0f">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
+  <link rel="stylesheet" href="/lab/system-symphony-apu-theme-audition/system-symphony-apu-theme-audition.css?v=20260727-pass-d2-theme-audition-v1">
+  <title>Atlas Theme Audition // System Symphony</title>
+</head>
+<body>
+  <nav aria-label="Primary navigation">
+    <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
+    <ul class="nav-links">
+      <li><a href="/work/">Work</a></li>
+      <li><a href="/writing/">Writing</a></li>
+      <li><a href="/lab/" aria-current="page">Lab</a></li>
+      <li><a href="/systems/">Systems</a></li>
+      <li><a href="/about/">About</a></li>
+    </ul>
+  </nav>
+
+  <main class="audition-main" data-audition-root data-running="false" data-state="healthy">
+    <header class="audition-hero">
+      <p class="eyebrow">System Symphony / Pass D2A motif audition</p>
+      <h1>One Atlas theme, four operational transformations.</h1>
+      <p class="lede">This isolated review surface plays the new shared motif without the full soundtrack. It lets the musical identity be judged before D2 connects it to the live arranger and sequencer.</p>
+      <div class="boundary" role="status">
+        <strong>Review boundary</strong>
+        <span>No live evidence is fetched. No production route is changed. The current D1A soundtrack remains untouched.</span>
+      </div>
+    </header>
+
+    <section class="audition-console" aria-labelledby="audition-title">
+      <div class="console-head">
+        <div>
+          <p class="eyebrow">ATLAS_THEME // scale-relative chip motif</p>
+          <h2 id="audition-title">Theme transformation console</h2>
+        </div>
+        <div class="transport-controls">
+          <button type="button" class="primary-button" data-audio-toggle>Start looping phrase</button>
+          <button type="button" class="secondary-button" data-play-once>Play once</button>
+          <label class="volume-control">
+            <span>Volume</span>
+            <input type="range" min="0" max="100" step="1" value="58" data-volume aria-label="Theme audition volume">
+          </label>
+        </div>
+      </div>
+
+      <p class="status-line" data-status aria-live="polite">Choose a state and phrase role, then start the audition.</p>
+
+      <section class="selector-panel" aria-labelledby="state-selector-title">
+        <div class="panel-heading">
+          <span id="state-selector-title">State transformation</span>
+          <strong>same theme identity</strong>
+        </div>
+        <div class="button-row" role="group" aria-label="Theme state">
+          <button type="button" data-state-button="healthy" aria-pressed="true">Explorer</button>
+          <button type="button" data-state-button="warning" aria-pressed="false">Grid Pressure</button>
+          <button type="button" data-state-button="critical" aria-pressed="false">Boss Protocol</button>
+          <button type="button" data-state-button="unknown" aria-pressed="false">Lost Signal</button>
+        </div>
+      </section>
+
+      <section class="selector-panel" aria-labelledby="phrase-selector-title">
+        <div class="panel-heading">
+          <span id="phrase-selector-title">Phrase function</span>
+          <strong>driven by the D1 song plan</strong>
+        </div>
+        <div class="button-row phrase-row" role="group" aria-label="Phrase function">
+          <button type="button" data-profile-button="statement" aria-pressed="true">Statement</button>
+          <button type="button" data-profile-button="answer" aria-pressed="false">Answer</button>
+          <button type="button" data-profile-button="development" aria-pressed="false">Development</button>
+          <button type="button" data-profile-button="reprise" aria-pressed="false">Reprise</button>
+          <button type="button" data-profile-button="climax" aria-pressed="false">Climax</button>
+          <button type="button" data-profile-button="recovery" aria-pressed="false">Recovery</button>
+        </div>
+      </section>
+
+      <section class="metrics" aria-label="Current theme plan">
+        <article><span>Theme</span><strong data-metric="theme">ATLAS_THEME</strong></article>
+        <article><span>State</span><strong data-metric="state">Explorer</strong></article>
+        <article><span>Phrase role</span><strong data-metric="phrase-role">Statement</strong></article>
+        <article><span>Cycle role</span><strong data-metric="cycle-role">Statement</strong></article>
+        <article><span>Requested transform</span><strong data-metric="requested-transform">Identity</strong></article>
+        <article><span>Played transform</span><strong data-metric="transform">Identity</strong></article>
+        <article><span>Cadence</span><strong data-metric="cadence">Open</strong></article>
+        <article><span>Anchors retained</span><strong data-metric="anchors">3</strong></article>
+      </section>
+
+      <section class="motif-panel" aria-labelledby="motif-map-title">
+        <div class="panel-heading">
+          <span id="motif-map-title">Two-bar motif map</span>
+          <strong>32 sixteenth-note steps at 100 BPM</strong>
+        </div>
+        <div class="step-grid" data-step-grid aria-label="Motif event positions"></div>
+        <div class="legend" aria-label="Motif map legend">
+          <span><i class="primary-marker"></i>Primary motif</span>
+          <span><i class="echo-marker"></i>Delayed answer or echo</span>
+        </div>
+      </section>
+
+      <section class="event-panel" aria-labelledby="event-table-title">
+        <div class="panel-heading">
+          <span id="event-table-title">Audible event plan</span>
+          <strong data-event-summary>8 primary notes</strong>
+        </div>
+        <div class="table-wrap" tabindex="0">
+          <table>
+            <thead>
+              <tr><th scope="col">Voice</th><th scope="col">Step</th><th scope="col">Theme degree</th><th scope="col">Note</th><th scope="col">Gate</th><th scope="col">Source anchor</th></tr>
+            </thead>
+            <tbody data-event-table></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <section class="listening-guide" aria-labelledby="listening-guide-title">
+      <div class="section-heading">
+        <span>Listening guide</span>
+        <h2 id="listening-guide-title">What should remain recognisable?</h2>
+      </div>
+      <div class="guide-grid">
+        <article><h3>1. Learn Explorer</h3><p>Start with Statement. Listen for the opening home note, the two-stage rise, the central high anchor, and the final return home.</p></article>
+        <article><h3>2. Add pressure</h3><p>Grid Pressure should retain those landmarks but arrive late, use shorter gates and stop short of a comfortable ending.</p></article>
+        <article><h3>3. Compress the boss</h3><p>Boss Protocol should reduce the same idea to root-and-fifth action cells. Weight should come from rhythm and articulation, not louder bass.</p></article>
+        <article><h3>4. Lose the signal</h3><p>Lost Signal should leave only distant landmarks and delayed echoes. It should feel incomplete, but not unrelated or empty.</p></article>
+        <article><h3>5. Confirm recovery</h3><p>Choose Recovery. The complete Explorer identity should return and finish at home, making the restoration audible.</p></article>
+      </div>
+    </section>
+  </main>
+
+  <script src="/vendor/tone.min.js?v=20260708-sonify"></script>
+  <script type="module" src="/lab/system-symphony-apu-theme-audition/system-symphony-apu-theme-audition.js?v=20260727-pass-d2-theme-audition-v1"></script>
+</body>
+</html>
