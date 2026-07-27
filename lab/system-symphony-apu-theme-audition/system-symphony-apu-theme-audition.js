@@ -9,40 +9,40 @@ const STATE_LABELS = Object.freeze({
   unknown: "Lost Signal",
 });
 
-const PROFILE_INPUTS = Object.freeze({
-  statement: Object.freeze({ phraseIndex: 1, cycleNumber: 0, cyclePhrase: 1, section: "establish", sectionLocalPhrase: 0 }),
-  answer: Object.freeze({ phraseIndex: 2, cycleNumber: 0, cyclePhrase: 2, section: "establish", sectionLocalPhrase: 1 }),
-  development: Object.freeze({ phraseIndex: 17, cycleNumber: 1, cyclePhrase: 1, section: "establish", sectionLocalPhrase: 0 }),
-  reprise: Object.freeze({ phraseIndex: 49, cycleNumber: 3, cyclePhrase: 1, section: "establish", sectionLocalPhrase: 0 }),
-  climax: Object.freeze({ phraseIndex: 11, cycleNumber: 0, cyclePhrase: 11, section: "peak", sectionLocalPhrase: 0 }),
+const STATEMENT_INPUT = Object.freeze({
+  phraseIndex: 1,
+  cycleNumber: 0,
+  cyclePhrase: 1,
+  section: "establish",
+  sectionLocalPhrase: 0,
 });
 
-const root = document.querySelector("[data-audition-root]");
-const statusNode = document.querySelector("[data-status]");
-const audioToggle = document.querySelector("[data-audio-toggle]");
-const playOnceButton = document.querySelector("[data-play-once]");
-const volumeInput = document.querySelector("[data-volume]");
-const stepGrid = document.querySelector("[data-step-grid]");
-const eventTable = document.querySelector("[data-event-table]");
-const eventSummary = document.querySelector("[data-event-summary]");
+const LISTENING_BPM = 72;
+const NOTE_SPACING_SECONDS = 0.58;
+const NOTE_DURATION_SECONDS = 0.36;
+const COMPARISON_PAUSE_SECONDS = 1.2;
 
-let selectedState = "healthy";
-let selectedProfile = "statement";
-let currentPlan = null;
-let currentMotif = null;
-let running = false;
+const root = document.querySelector("[data-audition-root]");
+if (!root) throw new Error("system-symphony-pass-d2: audition root is missing");
+
+const statusNode = root.querySelector("[data-status]");
+const compareButton = root.querySelector("[data-compare]");
+const playReferenceButton = root.querySelector("[data-play-reference]");
+const playSelectedButton = root.querySelector("[data-play-selected]");
+const stopButton = root.querySelector("[data-stop]");
+const volumeInput = root.querySelector("[data-volume]");
+const stepGrid = root.querySelector("[data-step-grid]");
+const eventTable = root.querySelector("[data-event-table]");
+const eventSummary = root.querySelector("[data-event-summary]");
+
+let selectedState = "warning";
+let selectedMotif = null;
+let referenceMotif = null;
 let initialized = false;
+let playing = false;
 let master = null;
 let limiter = null;
-let primary = null;
-let secondary = null;
-
-function titleCase(value) {
-  return String(value ?? "unknown")
-    .split("-")
-    .map((part) => part ? `${part[0].toUpperCase()}${part.slice(1)}` : part)
-    .join(" ");
-}
+let synth = null;
 
 function midiName(midi) {
   const names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
@@ -54,150 +54,103 @@ function standardEvidence() {
   return Object.freeze({ mode: "preview", stale: false, recoveryConfirmed: false, movement: null });
 }
 
-function recoveryPlan(originState) {
-  const fromState = originState === "healthy" ? "warning" : originState;
-  const planner = createSongPlanner({ seed: `PASS-D2:AUDITION:RECOVERY:${fromState}` });
-  planner.advancePhrase({
-    phraseIndex: 13,
-    cycleNumber: 0,
-    cyclePhrase: 13,
-    section: "release",
-    sectionLocalPhrase: 0,
-    state: fromState,
-    evidence: standardEvidence(),
-  });
+function statementPlanFor(state) {
+  const planner = createSongPlanner({ seed: `PASS-D2:CLEAR-AUDITION:${state}` });
   return planner.advancePhrase({
-    phraseIndex: 14,
-    cycleNumber: 0,
-    cyclePhrase: 14,
-    section: "recovery",
-    sectionLocalPhrase: 0,
-    state: "healthy",
-    evidence: Object.freeze({
-      mode: "preview",
-      stale: false,
-      recoveryConfirmed: true,
-      movement: Object.freeze({ kind: "recovery", fromEvidence: true }),
-    }),
+    ...STATEMENT_INPUT,
+    state,
+    evidence: standardEvidence(),
   });
 }
 
-function planForSelection() {
-  if (selectedProfile === "recovery") return recoveryPlan(selectedState);
-  const planner = createSongPlanner({ seed: `PASS-D2:AUDITION:${selectedState}:${selectedProfile}` });
-  return planner.advancePhrase({
-    ...PROFILE_INPUTS[selectedProfile],
-    state: selectedState,
-    evidence: standardEvidence(),
-  });
+function motifForState(state) {
+  const plan = statementPlanFor(state);
+  const identity = normalizedStateIdentity(state);
+  return motifMidiEventsForPlan(plan, identity.scale);
+}
+
+function setMetric(name, value) {
+  const node = root.querySelector(`[data-metric="${name}"]`);
+  if (node) node.textContent = String(value);
 }
 
 function updateSelectionButtons() {
-  document.querySelectorAll("[data-state-button]").forEach((button) => {
+  root.querySelectorAll("[data-state-button]").forEach((button) => {
     button.setAttribute("aria-pressed", String(button.dataset.stateButton === selectedState));
-  });
-  document.querySelectorAll("[data-profile-button]").forEach((button) => {
-    button.setAttribute("aria-pressed", String(button.dataset.profileButton === selectedProfile));
   });
 }
 
-function renderSteps(motif) {
-  const primaryByStep = new Map(motif.events.map((event) => [event.step, event]));
-  const echoesByStep = new Map(motif.echoEvents.map((event) => [event.step, event]));
+function renderSequence(motif) {
   const fragment = document.createDocumentFragment();
-  for (let step = 0; step < 32; step += 1) {
+  const events = [...motif.events].sort((left, right) => left.step - right.step);
+  stepGrid.style.gridTemplateColumns = `repeat(${Math.max(1, events.length)}, minmax(56px, 1fr))`;
+
+  events.forEach((event, index) => {
     const cell = document.createElement("div");
-    cell.className = "step-cell";
-    cell.dataset.bar = step < 16 ? "1" : "2";
+    cell.className = "step-cell has-primary";
+    cell.dataset.bar = index < Math.ceil(events.length / 2) ? "1" : "2";
+    cell.title = `Note ${index + 1}: ${midiName(event.midi)}, source ${event.sourceIndex}`;
+
     const label = document.createElement("span");
-    label.textContent = String(step).padStart(2, "0");
+    label.textContent = `${index + 1} · ${midiName(event.midi)}`;
     cell.append(label);
-    const primaryEvent = primaryByStep.get(step);
-    const echoEvent = echoesByStep.get(step);
-    if (primaryEvent) {
-      cell.classList.add("has-primary");
-      cell.title = `Primary ${midiName(primaryEvent.midi)}, degree ${primaryEvent.degree}`;
-    }
-    if (echoEvent) {
-      cell.classList.add("has-echo");
-      cell.title = `${cell.title ? `${cell.title}; ` : ""}Echo ${midiName(echoEvent.midi)}, degree ${echoEvent.degree}`;
-    }
     fragment.append(cell);
-  }
+  });
+
   stepGrid.replaceChildren(fragment);
 }
 
 function renderEvents(motif) {
-  const events = [...motif.events, ...motif.echoEvents].sort((left, right) => left.step - right.step || left.voice.localeCompare(right.voice));
   const fragment = document.createDocumentFragment();
-  for (const event of events) {
+  const events = [...motif.events].sort((left, right) => left.step - right.step);
+
+  events.forEach((event, index) => {
     const row = document.createElement("tr");
     const values = [
-      event.voice === "primary" ? "Primary" : "Echo",
-      event.step,
+      index + 1,
+      event.sourceIndex,
       event.degree,
       midiName(event.midi),
-      event.duration,
-      motif.preservedAnchors.includes(event.sourceIndex) ? `Anchor ${event.sourceIndex}` : `Genome ${event.sourceIndex}`,
+      motif.preservedAnchors.includes(event.sourceIndex) ? "Retained anchor" : "Theme material",
     ];
+
     for (const value of values) {
       const cell = document.createElement("td");
       cell.textContent = String(value);
       row.append(cell);
     }
     fragment.append(row);
-  }
+  });
+
   eventTable.replaceChildren(fragment);
-  eventSummary.textContent = `${motif.events.length} primary notes / ${motif.echoEvents.length} echoes`;
+  eventSummary.textContent = `${events.length} notes`;
 }
 
-function setMetric(name, value) {
-  const node = document.querySelector(`[data-metric="${name}"]`);
-  if (node) node.textContent = value;
-}
-
-function rebuildAudition() {
-  currentPlan = planForSelection();
-  const identity = normalizedStateIdentity(currentPlan.state);
-  currentMotif = motifMidiEventsForPlan(currentPlan, identity.scale);
-  root.dataset.state = currentPlan.state;
-  setMetric("theme", currentMotif.themeId);
-  setMetric("state", selectedProfile === "recovery"
-    ? `Recovery to ${STATE_LABELS[currentPlan.state]}`
-    : STATE_LABELS[currentPlan.state]);
-  setMetric("phrase-role", titleCase(currentPlan.phraseRole));
-  setMetric("cycle-role", titleCase(currentPlan.cycleRole));
-  setMetric("requested-transform", titleCase(currentMotif.requestedTransform));
-  setMetric("transform", titleCase(currentMotif.transform));
-  setMetric("cadence", titleCase(currentMotif.cadenceIntent));
-  setMetric("anchors", `${currentMotif.preservedAnchors.length} / 3`);
-  renderSteps(currentMotif);
-  renderEvents(currentMotif);
+function rebuildComparison() {
+  referenceMotif = motifForState("healthy");
+  selectedMotif = motifForState(selectedState);
+  root.dataset.state = selectedState;
+  setMetric("state", STATE_LABELS[selectedState]);
+  renderSequence(selectedMotif);
+  renderEvents(selectedMotif);
   updateSelectionButtons();
-  statusNode.textContent = running
-    ? `${STATE_LABELS[currentPlan.state]} ${titleCase(currentPlan.phraseRole)} will begin at the next loop boundary.`
-    : `${STATE_LABELS[currentPlan.state]} ${titleCase(currentPlan.phraseRole)} is ready.`;
+  statusNode.textContent = `${STATE_LABELS[selectedState]} is selected. Explorer will play first in the comparison.`;
 }
 
 function ensureAudioGraph() {
   if (initialized) return;
   const Tone = globalThis.Tone;
   if (!Tone) throw new Error("Theme audition cannot start because Tone.js is unavailable.");
-  limiter = new Tone.Limiter(-3).toDestination();
-  master = new Tone.Gain(Number(volumeInput.value) / 100 * 0.62).connect(limiter);
-  primary = new Tone.PolySynth(Tone.Synth, {
-    maxPolyphony: 8,
-    oscillator: { type: "square" },
-    envelope: { attack: 0.004, decay: 0.08, sustain: 0.18, release: 0.12 },
-    volume: -8,
-  }).connect(master);
-  secondary = new Tone.PolySynth(Tone.Synth, {
-    maxPolyphony: 6,
+
+  limiter = new Tone.Limiter(-4).toDestination();
+  master = new Tone.Gain(Number(volumeInput.value) / 100 * 0.72).connect(limiter);
+  synth = new Tone.Synth({
     oscillator: { type: "triangle" },
-    envelope: { attack: 0.01, decay: 0.14, sustain: 0.12, release: 0.22 },
-    volume: -15,
+    envelope: { attack: 0.008, decay: 0.08, sustain: 0.12, release: 0.1 },
+    volume: -7,
   }).connect(master);
-  Tone.Transport.bpm.value = 100;
+
+  Tone.Transport.bpm.value = LISTENING_BPM;
   Tone.Transport.timeSignature = 4;
   initialized = true;
 }
@@ -206,93 +159,123 @@ function eventFrequency(event) {
   return globalThis.Tone.Frequency(event.midi, "midi").toFrequency();
 }
 
-function playMotifAt(time, motif = currentMotif) {
-  if (!motif || !initialized) return;
-  const stepSeconds = globalThis.Tone.Time("16n").toSeconds();
-  for (const event of motif.events) {
-    primary.triggerAttackRelease(eventFrequency(event), event.duration, time + event.step * stepSeconds, event.velocity);
-  }
-  for (const event of motif.echoEvents) {
-    secondary.triggerAttackRelease(eventFrequency(event), event.duration, time + event.step * stepSeconds, event.velocity);
-  }
+function sequenceDuration(motif) {
+  return Math.max(0, motif.events.length - 1) * NOTE_SPACING_SECONDS + NOTE_DURATION_SECONDS;
 }
 
-function stopTransport() {
-  if (!initialized) return;
+function scheduleStatus(message, offsetSeconds) {
+  const Tone = globalThis.Tone;
+  Tone.Transport.schedule((time) => {
+    Tone.Draw.schedule(() => {
+      statusNode.textContent = message;
+    }, time);
+  }, offsetSeconds);
+}
+
+function scheduleMotif(motif, offsetSeconds, label) {
+  const Tone = globalThis.Tone;
+  const events = [...motif.events].sort((left, right) => left.step - right.step);
+  scheduleStatus(`Now playing: ${label}.`, offsetSeconds);
+
+  events.forEach((event, index) => {
+    Tone.Transport.schedule((time) => {
+      synth.triggerAttackRelease(
+        eventFrequency(event),
+        NOTE_DURATION_SECONDS,
+        time,
+        Math.max(0.24, Math.min(0.48, event.velocity ?? 0.36)),
+      );
+    }, offsetSeconds + index * NOTE_SPACING_SECONDS);
+  });
+
+  return offsetSeconds + sequenceDuration(motif);
+}
+
+function stopPlayback({ announce = true } = {}) {
+  if (!initialized) {
+    if (announce) statusNode.textContent = "Audition stopped.";
+    return;
+  }
+
   const Tone = globalThis.Tone;
   Tone.Transport.stop();
   Tone.Transport.cancel();
-  primary.releaseAll(Tone.now());
-  secondary.releaseAll(Tone.now());
+  synth.triggerRelease(Tone.now());
+  playing = false;
+  root.dataset.running = "false";
+  if (announce) statusNode.textContent = "Audition stopped.";
 }
 
-function startLoop() {
-  const Tone = globalThis.Tone;
-  stopTransport();
-  Tone.Transport.scheduleRepeat((time) => playMotifAt(time), "2m", 0);
-  Tone.Transport.position = 0;
-  Tone.Transport.start("+0.05");
-}
-
-async function toggleLoop() {
-  try {
-    ensureAudioGraph();
-    if (!running) {
-      await globalThis.Tone.start();
-      startLoop();
-      running = true;
-      root.dataset.running = "true";
-      audioToggle.textContent = "Stop looping phrase";
-      statusNode.textContent = `${STATE_LABELS[currentPlan.state]} ${titleCase(currentPlan.phraseRole)} is looping at 100 BPM.`;
-    } else {
-      stopTransport();
-      running = false;
-      root.dataset.running = "false";
-      audioToggle.textContent = "Start looping phrase";
-      statusNode.textContent = "Audition stopped.";
-    }
-  } catch (error) {
-    statusNode.textContent = error instanceof Error ? error.message : String(error);
-  }
-}
-
-async function playOnce() {
+async function playParts(parts) {
   try {
     ensureAudioGraph();
     await globalThis.Tone.start();
-    playMotifAt(globalThis.Tone.now() + 0.05);
-    statusNode.textContent = `Playing one ${STATE_LABELS[currentPlan.state]} ${titleCase(currentPlan.phraseRole)} phrase.`;
+    stopPlayback({ announce: false });
+
+    const Tone = globalThis.Tone;
+    let cursor = 0;
+    parts.forEach((part, index) => {
+      cursor = scheduleMotif(part.motif, cursor, part.label);
+      if (index < parts.length - 1) {
+        const nextLabel = parts[index + 1].label;
+        scheduleStatus(`Pause. Next: ${nextLabel}.`, cursor + 0.1);
+        cursor += COMPARISON_PAUSE_SECONDS;
+      }
+    });
+
+    const finishedAt = cursor + 0.2;
+    Tone.Transport.schedule((time) => {
+      Tone.Draw.schedule(() => {
+        Tone.Transport.stop();
+        playing = false;
+        root.dataset.running = "false";
+        statusNode.textContent = "Comparison complete. Replay it as many times as needed.";
+      }, time);
+    }, finishedAt);
+
+    Tone.Transport.position = 0;
+    Tone.Transport.start("+0.05");
+    playing = true;
+    root.dataset.running = "true";
   } catch (error) {
     statusNode.textContent = error instanceof Error ? error.message : String(error);
   }
 }
 
-document.querySelectorAll("[data-state-button]").forEach((button) => {
+compareButton.addEventListener("click", () => {
+  playParts([
+    { motif: referenceMotif, label: "Explorer reference" },
+    { motif: selectedMotif, label: STATE_LABELS[selectedState] },
+  ]);
+});
+
+playReferenceButton.addEventListener("click", () => {
+  playParts([{ motif: referenceMotif, label: "Explorer reference" }]);
+});
+
+playSelectedButton.addEventListener("click", () => {
+  playParts([{ motif: selectedMotif, label: STATE_LABELS[selectedState] }]);
+});
+
+stopButton.addEventListener("click", () => stopPlayback());
+
+root.querySelectorAll("[data-state-button]").forEach((button) => {
   button.addEventListener("click", () => {
+    if (playing) stopPlayback({ announce: false });
     selectedState = button.dataset.stateButton;
-    rebuildAudition();
+    rebuildComparison();
   });
 });
 
-document.querySelectorAll("[data-profile-button]").forEach((button) => {
-  button.addEventListener("click", () => {
-    selectedProfile = button.dataset.profileButton;
-    rebuildAudition();
-  });
-});
-
-audioToggle.addEventListener("click", toggleLoop);
-playOnceButton.addEventListener("click", playOnce);
 volumeInput.addEventListener("input", () => {
-  if (master) master.gain.rampTo(Number(volumeInput.value) / 100 * 0.62, 0.08);
+  if (master) master.gain.rampTo(Number(volumeInput.value) / 100 * 0.72, 0.08);
 });
 
 window.addEventListener("pagehide", () => {
-  stopTransport();
-  primary?.dispose();
-  secondary?.dispose();
+  stopPlayback({ announce: false });
+  synth?.dispose();
   master?.dispose();
   limiter?.dispose();
 });
 
-rebuildAudition();
+rebuildComparison();
