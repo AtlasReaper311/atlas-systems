@@ -1,0 +1,351 @@
+/* SPECULUM / investigation pass v4
+ *
+ * Interaction and evidence hierarchy layered on top of the clarity and layout
+ * passes. No topology or cadence values live in CSS.
+ */
+
+.field-bar {
+  min-height: 86px;
+  align-items: flex-start;
+  padding: 12px 16px;
+  flex-wrap: wrap;
+}
+
+.field-bar-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 250px;
+}
+
+.field-bar-copy p { margin: 0; }
+
+.field-keys {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px 22px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.evidence-key,
+.node-key {
+  display: flex;
+  align-items: center;
+  gap: 8px 12px;
+  flex-wrap: wrap;
+}
+
+.key-title {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.key-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.evidence-mark {
+  width: 7px;
+  height: 7px;
+  display: inline-block;
+  border-radius: 50%;
+}
+
+.evidence-mark.is-verified { background: var(--ok); }
+.evidence-mark.is-assumed { border: 1px solid var(--accent); }
+.evidence-mark.is-na {
+  width: 8px;
+  height: 1px;
+  border-radius: 0;
+  background: var(--text-faint);
+}
+
+.node-mark {
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+  background: var(--text-dim);
+}
+
+.node-mark.is-product {
+  width: 12px;
+  height: 12px;
+  background: transparent;
+  border: 1px solid var(--accent);
+  box-shadow: inset 0 0 0 3px var(--bg-1);
+}
+
+.node-mark.is-observer {
+  background: var(--text-dim);
+  outline: 1px solid rgba(245, 166, 35, 0.7);
+  outline-offset: 2px;
+}
+
+.node-mark.is-machine {
+  width: 14px;
+  height: 7px;
+  background: transparent;
+  border: 1px solid var(--text-dim);
+}
+
+.node-mark.is-external {
+  background: transparent;
+  border: 1px solid var(--text-faint);
+}
+
+.rail {
+  grid-template-rows: auto minmax(300px, 0.95fr) minmax(380px, 1.05fr);
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.playback-btns button:last-child { min-width: 116px; }
+
+.detail {
+  padding: 18px;
+}
+
+.dossier-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.dossier-head h3 { margin: 0; }
+
+.dossier-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.dossier-badge {
+  border: 1px solid var(--border-hi);
+  padding: 3px 6px;
+  color: var(--text-faint);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.dossier-badge.is-pinned,
+.dossier-badge.is-trace {
+  color: var(--accent);
+  border-color: rgba(245, 166, 35, 0.45);
+  background: var(--accent-dim);
+}
+
+.dossier-grid {
+  display: grid;
+  gap: 0;
+  margin: 14px 0;
+  border-top: 1px solid var(--border);
+}
+
+.dossier-row {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.dossier-term {
+  color: var(--text-faint);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dossier-value {
+  min-width: 0;
+  color: var(--text-dim);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.dossier-value.is-verified { color: var(--ok); }
+.dossier-value.is-assumed { color: var(--accent); }
+
+.dossier-source {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-faint);
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+.dossier-actions {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0 4px;
+}
+
+.dossier-actions button,
+.relation-button,
+.ledger-pause {
+  font: 400 10.5px/1.2 var(--mono);
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--border-hi);
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.dossier-actions button:hover,
+.relation-button:hover,
+.ledger-pause:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.relation-group { margin-top: 13px; }
+
+.relation-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.relation-button {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.trace-progress {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  margin: 14px 0;
+}
+
+.trace-progress span {
+  height: 3px;
+  background: var(--border-hi);
+}
+
+.trace-progress span.is-complete { background: var(--accent); }
+.trace-progress span.is-current { background: var(--ok); }
+
+.trace-step {
+  margin: 0 0 8px;
+  color: var(--accent);
+  font: 400 17px/1.25 var(--serif);
+}
+
+.trace-copy { margin: 0; color: var(--text-dim); }
+
+.ledger-wrap {
+  padding-top: 12px;
+}
+
+.ledger-heading {
+  flex: none;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ledger-heading .label { margin-bottom: 9px; }
+
+.ledger-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.btns.compact { gap: 5px; }
+.btns.compact button { min-height: 27px; padding: 6px 8px; }
+
+.ledger-pause {
+  min-height: 27px;
+  white-space: nowrap;
+}
+
+.ledger-pause[aria-pressed="true"] {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.ledger-context {
+  margin: 8px 0 0;
+  color: var(--text-faint);
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+.ledger {
+  padding-top: 2px;
+}
+
+.ledger li {
+  grid-template-columns: 62px minmax(0, 1fr) auto;
+  min-height: 31px;
+}
+
+.ledger .spc-count-badge {
+  align-self: center;
+  color: var(--accent);
+  border: 1px solid rgba(245, 166, 35, 0.25);
+  padding: 2px 5px;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.ledger-empty {
+  display: block !important;
+  padding: 16px 0 !important;
+  color: var(--text-faint) !important;
+  border: 0 !important;
+}
+
+.ledger li.is-newest {
+  background: linear-gradient(90deg, rgba(245, 166, 35, 0.07), transparent 70%);
+  animation: spc-ledger-arrive 900ms ease-out both;
+}
+
+@keyframes spc-ledger-arrive {
+  from { background-color: rgba(245, 166, 35, 0.14); }
+  to { background-color: transparent; }
+}
+
+@media (max-width: 1279px) and (min-width: 901px) {
+  .field-keys { justify-content: flex-start; }
+  .rail { grid-template-rows: auto minmax(280px, 0.95fr) minmax(350px, 1.05fr); }
+}
+
+@media (max-width: 900px) {
+  .field-bar { min-height: 0; }
+  .field-keys { justify-content: flex-start; }
+  .rail { grid-template-rows: auto minmax(280px, auto) minmax(380px, 480px); }
+  .detail { max-height: 520px; }
+}
+
+@media (max-width: 560px) {
+  .field-keys,
+  .evidence-key,
+  .node-key { align-items: flex-start; }
+  .evidence-key,
+  .node-key { width: 100%; }
+  .dossier-row { grid-template-columns: 78px minmax(0, 1fr); }
+  .ledger-toolbar { align-items: stretch; flex-direction: column; }
+  .ledger-pause { align-self: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ledger li.is-newest { animation: none; }
+}
