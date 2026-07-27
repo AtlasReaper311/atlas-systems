@@ -1,0 +1,24 @@
+name: Measure homepage field hotfix
+
+on:
+  push:
+    branches:
+      - fix/homepage-atlas-field-production
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - name: Generate deterministic performance report
+        run: python3 scripts/measure_static_performance.py
+      - name: Upload performance report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: homepage-field-hotfix-performance
+          path: data/performance-baseline.json
+          if-no-files-found: error
+          retention-days: 1
