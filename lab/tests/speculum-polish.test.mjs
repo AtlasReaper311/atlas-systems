@@ -26,6 +26,7 @@ test('rail regions remain in strict flow and presentation mode expands the field
   assert.match(css, /\.detail\s*\{[\s\S]*max-height:\s*none\s*!important[\s\S]*overflow-y:\s*auto/);
   assert.match(css, /\.field\.is-presenting\s+\.rail,[\s\S]*\.field\.is-presenting\s+\.field-keys\s*\{[\s\S]*display:\s*none\s*!important/);
   assert.match(css, /@media \(max-width: 900px\)[\s\S]*\.controls,[\s\S]*\.detail,[\s\S]*\.ledger-wrap[\s\S]*overflow:\s*visible/);
+  assert.match(css, /@media \(max-width: 353px\)[\s\S]*width:\s*calc\(100% \+ 32px\)[\s\S]*border-left:\s*0[\s\S]*border-right:\s*0/);
 });
 
 test('completion pulse is restrained and honours reduced motion', () => {
