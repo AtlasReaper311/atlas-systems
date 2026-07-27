@@ -10,7 +10,7 @@ import {
 import {
   APU_ARPEGGIO_COMPOSER_D4_BUILD_ID,
   arpeggioPlanForPhrase,
-} from "./apu-arpeggio-composer-d4.js?v=20260727-system-symphony-pass-d4-arpeggio-composer-v2";
+} from "./apu-arpeggio-composer-d4.js?v=20260727-system-symphony-pass-d4-arpeggio-composer-v3";
 
 export {
   APU_SCORE_TRACE_BUILD_ID,
@@ -49,6 +49,9 @@ function arpeggioTrace(arrangement = {}) {
   return Object.freeze({
     buildId: APU_ARPEGGIO_COMPOSER_D4_BUILD_ID,
     active: plan.active,
+    additive: plan.instructions.length > 0
+      ? plan.instructions.every((instruction) => instruction.additive === true)
+      : true,
     protectedEvent: plan.protectedEvent,
     protectedColourLayers: plan.instructions.filter((instruction) => instruction.protectedColourLayer).length,
     role: plan.role,
