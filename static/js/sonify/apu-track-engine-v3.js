@@ -25,6 +25,11 @@ import {
   APU_MASTERING_DEFAULT_USER_GAIN,
   APU_MASTERING_LIMITER_CEILING_DB,
 } from "./apu-mastering.js?v=20260726-system-symphony-mastering-v4";
+import {
+  masterStageProfileForState,
+  quantiseCurve8Bit,
+  tanhCurve,
+} from "./apu-soft-clipper.js?v=20260727-apu-soft-clipper-v1";
 
 export const APU_TRACK_AUDIO_START_TIMEOUT_MS = 8000;
 export const APU_TRACK_DEFAULT_GAIN = APU_MASTERING_DEFAULT_USER_GAIN;
@@ -97,6 +102,11 @@ function setBits(crusher, bits) {
   if (!crusher?.bits) return;
   const value = Math.round(clamp(bits, 4, 16));
   if (crusher.bits.value !== value) crusher.bits.value = value;
+}
+
+function setSoftClipperDrive(clipper, drive) {
+  if (!clipper || !Number.isFinite(drive)) return;
+  clipper.curve = tanhCurve(drive);
 }
 
 function setPulseWidth(synth, width, at = undefined) {
@@ -200,6 +210,13 @@ export function createApuTrackEngine({
   function buildGraph(Tone) {
     nodes.output = new Tone.Gain(0).toDestination();
     nodes.limiter = new Tone.Limiter(APU_MASTERING_LIMITER_CEILING_DB);
+    nodes.softClipper = new Tone.WaveShaper(Array.from(tanhCurve(1.45)));
+    nodes.softClipper.oversample = "2x";
+    nodes.masterDac = new Tone.WaveShaper(Array.from(quantiseCurve8Bit()));
+    nodes.masterDac.oversample = "none";
+    nodes.masterDacDry = new Tone.Gain(0.92);
+    nodes.masterDacWet = new Tone.Gain(0.08);
+    nodes.masterDacMix = new Tone.Gain(1);
     nodes.compressor = new Tone.Compressor({ threshold: -18, ratio: 1.7, attack: 0.022, release: 0.24 });
     nodes.masterFilter = new Tone.Filter({ type: "lowpass", frequency: 9000, rolloff: -24, Q: 0.7 });
     nodes.masterHighpass = new Tone.Filter({ type: "highpass", frequency: 24, rolloff: -12, Q: 0.5 });
@@ -210,9 +227,12 @@ export function createApuTrackEngine({
       nodes.masterHighpass,
       nodes.masterFilter,
       nodes.compressor,
-      nodes.limiter,
-      nodes.output,
     );
+    nodes.compressor.connect(nodes.masterDacDry);
+    nodes.compressor.chain(nodes.masterDac, nodes.masterDacWet);
+    nodes.masterDacDry.connect(nodes.masterDacMix);
+    nodes.masterDacWet.connect(nodes.masterDacMix);
+    nodes.masterDacMix.chain(nodes.softClipper, nodes.limiter, nodes.output);
 
     nodes.waveform = new Tone.Analyser("waveform", APU_TRACK_WAVEFORM_SIZE);
     nodes.spectrum = new Tone.Analyser("fft", APU_TRACK_SPECTRUM_SIZE);
@@ -371,6 +391,7 @@ export function createApuTrackEngine({
     const timbre = currentArrangement.timbre ?? {};
     const scoreTimbre = currentEngineControls.timbre;
     const compression = compressionForRange(timbre.dynamicRangeDb ?? 12);
+    const masterStageProfile = masterStageProfileForState(stateKey(frame));
     safeRamp(nodes.transport.bpm, APU_TRACK_BPM, 0.08, at);
     safeRamp(nodes.masterVolume.volume, timbre.masterGainDb ?? scene.masterGainDb, duration, at);
     safeRamp(nodes.masterFilter.frequency, scene.masterFilterHz * (scoreTimbre?.masterFilterScale ?? 1), duration, at);
@@ -381,6 +402,9 @@ export function createApuTrackEngine({
     safeRamp(nodes.compressor.ratio, compression.ratio, duration, at);
     safeRamp(nodes.compressor.attack, compression.attack, duration, at);
     safeRamp(nodes.compressor.release, compression.release, duration, at);
+    setSoftClipperDrive(nodes.softClipper, masterStageProfile.drive);
+    safeRamp(nodes.masterDacWet.gain, masterStageProfile.quantiseWet, duration, at);
+    safeRamp(nodes.masterDacDry.gain, 1 - masterStageProfile.quantiseWet, duration, at);
     setBits(nodes.chipColor, scoreTimbre?.chipBits ?? profile.crusherBits);
     safeRamp(nodes.chipColor.wet, scoreTimbre?.chipWet ?? profile.crusherWet, duration, at);
     safeRamp(nodes.delayReturn.gain, scoreTimbre?.delayGain ?? profile.delayWet, duration, at);

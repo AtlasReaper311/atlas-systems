@@ -69,6 +69,11 @@ test("track engine source keeps crusher off the full master and schedules pulse 
   assert.ok(APU_TRACK_TRANSITION_ORNAMENT_OFFSET_SECONDS < 0.02);
   assert.ok(APU_MASTERING_LIMITER_CEILING_DB <= -2);
   assert.match(source, /new Tone\.Limiter\(APU_MASTERING_LIMITER_CEILING_DB\)/);
+  assert.match(source, /masterStageProfileForState/);
+  assert.match(source, /new Tone\.WaveShaper\(Array\.from\(tanhCurve\(1\.45\)\)\)/);
+  assert.match(source, /new Tone\.WaveShaper\(Array\.from\(quantiseCurve8Bit\(\)\)\)/);
+  assert.match(source, /nodes\.compressor\.connect\(nodes\.masterDacDry\)/);
+  assert.match(source, /nodes\.masterDacMix\.chain\(nodes\.softClipper, nodes\.limiter, nodes\.output\)/);
   assert.match(source, /nodes\.serviceBus\.chain\(nodes\.chipColor, nodes\.melodyBus\)/);
   assert.doesNotMatch(source, /nodes\.chipBus\.chain\(\s*nodes\.crusher,/);
   assert.match(source, /nodes\.noiseAccentFilter = new Tone\.Filter\(\{ type: "bandpass", frequency: 1500, Q: 1\.35 \}\)/);
