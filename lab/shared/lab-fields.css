@@ -11,11 +11,12 @@
   display: block;
   width: calc(100% + 8vw);
   height: calc(100% + 40px);
-  opacity: .82;
+  opacity: 1;
   pointer-events: none;
-  filter: saturate(1.18) brightness(1.12);
-  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
-  mask-image: linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  mix-blend-mode: screen;
+  filter: saturate(1.5) brightness(1.9) contrast(1.08);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 7%, #000 93%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 7%, #000 93%, transparent 100%);
 }
 
 .lab-intro-atlas-field::after {
@@ -24,7 +25,7 @@
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background: linear-gradient(90deg, rgba(10, 10, 15, .92) 0%, rgba(10, 10, 15, .44) 42%, rgba(10, 10, 15, .16) 72%, rgba(10, 10, 15, .68) 100%);
+  background: linear-gradient(90deg, rgba(10, 10, 15, .72) 0%, rgba(10, 10, 15, .2) 42%, rgba(10, 10, 15, .04) 72%, rgba(10, 10, 15, .42) 100%);
 }
 
 .lab-intro-atlas-field > :not(.atlas-field-canvas) {
@@ -45,11 +46,12 @@
   display: block;
   width: 100%;
   height: 100%;
-  opacity: .96;
+  opacity: 1;
   pointer-events: none;
-  filter: saturate(1.32) brightness(1.24);
-  -webkit-mask-image: linear-gradient(135deg, #000 0%, #000 66%, transparent 100%);
-  mask-image: linear-gradient(135deg, #000 0%, #000 66%, transparent 100%);
+  mix-blend-mode: screen;
+  filter: saturate(1.65) brightness(2.15) contrast(1.12);
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 82%, rgba(0, 0, 0, .68) 100%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 82%, rgba(0, 0, 0, .68) 100%);
 }
 
 #system-map.lab-system-map-atlas-field > :not(.atlas-field-canvas) {
@@ -59,8 +61,8 @@
 
 #system-map.lab-system-map-atlas-field > .card-signature {
   z-index: 3;
-  background: rgba(10, 10, 15, .28);
-  opacity: .86;
+  background: rgba(10, 10, 15, .16);
+  opacity: .9;
 }
 
 #system-map.lab-system-map-atlas-field > h3,
@@ -68,22 +70,22 @@
 #system-map.lab-system-map-atlas-field > .data-mode,
 #system-map.lab-system-map-atlas-field > .card-route,
 #system-map.lab-system-map-atlas-field > .card-top {
-  text-shadow: 0 1px 12px rgba(10, 10, 15, .9);
+  text-shadow: 0 1px 12px rgba(10, 10, 15, .92);
 }
 
 @media (max-width: 620px) {
   .lab-intro-atlas-field > .atlas-field-canvas {
-    opacity: .62;
+    opacity: .82;
   }
 
   #system-map.lab-system-map-atlas-field > .atlas-field-canvas {
-    opacity: .78;
+    opacity: .9;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .lab-intro-atlas-field > .atlas-field-canvas,
   #system-map.lab-system-map-atlas-field > .atlas-field-canvas {
-    filter: saturate(1.08) brightness(1.05);
+    filter: saturate(1.35) brightness(1.55) contrast(1.06);
   }
 }
