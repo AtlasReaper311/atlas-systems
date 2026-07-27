@@ -18,9 +18,9 @@ const commands = [
 ];
 
 const HERO_FIELD_LIMITS = Object.freeze({
-  min: 420,
-  max: 1400,
-  reduced: 360,
+  min: 520,
+  max: 1800,
+  reduced: 420,
 });
 
 function hashSeed(value) {
@@ -48,7 +48,7 @@ function clamp(value, minimum, maximum) {
 }
 
 function chooseParticleBudget(width, height, capabilities = {}) {
-  const areaBudget = Math.round(Math.max(1, width * height) / 900);
+  const areaBudget = Math.round(Math.max(1, width * height) / 720);
   let scale = 1;
   if (capabilities.coarsePointer) scale *= 0.72;
   if (capabilities.saveData) scale *= 0.58;
@@ -67,6 +67,14 @@ function fieldAngle(x, y, time) {
     + Math.sin((nx + ny) * 0.7 + nt * 1.2) * 1.8
     + Math.cos(Math.hypot(nx, ny) * 0.9 - nt) * 2.1
   );
+}
+
+function lightPosition(width, height, timestamp) {
+  const phase = timestamp * 0.000055;
+  return Object.freeze({
+    x: width * (0.72 + Math.cos(phase) * 0.16),
+    y: height * (0.42 + Math.sin(phase * 0.83) * 0.2),
+  });
 }
 
 function initTerminal() {
@@ -137,7 +145,7 @@ function initHeroField() {
   const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
   const saveData = Boolean(navigator.connection?.saveData);
   const deviceMemory = Number(navigator.deviceMemory || 8);
-  const random = createSeededRandom(hashSeed("atlas-systems-home-field-v1"));
+  const random = createSeededRandom(hashSeed("atlas-systems-home-field-v2"));
 
   let width = 1;
   let height = 1;
@@ -145,11 +153,11 @@ function initHeroField() {
   let targetCount = HERO_FIELD_LIMITS.min;
   let activeCount = targetCount;
   let frame = 0;
+  let simulationTime = 0;
   let animationFrame = null;
   let isVisible = true;
   let averageFrameTime = 16.7;
   let previousTimestamp = 0;
-  let gradient = null;
 
   function seedParticle(index) {
     particles[index] = random() * width;
@@ -164,11 +172,42 @@ function initHeroField() {
     activeCount = count;
   }
 
-  function rebuildGradient() {
-    gradient = context.createLinearGradient(0, 0, width, height);
-    gradient.addColorStop(0, "rgba(92, 138, 126, 0.42)");
-    gradient.addColorStop(0.48, "rgba(164, 174, 158, 0.38)");
-    gradient.addColorStop(1, "rgba(245, 166, 35, 0.32)");
+  function advanceParticle(index, time, distanceScale = 1) {
+    const x = particles[index];
+    const y = particles[index + 1];
+    let velocityX = particles[index + 2];
+    let velocityY = particles[index + 3];
+    const angle = fieldAngle(x, y, time);
+
+    velocityX = velocityX * 0.93 + Math.cos(angle) * 0.3;
+    velocityY = velocityY * 0.93 + Math.sin(angle) * 0.3;
+
+    const nextX = x + velocityX * distanceScale;
+    const nextY = y + velocityY * distanceScale;
+
+    particles[index] = nextX;
+    particles[index + 1] = nextY;
+    particles[index + 2] = velocityX;
+    particles[index + 3] = velocityY;
+
+    return { x, y, nextX, nextY, speed: Math.hypot(velocityX, velocityY) };
+  }
+
+  function warmField() {
+    for (let step = 0; step < 34; step += 1) {
+      simulationTime += 2.2;
+      for (let index = 0; index < particles.length; index += 4) {
+        const segment = advanceParticle(index, simulationTime, 0.72);
+        if (
+          segment.nextX < -40
+          || segment.nextX > width + 40
+          || segment.nextY < -40
+          || segment.nextY > height + 40
+        ) {
+          seedParticle(index);
+        }
+      }
+    }
   }
 
   function resize() {
@@ -182,26 +221,39 @@ function initHeroField() {
     context.clearRect(0, 0, width, height);
     targetCount = chooseParticleBudget(width, height, { coarsePointer, saveData, deviceMemory });
     allocateParticles(motionQuery.matches ? HERO_FIELD_LIMITS.reduced : targetCount);
-    rebuildGradient();
+    warmField();
     if (motionQuery.matches) drawStaticField();
   }
 
   function drawStaticField() {
     context.clearRect(0, 0, width, height);
-    context.beginPath();
+    const light = lightPosition(width, height, 0);
+    const paths = [new Path2D(), new Path2D(), new Path2D()];
+
     for (let index = 0; index < particles.length; index += 4) {
       const x = particles[index];
       const y = particles[index + 1];
-      const angle = fieldAngle(x, y, 0);
-      const length = 7 + random() * 10;
-      context.moveTo(x, y);
-      context.lineTo(x + Math.cos(angle) * length, y + Math.sin(angle) * length);
+      const angle = fieldAngle(x, y, simulationTime);
+      const length = 8 + random() * 12;
+      const distance = Math.hypot(x - light.x, y - light.y);
+      const bucket = distance < Math.max(width, height) * 0.22 ? 2 : distance < Math.max(width, height) * 0.4 ? 1 : 0;
+      paths[bucket].moveTo(x, y);
+      paths[bucket].lineTo(x + Math.cos(angle) * length, y + Math.sin(angle) * length);
     }
-    context.strokeStyle = gradient;
-    context.globalAlpha = 0.24;
-    context.lineWidth = 0.7;
-    context.stroke();
-    context.globalAlpha = 1;
+
+    context.save();
+    context.globalCompositeOperation = "lighter";
+    const styles = [
+      ["rgba(102, 143, 132, 0.18)", 0.7],
+      ["rgba(177, 188, 169, 0.25)", 0.9],
+      ["rgba(255, 244, 205, 0.42)", 1.15],
+    ];
+    paths.forEach((path, index) => {
+      context.strokeStyle = styles[index][0];
+      context.lineWidth = styles[index][1];
+      context.stroke(path);
+    });
+    context.restore();
     canvas.dataset.mode = "static";
   }
 
@@ -209,14 +261,31 @@ function initHeroField() {
     if (previousTimestamp > 0) {
       const delta = clamp(timestamp - previousTimestamp, 8, 80);
       averageFrameTime = averageFrameTime * 0.94 + delta * 0.06;
+      simulationTime += delta * 0.16;
     }
     previousTimestamp = timestamp;
     if (frame % 150 !== 0) return;
     if (averageFrameTime > 23 && activeCount > HERO_FIELD_LIMITS.min) {
       activeCount = Math.max(HERO_FIELD_LIMITS.min, Math.floor(activeCount * 0.84));
     } else if (averageFrameTime < 17.5 && activeCount < targetCount) {
-      activeCount = Math.min(targetCount, activeCount + 80);
+      activeCount = Math.min(targetCount, activeCount + 96);
     }
+  }
+
+  function drawLightHalo(light, radius) {
+    const halo = context.createRadialGradient(
+      light.x,
+      light.y,
+      0,
+      light.x,
+      light.y,
+      radius,
+    );
+    halo.addColorStop(0, "rgba(255, 249, 222, 0.095)");
+    halo.addColorStop(0.28, "rgba(201, 211, 187, 0.04)");
+    halo.addColorStop(1, "rgba(10, 10, 15, 0)");
+    context.fillStyle = halo;
+    context.fillRect(light.x - radius, light.y - radius, radius * 2, radius * 2);
   }
 
   function render(timestamp) {
@@ -225,48 +294,80 @@ function initHeroField() {
 
     frame += 1;
     adaptParticleCount(timestamp);
-    context.fillStyle = "rgba(10, 10, 15, 0.052)";
+
+    context.save();
+    context.globalCompositeOperation = "source-over";
+    context.fillStyle = "rgba(10, 10, 15, 0.018)";
     context.fillRect(0, 0, width, height);
-    context.beginPath();
 
+    const light = lightPosition(width, height, timestamp);
+    const lightRadius = Math.max(230, Math.min(width, height) * 0.46);
+    context.globalCompositeOperation = "lighter";
+    drawLightHalo(light, lightRadius * 0.58);
+
+    const paths = [new Path2D(), new Path2D(), new Path2D(), new Path2D()];
+    const glowPath = new Path2D();
+    const corePath = new Path2D();
     const particleLimit = Math.min(activeCount * 4, particles.length);
+
     for (let index = 0; index < particleLimit; index += 4) {
-      let x = particles[index];
-      let y = particles[index + 1];
-      let velocityX = particles[index + 2];
-      let velocityY = particles[index + 3];
-      const angle = fieldAngle(x, y, frame);
+      const segment = advanceParticle(index, simulationTime, 1.08);
+      const distance = Math.hypot(segment.nextX - light.x, segment.nextY - light.y);
+      const influence = clamp(1 - distance / lightRadius, 0, 1);
+      const energy = clamp((segment.speed - 0.5) / 3.4, 0, 1);
+      const bucket = clamp(Math.floor(energy * 2.4 + influence * 1.8), 0, 3);
 
-      velocityX = velocityX * 0.93 + Math.cos(angle) * 0.24;
-      velocityY = velocityY * 0.93 + Math.sin(angle) * 0.24;
-      const nextX = x + velocityX;
-      const nextY = y + velocityY;
+      paths[bucket].moveTo(segment.x, segment.y);
+      paths[bucket].lineTo(segment.nextX, segment.nextY);
 
-      context.moveTo(x, y);
-      context.lineTo(nextX, nextY);
-
-      particles[index] = nextX;
-      particles[index + 1] = nextY;
-      particles[index + 2] = velocityX;
-      particles[index + 3] = velocityY;
+      if (influence > 0.32 && segment.speed > 1.15) {
+        glowPath.moveTo(segment.x, segment.y);
+        glowPath.lineTo(segment.nextX, segment.nextY);
+      }
+      if (influence > 0.68 && segment.speed > 1.8) {
+        corePath.moveTo(segment.x, segment.y);
+        corePath.lineTo(segment.nextX, segment.nextY);
+      }
 
       if (
-        nextX < -32
-        || nextX > width + 32
-        || nextY < -32
-        || nextY > height + 32
-        || random() < 0.00045
+        segment.nextX < -40
+        || segment.nextX > width + 40
+        || segment.nextY < -40
+        || segment.nextY > height + 40
+        || random() < 0.0006
       ) {
         seedParticle(index);
       }
     }
 
-    context.strokeStyle = gradient;
-    context.globalAlpha = 0.2;
-    context.lineWidth = 0.72;
-    context.stroke();
-    context.globalAlpha = 1;
+    const styles = [
+      ["rgba(80, 120, 111, 0.12)", 0.68],
+      ["rgba(119, 155, 141, 0.17)", 0.78],
+      ["rgba(172, 187, 164, 0.23)", 0.9],
+      ["rgba(229, 222, 185, 0.31)", 1.02],
+    ];
+
+    paths.forEach((path, index) => {
+      context.strokeStyle = styles[index][0];
+      context.lineWidth = styles[index][1];
+      context.stroke(path);
+    });
+
+    context.save();
+    context.shadowBlur = 14;
+    context.shadowColor = "rgba(232, 236, 207, 0.72)";
+    context.strokeStyle = "rgba(221, 225, 199, 0.32)";
+    context.lineWidth = 1.35;
+    context.stroke(glowPath);
+    context.restore();
+
+    context.strokeStyle = "rgba(255, 248, 214, 0.68)";
+    context.lineWidth = 0.82;
+    context.stroke(corePath);
+    context.restore();
+
     canvas.dataset.mode = "animated";
+    canvas.dataset.frame = String(frame);
     animationFrame = window.requestAnimationFrame(render);
   }
 
@@ -275,6 +376,7 @@ function initHeroField() {
       if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
       animationFrame = null;
       allocateParticles(HERO_FIELD_LIMITS.reduced);
+      warmField();
       drawStaticField();
       return;
     }
@@ -351,6 +453,7 @@ if (globalThis.__ATLAS_TEST__) {
     createSeededRandom,
     fieldAngle,
     hashSeed,
+    lightPosition,
   });
 }
 
