@@ -31,7 +31,7 @@ export function mountSystemMapCardField(root = document) {
   const host = root.querySelector(SYSTEM_MAP_CARD_FIELD.selector);
   if (!host) return null;
   if (host.dataset.atlasFieldState === "ready") {
-    return createAtlasField(host, SYSTEM_MAP_CARD_FIELD.options);
+    return host.querySelector(":scope > canvas.atlas-field-canvas");
   }
 
   try {
