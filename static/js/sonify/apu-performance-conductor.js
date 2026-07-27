@@ -26,7 +26,7 @@
  * ask for?). The engine invokes these checks at every play* site.
  */
 
-export const APU_PERFORMANCE_CONDUCTOR_BUILD_ID = "20260727-apu-performance-conductor-v3";
+export const APU_PERFORMANCE_CONDUCTOR_BUILD_ID = "20260727-apu-performance-conductor-v4";
 
 const clamp = (value, minimum, maximum) => {
   const numeric = Number(value);
@@ -137,6 +137,7 @@ export function velocityScaleForDensity(perfPlan, category) {
   return clamp(range.min + (range.max - range.min) * density, 0.1, 1.0);
 }
 
+
 /**
  * Add bounded rhythmic activity when a phase asks for genuine density.
  * The engine only uses these instructions when the sequencer did not already
@@ -167,6 +168,59 @@ export function supplementalRhythmForDensity(perfPlan, step, phraseIndex = 0) {
  * engine invokes at (barStart + offsetSteps). Instructions are just
  * plain data; the engine maps them to actual voice triggers.
  */
+const CONNECTIVE_ARP_CONTOURS = Object.freeze({
+  healthy: Object.freeze([0, 4, 7]),
+  warning: Object.freeze([0, 3, 7]),
+  critical: Object.freeze([0, 7, 12]),
+  unknown: Object.freeze([0, 5, 7]),
+});
+
+const CONNECTIVE_ARP_PHASE_GAIN = Object.freeze({
+  intro: 0.76,
+  groove: 1,
+  pressure: 1.06,
+  rupture: 0.94,
+  recovery: 0.9,
+  afterglow: 0.7,
+});
+
+/**
+ * Give every two-bar phrase one quiet, state-shaped arpeggio. This is
+ * connective tissue, not a new lead line: it alternates position, contour,
+ * register, and velocity deterministically so section changes feel related
+ * without flattening the four state identities.
+ */
+export function connectiveArpeggioInstructionsForPhrase(perfPlan) {
+  if (!perfPlan) return Object.freeze([]);
+  const phraseIndex = Math.max(0, Math.trunc(perfPlan.phraseIndex ?? 0));
+  const state = CONNECTIVE_ARP_CONTOURS[perfPlan.state] ? perfPlan.state : "unknown";
+  const phase = CONNECTIVE_ARP_PHASE_GAIN[perfPlan.phase] ? perfPlan.phase : "groove";
+  const source = CONNECTIVE_ARP_CONTOURS[state];
+  const descending = phraseIndex % 2 === 1;
+  const contour = descending ? [...source].reverse() : [...source];
+  const start = phraseIndex % 2 === 0 ? 8 : 20;
+  const octaveLift = phraseIndex % 4 >= 2 ? 12 : 0;
+  const stateGain = {
+    healthy: 1,
+    warning: 0.94,
+    critical: 0.82,
+    unknown: 0.72,
+  }[state];
+  const velocity = clamp(0.22 * stateGain * CONNECTIVE_ARP_PHASE_GAIN[phase], 0.11, 0.26);
+  const duration = state === "unknown" || phase === "afterglow" ? "16n" : "32n";
+
+  return Object.freeze(contour.map((midiOffset, index) => Object.freeze({
+    voice: "primary",
+    offsetSteps: start + index * 2,
+    midiOffset: midiOffset + octaveLift,
+    velocity: Number((velocity - index * 0.012).toFixed(3)),
+    duration,
+    ornament: "connective-arp",
+    size: "phrase",
+    bar: perfPlan.bars ?? phraseIndex * 2,
+  })));
+}
+
 const ORNAMENT_INSTRUCTIONS = Object.freeze({
   // Small (every 4 bars) - subtle
   ripple:      Object.freeze([{ voice: "primary",  offsetSteps: 30, midiOffset: 12, velocity: 0.35, duration: "32n" }]),
@@ -211,9 +265,9 @@ const ORNAMENT_INSTRUCTIONS = Object.freeze({
  * If the perf plan has no ornaments this returns an empty frozen array.
  */
 export function ornamentInstructionsForPhrase(perfPlan) {
-  if (!perfPlan?.ornaments?.length) return Object.freeze([]);
-  const out = [];
-  for (const ornament of perfPlan.ornaments) {
+  if (!perfPlan) return Object.freeze([]);
+  const out = [...connectiveArpeggioInstructionsForPhrase(perfPlan)];
+  for (const ornament of perfPlan.ornaments ?? []) {
     const list = ORNAMENT_INSTRUCTIONS[ornament.name];
     if (!list) continue;
     for (const instruction of list) {
