@@ -59,3 +59,23 @@ test("homepage light stays inside the hero bounds and moves with time", () => {
   }
   assert.notDeepEqual(first, second);
 });
+
+test("pointer influence nudges rather than replaces autonomous light", () => {
+  const autonomous = field.lightPosition(1200, 800, 5000);
+  const pointer = { active: true, x: 0, y: 800 };
+  const influenced = field.influencedLightPosition(1200, 800, 5000, pointer);
+
+  assert.ok(influenced.x < autonomous.x);
+  assert.ok(influenced.y > autonomous.y);
+  assert.notEqual(influenced.x, pointer.x);
+  assert.notEqual(influenced.y, pointer.y);
+  assert.ok(Math.abs(influenced.x - autonomous.x) < Math.abs(pointer.x - autonomous.x) * 0.3);
+  assert.ok(Math.abs(influenced.y - autonomous.y) < Math.abs(pointer.y - autonomous.y) * 0.3);
+});
+
+test("inactive pointer preserves the autonomous light path", () => {
+  assert.deepEqual(
+    field.influencedLightPosition(1200, 800, 5000, { active: false, x: 0, y: 0 }),
+    field.lightPosition(1200, 800, 5000),
+  );
+});
