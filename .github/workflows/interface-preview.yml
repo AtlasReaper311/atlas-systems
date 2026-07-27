@@ -27,6 +27,7 @@ on:
       - "static/media/card-signatures.svg"
       - "static/vendor/atlas-interface/**"
       - "static/js/homepage-interactions.js"
+      - "static/js/atlas-field.js"
       - "static/js/card-signatures.js"
       - "static/js/estate-shell.js"
       - "static/js/estate-status.js"
@@ -34,6 +35,7 @@ on:
       - "static/js/sonify/**"
       - "js/card-search.js"
       - "js/tests/homepage-field.test.mjs"
+      - "js/tests/system-map-card-field.test.mjs"
       - "static/js/estate-search/**"
       - "lab/index.html"
       - "lab/console/**"
@@ -53,6 +55,7 @@ on:
       - "js/tests/public-interface-contract.test.mjs"
       - "scripts/capture_interface_evidence.mjs"
       - "scripts/capture_batch_h_evidence.mjs"
+      - "scripts/smoke_system_map_card_field_preview.mjs"
       - "scripts/generate_sitemap.py"
       - "scripts/verify_interface_bundle.py"
       - "sitemap.xml"
@@ -84,6 +87,7 @@ jobs:
           npx --yes html-validate@9.7.1 "**/*.html"
           node --check scripts/capture_interface_evidence.mjs
           node --check scripts/capture_batch_h_evidence.mjs
+          node --check scripts/smoke_system_map_card_field_preview.mjs
           node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
           python3 scripts/verify_interface_bundle.py
           python3 scripts/generate_sitemap.py --check-only
@@ -209,6 +213,7 @@ jobs:
           sparse-checkout: |
             scripts/capture_interface_evidence.mjs
             scripts/capture_batch_h_evidence.mjs
+            scripts/smoke_system_map_card_field_preview.mjs
           sparse-checkout-cone-mode: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
         with:
@@ -219,11 +224,17 @@ jobs:
           mkdir -p "${RUNNER_TEMP}/interface-evidence"
           cp scripts/capture_interface_evidence.mjs "${RUNNER_TEMP}/interface-evidence/"
           cp scripts/capture_batch_h_evidence.mjs "${RUNNER_TEMP}/interface-evidence/"
+          cp scripts/smoke_system_map_card_field_preview.mjs "${RUNNER_TEMP}/interface-evidence/"
           cd "${RUNNER_TEMP}/interface-evidence"
           npm init -y >/dev/null
           npm install --save-exact playwright@1.61.1 @axe-core/playwright@4.12.1
           npm audit --audit-level=high
           npx playwright install --with-deps firefox
+      - name: Verify System Map card AtlasField pixels
+        working-directory: ${{ runner.temp }}/interface-evidence
+        env:
+          SYSTEM_MAP_FIELD_OUTPUT_DIR: ${{ runner.temp }}/interface-evidence/system-map-card-field-preview-smoke
+        run: node smoke_system_map_card_field_preview.mjs
       - name: Capture governed browser and viewport matrix
         working-directory: ${{ runner.temp }}/interface-evidence
         run: node capture_interface_evidence.mjs
@@ -239,6 +250,8 @@ jobs:
             ${{ runner.temp }}/interface-evidence/evidence.json
             ${{ runner.temp }}/interface-evidence/capture-error.txt
             ${{ runner.temp }}/interface-evidence/screenshots/*.png
+            ${{ runner.temp }}/interface-evidence/system-map-card-field-preview-smoke/evidence.json
+            ${{ runner.temp }}/interface-evidence/system-map-card-field-preview-smoke/system-map-card-field-preview.png
           if-no-files-found: error
           retention-days: 14
       - name: Upload Batch H visual and accessibility evidence
