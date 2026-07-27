@@ -200,6 +200,17 @@ async function inspectPage(page) {
         routeOverflow: route ? Math.max(0, route.scrollWidth - route.clientWidth) : 0,
       };
     });
+    const atlasFields = [...document.querySelectorAll(".atlas-field-canvas")].map((canvas) => {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        preset: canvas.dataset.atlasFieldPreset || null,
+        mode: canvas.dataset.mode || null,
+        frame: Number(canvas.dataset.frame || 0),
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
+      };
+    });
+
     return {
       title: document.title,
       width,
@@ -227,6 +238,8 @@ async function inspectPage(page) {
       cardSignatureCount: cardLayout.filter((item) => item.signature).length,
       cardLayoutOverlaps: cardLayout.filter((item) => item.overlaps.length > 0),
       cardRouteOverflows: cardLayout.filter((item) => item.routeOverflow > 1),
+      atlasFieldCount: atlasFields.length,
+      atlasFields,
     };
   });
 }
@@ -263,6 +276,17 @@ function semanticFailures(evidence, browserName, viewportName, routeName) {
   if (evidence.cardRouteOverflows.length) {
     values.push(`${prefix}: card CTA overflows ${JSON.stringify(evidence.cardRouteOverflows)}`);
   }
+  if (routeName === "lab") {
+    if (evidence.atlasFieldCount !== 2) {
+      values.push(`${prefix}: expected two AtlasField canvases, found ${evidence.atlasFieldCount}`);
+    }
+    const inactiveFields = evidence.atlasFields.filter(
+      (field) => field.width < 1 || field.height < 1 || (field.mode !== "static" && field.frame < 1),
+    );
+    if (inactiveFields.length) {
+      values.push(`${prefix}: inactive AtlasField canvases ${JSON.stringify(inactiveFields)}`);
+    }
+  }
   return values;
 }
 
@@ -273,6 +297,16 @@ async function capturePage(context, browserName, viewportName, routeName, route)
   const url = new URL(route, base).toString();
   try {
     await openWithRetry(page, url);
+    if (routeName === "lab") {
+      await page.waitForFunction(() => {
+        const fields = [...document.querySelectorAll(".atlas-field-canvas")];
+        return fields.length === 2 && fields.every((canvas) => {
+          const rect = canvas.getBoundingClientRect();
+          const rendered = canvas.dataset.mode === "static" || Number(canvas.dataset.frame || 0) > 0;
+          return rect.width > 0 && rect.height > 0 && rendered;
+        });
+      }, null, { timeout: 15_000 });
+    }
     await page.evaluate(async () => {
       for (const element of document.querySelectorAll(".project-entry, .reveal")) {
         element.scrollIntoView({ block: "center" });
