@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Clear reference-first System Symphony Pass D2 Atlas theme comparison across Explorer, Grid Pressure, Boss Protocol and Lost Signal.">
+  <meta name="theme-color" content="#0a0a0f">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
+  <link rel="stylesheet" href="/lab/system-symphony-apu-theme-audition/system-symphony-apu-theme-audition.css?v=20260727-pass-d2-theme-audition-v2">
+  <title>Atlas Theme Audition // System Symphony</title>
+</head>
+<body>
+  <nav aria-label="Primary navigation">
+    <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
+    <ul class="nav-links">
+      <li><a href="/work/">Work</a></li>
+      <li><a href="/writing/">Writing</a></li>
+      <li><a href="/lab/" aria-current="page">Lab</a></li>
+      <li><a href="/systems/">Systems</a></li>
+      <li><a href="/about/">About</a></li>
+    </ul>
+  </nav>
+
+  <main class="audition-main" data-audition-root data-running="false" data-state="warning">
+    <header class="audition-hero">
+      <p class="eyebrow">System Symphony / Pass D2A clear-listening audition</p>
+      <h1>Hear the tune first. Compare the transformation second.</h1>
+      <p class="lede">The first audition exposed too much musical machinery at once. This revision strips the test back to one clean voice, evenly spaced notes and a direct Explorer-versus-state comparison.</p>
+      <div class="boundary" role="status">
+        <strong>Review boundary</strong>
+        <span>No live evidence is fetched. No production route is changed. This page is a listening aid, not the final soundtrack arrangement.</span>
+      </div>
+    </header>
+
+    <section class="audition-console" aria-labelledby="audition-title">
+      <div class="console-head">
+        <div>
+          <p class="eyebrow">ATLAS_THEME // reference-first contour test</p>
+          <h2 id="audition-title">Simple melody comparison</h2>
+        </div>
+        <label class="volume-control">
+          <span>Volume</span>
+          <input type="range" min="0" max="100" step="1" value="62" data-volume aria-label="Theme audition volume">
+        </label>
+      </div>
+
+      <p class="status-line" data-status aria-live="polite">Choose a state, then use the comparison button. Explorer will play first.</p>
+
+      <section class="selector-panel" aria-labelledby="state-selector-title">
+        <div class="panel-heading">
+          <span id="state-selector-title">Choose the transformation to compare</span>
+          <strong>Explorer remains the reference</strong>
+        </div>
+        <div class="button-row" role="group" aria-label="Theme comparison state">
+          <button type="button" data-state-button="warning" aria-pressed="true">Grid Pressure</button>
+          <button type="button" data-state-button="critical" aria-pressed="false">Boss Protocol</button>
+          <button type="button" data-state-button="unknown" aria-pressed="false">Lost Signal</button>
+        </div>
+      </section>
+
+      <section class="selector-panel" aria-labelledby="playback-title">
+        <div class="panel-heading">
+          <span id="playback-title">Listening controls</span>
+          <strong>single voice / 72 BPM / no echoes</strong>
+        </div>
+        <div class="button-row">
+          <button type="button" class="primary-button" data-compare>Play Explorer, pause, then selected state</button>
+          <button type="button" class="secondary-button" data-play-reference>Play Explorer only</button>
+          <button type="button" class="secondary-button" data-play-selected>Play selected state only</button>
+          <button type="button" class="secondary-button" data-stop>Stop</button>
+        </div>
+      </section>
+
+      <section class="metrics" aria-label="Current comparison">
+        <article><span>First phrase</span><strong>Explorer Statement</strong></article>
+        <article><span>Second phrase</span><strong data-metric="state">Grid Pressure</strong></article>
+        <article><span>Listening mode</span><strong>Equal-note contour</strong></article>
+        <article><span>Tempo</span><strong>72 BPM</strong></article>
+      </section>
+
+      <section class="motif-panel" aria-labelledby="motif-map-title">
+        <div class="panel-heading">
+          <span id="motif-map-title">Selected-state note sequence</span>
+          <strong data-event-summary>8 notes</strong>
+        </div>
+        <div class="step-grid" data-step-grid role="img" aria-label="Selected state note sequence"></div>
+        <div class="legend">
+          <span><i class="primary-marker" aria-hidden="true"></i>Played note</span>
+        </div>
+      </section>
+
+      <section class="event-panel" aria-labelledby="event-table-title">
+        <div class="panel-heading">
+          <span id="event-table-title">Selected-state notes</span>
+          <strong>echoes deliberately omitted</strong>
+        </div>
+        <div class="table-wrap" tabindex="0">
+          <table>
+            <thead>
+              <tr><th scope="col">Order</th><th scope="col">Theme source</th><th scope="col">Degree</th><th scope="col">Note</th><th scope="col">Anchor</th></tr>
+            </thead>
+            <tbody data-event-table>
+              <tr><td colspan="5">Building the initial comparison.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <section class="listening-guide" aria-labelledby="listening-guide-title">
+      <div class="section-heading">
+        <span>Listening guide</span>
+        <h2 id="listening-guide-title">You only need to answer one thing at a time.</h2>
+      </div>
+      <div class="guide-grid">
+        <article><h3>1. Hear Explorer</h3><p>Use Explorer only until the tune feels familiar. Ignore the technology and listen for the overall rise and return.</p></article>
+        <article><h3>2. Compare directly</h3><p>Use the main comparison button. Explorer plays first, then the selected state after a clear pause.</p></article>
+        <article><h3>3. Judge relation</h3><p>Ask only whether the second phrase sounds descended from the first. It does not need to sound identical.</p></article>
+        <article><h3>4. Ignore polish</h3><p>No bass, drums, pads, arpeggios or effects are present. Those belong to later integration, not this identity test.</p></article>
+        <article><h3>5. Trust confusion</h3><p>If the connection is still unclear, the transformation is too aggressive or the reference melody is not memorable enough.</p></article>
+      </div>
+    </section>
+  </main>
+
+  <script src="/vendor/tone.min.js?v=20260708-sonify"></script>
+  <script type="module" src="/lab/system-symphony-apu-theme-audition/system-symphony-apu-theme-audition.js?v=20260727-pass-d2-theme-audition-v2"></script>
+</body>
+</html>
