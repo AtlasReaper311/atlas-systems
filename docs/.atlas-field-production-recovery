@@ -1,1 +1,0 @@
-Homepage AtlasField production recovery is validated by repository tests and the post-deploy Playwright smoke in scripts/smoke_homepage_atlas_field_production.mjs.
