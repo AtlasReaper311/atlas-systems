@@ -23,7 +23,6 @@ export const SNAPSHOT = Object.freeze({
 function node({
   id,
   label = id,
-  alias,
   ring,
   kind,
   lifecycle = 'production',
@@ -38,7 +37,6 @@ function node({
   return Object.freeze({
     id,
     label,
-    alias,
     ring,
     kind,
     lifecycle,
@@ -121,7 +119,7 @@ export const NODES = Object.freeze([
     note: 'event-driven flight recorder for incident replay',
   }),
   node({
-    id: 'specular-edge', label: 'specular-edge', alias: 'specular-telemetry', ring: 1, kind: 'service', cadenceKind: 'request',
+    id: 'specular-edge', label: 'specular-edge', ring: 1, kind: 'service', cadenceKind: 'request',
     watches: ['specular-telemetry', 'cloudflared'], reports: ['atlas-api-public'],
     note: 'public edge projection of local telemetry and last-known-good state',
   }),
@@ -141,7 +139,7 @@ export const NODES = Object.freeze([
     note: 'local memory layer with no direct public route',
   }),
   node({
-    id: 'ramone-trigger', label: 'ramone-trigger', alias: 'ramone-voice-trigger', ring: 1, kind: 'service', cadenceKind: 'request',
+    id: 'ramone-trigger', label: 'ramone-trigger', ring: 1, kind: 'service', cadenceKind: 'request',
     watches: ['github'],
     note: 'authenticated allowlisted workflow dispatch',
   }),
