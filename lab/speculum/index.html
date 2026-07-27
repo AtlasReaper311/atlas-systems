@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="/lab/speculum/speculum-layout-v3.css?v=20260727-layout-v3">
   <link rel="stylesheet" href="/lab/speculum/speculum-investigation-v4.css?v=20260727-investigation-v4">
   <link rel="stylesheet" href="/lab/speculum/speculum-polish-v5.css?v=20260727-polish-v5">
+  <link rel="stylesheet" href="/lab/speculum/speculum-accessibility-v7.css?v=20260728-accessibility-v7">
 </head>
 <body>
   <header class="masthead">
@@ -86,7 +87,7 @@
       </div>
 
       <aside class="rail">
-        <div class="controls">
+        <div class="controls" role="region" aria-label="Speculum controls" tabindex="0">
           <div class="control">
             <p class="label">Time</p>
             <div class="btns" id="spc-speeds" role="group" aria-label="Time compression"></div>
@@ -112,7 +113,7 @@
           </div>
         </div>
 
-        <div class="detail" id="spc-detail"></div>
+        <div class="detail" id="spc-detail" role="region" aria-label="Node dossier" tabindex="0"></div>
 
         <div class="ledger-wrap">
           <div class="ledger-heading">
@@ -126,7 +127,7 @@
             </div>
             <p class="ledger-context" id="spc-ledger-context">All generated observations · repeated paths are grouped</p>
           </div>
-          <ol class="ledger" id="spc-ledger" aria-live="off"></ol>
+          <ol class="ledger" id="spc-ledger" aria-label="Generated observation ledger" aria-live="off" tabindex="0"></ol>
         </div>
       </aside>
     </section>
