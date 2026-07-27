@@ -29,10 +29,10 @@ test("Lab shell mounts the fields only on the Lab directory route", () => {
   assert.match(shell, /if \(currentPath\(\) !== LAB_HOME_ROUTE\) return/);
 });
 
-test("Lab field styles make both mounts visible and pointer-transparent", () => {
+test("Lab field styles make both mounts visibly composited and pointer-transparent", () => {
   const css = fs.readFileSync("lab/shared/lab-fields.css", "utf8");
-  assert.match(css, /\.lab-intro-atlas-field > \.atlas-field-canvas\s*\{[^}]*position:\s*absolute[^}]*opacity:\s*\.82[^}]*pointer-events:\s*none/s);
-  assert.match(css, /#system-map\.lab-system-map-atlas-field > \.atlas-field-canvas\s*\{[^}]*inset:\s*0[^}]*opacity:\s*\.96[^}]*pointer-events:\s*none/s);
+  assert.match(css, /\.lab-intro-atlas-field > \.atlas-field-canvas\s*\{[^}]*position:\s*absolute[^}]*opacity:\s*1[^}]*pointer-events:\s*none[^}]*mix-blend-mode:\s*screen/s);
+  assert.match(css, /#system-map\.lab-system-map-atlas-field > \.atlas-field-canvas\s*\{[^}]*inset:\s*0[^}]*opacity:\s*1[^}]*pointer-events:\s*none[^}]*mix-blend-mode:\s*screen/s);
   assert.match(css, /#system-map\.lab-system-map-atlas-field > \.card-signature\s*\{[^}]*z-index:\s*3/s);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
 });
