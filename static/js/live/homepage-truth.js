@@ -2,8 +2,8 @@ import { subscribe as subscribeRegistry } from "./atlas-registry.js?v=20260720-e
 
 const TOPOLOGY_URL = "https://api.atlas-systems.uk/v1/topology";
 const DEPLOY_URL = "https://api.atlas-systems.uk/deploy-watch/latest";
-const HOMEPAGE_FIELD_CSS = "/css/home-v2-base.css?v=20260727-atlas-field-production-v1";
-const HOMEPAGE_FIELD_MODULE = "/static/js/atlas-field.js?v=20260727-atlas-field-production-v1";
+const HOMEPAGE_FIELD_CSS = "/css/home-v2-base.css?v=20260727-atlas-field-production-v2";
+const HOMEPAGE_FIELD_MODULE = "/static/js/atlas-field.js?v=20260727-atlas-field-production-v2";
 const POLL_MS = 60_000;
 
 const state = {
