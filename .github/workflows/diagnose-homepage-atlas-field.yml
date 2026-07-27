@@ -1,0 +1,50 @@
+name: Diagnose homepage AtlasField production
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/diagnose-homepage-atlas-field.yml"
+      - "scripts/smoke_homepage_atlas_field_production.mjs"
+      - "index.html"
+      - "static/js/atlas-field.js"
+      - "static/js/homepage-interactions.js"
+      - "static/js/live/homepage-truth.js"
+      - "css/home-v2-base.css"
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "22"
+
+      - name: Install pinned browser tooling
+        run: npm install --no-save --ignore-scripts playwright@1.61.1
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run live homepage AtlasField smoke
+        env:
+          EXPECTED_SHA: 2c9de9441d5efde80d168be3ebb27ec634dbc1e7
+          SITE_URL: https://atlas-systems.uk
+          HOMEPAGE_FIELD_OUTPUT_DIR: ${{ runner.temp }}/homepage-atlas-field-production-smoke
+        run: node scripts/smoke_homepage_atlas_field_production.mjs
+
+      - name: Upload diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: homepage-atlas-field-production-diagnostic
+          path: ${{ runner.temp }}/homepage-atlas-field-production-smoke
+          if-no-files-found: error
+          retention-days: 1
