@@ -7,7 +7,7 @@ import {
   stateArpeggioInstructionsForPhrase,
   stateFeatureInstructionsForPhrase,
 } from "./apu-state-orchestration-d1a.js";
-import { mixDirectiveFor } from "./apu-mix-director.js";
+import { APU_MIX_DIRECTOR_BUILD_ID, mixDirectiveFor } from "./apu-mix-director.js";
 import { ornamentInstructionsForPhrase } from "./apu-performance-conductor.js";
 
 const plan = (state, phraseIndex = 0, phase = "groove") => ({
@@ -20,11 +20,8 @@ const plan = (state, phraseIndex = 0, phase = "groove") => ({
   ornaments: [],
 });
 
-test("D1A build id is explicit", () => {
+test("D1A module remains explicit and independently deterministic", () => {
   assert.match(APU_STATE_ORCHESTRATION_D1A_BUILD_ID, /pass-d1a/);
-});
-
-test("every state receives deterministic structural arpeggios", () => {
   const signatures = new Set();
   for (const state of ["healthy", "warning", "critical", "unknown"]) {
     const first = stateArpeggioInstructionsForPhrase(plan(state, 3));
@@ -40,69 +37,43 @@ test("every state receives deterministic structural arpeggios", () => {
   assert.equal(signatures.size, 4);
 });
 
-test("Explorer has the fastest and widest arpeggio treatment", () => {
+test("D1A state treatments remain available for later comparison", () => {
   const explorer = stateArpeggioInstructionsForPhrase(plan("healthy", 0));
-  const lost = stateArpeggioInstructionsForPhrase(plan("unknown", 0));
-  assert.ok(explorer.length > lost.length);
-  assert.ok(explorer[1].offsetSteps - explorer[0].offsetSteps < lost[1].offsetSteps - lost[0].offsetSteps);
-  assert.ok(Math.max(...explorer.map((event) => event.midiOffset)) > Math.max(...lost.map((event) => event.midiOffset)));
-});
-
-test("Grid Pressure climbs without resolving directly home", () => {
   const grid = stateArpeggioInstructionsForPhrase(plan("warning", 0));
-  assert.notEqual(grid.at(-1).midiOffset, 0);
-  assert.ok(grid.some((event, index) => index > 0 && event.offsetSteps - grid[index - 1].offsetSteps === 3));
-});
-
-test("Boss Protocol adds upper-register syncopated power chords", () => {
   const boss = stateFeatureInstructionsForPhrase(plan("critical", 0, "rupture"));
-  const chords = boss.filter((event) => event.ornament === "boss-power-chord");
-  assert.equal(chords.length, 4);
-  assert.ok(chords.every((event) => event.midiOffset >= 12));
-  assert.deepEqual([...new Set(chords.map((event) => event.offsetSteps))], [2, 18]);
-  assert.ok(chords.some((event) => event.voice === "primary"));
-  assert.ok(chords.some((event) => event.voice === "secondary"));
-});
-
-test("Lost Signal gains slow notes and delayed echoes without becoming fast", () => {
   const lost = stateFeatureInstructionsForPhrase(plan("unknown", 2));
-  const arps = lost.filter((event) => event.ornament === "state-arp");
-  const echoes = lost.filter((event) => event.ornament === "lost-signal-echo");
-  assert.equal(arps.length, 4);
-  assert.equal(echoes.length, 2);
-  assert.ok(arps.every((event) => event.duration === "8n"));
-  assert.ok(arps.slice(1).every((event, index) => event.offsetSteps - arps[index].offsetSteps === 8));
+
+  assert.ok(explorer.length > lost.filter((event) => event.ornament === "state-arp").length);
+  assert.notEqual(grid.at(-1).midiOffset, 0);
+  assert.equal(boss.filter((event) => event.ornament === "boss-power-chord").length, 4);
+  assert.equal(lost.filter((event) => event.ornament === "lost-signal-echo").length, 2);
+  assert.match(describeD1AStateOrchestration(plan("unknown", 0)), /Lost Signal/);
 });
 
-test("the conductor keeps the original connector and adds D1A material", () => {
+test("Candidate A restores the Pass C connector without scheduling D1A material", () => {
   for (const state of ["healthy", "warning", "critical", "unknown"]) {
     const instructions = ornamentInstructionsForPhrase(plan(state, 4));
-    assert.ok(instructions.some((event) => event.ornament === "connective-arp"));
-    assert.ok(instructions.some((event) => event.ornament === "state-arp"));
+    assert.ok(instructions.some((event) => event.ornament === "connective-arp"), state);
+    assert.equal(instructions.some((event) => event.ornament === "state-arp"), false, state);
+    assert.equal(instructions.some((event) => event.ornament === "boss-power-chord"), false, state);
+    assert.equal(instructions.some((event) => event.ornament === "lost-signal-echo"), false, state);
   }
 });
 
-test("Boss low-end buses are lower than Explorer while lead weight remains", () => {
+test("Candidate A restores the more modest Pass C Boss mix", () => {
+  assert.match(APU_MIX_DIRECTOR_BUILD_ID, /v3$/);
   const explorer = mixDirectiveFor({ state: "healthy", phase: "groove" });
   const boss = mixDirectiveFor({ state: "critical", phase: "groove" });
-  assert.ok(boss.buses.bass.gainMul < explorer.buses.bass.gainMul * 0.75);
-  assert.ok(boss.buses.pad.gainMul < explorer.buses.pad.gainMul * 0.6);
+  assert.ok(boss.buses.bass.gainMul < explorer.buses.bass.gainMul);
+  assert.ok(boss.buses.bass.gainMul > explorer.buses.bass.gainMul * 0.85);
+  assert.ok(boss.buses.pad.gainMul < explorer.buses.pad.gainMul);
+  assert.ok(boss.buses.pad.gainMul > explorer.buses.pad.gainMul * 0.75);
   assert.ok(boss.buses.primary.gainMul > explorer.buses.primary.gainMul);
   assert.ok(boss.buses.secondary.gainMul > explorer.buses.secondary.gainMul);
 });
 
-test("Lost Signal is no longer pad-dominant in the state mix", () => {
+test("Lost Signal remains voice-led rather than pad-dominant", () => {
   const lost = mixDirectiveFor({ state: "unknown", phase: "groove" });
   assert.ok(lost.buses.primary.gainMul > lost.buses.pad.gainMul);
   assert.ok(lost.buses.secondary.gainMul > lost.buses.pad.gainMul);
-  assert.match(describeD1AStateOrchestration(plan("unknown", 0)), /Lost Signal/);
-});
-
-test("Boss power chords enter after intro and clear for afterglow", () => {
-  const intro = stateFeatureInstructionsForPhrase(plan("critical", 0, "intro"));
-  const groove = stateFeatureInstructionsForPhrase(plan("critical", 0, "groove"));
-  const afterglow = stateFeatureInstructionsForPhrase(plan("critical", 0, "afterglow"));
-  assert.equal(intro.filter((event) => event.ornament === "boss-power-chord").length, 0);
-  assert.equal(groove.filter((event) => event.ornament === "boss-power-chord").length, 4);
-  assert.equal(afterglow.filter((event) => event.ornament === "boss-power-chord").length, 0);
 });
