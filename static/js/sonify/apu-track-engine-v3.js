@@ -36,7 +36,7 @@ import {
   quantiseCurve8Bit,
   tanhCurve,
 } from "./apu-soft-clipper.js?v=20260727-apu-soft-clipper-v1";
-import { createDrumSculptorKit } from "./apu-drum-sculptor.js?v=20260727-apu-drum-sculptor-v1";
+import { createDrumSculptorKit } from "./apu-drum-sculptor.js?v=20260727-apu-pause-peak-v1";
 import {
   describeLeitmotif,
   leitmotifFor,

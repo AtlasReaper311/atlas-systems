@@ -1,7 +1,7 @@
 import {
   APU_TRACK_DEFAULT_GAIN,
   createApuTrackEngine,
-} from "./apu-track-engine-v2.js?v=20260726-system-symphony-atlas-apu-live-v7";
+} from "./apu-track-engine-v2.js?v=20260727-apu-pause-peak-v1";
 
 export const AUDIO_CONTEXT_BLOCKED_CODE = "audio-context-blocked";
 export const DEFAULT_USER_GAIN = APU_TRACK_DEFAULT_GAIN;
