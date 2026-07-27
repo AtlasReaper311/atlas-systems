@@ -9,6 +9,8 @@ const HEALTHY_MASTERING = masteringProfileForState("healthy");
 const WARNING_MASTERING = masteringProfileForState("warning");
 const CRITICAL_MASTERING = masteringProfileForState("critical");
 const UNKNOWN_MASTERING = masteringProfileForState("unknown");
+const EXPLORER_PEAK_PHRASES = Object.freeze([11, 12]);
+const PRIMARY_MELODY_EVENT_HASH = 67;
 
 export const APU_STATE_IDENTITIES = Object.freeze({
   healthy: freezeObject({
@@ -121,6 +123,18 @@ export function deterministicEventHash({ state = "unknown", barIndex = 0, stepIn
 
 export function shouldOmitEvent(context = {}) {
   const identity = normalizedStateIdentity(context.state);
+  const cyclePhrase = ((Math.trunc(context.phraseIndex ?? 0) % 16) + 16) % 16;
+
+  // Explorer Peak is an authored climax. Its primary melody must remain
+  // complete rather than being thinned by the state-level omission lottery.
+  if (
+    identity.id === "healthy"
+    && Math.trunc(context.serviceHash ?? 0) === PRIMARY_MELODY_EVENT_HASH
+    && EXPLORER_PEAK_PHRASES.includes(cyclePhrase)
+  ) {
+    return false;
+  }
+
   const normalized = deterministicEventHash(context) / 0xffffffff;
   return normalized < identity.omissionThreshold;
 }
