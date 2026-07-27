@@ -26,6 +26,12 @@ import {
   APU_MASTERING_LIMITER_CEILING_DB,
 } from "./apu-mastering.js?v=20260726-system-symphony-mastering-v4";
 import {
+  pulseOscillatorForDutyCycle,
+  pulsePartialsForDutyCycle,
+  staircaseTriangleOscillator,
+  vrc6SawtoothOscillator,
+} from "./apu-chip-oscillators.js?v=20260727-apu-chip-oscillators-v1";
+import {
   masterStageProfileForState,
   quantiseCurve8Bit,
   tanhCurve,
@@ -110,8 +116,13 @@ function setSoftClipperDrive(clipper, drive) {
 }
 
 function setPulseWidth(synth, width, at = undefined) {
-  const parameter = synth?.oscillator?.width;
+  const oscillator = synth?.oscillator;
+  const dutyCycle = clamp(width, 0.08, 0.75);
+  const parameter = oscillator?.width;
   if (parameter) safeRamp(parameter, clamp(width, 0.08, 0.75), 0.04, at);
+  if (!parameter && oscillator?.type === "custom" && "partials" in oscillator) {
+    oscillator.partials = pulsePartialsForDutyCycle(dutyCycle);
+  }
 }
 
 function pulseWidthLeadTime(time) {
@@ -122,14 +133,14 @@ function pulseWidthLeadTime(time) {
 
 function createServiceVoice(Tone, output, index) {
   const oscillators = [
-    { type: "pulse", width: 0.25 },
-    { type: "triangle" },
-    { type: "sawtooth" },
-    { type: "square" },
+    { label: "apu-pulse-25", oscillator: pulseOscillatorForDutyCycle(0.25) },
+    { label: "apu-triangle-4bit", oscillator: staircaseTriangleOscillator() },
+    { label: "apu-vrc6-saw", oscillator: vrc6SawtoothOscillator() },
+    { label: "apu-pulse-50", oscillator: pulseOscillatorForDutyCycle(0.5) },
   ];
-  const oscillator = oscillators[index % oscillators.length];
+  const voice = oscillators[index % oscillators.length];
   const synth = new Tone.Synth({
-    oscillator,
+    oscillator: voice.oscillator,
     envelope: {
       attack: index % 2 === 0 ? 0.003 : 0.012,
       decay: index % 3 === 0 ? 0.055 : 0.09,
@@ -147,7 +158,7 @@ function createServiceVoice(Tone, output, index) {
   const panner = new Tone.Panner(0);
   const gain = new Tone.Gain(index % 2 === 0 ? 0.64 : 0.52);
   synth.chain(filter, panner, gain, output);
-  return { synth, filter, panner, gain, oscillatorType: oscillator.type };
+  return { synth, filter, panner, gain, oscillatorType: voice.label };
 }
 
 function stateKey(frame) {
@@ -266,7 +277,7 @@ export function createApuTrackEngine({
     nodes.accentBus.connect(nodes.reverbSend);
 
     nodes.primary = new Tone.Synth({
-      oscillator: { type: "pulse", width: 0.5 },
+      oscillator: pulseOscillatorForDutyCycle(0.5),
       envelope: { attack: 0.006, decay: 0.075, sustain: 0.2, release: 0.13 },
       volume: -12,
     });
@@ -277,7 +288,7 @@ export function createApuTrackEngine({
     nodes.secondary = new Tone.FMSynth({
       harmonicity: 1.5,
       modulationIndex: 3.2,
-      oscillator: { type: "pulse", width: 0.25 },
+      oscillator: pulseOscillatorForDutyCycle(0.25),
       modulation: { type: "square" },
       envelope: { attack: 0.003, decay: 0.08, sustain: 0.08, release: 0.12 },
       modulationEnvelope: { attack: 0.002, decay: 0.06, sustain: 0.12, release: 0.1 },
@@ -288,7 +299,7 @@ export function createApuTrackEngine({
     nodes.secondary.chain(nodes.secondaryFilter, nodes.secondaryPanner, nodes.secondaryBus);
 
     nodes.bass = new Tone.MonoSynth({
-      oscillator: { type: "triangle" },
+      oscillator: staircaseTriangleOscillator(),
       filter: { type: "lowpass", Q: 0.5, rolloff: -24 },
       envelope: { attack: 0.004, decay: 0.08, sustain: 0.68, release: 0.12 },
       filterEnvelope: {
@@ -303,12 +314,12 @@ export function createApuTrackEngine({
     }).connect(nodes.bassBus);
 
     nodes.pad = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: "sine" },
+      oscillator: staircaseTriangleOscillator(),
       envelope: { attack: 0.16, decay: 0.36, sustain: 0.5, release: 1.2 },
       volume: -22,
     });
     nodes.padSub = new Tone.MonoSynth({
-      oscillator: { type: "square" },
+      oscillator: pulseOscillatorForDutyCycle(0.5),
       filter: { type: "lowpass", frequency: 310, Q: 0.8, rolloff: -24 },
       envelope: { attack: 0.004, decay: 0.075, sustain: 0.08, release: 0.06 },
       volume: -18,
@@ -359,12 +370,12 @@ export function createApuTrackEngine({
     nodes.telemetryHum.start();
 
     nodes.deployment = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: "triangle" },
+      oscillator: vrc6SawtoothOscillator(),
       envelope: { attack: 0.002, decay: 0.1, sustain: 0.16, release: 0.24 },
       volume: -12,
     }).connect(nodes.accentBus);
     nodes.incident = new Tone.Synth({
-      oscillator: { type: "square" },
+      oscillator: pulseOscillatorForDutyCycle(0.125),
       envelope: { attack: 0.001, decay: 0.045, sustain: 0.04, release: 0.035 },
       volume: -15,
     }).connect(nodes.accentBus);

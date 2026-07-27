@@ -5,8 +5,14 @@ import {
   APU_CHIP_OSCILLATORS_BUILD_ID,
   createPulseWave,
   createPulseDutyCycles,
+  pulseOscillatorForDutyCycle,
+  pulsePartialsForDutyCycle,
   createStaircaseTriangle,
+  staircaseTriangleOscillator,
+  staircaseTrianglePartials,
   createVrc6Sawtooth,
+  vrc6SawtoothOscillator,
+  vrc6SawtoothPartials,
   createLfsrNoiseBuffer,
   createLfsrNoiseBuffers,
   pulseWaveForDutyCycle,
@@ -74,6 +80,16 @@ test("pulse wave DC component is zero", () => {
   assert.equal(ctx.waves[0].imag[0], 0);
 });
 
+test("pulse oscillator config exposes Tone-ready custom partials", () => {
+  const partials = pulsePartialsForDutyCycle(0.25);
+  const oscillator = pulseOscillatorForDutyCycle(0.25);
+  assert.equal(partials.length, 64);
+  assert.equal(oscillator.type, "custom");
+  assert.deepEqual(oscillator.partials, partials);
+  assert.ok(Object.isFrozen(oscillator.partials));
+  assert.notDeepEqual(pulsePartialsForDutyCycle(0.125), pulsePartialsForDutyCycle(0.5));
+});
+
 test("50% pulse wave has non-zero odd harmonics only", () => {
   const ctx = stubContext();
   createPulseWave(ctx, 0.5);
@@ -125,6 +141,15 @@ test("createStaircaseTriangle caches", () => {
   assert.equal(a, b);
 });
 
+test("staircase triangle oscillator config exposes 4-bit custom partials", () => {
+  const partials = staircaseTrianglePartials();
+  const oscillator = staircaseTriangleOscillator();
+  assert.equal(partials.length, 32);
+  assert.equal(oscillator.type, "custom");
+  assert.deepEqual(oscillator.partials, partials);
+  assert.ok(Math.abs(oscillator.partials[0]) > Math.abs(oscillator.partials[2]));
+});
+
 test("createVrc6Sawtooth has both odd and even harmonics", () => {
   const ctx = stubContext();
   createVrc6Sawtooth(ctx);
@@ -132,6 +157,15 @@ test("createVrc6Sawtooth has both odd and even harmonics", () => {
   assert.ok(Math.abs(imag[1]) > 0.1, "fundamental present");
   assert.ok(Math.abs(imag[2]) > 0.01, "second harmonic present (sawtooth has all harmonics)");
   assert.ok(Math.abs(imag[3]) > 0.01, "third harmonic present");
+});
+
+test("VRC6 oscillator config keeps bright upper saw partials", () => {
+  const partials = vrc6SawtoothPartials();
+  const oscillator = vrc6SawtoothOscillator();
+  assert.equal(partials.length, 31);
+  assert.equal(oscillator.type, "custom");
+  assert.deepEqual(oscillator.partials, partials);
+  assert.ok(Math.abs(oscillator.partials[7]) > Math.abs(1 / (8 * Math.PI)));
 });
 
 test("createLfsrNoiseBuffer short mode produces 93-sample period", () => {

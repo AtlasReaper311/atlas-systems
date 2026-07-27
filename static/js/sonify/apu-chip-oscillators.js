@@ -34,6 +34,10 @@ function ensureCache(ctx) {
   return cache.get(ctx);
 }
 
+function freezePartials(partials) {
+  return Object.freeze(Array.from(partials, (value) => Number(value) || 0));
+}
+
 // ---------------------------------------------------------------------------
 // Pulse wave via Fourier series
 // ---------------------------------------------------------------------------
@@ -71,6 +75,23 @@ export function createPulseWave(ctx, dutyCycle) {
   const wave = ctx.createPeriodicWave(real, imag, { disableNormalization: false });
   store.set(key, wave);
   return wave;
+}
+
+export function pulsePartialsForDutyCycle(dutyCycle) {
+  const duty = Math.max(0.0625, Math.min(0.875, Number(dutyCycle) || 0.5));
+  return freezePartials(
+    Array.from({ length: PULSE_HARMONICS }, (_, index) => {
+      const n = index + 1;
+      return (2 / (n * Math.PI)) * Math.sin(n * Math.PI * duty);
+    }),
+  );
+}
+
+export function pulseOscillatorForDutyCycle(dutyCycle) {
+  return Object.freeze({
+    type: "custom",
+    partials: pulsePartialsForDutyCycle(dutyCycle),
+  });
 }
 
 /**
@@ -139,6 +160,27 @@ export function createStaircaseTriangle(ctx) {
   return wave;
 }
 
+export function staircaseTrianglePartials() {
+  const quantisationBoost = 1 + (1 / TRIANGLE_QUANTISE_LEVELS);
+  return freezePartials(
+    Array.from({ length: TRIANGLE_HARMONICS }, (_, index) => {
+      const n = index + 1;
+      if (n % 2 === 0) return 0;
+      const sign = ((n - 1) / 2) % 2 === 0 ? 1 : -1;
+      const base = (8 / (n * n * Math.PI * Math.PI)) * sign;
+      const boost = n <= 7 ? quantisationBoost : 1 + (0.5 / (n * TRIANGLE_QUANTISE_LEVELS));
+      return base * boost;
+    }),
+  );
+}
+
+export function staircaseTriangleOscillator() {
+  return Object.freeze({
+    type: "custom",
+    partials: staircaseTrianglePartials(),
+  });
+}
+
 // ---------------------------------------------------------------------------
 // VRC6 sawtooth
 // ---------------------------------------------------------------------------
@@ -181,6 +223,24 @@ export function createVrc6Sawtooth(ctx) {
   const wave = ctx.createPeriodicWave(real, imag, { disableNormalization: false });
   store.set(key, wave);
   return wave;
+}
+
+export function vrc6SawtoothPartials() {
+  return freezePartials(
+    Array.from({ length: VRC6_HARMONICS }, (_, index) => {
+      const n = index + 1;
+      const sign = n % 2 === 0 ? -1 : 1;
+      const base = (2 / (n * Math.PI)) * sign;
+      return base * (n >= 8 ? 1.26 : 1.0);
+    }),
+  );
+}
+
+export function vrc6SawtoothOscillator() {
+  return Object.freeze({
+    type: "custom",
+    partials: vrc6SawtoothPartials(),
+  });
 }
 
 // ---------------------------------------------------------------------------

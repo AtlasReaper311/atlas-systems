@@ -74,6 +74,12 @@ test("track engine source keeps crusher off the full master and schedules pulse 
   assert.match(source, /new Tone\.WaveShaper\(Array\.from\(quantiseCurve8Bit\(\)\)\)/);
   assert.match(source, /nodes\.compressor\.connect\(nodes\.masterDacDry\)/);
   assert.match(source, /nodes\.masterDacMix\.chain\(nodes\.softClipper, nodes\.limiter, nodes\.output\)/);
+  assert.match(source, /pulseOscillatorForDutyCycle\(0\.5\)/);
+  assert.match(source, /pulseOscillatorForDutyCycle\(0\.25\)/);
+  assert.match(source, /pulseOscillatorForDutyCycle\(0\.125\)/);
+  assert.match(source, /staircaseTriangleOscillator\(\)/);
+  assert.match(source, /vrc6SawtoothOscillator\(\)/);
+  assert.match(source, /oscillatorType: voice\.label/);
   assert.match(source, /nodes\.serviceBus\.chain\(nodes\.chipColor, nodes\.melodyBus\)/);
   assert.doesNotMatch(source, /nodes\.chipBus\.chain\(\s*nodes\.crusher,/);
   assert.match(source, /nodes\.noiseAccentFilter = new Tone\.Filter\(\{ type: "bandpass", frequency: 1500, Q: 1\.35 \}\)/);
