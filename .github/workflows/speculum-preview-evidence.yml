@@ -39,6 +39,7 @@ jobs:
           node --check lab/speculum/engine.js
           node --check lab/speculum/speculum.js
           node --check lab/speculum/speculum-polish-v5.js
+          node --check lab/speculum/speculum-interaction-v6.js
           node --check scripts/capture_speculum_evidence.mjs
           node --test lab/tests/speculum*.test.mjs
           git diff --check
