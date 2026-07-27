@@ -36,6 +36,11 @@ import {
   quantiseCurve8Bit,
   tanhCurve,
 } from "./apu-soft-clipper.js?v=20260727-apu-soft-clipper-v1";
+import { createDrumSculptorKit } from "./apu-drum-sculptor.js?v=20260727-apu-drum-sculptor-v1";
+import {
+  describeLeitmotif,
+  leitmotifFor,
+} from "./apu-service-leitmotifs.js?v=20260727-apu-service-leitmotifs-v1";
 
 export const APU_TRACK_AUDIO_START_TIMEOUT_MS = 8000;
 export const APU_TRACK_DEFAULT_GAIN = APU_MASTERING_DEFAULT_USER_GAIN;
@@ -129,6 +134,29 @@ function pulseWidthLeadTime(time) {
   return Number.isFinite(time)
     ? Math.max(0, time - APU_TRACK_PULSE_WIDTH_LEAD_SECONDS)
     : undefined;
+}
+
+function toneRawContext(Tone) {
+  const context = Tone.getContext?.();
+  return context?.rawContext ?? context?._context ?? context?.context ?? context;
+}
+
+function toneNativeInput(node) {
+  const candidates = [
+    node?.input,
+    node?.input?.input,
+    node?.input?.output,
+    node?.input?._nativeAudioNode,
+    node?.input?._gainNode,
+    node?.input?._node,
+    node?._nativeAudioNode,
+    node?._gainNode,
+    node?._node,
+    node,
+  ];
+  return candidates.find((candidate) => (
+    candidate && typeof candidate.connect === "function" && typeof candidate.disconnect === "function"
+  )) ?? null;
 }
 
 function createServiceVoice(Tone, output, index) {
@@ -329,39 +357,26 @@ export function createApuTrackEngine({
     nodes.padSub.connect(nodes.padFilter);
     nodes.padFilter.connect(nodes.padBus);
 
-    nodes.kick = new Tone.MembraneSynth({
-      pitchDecay: 0.028,
-      octaves: 2.6,
-      envelope: { attack: 0.002, decay: 0.14, sustain: 0, release: 0.12 },
-      volume: -11,
-    }).connect(nodes.drumBus);
-    nodes.snare = new Tone.NoiseSynth({
-      noise: { type: "white" },
-      envelope: { attack: 0.003, decay: 0.064, sustain: 0, release: 0.025 },
-      volume: -19,
-    }).connect(nodes.drumBus);
-    nodes.hat = new Tone.NoiseSynth({
-      noise: { type: "white" },
-      envelope: { attack: 0.002, decay: 0.018, sustain: 0 },
-      volume: -30,
+    const rawContext = toneRawContext(Tone);
+    const drumOutput = toneNativeInput(nodes.drumBus);
+    const accentOutput = toneNativeInput(nodes.accentBus);
+    if (!rawContext || !drumOutput || !accentOutput) {
+      throw new Error("system-symphony-apu-track: native drum sculptor targets are unavailable");
+    }
+    nodes.drumKit = createDrumSculptorKit(rawContext, {
+      kickOutput: drumOutput,
+      snareOutput: drumOutput,
+      hatOutput: drumOutput,
+      accentOutput,
+    }, {
+      mode: "polished",
+      state: stateKey(currentFrame),
     });
-    nodes.openHat = new Tone.NoiseSynth({
-      noise: { type: "white" },
-      envelope: { attack: 0.003, decay: 0.08, sustain: 0, release: 0.032 },
-      volume: -31,
-    });
-    nodes.hatFilter = new Tone.Filter({ type: "highpass", frequency: 6100, Q: 0.5, rolloff: -24 });
-    nodes.hat.connect(nodes.hatFilter);
-    nodes.openHat.connect(nodes.hatFilter);
-    nodes.hatFilter.connect(nodes.drumBus);
-
-    nodes.noiseAccent = new Tone.NoiseSynth({
-      noise: { type: "pink" },
-      envelope: { attack: 0.004, decay: 0.095, sustain: 0, release: 0.045 },
-      volume: -25,
-    });
-    nodes.noiseAccentFilter = new Tone.Filter({ type: "bandpass", frequency: 1500, Q: 1.35 });
-    nodes.noiseAccent.chain(nodes.noiseAccentFilter, nodes.accentBus);
+    nodes.kick = nodes.drumKit.kick;
+    nodes.snare = nodes.drumKit.snare;
+    nodes.hat = nodes.drumKit.hat;
+    nodes.openHat = nodes.drumKit.openHat;
+    nodes.noiseAccent = nodes.drumKit.noiseAccent;
 
     nodes.telemetryHum = new Tone.Oscillator({ frequency: 55, type: "sine", volume: -34 });
     nodes.telemetryHumFilter = new Tone.Filter({ type: "lowpass", frequency: 240, Q: 0.8, rolloff: -24 });
@@ -402,7 +417,9 @@ export function createApuTrackEngine({
     const timbre = currentArrangement.timbre ?? {};
     const scoreTimbre = currentEngineControls.timbre;
     const compression = compressionForRange(timbre.dynamicRangeDb ?? 12);
-    const masterStageProfile = masterStageProfileForState(stateKey(frame));
+    const state = stateKey(frame);
+    const masterStageProfile = masterStageProfileForState(state);
+    nodes.drumKit?.setState?.(state);
     safeRamp(nodes.transport.bpm, APU_TRACK_BPM, 0.08, at);
     safeRamp(nodes.masterVolume.volume, timbre.masterGainDb ?? scene.masterGainDb, duration, at);
     safeRamp(nodes.masterFilter.frequency, scene.masterFilterHz * (scoreTimbre?.masterFilterScale ?? 1), duration, at);
@@ -420,9 +437,9 @@ export function createApuTrackEngine({
     safeRamp(nodes.chipColor.wet, scoreTimbre?.chipWet ?? profile.crusherWet, duration, at);
     safeRamp(nodes.delayReturn.gain, scoreTimbre?.delayGain ?? profile.delayWet, duration, at);
     safeRamp(nodes.reverbReturn.gain, scoreTimbre?.reverbGain ?? profile.reverbWet, duration, at);
-    safeRamp(nodes.hatFilter.frequency, scoreTimbre?.hatFilterHz ?? Math.max(2800, profile.noiseBrightnessHz), duration, at);
-    safeRamp(nodes.noiseAccentFilter.frequency, scoreTimbre?.noiseAccentFilterHz ?? 1500, duration, at);
-    safeRamp(nodes.telemetryHumGain.gain, scoreTimbre?.telemetryHumGain ?? (stateKey(frame) === "unknown" ? 0.045 : 0), duration, at);
+    safeRamp(nodes.hatFilter?.frequency, scoreTimbre?.hatFilterHz ?? Math.max(2800, profile.noiseBrightnessHz), duration, at);
+    safeRamp(nodes.noiseAccentFilter?.frequency, scoreTimbre?.noiseAccentFilterHz ?? 1500, duration, at);
+    safeRamp(nodes.telemetryHumGain.gain, scoreTimbre?.telemetryHumGain ?? (state === "unknown" ? 0.045 : 0), duration, at);
   }
 
   function applyArrangementMix(at = undefined, duration = 0.18) {
@@ -552,9 +569,36 @@ export function createApuTrackEngine({
     nodes.secondary.triggerAttackRelease(midiToFrequencyHz(event.midi), event.duration, time, event.velocity);
   }
 
+  function serviceLeitmotifEvent(event, step) {
+    const name = event?.voice?.name ?? "unknown-service";
+    const leitmotif = leitmotifFor(name, stateKey(currentFrame));
+    const motif = Array.isArray(leitmotif.motif) ? leitmotif.motif : [];
+    const degreeIndex = motif.length
+      ? Math.abs((trackPhraseIndex + Math.floor(step / 2) + (event.voice?.hash ?? 0)) % motif.length)
+      : 0;
+    const degree = motif[degreeIndex];
+    if (!Number.isFinite(degree)) return null;
+    const rhythm = Array.isArray(leitmotif.rhythm) && leitmotif.rhythm.length
+      ? leitmotif.rhythm[step % leitmotif.rhythm.length]
+      : 1;
+    const root = 41 + (Number(leitmotif.octaveOffset) || 0) * 12;
+    const target = root + degree;
+    const midi = quantizeMidiToHarmony(currentFrame, currentArrangement, step, target, 32, 88);
+    const rhythmHit = rhythm === 1;
+    return Object.freeze({
+      leitmotif,
+      provenance: describeLeitmotif(leitmotif),
+      midi,
+      duration: rhythmHit ? event.duration : "32n",
+      velocity: clamp(event.velocity * (rhythmHit ? 1.08 : 0.72), 0.035, 0.4),
+    });
+  }
+
   function playService(time, step) {
     const event = serviceEventForTrackStep(currentFrame, currentArrangement, step);
     if (!event) return;
+    const motifEvent = serviceLeitmotifEvent(event, step);
+    if (!motifEvent) return;
     const slot = serviceVoices[servicePoolCursor % serviceVoices.length];
     servicePoolCursor += 1;
     const width = clamp(currentArrangement?.timbre?.stereoWidth ?? 0.5, 0, 1);
@@ -563,14 +607,21 @@ export function createApuTrackEngine({
     const cutoff = event.identity.filtered
       ? Math.min(1400, event.voice.filterHz ?? 1400)
       : event.voice.filterHz ?? 3200;
-    safeRamp(slot.filter.frequency, cutoff * scale, 0.03, time);
+    const registerScale = motifEvent.leitmotif.register === "upper"
+      ? 1.18
+      : motifEvent.leitmotif.register === "bass"
+        ? 0.72
+        : 1;
+    safeRamp(slot.filter.frequency, cutoff * scale * registerScale, 0.03, time);
+    safeRamp(slot.gain.gain, clamp(motifEvent.leitmotif.preferredLayer === "accent" ? 0.44 : 0.58, 0.32, 0.68), 0.03, time);
     setPulseWidth(slot.synth, event.identity.dutyCycle, pulseWidthLeadTime(time));
     if (slot.synth.detune) safeRamp(slot.synth.detune, event.voice.detuneCents ?? 0, 0.03, time);
-    slot.synth.triggerAttackRelease(midiToFrequencyHz(event.midi), event.duration, time, event.velocity);
+    slot.synth.triggerAttackRelease(midiToFrequencyHz(motifEvent.midi), motifEvent.duration, time, motifEvent.velocity);
     requireTone().Draw.schedule(() => onVoice?.({
       name: event.voice.name,
       channel: event.identity.channel,
       label: event.identity.label,
+      leitmotif: motifEvent.provenance,
       oscillator: slot.oscillatorType,
     }), time);
   }
