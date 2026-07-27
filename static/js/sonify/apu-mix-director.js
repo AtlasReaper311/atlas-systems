@@ -32,10 +32,11 @@ const BASE_PHASE_GAIN = Object.freeze({
 // The original phase curve multiplied with density velocity scaling. The
 // combined result made the opening deceptively quiet and the middle much
 // louder at the same user volume. Keep the arc, but narrow it to a listener-
-// safe envelope across every state.
+// safe envelope across every state. Groove remains exactly at the approved
+// Pass C level.
 const SMOOTH_PHASE_GAIN = Object.freeze({
   intro: 0.93,
-  groove: 0.98,
+  groove: 1,
   pressure: 1,
   rupture: 1.02,
   recovery: 0.97,
