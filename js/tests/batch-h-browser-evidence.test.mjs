@@ -38,10 +38,8 @@ test("Batch H evidence verifies keyboard, no-JavaScript, motion, and audio conse
   assert.ok(runner.includes('document.querySelector(":focus-visible")'));
   assert.ok(runner.includes("javaScriptEnabled: false"));
   assert.ok(runner.includes('reducedMotion: "reduce"'));
-  assert.ok(runner.includes("__ATLAS_AUDIO_CONTEXT_STATES__"));
-  assert.ok(runner.includes('filter((state) => state === "running")'));
-  assert.ok(runner.includes("audio context entered running state before user consent"));
-  assert.ok(runner.includes('startsWith("Start")'));
+  assert.ok(runner.includes("audio context was created before user consent"));
+  assert.ok(runner.includes('audioToggleText !== "Start"'));
   assert.ok(runner.includes("activeElementInsideSymphony"));
   assert.ok(runner.includes("Symphony stole focus during page load"));
   assert.ok(runner.includes("Symphony is not embedded as a non-modal page region"));
