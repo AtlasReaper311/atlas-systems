@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import test from "node:test";
 
 import {
@@ -109,4 +110,23 @@ test("unknown AtlasField presets fail closed", () => {
     () => resolveAtlasFieldOptions({ preset: "unknown" }),
     /Unknown AtlasField preset/,
   );
+});
+
+test("homepage truth module independently restores the field and its current styles", () => {
+  const source = fs.readFileSync("static/js/live/homepage-truth.js", "utf8");
+  assert.match(source, /HOMEPAGE_FIELD_CSS = "\/css\/home-v2-base\.css\?v=20260727-atlas-field-production-v1"/);
+  assert.match(source, /HOMEPAGE_FIELD_MODULE = "\/static\/js\/atlas-field\.js\?v=20260727-atlas-field-production-v1"/);
+  assert.match(source, /querySelector\(":scope > canvas\.atlas-field-canvas"\)/);
+  assert.match(source, /createAtlasField\(hero, \{ preset: "hero" \}\)/);
+  assert.match(source, /void initHomepageFieldFallback\(\)/);
+});
+
+test("production deploy verifies visible homepage AtlasField pixels", () => {
+  const workflow = fs.readFileSync(".github/workflows/deploy.yml", "utf8");
+  const smoke = fs.readFileSync("scripts/smoke_homepage_atlas_field_production.mjs", "utf8");
+  assert.match(workflow, /node scripts\/smoke_homepage_atlas_field_production\.mjs/);
+  assert.match(workflow, /homepage-atlas-field-production-smoke/);
+  assert.match(smoke, /canvas\.atlas-field-canvas/);
+  assert.match(smoke, /luminousPixels >= 8/);
+  assert.match(smoke, /heroState, "ready"/);
 });

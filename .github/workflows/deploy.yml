@@ -121,6 +121,22 @@ jobs:
       - name: Install Chromium for production smoke
         run: npx playwright install --with-deps chromium
 
+      - name: Verify the live homepage AtlasField renderer
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+          SITE_URL: https://atlas-systems.uk
+          HOMEPAGE_FIELD_OUTPUT_DIR: ${{ runner.temp }}/homepage-atlas-field-production-smoke
+        run: node scripts/smoke_homepage_atlas_field_production.mjs
+
+      - name: Upload production homepage AtlasField evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        with:
+          name: homepage-atlas-field-production-smoke
+          path: ${{ runner.temp }}/homepage-atlas-field-production-smoke
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Verify the live System Symphony Atlas APU and topology map
         env:
           EXPECTED_SHA: ${{ github.sha }}

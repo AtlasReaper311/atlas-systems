@@ -70,8 +70,9 @@ async function initHeroField() {
   if (!hero) return;
 
   try {
-    const { createAtlasField } = await import("/static/js/atlas-field.js?v=20260727-boundary");
-    createAtlasField(hero, { preset: "hero" });
+    const { createAtlasField } = await import("/static/js/atlas-field.js?v=20260727-atlas-field-production-v1");
+    const controller = createAtlasField(hero, { preset: "hero" });
+    hero.dataset.atlasFieldState = controller ? "ready" : "unavailable";
   } catch (error) {
     hero.dataset.atlasFieldState = "unavailable";
     console.warn("AtlasField could not initialise", error);
