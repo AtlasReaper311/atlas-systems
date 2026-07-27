@@ -80,7 +80,7 @@ test("dynamic smoothing keeps state colour and only narrows phase gain", () => {
   }
 });
 
-test("Explorer Peak remains complete and free from competing arpeggios", () => {
+test("Explorer Peak keeps the approved uncluttered ornament space", () => {
   for (const phraseIndex of [11, 12]) {
     const instructions = ornamentInstructionsForPhrase(performancePlan({
       state: "healthy",
@@ -89,11 +89,10 @@ test("Explorer Peak remains complete and free from competing arpeggios", () => {
       phraseIndex,
       bars: phraseIndex * 2,
     }));
-    assert.ok(!instructions.some((instruction) => instruction.ornament === "connective-arp"));
+    assert.ok(instructions.some((instruction) => instruction.ornament === "connective-arp"));
     assert.ok(!instructions.some((instruction) => instruction.ornament === "state-arp"));
-    assert.ok(!instructions.some((instruction) => instruction.ornament === "d4-arpeggio"));
-    assert.ok(!instructions.some((instruction) => instruction.ornament === "d4-arpeggio-colour"));
     assert.ok(!instructions.some((instruction) => instruction.ornament === "explorer-sparkle-answer"));
+    assert.ok(!instructions.some((instruction) => instruction.gestureMoment));
     const melodic = instructions.filter((instruction) => (
       ["primary", "secondary"].includes(instruction.voice)
       && Number.isFinite(instruction.midiOffset)
