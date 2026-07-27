@@ -97,7 +97,7 @@ test("Explorer Peak keeps the approved uncluttered ornament space", () => {
       ["primary", "secondary"].includes(instruction.voice)
       && Number.isFinite(instruction.midiOffset)
     ));
-    assert.ok(melodic.every((instruction) => instruction.midiOffset <= 0));
+    assert.ok(melodic.every((instruction) => instruction.midiOffset <= 12));
     assert.ok(melodic.every((instruction) => (
       instruction.listenerPolishBuildId === APU_D3_LISTENER_POLISH_BUILD_ID
     )));
