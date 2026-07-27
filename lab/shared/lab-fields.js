@@ -1,3 +1,5 @@
+// This module is loaded through the cache-versioned Lab shell entry in lab/index.html.
+// Bump that HTML asset version whenever the Lab field mount contract changes.
 import { createAtlasField } from "../../static/js/atlas-field.js";
 import { enhanceCardSignatures } from "../../static/js/card-signatures.js";
 
