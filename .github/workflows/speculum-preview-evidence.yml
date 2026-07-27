@@ -43,16 +43,63 @@ jobs:
           node --test lab/tests/speculum*.test.mjs
           git diff --check
 
-  capture:
-    name: Capture Speculum stateful evidence
+  deploy:
+    name: Publish Speculum branch preview
     needs: validate
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
       contains(github.event.pull_request.labels.*.name, 'interface-preview-approved')
     runs-on: ubuntu-latest
-    timeout-minutes: 55
+    timeout-minutes: 30
+    environment:
+      name: public-interface-preview
+      url: ${{ steps.preview.outputs.preview_url }}
+    outputs:
+      preview_url: ${{ steps.preview.outputs.preview_url }}
     env:
-      PREVIEW_URL: https://interface-pr-${{ github.event.pull_request.number }}.atlas-systems-44t.pages.dev
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CF_PAGES_DEPLOY_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      PROJECT_NAME: atlas-systems
+      PAGES_BRANCH: interface-pr-${{ github.event.pull_request.number }}
+      SOURCE_BRANCH: ${{ github.event.pull_request.head.ref }}
+    steps:
+      - name: Check out pull request head
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Guard production boundary
+        run: |
+          set -euo pipefail
+          test "${{ github.event.pull_request.base.ref }}" = "main"
+          test "${SOURCE_BRANCH}" != "main"
+          test "${SOURCE_BRANCH}" != "production"
+          test "${PAGES_BRANCH}" != "main"
+          test "${PAGES_BRANCH}" != "production"
+      - name: Prepare filtered Pages publish artifact
+        run: bash scripts/prepare_pages_publish.sh "${RUNNER_TEMP}/pages-publish"
+      - name: Publish branch preview
+        env:
+          PUBLISH_DIRECTORY: ${{ runner.temp }}/pages-publish
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4.113.0 pages deploy "${PUBLISH_DIRECTORY}" --project-name "${PROJECT_NAME}" --branch "${PAGES_BRANCH}" --commit-dirty=true
+      - name: Resolve stable preview URL
+        id: preview
+        env:
+          PREVIEW_URL: https://interface-pr-${{ github.event.pull_request.number }}.atlas-systems-44t.pages.dev
+        run: |
+          set -euo pipefail
+          echo "preview_url=${PREVIEW_URL}" >> "${GITHUB_OUTPUT}"
+          printf '## Speculum preview\n\n%s/lab/speculum/\n\nProduction is unchanged.\n' "${PREVIEW_URL}" >> "${GITHUB_STEP_SUMMARY}"
+
+  capture:
+    name: Capture Speculum stateful evidence
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PREVIEW_URL: ${{ needs.deploy.outputs.preview_url }}
       HEAD_SHA: ${{ github.event.pull_request.head.sha }}
     steps:
       - name: Check out evidence runner
@@ -64,19 +111,6 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
         with:
           node-version: "22"
-      - name: Wait for governed preview head
-        run: |
-          set -euo pipefail
-          ready=0
-          for attempt in $(seq 1 80); do
-            asset="$(curl --fail --silent --show-error --location --max-time 20 "${PREVIEW_URL}/lab/speculum/speculum-polish-v5.js?head=${HEAD_SHA}" || true)"
-            if printf '%s' "${asset}" | grep -Fq 'function remapPointerEvent(event)'; then
-              ready=1
-              break
-            fi
-            sleep 15
-          done
-          test "${ready}" = "1"
       - name: Install pinned browser and accessibility tooling
         run: |
           set -euo pipefail
