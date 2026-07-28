@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { chromium, firefox } from "playwright";
+import { isCloudflareInsightsUrl } from "./network-request-policy.mjs";
 
 const previewBase = process.env.PREVIEW_URL;
 if (!previewBase) throw new Error("PREVIEW_URL is required");
@@ -320,7 +321,7 @@ try {
   assert.equal(unknownMeasurement.mastering.targetIntegratedLufs, -24);
   assert.equal(unknownMeasurement.mastering.targetToleranceDb, 3);
   assert.deepEqual(audioRequests, [], "the hybrid APU preview requested an audio asset");
-  const materialFailures = failedRequests.filter(({ url }) => !url.includes("cloudflareinsights.com"));
+  const materialFailures = failedRequests.filter(({ url }) => !isCloudflareInsightsUrl(url));
   assert.deepEqual(materialFailures, []);
   assert.deepEqual(pageErrors, []);
   assert.deepEqual(consoleErrors, []);
