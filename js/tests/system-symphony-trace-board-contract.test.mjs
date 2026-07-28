@@ -97,15 +97,16 @@ test("the narrow board is recomposed rather than scaled", () => {
 
 test("TRACE opens as a readable board-first surface with comparison on demand", () => {
   assert.ok(page.includes('data-apu-role-highlight=""'));
-  assert.ok(page.includes('data-trace-source-dock'));
+  assert.ok(!page.includes("data-trace-source-dock"));
   assert.ok(pageCss.includes("trace board-first pass"));
-  assert.ok(pageCss.includes(".symphony-trace-source-dock"));
-  assert.ok(pageCss.includes(".symphony-trace-source-dock .symphony-source-panel"));
-  assert.ok(pageCss.includes(".symphony-trace-source-dock .symphony-performance.is-collapsed"));
+  assert.ok(pageCss.includes(".symphony-console__header"));
+  assert.ok(pageCss.includes(".symphony-source-panel .symphony-segmented"));
+  assert.ok(pageCss.includes(".symphony-page-host .symphony-performance.is-collapsed"));
+  assert.ok(pageCss.includes(".symphony-page-host .symphony-metrics"));
   assert.ok(css.includes(".symphony-performance__collapse"));
   assert.ok(ui.includes("data-performance-collapse"));
-  assert.ok(pageAdapter.includes("sourcePanelHome"));
-  assert.ok(pageAdapter.includes("sourcePanel.dataset.traceDocked"));
+  assert.ok(pageAdapter.includes("traceRoleControlsHome"));
+  assert.ok(pageAdapter.includes("roleBoard.dataset.traceDocked"));
   assert.ok(ui.includes('data-inspector-close'));
   assert.ok(ui.includes("function control(selector)"));
   assert.ok(ui.includes('host.dataset.traceSelection = String(activeSelection)'));
@@ -121,7 +122,8 @@ test("TRACE opens as a readable board-first surface with comparison on demand", 
   assert.doesNotMatch(navigationCss, /body\[data-symphony-mode="trace"\] \.symphony-flagship__top/);
   assert.ok(bridge.includes("updateRoleControls"));
   assert.ok(bridge.includes("host.dataset.traceRoleEmpty"));
-  assert.ok(pageAdapter.includes("syncTraceSourceDock"));
-  assert.ok(pageAdapter.includes("data-trace-source-dock"));
+  assert.ok(pageAdapter.includes("syncTraceRoleControls"));
+  assert.ok(pageAdapter.includes('roleBoard.closest(".symphony-orchestra")'));
   assert.ok(pageAdapter.includes("score law only in this frame"));
+  assert.ok(pageAdapter.includes("status.textContent !== statusText"));
 });

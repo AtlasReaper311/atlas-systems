@@ -53,7 +53,7 @@ let selectedIncidentArc = null;
 let incidentArcIndex = 0;
 let incidentArcTimer = null;
 let activeProofPanel = "cartridge";
-let sourcePanelHome = null;
+let traceRoleControlsHome = null;
 
 const byId = (id) => document.getElementById(id);
 
@@ -220,7 +220,7 @@ function syncSummary(host) {
   status.textContent = `Instrument ${stateKey}; source ${source}. Live mode remains read-only.`;
   highlightApuRole(host.dataset.apuRoleHighlight);
   const flagship = document.querySelector("[data-symphony-flagship]");
-  if (flagship) syncTraceSourceDock(flagship, flagship.dataset.symphonyMode);
+  if (flagship) syncTraceRoleControls(flagship, flagship.dataset.symphonyMode);
 }
 
 function syncMode(mode, { push = true } = {}) {
@@ -239,7 +239,7 @@ function syncMode(mode, { push = true } = {}) {
     panel.hidden = panel.dataset.symphonyModePanel !== nextMode;
     panel.classList.toggle("is-active", panel.dataset.symphonyModePanel === nextMode);
   }
-  syncTraceSourceDock(flagship, nextMode);
+  syncTraceRoleControls(flagship, nextMode);
   setProofPair("route", nextMode.toUpperCase());
   if (!push) return;
   const url = new URL(window.location.href);
@@ -340,11 +340,12 @@ function highlightApuRole(role) {
   const host = document.getElementById(HOST_ID);
   const selectedCount = roleUsageCount(host, selected);
   const status = document.querySelector("[data-apu-role-status]");
-  if (status) status.textContent = selected
+  const statusText = selected
     ? selectedCount === 0 && selected !== "clock"
       ? `${APU_ROLE_LABELS[selected]}: score law only in this frame; no service-owned chips are assigned, so the board remains unfiltered.`
       : roleSummary(latestCartridge?.scorePlan, selected)
     : DEFAULT_APU_ROLE_STATUS;
+  if (status && status.textContent !== statusText) status.textContent = statusText;
   if (!host) return;
   host.dataset.apuRoleHighlight = selected;
   const rows = host.querySelectorAll("[data-service-table] tr");
@@ -355,24 +356,34 @@ function highlightApuRole(role) {
   }
 }
 
-function syncTraceSourceDock(flagship, mode = flagship?.dataset?.symphonyMode) {
-  const sourcePanel = flagship.querySelector(".symphony-source-panel");
-  const dock = flagship.querySelector("[data-trace-source-dock]");
-  if (!sourcePanel || !dock) return;
-  if (!sourcePanelHome && !sourcePanel.closest("[data-trace-source-dock]")) {
-    sourcePanelHome = {
-      parent: sourcePanel.parentNode,
-      nextSibling: sourcePanel.nextSibling,
+function syncTraceRoleControls(flagship, mode = flagship?.dataset?.symphonyMode) {
+  const roleBoard = flagship.querySelector(".symphony-role-board");
+  const roleStatus = flagship.querySelector("[data-apu-role-status]");
+  const orchestra = flagship.querySelector(".symphony-orchestra");
+  if (!roleBoard || !roleStatus || !orchestra) return;
+
+  if (!traceRoleControlsHome && !roleBoard.closest(".symphony-orchestra")) {
+    traceRoleControlsHome = {
+      parent: roleBoard.parentNode,
+      nextSibling: roleStatus.nextSibling,
     };
   }
+
   if (mode === "trace") {
-    sourcePanel.dataset.traceDocked = "true";
-    dock.append(sourcePanel);
+    const heading = orchestra.querySelector(".symphony-section-heading");
+    if (!heading || roleBoard.closest(".symphony-orchestra")) return;
+    roleBoard.dataset.traceDocked = "true";
+    roleStatus.dataset.traceDocked = "true";
+    heading.insertAdjacentElement("afterend", roleBoard);
+    roleBoard.insertAdjacentElement("afterend", roleStatus);
     return;
   }
-  if (!sourcePanelHome?.parent || !sourcePanel.closest("[data-trace-source-dock]")) return;
-  delete sourcePanel.dataset.traceDocked;
-  sourcePanelHome.parent.insertBefore(sourcePanel, sourcePanelHome.nextSibling);
+
+  if (!traceRoleControlsHome?.parent || !roleBoard.closest(".symphony-orchestra")) return;
+  delete roleBoard.dataset.traceDocked;
+  delete roleStatus.dataset.traceDocked;
+  traceRoleControlsHome.parent.insertBefore(roleBoard, traceRoleControlsHome.nextSibling);
+  traceRoleControlsHome.parent.insertBefore(roleStatus, traceRoleControlsHome.nextSibling);
 }
 
 function clickConsoleAudio(host) {
