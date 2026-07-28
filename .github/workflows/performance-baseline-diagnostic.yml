@@ -1,0 +1,28 @@
+name: Performance baseline diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/performance-baseline-diagnostic.yml"
+      - "lab/index.html"
+      - "data/performance-baseline.json"
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    name: Report generated static baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Generate exact candidate
+        run: |
+          set -euo pipefail
+          python3 scripts/measure_static_performance.py
+          cat data/performance-baseline.json
