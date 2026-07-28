@@ -10,6 +10,7 @@ const LAB_ROUTES = [
   { label: "Signal Garden", href: "/lab/signal/" },
   { label: "Reliability", href: "/systems/reliability/" },
   { label: "Conformance", href: "/lab/conformance/" },
+  { label: "Speculum", href: "/lab/speculum/" },
   { label: "Shape Detector", href: "/lab/anomaly/" },
   { label: "Almost", href: "/lab/almost/" },
 ];
