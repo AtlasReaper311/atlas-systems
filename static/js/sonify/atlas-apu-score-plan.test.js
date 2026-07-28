@@ -59,7 +59,7 @@ test("hybrid frames expose an auditable Atlas APU score plan", () => {
   const plan = frame.scorePlan;
 
   assert.match(ATLAS_APU_SCORE_PLAN_BUILD_ID, /score-plan-v3$/);
-  assert.match(plan.themesBuildId, /state-themes-v1$/);
+  assert.match(plan.themesBuildId, /state-themes-v2$/);
   assert.equal(plan.chip, ATLAS_APU_CHIP_ID);
   assert.equal(plan.engine, "Atlas APU");
   assert.equal(plan.source, "fixture");
@@ -93,7 +93,7 @@ test("state themes define distinct authored zones instead of generic presets", (
     "unknown",
     "recovery",
   ]);
-  assert.match(ATLAS_APU_STATE_THEMES_BUILD_ID, /state-themes-v1$/);
+  assert.match(ATLAS_APU_STATE_THEMES_BUILD_ID, /state-themes-v2$/);
 
   const themes = ATLAS_APU_STATE_THEME_KEYS.map(themeForState);
   assert.equal(new Set(themes.map((theme) => theme.movement)).size, 5);
@@ -110,6 +110,8 @@ test("critical is urgent and sparse while unknown is beautiful and uneasy", () =
   const unknown = themeForState("unknown");
 
   assert.equal(unknown.emotionalIntent, "beautiful and uneasy");
+  assert.equal(unknown.counterline, "ghost echo");
+  assert.match(unknown.constraints.join(" "), /do not collapse into silence/);
   assert.ok(unknown.range.beauty > critical.range.beauty);
   assert.ok(unknown.range.urgency < critical.range.urgency);
   assert.match(unknown.constraints.join(" "), /never pretend certainty/);
@@ -133,7 +135,7 @@ test("score plans replay deterministically for the same frame", () => {
   });
   assert.notEqual(frame.scorePlan.seed, changed.scorePlan.seed);
   assert.equal(changed.scorePlan.dominantState, "critical");
-  assert.equal(changed.scorePlan.movement, "Critical Choke");
+  assert.equal(changed.scorePlan.movement, "Boss Protocol");
 });
 
 test("transition signatures encode the Atlas APU chapter change", () => {
