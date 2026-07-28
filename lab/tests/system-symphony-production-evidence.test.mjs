@@ -6,9 +6,11 @@ import {
   SYSTEM_SYMPHONY_STATE_MEASUREMENT_BARS,
   SYSTEM_SYMPHONY_STATE_PAGE_POLICY,
   SYSTEM_SYMPHONY_STATES,
+  SYSTEM_SYMPHONY_TRANSITION_PAGE_POLICY,
   SYSTEM_SYMPHONY_TRANSITION_ROUTE,
   buildProgrammeSummary,
   buildStateMeasurementPlan,
+  buildTransitionMeasurementPlan,
   buildTransitionSummary,
   transitionPairs,
 } from "../../scripts/system-symphony-production-evidence.mjs";
@@ -56,15 +58,21 @@ test("production state plan aligns every state to one fresh-page form window", (
   assert.throws(() => buildStateMeasurementPlan(["healthy", "missing"]), /Unknown production measurement states/);
 });
 
-test("production transition route covers every ordered state pair once", () => {
+test("production transition plan isolates every ordered state pair on a warmed page", () => {
   const pairs = transitionPairs();
+  const plan = buildTransitionMeasurementPlan();
   assert.equal(SYSTEM_SYMPHONY_TRANSITION_ROUTE[0], "healthy");
   assert.equal(SYSTEM_SYMPHONY_TRANSITION_ROUTE.at(-1), "healthy");
   assert.equal(pairs.length, SYSTEM_SYMPHONY_STATES.length * (SYSTEM_SYMPHONY_STATES.length - 1));
   assert.equal(new Set(pairs.map(({ key }) => key)).size, pairs.length);
+  assert.deepEqual(plan.map(({ key }) => key), pairs.map(({ key }) => key));
+  assert.deepEqual([...new Set(plan.map(({ pagePolicy }) => pagePolicy))], [SYSTEM_SYMPHONY_TRANSITION_PAGE_POLICY]);
+  assert.deepEqual([...new Set(plan.map(({ alignmentBar }) => alignmentBar))], [SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR]);
+  assert.deepEqual([...new Set(plan.map(({ alignmentStep }) => alignmentStep))], [SYSTEM_SYMPHONY_STATE_ALIGNMENT_STEP]);
+  assert.deepEqual([...new Set(plan.map(({ measurementBars }) => measurementBars))], [1]);
   for (const from of SYSTEM_SYMPHONY_STATES) {
     for (const to of SYSTEM_SYMPHONY_STATES) {
-      if (from !== to) assert.ok(pairs.some((pair) => pair.from === from && pair.to === to));
+      if (from !== to) assert.ok(plan.some((pair) => pair.from === from && pair.to === to));
     }
   }
 });
@@ -92,6 +100,9 @@ test("transition summary rejects a short-term loudness cliff", () => {
       from: "healthy",
       to: "unknown",
       policy: "one-bar-decay",
+      pagePolicy: SYSTEM_SYMPHONY_TRANSITION_PAGE_POLICY,
+      startSection: "establish",
+      startPosition: "Bars 5-6 / 32",
       samples: [
         { shortTermLufs: -27, momentaryLufs: -27 },
         { shortTermLufs: -28, momentaryLufs: -29 },
@@ -101,12 +112,17 @@ test("transition summary rejects a short-term loudness cliff", () => {
       from: "unknown",
       to: "critical",
       policy: "one-bar-decay",
+      pagePolicy: SYSTEM_SYMPHONY_TRANSITION_PAGE_POLICY,
+      startSection: "establish",
+      startPosition: "Bars 5-6 / 32",
       samples: [
         { shortTermLufs: -38, momentaryLufs: -39 },
       ],
     },
   ];
   const summary = buildTransitionSummary(transitions, stateMeasurements);
+  assert.deepEqual(summary.pagePolicies, [SYSTEM_SYMPHONY_TRANSITION_PAGE_POLICY]);
+  assert.deepEqual(summary.alignmentPositions, ["Bars 5-6 / 32"]);
   assert.equal(summary.transitions[0].passed, true);
   assert.equal(summary.transitions[1].passed, false);
   assert.equal(summary.allPassed, false);
