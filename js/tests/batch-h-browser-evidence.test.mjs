@@ -51,7 +51,10 @@ test("shared diagnostics record console, request, resource, and accessibility ev
   assert.ok(browserCore.includes('page.on("response"'));
   assert.ok(browserCore.includes('performance.getEntriesByType("resource")'));
   assert.ok(browserCore.includes("wcag22aa"));
+  assert.ok(browserCore.includes("actionableConsoleErrors"));
   assert.ok(genericRunner.includes("blockingFailures"));
+  assert.ok(genericRunner.includes("blocking-changed-route"));
+  assert.ok(genericRunner.includes("reporting-baseline"));
   assert.ok(runner.includes("blockingFailures"));
 });
 
