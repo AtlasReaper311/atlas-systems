@@ -13,10 +13,10 @@ import {
   ATLAS_APU_ROLE_KEYS,
   ATLAS_APU_SCORE_PLAN_BUILD_ID,
 } from "./atlas-apu-score-plan.js?v=20260726-atlas-apu-score-plan-v3";
-import { normalizedStateIdentity } from "./apu-state-identities.js?v=20260728-system-symphony-state-identities-v7";
-import { themeForState } from "./atlas-apu-state-themes.js?v=20260726-atlas-apu-state-themes-v1";
+import { normalizedStateIdentity } from "./apu-state-identities.js?v=20260728-system-symphony-state-identities-v8";
+import { themeForState } from "./atlas-apu-state-themes.js?v=20260728-atlas-apu-state-themes-v2";
 
-export const ATLAS_APU_ENGINE_CONTROLS_BUILD_ID = "20260728-atlas-apu-engine-controls-v5";
+export const ATLAS_APU_ENGINE_CONTROLS_BUILD_ID = "20260728-atlas-apu-engine-controls-v6";
 
 const STATE_KEYS = Object.freeze(["healthy", "warning", "critical", "unknown"]);
 const BUS_KEYS = Object.freeze(["primary", "secondary", "services", "bass", "drums", "pad", "accent"]);
@@ -119,13 +119,13 @@ function busProfileForState(plan, state) {
 
   if (state === "unknown") {
     return Object.freeze({
-      primary: 0.64,
-      secondary: 0.52,
-      services: 0.5,
-      bass: 0.62,
-      drums: 0.28,
-      pad: 1.18,
-      accent: 0.72,
+      primary: 0.92,
+      secondary: 0.82,
+      services: 0.78,
+      bass: 0.82,
+      drums: 0.58,
+      pad: 1.02,
+      accent: 0.82,
     });
   }
 
