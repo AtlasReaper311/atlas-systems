@@ -108,8 +108,9 @@ test("state changes reshape harmony without destroying form", () => {
   assert.equal(critical.harmony[0].quality, "power");
   assert.equal(unknown.harmony[0].quality, "suspended");
   assert.ok(unknown.mix.drums < warning.mix.drums);
+  assert.deepEqual(unknown.motifDegrees, [0, 2, 0, 4, 2]);
   assert.equal(healthy.chipLaw, "explorer-counterpoint");
   assert.equal(warning.chipLaw, "diagnostic-stutter");
   assert.equal(critical.chipLaw, "boss-lockstep");
-  assert.equal(unknown.chipLaw, "lost-signal-dropout");
+  assert.equal(unknown.chipLaw, "lost-signal-question");
 });

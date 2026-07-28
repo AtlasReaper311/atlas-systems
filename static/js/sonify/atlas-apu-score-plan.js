@@ -12,12 +12,16 @@ import {
   clamp,
   stableHash,
 } from "./mapping.js?v=20260720-system-symphony-loop-production-v2";
-import { normalizedStateIdentity } from "./apu-state-identities.js?v=20260726-system-symphony-state-identities-v4";
+import { normalizedStateIdentity } from "./apu-state-identities.js?v=20260728-system-symphony-state-identities-v7";
 import {
   ATLAS_APU_STATE_THEMES_BUILD_ID,
   themeForState,
   themeForTransition,
 } from "./atlas-apu-state-themes.js?v=20260726-atlas-apu-state-themes-v1";
+import {
+  APU_TRANSITION_LANGUAGE_BUILD_ID,
+  transitionForStates,
+} from "./apu-transition-language.js?v=20260728-system-symphony-transition-language-v1";
 
 export const ATLAS_APU_SCORE_PLAN_BUILD_ID = "20260726-atlas-apu-score-plan-v3";
 export const ATLAS_APU_CHIP_ID = "ATLAS-APU-01";
@@ -32,59 +36,6 @@ export const ATLAS_APU_ROLE_KEYS = Object.freeze([
   "contention",
   "recovery",
 ]);
-
-const TRANSITION_SIGNATURES = Object.freeze({
-  "healthy>warning": Object.freeze({
-    id: "pressure-ramp",
-    label: "Healthy -> Warning",
-    gesture: "duty cycle tightens, noise doubles, counterline enters",
-  }),
-  "warning>critical": Object.freeze({
-    id: "interrupt-drop",
-    label: "Warning -> Critical",
-    gesture: "one-frame interrupt, bass drops an octave, pad chokes cleanly",
-  }),
-  "critical>healthy": Object.freeze({
-    id: "recovery-bloom",
-    label: "Critical -> Recovery",
-    gesture: "bright rising arpeggio, noise thins, pulse opens",
-  }),
-  "critical>warning": Object.freeze({
-    id: "pressure-release",
-    label: "Critical -> Warning",
-    gesture: "impact bus relaxes while diagnostic pulse remains active",
-  }),
-  "unknown>healthy": Object.freeze({
-    id: "carrier-resolve",
-    label: "Unknown -> Known",
-    gesture: "carrier resolves into the main key and missing beats return",
-  }),
-  "unknown>warning": Object.freeze({
-    id: "carrier-resolve-pressure",
-    label: "Unknown -> Known pressure",
-    gesture: "carrier resolves, then diagnostic counterline takes the lead",
-  }),
-  "unknown>critical": Object.freeze({
-    id: "carrier-interrupt",
-    label: "Unknown -> Critical",
-    gesture: "carrier collapses into interrupt noise and octave alarm",
-  }),
-  "healthy>unknown": Object.freeze({
-    id: "melody-dropout",
-    label: "Known -> Unknown",
-    gesture: "melody loses every third note and memory takes over",
-  }),
-  "warning>unknown": Object.freeze({
-    id: "pressure-dropout",
-    label: "Known -> Unknown",
-    gesture: "offbeat pressure fragments into carrier gaps",
-  }),
-  "critical>unknown": Object.freeze({
-    id: "alarm-dropout",
-    label: "Known -> Unknown",
-    gesture: "impact tail decays into unresolved carrier hum",
-  }),
-});
 
 function round(value, places = 4) {
   const scale = 10 ** places;
@@ -172,29 +123,34 @@ function frameSeed(frame = {}, weights, source) {
 }
 
 export function transitionSignatureForStates(previousState, nextState) {
-  const from = previousState ? stateKey(previousState) : null;
-  const to = stateKey(nextState);
-  if (!from || from === to) {
-    return Object.freeze({
-      from,
-      to,
-      id: "steady-state",
-      label: `${SCORE_STATES[to].label} sustain`,
-      gesture: "no transition signature; current movement continues",
-    });
-  }
+  const plan = transitionForStates(previousState, nextState);
   return Object.freeze({
-    from,
-    to,
-    ...(TRANSITION_SIGNATURES[`${from}>${to}`] ?? {
-      id: "state-crossfade",
-      label: `${SCORE_STATES[from].label} -> ${SCORE_STATES[to].label}`,
-      gesture: "bounded crossfade into the next dominant grammar",
-    }),
+    from: plan.from,
+    to: plan.to,
+    id: plan.id,
+    label: plan.label,
+    gesture: plan.id === "steady-state"
+      ? "no transition signature; current movement continues"
+      : plan.gesture,
   });
 }
 
-function rolePlans(frame, language, identity, confidence, density, transition) {
+function transitionHandoverForStates(previousState, nextState) {
+  const plan = transitionForStates(previousState, nextState);
+  return Object.freeze({
+    buildId: APU_TRANSITION_LANGUAGE_BUILD_ID,
+    key: plan.key,
+    phase: plan.phase,
+    durationBars: plan.durationBars,
+    durationSteps: plan.durationSteps,
+    mixPolicy: plan.mixPolicy,
+    outgoingTail: plan.outgoingTail,
+    harmonicAuthority: plan.harmonicAuthority,
+    accent: plan.accent,
+  });
+}
+
+function rolePlans(frame, language, identity, confidence, density, transition, handover) {
   const warnings = Number(frame.warningCount) || 0;
   const failures = Number(frame.failureCount) || 0;
   const unknown = Number(frame.unknownCount) || 0;
@@ -249,7 +205,7 @@ function rolePlans(frame, language, identity, confidence, density, transition) {
     recovery: Object.freeze({
       role: "Recovery",
       lane: "bright accent voice",
-      active: transition.id.includes("recovery") || transition.id.includes("resolve"),
+      active: handover.phase === "recovery" || transition.id.includes("resolve"),
       confidence,
     }),
   });
@@ -266,7 +222,9 @@ export function buildAtlasApuScorePlan(frame = {}, options = {}) {
   const confidence = evidenceConfidence(frame);
   const affectedRatio = affectedServiceRatio(frame);
   const density = round(clamp((Number(frame.density) || score.density) + theme.densityBias + affectedRatio * 0.22, 0.08, 1));
-  const transition = transitionSignatureForStates(options.previousState ?? frame.previousScoreState, dominantState);
+  const previousState = options.previousState ?? frame.previousScoreState;
+  const transition = transitionSignatureForStates(previousState, dominantState);
+  const transitionHandover = transitionHandoverForStates(previousState, dominantState);
   const transitionTheme = themeForTransition(transition, dominantState);
   const register = affectedRatio > 0.34 && dominantState !== "healthy"
     ? `${theme.register}, compressed by ${Math.round(affectedRatio * 100)}% affected services`
@@ -278,6 +236,7 @@ export function buildAtlasApuScorePlan(frame = {}, options = {}) {
   return Object.freeze({
     buildId: ATLAS_APU_SCORE_PLAN_BUILD_ID,
     themesBuildId: ATLAS_APU_STATE_THEMES_BUILD_ID,
+    transitionLanguageBuildId: APU_TRANSITION_LANGUAGE_BUILD_ID,
     chip: ATLAS_APU_CHIP_ID,
     engine: "Atlas APU",
     sampleFreeTarget: true,
@@ -290,6 +249,7 @@ export function buildAtlasApuScorePlan(frame = {}, options = {}) {
     movement: theme.movement,
     theme,
     transitionTheme,
+    transitionHandover,
     stateVector: weights,
     confidence,
     tempo: Object.freeze({
@@ -321,6 +281,6 @@ export function buildAtlasApuScorePlan(frame = {}, options = {}) {
       stale: Boolean(frame.stale),
       reason: frame.dominantStateReason ?? null,
     }),
-    roles: rolePlans(frame, theme, identity, confidence, density, transition),
+    roles: rolePlans(frame, theme, identity, confidence, density, transition, transitionHandover),
   });
 }

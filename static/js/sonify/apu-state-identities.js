@@ -1,6 +1,6 @@
-import { masteringProfileForState } from "./apu-mastering.js?v=20260726-system-symphony-mastering-v4";
+import { masteringProfileForState } from "./apu-mastering.js?v=20260728-system-symphony-mastering-v5";
 
-export const APU_STATE_IDENTITY_BUILD_ID = "20260727-system-symphony-state-identities-v6";
+export const APU_STATE_IDENTITY_BUILD_ID = "20260728-system-symphony-state-identities-v8";
 export const APU_STATE_KEYS = Object.freeze(["healthy", "warning", "critical", "unknown"]);
 
 const freezeArray = (values) => Object.freeze([...values]);
@@ -32,7 +32,7 @@ export const APU_STATE_IDENTITIES = Object.freeze({
     mastering: HEALTHY_MASTERING,
     masterGainDb: HEALTHY_MASTERING.masterGainDb,
     dynamicRangeDb: 12,
-    transitionPolicy: "crossfade",
+    transitionPolicy: "one-bar-decay",
     tensionPolicy: "diatonic",
     soundLaw: "explorer-counterpoint",
   }),
@@ -55,7 +55,7 @@ export const APU_STATE_IDENTITIES = Object.freeze({
     mastering: WARNING_MASTERING,
     masterGainDb: WARNING_MASTERING.masterGainDb,
     dynamicRangeDb: 8,
-    transitionPolicy: "tight-crossfade",
+    transitionPolicy: "one-bar-decay",
     tensionPolicy: "approach-resolve",
     soundLaw: "diagnostic-stutter",
   }),
@@ -78,7 +78,7 @@ export const APU_STATE_IDENTITIES = Object.freeze({
     mastering: CRITICAL_MASTERING,
     masterGainDb: CRITICAL_MASTERING.masterGainDb,
     dynamicRangeDb: 5,
-    transitionPolicy: "hard-choke",
+    transitionPolicy: "one-bar-decay",
     tensionPolicy: "bounded-alarm",
     soundLaw: "boss-lockstep",
   }),
@@ -93,17 +93,17 @@ export const APU_STATE_IDENTITIES = Object.freeze({
     counterGate: "2n",
     bassGrammar: "static-drone",
     rhythmGrammar: "sparse-carrier",
-    counterGrammar: "suspended-fragments",
+    counterGrammar: "ghost-echo",
     padRole: "carrier-drift",
     accentRole: "telemetry-hum",
     stereoWidth: 0.62,
-    omissionThreshold: 0.28,
+    omissionThreshold: 0.18,
     mastering: UNKNOWN_MASTERING,
     masterGainDb: UNKNOWN_MASTERING.masterGainDb,
-    dynamicRangeDb: 18,
+    dynamicRangeDb: 14,
     transitionPolicy: "one-bar-decay",
     tensionPolicy: "drift-only",
-    soundLaw: "lost-signal-dropout",
+    soundLaw: "lost-signal-question",
   }),
 });
 
@@ -174,9 +174,9 @@ export function statePatternGrammar(state, section) {
     return grammar("climax", "climax", "boss", "octave");
   }
 
-  if (section === "theme-b") return grammar("answer", "sustain", "none", "answer");
-  if (section === "recovery") return grammar("recovery", "reprise", "none", "answer");
-  return grammar("fragment", section === "release" || section === "breathe" ? "none" : "sustain", "none", "none");
+  if (section === "theme-b") return grammar("answer", "sustain", "none", "ghost");
+  if (section === "recovery") return grammar("recovery", "reprise", "none", "ghost");
+  return grammar("fragment", section === "release" || section === "breathe" ? "none" : "sustain", "none", "ghost");
 }
 
 export function stateMixModifiers(state) {
@@ -184,7 +184,7 @@ export function stateMixModifiers(state) {
   if (identity.id === "healthy") return Object.freeze({ primary: 1, secondary: 1.1, services: 0.9, bass: 0.95, drums: 0.88, pad: 1, accent: 0.75 });
   if (identity.id === "warning") return Object.freeze({ primary: 0.92, secondary: 1.08, services: 1.15, bass: 1.08, drums: 1.08, pad: 0.62, accent: 1.1 });
   if (identity.id === "critical") return Object.freeze({ primary: 1.08, secondary: 0.96, services: 0.72, bass: 1.18, drums: 1.18, pad: 0.18, accent: 1.25 });
-  return Object.freeze({ primary: 0.62, secondary: 0.48, services: 0.52, bass: 0.50, drums: 0.32, pad: 1.18, accent: 0.34 });
+  return Object.freeze({ primary: 0.9, secondary: 0.82, services: 0.8, bass: 0.78, drums: 0.58, pad: 1.02, accent: 0.78 });
 }
 
 export function stateTimbreModifiers(state) {
@@ -192,5 +192,5 @@ export function stateTimbreModifiers(state) {
   if (identity.id === "healthy") return Object.freeze({ leadCutoffScale: 1.18, counterCutoffScale: 1.12, serviceCutoffScale: 1.04, padCutoffScale: 1.08, leadDriveScale: 0.72 });
   if (identity.id === "warning") return Object.freeze({ leadCutoffScale: 0.82, counterCutoffScale: 0.9, serviceCutoffScale: 0.86, padCutoffScale: 0.72, leadDriveScale: 1.18 });
   if (identity.id === "critical") return Object.freeze({ leadCutoffScale: 1.08, counterCutoffScale: 1.04, serviceCutoffScale: 0.92, padCutoffScale: 0.48, leadDriveScale: 1.72 });
-  return Object.freeze({ leadCutoffScale: 0.42, counterCutoffScale: 0.36, serviceCutoffScale: 0.48, padCutoffScale: 0.58, leadDriveScale: 0.5 });
+  return Object.freeze({ leadCutoffScale: 0.72, counterCutoffScale: 0.64, serviceCutoffScale: 0.68, padCutoffScale: 0.76, leadDriveScale: 0.55 });
 }

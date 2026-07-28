@@ -27,11 +27,11 @@ import {
 } from "./apu-track-sequencer.js";
 
 const STATES = Object.freeze(["healthy", "warning", "critical", "unknown"]);
+const PRESERVED_STATES = Object.freeze(["healthy", "warning", "critical"]);
 const EXPECTED_PEAK_COUNTS = Object.freeze({
   healthy: 16,
   warning: 16,
   critical: 8,
-  unknown: 2,
 });
 const MAX_SIGNATURE_OFFSETS = Object.freeze({
   healthy: 24,
@@ -177,8 +177,8 @@ test("darker-state pre-Peak cutouts remain complete and state-specific", () => {
   }
 });
 
-test("every state Peak keeps its full authored primary line", () => {
-  for (const state of STATES) {
+test("the approved three-state Peak keeps its full authored primary line", () => {
+  for (const state of PRESERVED_STATES) {
     const frame = { scoreState: state, tension: state === "critical" ? 0.9 : 0.35 };
     resetMelodyPreservingD2Planner();
     for (const phraseIndex of [11, 12]) {
@@ -216,8 +216,25 @@ test("every state Peak keeps its full authored primary line", () => {
   }
 });
 
-test("Peak counterlines keep their rhythms and use the same warm register policy", () => {
-  for (const state of STATES) {
+test("Lost Signal Peak keeps the complete question motif", () => {
+  const state = "unknown";
+  const frame = { scoreState: state, tension: 0.35 };
+  resetMelodyPreservingD2Planner();
+  for (const phraseIndex of [11, 12]) {
+    const arrangement = arrangementForPhrase(frame, directorPlan, phraseIndex);
+    assert.equal(arrangement.section, "peak");
+    assert.deepEqual(arrangement.motifDegrees, [0, 2, 0, 4, 2]);
+    const events = Array.from({ length: 32 }, (_, step) => (
+      primaryPulseEventForTrackStep(frame, arrangement, step)
+    )).filter(Boolean);
+    assert.equal(events.length, 5);
+    assert.ok(events.every((event) => event.questionTheme === true));
+    assert.ok(events.every((event) => event.registerAdjustmentSemitones === peakRegisterShiftForState(state)));
+  }
+});
+
+test("approved three-state Peak counterlines keep their rhythms and warm register policy", () => {
+  for (const state of PRESERVED_STATES) {
     const frame = { scoreState: state, tension: state === "critical" ? 0.9 : 0.35 };
     resetMelodyPreservingD2Planner();
     const arrangement = arrangementForPhrase(frame, directorPlan, 11);
@@ -232,4 +249,16 @@ test("Peak counterlines keep their rhythms and use the same warm register policy
       assert.equal(after.velocity, before.velocity);
     }
   }
+});
+
+test("Lost Signal Peak counterline is a bounded ghost echo", () => {
+  const frame = { scoreState: "unknown", tension: 0.35 };
+  resetMelodyPreservingD2Planner();
+  const arrangement = arrangementForPhrase(frame, directorPlan, 11);
+  const events = Array.from({ length: 32 }, (_, step) => (
+    secondaryPulseEventForTrackStep(frame, arrangement, step)
+  )).filter(Boolean);
+  assert.ok(events.length >= 3 && events.length <= 4);
+  assert.ok(events.every((event) => event.ghostEcho === true));
+  assert.ok(events.every((event) => event.velocity <= 0.28));
 });

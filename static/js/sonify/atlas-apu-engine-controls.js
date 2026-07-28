@@ -13,8 +13,13 @@ import {
   ATLAS_APU_ROLE_KEYS,
   ATLAS_APU_SCORE_PLAN_BUILD_ID,
 } from "./atlas-apu-score-plan.js?v=20260726-atlas-apu-score-plan-v3";
+import { normalizedStateIdentity } from "./apu-state-identities.js?v=20260728-system-symphony-state-identities-v8";
+import { themeForState } from "./atlas-apu-state-themes.js?v=20260728-atlas-apu-state-themes-v2";
 
-export const ATLAS_APU_ENGINE_CONTROLS_BUILD_ID = "20260726-atlas-apu-engine-controls-v4";
+export const ATLAS_APU_ENGINE_CONTROLS_BUILD_ID = "20260728-atlas-apu-engine-controls-v6";
+
+const STATE_KEYS = Object.freeze(["healthy", "warning", "critical", "unknown"]);
+const BUS_KEYS = Object.freeze(["primary", "secondary", "services", "bass", "drums", "pad", "accent"]);
 
 const STATE_CHIP_COLOR = Object.freeze({
   healthy: Object.freeze({ bits: 14, wet: 0.035, hum: 0 }),
@@ -31,6 +36,31 @@ function round(value, places = 4) {
 function hasAllRoles(plan = {}) {
   const roles = plan.roles && typeof plan.roles === "object" ? plan.roles : {};
   return ATLAS_APU_ROLE_KEYS.every((role) => roles[role] && typeof roles[role] === "object");
+}
+
+function normalizedThemeWeights(plan = {}) {
+  const raw = Object.fromEntries(STATE_KEYS.map((state) => [
+    state,
+    clamp(Number(plan.stateVector?.[state]) || 0, 0, 1),
+  ]));
+  const total = STATE_KEYS.reduce((sum, state) => sum + raw[state], 0);
+  if (!(total > 0)) {
+    const dominant = STATE_KEYS.includes(plan.dominantState) ? plan.dominantState : "unknown";
+    return Object.freeze(Object.fromEntries(STATE_KEYS.map((state) => [state, state === dominant ? 1 : 0])));
+  }
+  return Object.freeze(Object.fromEntries(STATE_KEYS.map((state) => [state, round(raw[state] / total)])));
+}
+
+function blendProfiles(profiles, weights, integerKeys = []) {
+  const integers = new Set(integerKeys);
+  const keys = Object.keys(profiles.healthy);
+  return Object.freeze(Object.fromEntries(keys.map((key) => {
+    const value = STATE_KEYS.reduce(
+      (sum, state) => sum + Number(profiles[state][key] ?? 0) * weights[state],
+      0,
+    );
+    return [key, integers.has(key) ? Math.round(value) : round(value)];
+  })));
 }
 
 export function scorePlanGuardForFrame(frame = {}) {
@@ -56,9 +86,8 @@ export function scorePlanGuardForFrame(frame = {}) {
   });
 }
 
-function busScalesFor(plan = {}) {
-  const state = plan.dominantState;
-  const range = plan.theme?.range ?? {};
+function busProfileForState(plan, state) {
+  const range = themeForState(state).range ?? {};
   const beauty = clamp(Number(range.beauty) || 0, 0, 1);
   const urgency = clamp(Number(range.urgency) || 0, 0, 1);
   const confidence = clamp(Number(plan.confidence) || 0, 0, 1);
@@ -90,13 +119,13 @@ function busScalesFor(plan = {}) {
 
   if (state === "unknown") {
     return Object.freeze({
-      primary: 0.64,
-      secondary: 0.52,
-      services: 0.5,
-      bass: 0.62,
-      drums: 0.28,
-      pad: 1.18,
-      accent: 0.72,
+      primary: 0.92,
+      secondary: 0.82,
+      services: 0.78,
+      bass: 0.82,
+      drums: 0.58,
+      pad: 1.02,
+      accent: 0.82,
     });
   }
 
@@ -111,34 +140,45 @@ function busScalesFor(plan = {}) {
   });
 }
 
-function timbreFor(plan = {}) {
-  const state = plan.dominantState;
-  const range = plan.theme?.range ?? {};
+function busScalesFor(plan = {}, weights = normalizedThemeWeights(plan)) {
+  const profiles = Object.fromEntries(STATE_KEYS.map((state) => [state, busProfileForState(plan, state)]));
+  const blended = blendProfiles(profiles, weights);
+  return Object.freeze(Object.fromEntries(BUS_KEYS.map((key) => [key, blended[key]])));
+}
+
+function timbreProfileForState(plan, state) {
+  const range = themeForState(state).range ?? {};
   const beauty = clamp(Number(range.beauty) || 0, 0, 1);
   const urgency = clamp(Number(range.urgency) || 0, 0, 1);
   const confidence = clamp(Number(plan.confidence) || 0, 0, 1);
   const chipColor = STATE_CHIP_COLOR[state] ?? STATE_CHIP_COLOR.unknown;
   const noiseDensity = clamp(Number(plan.roles?.signal?.density) || 0, 0, 1);
   const thermalPressure = clamp(Number(plan.roles?.thermal?.pressure) || 0, 0, 1);
+  const identity = normalizedStateIdentity(state);
 
   return Object.freeze({
     chipBits: chipColor.bits,
-    chipWet: round(clamp(chipColor.wet + urgency * 0.012, 0, 0.175)),
-    masterFilterScale: round(clamp(0.72 + beauty * 0.38 - thermalPressure * 0.08, 0.42, 1.18)),
-    masterHighpassScale: round(clamp(0.82 + urgency * 0.42, 0.7, 1.32)),
-    leadFilterScale: round(clamp(0.82 + beauty * 0.28 + urgency * 0.08, 0.58, 1.18)),
-    counterFilterScale: round(clamp(0.72 + urgency * 0.32 + confidence * 0.1, 0.42, 1.16)),
-    padFilterScale: round(clamp(0.7 + beauty * 0.32 - urgency * 0.16, 0.42, 1.12)),
-    leadFilterQ: round(clamp(0.72 + urgency * 1.05, 0.7, 1.95)),
-    counterFilterQ: round(clamp(0.78 + urgency * 1.2 + (state === "warning" ? 0.28 : 0), 0.75, 2.25)),
-    delayGain: round(clamp(0.045 + beauty * 0.06 + (1 - confidence) * 0.04, 0.03, 0.17)),
-    reverbGain: round(clamp(0.055 + beauty * 0.09 + (state === "unknown" ? 0.08 : 0), 0.04, 0.22)),
-    hatFilterHz: Math.round(clamp(3000 + noiseDensity * 3900 + urgency * 900, 2600, 7600)),
-    noiseAccentFilterHz: Math.round(clamp(820 + urgency * 1050 + noiseDensity * 520, 650, 2600)),
-    telemetryHumGain: round(clamp(chipColor.hum + (1 - confidence) * 0.018, 0, 0.07)),
-    primaryDutyCycle: clamp(Number(plan.motif?.dutyCycle) || 0.5, 0.08, 0.75),
+    chipWet: clamp(chipColor.wet + urgency * 0.012, 0, 0.175),
+    masterFilterScale: clamp(0.72 + beauty * 0.38 - thermalPressure * 0.08, 0.42, 1.18),
+    masterHighpassScale: clamp(0.82 + urgency * 0.42, 0.7, 1.32),
+    leadFilterScale: clamp(0.82 + beauty * 0.28 + urgency * 0.08, 0.58, 1.18),
+    counterFilterScale: clamp(0.72 + urgency * 0.32 + confidence * 0.1, 0.42, 1.16),
+    padFilterScale: clamp(0.7 + beauty * 0.32 - urgency * 0.16, 0.42, 1.12),
+    leadFilterQ: clamp(0.72 + urgency * 1.05, 0.7, 1.95),
+    counterFilterQ: clamp(0.78 + urgency * 1.2 + (state === "warning" ? 0.28 : 0), 0.75, 2.25),
+    delayGain: clamp(0.045 + beauty * 0.06 + (1 - confidence) * 0.04, 0.03, 0.17),
+    reverbGain: clamp(0.055 + beauty * 0.09 + (state === "unknown" ? 0.08 : 0), 0.04, 0.22),
+    hatFilterHz: clamp(3000 + noiseDensity * 3900 + urgency * 900, 2600, 7600),
+    noiseAccentFilterHz: clamp(820 + urgency * 1050 + noiseDensity * 520, 650, 2600),
+    telemetryHumGain: clamp(chipColor.hum + (1 - confidence) * 0.018, 0, 0.07),
+    primaryDutyCycle: clamp(Number(identity.primaryDutyCycle) || 0.5, 0.08, 0.75),
     counterDutyCycle: clamp(Number(plan.roles?.contention?.alerts) > 0 ? 0.125 : 0.25, 0.08, 0.75),
   });
+}
+
+function timbreFor(plan = {}, weights = normalizedThemeWeights(plan)) {
+  const profiles = Object.fromEntries(STATE_KEYS.map((state) => [state, timbreProfileForState(plan, state)]));
+  return blendProfiles(profiles, weights, ["chipBits", "hatFilterHz", "noiseAccentFilterHz"]);
 }
 
 export function engineControlsForFrame(frame = {}) {
@@ -149,17 +189,20 @@ export function engineControlsForFrame(frame = {}) {
       guard,
       movement: null,
       sampleFree: false,
+      themeWeights: null,
       buses: null,
       timbre: null,
     });
   }
   const plan = frame.scorePlan;
+  const themeWeights = normalizedThemeWeights(plan);
   return Object.freeze({
     buildId: ATLAS_APU_ENGINE_CONTROLS_BUILD_ID,
     guard,
     movement: plan.movement,
     sampleFree: true,
-    buses: busScalesFor(plan),
-    timbre: timbreFor(plan),
+    themeWeights,
+    buses: busScalesFor(plan, themeWeights),
+    timbre: timbreFor(plan, themeWeights),
   });
 }

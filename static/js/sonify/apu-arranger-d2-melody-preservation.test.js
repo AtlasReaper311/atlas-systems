@@ -22,11 +22,11 @@ const frameFor = (scoreState) => Object.freeze({
   stale: scoreState === "unknown",
 });
 
-const states = Object.freeze(["healthy", "warning", "critical", "unknown"]);
+const preservedStates = Object.freeze(["healthy", "warning", "critical"]);
 
-test("D2 preserves every baseline melody-authority field across the full form", () => {
+test("D2 preserves every approved melody-authority field across the full form", () => {
   resetMelodyPreservingD2Planner();
-  for (const state of states) {
+  for (const state of preservedStates) {
     for (let phrase = 0; phrase < 32; phrase += 1) {
       const frame = frameFor(state);
       const baseline = baselineArrangementForPhrase(frame, directorPlan, phrase);
@@ -49,9 +49,9 @@ test("D2 preserves every baseline melody-authority field across the full form", 
   }
 });
 
-test("the sequenced primary line remains byte-for-byte equivalent to the PR 133-era baseline", () => {
+test("the approved three-state primary line remains byte-for-byte equivalent to the PR 133-era baseline", () => {
   resetMelodyPreservingD2Planner();
-  for (const state of states) {
+  for (const state of preservedStates) {
     for (let phrase = 0; phrase < 16; phrase += 1) {
       const frame = frameFor(state);
       const baseline = baselineArrangementForPhrase(frame, directorPlan, phrase);
@@ -65,6 +65,22 @@ test("the sequenced primary line remains byte-for-byte equivalent to the PR 133-
       }
     }
   }
+});
+
+test("Lost Signal is the reviewed melody-authority exception", () => {
+  resetMelodyPreservingD2Planner();
+  const frame = frameFor("unknown");
+  const baseline = baselineArrangementForPhrase(frame, directorPlan, 3);
+  const developed = arrangementForPhrase(frame, directorPlan, 3);
+  const activeSteps = Array.from({ length: 32 }, (_, step) => step)
+    .filter((step) => primaryPulseEventForTrackStep(frame, developed, step));
+
+  assert.equal(developed.motifMode, "question");
+  assert.deepEqual(developed.motifDegrees, [0, 2, 0, 4, 2]);
+  assert.strictEqual(developed.motifDegrees, developed.melodyAuthority.motifDegrees);
+  assert.ok(developed.mix.primary > baseline.mix.primary);
+  assert.equal(developed.unknownAudibility.policy, "full-sized uncertainty");
+  assert.deepEqual(activeSteps, [0, 6, 12, 21, 28]);
 });
 
 test("D2 changes only bounded accompaniment balance and supporting timbre", () => {

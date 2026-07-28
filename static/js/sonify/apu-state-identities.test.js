@@ -14,6 +14,7 @@ import {
   padChordForTrackStep,
   primaryPulseEventForTrackStep,
   rhythmEventsForTrackStep,
+  secondaryPulseEventForTrackStep,
 } from "./apu-track-sequencer.js";
 
 const plan = Object.freeze({
@@ -39,6 +40,7 @@ function eventSignature(state, phrase = 3) {
     const rhythm = rhythmEventsForTrackStep(frame, arrangement, step);
     return [
       primaryPulseEventForTrackStep(frame, arrangement, step) ? "L" : ".",
+      secondaryPulseEventForTrackStep(frame, arrangement, step) ? "C" : ".",
       bassEventForTrackStep(frame, arrangement, step) ? "B" : ".",
       rhythm.kick ? "K" : ".",
       rhythm.snare ? "S" : ".",
@@ -91,21 +93,60 @@ test("omission decisions are deterministic and state-sensitive", () => {
 test("state envelope and duty-cycle contracts remain measurably different", () => {
   assert.equal(APU_STATE_IDENTITIES.healthy.primaryDutyCycle, 0.5);
   assert.equal(APU_STATE_IDENTITIES.warning.primaryDutyCycle, 0.125);
-  assert.equal(APU_STATE_IDENTITIES.critical.transitionPolicy, "hard-choke");
-  assert.equal(APU_STATE_IDENTITIES.unknown.transitionPolicy, "one-bar-decay");
-  assert.equal(APU_STATE_IDENTITIES.unknown.masterGainDb, APU_STATE_IDENTITIES.healthy.masterGainDb);
+  assert.ok(Object.values(APU_STATE_IDENTITIES).every((identity) => identity.transitionPolicy === "one-bar-decay"));
+  assert.equal(APU_STATE_IDENTITIES.unknown.masterGainDb - APU_STATE_IDENTITIES.healthy.masterGainDb, 4);
   assert.ok(APU_STATE_IDENTITIES.unknown.omissionThreshold > APU_STATE_IDENTITIES.warning.omissionThreshold);
-  assert.ok(APU_STATE_IDENTITIES.unknown.omissionThreshold < 0.4);
+  assert.ok(APU_STATE_IDENTITIES.unknown.omissionThreshold < 0.25);
   assert.ok(APU_STATE_IDENTITIES.unknown.dynamicRangeDb > APU_STATE_IDENTITIES.healthy.dynamicRangeDb);
   assert.equal(APU_STATE_IDENTITIES.unknown.leadGate, "2n");
 });
 
-test("Lost Signal remains restrained but no longer falls below its audible floors", () => {
+test("every destination preserves tails and removes hard state cuts", () => {
+  for (const identity of Object.values(APU_STATE_IDENTITIES)) {
+    assert.notEqual(identity.transitionPolicy, "hard-choke");
+    assert.notEqual(identity.transitionPolicy, "tight-crossfade");
+    assert.equal(identity.transitionPolicy, "one-bar-decay");
+  }
+});
+
+test("Lost Signal stays restrained without collapsing its programme buses", () => {
   const mix = stateMixModifiers("unknown");
-  assert.ok(mix.primary >= 0.6);
-  assert.ok(mix.secondary >= 0.45);
-  assert.ok(mix.services >= 0.5);
-  assert.ok(mix.bass >= 0.5);
-  assert.ok(mix.drums >= 0.3);
-  assert.equal(mix.pad, 1.18);
+  assert.ok(mix.primary >= 0.85);
+  assert.ok(mix.secondary >= 0.8);
+  assert.ok(mix.services >= 0.75);
+  assert.ok(mix.bass >= 0.75);
+  assert.ok(mix.drums >= 0.55);
+  assert.ok(mix.pad >= 1 && mix.pad <= 1.05);
+  assert.ok(mix.accent >= 0.75);
+});
+
+test("Lost Signal presents one complete question phrase with ghost echoes and carrier time", () => {
+  const frame = frameFor("unknown");
+  const arrangement = arrangementForPhrase(frame, plan, 3);
+  const primarySteps = [];
+  const echoSteps = [];
+  const kickSteps = [];
+  const carrierSteps = [];
+
+  for (let step = 0; step < 32; step += 1) {
+    const primary = primaryPulseEventForTrackStep(frame, arrangement, step);
+    const secondary = secondaryPulseEventForTrackStep(frame, arrangement, step);
+    const rhythm = rhythmEventsForTrackStep(frame, arrangement, step);
+    if (primary) primarySteps.push(step);
+    if (secondary) echoSteps.push(step);
+    if (rhythm.kick) kickSteps.push(step);
+    if (rhythm.noiseAccent) carrierSteps.push(step);
+    assert.equal(rhythm.snare, null);
+    assert.equal(rhythm.hat, null);
+    assert.equal(rhythm.openHat, null);
+  }
+
+  assert.deepEqual(arrangement.motifDegrees, [0, 2, 0, 4, 2]);
+  assert.equal(arrangement.motifMode, "question");
+  assert.equal(arrangement.unknownAudibility.policy, "full-sized uncertainty");
+  assert.deepEqual(primarySteps, [0, 6, 12, 21, 28]);
+  assert.ok(echoSteps.length >= 3 && echoSteps.length <= 4);
+  assert.equal(echoSteps[0], 4);
+  assert.deepEqual(kickSteps, [0, 16]);
+  assert.ok(carrierSteps.length >= 2 && carrierSteps.length <= 4);
 });
