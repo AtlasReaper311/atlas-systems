@@ -124,17 +124,17 @@ test("desktop geometry places districts in columns and skips empty ones", () => 
   assert.notEqual(board.chips.get("atlas-notify").y, board.chips.get("atlas-blackbox").y);
 });
 
-test("a deep district grows downwards before it grows sideways", () => {
+test("a deep district spills sideways before the PCB becomes a tall cabinet", () => {
   const voices = Array.from({ length: 10 }, (unused, index) =>
     voice({ name: `worker-${String(index).padStart(2, "0")}`, layer: "edge" }));
   const board = boardGeometry({ voices, layout: "desktop" });
 
   const lowest = Math.max(...[...board.chips.values()].map((chip) => chip.y + chip.h));
-  // Horizontal space is what forces a reader to zoom out, so the board stays
-  // one column wide and takes the height instead.
-  assert.equal(board.districts[0].span, 1);
+  // TRACE is a board-first view, so a deep district widens before the map
+  // becomes too tall to read in the first viewport.
+  assert.equal(board.districts[0].span, 2);
   assert.equal(board.width, DESKTOP_BOARD.width);
-  assert.ok(board.height > 584, "a ten-deep district must extend the board");
+  assert.equal(board.height, DESKTOP_BOARD.minHeight);
   assert.ok(lowest < board.height, "no chip may fall outside the board");
 });
 
@@ -146,7 +146,7 @@ test("a district past the row cap spills sideways", () => {
   const lowest = Math.max(...[...board.chips.values()].map((chip) => chip.y + chip.h));
   assert.ok(lowest < board.height, "no chip may fall outside the board");
 
-  // Sixteen components at a twelve-row cap occupy two balanced columns.
+  // Sixteen components at an eight-row cap occupy two balanced columns.
   const [district] = board.districts;
   assert.equal(district.span, 2);
   const columns = new Set([...board.chips.values()].map((chip) => chip.column));
@@ -227,6 +227,9 @@ test("parallel traces into one chip are separated", () => {
   const values = [...offsets.values()];
   assert.equal(new Set(values).size, 3);
   assert.deepEqual(values, [-12, 0, 12]);
+  assert.equal(offsets.get("a z"), -12);
+  assert.equal(offsets.get("b z"), 0);
+  assert.equal(offsets.get("c z"), 12);
 });
 
 test("chamfered paths cut corners instead of turning square", () => {

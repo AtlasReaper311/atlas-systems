@@ -34,6 +34,10 @@ body.symphony-page { overflow-x: hidden; }
   max-width: none;
 }
 
+body[data-symphony-mode="trace"] .symphony-page-main {
+  padding-top: calc(var(--nav-h) + 8px) !important;
+}
+
 .symphony-flagship {
   padding: clamp(18px, 2.4vw, 32px);
   border: 1px solid var(--border-hi);
@@ -737,18 +741,12 @@ body.symphony-page { overflow-x: hidden; }
    the mode-scoped override has to carry it too. */
 .symphony-flagship[data-symphony-mode="trace"] .focus-title {
   max-width: none !important;
-  font-size: clamp(22px, 2vw, 26px) !important;
-  line-height: 1.15 !important;
+  font-size: clamp(29px, 2.45vw, 35px) !important;
+  line-height: 1.04 !important;
 }
 
 .symphony-flagship[data-symphony-mode="trace"] .focus-lede {
-  display: -webkit-box;
-  max-width: 96ch;
-  overflow: hidden;
-  margin-top: 4px;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-  font-size: .84rem;
+  display: none;
 }
 
 .symphony-flagship[data-symphony-mode="trace"] .symphony-mode-panel h2 {
@@ -837,30 +835,312 @@ body.symphony-page { overflow-x: hidden; }
   font-size: .78rem;
 }
 
-.symphony-flagship[data-symphony-mode="trace"] #symphony-panel-trace .symphony-panel-copy {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-}
+/* ----------------------------------------------- trace board-first pass -- */
 
 /*
- * The board is 1240 units wide and the inspector rail is 320. Below the width
- * that holds both, the rail moves under the board instead of squeezing it,
- * so the board is never the thing that gets compressed.
+ * TRACE keeps the original instrument flow, but the board owns the viewport.
+ * Proof, score and analyser readouts stay available in their deliberate homes;
+ * the permanent inspector rail is replaced by a comparison drawer opened by a
+ * chip or service row.
  */
-@media (max-width: 1699px) {
-  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-orchestra__grid {
-    grid-template-columns: minmax(0, 1fr);
+.symphony-flagship[data-symphony-mode="trace"] {
+  padding: clamp(12px, 1.6vw, 20px);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-flagship__top {
+  align-items: center;
+  gap: 16px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 6px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-cartridge-cover,
+.symphony-flagship[data-symphony-mode="trace"] .symphony-score,
+.symphony-flagship[data-symphony-mode="trace"] .symphony-proof-strip,
+.symphony-flagship[data-symphony-mode="trace"] .symphony-frame-ribbon-wrap,
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-summary,
+.symphony-flagship[data-symphony-mode="trace"] #page-source-status,
+.symphony-flagship[data-symphony-mode="trace"] .symphony-proof-console,
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-analyser-grid,
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-metrics,
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-modulation-inspector {
+  display: none !important;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-mode-panel {
+  gap: 10px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] #symphony-panel-trace .symphony-panel-copy {
+  display: none;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] #symphony-panel-trace > .symphony-panel-kicker,
+.symphony-flagship[data-symphony-mode="trace"] #symphony-panel-trace > h2 {
+  display: none;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] #symphony-panel-trace .symphony-panel-actions {
+  display: none;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock {
+  position: relative;
+  z-index: 12;
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: flex-end;
+  margin: 0;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock:empty {
+  display: none;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock .symphony-source-panel {
+  display: flex;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock .symphony-source-panel > div:first-child,
+.symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock .symphony-update-time {
+  display: none;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock .symphony-source-panel__controls {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock .symphony-segmented {
+  width: auto;
+  min-width: min(360px, calc(100vw - 64px));
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock .symphony-performance {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  width: min(880px, calc(100vw - 88px));
+  max-height: min(420px, calc(100vh - 260px));
+  overflow: auto;
+  border-color: var(--accent);
+  background:
+    linear-gradient(rgba(255, 255, 255, .018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .018) 1px, transparent 1px),
+    var(--bg);
+  background-size: 24px 24px, 24px 24px, auto;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .55);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock .symphony-performance.is-collapsed {
+  width: min(420px, calc(100vw - 88px));
+  max-height: none;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-role-board {
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  margin: 2px 0 0;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-role-board button {
+  min-height: 44px;
+  padding: 6px 8px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] [data-apu-role-status] {
+  margin: 0;
+  color: var(--text-faint);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host {
+  margin-top: 6px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__scroll {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: visible;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel {
+  order: 0;
+  position: relative;
+  top: 0;
+  z-index: 1;
+  display: none;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  margin-inline: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-top: 0;
+  border-radius: 0;
+  background: rgba(10, 10, 15, .95);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel > div:first-child {
+  display: none;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel__controls {
+  justify-items: end;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-update-time {
+  display: none;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-orchestra {
+  order: 1;
+  display: flex;
+  flex-direction: column;
+  margin-inline: 0;
+  padding-block: 0;
+  border-bottom: 0;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-section-heading {
+  order: 1;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-top: 0;
+  background: rgba(10, 10, 15, .78);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-section-heading h3 {
+  font-size: 16px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-section-heading__tools {
+  position: static;
+  z-index: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-block: 0;
+  background: transparent;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-section-heading__tools p {
+  max-width: 58ch;
+  font-size: 8px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-legend {
+  order: 2;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-top: 0;
+  background: rgba(10, 10, 15, .72);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-orchestra__grid {
+  order: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+  border-color: var(--border-hi);
+  border-radius: 8px 8px 0 0;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-visual {
+  display: block;
+  min-height: 0;
+  padding: 4px;
+  overflow: auto;
+  border-right: 0;
+  background:
+    linear-gradient(rgba(255, 255, 255, .018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .018) 1px, transparent 1px),
+    rgba(8, 8, 12, .82);
+  background-size: 42px 42px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-topology {
+  width: min(100%, 1220px);
+  min-width: 0;
+  max-width: none !important;
+  margin: 0 auto;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-service-section {
+  order: 3;
+  margin-inline: 0;
+  margin-top: 18px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-inspector {
+  display: none;
+  padding: 18px;
+  border-top: 1px solid var(--border-hi);
+  background: rgba(17, 17, 24, .97);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .system-symphony[data-trace-selection="true"] .symphony-inspector {
+  display: block;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-inspector dl {
+  grid-template-columns: minmax(90px, .45fr) minmax(0, 1fr);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-live-lock {
+  margin-top: 14px;
+}
+
+body[data-symphony-mode="trace"] .symphony-boot {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+@media (max-width: 1100px) {
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-role-board {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-visual {
-    border-right: 0;
-    border-bottom: 1px solid var(--border);
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock {
+    justify-content: flex-start;
   }
 
-  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-inspector {
-    max-height: none;
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock .symphony-segmented {
+    width: 100%;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock .symphony-performance {
+    right: auto;
+    left: 0;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel {
+    position: relative;
+    grid-template-columns: 1fr;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel__controls {
+    justify-items: start;
   }
 }
 
@@ -901,7 +1181,7 @@ body.symphony-page { overflow-x: hidden; }
 /* ------------------------------------------------- narrow recomposition -- */
 
 @media (max-width: 700px) {
-  /* Seven roles plus off scroll horizontally instead of collapsing into
+  /* Eight role states scroll horizontally instead of collapsing into
      unreadable slivers. */
   .symphony-role-board {
     display: flex;
@@ -922,11 +1202,36 @@ body.symphony-page { overflow-x: hidden; }
   /* The board no longer scrolls sideways: it is recomposed as carrier bands. */
   .symphony-page-host .symphony-visual { overflow-x: visible; }
 
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-orchestra__grid {
+    height: auto;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-section-heading__tools {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-section-heading__tools p {
+    max-width: none;
+    text-align: left;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-inspector {
+    position: static;
+    width: auto;
+    max-width: none;
+    max-height: none;
+  }
+
   /*
-   * The inspector is a compact sheet directly under the board. It is
-   * deliberately not pinned to the viewport: a sticky sheet sits on top of the
-   * board permanently, covering the surface it exists to explain. It caps its
-   * own height and scrolls internally instead.
+   * The mobile inspector keeps the compact sheet vocabulary while TRACE opens
+   * it only after a chip or row selection.
    */
   .symphony-page-host .symphony-inspector {
     border-top: 2px solid var(--accent);

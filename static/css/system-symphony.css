@@ -416,6 +416,39 @@
   border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.08));
 }
 
+.symphony-performance__collapse {
+  display: grid;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid var(--border-hi, rgba(255, 255, 255, 0.16));
+  border-radius: 2px;
+  background: var(--bg-2, #15151d);
+  color: var(--accent, #f5a623);
+  cursor: pointer;
+  font: 700 12px/1 var(--mono, "IBM Plex Mono", monospace);
+}
+
+.symphony-performance.is-collapsed {
+  width: min(360px, 100%);
+  overflow: hidden;
+}
+
+.symphony-performance.is-collapsed .symphony-performance__header {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.symphony-performance.is-collapsed .symphony-demo-profiles,
+.symphony-performance.is-collapsed .symphony-performance__macros,
+.symphony-performance.is-collapsed .symphony-ghost-monitor,
+.symphony-performance.is-collapsed .symphony-performance__actions,
+.symphony-performance.is-collapsed .symphony-performance__status {
+  display: none;
+}
+
 .symphony-performance__header span,
 .symphony-demo-profiles > span,
 .symphony-performance__seed > span {
@@ -875,24 +908,24 @@
 
 .symphony-edge {
   fill: none;
-  stroke: rgba(245, 166, 35, 0.26);
-  stroke-width: 1.2;
+  stroke: rgba(245, 166, 35, 0.44);
+  stroke-width: 1.35;
   stroke-linejoin: miter;
   vector-effect: non-scaling-stroke;
   transition: stroke 0.18s cubic-bezier(0.2, 0, 0, 1), opacity 0.18s ease;
 }
 
 .symphony-edge__via {
-  fill: rgba(245, 166, 35, 0.34);
+  fill: rgba(245, 166, 35, 0.54);
 }
 
 .symphony-topology marker path {
-  fill: rgba(245, 166, 35, 0.46);
+  fill: rgba(245, 166, 35, 0.64);
 }
 
 .symphony-edge.is-external {
   stroke-dasharray: 2 7;
-  stroke: rgba(149, 128, 200, 0.3);
+  stroke: rgba(149, 128, 200, 0.44);
 }
 
 /* A lit trace equals one sounding voice. Never ambience. */
@@ -927,7 +960,7 @@
 /* Unknown and unmeasured sources never animate. */
 .symphony-edge[data-status="unknown"],
 .symphony-edge[data-status="unmeasured"] {
-  stroke: rgba(170, 169, 160, 0.18);
+  stroke: rgba(170, 169, 160, 0.3);
   stroke-dasharray: 3 6;
 }
 
@@ -939,7 +972,7 @@
 
 .symphony-edge.is-dimmed,
 .symphony-node.is-dimmed {
-  opacity: 0.14;
+  opacity: 0.28;
 }
 
 /* --- chip shell ----------------------------------------------------------- */
@@ -1285,6 +1318,23 @@
   overflow: auto;
   padding: 24px;
   background: var(--bg-1, #111118);
+}
+
+.symphony-inspector__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.symphony-inspector__head > div {
+  min-width: 0;
+}
+
+.symphony-inspector__close {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding-inline: 10px;
 }
 
 .symphony-inspector h3 {

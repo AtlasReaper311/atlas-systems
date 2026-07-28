@@ -188,6 +188,7 @@ function template() {
                 <div class="symphony-performance__header">
                   <span>Atlas APU // deterministic state audition</span>
                   <strong data-performance-scene>NIGHT DRIVE</strong>
+                  <button class="symphony-performance__collapse" type="button" data-performance-collapse aria-expanded="true" aria-label="Collapse Atlas APU audition panel">^</button>
                 </div>
                 <div class="symphony-demo-profiles">
                   <span>Musical scene</span>
@@ -298,8 +299,13 @@ function template() {
               </div>
 
               <aside class="symphony-inspector" aria-labelledby="symphony-inspector-title">
-                <p class="symphony-kicker">Selected voice</p>
-                <h3 id="symphony-inspector-title" data-inspector-name>No component selected</h3>
+                <div class="symphony-inspector__head">
+                  <div>
+                    <p class="symphony-kicker">Selected voice</p>
+                    <h3 id="symphony-inspector-title" data-inspector-name>No component selected</h3>
+                  </div>
+                  <button class="symphony-button symphony-inspector__close" type="button" data-inspector-close aria-label="Close selected voice comparison">Close</button>
+                </div>
                 <p class="symphony-inspector__identity" data-inspector-identity>Select a topology node or service row.</p>
                 <fieldset class="symphony-demo-editor" data-demo-editor hidden>
                   <legend>Simulated preview controls</legend>
@@ -418,9 +424,20 @@ export function initSystemSymphony() {
   let performanceArrangement = null;
   let activeDemoProfile = null;
   let performanceStatus = `Seed ${DEFAULT_PERFORMANCE_SEED} ready`;
+  let performanceCollapsed = false;
   let ghostFocus = false;
   let ghostAudition = null;
   let sceneTransitionPending = false;
+
+  function control(selector) {
+    return host.querySelector(selector) ?? document.querySelector(selector);
+  }
+
+  function controls(selector) {
+    const scoped = [...host.querySelectorAll(selector)];
+    if (scoped.length) return scoped;
+    return [...document.querySelectorAll(selector)];
+  }
 
   function presentationForVoice(voice) {
     if (voice.evidenceState === "topology-only") {
@@ -482,9 +499,19 @@ export function initSystemSymphony() {
   }
 
   function renderPerformance(frame = currentFrame) {
-    const panel = host.querySelector("[data-performance-panel]");
+    const panel = control("[data-performance-panel]");
     const demoMode = mode === "demo";
     panel.hidden = !demoMode;
+    panel.classList.toggle("is-collapsed", performanceCollapsed);
+    const collapseButton = control("[data-performance-collapse]");
+    collapseButton.setAttribute("aria-expanded", String(!performanceCollapsed));
+    collapseButton.setAttribute(
+      "aria-label",
+      performanceCollapsed
+        ? "Expand Atlas APU audition panel"
+        : "Collapse Atlas APU audition panel",
+    );
+    collapseButton.textContent = performanceCollapsed ? "v" : "^";
     if (!demoMode || !frame) return;
 
     const scene = performanceArrangement?.scoreState === frame.scoreState
@@ -495,22 +522,22 @@ export function initSystemSymphony() {
         ? `Custom / ${scene.sceneName ?? scene.name}`
         : "Custom snapshot"
       : scene.sceneName ?? scene.name;
-    host.querySelector("[data-performance-scene]").textContent =
+    control("[data-performance-scene]").textContent =
       sceneName;
     const performanceBpm = performanceArrangement
       ? Math.round(performanceArrangement.targetBpm)
       : frame.bpm;
     host.querySelector("[data-dialog-score]").textContent =
       `${frame.scoreLabel} // ${scene.sceneName ?? scene.name} / ${frame.mode} / ${performanceBpm} BPM`;
-    const seedInput = host.querySelector("[data-performance-seed]");
+    const seedInput = control("[data-performance-seed]");
     seedInput.value = performanceSeed;
-    for (const input of host.querySelectorAll("[data-performance-macro]")) {
+    for (const input of controls("[data-performance-macro]")) {
       const name = input.dataset.performanceMacro;
       const value = performanceMacros[name];
       input.value = String(value);
-      host.querySelector(`[data-performance-output="${name}"]`).textContent = String(value);
+      control(`[data-performance-output="${name}"]`).textContent = String(value);
     }
-    for (const button of host.querySelectorAll("[data-demo-profile]")) {
+    for (const button of controls("[data-demo-profile]")) {
       button.setAttribute(
         "aria-pressed",
         String(button.dataset.demoProfile === activeDemoProfile),
@@ -520,26 +547,26 @@ export function initSystemSymphony() {
     const vectorLabel = ["healthy", "warning", "critical", "unknown"]
       .map((state) => `${state} ${Math.round((Number(weights[state]) || 0) * 100)}%`)
       .join(" / ");
-    host.querySelector("[data-performance-status]").textContent =
+    control("[data-performance-status]").textContent =
       `${performanceStatus} // ${vectorLabel} // ${frame.dominantStateReason ?? "deterministic state audition"}`;
     renderGhostControls();
   }
 
   function renderGhostControls(phase = engine.getGhostPhase()) {
     const phaseName = phase?.name ?? "standby";
-    host.querySelector("[data-ghost-phase]").textContent = phaseName.toUpperCase();
-    for (const item of host.querySelectorAll("[data-ghost-phase-step]")) {
+    control("[data-ghost-phase]").textContent = phaseName.toUpperCase();
+    for (const item of controls("[data-ghost-phase-step]")) {
       if (item.dataset.ghostPhaseStep === phaseName) {
         item.setAttribute("aria-current", "step");
       } else {
         item.removeAttribute("aria-current");
       }
     }
-    host.querySelector("[data-ghost-focus]").setAttribute(
+    control("[data-ghost-focus]").setAttribute(
       "aria-pressed",
       String(ghostFocus),
     );
-    for (const button of host.querySelectorAll("[data-ghost-audition]")) {
+    for (const button of controls("[data-ghost-audition]")) {
       button.setAttribute(
         "aria-pressed",
         String(button.dataset.ghostAudition === ghostAudition),
@@ -695,6 +722,7 @@ export function initSystemSymphony() {
 
   function applyTopologySelection() {
     const activeSelection = topologySelectionActive && Boolean(selectedName);
+    host.dataset.traceSelection = String(activeSelection);
     const related = new Set(activeSelection ? [selectedName] : []);
     if (activeSelection && currentFrame) {
       const selected = currentFrame.voices.find((voice) => voice.name === selectedName);
@@ -888,6 +916,28 @@ export function initSystemSymphony() {
     }
     topologySvg.append(plate);
 
+    // Source frame. A fixture board is framed and hatched so it can never be
+    // read as live, but the frame sits below the copper and chips so it does
+    // not veil the diagnostic details.
+    if (source.key === "preview" || source.key === "demo") {
+      const overlay = svgElement("g", { class: "symphony-board__fixture" });
+      overlay.append(svgElement("rect", {
+        x: 2, y: 2, width: board.width - 4, height: board.height - 4,
+        fill: "url(#symphony-fixture-hatch)",
+      }));
+      overlay.append(svgElement("rect", {
+        class: "symphony-board__fixture-frame",
+        x: 2, y: 2, width: board.width - 4, height: board.height - 4,
+      }));
+      const plateLabel = svgElement("text", {
+        class: "symphony-board__fixture-plate",
+        x: board.width / 2, y: 26, "text-anchor": "middle",
+      });
+      plateLabel.textContent = `NOT LIVE — ${source.label}`;
+      overlay.append(plateLabel);
+      topologySvg.append(overlay);
+    }
+
     // Copper traces. Declared dependencies only; this is not live traffic.
     const edges = [...graph.internalEdges, ...graph.externalEdges];
     const offsets = routeOffsets(edges);
@@ -999,30 +1049,12 @@ export function initSystemSymphony() {
     }
     topologySvg.append(chipGroup);
 
-    // Source overlay. A stale board stops all flow; a fixture board is framed
-    // and hatched so it can never be read as live.
+    // A stale board stops all flow; last-known evidence remains inspectable but
+    // it never animates like a current measurement.
     if (source.key === "stale") {
       for (const path of topologySvg.querySelectorAll(".symphony-edge")) {
         path.classList.remove("is-lit");
       }
-    }
-    if (source.key === "preview" || source.key === "demo") {
-      const overlay = svgElement("g", { class: "symphony-board__fixture" });
-      overlay.append(svgElement("rect", {
-        x: 2, y: 2, width: board.width - 4, height: board.height - 4,
-        fill: "url(#symphony-fixture-hatch)",
-      }));
-      overlay.append(svgElement("rect", {
-        class: "symphony-board__fixture-frame",
-        x: 2, y: 2, width: board.width - 4, height: board.height - 4,
-      }));
-      const plateLabel = svgElement("text", {
-        class: "symphony-board__fixture-plate",
-        x: board.width / 2, y: 26, "text-anchor": "middle",
-      });
-      plateLabel.textContent = `NOT LIVE — ${source.label}`;
-      overlay.append(plateLabel);
-      topologySvg.append(overlay);
     }
 
     applyTopologySelection();
@@ -1180,16 +1212,16 @@ export function initSystemSymphony() {
       : "";
     host.querySelector("[data-dialog-score]").textContent =
       `${frame.scoreLabel}${performanceLabel} / ${frame.mode} / ${frame.bpm} BPM`;
-    host.querySelector("[data-last-update]").textContent = formatTimestamp(frame.lastSuccessfulAt);
-    const explanation = host.querySelector("[data-source-explanation]");
+    control("[data-last-update]").textContent = formatTimestamp(frame.lastSuccessfulAt);
+    const explanation = control("[data-source-explanation]");
     explanation.textContent = mode === "demo"
       ? "Browser-only Atlas APU audition. State profiles reshape only the local score while live telemetry continues unchanged underneath."
       : frame.stale
         ? "The live telemetry request failed. Last-known values remain visible, while the score is explicitly Unknown."
         : "Reading current public telemetry. Live mode is strictly read-only.";
-    host.querySelector("[data-live-mode]").setAttribute("aria-pressed", String(mode === "live"));
-    host.querySelector("[data-demo-mode]").setAttribute("aria-pressed", String(mode === "demo"));
-    host.querySelector("[data-demo-reset]").hidden = mode !== "demo";
+    control("[data-live-mode]").setAttribute("aria-pressed", String(mode === "live"));
+    control("[data-demo-mode]").setAttribute("aria-pressed", String(mode === "demo"));
+    control("[data-demo-reset]").hidden = mode !== "demo";
     renderPerformance(frame);
     for (const button of host.querySelectorAll("[data-component-filter]")) {
       button.setAttribute(
@@ -1344,7 +1376,7 @@ export function initSystemSymphony() {
 
   function replayPerformanceSeed() {
     if (mode !== "demo" || !currentFrame) return;
-    const input = host.querySelector("[data-performance-seed]");
+    const input = control("[data-performance-seed]");
     try {
       performanceSeed = normalizePerformanceSeed(input.value);
       input.setCustomValidity("");
@@ -1355,6 +1387,11 @@ export function initSystemSymphony() {
       renderPerformance(currentFrame);
       input.reportValidity();
     }
+  }
+
+  function togglePerformancePanel() {
+    performanceCollapsed = !performanceCollapsed;
+    renderPerformance(currentFrame);
   }
 
   function toggleGhostFocus() {
@@ -1559,10 +1596,11 @@ export function initSystemSymphony() {
   });
   helpToggle.addEventListener("click", () => setHelp(help.hidden));
   host.querySelector("[data-help-close]").addEventListener("click", () => setHelp(false));
-  host.querySelector("[data-live-mode]").addEventListener("click", switchToLive);
-  host.querySelector("[data-demo-mode]").addEventListener("click", switchToDemo);
-  host.querySelector("[data-demo-reset]").addEventListener("click", resetDemoFromLive);
-  host.querySelectorAll("[data-demo-profile]").forEach((button) => {
+  control("[data-live-mode]").addEventListener("click", switchToLive);
+  control("[data-demo-mode]").addEventListener("click", switchToDemo);
+  control("[data-demo-reset]").addEventListener("click", resetDemoFromLive);
+  control("[data-performance-collapse]").addEventListener("click", togglePerformancePanel);
+  controls("[data-demo-profile]").forEach((button) => {
     button.addEventListener("click", () => {
       if (button.dataset.demoProfile === "custom") resetDemoFromLive();
       else applyDemoProfile(button.dataset.demoProfile);
@@ -1572,44 +1610,48 @@ export function initSystemSymphony() {
     if (event.target.closest?.("[data-node]")) return;
     clearTopologySelection();
   });
+  host.querySelector("[data-inspector-close]")?.addEventListener("click", () => {
+    clearTopologySelection();
+    topologySvg.focus?.({ preventScroll: true });
+  });
   topologySvg.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
     clearTopologySelection();
   });
-  host.querySelector("[data-randomise-score]").addEventListener(
+  control("[data-randomise-score]").addEventListener(
     "click",
     randomisePerformance,
   );
-  host.querySelector("[data-replay-seed]").addEventListener(
+  control("[data-replay-seed]").addEventListener(
     "click",
     replayPerformanceSeed,
   );
-  host.querySelector("[data-ghost-focus]").addEventListener(
+  control("[data-ghost-focus]").addEventListener(
     "click",
     toggleGhostFocus,
   );
-  host.querySelectorAll("[data-ghost-audition]").forEach((button) => {
+  controls("[data-ghost-audition]").forEach((button) => {
     button.addEventListener("click", () => {
       toggleGhostAudition(button.dataset.ghostAudition);
     });
   });
-  host.querySelector("[data-performance-seed]").addEventListener("input", (event) => {
+  control("[data-performance-seed]").addEventListener("input", (event) => {
     event.target.value = event.target.value.toUpperCase();
     event.target.setCustomValidity("");
   });
-  host.querySelector("[data-performance-seed]").addEventListener("keydown", (event) => {
+  control("[data-performance-seed]").addEventListener("keydown", (event) => {
     if (event.key !== "Enter") return;
     event.preventDefault();
     replayPerformanceSeed();
   });
-  host.querySelectorAll("[data-performance-macro]").forEach((input) => {
+  controls("[data-performance-macro]").forEach((input) => {
     input.addEventListener("input", () => {
       const name = input.dataset.performanceMacro;
       performanceMacros = {
         ...performanceMacros,
         [name]: Number(input.value),
       };
-      host.querySelector(`[data-performance-output="${name}"]`).textContent = input.value;
+      control(`[data-performance-output="${name}"]`).textContent = input.value;
       if (mode === "demo" && currentFrame) {
         stagePerformance(currentFrame.scoreState, `${name} ${input.value}`);
       }
@@ -1715,7 +1757,7 @@ export function initSystemSymphony() {
       lastLiveFrame = hybridFrame;
       lastLiveMerged = clone(info.merged);
       latestDeployment = info.deployment ?? latestDeployment;
-      host.querySelector("[data-demo-mode]").disabled = false;
+      control("[data-demo-mode]").disabled = false;
       if (mode === "live") {
         applyAndRender(hybridFrame);
         if (info.newIncidents > 0) {

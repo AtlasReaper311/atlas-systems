@@ -38,6 +38,7 @@ const APU_ROLE_LABELS = Object.freeze({
   contention: "Contention",
   recovery: "Recovery",
 });
+const DEFAULT_APU_ROLE_STATUS = "Select a role to see its current chip law. Inspect a service to open comparison; source controls stay above the board.";
 const MOVEMENTS = Object.freeze({
   healthy: "Green Clock",
   warning: "Warning Pressure",
@@ -52,6 +53,7 @@ let selectedIncidentArc = null;
 let incidentArcIndex = 0;
 let incidentArcTimer = null;
 let activeProofPanel = "cartridge";
+let sourcePanelHome = null;
 
 const byId = (id) => document.getElementById(id);
 
@@ -217,6 +219,8 @@ function syncSummary(host) {
   status.dataset.state = stateKey === "critical" ? "failure" : stateKey === "warning" ? "warning" : stateKey === "healthy" ? "healthy" : "unknown";
   status.textContent = `Instrument ${stateKey}; source ${source}. Live mode remains read-only.`;
   highlightApuRole(host.dataset.apuRoleHighlight);
+  const flagship = document.querySelector("[data-symphony-flagship]");
+  if (flagship) syncTraceSourceDock(flagship, flagship.dataset.symphonyMode);
 }
 
 function syncMode(mode, { push = true } = {}) {
@@ -235,6 +239,7 @@ function syncMode(mode, { push = true } = {}) {
     panel.hidden = panel.dataset.symphonyModePanel !== nextMode;
     panel.classList.toggle("is-active", panel.dataset.symphonyModePanel === nextMode);
   }
+  syncTraceSourceDock(flagship, nextMode);
   setProofPair("route", nextMode.toUpperCase());
   if (!push) return;
   const url = new URL(window.location.href);
@@ -306,24 +311,68 @@ function roleSummary(plan, role) {
   return `${entry.role ?? APU_ROLE_LABELS[role] ?? role}: ${entry.lane ?? "diagnostic lane"}${parts.length ? ` / ${parts.join(" / ")}` : ""}.`;
 }
 
+function roleKeyFromRenderedLabel(value) {
+  const label = String(value ?? "").toLowerCase();
+  if (label.includes("pulse")) return "pulse";
+  if (label.includes("memory")) return "memory";
+  if (label.includes("thermal")) return "thermal";
+  if (label.includes("signal")) return "signal";
+  if (label.includes("contention")) return "contention";
+  if (label.includes("recovery")) return "recovery";
+  return "";
+}
+
+function roleUsageCount(host, role) {
+  if (!host || !role || role === "clock") return 0;
+  let count = 0;
+  for (const row of host.querySelectorAll("[data-service-table] tr")) {
+    if (roleKeyFromRenderedLabel(row.children[4]?.textContent) === role) count += 1;
+  }
+  return count;
+}
+
 function highlightApuRole(role) {
   const selected = APU_ROLE_LABELS[role] ? role : "";
   const label = APU_ROLE_LABELS[selected] ?? "";
-  for (const button of document.querySelectorAll("[data-apu-role-highlight]")) {
+  for (const button of document.querySelectorAll("button[data-apu-role-highlight]")) {
     button.setAttribute("aria-pressed", String(button.dataset.apuRoleHighlight === selected));
   }
+  const host = document.getElementById(HOST_ID);
+  const selectedCount = roleUsageCount(host, selected);
   const status = document.querySelector("[data-apu-role-status]");
   if (status) status.textContent = selected
-    ? roleSummary(latestCartridge?.scorePlan, selected)
-    : "Select a role to see its current chip law. Switch the source to Atlas APU audition, then inspect a service to solo or mute it.";
-  const host = document.getElementById(HOST_ID);
+    ? selectedCount === 0 && selected !== "clock"
+      ? `${APU_ROLE_LABELS[selected]}: score law only in this frame; no service-owned chips are assigned, so the board remains unfiltered.`
+      : roleSummary(latestCartridge?.scorePlan, selected)
+    : DEFAULT_APU_ROLE_STATUS;
   if (!host) return;
   host.dataset.apuRoleHighlight = selected;
   const rows = host.querySelectorAll("[data-service-table] tr");
   for (const row of rows) {
     const roleCell = row.children[4];
-    row.classList.toggle("is-role-highlight", Boolean(label) && roleCell?.textContent?.includes(label));
+    const matches = Boolean(label) && roleKeyFromRenderedLabel(roleCell?.textContent) === selected;
+    row.classList.toggle("is-role-highlight", matches && (selected === "clock" || selectedCount > 0));
   }
+}
+
+function syncTraceSourceDock(flagship, mode = flagship?.dataset?.symphonyMode) {
+  const sourcePanel = flagship.querySelector(".symphony-source-panel");
+  const dock = flagship.querySelector("[data-trace-source-dock]");
+  if (!sourcePanel || !dock) return;
+  if (!sourcePanelHome && !sourcePanel.closest("[data-trace-source-dock]")) {
+    sourcePanelHome = {
+      parent: sourcePanel.parentNode,
+      nextSibling: sourcePanel.nextSibling,
+    };
+  }
+  if (mode === "trace") {
+    sourcePanel.dataset.traceDocked = "true";
+    dock.append(sourcePanel);
+    return;
+  }
+  if (!sourcePanelHome?.parent || !sourcePanel.closest("[data-trace-source-dock]")) return;
+  delete sourcePanel.dataset.traceDocked;
+  sourcePanelHome.parent.insertBefore(sourcePanel, sourcePanelHome.nextSibling);
 }
 
 function clickConsoleAudio(host) {
@@ -874,7 +923,8 @@ async function loadIncidentArcArchive() {
 }
 
 function applyReplay(host) {
-  const demoButton = host.querySelector("[data-demo-mode]");
+  const lookup = (selector) => host.querySelector(selector) ?? document.querySelector(selector);
+  const demoButton = lookup("[data-demo-mode]");
   if (!demoButton || demoButton.disabled) {
     setReplayStatus("Replay is waiting for the first evidence frame.");
     return false;
@@ -884,14 +934,14 @@ function applyReplay(host) {
   const profile = normaliseReplayProfile(document.querySelector("[data-page-replay-profile]")?.value);
   const pageSeed = document.querySelector("[data-page-replay-seed]");
   if (pageSeed) pageSeed.value = seed;
-  const engineSeed = host.querySelector("[data-performance-seed]");
+  const engineSeed = lookup("[data-performance-seed]");
   if (engineSeed) {
     engineSeed.value = seed;
     engineSeed.dispatchEvent(new Event("input", { bubbles: true }));
   }
-  const profileButton = host.querySelector(`[data-demo-profile="${profile}"]`);
+  const profileButton = lookup(`[data-demo-profile="${profile}"]`);
   profileButton?.click();
-  host.querySelector("[data-replay-seed]")?.click();
+  lookup("[data-replay-seed]")?.click();
   const url = instrumentReplayUrl();
   window.history.replaceState({}, "", url);
   setReplayStatus(`Replay armed: ${profile === "custom" ? "live snapshot" : profile} / seed ${seed}.`);
@@ -999,7 +1049,7 @@ function installModeControls(host) {
     });
   }
   document.querySelector("[data-trust-close]")?.addEventListener("click", () => setTrustLayer(false));
-  for (const roleButton of document.querySelectorAll("[data-apu-role-highlight]")) {
+  for (const roleButton of document.querySelectorAll("button[data-apu-role-highlight]")) {
     roleButton.addEventListener("click", () => {
       const pressed = roleButton.getAttribute("aria-pressed") === "true";
       highlightApuRole(pressed ? "" : roleButton.dataset.apuRoleHighlight);

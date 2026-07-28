@@ -50,30 +50,28 @@ const FALLBACK_INDEX = 3;
 export const DESKTOP_BOARD = Object.freeze({
   layout: "desktop",
   /**
-   * Sized so five districts fit a 1440px laptop without zooming out: the board
-   * plus the inspector rail has to live inside the flagship's inner width.
-   * The gutter between columns still has room for a routed trace plus its
-   * per-target offset.
+   * Sized so the PCB is wide and shallow: TRACE should read like a board, not
+   * a tall dependency list. Deep districts spill sideways sooner, because the
+   * surrounding page no longer reserves a permanent inspector rail.
    */
-  width: 1240,
-  originX: 60,
-  colPitch: 236,
-  y0: 90,
-  rowH: 78,
+  width: 1360,
+  originX: 54,
+  colPitch: 220,
+  y0: 78,
+  rowH: 62,
   chipW: 170,
   chipH: 46,
   /**
-   * Rows per column. A deep district grows the board downwards, because
-   * vertical space is free on a page that already scrolls while horizontal
-   * space is what forces the reader to zoom out. Only past `rowCap` does a
-   * district spill into extra columns.
+   * Rows per column. Eight rows keeps normal estate frames inside the first
+   * TRACE viewport while still allowing unusually deep districts to widen in a
+   * predictable, inspectable way.
    */
   minRows: 6,
-  rowCap: 12,
+  rowCap: 8,
   minHeight: 584,
-  labelOffset: 28,
+  labelOffset: 24,
   gutter: 26,
-  busInset: 26,
+  busInset: 22,
 });
 
 /**
@@ -365,8 +363,9 @@ export function boardGeometry({ voices = [], externalNodes = [], layout = "deskt
     };
   }
 
-  // Let the deepest district set the row count, so the board stays as narrow
-  // as the district count allows and only grows past the cap sideways.
+  // Let the deepest district set the row count up to the cap. After that, the
+  // district spills sideways so the rendered board stays legible in the TRACE
+  // viewport instead of becoming a long vertical cabinet.
   const deepest = buckets.reduce((most, bucket) => Math.max(most, bucket.length), 0);
   const rowsPerColumn = Math.min(
     metrics.rowCap,
@@ -444,7 +443,7 @@ export function routeOffsets(edges = [], step = 12) {
   const offsets = new Map();
   for (const group of byTarget.values()) {
     group.forEach((edge, index) => {
-      offsets.set(`${edge.from} ${edge.to}`, (index - (group.length - 1) / 2) * step);
+      offsets.set(`${edge.from} ${edge.to}`, (index - (group.length - 1) / 2) * step);
     });
   }
   return offsets;
