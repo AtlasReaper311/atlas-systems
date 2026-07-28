@@ -211,7 +211,7 @@ test("Lab and Systems explain maturity, data mode, and operation motifs", () => 
   assert.match(directoryCss, /\.badge\.retired::before/);
   assert.match(directoryCss, /\.mode-key\[data-mode-key="simulated"\]::before\s*\{[^}]*border-style:dashed/);
   for (const page of [lab, systems, systemMap]) {
-    assert.match(page, /v2-directory-pages\.css\?v=20260724-maturity-completion/);
+    assert.match(page, /v2-directory-pages\.css\?v=20260728-lab-context-nav-wrap/);
   }
 });
 

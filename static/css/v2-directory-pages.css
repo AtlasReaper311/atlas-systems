@@ -250,7 +250,16 @@ h2 { font:400 clamp(1.7rem,4vw,2.6rem)/1.08 var(--serif); }
 .arch-node[data-kind="evidence"] { box-shadow:inset 0 2px 0 var(--blue); }
 .lab-context-nav { position:fixed; top:56px; left:0; right:0; z-index:90; overflow-x:hidden; border-bottom:1px solid var(--border); background:rgba(10,10,15,.93); backdrop-filter:blur(12px); }
 .lab-context-nav-inner { width:min(calc(100% - 48px),1180px); margin-inline:auto; display:flex; gap:4px; overflow-x:auto; scrollbar-width:thin; }
-.lab-context-nav a { flex:none; padding:11px 12px; color:var(--text-faint); font-size:10px; letter-spacing:.07em; text-decoration:none; text-transform:uppercase; }
+.lab-context-nav a { flex:none; padding:11px 8px; color:var(--text-faint); font-size:10px; letter-spacing:.07em; text-decoration:none; text-transform:uppercase; }
+/* Wide enough to lay the routes out in full: wrap rather than hide the tail
+   behind an overlay scrollbar nobody can see. */
+@media(min-width:861px){
+  .lab-context-nav-inner { flex-wrap:wrap; overflow-x:visible; }
+}
+/* Narrow enough to scroll: mark the overflowing edge so it reads as scrollable. */
+@media(max-width:860px){
+  .lab-context-nav-inner { -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent); mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent); }
+}
 .lab-context-nav a:hover,.lab-context-nav a[aria-current="page"] { color:var(--accent); }
 body:has(.lab-context-nav) main { padding-top:calc(var(--nav-h) + 104px); }
 .lab-tool-footer { width:min(calc(100% - 48px),1180px); margin:0 auto; padding:32px 0 96px; display:flex; justify-content:space-between; gap:20px; color:var(--text-faint); font-size:11px; }
