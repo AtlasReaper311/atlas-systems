@@ -43,7 +43,7 @@ test("valid score plans activate the guarded engine-control path", () => {
   const guard = scorePlanGuardForFrame(frame);
   const controls = engineControlsForFrame(frame);
 
-  assert.match(ATLAS_APU_ENGINE_CONTROLS_BUILD_ID, /engine-controls-v5$/);
+  assert.match(ATLAS_APU_ENGINE_CONTROLS_BUILD_ID, /engine-controls-v6$/);
   assert.equal(guard.active, true);
   assert.equal(guard.mode, "score-plan");
   assert.equal(guard.sampleFree, true);
@@ -82,7 +82,7 @@ test("missing or invalid plans fall back to legacy frame controls", () => {
   assert.match(controls.guard.reasons.join(" "), /sample-free target/);
 });
 
-test("theme controls make critical urgent and unknown carrier-led", () => {
+test("theme controls make critical urgent and unknown carrier-led without muting it", () => {
   const healthy = engineControlsForFrame(frameFor([
     service("atlas-systems", "healthy"),
     service("atlas-api-public", "healthy"),
@@ -96,7 +96,7 @@ test("theme controls make critical urgent and unknown carrier-led", () => {
     service("atlas-api-public", "unknown", { evidence_source: null, measured_at: null }),
   ]));
 
-  assert.equal(critical.movement, "Critical Choke");
+  assert.equal(critical.movement, "Boss Protocol");
   assert.ok(critical.themeWeights.critical > critical.themeWeights.healthy);
   assert.ok(critical.buses.drums > healthy.buses.drums);
   assert.ok(critical.buses.bass > healthy.buses.bass);
@@ -113,8 +113,12 @@ test("theme controls make critical urgent and unknown carrier-led", () => {
     critical: 0,
     unknown: 1,
   });
+  assert.ok(unknown.buses.primary >= 0.9);
+  assert.ok(unknown.buses.secondary >= 0.8);
+  assert.ok(unknown.buses.services >= 0.75);
+  assert.ok(unknown.buses.bass >= 0.8);
+  assert.ok(unknown.buses.drums >= 0.55 && unknown.buses.drums < healthy.buses.drums);
   assert.ok(unknown.buses.pad > 1);
-  assert.ok(unknown.buses.drums < 0.5);
   assert.ok(unknown.timbre.telemetryHumGain > critical.timbre.telemetryHumGain);
   assert.ok(unknown.timbre.reverbGain > critical.timbre.reverbGain);
   assert.ok(unknown.timbre.chipWet < critical.timbre.chipWet);
