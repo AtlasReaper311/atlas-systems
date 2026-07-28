@@ -74,11 +74,18 @@ test("Lost Signal gains slow notes and delayed echoes without becoming fast", ()
   assert.ok(arps.slice(1).every((event, index) => event.offsetSteps - arps[index].offsetSteps === 8));
 });
 
-test("the conductor keeps the original connector and adds D1A material", () => {
+test("D1A remains inspectable while D4 owns major feature phrases", () => {
   for (const state of ["healthy", "warning", "critical", "unknown"]) {
-    const instructions = ornamentInstructionsForPhrase(plan(state, 4));
-    assert.ok(instructions.some((event) => event.ornament === "connective-arp"));
-    assert.ok(instructions.some((event) => event.ornament === "state-arp"));
+    assert.ok(stateArpeggioInstructionsForPhrase(plan(state, 4)).length >= 4);
+
+    const feature = ornamentInstructionsForPhrase(plan(state, 4));
+    assert.ok(feature.some((event) => event.ornament === "d4-feature-arp"));
+    assert.ok(!feature.some((event) => event.ornament === "connective-arp"));
+    assert.ok(!feature.some((event) => event.ornament === "state-arp"));
+
+    const connective = ornamentInstructionsForPhrase(plan(state, 2));
+    assert.ok(connective.some((event) => event.ornament === "connective-arp"));
+    assert.ok(connective.some((event) => event.ornament === "state-arp"));
   }
 });
 
