@@ -91,6 +91,12 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://atlas-systems.uk/lab/drift/</loc>
+    <lastmod>2026-07-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://atlas-systems.uk/about/</loc>
     <lastmod>2026-07-24T18:57:57+01:00</lastmod>
     <changefreq>monthly</changefreq>
