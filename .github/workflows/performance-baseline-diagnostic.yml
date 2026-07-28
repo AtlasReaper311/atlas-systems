@@ -17,12 +17,20 @@ jobs:
     name: Report generated static baseline
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       - name: Generate exact candidate
         run: |
           set -euo pipefail
+          mkdir source
+          curl --fail --location --silent --show-error \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/tarball/${HEAD_SHA}" \
+            --output source.tgz
+          tar -xzf source.tgz --strip-components=1 -C source
+          cd source
           python3 scripts/measure_static_performance.py
           cat data/performance-baseline.json
