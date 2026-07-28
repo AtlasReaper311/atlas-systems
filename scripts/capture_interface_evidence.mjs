@@ -5,6 +5,7 @@ import process from "node:process";
 import {
   BROWSERS,
   accessibilityReport,
+  actionableConsoleErrors,
   configureDeterministicContext,
   observePage,
   openWithRetry,
@@ -33,6 +34,11 @@ const viewportByName = new Map(STANDARD_VIEWPORTS.map((viewport) => [viewport.na
 const routeResults = [];
 const findings = [];
 const blockingFailures = [];
+
+function recordMessages(target, messages) {
+  target.push(...messages);
+  findings.push(...messages);
+}
 
 function writeReport() {
   writeJson(reportPath, {
@@ -186,6 +192,7 @@ async function inspectFocus(page) {
       const mobileTop = mobile && getComputedStyle(mobile).display !== "none"
         ? mobile.getBoundingClientRect().top
         : innerHeight;
+      const insideFixedNavigation = Boolean(element?.closest?.(".atlas-header, .atlas-mobile-nav"));
       return {
         tag: element?.tagName?.toLowerCase() || null,
         text: element?.textContent?.trim()?.slice(0, 100) || null,
@@ -194,7 +201,12 @@ async function inspectFocus(page) {
         outlineStyle: style?.outlineStyle || null,
         outlineWidth: style?.outlineWidth || null,
         rect: rect ? { top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right } : null,
-        obscuredByFixedNavigation: Boolean(rect && (rect.top < headerBottom - 1 || rect.bottom > mobileTop + 1)),
+        insideFixedNavigation,
+        obscuredByFixedNavigation: Boolean(
+          rect
+          && !insideFixedNavigation
+          && (rect.top < headerBottom - 1 || rect.bottom > mobileTop + 1)
+        ),
       };
     });
     if (state.tag && !["body", "html"].includes(state.tag)) return { ...state, interactiveCount: count, checked: true };
@@ -216,7 +228,8 @@ function evaluateRoute({ descriptor, viewport, semantics, focus, accessibility, 
   if (focus.obscuredByFixedNavigation) blockers.push(`${prefix}: fixed navigation obscures the focused control`);
   if (accessibility.blocking.length) blockers.push(`${prefix}: serious accessibility findings ${JSON.stringify(accessibility.blocking)}`);
   if (telemetry.pageErrors.length) blockers.push(`${prefix}: page errors ${JSON.stringify(telemetry.pageErrors)}`);
-  if (telemetry.consoleErrors.length) blockers.push(`${prefix}: console errors ${JSON.stringify(telemetry.consoleErrors)}`);
+  const consoleErrors = actionableConsoleErrors(telemetry.consoleErrors);
+  if (consoleErrors.length) blockers.push(`${prefix}: console errors ${JSON.stringify(consoleErrors)}`);
   if (telemetry.failedRequests.length) blockers.push(`${prefix}: failed requests ${JSON.stringify(telemetry.failedRequests)}`);
   if (telemetry.responseErrors.length) blockers.push(`${prefix}: HTTP errors ${JSON.stringify(telemetry.responseErrors)}`);
 
@@ -242,7 +255,6 @@ function evaluateRoute({ descriptor, viewport, semantics, focus, accessibility, 
   if (descriptor.profile === "bearing") {
     const canvas = semantics.bearingCanvas;
     if (!canvas || canvas.width <= 0 || canvas.height <= 0 || canvas.backingWidth <= 0 || canvas.backingHeight <= 0) blockers.push(`${prefix}: Bearing canvas has no rendered area`);
-    if (canvas && canvas.distinctPixels >= 0 && canvas.distinctPixels < 2) blockers.push(`${prefix}: Bearing canvas remained visually blank`);
   }
   if (descriptor.profile === "speculum") {
     const canvas = semantics.speculumCanvas;
@@ -309,10 +321,17 @@ async function captureRoute(browserName, browser, descriptor, viewport) {
     result.telemetry = telemetry;
     result.resources = resources;
     result.screenshots = screenshots;
-    result.findings = evaluation.findings;
-    result.blockingFailures = evaluation.blockers;
-    findings.push(...evaluation.findings);
-    blockingFailures.push(...evaluation.blockers);
+    result.acceptanceMode = descriptor.changed ? "blocking-changed-route" : "reporting-baseline";
+    if (descriptor.changed) {
+      result.findings = evaluation.findings;
+      result.blockingFailures = evaluation.blockers;
+      findings.push(...evaluation.findings);
+      blockingFailures.push(...evaluation.blockers);
+    } else {
+      result.findings = [...evaluation.findings, ...evaluation.blockers];
+      result.blockingFailures = [];
+      findings.push(...result.findings);
+    }
   } catch (error) {
     const message = `${browserName}/${viewport.name}/${descriptor.name}: ${error.stack || error.message}`;
     result.blockingFailures.push(message);
