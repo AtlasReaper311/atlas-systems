@@ -154,12 +154,12 @@
 
     <div class="articles">
 
-      <span class="series-anchor" id="series-pipeline-observability" aria-hidden="true"></span>
       <!-- W-07: Atlas Lab — coming soon -->
+      <span class="series-anchor" id="series-pipeline-observability" aria-hidden="true"></span>
       <a href="#" class="article-entry coming-soon" data-series="pipeline-observability" data-series-part="3" data-series-total="3" data-series-title="Pipeline &amp; Observability" data-series-note="3 parts · 26–30 July 2026" data-series-publish-date="2026-07-30" aria-disabled="true" tabindex="-1">
         <div class="article-meta">
           <span class="article-number">W-07</span>
-          <span class="article-date">Coming July 2026</span>
+          <span class="article-date">NEXT CHAPTER // JULY 2026</span>
           <div class="article-tags">
             <span class="tag highlight">DevOps</span>
             <span class="tag">Cloudflare Workers</span>
@@ -172,7 +172,7 @@
         <div class="article-body">
           <h2 class="article-title">Atlas Lab</h2>
           <div class="article-subtitle">Live Observability // Coming Soon</div>
-          <p class="article-summary">Pipeline events from all eight repos now write into the same ring buffer the Lab page already reads, alongside a live pipeline status grid and a self-documenting API surface map. None of it required new infrastructure; it required finally looking at infrastructure that already existed.</p>
+          <p class="article-summary">This dated June 2026 build log records how pipeline events from eight rollout repositories were added to the Lab ring buffer alongside a pipeline status grid and an API surface map. The current estate has since added named signal-class routing in atlas-notify and moved authoritative public Worker discovery to the fail-closed atlas-api-index registry.</p>
           <div class="article-sections">
             <span class="section-pill">Background</span>
             <span class="section-pill">The Persist-Only Decision</span>
@@ -180,16 +180,18 @@
             <span class="section-pill">Closing the Surface</span>
           </div>
           <div class="article-cta">
-            Coming soon
+            The next chapter
             <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </div>
         </div>
       </a>
-<!-- W-06: Atlas Systems CI/CD — coming soon -->
-      <a href="#" class="article-entry coming-soon" data-series="pipeline-observability" data-series-part="2" data-series-total="3" data-series-title="Pipeline &amp; Observability" data-series-note="3 parts · 26–30 July 2026" data-series-publish-date="2026-07-28" aria-disabled="true" tabindex="-1">
+
+      <!-- ARTICLES_INSERT_POINT -->
+      <!-- W-06: Atlas Systems CI/CD -->
+      <a href="/writing/atlas-systems-cicd-pipeline/" class="article-entry" data-series="pipeline-observability" data-series-part="2" data-series-total="3" data-series-title="Pipeline &amp; Observability" data-series-note="3 parts · 26–30 July 2026" data-series-publish-date="2026-07-28">
         <div class="article-meta">
           <span class="article-number">W-06</span>
-          <span class="article-date">NEXT CHAPTER // JULY 2026</span>
+          <span class="article-date">25 July 2026</span>
           <div class="article-tags">
             <span class="tag highlight">DevOps</span>
             <span class="tag">GitHub Actions</span>
@@ -201,8 +203,8 @@
         </div>
         <div class="article-body">
           <h2 class="article-title">Atlas Systems CI/CD</h2>
-          <div class="article-subtitle">Reusable Pipelines &amp; Hard Gates // Coming Soon</div>
-          <p class="article-summary">Ten repos brought onto a consistent, gated, observable CI/CD estate. Two reusable GitHub Actions workflows in atlas-infra define the pipeline once; every other repo inherits it through a 12-line caller file, with Cloudflare Pages native integration disconnected so Actions is the only path to production.</p>
+          <div class="article-subtitle">Atlas Systems CI/CD — Reusable Pipelines &amp; Hard Gates // Case Study</div>
+          <p class="article-summary">Twelve consumer repositories were brought onto a consistent, gated, observable CI/CD rollout, with two reusable GitHub Actions workflows defined in atlas-infra and short caller files in each repository. The current estate pins those callers to immutable atlas-infra revisions, so later workflow changes move through explicit, reviewable pin-update pull requests rather than floating into consumers automatically.</p>
           <div class="article-sections">
             <span class="section-pill">Background</span>
             <span class="section-pill">Reusable Workflows as the Architecture</span>
@@ -211,13 +213,12 @@
             <span class="section-pill">The Token Model</span>
           </div>
           <div class="article-cta">
-            The next chapter
+            Read case study
             <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </div>
         </div>
       </a>
 
-      <!-- ARTICLES_INSERT_POINT -->
       <!-- W-05: Atlas Systems Infrastructure -->
       <a href="/writing/atlas-pipeline-infrastructure-dashboard/" class="article-entry" data-series="pipeline-observability" data-series-part="1" data-series-total="3" data-series-title="Pipeline &amp; Observability" data-series-note="3 parts · 26–30 July 2026" data-series-publish-date="2026-07-26">
         <div class="article-meta">
