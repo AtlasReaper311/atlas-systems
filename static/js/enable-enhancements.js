@@ -3,5 +3,5 @@
 document.documentElement.classList.add("js");
 
 if (["/work/", "/writing/"].includes(window.location.pathname)) {
-  void import("./directory-header-fields.js?v=20260728-directory-header-compositions-v1");
+  void import("./directory-header-fields.js?v=20260728-directory-header-compositions-v2");
 }
