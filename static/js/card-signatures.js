@@ -1,4 +1,4 @@
-import "./directory-header-fields.js?v=20260728-directory-header-compositions-v1";
+import "./directory-header-fields.js?v=20260728-directory-header-compositions-v2";
 
 export const CARD_SIGNATURES = Object.freeze([
   "work",
