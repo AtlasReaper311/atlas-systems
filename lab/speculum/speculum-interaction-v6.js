@@ -93,8 +93,26 @@ export function installResolvedPointerDown(canvas) {
   };
 }
 
+export function installScrollableRegionSemantics(root) {
+  const regions = [
+    ['.controls', 'Speculum controls', true],
+    ['.detail', 'Node dossier', true],
+    ['.ledger', 'Generated observation ledger', false],
+  ];
+
+  regions.forEach(([selector, label, landmark]) => {
+    const element = root.querySelector(selector);
+    if (!(element instanceof HTMLElement)) return;
+    element.tabIndex = 0;
+    element.setAttribute('aria-label', label);
+    if (landmark) element.setAttribute('role', 'region');
+  });
+}
+
 function boot() {
+  const root = document.getElementById('speculum');
   const canvas = document.getElementById('spc-canvas');
+  if (root) installScrollableRegionSemantics(root);
   if (canvas instanceof HTMLCanvasElement) installResolvedPointerDown(canvas);
 }
 
