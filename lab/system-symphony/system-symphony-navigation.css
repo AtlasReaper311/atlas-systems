@@ -321,6 +321,18 @@
   margin-top: 24px;
 }
 
+body[data-symphony-mode="trace"] .symphony-flagship {
+  padding: clamp(12px, 1.6vw, 20px) !important;
+}
+
+body[data-symphony-mode="trace"] .symphony-stage {
+  margin-top: 10px !important;
+}
+
+body[data-symphony-mode="trace"] .symphony-page-host[data-mode-surface="trace"] {
+  margin-top: 10px !important;
+}
+
 .symphony-proof-console[data-mode-surface] {
   margin-top: 24px;
 }

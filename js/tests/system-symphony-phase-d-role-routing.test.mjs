@@ -11,7 +11,7 @@ const romLibrary = readFileSync("lab/system-symphony/rom-library.js", "utf8");
 test("System Symphony loads the Phase D role bridge only on the flagship route", () => {
   assert.ok(labShell.includes('const SYSTEM_SYMPHONY_ROUTE = "/lab/system-symphony/"'));
   assert.ok(labShell.includes("currentPath() !== SYSTEM_SYMPHONY_ROUTE"));
-  assert.ok(labShell.includes("trace-role-bridge.js?v=20260726-phase-d-role-routing-v1"));
+  assert.ok(labShell.includes("trace-role-bridge.js?v=20260728-system-symphony-trace-board-v1"));
 });
 
 test("TRACE role selection maps service rows onto topology nodes and dependency routes", () => {
@@ -24,6 +24,10 @@ test("TRACE role selection maps service rows onto topology nodes and dependency 
   assert.ok(bridge.includes("decorateTopology"));
   assert.ok(bridge.includes("is-role-route"));
   assert.ok(bridge.includes("data-apu-role-highlight"));
+  assert.ok(bridge.includes("updateRoleControls"));
+  assert.ok(bridge.includes("traceRoleEmpty"));
+  assert.ok(bridge.includes("SCORE_LAW_ROLES"));
+  assert.ok(bridge.includes('"law"'));
   assert.ok(bridge.includes("MutationObserver"));
   assert.ok(bridge.includes("syncRoleFromSelectedService"));
 });
@@ -31,6 +35,8 @@ test("TRACE role selection maps service rows onto topology nodes and dependency 
 test("TRACE role styling keeps highlighted routes legible and reduced-motion safe", () => {
   assert.ok(bridgeCss.includes(".symphony-node.is-role-highlight"));
   assert.ok(bridgeCss.includes(".symphony-edge.is-role-route"));
+  assert.ok(bridgeCss.includes(".symphony-role-board button.is-role-empty"));
+  assert.ok(bridgeCss.includes(".symphony-role-board button.is-score-law-only"));
   assert.ok(bridgeCss.includes('[data-trace-role="clock"]'));
   assert.ok(bridgeCss.includes("prefers-reduced-motion: reduce"));
 });

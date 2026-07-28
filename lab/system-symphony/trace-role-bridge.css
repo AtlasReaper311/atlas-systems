@@ -1,39 +1,133 @@
+/*
+ * TRACE APU role routing.
+ *
+ * A role filter dims, it never removes: filtering out a component would make
+ * a declared dependency silently vanish from the board. Traces that touch a
+ * matching chip stay routed so the dependency path remains readable.
+ */
+
 .symphony-page-host [data-service-table] tr.is-role-dimmed {
-  opacity: 0.38;
+  opacity: 0.55;
 }
 
-.symphony-page-host .symphony-node.is-role-highlight circle:first-of-type {
+.symphony-page-host [data-service-table] tr.is-role-highlight {
+  background: rgba(245, 166, 35, 0.08);
+}
+
+.symphony-page-host .symphony-node.is-role-highlight .symphony-chip__frame {
   stroke: var(--accent, #f5a623);
-  stroke-width: 3px;
-  filter: drop-shadow(0 0 8px rgba(245, 166, 35, 0.42));
+  stroke-width: 2px;
 }
 
-.symphony-page-host .symphony-node.is-role-highlight text {
+/* A matching chip gets a 2px amber top bar, so the match is carried by
+   geometry and not by colour alone. */
+.symphony-page-host .symphony-node.is-role-highlight .symphony-chip__brackets {
+  opacity: 1;
+  stroke-width: 2px;
+  stroke-dasharray: none;
+}
+
+.symphony-page-host .symphony-node.is-role-highlight .symphony-chip__identity {
   fill: var(--text, #e8e8e0);
   font-weight: 600;
 }
 
-.symphony-page-host .symphony-node.is-role-dimmed,
+.symphony-page-host .symphony-node.is-role-dimmed {
+  opacity: 0.42;
+}
+
 .symphony-page-host .symphony-edge.is-role-dimmed {
-  opacity: 0.2;
+  opacity: 0.26;
 }
 
 .symphony-page-host .symphony-edge.is-role-route {
   opacity: 1;
   stroke: var(--accent, #f5a623);
-  stroke-width: 2.5px;
-  stroke-dasharray: 5 4;
+  stroke-width: 2px;
 }
 
+.symphony-role-board button {
+  display: grid;
+  place-items: center;
+  gap: 3px;
+}
+
+.symphony-role-board button span,
+.symphony-role-board button strong {
+  display: block;
+  min-width: 0;
+}
+
+.symphony-role-board button strong {
+  color: var(--text-faint, #888894);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.symphony-role-board button[aria-pressed="true"] strong {
+  color: currentColor;
+}
+
+.symphony-role-board button.is-role-empty {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(100, 101, 114, 0.08) 0 6px,
+      transparent 6px 12px
+    ),
+    rgba(10, 10, 15, 0.92);
+  color: var(--text-faint, #888894);
+}
+
+.symphony-role-board button.is-score-law-only {
+  background:
+    linear-gradient(180deg, rgba(245, 166, 35, 0.045), rgba(10, 10, 15, 0.92)),
+    rgba(10, 10, 15, 0.92);
+  color: color-mix(in srgb, var(--text-dim, #aaa9a0) 88%, var(--accent, #f5a623));
+}
+
+.symphony-role-board button.is-score-law-only strong {
+  color: color-mix(in srgb, var(--accent, #f5a623) 68%, var(--text-faint, #888894));
+}
+
+.symphony-role-board button.is-role-empty[aria-pressed="true"] {
+  border: 1px dashed rgba(245, 166, 35, 0.58);
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(245, 166, 35, 0.11) 0 6px,
+      transparent 6px 12px
+    ),
+    rgba(245, 166, 35, 0.08);
+  color: var(--accent, #f5a623);
+  box-shadow: none;
+}
+
+.symphony-role-board button.is-score-law-only[aria-pressed="true"] {
+  border-style: solid;
+  background:
+    linear-gradient(180deg, rgba(245, 166, 35, 0.16), rgba(245, 166, 35, 0.06)),
+    rgba(10, 10, 15, 0.94);
+}
+
+/* Clock is the exception: it dims nothing and instead pulses every trace in
+   unison at the current tempo. */
 .symphony-page-host[data-trace-role="clock"] .symphony-edge {
   opacity: 0.78;
   stroke: rgba(245, 166, 35, 0.72);
   stroke-width: 2px;
   stroke-dasharray: 3 7;
+  animation: symphony-role-clock 1.5s steps(2) infinite;
 }
 
-.symphony-page-host[data-trace-role="clock"] .symphony-node circle:first-of-type {
+.symphony-page-host[data-trace-role="clock"] .symphony-node .symphony-chip__frame {
   stroke: rgba(245, 166, 35, 0.76);
+}
+
+@keyframes symphony-role-clock {
+  0%, 100% { opacity: 0.78; }
+  50% { opacity: 0.4; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -41,5 +135,11 @@
   .symphony-page-host .symphony-edge,
   .symphony-page-host [data-service-table] tr {
     transition: none;
+  }
+
+  /* Static equivalent: the clock reads as a held unison dash. */
+  .symphony-page-host[data-trace-role="clock"] .symphony-edge {
+    animation: none;
+    opacity: 0.78;
   }
 }
