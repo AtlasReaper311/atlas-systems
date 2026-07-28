@@ -19,19 +19,19 @@ const expected = Object.freeze({
     path: "/systems/",
     selector: ".page-intro",
     composition: "atlas-header-composition--topology-current",
-    seed: "atlas-systems-topology-current-v1",
+    seed: "atlas-systems-topology-current-v2",
   },
   work: {
     path: "/work/",
     selector: ".page-header",
     composition: "atlas-header-composition--build-fragments",
-    seed: "atlas-work-build-fragments-v1",
+    seed: "atlas-work-build-fragments-v2",
   },
   writing: {
     path: "/writing/",
     selector: ".page-header",
     composition: "atlas-header-composition--editorial-drift",
-    seed: "atlas-writing-editorial-drift-v1",
+    seed: "atlas-writing-editorial-drift-v2",
   },
 });
 
@@ -57,6 +57,8 @@ test("directory headers use one behavioural preset with distinct compositions", 
     DIRECTORY_HEADER_COMPOSITIONS.work.options.domainStyles,
     DIRECTORY_HEADER_COMPOSITIONS.writing.options.domainStyles,
   );
+  assert.ok(DIRECTORY_HEADER_COMPOSITIONS.systems.options.density.max > DIRECTORY_HEADER_COMPOSITIONS.work.options.density.max);
+  assert.ok(DIRECTORY_HEADER_COMPOSITIONS.work.options.density.max > DIRECTORY_HEADER_COMPOSITIONS.writing.options.density.max);
 });
 
 test("route resolution is exact and does not decorate child pages", () => {
@@ -79,19 +81,29 @@ test("shared header CSS normalises geometry and typography", () => {
   assert.match(css, /\.atlas-page-header \.section-label,[\s\S]*letter-spacing:\s*\.2em/);
 });
 
-test("each composition has a different silhouette rather than a colour-only swap", () => {
-  assert.match(css, /topology-current[^}]*transform:\s*scaleX\(1\.18\)/s);
+test("each composition has a materially different silhouette and animation grammar", () => {
+  assert.match(css, /topology-current[^}]*scaleX\(1\.42\) scaleY\(\.52\)/s);
+  assert.match(css, /topology-current::before[\s\S]*topology-scan/);
   assert.match(css, /topology-current::before[\s\S]*radial-gradient/);
-  assert.match(css, /build-fragments[^}]*clip-path:\s*polygon/);
-  assert.match(css, /build-fragments::before[\s\S]*repeating-linear-gradient/);
-  assert.match(css, /editorial-drift[^}]*transform:\s*rotate\(-2deg\) scale\(1\.08\)/s);
+
+  assert.match(css, /build-fragments[^}]*skewX\(-7deg\)/s);
+  assert.match(css, /build-fragments[^}]*clip-path:\s*polygon/s);
+  assert.match(css, /build-fragments::before[\s\S]*fragment-shift/);
+  assert.match(css, /fragment-shift[\s\S]*steps\(6, end\)/);
+
+  assert.match(css, /editorial-drift[^}]*rotate\(-13deg\) scale\(1\.28\)/s);
+  assert.match(css, /editorial-drift::before[\s\S]*editorial-drift/);
   assert.match(css, /editorial-drift::before[\s\S]*repeating-linear-gradient/);
+
+  const opacities = [...css.matchAll(/composition--(?:topology-current|build-fragments|editorial-drift) > \.directory-header-field-canvas \{[\s\S]*?opacity:\s*([.\d]+)/g)]
+    .map((match) => Number(match[1]));
+  assert.deepEqual(opacities, [0.2, 0.12, 0.075]);
 });
 
 test("route entrypoints and cache boundaries are explicit", () => {
-  assert.match(enableEnhancements, /directory-header-fields\.js\?v=20260728-directory-header-compositions-v1/);
+  assert.match(enableEnhancements, /directory-header-fields\.js\?v=20260728-directory-header-compositions-v2/);
   assert.match(enableEnhancements, /"\/work\/", "\/writing\/"/);
-  assert.match(cardSignatures, /^import "\.\/directory-header-fields\.js\?v=20260728-directory-header-compositions-v1";/);
+  assert.match(cardSignatures, /^import "\.\/directory-header-fields\.js\?v=20260728-directory-header-compositions-v2";/);
 
   for (const asset of [
     "/static/js/directory-header-fields.js",
@@ -99,7 +111,7 @@ test("route entrypoints and cache boundaries are explicit", () => {
     "/static/js/enable-enhancements.js",
     "/static/js/card-signatures.js",
   ]) {
-    assert.match(headers, new RegExp(`${asset.replaceAll("/", "\\/")}\\n  Cache-Control: no-store, max-age=0`));
+    assert.match(headers, new RegExp(`${asset.replaceAll("/", "\\/")}\n  Cache-Control: no-store, max-age=0`));
   }
 });
 
