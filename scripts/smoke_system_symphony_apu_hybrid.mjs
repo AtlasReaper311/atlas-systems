@@ -251,10 +251,10 @@ try {
     return status?.status === "running" && status?.processorReady === true && mastering?.active === true;
   }, null, { timeout: 15_000, polling: 100 });
 
-  await measureState("Warning", "warning", "tight-crossfade");
-  await measureState("Critical", "critical", "hard-choke");
+  await measureState("Warning", "warning", "one-bar-decay");
+  await measureState("Critical", "critical", "one-bar-decay");
   await measureState("Unknown", "unknown", "one-bar-decay");
-  await measureState("Healthy", "healthy", "crossfade");
+  await measureState("Healthy", "healthy", "one-bar-decay");
 
   await page.getByRole("button", { name: "Live frame", exact: true }).click();
   await page.waitForFunction(() => {
@@ -303,10 +303,10 @@ try {
   assert.equal(evidence.engineRunning, true);
   assert.equal(stateMeasurements.length, 4);
   assert.deepEqual(stateTransitions.map(({ to, policy: transitionPolicy }) => ({ to, policy: transitionPolicy })), [
-    { to: "warning", policy: "tight-crossfade" },
-    { to: "critical", policy: "hard-choke" },
+    { to: "warning", policy: "one-bar-decay" },
+    { to: "critical", policy: "one-bar-decay" },
     { to: "unknown", policy: "one-bar-decay" },
-    { to: "healthy", policy: "crossfade" },
+    { to: "healthy", policy: "one-bar-decay" },
   ]);
 
   const unknownMeasurement = stateMeasurements.find((measurement) => measurement.state === "unknown");
