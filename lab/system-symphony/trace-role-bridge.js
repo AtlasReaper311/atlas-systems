@@ -1,6 +1,6 @@
 "use strict";
 
-const TRACE_ROLE_STYLESHEET = "/lab/system-symphony/trace-role-bridge.css?v=20260726-phase-d-role-routing-v1";
+const TRACE_ROLE_STYLESHEET = "/lab/system-symphony/trace-role-bridge.css?v=20260728-system-symphony-trace-board-v1";
 const ROLE_KEYS = Object.freeze([
   "clock",
   "pulse",

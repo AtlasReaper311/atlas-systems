@@ -37,7 +37,7 @@ test("the product page uses the governed global and Lab shells", () => {
   assert.ok(page.includes('<header id="instrument" class="symphony-flagship"'));
   assert.ok(page.includes('/static/css/estate-search.css'));
   assert.ok(page.includes('/static/css/estate-shell.css?v=20260723-interface-v2'));
-  assert.ok(page.includes('/lab/shared/shell.js?v=20260725-batch-h-fixes'));
+  assert.ok(page.includes('/lab/shared/shell.js?v=20260728-system-symphony-trace-board-v1'));
   assert.ok(!page.includes('id="symphony-page-title" class="focus-title" tabindex="-1"'));
   assert.ok(labShell.includes('{ label: "System Symphony", href: "/lab/system-symphony/" }'));
   assert.ok(labShell.includes('{ label: "Reliability", href: "/systems/reliability/" }'));
@@ -85,8 +85,8 @@ test("the lab route adds scoped System Symphony side routes without public cutov
   assert.ok(labShell.includes('{ label: "APU ROMs", href: "/lab/system-symphony/roms/" }'));
   for (const html of [roms, buildLog, radio]) {
     assert.ok(html.includes('<meta name="robots" content="noindex, follow">'));
-    assert.ok(html.includes('/lab/shared/shell.js?v=20260725-batch-h-fixes'));
-    assert.ok(html.includes('/lab/system-symphony/system-symphony-page.css?v=20260727-stage-2a-polish-fixes'));
+    assert.ok(html.includes('/lab/shared/shell.js?v=20260728-system-symphony-trace-board-v1'));
+    assert.ok(html.includes('/lab/system-symphony/system-symphony-page.css?v=20260728-system-symphony-trace-board-v1'));
     assert.ok(html.includes('href="/lab/system-symphony/'));
   }
   assert.ok(roms.includes("Atlas APU ROM Library"));
