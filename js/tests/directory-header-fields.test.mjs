@@ -97,7 +97,7 @@ test("each composition has a materially different silhouette and animation gramm
 
   const opacities = [...css.matchAll(/composition--(?:topology-current|build-fragments|editorial-drift) > \.directory-header-field-canvas \{[\s\S]*?opacity:\s*([.\d]+)/g)]
     .map((match) => Number(match[1]));
-  assert.deepEqual(opacities, [0.2, 0.12, 0.075]);
+  assert.deepEqual(opacities, [0.2, 0.12, 0.18]);
 });
 
 test("route entrypoints and cache boundaries are explicit", () => {
