@@ -27,7 +27,19 @@
 /static/js/atlas-field-consumer.js
   Cache-Control: no-store, max-age=0
 
+/static/js/directory-header-fields.js
+  Cache-Control: no-store, max-age=0
+
+/static/js/enable-enhancements.js
+  Cache-Control: no-store, max-age=0
+
+/static/js/card-signatures.js
+  Cache-Control: no-store, max-age=0
+
 /static/css/atlas-field-consumer.css
+  Cache-Control: no-store, max-age=0
+
+/static/css/directory-header-fields.css
   Cache-Control: no-store, max-age=0
 
 /css/home-v2-base.css
