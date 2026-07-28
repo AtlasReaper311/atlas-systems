@@ -299,9 +299,14 @@ function configureRootWorkspace() {
     trustLayer.setAttribute("aria-label", "System Symphony proof drawer");
   }
 
+  // The board is the subject of the workspace, not the payoff underneath the
+  // score and proof surfaces, so it sits directly beneath the controls that
+  // drive it. The evidence surfaces keep their existing position.
+  if (host && stage) stage.after(host);
+
   const insertionAnchor = trustLayer ?? flagship.querySelector(".symphony-proof-strip");
   if (insertionAnchor) {
-    const ordered = [host, summary, sourceStatus, proofConsole].filter(Boolean);
+    const ordered = [summary, sourceStatus, proofConsole].filter(Boolean);
     insertionAnchor.after(...ordered);
   }
 }

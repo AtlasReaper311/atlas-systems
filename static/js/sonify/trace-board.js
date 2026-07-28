@@ -49,19 +49,27 @@ const FALLBACK_INDEX = 3;
 
 export const DESKTOP_BOARD = Object.freeze({
   layout: "desktop",
-  width: 1360,
-  originX: 80,
-  colPitch: 260,
+  /**
+   * Sized so five districts fit a 1440px laptop without zooming out: the board
+   * plus the inspector rail has to live inside the flagship's inner width.
+   * The gutter between columns still has room for a routed trace plus its
+   * per-target offset.
+   */
+  width: 1240,
+  originX: 60,
+  colPitch: 236,
   y0: 90,
   rowH: 78,
   chipW: 170,
   chipH: 46,
   /**
-   * A district deeper than this spills into further columns rather than
-   * stretching the board, so one crowded layer cannot leave the rest of the
-   * board as empty space.
+   * Rows per column. A deep district grows the board downwards, because
+   * vertical space is free on a page that already scrolls while horizontal
+   * space is what forces the reader to zoom out. Only past `rowCap` does a
+   * district spill into extra columns.
    */
-  maxRows: 6,
+  minRows: 6,
+  rowCap: 12,
   minHeight: 584,
   labelOffset: 28,
   gutter: 26,
@@ -357,13 +365,21 @@ export function boardGeometry({ voices = [], externalNodes = [], layout = "deskt
     };
   }
 
+  // Let the deepest district set the row count, so the board stays as narrow
+  // as the district count allows and only grows past the cap sideways.
+  const deepest = buckets.reduce((most, bucket) => Math.max(most, bucket.length), 0);
+  const rowsPerColumn = Math.min(
+    metrics.rowCap,
+    Math.max(metrics.minRows, deepest),
+  );
+
   let maxRows = 0;
   let column = 0;
   buckets.forEach((bucket, index) => {
     if (!bucket.length) return;
-    // Spread a deep district over as few columns as will hold it, balanced so
-    // the last column is not left with a single stranded chip.
-    const span = Math.max(1, Math.ceil(bucket.length / metrics.maxRows));
+    // Spread an over-cap district over as few columns as will hold it,
+    // balanced so the last column is not left with a single stranded chip.
+    const span = Math.max(1, Math.ceil(bucket.length / rowsPerColumn));
     const perColumn = Math.ceil(bucket.length / span);
     const x = metrics.originX + column * metrics.colPitch;
 

@@ -850,6 +850,9 @@ export function initSystemSymphony() {
     });
 
     topologySvg.setAttribute("viewBox", `0 0 ${board.width} ${board.height}`);
+    // Cap the board at its authored size so it renders 1:1 when there is room
+    // and scales down, rather than stretching, when there is not.
+    topologySvg.style.maxWidth = `${board.width}px`;
     topologySvg.dataset.layout = board.layout;
     topologySvg.dataset.source = source.key;
     topologySvg.dataset.scope = componentFilter;

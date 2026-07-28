@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  DESKTOP_BOARD,
   MOBILE_BOARD,
   TRACE_BOARD_DISTRICTS,
   boardGeometry,
@@ -113,7 +114,7 @@ test("desktop geometry places districts in columns and skips empty ones", () => 
   });
 
   assert.equal(board.layout, "desktop");
-  assert.equal(board.width, 1360);
+  assert.equal(board.width, DESKTOP_BOARD.width);
   // local-ai, edge, observability and the boundary are populated; the
   // measured-surfaces district is empty and must not leave a gap.
   assert.equal(board.districts.length, 4);
@@ -123,16 +124,29 @@ test("desktop geometry places districts in columns and skips empty ones", () => 
   assert.notEqual(board.chips.get("atlas-notify").y, board.chips.get("atlas-blackbox").y);
 });
 
-test("a deep district spills sideways instead of stretching the board", () => {
-  const voices = Array.from({ length: 12 }, (unused, index) =>
+test("a deep district grows downwards before it grows sideways", () => {
+  const voices = Array.from({ length: 10 }, (unused, index) =>
     voice({ name: `worker-${String(index).padStart(2, "0")}`, layer: "edge" }));
   const board = boardGeometry({ voices, layout: "desktop" });
 
   const lowest = Math.max(...[...board.chips.values()].map((chip) => chip.y + chip.h));
-  assert.equal(board.height, 584, "the board keeps its designed height");
+  // Horizontal space is what forces a reader to zoom out, so the board stays
+  // one column wide and takes the height instead.
+  assert.equal(board.districts[0].span, 1);
+  assert.equal(board.width, DESKTOP_BOARD.width);
+  assert.ok(board.height > 584, "a ten-deep district must extend the board");
+  assert.ok(lowest < board.height, "no chip may fall outside the board");
+});
+
+test("a district past the row cap spills sideways", () => {
+  const voices = Array.from({ length: 16 }, (unused, index) =>
+    voice({ name: `worker-${String(index).padStart(2, "0")}`, layer: "edge" }));
+  const board = boardGeometry({ voices, layout: "desktop" });
+
+  const lowest = Math.max(...[...board.chips.values()].map((chip) => chip.y + chip.h));
   assert.ok(lowest < board.height, "no chip may fall outside the board");
 
-  // Twelve components at six rows per column occupy two balanced columns.
+  // Sixteen components at a twelve-row cap occupy two balanced columns.
   const [district] = board.districts;
   assert.equal(district.span, 2);
   const columns = new Set([...board.chips.values()].map((chip) => chip.column));
@@ -140,17 +154,17 @@ test("a deep district spills sideways instead of stretching the board", () => {
   const perColumn = [...columns].map(
     (column) => [...board.chips.values()].filter((chip) => chip.column === column).length,
   );
-  assert.deepEqual(perColumn, [6, 6]);
+  assert.deepEqual(perColumn, [8, 8]);
 });
 
 test("the board widens rather than clipping when every district is deep", () => {
   const voices = TRACE_BOARD_DISTRICTS.flatMap((district, index) =>
-    Array.from({ length: 8 }, (unused, item) =>
+    Array.from({ length: 16 }, (unused, item) =>
       voice({ name: `svc-${index}-${item}`, layer: district.layers[0] ?? "public-api" })));
   const board = boardGeometry({ voices, layout: "desktop" });
 
   const rightmost = Math.max(...[...board.chips.values()].map((chip) => chip.x + chip.w));
-  assert.ok(board.width > 1360, "an overfull board must widen");
+  assert.ok(board.width > DESKTOP_BOARD.width, "an overfull board must widen");
   assert.ok(rightmost < board.width, "no chip may fall off the right edge");
 });
 

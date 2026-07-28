@@ -799,9 +799,11 @@
   width: 100%;
   height: auto;
   display: block;
-  /* Below this the board scrolls horizontally instead of scaling down. The
-     mobile composition takes over entirely at the narrow breakpoint. */
-  min-width: 1100px;
+  /* The board scales down to this floor to fit its container; below it the
+     surface scrolls rather than shrinking text past legibility. The mobile
+     composition takes over entirely at the narrow breakpoint. */
+  min-width: 1000px;
+  margin-inline: auto;
   font: 9px var(--mono, "IBM Plex Mono", monospace);
 }
 
