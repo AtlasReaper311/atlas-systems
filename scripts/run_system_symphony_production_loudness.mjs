@@ -4,13 +4,17 @@ import path from "node:path";
 import {
   SYSTEM_SYMPHONY_BAR_DURATION_MS,
   SYSTEM_SYMPHONY_SAMPLE_INTERVAL_MS,
+  SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR,
+  SYSTEM_SYMPHONY_STATE_ALIGNMENT_STEP,
   SYSTEM_SYMPHONY_STATE_LABELS,
   SYSTEM_SYMPHONY_STATE_MEASUREMENT_BARS,
   SYSTEM_SYMPHONY_STATE_MEASUREMENT_MS,
+  SYSTEM_SYMPHONY_STATE_PAGE_POLICY,
   SYSTEM_SYMPHONY_STATE_WINDOWS,
   SYSTEM_SYMPHONY_STATES,
   SYSTEM_SYMPHONY_TRANSITION_ROUTE,
   buildProgrammeSummary,
+  buildStateMeasurementPlan,
   buildTransitionSummary,
   transitionPairs,
 } from "./system-symphony-production-evidence.mjs";
@@ -54,6 +58,8 @@ async function collectSample(page) {
       capturedAt: Date.now(),
       state: diagnostics?.state ?? null,
       section: arrangement?.section ?? null,
+      position: arrangement?.cycleBarStart ?? null,
+      stepIndex: Number(diagnostics?.stepIndex),
       momentaryLufs: Number(metrics?.momentaryLufs),
       shortTermLufs: Number(metrics?.shortTermLufs),
       integratedLufs: Number(metrics?.integratedLufs),
@@ -75,6 +81,108 @@ async function collectTimedSamples(page, durationMs) {
   return samples;
 }
 
+function attachDiagnostics(page, diagnostics) {
+  page.on("console", (message) => {
+    if (message.type() === "error") diagnostics.consoleErrors.push(message.text());
+  });
+  page.on("pageerror", (error) => diagnostics.pageErrors.push(error.message));
+  page.on("request", (request) => {
+    if (/\.(?:wav|mp3|m4a|aac|ogg|opus|flac)(?:\?|$)/i.test(request.url())) {
+      diagnostics.audioRequests.push(request.url());
+    }
+  });
+  page.on("requestfailed", (request) => {
+    if (request.url().includes("cloudflareinsights.com")) return;
+    diagnostics.failedRequests.push({
+      url: request.url(),
+      error: request.failure()?.errorText ?? "unknown",
+    });
+  });
+}
+
+function assertPreviewBoundary(evidence) {
+  assert.equal(evidence.source, "preview");
+  assert.equal(evidence.fixtureBannerHidden, false);
+  assert.match(evidence.fixtureBannerText ?? "", /not live estate data/i);
+  assert.equal(evidence.frame?.evidenceMode, "preview");
+  assert.equal(evidence.frame?.previewEstateDerived, true);
+  assert.equal(evidence.frame?.scoreState, "healthy");
+  assert.equal(evidence.metricState, "Healthy");
+}
+
+async function openEvidencePage({ browser, pageUrl, diagnostics, openPages }) {
+  const page = await browser.newPage({
+    viewport: { width: 1440, height: 1800 },
+    reducedMotion: "reduce",
+  });
+  openPages.add(page);
+  attachDiagnostics(page, diagnostics);
+  const response = await page.goto(pageUrl, { waitUntil: "networkidle", timeout: 60_000 });
+  assert.equal(response?.ok(), true, `production deterministic route answered ${response?.status()}`);
+  await page.waitForSelector('[data-apu-root][data-ready="true"]', { timeout: 30_000 });
+  const evidence = await collectEvidence(page);
+  assertPreviewBoundary(evidence);
+  return { page, evidence };
+}
+
+async function closeEvidencePage(page, openPages) {
+  openPages.delete(page);
+  await page.close().catch(() => {});
+}
+
+async function selectStateBeforePlayback(page, state) {
+  const label = SYSTEM_SYMPHONY_STATE_LABELS[state];
+  await page.getByRole("button", { name: label, exact: true }).click();
+  await page.waitForFunction(({ expectedState, expectedLabel }) => {
+    const root = document.querySelector("[data-apu-root]");
+    const metricState = root?.querySelector('[data-metric="state"]')?.textContent?.trim() ?? null;
+    const frame = globalThis.__ATLAS_APU__?.getFrame?.();
+    return root?.dataset.source === "simulated"
+      && frame?.scoreState === expectedState
+      && metricState === expectedLabel;
+  }, { expectedState: state, expectedLabel: label }, { timeout: 10_000, polling: 50 });
+}
+
+async function startAudio(page) {
+  await page.getByRole("button", { name: "Start audio", exact: true }).click();
+  await page.waitForFunction(() => {
+    const root = document.querySelector("[data-apu-root]");
+    return root?.dataset.running === "true"
+      && globalThis.Tone?.getContext?.().state === "running"
+      && globalThis.__ATLAS_APU__?.getArrangement?.()?.section;
+  }, null, { timeout: 15_000 });
+  await page.waitForFunction(() => {
+    const status = globalThis.__ATLAS_APU_LOUDNESS__?.getStatus?.();
+    const mastering = globalThis.__ATLAS_APU_MASTERING_RUNTIME__?.getStatus?.();
+    return status?.status === "running" && status?.processorReady === true && mastering?.active === true;
+  }, null, { timeout: 15_000, polling: 100 });
+}
+
+async function alignStateMeasurement(page, state) {
+  await page.waitForFunction(({ expectedState, alignmentStep, alignmentBar }) => {
+    const diagnostics = globalThis.__ATLAS_APU__?.getDiagnostics?.();
+    const arrangement = globalThis.__ATLAS_APU__?.getArrangement?.();
+    return diagnostics?.state === expectedState
+      && Number(diagnostics?.stepIndex) >= alignmentStep
+      && Number(diagnostics?.stepIndex) < alignmentStep + 16
+      && arrangement?.cycleBarStart === alignmentBar
+      && Object.keys(diagnostics?.channelFailures ?? {}).length === 0;
+  }, {
+    expectedState: state,
+    alignmentStep: SYSTEM_SYMPHONY_STATE_ALIGNMENT_STEP,
+    alignmentBar: SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR,
+  }, { timeout: 20_000, polling: 25 });
+  const evidence = await collectEvidence(page);
+  assert.equal(evidence.frame?.scoreState, state);
+  assert.equal(evidence.arrangement?.cycleBarStart, SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR);
+  assert.ok(
+    Number(evidence.diagnostics?.stepIndex) >= SYSTEM_SYMPHONY_STATE_ALIGNMENT_STEP
+      && Number(evidence.diagnostics?.stepIndex) < SYSTEM_SYMPHONY_STATE_ALIGNMENT_STEP + 16,
+    `${state} missed the aligned production measurement window`,
+  );
+  return evidence;
+}
+
 async function waitForTransition(page, from, to) {
   await page.waitForFunction(({ expectedFrom, expectedTo }) => {
     const diagnostics = globalThis.__ATLAS_APU__?.getDiagnostics?.();
@@ -87,7 +195,7 @@ async function waitForTransition(page, from, to) {
   }, { expectedFrom: from, expectedTo: to }, { timeout: 12_000, polling: 100 });
 }
 
-async function measureState(page, state) {
+async function measureState(page, state, alignedEvidence) {
   const expectedGainDb = state === "unknown" ? 8 : 4;
   await page.evaluate(() => globalThis.__ATLAS_APU_LOUDNESS__?.reset?.());
   const samples = await collectTimedSamples(page, SYSTEM_SYMPHONY_STATE_MEASUREMENT_MS);
@@ -125,12 +233,17 @@ async function measureState(page, state) {
     state,
     label: SYSTEM_SYMPHONY_STATE_LABELS[state],
     policy: "stable-eight-bar-window",
+    pagePolicy: SYSTEM_SYMPHONY_STATE_PAGE_POLICY,
+    alignmentBar: SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR,
+    alignmentStep: Number(alignedEvidence.diagnostics?.stepIndex),
+    startSection: alignedEvidence.arrangement?.section ?? null,
+    startPosition: alignedEvidence.metricPosition,
     measurementBars: SYSTEM_SYMPHONY_STATE_MEASUREMENT_BARS,
     measurementDurationMs: SYSTEM_SYMPHONY_STATE_MEASUREMENT_MS,
     metrics,
     mastering: snapshot.masteringRuntime,
-    section: snapshot.arrangement?.section ?? null,
-    position: snapshot.metricPosition,
+    endSection: snapshot.arrangement?.section ?? null,
+    endPosition: snapshot.metricPosition,
     samples,
   };
 }
@@ -160,80 +273,58 @@ export async function runSystemSymphonyProductionLoudnessProof({
     `/lab/system-symphony-apu/?symphonyPreviewData=1&atlas-deploy=${encodeURIComponent(expectedSha)}`,
     siteUrl,
   ).href;
-  const page = await browser.newPage({
-    viewport: { width: 1440, height: 1800 },
-    reducedMotion: "reduce",
-  });
   const diagnostics = {
     audioRequests: [],
     failedRequests: [],
     pageErrors: [],
     consoleErrors: [],
   };
+  const openPages = new Set();
+  const stateMeasurements = [];
+  const transitionMeasurements = [];
   let initialEvidence = null;
+  let finalEvidence = null;
+  let screenshotPage = null;
   let result = null;
   let failure = null;
 
-  page.on("console", (message) => {
-    if (message.type() === "error") diagnostics.consoleErrors.push(message.text());
-  });
-  page.on("pageerror", (error) => diagnostics.pageErrors.push(error.message));
-  page.on("request", (request) => {
-    if (/\.(?:wav|mp3|m4a|aac|ogg|opus|flac)(?:\?|$)/i.test(request.url())) {
-      diagnostics.audioRequests.push(request.url());
-    }
-  });
-  page.on("requestfailed", (request) => {
-    if (request.url().includes("cloudflareinsights.com")) return;
-    diagnostics.failedRequests.push({
-      url: request.url(),
-      error: request.failure()?.errorText ?? "unknown",
-    });
-  });
-
   try {
-    const response = await page.goto(pageUrl, { waitUntil: "networkidle", timeout: 60_000 });
-    assert.equal(response?.ok(), true, `production deterministic route answered ${response?.status()}`);
-    await page.waitForSelector('[data-apu-root][data-ready="true"]', { timeout: 30_000 });
-
-    initialEvidence = await collectEvidence(page);
-    assert.equal(initialEvidence.source, "preview");
-    assert.equal(initialEvidence.fixtureBannerHidden, false);
-    assert.match(initialEvidence.fixtureBannerText ?? "", /not live estate data/i);
-    assert.equal(initialEvidence.frame?.evidenceMode, "preview");
-    assert.equal(initialEvidence.frame?.previewEstateDerived, true);
-    assert.equal(initialEvidence.frame?.scoreState, "healthy");
-    assert.equal(initialEvidence.metricState, "Healthy");
-
-    await page.getByRole("button", { name: "Start audio", exact: true }).click();
-    await page.waitForFunction(() => {
-      const root = document.querySelector("[data-apu-root]");
-      return root?.dataset.running === "true"
-        && globalThis.Tone?.getContext?.().state === "running"
-        && globalThis.__ATLAS_APU__?.getArrangement?.()?.section;
-    }, null, { timeout: 15_000 });
-    await page.waitForFunction(() => {
-      const status = globalThis.__ATLAS_APU_LOUDNESS__?.getStatus?.();
-      const mastering = globalThis.__ATLAS_APU_MASTERING_RUNTIME__?.getStatus?.();
-      return status?.status === "running" && status?.processorReady === true && mastering?.active === true;
-    }, null, { timeout: 15_000, polling: 100 });
-
-    const stateMeasurements = [await measureState(page, "healthy")];
-    const transitionMeasurements = [];
-    const measuredStates = new Set(["healthy"]);
-    for (const { from, to } of transitionPairs(SYSTEM_SYMPHONY_TRANSITION_ROUTE)) {
-      transitionMeasurements.push(await captureTransition(page, from, to));
-      if (!measuredStates.has(to)) {
-        stateMeasurements.push(await measureState(page, to));
-        measuredStates.add(to);
-      }
+    for (const plan of buildStateMeasurementPlan()) {
+      const opened = await openEvidencePage({ browser, pageUrl, diagnostics, openPages });
+      const { page } = opened;
+      screenshotPage = page;
+      initialEvidence ??= opened.evidence;
+      await selectStateBeforePlayback(page, plan.mode);
+      await startAudio(page);
+      const alignedEvidence = await alignStateMeasurement(page, plan.state);
+      stateMeasurements.push(await measureState(page, plan.state, alignedEvidence));
+      await closeEvidencePage(page, openPages);
     }
 
-    assert.deepEqual([...measuredStates].sort(), [...SYSTEM_SYMPHONY_STATES].sort());
+    assert.deepEqual(
+      [...new Set(stateMeasurements.map(({ pagePolicy }) => pagePolicy))],
+      [SYSTEM_SYMPHONY_STATE_PAGE_POLICY],
+    );
+    assert.equal(new Set(stateMeasurements.map(({ startPosition }) => startPosition)).size, 1);
+    assert.equal(new Set(stateMeasurements.map(({ startSection }) => startSection)).size, 1);
+    assert.deepEqual(stateMeasurements.map(({ state }) => state), [...SYSTEM_SYMPHONY_STATES]);
+
+    const transitionPageResult = await openEvidencePage({ browser, pageUrl, diagnostics, openPages });
+    const transitionPage = transitionPageResult.page;
+    screenshotPage = transitionPage;
+    await selectStateBeforePlayback(transitionPage, "healthy");
+    await startAudio(transitionPage);
+    for (const { from, to } of transitionPairs(SYSTEM_SYMPHONY_TRANSITION_ROUTE)) {
+      transitionMeasurements.push(await captureTransition(transitionPage, from, to));
+    }
+    finalEvidence = await collectEvidence(transitionPage);
+
     const programmeSummary = buildProgrammeSummary(stateMeasurements);
     const transitionSummary = buildTransitionSummary(transitionMeasurements, stateMeasurements);
 
     assert.equal(programmeSummary.measuredBars, 32);
+    assert.deepEqual(programmeSummary.pagePolicies, [SYSTEM_SYMPHONY_STATE_PAGE_POLICY]);
+    assert.equal(programmeSummary.alignmentPositions.length, 1);
     assert.ok(programmeSummary.maximumTruePeakDbtp <= -2, "the 32-bar production programme exceeded the true-peak guard");
     assert.ok(programmeSummary.unknownDeltas.healthy <= 4, "Healthy to Unknown retained a production loudness cliff");
     assert.ok(programmeSummary.unknownDeltas.warning <= 4, "Warning to Unknown retained a production loudness cliff");
@@ -250,8 +341,9 @@ export async function runSystemSymphonyProductionLoudnessProof({
 
     result = {
       pageUrl,
+      measurementPolicy: SYSTEM_SYMPHONY_STATE_PAGE_POLICY,
       initialEvidence,
-      finalEvidence: await collectEvidence(page),
+      finalEvidence,
       stateMeasurements,
       transitionMeasurements,
       programmeSummary,
@@ -260,19 +352,31 @@ export async function runSystemSymphonyProductionLoudnessProof({
     };
   } catch (error) {
     failure = error;
+    const availablePage = [...openPages].at(-1) ?? null;
+    finalEvidence = availablePage
+      ? await collectEvidence(availablePage).catch((collectionError) => ({
+        collectionError: collectionError.message,
+      }))
+      : finalEvidence;
     result = {
       pageUrl,
+      measurementPolicy: SYSTEM_SYMPHONY_STATE_PAGE_POLICY,
       initialEvidence,
-      finalEvidence: await collectEvidence(page).catch((collectionError) => ({
-        collectionError: collectionError.message,
-      })),
+      finalEvidence,
+      stateMeasurements,
+      transitionMeasurements,
+      partialProgrammeSummary: stateMeasurements.length === SYSTEM_SYMPHONY_STATES.length
+        ? buildProgrammeSummary(stateMeasurements)
+        : null,
       diagnostics,
     };
   } finally {
-    await page.screenshot({
-      path: path.join(outputDir, "system-symphony-production-loudness.png"),
-      fullPage: true,
-    }).catch(() => {});
+    if (screenshotPage && !screenshotPage.isClosed()) {
+      await screenshotPage.screenshot({
+        path: path.join(outputDir, "system-symphony-production-loudness.png"),
+        fullPage: true,
+      }).catch(() => {});
+    }
     await writeFile(
       path.join(outputDir, "loudness-evidence.json"),
       `${JSON.stringify({
@@ -283,7 +387,7 @@ export async function runSystemSymphonyProductionLoudnessProof({
       }, null, 2)}\n`,
       "utf8",
     );
-    await page.close().catch(() => {});
+    await Promise.all([...openPages].map((page) => page.close().catch(() => {})));
   }
 
   if (failure) throw failure;
