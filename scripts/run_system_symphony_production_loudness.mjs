@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
+import { isCloudflareInsightsUrl } from "./network-request-policy.mjs";
 import {
   SYSTEM_SYMPHONY_BAR_DURATION_MS,
   SYSTEM_SYMPHONY_SAMPLE_INTERVAL_MS,
@@ -92,9 +93,10 @@ function attachDiagnostics(page, diagnostics) {
     }
   });
   page.on("requestfailed", (request) => {
-    if (request.url().includes("cloudflareinsights.com")) return;
+    const requestUrl = request.url();
+    if (isCloudflareInsightsUrl(requestUrl)) return;
     diagnostics.failedRequests.push({
-      url: request.url(),
+      url: requestUrl,
       error: request.failure()?.errorText ?? "unknown",
     });
   });
