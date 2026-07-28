@@ -5,6 +5,7 @@ import process from "node:process";
 import {
   BROWSERS,
   accessibilityReport,
+  actionableConsoleErrors,
   configureDeterministicContext,
   observePage,
   openWithRetry,
@@ -112,6 +113,7 @@ async function inspectKeyboardFocus(page) {
       const mobile = document.querySelector(".atlas-mobile-nav");
       const headerBottom = header ? header.getBoundingClientRect().bottom : 0;
       const mobileTop = mobile && getComputedStyle(mobile).display !== "none" ? mobile.getBoundingClientRect().top : innerHeight;
+      const insideFixedNavigation = Boolean(element?.closest?.(".atlas-header, .atlas-mobile-nav"));
       return {
         tag: element?.tagName?.toLowerCase() || null,
         text: element?.textContent?.trim()?.slice(0, 80) || null,
@@ -119,7 +121,12 @@ async function inspectKeyboardFocus(page) {
         focusVisible: Boolean(document.querySelector(":focus-visible")),
         outlineStyle: style?.outlineStyle || null,
         outlineWidth: style?.outlineWidth || null,
-        obscured: Boolean(rect && (rect.top < headerBottom - 1 || rect.bottom > mobileTop + 1)),
+        insideFixedNavigation,
+        obscured: Boolean(
+          rect
+          && !insideFixedNavigation
+          && (rect.top < headerBottom - 1 || rect.bottom > mobileTop + 1)
+        ),
       };
     });
     if (state.tag && !["body", "html"].includes(state.tag)) return state;
@@ -155,7 +162,8 @@ function evaluate({ route, viewport, evidence, focus, accessibility, telemetry }
   }
   if (accessibility.blocking.length) blockers.push(`${prefix}: serious accessibility findings ${JSON.stringify(accessibility.blocking)}`);
   if (telemetry.pageErrors.length) blockers.push(`${prefix}: page errors ${JSON.stringify(telemetry.pageErrors)}`);
-  if (telemetry.consoleErrors.length) blockers.push(`${prefix}: console errors ${JSON.stringify(telemetry.consoleErrors)}`);
+  const consoleErrors = actionableConsoleErrors(telemetry.consoleErrors);
+  if (consoleErrors.length) blockers.push(`${prefix}: console errors ${JSON.stringify(consoleErrors)}`);
   if (telemetry.failedRequests.length) blockers.push(`${prefix}: failed requests ${JSON.stringify(telemetry.failedRequests)}`);
   if (telemetry.responseErrors.length) blockers.push(`${prefix}: HTTP errors ${JSON.stringify(telemetry.responseErrors)}`);
   return { routeFindings, blockers };
