@@ -22,7 +22,10 @@ committed = document("2026-07-28T22:18:14+01:00")
 generated_after_squash = document("2026-07-28T23:01:46+01:00")
 assert sitemap.comparison_mode(committed, generated_after_squash) == "lastmod-only"
 assert sitemap.comparison_mode(committed, committed) == "exact"
-assert sitemap.comparison_mode(committed, document("2026-07-28T23:01:46+01:00", priority="0.6")) == "structural"
+assert sitemap.comparison_mode(
+    committed,
+    document("2026-07-28T23:01:46+01:00", priority="0.6"),
+) == "structural"
 
 try:
     sitemap.comparison_mode(document("not-a-date"), generated_after_squash)
@@ -31,13 +34,18 @@ except ValueError as error:
 else:
     raise AssertionError("invalid lastmod was accepted")
 
+duplicate = committed.replace(
+    "</urlset>",
+    committed.split("<url>", 1)[1].split("</url>", 1)[0].join(
+        ["<url>", "</url>\n  <url>", "</url>"]
+    ) + "\n</urlset>",
+)
 try:
-    sitemap.sitemap_contract(
-        committed.replace("</urlset>", committed.split("<url>", 1)[1].split("</url>", 1)[0].join(["<url>", "</url>"]) + "</urlset>"),
-        "duplicate fixture",
-    )
-except ValueError:
-    pass
+    sitemap.sitemap_contract(duplicate, "duplicate fixture")
+except ValueError as error:
+    assert "duplicate sitemap location" in str(error)
+else:
+    raise AssertionError("duplicate sitemap location was accepted")
 `;
 
 test("sitemap validation tolerates only squash-merge timestamp drift", () => {
