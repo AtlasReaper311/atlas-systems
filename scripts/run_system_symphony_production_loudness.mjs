@@ -12,11 +12,11 @@ import {
   SYSTEM_SYMPHONY_STATE_PAGE_POLICY,
   SYSTEM_SYMPHONY_STATE_WINDOWS,
   SYSTEM_SYMPHONY_STATES,
-  SYSTEM_SYMPHONY_TRANSITION_ROUTE,
+  SYSTEM_SYMPHONY_TRANSITION_PAGE_POLICY,
   buildProgrammeSummary,
   buildStateMeasurementPlan,
+  buildTransitionMeasurementPlan,
   buildTransitionSummary,
-  transitionPairs,
 } from "./system-symphony-production-evidence.mjs";
 
 async function collectEvidence(page) {
@@ -248,7 +248,7 @@ async function measureState(page, state, alignedEvidence) {
   };
 }
 
-async function captureTransition(page, from, to) {
+async function captureTransition(page, from, to, alignedEvidence) {
   await page.getByRole("button", { name: SYSTEM_SYMPHONY_STATE_LABELS[to], exact: true }).click();
   const stateWait = waitForTransition(page, from, to);
   const samples = await collectTimedSamples(page, SYSTEM_SYMPHONY_BAR_DURATION_MS);
@@ -258,6 +258,11 @@ async function captureTransition(page, from, to) {
     from,
     to,
     policy: snapshot.diagnostics?.lastStateTransition?.policy ?? null,
+    pagePolicy: SYSTEM_SYMPHONY_TRANSITION_PAGE_POLICY,
+    alignmentBar: SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR,
+    alignmentStep: Number(alignedEvidence.diagnostics?.stepIndex),
+    startSection: alignedEvidence.arrangement?.section ?? null,
+    startPosition: alignedEvidence.metricPosition,
     transition: snapshot.diagnostics?.lastStateTransition ?? null,
     samples,
   };
@@ -309,15 +314,21 @@ export async function runSystemSymphonyProductionLoudnessProof({
     assert.equal(new Set(stateMeasurements.map(({ startSection }) => startSection)).size, 1);
     assert.deepEqual(stateMeasurements.map(({ state }) => state), [...SYSTEM_SYMPHONY_STATES]);
 
-    const transitionPageResult = await openEvidencePage({ browser, pageUrl, diagnostics, openPages });
-    const transitionPage = transitionPageResult.page;
-    screenshotPage = transitionPage;
-    await selectStateBeforePlayback(transitionPage, "healthy");
-    await startAudio(transitionPage);
-    for (const { from, to } of transitionPairs(SYSTEM_SYMPHONY_TRANSITION_ROUTE)) {
-      transitionMeasurements.push(await captureTransition(transitionPage, from, to));
+    const transitionPlan = buildTransitionMeasurementPlan();
+    for (let index = 0; index < transitionPlan.length; index += 1) {
+      const plan = transitionPlan[index];
+      const opened = await openEvidencePage({ browser, pageUrl, diagnostics, openPages });
+      const { page } = opened;
+      screenshotPage = page;
+      await selectStateBeforePlayback(page, plan.from);
+      await startAudio(page);
+      const alignedEvidence = await alignStateMeasurement(page, plan.from);
+      transitionMeasurements.push(await captureTransition(page, plan.from, plan.to, alignedEvidence));
+      finalEvidence = await collectEvidence(page);
+      if (index < transitionPlan.length - 1) {
+        await closeEvidencePage(page, openPages);
+      }
     }
-    finalEvidence = await collectEvidence(transitionPage);
 
     const programmeSummary = buildProgrammeSummary(stateMeasurements);
     const transitionSummary = buildTransitionSummary(transitionMeasurements, stateMeasurements);
@@ -332,6 +343,8 @@ export async function runSystemSymphonyProductionLoudnessProof({
     assert.equal(transitionSummary.measuredTransitionCount, 12);
     assert.equal(transitionSummary.uniqueTransitionCount, 12);
     assert.equal(transitionSummary.expectedTransitionCount, 12);
+    assert.deepEqual(transitionSummary.pagePolicies, [SYSTEM_SYMPHONY_TRANSITION_PAGE_POLICY]);
+    assert.equal(transitionSummary.alignmentPositions.length, 1);
     assert.equal(transitionSummary.allPassed, true, JSON.stringify(transitionSummary, null, 2));
     assert.ok(transitionSummary.transitions.every(({ policy }) => policy === "one-bar-decay"));
     assert.deepEqual(diagnostics.audioRequests, [], "production APU requested an audio asset");
@@ -342,6 +355,7 @@ export async function runSystemSymphonyProductionLoudnessProof({
     result = {
       pageUrl,
       measurementPolicy: SYSTEM_SYMPHONY_STATE_PAGE_POLICY,
+      transitionPolicy: SYSTEM_SYMPHONY_TRANSITION_PAGE_POLICY,
       initialEvidence,
       finalEvidence,
       stateMeasurements,
@@ -361,12 +375,16 @@ export async function runSystemSymphonyProductionLoudnessProof({
     result = {
       pageUrl,
       measurementPolicy: SYSTEM_SYMPHONY_STATE_PAGE_POLICY,
+      transitionPolicy: SYSTEM_SYMPHONY_TRANSITION_PAGE_POLICY,
       initialEvidence,
       finalEvidence,
       stateMeasurements,
       transitionMeasurements,
       partialProgrammeSummary: stateMeasurements.length === SYSTEM_SYMPHONY_STATES.length
         ? buildProgrammeSummary(stateMeasurements)
+        : null,
+      partialTransitionSummary: transitionMeasurements.length
+        ? buildTransitionSummary(transitionMeasurements, stateMeasurements)
         : null,
       diagnostics,
     };
