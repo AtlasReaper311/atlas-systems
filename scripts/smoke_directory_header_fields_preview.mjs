@@ -12,9 +12,9 @@ const outputDir = process.env.DIRECTORY_HEADER_FIELD_OUTPUT_DIR
   ?? path.join(process.cwd(), ".tmp", "directory-header-field-preview-smoke");
 
 const routes = Object.freeze([
-  { name: "systems", path: "/systems/", selector: ".page-intro", composition: "topology-current", minimumLuminousPixels: 5 },
-  { name: "work", path: "/work/", selector: ".page-header", composition: "build-fragments", minimumLuminousPixels: 4 },
-  { name: "writing", path: "/writing/", selector: ".page-header", composition: "editorial-drift", minimumLuminousPixels: 2 },
+  { name: "systems", path: "/systems/", selector: ".page-intro", composition: "topology-current", minimumLuminousPixels: 4, animation: "topology-scan" },
+  { name: "work", path: "/work/", selector: ".page-header", composition: "build-fragments", minimumLuminousPixels: 3, animation: "fragment-shift" },
+  { name: "writing", path: "/writing/", selector: ".page-header", composition: "editorial-drift", minimumLuminousPixels: 1, animation: "editorial-drift" },
 ]);
 
 await mkdir(outputDir, { recursive: true });
@@ -42,6 +42,7 @@ async function snapshot(route) {
     const headingStyle = heading ? getComputedStyle(heading) : null;
     const copyStyle = copy ? getComputedStyle(copy) : null;
     const hostStyle = host ? getComputedStyle(host) : null;
+    const overlayStyle = host ? getComputedStyle(host, "::before") : null;
     let sampledPixels = 0;
     let luminousPixels = 0;
 
@@ -83,6 +84,9 @@ async function snapshot(route) {
       bitmapWidth: canvas?.width ?? 0,
       bitmapHeight: canvas?.height ?? 0,
       opacity: canvasStyle ? Number(canvasStyle.opacity) : 0,
+      canvasTransform: canvasStyle?.transform ?? null,
+      overlayAnimationName: overlayStyle?.animationName ?? null,
+      overlayBackgroundImage: overlayStyle?.backgroundImage ?? null,
       sampledPixels,
       luminousPixels,
       headerMinHeight: hostStyle?.minHeight ?? null,
@@ -92,8 +96,8 @@ async function snapshot(route) {
       headingLineHeight: headingStyle?.lineHeight ?? null,
       copyFontSize: copyStyle?.fontSize ?? null,
       copyLineHeight: copyStyle?.lineHeight ?? null,
-      helperLoaded: resources.some((resource) => resource.startsWith("/static/js/directory-header-fields.js?v=20260728-directory-header-compositions-v1")),
-      stylesheetLoaded: Boolean(document.querySelector('link[href="/static/css/directory-header-fields.css?v=20260728-directory-header-compositions-v1"]')),
+      helperLoaded: resources.some((resource) => resource.startsWith("/static/js/directory-header-fields.js?v=20260728-directory-header-compositions-v2")),
+      stylesheetLoaded: Boolean(document.querySelector('link[href="/static/css/directory-header-fields.css?v=20260728-directory-header-compositions-v2"]')),
     };
   }, route);
 }
@@ -129,6 +133,9 @@ try {
     assert.ok(rendered.bitmapWidth > 0 && rendered.bitmapHeight > 0, JSON.stringify(rendered, null, 2));
     assert.ok(rendered.sampledPixels > 0, JSON.stringify(rendered, null, 2));
     assert.ok(rendered.luminousPixels >= route.minimumLuminousPixels, JSON.stringify(rendered, null, 2));
+    assert.equal(rendered.overlayAnimationName, route.animation, JSON.stringify(rendered, null, 2));
+    assert.notEqual(rendered.canvasTransform, "none", JSON.stringify(rendered, null, 2));
+    assert.notEqual(rendered.overlayBackgroundImage, "none", JSON.stringify(rendered, null, 2));
     assert.equal(rendered.helperLoaded, true, JSON.stringify(rendered, null, 2));
     assert.equal(rendered.stylesheetLoaded, true, JSON.stringify(rendered, null, 2));
 
@@ -148,6 +155,8 @@ try {
     assert.equal(rendered.copyLineHeight, systems.copyLineHeight, JSON.stringify(evidence, null, 2));
   }
 
+  assert.equal(new Set(evidence.map(({ overlayAnimationName }) => overlayAnimationName)).size, 3, JSON.stringify(evidence, null, 2));
+  assert.equal(new Set(evidence.map(({ canvasTransform }) => canvasTransform)).size, 3, JSON.stringify(evidence, null, 2));
   assert.deepEqual(pageErrors, []);
   assert.deepEqual(
     consoleErrors.filter((message) => /AtlasField|directory header|topology-current|build-fragments|editorial-drift/i.test(message)),
