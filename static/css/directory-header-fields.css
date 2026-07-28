@@ -148,27 +148,27 @@ body[data-atlas-directory-header] main {
 
 /* Writing: sparse editorial drift with ruled structure and no visible orb. */
 .atlas-header-composition--editorial-drift > .directory-header-field-canvas {
-  opacity: .075;
-  filter: sepia(.4) saturate(.45) brightness(.62) blur(.2px);
+  opacity: .18;
+  filter: sepia(.28) saturate(.68) brightness(.84) contrast(1.06);
   transform: rotate(-13deg) scale(1.28) translate(10%, -2%);
   transform-origin: 74% 50%;
-  mask-image: linear-gradient(90deg, transparent 0 45%, #000 66% 93%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0 36%, #000 56% 96%, transparent 100%);
 }
 
 .atlas-header-composition--editorial-drift::before {
-  inset: 8% 0 8% 48%;
+  inset: 8% 0 8% 43%;
   background:
-    repeating-linear-gradient(0deg, transparent 0 43px, rgba(232,232,224,.055) 43px 44px),
-    linear-gradient(104deg, transparent 0 19%, rgba(245,166,35,.16) 19% 19.12%, transparent 19.12% 46%, rgba(232,232,224,.09) 46% 46.1%, transparent 46.1% 72%, rgba(245,166,35,.09) 72% 72.1%, transparent 72.1%),
-    radial-gradient(ellipse at 78% 30%, rgba(245,166,35,.055), transparent 34%);
-  opacity: .82;
+    repeating-linear-gradient(0deg, transparent 0 43px, rgba(232,232,224,.085) 43px 44px),
+    linear-gradient(104deg, transparent 0 19%, rgba(245,166,35,.24) 19% 19.12%, transparent 19.12% 46%, rgba(232,232,224,.15) 46% 46.1%, transparent 46.1% 72%, rgba(245,166,35,.15) 72% 72.1%, transparent 72.1%),
+    radial-gradient(ellipse at 78% 30%, rgba(245,166,35,.09), transparent 36%);
+  opacity: .94;
   animation: editorial-drift 18s ease-in-out infinite alternate;
 }
 
 .atlas-header-composition--editorial-drift::after {
   background:
-    linear-gradient(90deg, rgba(10,10,15,.99) 0%, rgba(10,10,15,.93) 47%, rgba(10,10,15,.58) 78%, rgba(10,10,15,.84) 100%),
-    linear-gradient(180deg, transparent 0 75%, rgba(245,166,35,.025));
+    linear-gradient(90deg, rgba(10,10,15,.99) 0%, rgba(10,10,15,.91) 43%, rgba(10,10,15,.38) 76%, rgba(10,10,15,.72) 100%),
+    linear-gradient(180deg, transparent 0 75%, rgba(245,166,35,.04));
 }
 
 @keyframes topology-scan {
@@ -184,8 +184,8 @@ body[data-atlas-directory-header] main {
 }
 
 @keyframes editorial-drift {
-  from { transform: translate3d(0, -5px, 0); opacity: .58; }
-  to { transform: translate3d(-18px, 8px, 0); opacity: .86; }
+  from { transform: translate3d(0, -5px, 0); opacity: .7; }
+  to { transform: translate3d(-18px, 8px, 0); opacity: 1; }
 }
 
 @media (max-width: 760px) {
