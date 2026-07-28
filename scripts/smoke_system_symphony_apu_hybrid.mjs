@@ -18,7 +18,7 @@ const stateWindows = Object.freeze({
   healthy: Object.freeze({ minimum: -31, maximum: -12 }),
   warning: Object.freeze({ minimum: -31, maximum: -12 }),
   critical: Object.freeze({ minimum: -30, maximum: -11 }),
-  unknown: Object.freeze({ minimum: -28, maximum: -16 }),
+  unknown: Object.freeze({ minimum: -27, maximum: -16 }),
 });
 
 await fs.mkdir(outputDirectory, { recursive: true });
@@ -138,7 +138,7 @@ async function resetMeter() {
 }
 
 async function measureState(label, state, policy) {
-  const expectedGainDb = state === "unknown" ? 7 : 4;
+  const expectedGainDb = state === "unknown" ? 8 : 4;
   await page.getByRole("button", { name: label, exact: true }).click();
   await waitForStateTransition(state, policy);
   await resetMeter();
@@ -316,13 +316,13 @@ try {
 
   const byState = Object.fromEntries(stateMeasurements.map((measurement) => [measurement.state, measurement]));
   const unknownMeasurement = byState.unknown;
-  assert.ok(unknownMeasurement.metrics.integratedLufs >= stateWindows.unknown.minimum, `${browserName} Unknown fell outside the full-sized uncertainty floor`);
-  assert.equal(unknownMeasurement.mastering.targetGainDb, 7);
+  assert.ok(unknownMeasurement.metrics.integratedLufs >= stateWindows.unknown.minimum, `${browserName} Unknown fell outside its declared mastering window`);
+  assert.equal(unknownMeasurement.mastering.targetGainDb, 8);
   assert.equal(unknownMeasurement.mastering.targetIntegratedLufs, -24);
   assert.equal(unknownMeasurement.mastering.targetToleranceDb, 3);
   assert.ok(Math.abs(byState.healthy.metrics.integratedLufs - unknownMeasurement.metrics.integratedLufs) <= 4, `${browserName} Healthy to Unknown retained an audible cliff`);
   assert.ok(Math.abs(byState.warning.metrics.integratedLufs - unknownMeasurement.metrics.integratedLufs) <= 4, `${browserName} Warning to Unknown retained an audible cliff`);
-  assert.ok(Math.abs(byState.critical.metrics.integratedLufs - unknownMeasurement.metrics.integratedLufs) <= 7, `${browserName} Critical to Unknown retained an excessive cliff`);
+  assert.ok(Math.abs(byState.critical.metrics.integratedLufs - unknownMeasurement.metrics.integratedLufs) <= 6.5, `${browserName} Critical to Unknown retained an excessive cliff`);
   assert.deepEqual(audioRequests, [], "the hybrid APU preview requested an audio asset");
   const materialFailures = failedRequests.filter(({ url }) => !url.includes("cloudflareinsights.com"));
   assert.deepEqual(materialFailures, []);
