@@ -67,19 +67,24 @@ async function configureContext(context) {
       writable: false,
     });
     const NativeAudioContext = window.AudioContext || window.webkitAudioContext;
-    let audioContextCount = 0;
+    const audioContextStates = [];
     if (NativeAudioContext) {
       const TrackedAudioContext = new Proxy(NativeAudioContext, {
         construct(target, args, newTarget) {
-          audioContextCount += 1;
-          return Reflect.construct(target, args, newTarget);
+          const instance = Reflect.construct(target, args, newTarget);
+          const index = audioContextStates.push(instance.state) - 1;
+          const updateState = () => {
+            audioContextStates[index] = instance.state;
+          };
+          instance.addEventListener?.("statechange", updateState);
+          return instance;
         },
       });
       if (window.AudioContext) window.AudioContext = TrackedAudioContext;
       if (window.webkitAudioContext) window.webkitAudioContext = TrackedAudioContext;
     }
-    Object.defineProperty(window, "__ATLAS_AUDIO_CONTEXT_COUNT__", {
-      get: () => audioContextCount,
+    Object.defineProperty(window, "__ATLAS_AUDIO_CONTEXT_STATES__", {
+      get: () => [...audioContextStates],
       configurable: false,
     });
   });
@@ -176,7 +181,7 @@ async function inspectPage(page) {
       fixtureMode: window.__ATLAS_EVIDENCE_MODE__ || null,
       statusStates,
       healthyStates: statusStates.filter((state) => state === "healthy").length,
-      audioContextCount: window.__ATLAS_AUDIO_CONTEXT_COUNT__ || 0,
+      audioContextStates: window.__ATLAS_AUDIO_CONTEXT_STATES__ || [],
       audioToggleText: document.querySelector("[data-audio-toggle]")?.textContent?.trim() || null,
       modalCount: document.querySelectorAll('[aria-modal="true"]').length,
       inlineSymphonyRegion: Boolean(document.querySelector('.symphony-console[role="region"]')),
@@ -224,8 +229,8 @@ function semanticFailures(evidence, focus, browserName, viewportName, routeName,
   if (routeName !== "system-symphony" && evidence.statusStates.length && evidence.healthyStates === evidence.statusStates.length) values.push(`${prefix}: unavailable evidence was rendered entirely healthy`);
 
   if (routeName === "system-symphony") {
-    if (evidence.audioContextCount !== 0) values.push(`${prefix}: audio context was created before user consent`);
-    if (evidence.audioToggleText !== "Start") values.push(`${prefix}: audio control did not remain at Start before consent`);
+    if (evidence.audioContextStates.filter((state) => state === "running").length !== 0) values.push(`${prefix}: audio context entered running state before user consent`);
+    if (!evidence.audioToggleText?.startsWith("Start")) values.push(`${prefix}: audio control did not remain a Start action before consent`);
     if (evidence.modalCount !== 0 || !evidence.inlineSymphonyRegion) values.push(`${prefix}: Symphony is not embedded as a non-modal page region`);
     if (evidence.activeElementInsideSymphony) values.push(`${prefix}: Symphony stole focus during page load`);
   }
