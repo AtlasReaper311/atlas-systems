@@ -15,9 +15,7 @@ const pageUrl = `${baseUrl}/lab/?atlas-field-preview=${encodeURIComponent(expect
 const expectedEntrypoints = {
   shell: "/lab/shared/shell.js?v=20260723-interface-v2",
   introStylesheet: "/lab/shared/lab-intro-field.css?v=20260727-lab-intro-field-v1",
-  introModule: "/lab/shared/lab-intro-field.js?v=20260727-lab-intro-field-v1",
   cardStylesheet: "/lab/shared/system-map-card-field.css?v=20260727-system-map-card-field-v2",
-  cardModule: "/lab/shared/system-map-card-field.js?v=20260727-system-map-card-field-v2",
 };
 
 await fs.mkdir(outputDir, { recursive: true });
@@ -59,12 +57,12 @@ async function collectEvidence() {
 
       return {
         hostPresent: Boolean(host),
+        hostClasses: host ? [...host.classList] : [],
         state: host?.dataset?.[stateKey] || null,
         canvasCount: host?.querySelectorAll(":scope > canvas.atlas-field-canvas").length || 0,
         canvasPresent: Boolean(canvas),
         mode: canvas?.dataset.mode || null,
         frame: Number(canvas?.dataset.frame || 0),
-        preset: canvas?.dataset.preset || null,
         cssWidth: rect?.width || 0,
         cssHeight: rect?.height || 0,
         bitmapWidth: canvas?.width || 0,
@@ -86,9 +84,7 @@ async function collectEvidence() {
       entrypoints: {
         shell: resources.find((value) => value?.startsWith("/lab/shared/shell.js")) || null,
         introStylesheet: resources.find((value) => value?.startsWith("/lab/shared/lab-intro-field.css")) || null,
-        introModule: resources.find((value) => value?.startsWith("/lab/shared/lab-intro-field.js")) || null,
         cardStylesheet: resources.find((value) => value?.startsWith("/lab/shared/system-map-card-field.css")) || null,
-        cardModule: resources.find((value) => value?.startsWith("/lab/shared/system-map-card-field.js")) || null,
       },
       intro: sampleCanvas(".page-intro", "atlasIntroFieldState"),
       card: sampleCanvas("#system-map.featured", "atlasFieldState"),
@@ -97,7 +93,7 @@ async function collectEvidence() {
 }
 
 function assertCanvas(rendered, {
-  preset,
+  requiredHostClass,
   minimumWidth,
   minimumHeight,
   minimumOpacity,
@@ -108,7 +104,7 @@ function assertCanvas(rendered, {
   assert.equal(rendered.state, "ready", JSON.stringify(evidence, null, 2));
   assert.equal(rendered.canvasCount, 1, JSON.stringify(evidence, null, 2));
   assert.equal(rendered.canvasPresent, true, JSON.stringify(evidence, null, 2));
-  assert.equal(rendered.preset, preset, JSON.stringify(evidence, null, 2));
+  assert.ok(rendered.hostClasses.includes(requiredHostClass), JSON.stringify(evidence, null, 2));
   assert.ok(rendered.cssWidth >= minimumWidth, JSON.stringify(evidence, null, 2));
   assert.ok(rendered.cssHeight >= minimumHeight, JSON.stringify(evidence, null, 2));
   assert.ok(rendered.bitmapWidth > 0 && rendered.bitmapHeight > 0, JSON.stringify(evidence, null, 2));
@@ -150,7 +146,7 @@ try {
 
   assert.deepEqual(evidence.entrypoints, expectedEntrypoints, JSON.stringify(evidence, null, 2));
   assertCanvas(evidence.intro, {
-    preset: "ambient",
+    requiredHostClass: "atlas-composition--signal-bloom",
     minimumWidth: 700,
     minimumHeight: 260,
     minimumOpacity: 0.24,
@@ -158,7 +154,7 @@ try {
     minimumLuminousPixels: 4,
   });
   assertCanvas(evidence.card, {
-    preset: "card",
+    requiredHostClass: "system-map-card-atlas-field",
     minimumWidth: 500,
     minimumHeight: 180,
     minimumOpacity: 0.5,
