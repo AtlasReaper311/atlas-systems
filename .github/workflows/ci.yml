@@ -127,6 +127,15 @@ jobs:
       - name: Validate sitemap
         run: python3 scripts/generate_sitemap.py --check-only
 
+      - name: Upload generated sitemap diagnostic
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        with:
+          name: sitemap-generated-${{ github.event.pull_request.head.sha || github.sha }}
+          path: sitemap.generated.xml
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Validate static performance baseline
         run: python3 scripts/measure_static_performance.py --check-only
 
