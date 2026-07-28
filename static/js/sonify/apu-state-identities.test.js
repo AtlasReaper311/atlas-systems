@@ -91,13 +91,20 @@ test("omission decisions are deterministic and state-sensitive", () => {
 test("state envelope and duty-cycle contracts remain measurably different", () => {
   assert.equal(APU_STATE_IDENTITIES.healthy.primaryDutyCycle, 0.5);
   assert.equal(APU_STATE_IDENTITIES.warning.primaryDutyCycle, 0.125);
-  assert.equal(APU_STATE_IDENTITIES.critical.transitionPolicy, "hard-choke");
-  assert.equal(APU_STATE_IDENTITIES.unknown.transitionPolicy, "one-bar-decay");
+  assert.ok(Object.values(APU_STATE_IDENTITIES).every((identity) => identity.transitionPolicy === "one-bar-decay"));
   assert.equal(APU_STATE_IDENTITIES.unknown.masterGainDb, APU_STATE_IDENTITIES.healthy.masterGainDb);
   assert.ok(APU_STATE_IDENTITIES.unknown.omissionThreshold > APU_STATE_IDENTITIES.warning.omissionThreshold);
   assert.ok(APU_STATE_IDENTITIES.unknown.omissionThreshold < 0.4);
   assert.ok(APU_STATE_IDENTITIES.unknown.dynamicRangeDb > APU_STATE_IDENTITIES.healthy.dynamicRangeDb);
   assert.equal(APU_STATE_IDENTITIES.unknown.leadGate, "2n");
+});
+
+test("every destination preserves tails and removes hard state cuts", () => {
+  for (const identity of Object.values(APU_STATE_IDENTITIES)) {
+    assert.notEqual(identity.transitionPolicy, "hard-choke");
+    assert.notEqual(identity.transitionPolicy, "tight-crossfade");
+    assert.equal(identity.transitionPolicy, "one-bar-decay");
+  }
 });
 
 test("Lost Signal remains restrained but no longer falls below its audible floors", () => {
