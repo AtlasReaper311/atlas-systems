@@ -3,6 +3,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { chromium } from "playwright";
+import { runSystemSymphonyProductionLoudnessProof } from "./run_system_symphony_production_loudness.mjs";
 
 const siteUrl = process.env.SITE_URL;
 if (!siteUrl) throw new Error("SITE_URL is required");
@@ -28,6 +29,7 @@ const pageErrors = [];
 const failedRequests = [];
 const audioRequests = [];
 let evidence = null;
+let loudnessEvidence = null;
 let failure = null;
 
 page.on("console", (message) => {
@@ -145,6 +147,13 @@ try {
   assert.deepEqual(failedRequests, []);
   assert.deepEqual(pageErrors, []);
   assert.deepEqual(consoleErrors, []);
+
+  loudnessEvidence = await runSystemSymphonyProductionLoudnessProof({
+    browser,
+    siteUrl,
+    expectedSha,
+    outputDir,
+  });
 } catch (error) {
   failure = error;
   evidence = evidence ?? await collectEvidence().catch((collectionError) => ({
@@ -163,6 +172,7 @@ try {
       expectedSha,
       failure: failure ? { name: failure.name, message: failure.message, stack: failure.stack } : null,
       evidence,
+      loudnessEvidence,
       audioRequests,
       failedRequests,
       pageErrors,
@@ -174,4 +184,4 @@ try {
 }
 
 if (failure) throw failure;
-console.log(`Production System Symphony Atlas APU smoke passed: ${pageUrl}`);
+console.log(`Production System Symphony live and 32-bar loudness smoke passed: ${pageUrl}`);
