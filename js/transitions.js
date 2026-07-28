@@ -1,6 +1,10 @@
 (function () {
   "use strict";
 
+  if (window.location.pathname === "/about/") {
+    void import("/static/js/secondary-surface-fields.js?v=20260728-composition-batch-two-v1");
+  }
+
   var reduceMotion = window.matchMedia &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 

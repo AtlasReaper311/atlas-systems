@@ -27,6 +27,12 @@
 /static/js/atlas-field-consumer.js
   Cache-Control: no-store, max-age=0
 
+/static/js/atlas-field-composition-registry.js
+  Cache-Control: no-store, max-age=0
+
+/static/js/secondary-surface-fields.js
+  Cache-Control: no-store, max-age=0
+
 /static/js/directory-header-fields.js
   Cache-Control: no-store, max-age=0
 
@@ -36,10 +42,19 @@
 /static/js/card-signatures.js
   Cache-Control: no-store, max-age=0
 
+/static/js/focused-systems-shell.js
+  Cache-Control: no-store, max-age=0
+
+/js/transitions.js
+  Cache-Control: no-store, max-age=0
+
 /static/css/atlas-field-consumer.css
   Cache-Control: no-store, max-age=0
 
 /static/css/directory-header-fields.css
+  Cache-Control: no-store, max-age=0
+
+/static/css/secondary-surface-fields.css
   Cache-Control: no-store, max-age=0
 
 /css/home-v2-base.css

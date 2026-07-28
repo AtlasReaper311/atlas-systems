@@ -8,10 +8,11 @@ import { SYSTEM_MAP_CARD_FIELD } from "../../lab/shared/system-map-card-field.js
 const markup = fs.readFileSync("lab/index.html", "utf8");
 const systemMapPage = fs.readFileSync("lab/system-map/index.html", "utf8");
 const cardCss = fs.readFileSync("lab/shared/system-map-card-field.css", "utf8");
-const introCss = fs.readFileSync("lab/shared/lab-intro-field.css", "utf8");
+const compositionCss = fs.readFileSync("static/css/secondary-surface-fields.css", "utf8");
 const sharedCss = fs.readFileSync("static/css/atlas-field-consumer.css", "utf8");
 const cardModule = fs.readFileSync("lab/shared/system-map-card-field.js", "utf8");
 const introModule = fs.readFileSync("lab/shared/lab-intro-field.js", "utf8");
+const registryModule = fs.readFileSync("static/js/atlas-field-composition-registry.js", "utf8");
 const shell = fs.readFileSync("lab/shared/shell.js", "utf8");
 const headers = fs.readFileSync("_headers", "utf8");
 const previewWorkflow = fs.readFileSync(".github/workflows/interface-preview.yml", "utf8");
@@ -30,13 +31,14 @@ test("Lab AtlasField targets remain bounded to the intro and featured System Map
   assert.doesNotMatch(systemMapPage, /system-map-card-field|lab-intro-field/);
 });
 
-test("Lab consumers use the shared declarative helper and surface stylesheet", () => {
+test("Lab card remains local while the intro uses the named composition registry", () => {
   assert.match(cardModule, /defineAtlasFieldConsumer/);
   assert.match(cardModule, /mountAtlasFieldConsumer/);
-  assert.match(introModule, /defineAtlasFieldConsumer/);
-  assert.match(introModule, /mountAtlasFieldConsumer/);
+  assert.match(introModule, /ATLAS_FIELD_COMPOSITIONS\["signal-bloom"\]/);
+  assert.match(introModule, /mountSecondarySurfaceField/);
+  assert.match(registryModule, /"signal-bloom": composition/);
   assert.match(cardCss, /atlas-field-consumer\.css\?v=20260728-consumer-contract-v1/);
-  assert.match(introCss, /atlas-field-consumer\.css\?v=20260728-consumer-contract-v1/);
+  assert.match(compositionCss, /atlas-composition--signal-bloom/);
   assert.match(sharedCss, /\.atlas-field-surface > \.atlas-field-canvas/);
   assert.match(sharedCss, /pointer-events:\s*none/);
 });
@@ -51,12 +53,14 @@ test("Lab shell mounts fresh field assets only on the Lab directory", () => {
 test("Lab field bootstrap assets cannot be retained stale", () => {
   for (const asset of [
     "/static/js/atlas-field-consumer.js",
+    "/static/js/atlas-field-composition-registry.js",
+    "/static/js/secondary-surface-fields.js",
     "/static/css/atlas-field-consumer.css",
+    "/static/css/secondary-surface-fields.css",
     "/lab/shared/shell.js",
     "/lab/shared/system-map-card-field.js",
     "/lab/shared/system-map-card-field.css",
     "/lab/shared/lab-intro-field.js",
-    "/lab/shared/lab-intro-field.css",
   ]) {
     assert.match(headers, new RegExp(`${asset.replaceAll("/", "\\/")}\n  Cache-Control: no-store, max-age=0`));
   }
@@ -66,9 +70,9 @@ test("surface-specific composition remains local", () => {
   assert.match(cardCss, /#system-map\.system-map-card-atlas-field::before\s*\{[^}]*linear-gradient/s);
   assert.match(cardCss, /opacity:\s*\.64/);
   assert.match(cardCss, /backdrop-filter:\s*blur\(4px\)/s);
-  assert.match(introCss, /\.page-intro\.lab-intro-atlas-field::after\s*\{[^}]*linear-gradient/s);
-  assert.match(introCss, /opacity:\s*\.42/);
-  assert.match(introCss, /brightness\(\.9\)/);
+  assert.match(compositionCss, /atlas-composition--signal-bloom::before/);
+  assert.match(compositionCss, /opacity:\s*\.24/);
+  assert.match(compositionCss, /signal-bloom-drift/);
 });
 
 test("governed preview verifies both visible Lab fields at pixel level", () => {
