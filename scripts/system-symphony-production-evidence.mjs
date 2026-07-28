@@ -20,12 +20,38 @@ export const SYSTEM_SYMPHONY_STATE_WINDOWS = Object.freeze({
 });
 
 export const SYSTEM_SYMPHONY_BAR_DURATION_MS = 2400;
+export const SYSTEM_SYMPHONY_STEPS_PER_BAR = 16;
+export const SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR = 5;
+export const SYSTEM_SYMPHONY_STATE_ALIGNMENT_STEP = (
+  (SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR - 1) * SYSTEM_SYMPHONY_STEPS_PER_BAR
+);
 export const SYSTEM_SYMPHONY_STATE_MEASUREMENT_BARS = 8;
 export const SYSTEM_SYMPHONY_STATE_MEASUREMENT_MS = (
   SYSTEM_SYMPHONY_BAR_DURATION_MS * SYSTEM_SYMPHONY_STATE_MEASUREMENT_BARS
 );
 export const SYSTEM_SYMPHONY_SAMPLE_INTERVAL_MS = 200;
 export const SYSTEM_SYMPHONY_TRANSITION_MARGIN_DB = 10;
+export const SYSTEM_SYMPHONY_STATE_PAGE_POLICY = "fresh-page-aligned-form-window";
+
+export function buildStateMeasurementPlan(states = SYSTEM_SYMPHONY_STATES) {
+  const requestedStates = [...states];
+  const unknownStates = requestedStates.filter((state) => !SYSTEM_SYMPHONY_STATES.includes(state));
+  if (unknownStates.length) {
+    throw new Error(`Unknown production measurement states: ${unknownStates.join(", ")}`);
+  }
+  if (new Set(requestedStates).size !== requestedStates.length) {
+    throw new Error("Production measurement states must be unique");
+  }
+  return Object.freeze(requestedStates.map((state) => Object.freeze({
+    state,
+    mode: state,
+    pagePolicy: SYSTEM_SYMPHONY_STATE_PAGE_POLICY,
+    alignmentBar: SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR,
+    alignmentStep: SYSTEM_SYMPHONY_STATE_ALIGNMENT_STEP,
+    measurementBars: SYSTEM_SYMPHONY_STATE_MEASUREMENT_BARS,
+    finalBar: SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR + SYSTEM_SYMPHONY_STATE_MEASUREMENT_BARS - 1,
+  })));
+}
 
 // Eulerian circuit over the complete directed four-state graph. Every ordered
 // transition appears exactly once and the route returns to Healthy.
@@ -103,6 +129,9 @@ export function buildProgrammeSummary(stateMeasurements) {
       (total, measurement) => total + Number(measurement.measurementBars ?? 0),
       0,
     ),
+    pagePolicies: Object.freeze([...new Set(stateMeasurements.map((measurement) => measurement.pagePolicy).filter(Boolean))]),
+    alignmentSteps: Object.freeze([...new Set(stateMeasurements.map((measurement) => measurement.alignmentStep).filter(Number.isFinite))]),
+    alignmentPositions: Object.freeze([...new Set(stateMeasurements.map((measurement) => measurement.startPosition).filter(Boolean))]),
     states: Object.fromEntries(SYSTEM_SYMPHONY_STATES.map((state) => {
       const measurement = byState[state];
       const integratedLufs = measurement.metrics.integratedLufs;
@@ -113,6 +142,8 @@ export function buildProgrammeSummary(stateMeasurements) {
         peakToLoudnessRatioDb: sessionTruePeakDbtp - integratedLufs,
         blockCount: measurement.metrics.blockCount,
         gatedBlockCount: measurement.metrics.gatedBlockCount,
+        startSection: measurement.startSection ?? null,
+        startPosition: measurement.startPosition ?? null,
         sections: Object.freeze([...new Set((measurement.samples ?? []).map((sample) => sample.section).filter(Boolean))]),
       })];
     })),
