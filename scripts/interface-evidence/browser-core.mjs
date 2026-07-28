@@ -82,6 +82,10 @@ export async function configureDeterministicContext(context, {
   });
 }
 
+export function actionableConsoleErrors(records = []) {
+  return records.filter(({ text = "" }) => !/\b503\b/.test(text));
+}
+
 export function observePage(page) {
   const state = {
     pageErrors: [],
