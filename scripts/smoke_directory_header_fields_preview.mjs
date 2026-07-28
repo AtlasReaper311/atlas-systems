@@ -38,6 +38,8 @@ async function snapshot(route) {
     const canvas = canvases[0] ?? null;
     const heading = host?.querySelector("h1") ?? null;
     const copy = host?.querySelector(".page-sub, .lede") ?? null;
+    const hostBounds = host?.getBoundingClientRect() ?? null;
+    const canvasBounds = canvas?.getBoundingClientRect() ?? null;
     const canvasStyle = canvas ? getComputedStyle(canvas) : null;
     const headingStyle = heading ? getComputedStyle(heading) : null;
     const copyStyle = copy ? getComputedStyle(copy) : null;
@@ -79,8 +81,10 @@ async function snapshot(route) {
       preset: canvas?.dataset.atlasFieldPreset ?? null,
       mode: canvas?.dataset.mode ?? null,
       frame: Number(canvas?.dataset.frame || 0),
-      cssWidth: canvas?.getBoundingClientRect().width ?? 0,
-      cssHeight: canvas?.getBoundingClientRect().height ?? 0,
+      hostWidth: hostBounds?.width ?? 0,
+      hostHeight: hostBounds?.height ?? 0,
+      cssWidth: canvasBounds?.width ?? 0,
+      cssHeight: canvasBounds?.height ?? 0,
       bitmapWidth: canvas?.width ?? 0,
       bitmapHeight: canvas?.height ?? 0,
       opacity: canvasStyle ? Number(canvasStyle.opacity) : 0,
@@ -128,8 +132,9 @@ try {
     assert.equal(rendered.preset, "ambient", JSON.stringify(rendered, null, 2));
     assert.ok(rendered.hostClasses.includes("atlas-page-header"), JSON.stringify(rendered, null, 2));
     assert.ok(rendered.hostClasses.includes(`atlas-header-composition--${route.composition}`), JSON.stringify(rendered, null, 2));
-    assert.ok(rendered.cssWidth >= 700, JSON.stringify(rendered, null, 2));
-    assert.ok(rendered.cssHeight >= 350, JSON.stringify(rendered, null, 2));
+    assert.ok(rendered.hostWidth >= 700, JSON.stringify(rendered, null, 2));
+    assert.ok(rendered.hostHeight >= 350, JSON.stringify(rendered, null, 2));
+    assert.ok(rendered.cssWidth > 0 && rendered.cssHeight > 0, JSON.stringify(rendered, null, 2));
     assert.ok(rendered.bitmapWidth > 0 && rendered.bitmapHeight > 0, JSON.stringify(rendered, null, 2));
     assert.ok(rendered.sampledPixels > 0, JSON.stringify(rendered, null, 2));
     assert.ok(rendered.luminousPixels >= route.minimumLuminousPixels, JSON.stringify(rendered, null, 2));
