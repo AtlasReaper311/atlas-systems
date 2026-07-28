@@ -16,6 +16,27 @@
 
 A preset is a performance and behaviour baseline, not a finished visual composition. Each surface must still define local opacity, masks, gradients and content protection.
 
+## Directory header compositions
+
+The Work, Writing and Systems directory headers share one formatting contract while keeping distinct visual identities:
+
+- `topology-current` on `/systems/`: horizontally stretched cyan and green flow, sparse amber routing accents, node points and route traces;
+- `build-fragments` on `/work/`: clipped amber-led fragments, grid alignment and short assembly-like traces;
+- `editorial-drift` on `/writing/`: sparse warm strands, diagonal drift and faint ruled structure.
+
+All three use the `ambient` preset. Their differences come from seed, density, domain colours, light behaviour, masks, transforms and decorative CSS. New header identities should extend this composition layer rather than adding a renderer preset for every page.
+
+The shared header contract normalises:
+
+- eyebrow treatment;
+- title family, scale and line height;
+- supporting-copy width, size and line height;
+- vertical rhythm and minimum height;
+- mobile behaviour;
+- reduced-motion behaviour.
+
+A composition may change atmosphere and silhouette. It must not change heading semantics, hide essential information, or use decorative colour as evidence of live status.
+
 ## Declaring a consumer
 
 ```js
