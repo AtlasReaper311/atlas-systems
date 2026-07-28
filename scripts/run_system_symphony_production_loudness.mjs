@@ -196,7 +196,7 @@ async function waitForTransition(page, from, to) {
 }
 
 async function measureState(page, state, alignedEvidence) {
-  const expectedGainDb = state === "unknown" ? 8 : 4;
+  const expectedGainDb = state === "unknown" ? 11.5 : 4;
   await page.evaluate(() => globalThis.__ATLAS_APU_LOUDNESS__?.reset?.());
   const samples = await collectTimedSamples(page, SYSTEM_SYMPHONY_STATE_MEASUREMENT_MS);
   await page.waitForFunction(({ expectedState, expectedGain }) => {
@@ -217,7 +217,7 @@ async function measureState(page, state, alignedEvidence) {
   assert.equal(snapshot.metricState, SYSTEM_SYMPHONY_STATE_LABELS[state]);
   assert.equal(snapshot.frame?.scoreState, state);
   assert.equal(snapshot.masteringRuntime?.state, state);
-  assert.equal(snapshot.masteringRuntime?.policyBuildId, "20260728-system-symphony-mastering-v5");
+  assert.equal(snapshot.masteringRuntime?.policyBuildId, "20260728-system-symphony-mastering-v6");
   assert.equal(snapshot.masteringRuntime?.targetGainDb, expectedGainDb);
   if (state === "unknown") {
     assert.equal(snapshot.masteringRuntime?.targetIntegratedLufs, -24);
