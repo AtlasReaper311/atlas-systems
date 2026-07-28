@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -73,8 +74,18 @@ def main() -> int:
     rendered = json.dumps(report, indent=2) + "\n"
     if args.check_only:
         if not REPORT_PATH.exists() or REPORT_PATH.read_text(encoding="utf-8") != rendered:
-            print("static performance baseline is stale", file=sys.stderr)
-            print("Expected candidate:", file=sys.stderr)
+            candidate = Path(
+                os.environ.get(
+                    "PERFORMANCE_BASELINE_CANDIDATE_PATH",
+                    "data/performance-baseline.generated.json",
+                )
+            )
+            candidate.parent.mkdir(parents=True, exist_ok=True)
+            candidate.write_text(rendered, encoding="utf-8")
+            print(
+                f"static performance baseline is stale; generated candidate: {candidate}",
+                file=sys.stderr,
+            )
             print(rendered, file=sys.stderr, end="")
             return 1
         print(f"OK  {len(report['routes'])} representative route baselines")

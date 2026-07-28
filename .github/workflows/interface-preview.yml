@@ -13,54 +13,20 @@ on:
       - "writing/**"
       - "about/**"
       - "systems/**"
-      - "css/home-v2-base.css"
-      - "css/home-v2-components.css"
-      - "css/home-v2-responsive.css"
-      - "css/card-search.css"
-      - "static/css/estate-shell.css"
-      - "static/css/atlas-field-consumer.css"
-      - "static/css/directory-header-fields.css"
-      - "static/css/article-interface-v2.css"
-      - "static/css/card-signatures.css"
-      - "static/css/editorial-surfaces-v2.css"
-      - "static/css/v2-directory-pages.css"
-      - "static/css/system-symphony.css"
-      - "static/css/systems-focus.css"
-      - "static/media/card-signatures.svg"
+      - "lab/**"
+      - "css/**"
+      - "static/css/**"
+      - "static/js/**"
+      - "static/media/**"
       - "static/vendor/atlas-interface/**"
-      - "static/js/homepage-interactions.js"
-      - "static/js/atlas-field.js"
-      - "static/js/atlas-field-consumer.js"
-      - "static/js/directory-header-fields.js"
-      - "static/js/enable-enhancements.js"
-      - "static/js/card-signatures.js"
-      - "static/js/estate-shell.js"
-      - "static/js/estate-status.js"
-      - "static/js/focused-systems-shell.js"
-      - "static/js/sonify/**"
       - "js/card-search.js"
-      - "js/tests/homepage-field.test.mjs"
-      - "js/tests/system-map-card-field.test.mjs"
-      - "js/tests/directory-header-fields.test.mjs"
-      - "static/js/estate-search/**"
-      - "lab/index.html"
-      - "lab/console/**"
-      - "lab/system-map/**"
-      - "lab/system-symphony/**"
-      - "lab/shared/**"
-      - "lab/proof-chain/**"
-      - "lab/signal/**"
-      - "lab/anomaly/**"
-      - "lab/conformance/**"
-      - "lab/reliability/**"
+      - "js/tests/*.test.mjs"
       - "data/performance-baseline.json"
       - "og/**"
-      - "scripts/og/**"
-      - "js/tests/batch-h-*.test.mjs"
-      - "js/tests/card-signatures.test.mjs"
-      - "js/tests/public-interface-contract.test.mjs"
       - "scripts/capture_interface_evidence.mjs"
       - "scripts/capture_batch_h_evidence.mjs"
+      - "scripts/interface-evidence/**"
+      - "scripts/plan_interface_evidence.mjs"
       - "scripts/smoke_system_map_card_field_preview.mjs"
       - "scripts/smoke_directory_header_fields_preview.mjs"
       - "scripts/generate_sitemap.py"
@@ -80,25 +46,49 @@ jobs:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    outputs:
+      evidence_required: ${{ steps.plan.outputs.evidence_required }}
+      visual_change: ${{ steps.plan.outputs.visual_change }}
+      evidence_contract_change: ${{ steps.plan.outputs.evidence_contract_change }}
+      changed_routes_json: ${{ steps.plan.outputs.changed_routes_json }}
+      route_count: ${{ steps.plan.outputs.route_count }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
         with:
           node-version: "22"
+      - name: Plan route-derived browser evidence
+        id: plan
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          git diff --name-only "${BASE_SHA}" "${HEAD_SHA}" > "${RUNNER_TEMP}/interface-changed-files.txt"
+          node scripts/plan_interface_evidence.mjs \
+            --sitemap sitemap.xml \
+            --changed-files "${RUNNER_TEMP}/interface-changed-files.txt" \
+            --output "${RUNNER_TEMP}/interface-evidence-plan.json" \
+            --github-output "${GITHUB_OUTPUT}"
+          cat "${RUNNER_TEMP}/interface-evidence-plan.json"
       - name: Validate site and interface contracts
         run: |
           set -euo pipefail
           npx --yes html-validate@9.7.1 "**/*.html"
           node --check scripts/capture_interface_evidence.mjs
           node --check scripts/capture_batch_h_evidence.mjs
+          node --check scripts/interface-evidence/contract.mjs
+          node --check scripts/interface-evidence/browser-core.mjs
+          node --check scripts/plan_interface_evidence.mjs
           node --check scripts/smoke_system_map_card_field_preview.mjs
           node --check scripts/smoke_directory_header_fields_preview.mjs
           node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
           python3 scripts/verify_interface_bundle.py
           python3 scripts/generate_sitemap.py --check-only
+          python3 scripts/measure_static_performance.py --check-only
           python3 scripts/verify_pages_output.py .
           python3 - <<'PY'
           import json
@@ -115,18 +105,41 @@ jobs:
           format: detailed
           output: interface-link-report.txt
           fail: true
-      - name: Upload interface link report
+      - name: Upload interface validation records
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
         with:
-          name: interface-link-report
-          path: interface-link-report.txt
+          name: interface-validation-${{ github.event.pull_request.head.sha }}
+          path: |
+            interface-link-report.txt
+            ${{ runner.temp }}/interface-evidence-plan.json
+            ${{ runner.temp }}/interface-changed-files.txt
           if-no-files-found: warn
-          retention-days: 7
+          retention-days: 14
+
+  approval-gate:
+    name: Require approved browser evidence
+    needs: validate
+    if: always() && needs.validate.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      EVIDENCE_REQUIRED: ${{ needs.validate.outputs.evidence_required }}
+      APPROVED: ${{ contains(github.event.pull_request.labels.*.name, 'interface-preview-approved') }}
+      ROUTE_COUNT: ${{ needs.validate.outputs.route_count }}
+    steps:
+      - name: Enforce evidence approval
+        run: |
+          set -euo pipefail
+          if [ "${EVIDENCE_REQUIRED}" = "true" ] && [ "${APPROVED}" != "true" ]; then
+            echo "::error::Evidence approval is required before a visual or evidence-contract pull request can be reviewed as green. Add the interface-preview-approved label to publish the isolated preview and capture deterministic browser evidence."
+            exit 1
+          fi
+          echo "Evidence approval gate passed for ${ROUTE_COUNT} route(s)."
 
   deploy-preview:
     name: Publish non-production interface preview
-    needs: validate
+    needs: [validate, approval-gate]
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
       contains(github.event.pull_request.labels.*.name, 'interface-preview-approved')
@@ -148,7 +161,7 @@ jobs:
       SOURCE_BRANCH: ${{ github.event.pull_request.head.ref }}
     steps:
       - name: Check out interface site branch
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
@@ -207,22 +220,25 @@ jobs:
 
   capture-evidence:
     name: Capture deterministic interface evidence
-    needs: deploy-preview
+    needs: [validate, deploy-preview]
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     env:
       PREVIEW_URL: ${{ needs.deploy-preview.outputs.preview_url }}
       HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      CHANGED_ROUTES_JSON: ${{ needs.validate.outputs.changed_routes_json }}
     steps:
       - name: Check out evidence runners
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           sparse-checkout: |
             scripts/capture_interface_evidence.mjs
             scripts/capture_batch_h_evidence.mjs
+            scripts/interface-evidence
             scripts/smoke_system_map_card_field_preview.mjs
             scripts/smoke_directory_header_fields_preview.mjs
+            sitemap.xml
           sparse-checkout-cone-mode: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
         with:
@@ -235,11 +251,13 @@ jobs:
           cp scripts/capture_batch_h_evidence.mjs "${RUNNER_TEMP}/interface-evidence/"
           cp scripts/smoke_system_map_card_field_preview.mjs "${RUNNER_TEMP}/interface-evidence/"
           cp scripts/smoke_directory_header_fields_preview.mjs "${RUNNER_TEMP}/interface-evidence/"
+          cp sitemap.xml "${RUNNER_TEMP}/interface-evidence/"
+          cp -R scripts/interface-evidence "${RUNNER_TEMP}/interface-evidence/"
           cd "${RUNNER_TEMP}/interface-evidence"
           npm init -y >/dev/null
           npm install --save-exact playwright@1.61.1 @axe-core/playwright@4.12.1
           npm audit --audit-level=high
-          npx playwright install --with-deps firefox
+          npx playwright install --with-deps chromium firefox
       - name: Verify System Map card AtlasField pixels
         working-directory: ${{ runner.temp }}/interface-evidence
         env:
@@ -250,17 +268,17 @@ jobs:
         env:
           DIRECTORY_HEADER_FIELD_OUTPUT_DIR: ${{ runner.temp }}/interface-evidence/directory-header-field-preview-smoke
         run: node smoke_directory_header_fields_preview.mjs
-      - name: Capture governed browser and viewport matrix
+      - name: Capture route-derived browser and viewport evidence
         working-directory: ${{ runner.temp }}/interface-evidence
         run: node capture_interface_evidence.mjs
-      - name: Capture Batch H browser and viewport matrix
+      - name: Capture Batch H product assertions
         working-directory: ${{ runner.temp }}/interface-evidence
         run: node capture_batch_h_evidence.mjs
-      - name: Upload visual and accessibility evidence
+      - name: Upload route-derived visual and accessibility evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
         with:
-          name: public-interface-preview-evidence
+          name: public-interface-preview-evidence-${{ github.event.pull_request.head.sha }}
           path: |
             ${{ runner.temp }}/interface-evidence/evidence.json
             ${{ runner.temp }}/interface-evidence/capture-error.txt
@@ -275,7 +293,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
         with:
-          name: batch-h-preview-evidence
+          name: batch-h-preview-evidence-${{ github.event.pull_request.head.sha }}
           path: |
             ${{ runner.temp }}/interface-evidence/batch-h-evidence.json
             ${{ runner.temp }}/interface-evidence/batch-h-capture-error.txt

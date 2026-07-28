@@ -162,17 +162,14 @@ test("SPECULAR-CORE uses a colon in titles and an em dash in subheaders", () => 
   );
 });
 
-test("browser evidence matrix covers every changed historical route", () => {
-  const capture = fs.readFileSync(
-    "scripts/capture_interface_evidence.mjs",
-    "utf8",
-  );
+test("browser evidence inventory covers every historical article route", () => {
+  const sitemap = fs.readFileSync("sitemap.xml", "utf8");
+  const capture = fs.readFileSync("scripts/capture_interface_evidence.mjs", "utf8");
+  assert.match(capture, /buildEvidencePlan/);
   for (const [slug, number] of articles) {
-    assert.match(
-      capture,
-      new RegExp(
-        `\\["article-${number.toLowerCase()}",\\s*"/writing/${slug}/"\\]`,
-      ),
+    assert.ok(
+      sitemap.includes(`<loc>https://atlas-systems.uk/writing/${slug}/</loc>`),
+      `${number} route must remain in the sitemap-derived evidence inventory`,
     );
   }
 });

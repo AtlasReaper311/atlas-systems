@@ -230,16 +230,20 @@ test("editorial assets remain mutable and preview evidence covers changed surfac
   const headers = read("_headers");
   const preview = read(".github/workflows/interface-preview.yml");
   const capture = read("scripts/capture_interface_evidence.mjs");
+  const sitemap = read("sitemap.xml");
+  const contract = read("scripts/interface-evidence/contract.mjs");
   assert.match(headers, /\/\*[\s\S]*Cache-Control: no-cache, max-age=0, must-revalidate/);
   assert.doesNotMatch(headers, /\/static\/css\/editorial-surfaces-v2\.css[\s\S]*immutable/);
-  for (const path of ["work/**", "writing/**", "about/**", "static/css/editorial-surfaces-v2.css"]) {
+  for (const path of ["work/**", "writing/**", "about/**", "static/css/**"]) {
     assert.ok(preview.includes(`"${path}"`), path);
   }
   assert.doesNotMatch(preview, /agent\/public-interface-system-v2-primary-site/);
   assert.match(preview, /SOURCE_BRANCH/);
-  for (const route of ["/work/", "/writing/", "/about/", "/writing/overclocking-specular-core/", "/404.html"]) {
-    assert.ok(capture.includes(`"${route}"`), route);
+  assert.match(capture, /buildEvidencePlan/);
+  for (const route of ["/work/", "/writing/", "/about/", "/writing/overclocking-specular-core/"]) {
+    assert.ok(sitemap.includes(`<loc>https://atlas-systems.uk${route}</loc>`), route);
   }
+  assert.ok(contract.includes('"/404.html"'), "/404.html reviewed non-indexed route");
   assert.match(capture, /visibleWorkProjectCount/);
   assert.match(capture, /Number\.parseFloat\(style\.opacity\) > 0/);
 });
