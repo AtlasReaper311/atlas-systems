@@ -86,7 +86,7 @@ test("the lab route adds scoped System Symphony side routes without public cutov
   for (const html of [roms, buildLog, radio]) {
     assert.ok(html.includes('<meta name="robots" content="noindex, follow">'));
     assert.ok(html.includes('/lab/shared/shell.js?v=20260728-system-symphony-trace-board-v1'));
-    assert.ok(html.includes('/lab/system-symphony/system-symphony-page.css?v=20260728-system-symphony-trace-board-v1'));
+    assert.ok(html.includes('/lab/system-symphony/system-symphony-page.css?v=20260728-system-symphony-trace-pr160-v1'));
     assert.ok(html.includes('href="/lab/system-symphony/'));
   }
   assert.ok(roms.includes("Atlas APU ROM Library"));
@@ -174,7 +174,8 @@ test("PLAY stays minimal while TRACE and REPLAY reveal proof deliberately", () =
   assert.ok(page.includes("Inspect selected black-box JSON"));
   assert.ok(page.includes("Inspect incident arc JSON"));
   assert.ok(adapter.includes("selectProofPanel"));
-  assert.ok(!pageCss.includes('[data-symphony-mode="trace"] .symphony-page-host .symphony-performance'));
+  assert.ok(pageCss.includes('[data-symphony-mode="trace"] .symphony-page-host .symphony-performance'));
+  assert.ok(pageCss.includes("The later PCB work changes the topology renderer"));
   assert.ok(pageCss.includes('[data-symphony-mode="replay"] .symphony-page-host .symphony-service-section'));
   assert.ok(adapter.includes("clickConsoleAudio"));
   assert.ok(adapter.includes("applyReplay"));

@@ -2,17 +2,18 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-const key = "20260728-system-symphony-trace-board-v1";
+const boardKey = "20260728-system-symphony-trace-board-v1";
+const pageKey = "20260728-system-symphony-trace-pr160-v1";
 const read = (path) => readFileSync(path, "utf8");
 
 test("TRACE cache identity advances the complete changed asset chain", () => {
   const root = read("lab/system-symphony/index.html");
 
   for (const expected of [
-    "/static/css/system-symphony.css?v=" + key,
-    "/lab/system-symphony/system-symphony-page.css?v=" + key,
-    "/lab/shared/shell.js?v=" + key,
-    "/lab/system-symphony/system-symphony-page.js?v=" + key,
+    "/static/css/system-symphony.css?v=" + boardKey,
+    "/lab/system-symphony/system-symphony-page.css?v=" + pageKey,
+    "/lab/shared/shell.js?v=" + boardKey,
+    "/lab/system-symphony/system-symphony-page.js?v=" + pageKey,
   ]) {
     assert.ok(root.includes(expected), "missing " + expected);
   }
@@ -21,52 +22,52 @@ test("TRACE cache identity advances the complete changed asset chain", () => {
     const page = read("lab/system-symphony/" + child + "/index.html");
     assert.ok(
       page.includes(
-        "/lab/system-symphony/system-symphony-page.css?v=" + key,
+        "/lab/system-symphony/system-symphony-page.css?v=" + pageKey,
       ),
     );
-    assert.ok(page.includes("/lab/shared/shell.js?v=" + key));
+    assert.ok(page.includes("/lab/shared/shell.js?v=" + boardKey));
   }
 
   const replay = read("lab/system-symphony/replay/index.html");
   assert.ok(
     replay.includes(
-      "/lab/system-symphony/system-symphony-page.css?v=" + key,
+      "/lab/system-symphony/system-symphony-page.css?v=" + pageKey,
     ),
   );
   assert.ok(!replay.includes("/lab/shared/shell.js"));
 
   const consolePage = read("lab/console/index.html");
   assert.ok(
-    consolePage.includes("/static/css/system-symphony.css?v=" + key),
+    consolePage.includes("/static/css/system-symphony.css?v=" + boardKey),
   );
   assert.ok(
-    consolePage.includes("/static/js/sonify/ui.js?v=" + key),
+    consolePage.includes("/static/js/sonify/ui.js?v=" + boardKey),
   );
 
   const shell = read("lab/shared/shell.js");
   assert.ok(
     shell.includes(
-      "/lab/system-symphony/system-symphony-navigation.js?v=" + key,
+      "/lab/system-symphony/system-symphony-navigation.js?v=" + boardKey,
     ),
   );
   assert.ok(
     shell.includes(
-      "/lab/system-symphony/trace-role-bridge.js?v=" + key,
+      "/lab/system-symphony/trace-role-bridge.js?v=" + boardKey,
     ),
   );
   assert.ok(
     read("lab/system-symphony/system-symphony-navigation.js").includes(
-      "/lab/system-symphony/system-symphony-navigation.css?v=" + key,
+      "/lab/system-symphony/system-symphony-navigation.css?v=" + boardKey,
     ),
   );
   assert.ok(
     read("lab/system-symphony/trace-role-bridge.js").includes(
-      "/lab/system-symphony/trace-role-bridge.css?v=" + key,
+      "/lab/system-symphony/trace-role-bridge.css?v=" + boardKey,
     ),
   );
   assert.ok(
     read("lab/system-symphony/system-symphony-page.js").includes(
-      "../../static/js/sonify/ui.js?v=" + key,
+      "../../static/js/sonify/ui.js?v=" + boardKey,
     ),
   );
 });
