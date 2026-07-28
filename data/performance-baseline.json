@@ -7,26 +7,26 @@
       "route": "/",
       "html_bytes": 21179,
       "first_party_request_count": 21,
-      "referenced_asset_bytes": 132912,
-      "total_static_bytes": 154091,
+      "referenced_asset_bytes": 132914,
+      "total_static_bytes": 154093,
       "largest_referenced_asset": "lab/index.html",
-      "largest_referenced_asset_bytes": 20417
+      "largest_referenced_asset_bytes": 20418
     },
     {
       "route": "/systems/",
-      "html_bytes": 16677,
+      "html_bytes": 16678,
       "first_party_request_count": 13,
-      "referenced_asset_bytes": 90567,
-      "total_static_bytes": 107244,
+      "referenced_asset_bytes": 91073,
+      "total_static_bytes": 107751,
       "largest_referenced_asset": "static/css/v2-directory-pages.css",
-      "largest_referenced_asset_bytes": 24290
+      "largest_referenced_asset_bytes": 24796
     },
     {
       "route": "/lab/",
-      "html_bytes": 20417,
+      "html_bytes": 20418,
       "first_party_request_count": 16,
-      "referenced_asset_bytes": 144514,
-      "total_static_bytes": 164931,
+      "referenced_asset_bytes": 145020,
+      "total_static_bytes": 165438,
       "largest_referenced_asset": "lab/lab-card.js",
       "largest_referenced_asset_bytes": 42997
     },
@@ -34,8 +34,8 @@
       "route": "/lab/signal/",
       "html_bytes": 20994,
       "first_party_request_count": 5,
-      "referenced_asset_bytes": 19721,
-      "total_static_bytes": 40715,
+      "referenced_asset_bytes": 20284,
+      "total_static_bytes": 41278,
       "largest_referenced_asset": "lab/signal/signal-v2.css",
       "largest_referenced_asset_bytes": 10214
     },
@@ -43,8 +43,8 @@
       "route": "/lab/almost/",
       "html_bytes": 4913,
       "first_party_request_count": 5,
-      "referenced_asset_bytes": 36186,
-      "total_static_bytes": 41099,
+      "referenced_asset_bytes": 36749,
+      "total_static_bytes": 41662,
       "largest_referenced_asset": "lab/almost/almost.js",
       "largest_referenced_asset_bytes": 18515
     },
@@ -58,5 +58,5 @@
       "largest_referenced_asset_bytes": 23671
     }
   ],
-  "sha256": "1acd132b2dfc2741bdb3f0d2e2782636b6701402077531b5b24ca418a8eb701c"
+  "sha256": "7e2a59404c714edf4d3f47430eba6a7ac6509ed3314873fb54009ed8358b9b8b"
 }

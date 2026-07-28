@@ -26,6 +26,8 @@ import {
 const canvas = document.querySelector("#drift-canvas");
 const context = canvas.getContext("2d", { alpha: false });
 const page = document.querySelector(".drift-page");
+const titleBlock = document.querySelector(".drift-title");
+const rail = document.querySelector(".drift-rail");
 
 const modeManualButton = document.querySelector("#mode-manual");
 const modePolicyButton = document.querySelector("#mode-policy");
@@ -104,10 +106,23 @@ function measure() {
     canvas.height = height;
   }
 
+  // The title and the readout rail sit on top of the field, so the lattice
+  // reserves the bands they actually occupy rather than a guessed fraction.
+  // Measured every resize, so it survives the paragraph rewrapping.
   const padX = width * 0.055;
-  const padY = height * 0.165;
+  const minPad = height * 0.06;
+  let padTop = minPad;
+  let padBottom = minPad;
+
+  if (!stacked.matches) {
+    const titleBottom = titleBlock.getBoundingClientRect().bottom - rect.top;
+    const railTop = rect.bottom - rail.getBoundingClientRect().top;
+    padTop = clamp((titleBottom + 26) * dpr, minPad, height * 0.5);
+    padBottom = clamp((railTop + 14) * dpr, minPad, height * 0.3);
+  }
+
   const usableW = width - padX * 2;
-  const usableY = height - padY * 2;
+  const usableY = Math.max(GRID_H, height - padTop - padBottom);
   const pitch = Math.min(usableW / GRID_W, usableY / GRID_H);
   const gap = Math.max(1, pitch * 0.16);
   const size = pitch - gap;
@@ -117,7 +132,7 @@ function measure() {
     gap,
     pitch,
     offsetX: (width - pitch * GRID_W) / 2 + gap / 2,
-    offsetY: (height - pitch * GRID_H) / 2 + gap / 2,
+    offsetY: padTop + (usableY - pitch * GRID_H) / 2 + gap / 2,
     width,
     height,
     dpr,

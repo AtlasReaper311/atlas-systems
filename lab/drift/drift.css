@@ -24,7 +24,7 @@
 #drift-canvas {
   display: block;
   width: 100%;
-  aspect-ratio: 2 / 1;
+  aspect-ratio: 16 / 10;
   border: 1px solid var(--border);
   background: #07070b;
   cursor: none;
