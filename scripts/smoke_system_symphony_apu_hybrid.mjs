@@ -232,9 +232,14 @@ try {
   assert.equal(fixtureEvidence.frame.previewEstateDerived, true);
   assert.equal(fixtureEvidence.frame.scoreState, "healthy");
   assert.equal(fixtureEvidence.metricState, "Healthy");
-  assert.equal(fixtureEvidence.metricKnown, "91%");
+  // 19 measured of 22 declared components. The preview topology fixture also
+  // declares one topology-only component and two dependencies outside the
+  // declared estate, so the TRACE board's socket and external-boundary states
+  // are reviewable. Declared-but-unmeasured components lower the known ratio
+  // without changing the measured count.
+  assert.equal(fixtureEvidence.metricKnown, "86%");
   assert.equal(fixtureEvidence.metricMeasured, "19");
-  assert.equal(fixtureEvidence.rows.length, 21);
+  assert.equal(fixtureEvidence.rows.length, 22);
   assert.equal(fixtureEvidence.rows.filter((row) => row.evidenceState === "current").length, 19);
   assert.equal(fixtureEvidence.rows.filter((row) => row.evidenceState === "reported-unknown").length, 2);
   assert.equal(fixtureEvidence.rows.filter((row) => row.cells[1] === "unknown").length, 0);
@@ -298,7 +303,7 @@ try {
   assert.equal(evidence.noSamples, "true");
   assert.equal(evidence.volumeValue, "62");
   assert.equal(evidence.metricMeasured, "19");
-  assert.equal(evidence.metricKnown, "91%");
+  assert.equal(evidence.metricKnown, "86%");
   assert.ok(evidence.stateVector.warning > 0);
   assert.ok(evidence.stateVector.unknown > 0);
   assert.equal(evidence.channelCards, 6);

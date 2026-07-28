@@ -21,7 +21,6 @@
     {"id":"ramone-memory","label":"Ramone Memory","layer":"local-ai","kind":"local-service","depends_on":[]},
     {"id":"ramone-trigger","label":"ramone-trigger","layer":"local-ai","kind":"worker","depends_on":[]},
     {"id":"ollama","label":"ollama","layer":"local-ai","kind":"local","depends_on":[]},
-    {"id":"home-assistant","label":"home assistant","layer":"local-ai","kind":"local","depends_on":[]},
     {"id":"atlas-dep-audit","label":"atlas-dep-audit","layer":"infra","kind":"github-actions","depends_on":["atlas-api-public"]},
     {"id":"atlas-badges","label":"atlas-badges","layer":"reusable-kit","kind":"tool","depends_on":[]}
   ]
