@@ -32,6 +32,7 @@ export const SYSTEM_SYMPHONY_STATE_MEASUREMENT_MS = (
 export const SYSTEM_SYMPHONY_SAMPLE_INTERVAL_MS = 200;
 export const SYSTEM_SYMPHONY_TRANSITION_MARGIN_DB = 10;
 export const SYSTEM_SYMPHONY_STATE_PAGE_POLICY = "fresh-page-aligned-form-window";
+export const SYSTEM_SYMPHONY_TRANSITION_PAGE_POLICY = "fresh-page-warmed-handover";
 
 export function buildStateMeasurementPlan(states = SYSTEM_SYMPHONY_STATES) {
   const requestedStates = [...states];
@@ -76,6 +77,16 @@ export function transitionPairs(route = SYSTEM_SYMPHONY_TRANSITION_ROUTE) {
     from: route[index],
     to,
     key: `${route[index]}->${to}`,
+  })));
+}
+
+export function buildTransitionMeasurementPlan(route = SYSTEM_SYMPHONY_TRANSITION_ROUTE) {
+  return Object.freeze(transitionPairs(route).map((pair) => Object.freeze({
+    ...pair,
+    pagePolicy: SYSTEM_SYMPHONY_TRANSITION_PAGE_POLICY,
+    alignmentBar: SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR,
+    alignmentStep: SYSTEM_SYMPHONY_STATE_ALIGNMENT_STEP,
+    measurementBars: 1,
   })));
 }
 
@@ -187,6 +198,9 @@ export function buildTransitionSummary(
       to: transition.to,
       key: `${transition.from}->${transition.to}`,
       policy: transition.policy,
+      pagePolicy: transition.pagePolicy ?? null,
+      startSection: transition.startSection ?? null,
+      startPosition: transition.startPosition ?? null,
       sampleCount: transition.samples?.length ?? 0,
       finiteShortTermSamples: shortTermValues.length,
       shortTermLufs: range(shortTermValues),
@@ -201,6 +215,8 @@ export function buildTransitionSummary(
     expectedTransitionCount: transitionPairs().length,
     measuredTransitionCount: transitions.length,
     uniqueTransitionCount: new Set(transitions.map(({ key }) => key)).size,
+    pagePolicies: Object.freeze([...new Set(transitions.map(({ pagePolicy }) => pagePolicy).filter(Boolean))]),
+    alignmentPositions: Object.freeze([...new Set(transitions.map(({ startPosition }) => startPosition).filter(Boolean))]),
     marginDb,
     allPassed: transitions.every(({ passed }) => passed),
     transitions: Object.freeze(transitions),
