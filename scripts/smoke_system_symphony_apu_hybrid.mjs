@@ -18,7 +18,7 @@ const stateWindows = Object.freeze({
   healthy: Object.freeze({ minimum: -31, maximum: -12 }),
   warning: Object.freeze({ minimum: -31, maximum: -12 }),
   critical: Object.freeze({ minimum: -30, maximum: -11 }),
-  unknown: Object.freeze({ minimum: -30, maximum: -17 }),
+  unknown: Object.freeze({ minimum: -28, maximum: -16 }),
 });
 
 await fs.mkdir(outputDirectory, { recursive: true });
@@ -138,23 +138,24 @@ async function resetMeter() {
 }
 
 async function measureState(label, state, policy) {
+  const expectedGainDb = state === "unknown" ? 7 : 4;
   await page.getByRole("button", { name: label, exact: true }).click();
   await waitForStateTransition(state, policy);
   await resetMeter();
   await page.waitForTimeout(6500);
-  await page.waitForFunction((expectedState) => {
+  await page.waitForFunction(({ expectedState, expectedGainDb: expectedGain }) => {
     const metrics = globalThis.__ATLAS_APU_LOUDNESS__?.getMetrics?.();
     const mastering = globalThis.__ATLAS_APU_MASTERING_RUNTIME__?.getStatus?.();
     return mastering?.active === true
       && mastering?.state === expectedState
-      && mastering?.targetGainDb === 4
+      && mastering?.targetGainDb === expectedGain
       && metrics?.ready === true
       && Number(metrics?.blockCount) >= 20
       && Number.isFinite(metrics?.momentaryLufs)
       && Number.isFinite(metrics?.shortTermLufs)
       && Number.isFinite(metrics?.integratedLufs)
       && Number.isFinite(metrics?.sessionTruePeakDbtp);
-  }, state, { timeout: 15_000, polling: 200 });
+  }, { expectedState: state, expectedGainDb }, { timeout: 15_000, polling: 200 });
 
   const snapshot = await collectEvidence();
   const metrics = snapshot.loudnessMetrics;
@@ -163,7 +164,7 @@ async function measureState(label, state, policy) {
   assert.equal(snapshot.frame.scoreState, state);
   assert.equal(snapshot.masteringRuntime.state, state);
   assert.equal(snapshot.masteringRuntime.policyBuildId, "20260728-system-symphony-mastering-v5");
-  assert.equal(snapshot.masteringRuntime.targetGainDb, 4);
+  assert.equal(snapshot.masteringRuntime.targetGainDb, expectedGainDb);
   if (state === "unknown") {
     assert.equal(snapshot.masteringRuntime.targetIntegratedLufs, -24);
     assert.equal(snapshot.masteringRuntime.targetToleranceDb, 3);
@@ -313,10 +314,15 @@ try {
     { to: "healthy", policy: "one-bar-decay" },
   ]);
 
-  const unknownMeasurement = stateMeasurements.find((measurement) => measurement.state === "unknown");
+  const byState = Object.fromEntries(stateMeasurements.map((measurement) => [measurement.state, measurement]));
+  const unknownMeasurement = byState.unknown;
   assert.ok(unknownMeasurement.metrics.integratedLufs >= stateWindows.unknown.minimum, `${browserName} Unknown fell outside the full-sized uncertainty floor`);
+  assert.equal(unknownMeasurement.mastering.targetGainDb, 7);
   assert.equal(unknownMeasurement.mastering.targetIntegratedLufs, -24);
   assert.equal(unknownMeasurement.mastering.targetToleranceDb, 3);
+  assert.ok(Math.abs(byState.healthy.metrics.integratedLufs - unknownMeasurement.metrics.integratedLufs) <= 4, `${browserName} Healthy to Unknown retained an audible cliff`);
+  assert.ok(Math.abs(byState.warning.metrics.integratedLufs - unknownMeasurement.metrics.integratedLufs) <= 4, `${browserName} Warning to Unknown retained an audible cliff`);
+  assert.ok(Math.abs(byState.critical.metrics.integratedLufs - unknownMeasurement.metrics.integratedLufs) <= 7, `${browserName} Critical to Unknown retained an excessive cliff`);
   assert.deepEqual(audioRequests, [], "the hybrid APU preview requested an audio asset");
   const materialFailures = failedRequests.filter(({ url }) => !url.includes("cloudflareinsights.com"));
   assert.deepEqual(materialFailures, []);
