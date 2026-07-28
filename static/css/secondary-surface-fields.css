@@ -113,6 +113,64 @@
   background: linear-gradient(90deg, rgba(10,10,15,.98) 0%, rgba(10,10,15,.86) 38%, rgba(10,10,15,.28) 74%, rgba(10,10,15,.68) 100%);
 }
 
+/* Observability: stacked sampling planes and vertical telemetry drift. */
+.atlas-composition--telemetry-lattice > .atlas-composition-canvas {
+  opacity: .5;
+  filter: saturate(1.2) brightness(1.08) contrast(1.32);
+  transform: rotate(4deg) scaleX(.92) scaleY(1.18) translate(7%, -3%);
+  transform-origin: 72% 50%;
+  mask-image: linear-gradient(90deg, transparent 0 22%, #000 42% 99%, transparent 100%);
+}
+
+.atlas-composition--telemetry-lattice::before {
+  inset: 4% 0 4% 30%;
+  background:
+    radial-gradient(circle at 22% 24%, rgba(56,189,248,.8) 0 2px, transparent 3px),
+    radial-gradient(circle at 48% 58%, rgba(74,222,128,.72) 0 2px, transparent 3px),
+    radial-gradient(circle at 76% 34%, rgba(245,166,35,.7) 0 2px, transparent 3px),
+    repeating-linear-gradient(90deg, transparent 0 54px, rgba(56,189,248,.14) 54px 55px, transparent 55px 108px),
+    repeating-linear-gradient(0deg, transparent 0 27px, rgba(232,232,224,.09) 27px 28px),
+    linear-gradient(180deg, transparent 0 12%, rgba(56,189,248,.54) 12% 12.3%, transparent 12.3% 39%, rgba(74,222,128,.48) 39% 39.3%, transparent 39.3% 68%, rgba(245,166,35,.5) 68% 68.3%, transparent 68.3% 100%);
+  opacity: 1;
+  animation: telemetry-lattice-rise 7.4s linear infinite alternate;
+}
+
+.atlas-composition--telemetry-lattice::after {
+  background:
+    linear-gradient(90deg, rgba(10,10,15,.99) 0%, rgba(10,10,15,.8) 30%, rgba(10,10,15,.06) 61%, rgba(10,10,15,.3) 100%),
+    linear-gradient(180deg, transparent 0 43%, rgba(56,189,248,.2) 48%, rgba(74,222,128,.14) 52%, transparent 58% 100%);
+}
+
+/* Evidence: branching provenance paths converging on a claim record. */
+.atlas-composition--proof-trace > .atlas-composition-canvas {
+  opacity: .48;
+  filter: sepia(.16) saturate(1.14) brightness(1.05) contrast(1.3);
+  transform: skewX(-7deg) scale(1.08) translate(7%, 1%);
+  transform-origin: 72% 50%;
+  mask-image: linear-gradient(90deg, transparent 0 23%, #000 44% 99%, transparent 100%);
+}
+
+.atlas-composition--proof-trace::before {
+  inset: 5% 0 5% 31%;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(245,166,35,.72) 0 3px, transparent 4px),
+    radial-gradient(circle at 25% 72%, rgba(232,232,224,.58) 0 3px, transparent 4px),
+    radial-gradient(circle at 53% 34%, rgba(56,189,248,.58) 0 3px, transparent 4px),
+    radial-gradient(circle at 79% 52%, rgba(245,166,35,.86) 0 4px, transparent 5px),
+    linear-gradient(28deg, transparent 0 35%, rgba(245,166,35,.48) 35% 35.25%, transparent 35.25% 100%),
+    linear-gradient(-24deg, transparent 0 40%, rgba(232,232,224,.3) 40% 40.22%, transparent 40.22% 100%),
+    linear-gradient(8deg, transparent 0 58%, rgba(56,189,248,.34) 58% 58.22%, transparent 58.22% 100%),
+    repeating-linear-gradient(90deg, transparent 0 72px, rgba(255,255,255,.06) 72px 73px);
+  opacity: 1;
+  animation: proof-trace-flow 8.6s ease-in-out infinite alternate;
+}
+
+.atlas-composition--proof-trace::after {
+  background:
+    linear-gradient(90deg, rgba(10,10,15,.99) 0%, rgba(10,10,15,.82) 31%, rgba(10,10,15,.07) 65%, rgba(10,10,15,.3) 100%),
+    radial-gradient(circle at 79% 52%, rgba(245,166,35,.24) 0 4%, rgba(245,166,35,.08) 13%, transparent 28%);
+}
+
 @keyframes pulse-horizon-scan {
   from { transform: translateX(-3.5%); opacity: .76; }
   to { transform: translateX(3.5%); opacity: 1; }
@@ -126,6 +184,16 @@
 @keyframes signal-bloom-drift {
   from { transform: translate3d(0, -5px, 0); }
   to { transform: translate3d(-16px, 9px, 0); }
+}
+
+@keyframes telemetry-lattice-rise {
+  from { transform: translate3d(0, 13px, 0); opacity: .78; }
+  to { transform: translate3d(9px, -13px, 0); opacity: 1; }
+}
+
+@keyframes proof-trace-flow {
+  from { transform: translate3d(-10px, 5px, 0) scale(.99); opacity: .76; }
+  to { transform: translate3d(12px, -4px, 0) scale(1.02); opacity: 1; }
 }
 
 @media (max-width: 760px) {

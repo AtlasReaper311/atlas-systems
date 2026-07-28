@@ -3,8 +3,12 @@
 import "./estate-shell.js?v=20260723-interface-v2";
 import "./estate-search/global-search.js";
 
-if (window.location.pathname === "/systems/reliability/") {
-  void import("./secondary-surface-fields.js?v=20260728-composition-batch-two-v1");
+if ([
+  "/systems/reliability/",
+  "/systems/observability/",
+  "/systems/evidence/",
+].includes(window.location.pathname)) {
+  void import("./secondary-surface-fields.js?v=20260728-evidence-surfaces-v1");
 }
 
 for (const href of [

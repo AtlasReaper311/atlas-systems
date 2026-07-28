@@ -74,10 +74,46 @@ export const ATLAS_FIELD_COMPOSITIONS = Object.freeze({
       light: { radiusMin: 165, radiusRatio: 0.3, smoothing: 0.018 },
     },
   }),
+  "telemetry-lattice": composition({
+    selector: ".focus-hero",
+    hostClasses: ["atlas-composition-host", "atlas-composition--telemetry-lattice"],
+    errorLabel: "Observability telemetry-lattice field",
+    options: {
+      canvasClass: "atlas-composition-canvas",
+      seed: "atlas-observability-telemetry-lattice-v1",
+      density: { min: 250, max: 690, reduced: 180, areaDivisor: 1080 },
+      domainBreaks: [0.55, 0.82],
+      domainStyles: [
+        "rgba(56, 189, 248, 0.17)",
+        "rgba(74, 222, 128, 0.13)",
+        "rgba(245, 166, 35, 0.105)",
+      ],
+      light: { radiusMin: 155, radiusRatio: 0.29, smoothing: 0.016 },
+    },
+  }),
+  "proof-trace": composition({
+    selector: ".focus-hero",
+    hostClasses: ["atlas-composition-host", "atlas-composition--proof-trace"],
+    errorLabel: "Evidence proof-trace field",
+    options: {
+      canvasClass: "atlas-composition-canvas",
+      seed: "atlas-evidence-proof-trace-v1",
+      density: { min: 230, max: 640, reduced: 175, areaDivisor: 1140 },
+      domainBreaks: [0.64, 0.88],
+      domainStyles: [
+        "rgba(245, 166, 35, 0.18)",
+        "rgba(232, 232, 224, 0.105)",
+        "rgba(56, 189, 248, 0.09)",
+      ],
+      light: { radiusMin: 145, radiusRatio: 0.27, smoothing: 0.013 },
+    },
+  }),
 });
 
 export const ATLAS_FIELD_ROUTE_COMPOSITIONS = Object.freeze({
   "/systems/reliability/": "pulse-horizon",
+  "/systems/observability/": "telemetry-lattice",
+  "/systems/evidence/": "proof-trace",
   "/about/": "identity-field",
   "/lab/": "signal-bloom",
 });
