@@ -1,0 +1,1847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="The Bearing is a browser-native Atlas Systems Lab simulation of a lattice structure carrying load, failing, rerouting, and recovering.">
+<meta name="theme-color" content="#07070b">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+<link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+<link rel="canonical" href="https://atlas-systems.uk/lab/bearing/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="The Bearing // Atlas Systems">
+<meta property="og:description" content="A browser-native lattice under simulated stress: staged incidents, sparklines, severing gestures, recovery, and reduced-motion support.">
+<meta property="og:url" content="https://atlas-systems.uk/lab/bearing/">
+<meta property="og:site_name" content="Atlas Systems">
+<meta property="og:image" content="https://atlas-systems.uk/og/bearing.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Bearing. Failure finds a path. // Atlas Systems">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The Bearing // Atlas Systems">
+<meta name="twitter:description" content="A browser-native lattice under simulated stress, rerouting, and recovery.">
+<meta name="twitter:image" content="https://atlas-systems.uk/og/bearing.png">
+<meta name="twitter:image:alt" content="The Bearing. Failure finds a path. // Atlas Systems">
+<title>The Bearing // Atlas Systems</title>
+
+<style>
+  /* ============================================================
+     THE BEARING — Atlas Systems
+     Two instruments, one structure.
+     dark  : the control room at 03:00
+     light : the blueprint on the drafting table
+     ============================================================ */
+
+  :root {
+    /* ground + ink */
+    --ground:      #07070b;
+    --ground-deep: #030305;
+    --surface:     #0f1017;
+    --rule:        #22232d;
+    --rule-soft:   #16171f;
+    --ink:         #dad8cd;
+    --ink-quiet:   #8b8c98;
+    --ink-faint:   #55575f;
+
+    /* the structure */
+    --strut:       #4a4d5c;
+    --load:        #f5a623;
+    --load-hot:    #ffd27a;
+    --critical:    #e24b4a;
+    --restored:    #4ade80;
+    --flash:       #fff6e2;
+
+    --glow: 0.9;
+    --paper-grid: 0;
+
+    --page-max: 1320px;
+    --rail-h: 122px;   /* measured from the rail at runtime */
+
+    --f-display: "Avenir Next Condensed", "Avenir Next", "Haettenschweiler",
+                 "Arial Narrow", "Liberation Sans Narrow", Impact, sans-serif;
+    --f-body:    "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
+                 Georgia, serif;
+    --f-data:    ui-monospace, "SF Mono", Menlo, "Cascadia Mono", "Roboto Mono",
+                 Consolas, monospace;
+  }
+
+  /* the blueprint */
+  @media (prefers-color-scheme: light) {
+    :root {
+      --ground:      #efece2;
+      --ground-deep: #e4e0d3;
+      --surface:     #f6f4ec;
+      --rule:        #cec8b7;
+      --rule-soft:   #dfdaca;
+      --ink:         #171a20;
+      --ink-quiet:   #5b5d60;
+      --ink-faint:   #93917f;
+
+      --strut:       #7d7a6d;
+      --load:        #a8620a;
+      --load-hot:    #d99321;
+      --critical:    #b0302f;
+      --restored:    #2f7d4a;
+      --flash:       #2a2519;
+
+      --glow: 0;
+      --paper-grid: 1;
+    }
+  }
+  :root[data-theme="light"] {
+    --ground:      #efece2;
+    --ground-deep: #e4e0d3;
+    --surface:     #f6f4ec;
+    --rule:        #cec8b7;
+    --rule-soft:   #dfdaca;
+    --ink:         #171a20;
+    --ink-quiet:   #5b5d60;
+    --ink-faint:   #93917f;
+    --strut:       #7d7a6d;
+    --load:        #a8620a;
+    --load-hot:    #d99321;
+    --critical:    #b0302f;
+    --restored:    #2f7d4a;
+    --flash:       #2a2519;
+    --glow: 0;
+    --paper-grid: 1;
+  }
+  :root[data-theme="dark"] {
+    --ground:      #07070b;
+    --ground-deep: #030305;
+    --surface:     #0f1017;
+    --rule:        #22232d;
+    --rule-soft:   #16171f;
+    --ink:         #dad8cd;
+    --ink-quiet:   #8b8c98;
+    --ink-faint:   #55575f;
+    --strut:       #4a4d5c;
+    --load:        #f5a623;
+    --load-hot:    #ffd27a;
+    --critical:    #e24b4a;
+    --restored:    #4ade80;
+    --flash:       #fff6e2;
+    --glow: 0.9;
+    --paper-grid: 0;
+  }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 17px;
+    line-height: 1.62;
+    margin: 0;
+    overflow-x: hidden;
+  }
+
+  ::selection { background: var(--load); color: var(--ground); }
+
+  /* ---------- shared type utilities ---------- */
+
+  .tag {
+    font-family: var(--f-data);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* ============================================================
+     THE HERO — the structure bears the top edge
+     ============================================================ */
+
+  .bearing {
+    position: relative;
+    height: 100svh;
+    min-height: 560px;
+    overflow: hidden;
+    background: var(--ground-deep);
+    border-bottom: 1px solid var(--rule);
+    isolation: isolate;
+  }
+
+  #lattice {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: crosshair;
+    touch-action: pan-y;
+  }
+
+  /* the sky presses down from above */
+  .sky {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 26%;
+    pointer-events: none;
+    z-index: 1;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--ground-deep) 92%, transparent),
+      transparent
+    );
+  }
+
+  .bedrock {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 42%;
+    pointer-events: none;
+    z-index: 1;
+    background: linear-gradient(
+      to top,
+      var(--ground-deep) 6%,
+      color-mix(in oklab, var(--ground-deep) 74%, transparent) 44%,
+      transparent
+    );
+  }
+
+  /* the nameplate has to stay readable while the structure burns behind it */
+  .scrim {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    background: linear-gradient(
+      to right,
+      var(--ground-deep) 0%,
+      var(--ground-deep) 7%,
+      color-mix(in oklab, var(--ground-deep) 82%, transparent) 22%,
+      color-mix(in oklab, var(--ground-deep) 38%, transparent) 44%,
+      transparent 62%
+    );
+  }
+
+  .nameplate {
+    position: absolute;
+    z-index: 3;
+    left: clamp(20px, 4.4vw, 68px);
+    bottom: calc(var(--rail-h) + clamp(26px, 6vh, 58px));
+    max-width: min(560px, 74vw);
+    pointer-events: none;
+  }
+
+  .nameplate .eyebrow {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .nameplate .eyebrow .tag { color: var(--load); }
+  .nameplate .eyebrow .sep {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--load), transparent);
+    opacity: 0.5;
+    transform: translateY(-3px);
+  }
+
+  h1.title {
+    font-family: var(--f-display);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.005em;
+    line-height: 0.82;
+    font-size: clamp(58px, 12.5vw, 168px);
+    margin: 0;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+  h1.title em {
+    display: block;
+    font-style: normal;
+    color: var(--load);
+    text-shadow: 0 0 calc(46px * var(--glow)) color-mix(in oklab, var(--load) 55%, transparent);
+  }
+
+  .nameplate p.thesis {
+    margin: 22px 0 0;
+    font-size: clamp(15px, 1.5vw, 19px);
+    line-height: 1.55;
+    color: var(--ink-quiet);
+    max-width: 44ch;
+  }
+  .nameplate p.thesis b {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* ---------- the instrument rail ---------- */
+
+  .rail {
+    position: absolute;
+    z-index: 3;
+    inset: auto 0 0 0;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    border-top: 1px solid var(--rule);
+    background: color-mix(in oklab, var(--ground-deep) 84%, transparent);
+    backdrop-filter: blur(9px);
+  }
+
+  .gauge {
+    padding: 13px clamp(12px, 2vw, 24px) 15px;
+    border-right: 1px solid var(--rule-soft);
+    min-width: 0;
+  }
+  .gauge:last-child { border-right: 0; }
+
+  .gauge .k {
+    font-family: var(--f-data);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  .gauge .v {
+    font-family: var(--f-display);
+    font-size: clamp(21px, 3vw, 34px);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1.05;
+    margin-top: 5px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    display: block;
+  }
+  .gauge .v .u {
+    font-size: 0.44em;
+    color: var(--ink-faint);
+    margin-left: 3px;
+    letter-spacing: 0.1em;
+  }
+  .gauge[data-state="load"] .v  { color: var(--load); }
+  .gauge[data-state="crit"] .v  { color: var(--critical); }
+  .gauge[data-state="heal"] .v  { color: var(--restored); }
+
+  /* forty-five seconds of history under each reading */
+  .gauge .spark {
+    display: block;
+    width: 100%;
+    height: 26px;
+    margin-top: 8px;
+  }
+
+  /* ---------- controls ---------- */
+
+  .controls {
+    position: absolute;
+    z-index: 4;
+    right: clamp(16px, 3vw, 40px);
+    top: clamp(16px, 3vw, 34px);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 9px;
+  }
+
+  button.act {
+    font-family: var(--f-data);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-quiet);
+    background: color-mix(in oklab, var(--surface) 76%, transparent);
+    border: 1px solid var(--rule);
+    padding: 9px 15px;
+    cursor: pointer;
+    transition: color 0.16s, border-color 0.16s, background 0.16s;
+    backdrop-filter: blur(6px);
+  }
+  button.act:hover {
+    color: var(--load);
+    border-color: var(--load);
+    background: color-mix(in oklab, var(--load) 12%, transparent);
+  }
+  button.act:focus-visible {
+    outline: 2px solid var(--load);
+    outline-offset: 2px;
+    color: var(--ink);
+  }
+  button.act:active { transform: translateY(1px); }
+  button.act[aria-pressed="true"] {
+    color: var(--critical);
+    border-color: var(--critical);
+  }
+
+  .hint {
+    position: absolute;
+    z-index: 3;
+    left: clamp(20px, 4.4vw, 68px);
+    bottom: calc(var(--rail-h) + 14px);
+    font-family: var(--f-data);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    pointer-events: none;
+  }
+  .hint b { color: var(--load); font-weight: 400; }
+
+  /* ---------- the incident log ---------- */
+
+  .log {
+    position: absolute;
+    z-index: 3;
+    right: clamp(16px, 3vw, 40px);
+    bottom: calc(var(--rail-h) + 18px);
+    width: min(430px, 40vw);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 4px;
+    pointer-events: none;
+    text-align: right;
+  }
+
+  .log .ev {
+    font-family: var(--f-data);
+    font-size: 11px;
+    line-height: 1.45;
+    letter-spacing: 0.04em;
+    color: var(--ink-quiet);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .log .ev time {
+    color: var(--ink-faint);
+    margin-right: 10px;
+    font-variant-numeric: tabular-nums;
+  }
+  .log .ev[data-kind="warn"] { color: var(--load); }
+  .log .ev[data-kind="crit"] { color: var(--critical); }
+  .log .ev[data-kind="ok"]   { color: var(--restored); }
+
+  /* ============================================================
+     BELOW: what you are looking at
+     ============================================================ */
+
+  .band {
+    max-width: var(--page-max);
+    margin: 0 auto;
+    padding: clamp(64px, 9vw, 128px) clamp(20px, 4.4vw, 68px);
+  }
+
+  .band-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+    gap: clamp(28px, 6vw, 88px);
+    align-items: start;
+  }
+
+  h2.sect {
+    font-family: var(--f-display);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 0.9;
+    font-size: clamp(30px, 4.4vw, 54px);
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .band-head p {
+    margin: 0 0 1.05em;
+    max-width: 62ch;
+    color: var(--ink-quiet);
+  }
+  .band-head p:last-child { margin-bottom: 0; }
+  .band-head p b { color: var(--ink); font-weight: 600; }
+
+  /* the three behaviours — a real sequence, so it is numbered */
+  .sequence {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(238px, 1fr));
+    gap: 1px;
+    background: var(--rule-soft);
+    border: 1px solid var(--rule-soft);
+    margin-top: clamp(46px, 6vw, 78px);
+  }
+
+  .step {
+    background: var(--ground);
+    padding: clamp(22px, 2.6vw, 32px);
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+  }
+  .step .n {
+    font-family: var(--f-data);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--load);
+  }
+  .step h3 {
+    font-family: var(--f-display);
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    font-size: 20px;
+    margin: 0;
+  }
+  .step p {
+    margin: 0;
+    font-size: 15.5px;
+    line-height: 1.56;
+    color: var(--ink-quiet);
+  }
+
+  /* ---------- the embed strip ---------- */
+
+  .embed {
+    border-top: 1px solid var(--rule);
+    background: var(--ground-deep);
+  }
+  .embed .band { padding-block: clamp(48px, 6vw, 78px); }
+
+  .embed-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+    gap: clamp(24px, 5vw, 72px);
+    align-items: center;
+  }
+  .embed-grid p {
+    margin: 12px 0 0;
+    font-size: 15.5px;
+    color: var(--ink-quiet);
+    max-width: 40ch;
+  }
+
+  pre.snip {
+    margin: 0;
+    padding: 18px 20px;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-left: 2px solid var(--load);
+    overflow-x: auto;
+    font-family: var(--f-data);
+    font-size: 12.5px;
+    line-height: 1.75;
+    color: var(--ink-quiet);
+  }
+  pre.snip .c { color: var(--ink-faint); }
+  pre.snip .a { color: var(--load); }
+
+  footer.sig {
+    border-top: 1px solid var(--rule);
+    padding: 26px clamp(20px, 4.4vw, 68px);
+    max-width: var(--page-max);
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 28px;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  @media (max-width: 860px) {
+    .band-head,
+    .embed-grid { grid-template-columns: minmax(0, 1fr); }
+    /* a narrow rail carries the three readings that matter live; the
+       cumulative ones are still in the footer tally */
+    .rail { grid-template-columns: repeat(3, 1fr); }
+    .gauge:nth-child(n + 4) { display: none; }
+    .gauge { padding: 10px 12px 12px; }
+    .gauge .spark { height: 18px; margin-top: 6px; }
+  }
+
+  @media (max-width: 760px) {
+    .log { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    button.act { transition: none; }
+    .gauge .bar i { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <!-- ===================== THE BEARING ===================== -->
+  <section class="bearing" aria-label="A load-bearing lattice under live simulated stress">
+    <canvas id="lattice" aria-hidden="true"></canvas>
+    <div class="sky"></div>
+    <div class="bedrock"></div>
+    <div class="scrim"></div>
+
+    <div class="controls">
+      <button class="act" id="btn-surge" type="button">Surge&nbsp;load</button>
+      <button class="act" id="btn-chaos" type="button" aria-pressed="false">Chaos&nbsp;on</button>
+      <button class="act" id="btn-rebuild" type="button">Rebuild</button>
+    </div>
+
+    <div class="nameplate">
+      <div class="eyebrow">
+        <span class="tag">Atlas&nbsp;Systems</span>
+        <span class="sep"></span>
+      </div>
+      <h1 class="title">Nothing<em>falls</em></h1>
+      <p class="thesis">
+        Every strut above is carrying real load, solved thirty times a second.
+        Overload one and it snaps — and the weight it was holding goes somewhere
+        else, instantly, because <b>the structure already knew where</b>.
+      </p>
+    </div>
+
+    <p class="hint"><b>Drag</b> to cut struts &nbsp;·&nbsp; <b>Hover</b> to lean on it</p>
+
+    <ol class="log" id="log" aria-live="polite"></ol>
+
+    <div class="rail" role="group" aria-label="Live structure telemetry">
+      <div class="gauge" data-state="load" id="g-load">
+        <span class="k">Load borne</span>
+        <span class="v"><span data-v>0</span><span class="u">kN</span></span>
+        <canvas class="spark" data-spark aria-hidden="true"></canvas>
+      </div>
+      <div class="gauge" id="g-struts">
+        <span class="k">Struts live</span>
+        <span class="v"><span data-v>0</span><span class="u">/0</span></span>
+        <canvas class="spark" data-spark aria-hidden="true"></canvas>
+      </div>
+      <div class="gauge" id="g-over">
+        <span class="k">Struts over rating</span>
+        <span class="v"><span data-v>0</span><span class="u">now</span></span>
+        <canvas class="spark" data-spark aria-hidden="true"></canvas>
+      </div>
+      <div class="gauge" id="g-cascade">
+        <span class="k">Cascades absorbed</span>
+        <span class="v"><span data-v>0</span></span>
+        <canvas class="spark" data-spark aria-hidden="true"></canvas>
+      </div>
+      <div class="gauge" data-state="heal" id="g-mttr">
+        <span class="k">Mean time to repair</span>
+        <span class="v"><span data-v>—</span><span class="u">s</span></span>
+        <canvas class="spark" data-spark aria-hidden="true"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== EXPLAINER ===================== -->
+  <section class="band">
+    <div class="band-head">
+      <h2 class="sect">This is not<br />a background</h2>
+      <div>
+        <p>
+          It is a working truss. Roughly three thousand members, each with a real
+          capacity, wired as a conductance network between a loaded top chord and
+          fixed ground. Every frame the solver relaxes the potential field and
+          reads the current through every member. Amber is load. Red is a member
+          past its rating.
+        </p>
+        <p>
+          Cut a member and the flow redistributes in the same frame. Cut enough and
+          neighbours inherit more than they can hold, and you get the thing every
+          on-call engineer recognises: <b>a cascade</b>. The structure sheds members,
+          finds the paths that survive, and rebuilds what it lost.
+        </p>
+        <p>
+          The numbers along the bottom are not decoration. They are read straight
+          off the simulation — the same shape of telemetry Atlas puts on real
+          estates.
+        </p>
+      </div>
+    </div>
+
+    <div class="sequence">
+      <article class="step">
+        <span class="n">STATE 01</span>
+        <h3>Bearing</h3>
+        <p>
+          Load enters at the top chord and reaches ground by every available path
+          at once. Members share the burden in proportion to what they can take.
+          Nothing is idle and nothing is at its limit.
+        </p>
+      </article>
+      <article class="step">
+        <span class="n">STATE 02</span>
+        <h3>Cascading</h3>
+        <p>
+          A member fails. Its share moves to its neighbours in one solver step. If
+          that pushes them past rating they heat, then snap, and the front spreads.
+          This is the failure mode that takes production down at 03:00.
+        </p>
+      </article>
+      <article class="step">
+        <span class="n">STATE 03</span>
+        <h3>Rebearing</h3>
+        <p>
+          The surviving lattice carries the whole load on fewer members. Failed
+          members return cold and take weight back gradually rather than all at
+          once, so the recovery does not become the next outage.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ===================== EMBED ===================== -->
+  <section class="embed">
+    <div class="band">
+      <div class="embed-grid">
+        <div>
+          <h2 class="sect">Drop it in</h2>
+          <p>
+            One file, no dependencies, no network calls. It reads the page theme,
+            respects reduced motion, and sleeps when scrolled out of view.
+          </p>
+        </div>
+        <pre class="snip"><code><span class="c">&lt;!-- the markup is the whole integration --&gt;</span>
+&lt;<span class="a">section</span> class="bearing"&gt;
+  &lt;<span class="a">canvas</span> id="lattice"&gt;&lt;/<span class="a">canvas</span>&gt;
+&lt;/<span class="a">section</span>&gt;
+
+<span class="c">// everything worth changing is in one object</span>
+<span class="a">const</span> CFG = {
+  targetSpan: <span class="a">44</span>,   <span class="c">// bays across, at the widest</span>
+  depth:      <span class="a">22</span>,   <span class="c">// bays down</span>
+  rating:     <span class="a">1.45</span>, <span class="c">// headroom over working load</span>
+  section:    <span class="a">0.46</span>, <span class="c">// mean member section</span>
+  voids:      <span class="a">0.09</span>, <span class="c">// bays left open</span>
+  repairMin:  <span class="a">2200</span>, <span class="c">// ms before a member returns</span>
+  quiet:      <span class="a">21000</span> <span class="c">// ms of calm before it stages one</span>
+};</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <footer class="sig">
+    <span class="tag">Atlas Systems &nbsp;·&nbsp; Reliability intelligence</span>
+    <span class="tag" id="sig-log">Bearing since you arrived</span>
+  </footer>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const cv  = document.getElementById("lattice");
+  const ctx = cv.getContext("2d", { alpha: false });
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+
+  /* ---------- theme tokens read from CSS, so both worlds stay in sync ---------- */
+  let T = {};
+  function readTokens() {
+    const s = getComputedStyle(document.documentElement);
+    const g = n => s.getPropertyValue(n).trim();
+    T = {
+      ground:   g("--ground-deep"),
+      strut:    g("--strut"),
+      load:     g("--load"),
+      loadHot:  g("--load-hot"),
+      critical: g("--critical"),
+      restored: g("--restored"),
+      flash:    g("--flash"),
+      faint:    g("--ink-faint"),
+      quiet:    g("--ink-quiet"),
+      glow:     parseFloat(g("--glow")) || 0,
+      paper:    parseFloat(g("--paper-grid")) || 0,
+      weight:   parseFloat(g("--paper-grid")) > 0.5 ? 1.7 : 1
+    };
+  }
+  readTokens();
+
+  const hex2rgb = h => {
+    h = h.replace("#", "");
+    if (h.length === 3) h = h.split("").map(c => c + c).join("");
+    return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+  };
+  const mix = (a, b, t) => [
+    a[0] + (b[0]-a[0])*t | 0,
+    a[1] + (b[1]-a[1])*t | 0,
+    a[2] + (b[2]-a[2])*t | 0
+  ];
+  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+
+  // the static lattices behind the working one; re-rendered when the theme moves
+  let depth = [], depthDirty = true;
+
+  let C = {};
+  function bakeColors() {
+    C = {
+      strut:    hex2rgb(T.strut),
+      load:     hex2rgb(T.load),
+      loadHot:  hex2rgb(T.loadHot),
+      critical: hex2rgb(T.critical),
+      restored: hex2rgb(T.restored),
+      flash:    hex2rgb(T.flash),
+      faint:    hex2rgb(T.faint),
+      quiet:    hex2rgb(T.quiet)
+    };
+    depthDirty = true;
+  }
+  bakeColors();
+
+  /* ============================================================
+     THE STRUCTURE
+     Nodes on a jittered triangulated grid.
+     Top chord is driven to potential 1, ground row pinned to 0.
+     Members are conductances; Gauss-Seidel relaxes the field;
+     current through a member is its load.
+     ============================================================ */
+
+  const CFG = {
+    targetSpan: 44,     // bays across, at the widest
+    minSpan:    16,
+    depth:      22,
+    sweeps:     5,      // relaxation sweeps per frame
+    rating:     1.45,   // headroom over the structure's own resting load
+    refPct:     0.99,   // which member counts as "the working load"
+    grow:       0.38,   // how fast a member thickens under load
+    decay:      0.38,   // how fast an unused member gives its section back
+    section:    0.46,   // mean section — conserved, only ever redistributed
+    voids:      0.09,   // fraction of bays left open, so it is not wallpaper
+    heatRate:   2.4,    // how fast overload accumulates
+    coolRate:   1.5,
+    repairMin:  2200,
+    repairVar:  2600,
+    warmup:     1500,   // ms a repaired member takes to reach full rating
+    quiet:      21000,  // ms of calm before the structure stages its own incident
+    springK:    240,    // recoil stiffness at the joints
+    springC:    15
+  };
+
+  let W = 0, H = 0, DPR = 1;
+  let nodes = [], edges = [], cols = 0, rows = 0;
+  let adjStart = new Int32Array(1), adjEdge = new Int32Array(0), adjOther = new Int32Array(0);
+  let sparks = [], snaps = [], cutTrail = [];
+
+  let refLoad = 1;         // slow EMA of the structure's own working load
+  let chaos = false;
+  let surge = 0;           // decaying extra load
+  const pointer = { x: -1e6, y: -1e6, down: false, active: false };
+
+  // telemetry
+  const M = {
+    borne: 0, live: 0, total: 0, over: 0,
+    cascades: 0, breakBuffer: 0, breakTimer: 0,
+    repairs: 0, repairTotal: 0, lost: 0, since: 0
+  };
+
+  function rand(a, b) { return a + Math.random() * (b - a); }
+
+  function build() {
+    const cw = W / DPR, ch = H / DPR;
+    cols = Math.max(CFG.minSpan, Math.min(CFG.targetSpan, Math.round(cw / 34)));
+    rows = Math.max(11, Math.min(CFG.depth, Math.round(ch / 40)));
+
+    const dx = W / (cols - 1);
+    const dy = H / (rows - 1);
+
+    nodes = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        // stagger odd rows for a proper triangulated truss
+        const stagger = (r % 2) * dx * 0.5;
+        const jx = rand(-0.17, 0.17) * dx;
+        const jy = rand(-0.19, 0.19) * dy;
+        const fixed = r === 0 ? 1 : (r === rows - 1 ? 2 : 0);
+        nodes.push({
+          x: c * dx + stagger + jx,
+          y: r * dy + jy,
+          ox: 0, oy: 0, vx: 0, vy: 0,      // recoil, visual only
+          r, c,
+          phi: 1 - r / (rows - 1),
+          fixed,
+          flow: 0
+        });
+      }
+    }
+
+    const idx = (r, c) => r * cols + c;
+    edges = [];
+    const addEdge = (a, b) => {
+      if (a == null || b == null) return;
+      const na = nodes[a], nb = nodes[b];
+      const len = Math.hypot(na.x - nb.x, na.y - nb.y);
+      edges.push({
+        a, b,
+        g0: 1 / Math.max(len, 1) * 60,   // shorter member, stiffer
+        health: 1,
+        alive: true,
+        w: rand(0.30, 0.70),             // section, adapts to what it carries
+        capVar: rand(0.80, 1.30),        // no two members are rated alike
+        mag: 0, stress: 0, heat: 0,
+        deadAt: 0, repairAt: 0,
+        flashUntil: 0
+      });
+    };
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (c < cols - 1 && Math.random() > CFG.voids) addEdge(idx(r, c), idx(r, c + 1)); // chord
+        if (r < rows - 1) {
+          addEdge(idx(r, c), idx(r + 1, c));                            // post
+          const dCol = c + (Math.random() < 0.5 ? 1 : -1);               // diagonal
+          if (dCol >= 0 && dCol < cols) addEdge(idx(r, c), idx(r + 1, dCol));
+        }
+      }
+    }
+
+    // adjacency, so the solver can sweep in place
+    adjStart = new Int32Array(nodes.length + 1);
+    for (let i = 0; i < edges.length; i++) {
+      adjStart[edges[i].a + 1]++;
+      adjStart[edges[i].b + 1]++;
+    }
+    for (let i = 0; i < nodes.length; i++) adjStart[i + 1] += adjStart[i];
+    adjEdge  = new Int32Array(edges.length * 2);
+    adjOther = new Int32Array(edges.length * 2);
+    const cursor = adjStart.slice(0, nodes.length);
+    for (let i = 0; i < edges.length; i++) {
+      const e = edges[i];
+      let k = cursor[e.a]++; adjEdge[k] = i; adjOther[k] = e.b;
+      k = cursor[e.b]++;     adjEdge[k] = i; adjOther[k] = e.a;
+    }
+
+    settle();
+
+    M.total = edges.length;
+    M.cascades = 0;
+    M.repairs = 0;
+    M.repairTotal = 0;
+    M.lost = 0;
+    M.since = performance.now();
+    sparks = []; snaps = []; cutTrail = [];
+    series.forEach(s => { s.data.length = 0; s.max = 0; });
+    depthDirty = true;
+  }
+
+  /* ---------- the solver ---------- */
+
+  function relax(drive, phase) {
+    const n = nodes.length;
+    // Load does not arrive evenly across the top chord, and where it is heaviest
+    // drifts. That is what keeps the load paths wandering instead of settling
+    // into stripes — the structure is always re-deciding.
+    const wx = 6.2832 / Math.max(cols - 1, 1);
+    const w = 1.55;                     // over-relaxation; the grid tolerates it
+    for (let s = 0; s < CFG.sweeps; s++) {
+      const back = (s & 1) === 1;
+      for (let q = 0; q < n; q++) {
+        const i = back ? n - 1 - q : q;
+        const nd = nodes[i];
+        if (nd.fixed === 1) {                               // the sky presses
+          const u = nd.c * wx;
+          nd.phi = drive * (0.87
+            + 0.13 * Math.sin(u * 1.7 + phase)
+            + 0.07 * Math.sin(u * 3.1 - phase * 0.63));
+          continue;
+        }
+        if (nd.fixed === 2) { nd.phi = 0;     continue; }   // bedrock holds
+        let num = 0, den = 0;
+        const e0 = adjStart[i], e1 = adjStart[i + 1];
+        for (let k = e0; k < e1; k++) {
+          const e = edges[adjEdge[k]];
+          if (!e.alive) continue;
+          const g = e.g0 * e.w * e.health;
+          num += g * nodes[adjOther[k]].phi;
+          den += g;
+        }
+        if (den > 1e-9) {
+          let v = nd.phi + w * (num / den - nd.phi);
+          if (v > drive * 1.2) v = drive * 1.2;
+          else if (v < 0) v = 0;
+          nd.phi = v;
+        } else {
+          nd.phi *= 0.86;
+        }
+      }
+    }
+  }
+
+  /* A member that carries load thickens; one that carries nothing gives its
+     section back. This is what turns an even mesh into braided load paths —
+     and what lets the structure re-route rather than merely survive. */
+  function adapt(dt) {
+    let sum = 0, n = 0;
+    for (let i = 0; i < edges.length; i++) {
+      const e = edges[i];
+      if (!e.alive) continue;
+      const g = e.g0 * e.w * e.health;
+      e.mag = Math.abs(g * (nodes[e.a].phi - nodes[e.b].phi));
+      sum += e.mag; n++;
+    }
+    if (!n) return;
+    const mean = Math.max(sum / n, 1e-9);
+    const k = Math.min(dt, 40) / 1000;
+    let wsum = 0;
+    for (let i = 0; i < edges.length; i++) {
+      const e = edges[i];
+      if (!e.alive) continue;
+      e.w += k * (CFG.grow * (e.mag / mean) - CFG.decay * e.w);
+      if (e.w < 0.14) e.w = 0.14;
+      else if (e.w > 1) e.w = 1;
+      wsum += e.w;
+    }
+
+    // Section is redistributed, not created: the structure can favour a path
+    // but it never gets more steel than it started with.
+    const scale = CFG.section / Math.max(wsum / n, 1e-6);
+    if (scale < 0.995 || scale > 1.005) {
+      for (let i = 0; i < edges.length; i++) {
+        const e = edges[i];
+        if (!e.alive) continue;
+        e.w = Math.max(0.14, Math.min(1, e.w * scale));
+      }
+    }
+  }
+
+  /* Members are rated against the load the structure is actually working at,
+     tracked slowly. Provisioning follows demand, so it is transients — a surge,
+     a severed trunk — that push members past rating, not the standing load.
+     It also means the piece behaves the same at any size or pixel density. */
+  const sampler = [];
+  function referenceLoad() {
+    sampler.length = 0;
+    for (let i = 0; i < edges.length; i++) {
+      const e = edges[i];
+      if (e.alive) sampler.push(e.mag);
+    }
+    if (!sampler.length) return refLoad;
+    sampler.sort((a, b) => a - b);
+    return sampler[Math.floor(sampler.length * CFG.refPct)] || refLoad;
+  }
+
+  function settle() {
+    for (let i = 0; i < nodes.length; i++) {
+      const nd = nodes[i];
+      nd.phi = nd.fixed === 2 ? 0 : 1 - nd.r / (rows - 1);
+    }
+    for (let s = 0; s < 260; s++) { relax(1, 0); adapt(60); }
+    refLoad = referenceLoad();
+  }
+
+  /* ---------- failure ---------- */
+
+  // A break is felt, not just seen: the two ends kick apart and the shock
+  // travels one joint outward before the lattice settles again.
+  function kick(e, now) {
+    const na = nodes[e.a], nb = nodes[e.b];
+    let ax = nb.x - na.x, ay = nb.y - na.y;
+    const len = Math.hypot(ax, ay) || 1;
+    ax /= len; ay /= len;
+    const p = 130 * DPR;
+
+    na.vx -= ax * p; na.vy -= ay * p;
+    nb.vx += ax * p; nb.vy += ay * p;
+
+    for (const [nd, sx, sy] of [[na, -ax, -ay], [nb, ax, ay]]) {
+      const i = nd === na ? e.a : e.b;
+      for (let k = adjStart[i]; k < adjStart[i + 1]; k++) {
+        const o = nodes[adjOther[k]];
+        o.vx += sx * p * 0.3;
+        o.vy += sy * p * 0.3;
+      }
+    }
+
+    snaps.push({ ax: na.x, ay: na.y, bx: nb.x, by: nb.y, ux: ax, uy: ay, t: now });
+    sparks.push({ x: (na.x + nb.x) * 0.5, y: (na.y + nb.y) * 0.5, t: now, life: 620 });
+  }
+
+  function settleJoints(dt) {
+    const h = Math.min(dt, 34) / 1000;
+    const k = CFG.springK, c = CFG.springC;
+    for (let i = 0; i < nodes.length; i++) {
+      const n = nodes[i];
+      if (n.ox === 0 && n.oy === 0 && n.vx === 0 && n.vy === 0) continue;
+      n.vx += (-k * n.ox - c * n.vx) * h;
+      n.vy += (-k * n.oy - c * n.vy) * h;
+      n.ox += n.vx * h;
+      n.oy += n.vy * h;
+      if (Math.abs(n.ox) < 0.01 && Math.abs(n.vx) < 0.01) { n.ox = 0; n.vx = 0; }
+      if (Math.abs(n.oy) < 0.01 && Math.abs(n.vy) < 0.01) { n.oy = 0; n.vy = 0; }
+    }
+  }
+
+  function measureAndFail(now, dt) {
+    let borne = 0, live = 0, broke = 0, over = 0;
+
+    for (let i = 0; i < nodes.length; i++) nodes[i].flow = 0;
+
+    for (let i = 0; i < edges.length; i++) {
+      const e = edges[i];
+
+      if (!e.alive) {
+        if (now >= e.repairAt) {
+          e.alive = true;
+          e.health = 0.02;
+          e.w = CFG.section * 0.6;
+          e.heat = 0;
+          M.repairs++;
+          M.repairTotal += (now - e.deadAt);
+        } else {
+          e.stress = 0;
+          continue;
+        }
+      }
+      live++;
+
+      // warm back up after repair
+      if (e.health < 1) {
+        e.health = Math.min(1, e.health + dt / CFG.warmup);
+      }
+
+      const na = nodes[e.a], nb = nodes[e.b];
+      const g = e.g0 * e.w * e.health;
+      const cur = g * (na.phi - nb.phi);
+
+      const mag = Math.abs(cur);
+      e.mag = mag;
+      na.flow += mag; nb.flow += mag;
+
+      // a thicker member takes more, but never quite as much as it now carries
+      let cap = refLoad * CFG.rating * e.capVar
+              * (0.34 + 0.66 * e.w) * (0.62 + 0.38 * e.health);
+
+      // hovering leans on the structure: local capacity drops
+      if (pointer.active && !pointer.down) {
+        const mx = (na.x + nb.x) * 0.5, my = (na.y + nb.y) * 0.5;
+        const d2 = (mx - pointer.x) ** 2 + (my - pointer.y) ** 2;
+        const R = 112 * DPR;
+        if (d2 < R * R) {
+          const f = 1 - Math.sqrt(d2) / R;
+          cap *= 1 - 0.85 * f * f;
+        }
+      }
+
+      const stress = mag / Math.max(cap, 1e-4);
+      e.stress = stress;
+      if (stress > 1) over++;
+
+      // a member still coming back from repair is not asked to prove itself
+      if (stress > 1 && e.health > 0.75) {
+        e.heat += (stress - 1) * CFG.heatRate * dt / 1000;
+      } else {
+        e.heat = Math.max(0, e.heat - CFG.coolRate * dt / 1000);
+      }
+
+      if (e.heat > 1) {
+        e.alive = false;
+        e.health = 0;
+        e.heat = 0;
+        e.deadAt = now;
+        e.repairAt = now + CFG.repairMin + Math.random() * CFG.repairVar;
+        e.flashUntil = now + 340;
+        broke++;
+        M.lost++;
+        kick(e, now);
+        live--;
+      }
+
+      // load delivered to ground
+      if (nb.fixed === 2 || na.fixed === 2) borne += mag;
+    }
+
+    if (chaos && Math.random() < 0.055) {
+      for (let k = 0; k < 3; k++) {
+        const e = edges[(Math.random() * edges.length) | 0];
+        if (e.alive) e.heat = 1.2;
+      }
+    }
+
+    // cascade detection: a burst of breaks inside one window is one cascade
+    M.breakBuffer += broke;
+    if (broke > 0) M.breakTimer = now;
+    if (M.breakBuffer > 0 && now - M.breakTimer > 420) {
+      if (M.breakBuffer >= 3) {
+        M.cascades++;
+        // a staged cut is the cause, not the cascade — only report what followed
+        const staged = (director.struck && now - director.struck < 1400) ? director.staged : 0;
+        const knockOn = M.breakBuffer - staged;
+        if (knockOn >= 3) {
+          logEvent("crit", "CASCADE — " + knockOn + " further members lost");
+        }
+        if (!director.recovering) director.recovering = now;
+      }
+      M.breakBuffer = 0;
+    }
+
+    refLoad += (referenceLoad() - refLoad) * Math.min(1, dt / 7000);
+    if (!(refLoad > 1e-12)) refLoad = 1e-12;
+
+    M.borne = borne;
+    M.live = live;
+    M.over = over;
+  }
+
+  /* ============================================================
+     THE INCIDENT LOG
+     ============================================================ */
+
+  const logEl = document.getElementById("log");
+  const logRows = [];
+
+  function stamp() {
+    const d = new Date();
+    return String(d.getHours()).padStart(2, "0") + ":" +
+           String(d.getMinutes()).padStart(2, "0") + ":" +
+           String(d.getSeconds()).padStart(2, "0");
+  }
+
+  function logEvent(kind, text) {
+    if (!logEl) return;
+    logRows.unshift({ kind, text, at: stamp() });
+    if (logRows.length > 6) logRows.pop();
+    logEl.innerHTML = logRows.map((r, i) =>
+      '<li class="ev" data-kind="' + r.kind + '" style="opacity:' +
+      (1 - i * 0.15).toFixed(2) + '"><time>' + r.at + '</time>' + r.text + "</li>"
+    ).join("");
+  }
+
+  /* ============================================================
+     THE DIRECTOR
+     Most visitors never touch anything, so the structure stages its own
+     incident: it cuts one of its own trunks, absorbs the cascade, and
+     writes the whole thing to the log. Any human input pushes it back.
+     ============================================================ */
+
+  const director = { next: 0, recovering: 0, struck: 0, staged: 0 };
+
+  function defer(now, ms) { director.next = now + ms; }
+
+  function stageIncident(now) {
+    // pick the busiest member on the open right-hand side, where it will be seen
+    let best = null, bestMag = -1;
+    for (let i = 0; i < edges.length; i++) {
+      const e = edges[i];
+      if (!e.alive || e.health < 0.9) continue;
+      const mx = (nodes[e.a].x + nodes[e.b].x) * 0.5;
+      if (mx < W * 0.44 || mx > W * 0.94) continue;
+      if (e.mag > bestMag) { bestMag = e.mag; best = e; }
+    }
+    if (!best) return false;
+
+    const cx = (nodes[best.a].x + nodes[best.b].x) * 0.5;
+    const cy = (nodes[best.a].y + nodes[best.b].y) * 0.5;
+    const R = 58 * DPR;
+
+    let n = 0;
+    for (let i = 0; i < edges.length; i++) {
+      const e = edges[i];
+      if (!e.alive) continue;
+      const mx = (nodes[e.a].x + nodes[e.b].x) * 0.5;
+      const my = (nodes[e.a].y + nodes[e.b].y) * 0.5;
+      if ((mx - cx) ** 2 + (my - cy) ** 2 < R * R) { e.heat = 1.5; n++; }
+    }
+
+    const bay = Math.round((cx / W) * cols);
+    logEvent("warn", "trunk severed at bay " + bay + " — " + n + " members");
+    director.staged = n;
+    director.struck = now;
+    director.lostAt = M.lost;
+    director.recovering = now;
+    return true;
+  }
+
+  function direct(now) {
+    if (director.recovering) {
+      // the incident is over when nothing has broken for a while and the
+      // structure is carrying its load on a full complement again
+      const quietFor = now - M.breakTimer;
+      const whole = M.total ? M.live / M.total : 1;
+      if (quietFor > 2400 && whole > 0.995) {
+        const secs = (now - director.struck) / 1000;
+        if (director.struck) {
+          logEvent("ok", "bearing restored · " + secs.toFixed(1) + " s");
+        } else {
+          logEvent("ok", "load rerouted, bearing restored");
+        }
+        director.recovering = 0;
+        director.struck = 0;
+        defer(now, rand(20000, 30000));
+      } else if (now - director.recovering > 26000) {
+        director.recovering = 0;      // give up narrating this one
+        defer(now, rand(20000, 30000));
+      }
+      return;
+    }
+    if (now < director.next) return;
+    if (M.over > 6 || now - M.breakTimer < 3000) { defer(now, 4000); return; }
+    if (!stageIncident(now)) defer(now, 6000);
+  }
+
+  /* ---------- rendering ---------- */
+
+  const px = n => n.x + n.ox;
+  const py = n => n.y + n.oy;
+
+  /* Two things are being shown at once, and they are not the same thing:
+     how much a member is carrying (brightness and thickness) and how close
+     it is to its rating (hue). A thin bright line is a capillary at its limit;
+     a fat amber one is a trunk doing its job. */
+  function memberColor(e, now) {
+    if (now < e.flashUntil) {
+      const t = 1 - (e.flashUntil - now) / 340;
+      return { c: mix(C.flash, C.critical, t), a: 1 - t * 0.3, w: (2.6 - t * 1.7) * DPR };
+    }
+
+    const carry = Math.min(1, Math.pow(e.mag / (refLoad * 1.5), 0.62));
+
+    if (e.health < 0.999) {                       // back from repair, still cold
+      const t = e.health;
+      return {
+        c: mix(C.restored, mix(C.strut, C.load, carry), t * 0.8),
+        a: 0.24 + t * 0.3,
+        w: (0.6 + t * 0.6 + carry) * DPR
+      };
+    }
+
+    let c = mix(C.strut, C.load, carry);
+    const s = e.stress;
+    if (s > 0.68) c = mix(c, C.loadHot, Math.min(1, (s - 0.68) / 0.32));
+    if (s > 1)    c = mix(c, C.critical, Math.min(1, (s - 1) / 0.5) * 0.92);
+
+    return {
+      c,
+      a: 0.12 + carry * 0.74 + (s > 1 ? 0.14 : 0),
+      w: (0.42 + carry * 1.9 + (s > 1 ? 0.7 : 0)) * DPR
+    };
+  }
+
+  /* ---------- the structure behind the structure ----------
+     Two static lattices, rendered once and parallaxed. They never carry
+     anything; they are there so the working truss reads as an object in
+     space rather than a diagram on glass. */
+
+  function buildDepth() {
+    depth = [];
+    const pad = 60 * DPR;
+    for (const layer of [{ s: 1.7, a: 0.16, blur: 2.4 }, { s: 2.6, a: 0.09, blur: 4 }]) {
+      const c = document.createElement("canvas");
+      c.width  = Math.max(2, Math.round(W + pad * 2));
+      c.height = Math.max(2, Math.round(H + pad * 2));
+      const g = c.getContext("2d");
+      const dc = Math.max(6, Math.round(cols / layer.s));
+      const dr = Math.max(5, Math.round(rows / layer.s));
+      const dx = c.width / (dc - 1), dy = c.height / (dr - 1);
+
+      const pts = [];
+      for (let r = 0; r < dr; r++) {
+        for (let cc = 0; cc < dc; cc++) {
+          pts.push({
+            x: cc * dx + (r % 2) * dx * 0.5 + rand(-0.2, 0.2) * dx,
+            y: r * dy + rand(-0.2, 0.2) * dy
+          });
+        }
+      }
+      if (g.filter !== undefined) g.filter = "blur(" + layer.blur * DPR + "px)";
+      g.strokeStyle = rgba(C.strut, layer.a);
+      g.lineWidth = 1.1 * DPR * layer.s * 0.7;
+      g.lineCap = "round";
+      g.beginPath();
+      const at = (r, cc) => pts[r * dc + cc];
+      for (let r = 0; r < dr; r++) {
+        for (let cc = 0; cc < dc; cc++) {
+          if (cc < dc - 1 && Math.random() > 0.14) {
+            g.moveTo(at(r, cc).x, at(r, cc).y); g.lineTo(at(r, cc + 1).x, at(r, cc + 1).y);
+          }
+          if (r < dr - 1) {
+            g.moveTo(at(r, cc).x, at(r, cc).y); g.lineTo(at(r + 1, cc).x, at(r + 1, cc).y);
+            const d = cc + (Math.random() < 0.5 ? 1 : -1);
+            if (d >= 0 && d < dc && Math.random() > 0.4) {
+              g.moveTo(at(r, cc).x, at(r, cc).y); g.lineTo(at(r + 1, d).x, at(r + 1, d).y);
+            }
+          }
+        }
+      }
+      g.stroke();
+      depth.push({ canvas: c, pad, amp: 10 * DPR * layer.s });
+    }
+    depthDirty = false;
+  }
+
+  function drawDepth(now) {
+    if (depthDirty) buildDepth();
+    const t = now / 1000;
+    const hx = pointer.active ? (pointer.x / W - 0.5) : 0;
+    const hy = pointer.active ? (pointer.y / H - 0.5) : 0;
+    for (const l of depth) {
+      const ox = -l.pad + (hx * -l.amp) + Math.sin(t * 0.13) * l.amp * 0.35;
+      const oy = -l.pad + (hy * -l.amp) + Math.cos(t * 0.11) * l.amp * 0.25;
+      ctx.drawImage(l.canvas, ox, oy);
+    }
+  }
+
+  function draw(now) {
+    ctx.fillStyle = T.ground;
+    ctx.fillRect(0, 0, W, H);
+
+    // blueprint ruling, light theme only
+    if (T.paper > 0.5) {
+      ctx.save();
+      ctx.strokeStyle = rgba(C.faint, 0.16);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      const gp = 44 * DPR;
+      for (let x = 0; x < W; x += gp) { ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, H); }
+      for (let y = 0; y < H; y += gp) { ctx.moveTo(0, y + 0.5); ctx.lineTo(W, y + 0.5); }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    drawDepth(now);
+
+    // dead members, drawn as ghosts so you can see what was lost
+    ctx.save();
+    ctx.lineWidth = 1 * DPR;
+    ctx.setLineDash([1 * DPR, 5 * DPR]);
+    ctx.strokeStyle = rgba(C.faint, T.paper > 0.5 ? 0.34 : 0.16);
+    ctx.beginPath();
+    for (let i = 0; i < edges.length; i++) {
+      const e = edges[i];
+      if (e.alive) continue;
+      ctx.moveTo(px(nodes[e.a]), py(nodes[e.a]));
+      ctx.lineTo(px(nodes[e.b]), py(nodes[e.b]));
+    }
+    ctx.stroke();
+    ctx.restore();
+
+    // live members
+    ctx.lineCap = "round";
+    if (T.glow > 0) ctx.globalCompositeOperation = "lighter";
+    for (let i = 0; i < edges.length; i++) {
+      const e = edges[i];
+      if (!e.alive) continue;
+      const na = nodes[e.a], nb = nodes[e.b];
+      const { c, a, w } = memberColor(e, now);
+      ctx.strokeStyle = rgba(c, Math.min(1, a * T.weight));
+      ctx.lineWidth = w;
+      ctx.beginPath();
+      ctx.moveTo(px(na), py(na));
+      ctx.lineTo(px(nb), py(nb));
+      ctx.stroke();
+    }
+
+    // hot members get a bloom pass
+    if (T.glow > 0) {
+      for (let i = 0; i < edges.length; i++) {
+        const e = edges[i];
+        const bloom = e.mag / (refLoad * 1.5);
+        if (!e.alive || bloom < 0.72) continue;
+        const na = nodes[e.a], nb = nodes[e.b];
+        const t = Math.min(1, (Math.min(bloom, 2) - 0.72) / 1.28);
+        ctx.strokeStyle = rgba(mix(C.load, C.loadHot, t), 0.075 * T.glow);
+        ctx.lineWidth = (4 + t * 9) * DPR;
+        ctx.beginPath();
+        ctx.moveTo(px(na), py(na));
+        ctx.lineTo(px(nb), py(nb));
+        ctx.stroke();
+      }
+    }
+
+    // joints
+    for (let i = 0; i < nodes.length; i++) {
+      const nd = nodes[i];
+      const f = Math.min(1, nd.flow / (refLoad * 7));
+      if (f < 0.04 && nd.fixed === 0) continue;
+      const c = nd.fixed ? C.load : mix(C.strut, C.loadHot, f);
+      ctx.fillStyle = rgba(c, 0.18 + f * 0.7);
+      const r = (0.7 + f * 1.7 + (nd.fixed ? 0.8 : 0)) * DPR;
+      ctx.beginPath();
+      ctx.arc(px(nd), py(nd), r, 0, 6.2832);
+      ctx.fill();
+    }
+
+    // the break itself: two ends recoiling apart
+    for (let i = snaps.length - 1; i >= 0; i--) {
+      const s = snaps[i];
+      const t = (now - s.t) / 460;
+      if (t >= 1 || t < 0) { if (t >= 1) snaps.splice(i, 1); continue; }
+      const k = (1 - t) * (1 - t);
+      const push = 9 * DPR * (1 - k);
+      const hx = (s.bx - s.ax) * 0.34, hy = (s.by - s.ay) * 0.34;
+      ctx.strokeStyle = rgba(mix(C.flash, C.critical, t), (1 - t) * 0.85);
+      ctx.lineWidth = (1.8 - t) * DPR;
+      ctx.beginPath();
+      ctx.moveTo(s.ax - s.ux * push, s.ay - s.uy * push);
+      ctx.lineTo(s.ax + hx - s.ux * push, s.ay + hy - s.uy * push);
+      ctx.moveTo(s.bx + s.ux * push, s.by + s.uy * push);
+      ctx.lineTo(s.bx - hx + s.ux * push, s.by - hy + s.uy * push);
+      ctx.stroke();
+    }
+
+    // severance rings
+    for (let i = sparks.length - 1; i >= 0; i--) {
+      const s = sparks[i];
+      const t = (now - s.t) / s.life;
+      if (t >= 1) { sparks.splice(i, 1); continue; }
+      if (t < 0) continue;
+      ctx.strokeStyle = rgba(C.flash, (1 - t) * 0.5);
+      ctx.lineWidth = (1 - t) * 1.8 * DPR;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, (3 + t * 44) * DPR, 0, 6.2832);
+      ctx.stroke();
+    }
+
+    // the cutting stroke
+    if (cutTrail.length > 1) {
+      ctx.lineWidth = 1.4 * DPR;
+      for (let i = cutTrail.length - 1; i > 0; i--) {
+        const p = cutTrail[i], q = cutTrail[i - 1];
+        const age = (now - p.t) / 420;
+        if (age >= 1) { cutTrail.splice(0, i); break; }
+        ctx.strokeStyle = rgba(C.flash, (1 - age) * 0.5);
+        ctx.beginPath();
+        ctx.moveTo(q.x, q.y);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+      }
+    }
+
+    ctx.globalCompositeOperation = "source-over";
+  }
+
+  /* ============================================================
+     THE RAIL — five gauges, each with its own 45 seconds of history
+     ============================================================ */
+
+  const series = [
+    { id: "g-load",    key: "load",  data: [], max: 0, floor: 1 },
+    { id: "g-struts",  key: "live",  data: [], max: 0, floor: 1 },
+    { id: "g-over",    key: "over",  data: [], max: 0, floor: 8 },
+    { id: "g-cascade", key: "casc",  data: [], max: 0, floor: 2 },
+    { id: "g-mttr",    key: "mttr",  data: [], max: 0, floor: 4 }
+  ];
+  const SPAN = 90;                     // samples kept, one every 500 ms
+
+  series.forEach(s => {
+    s.el = document.getElementById(s.id);
+    s.canvas = s.el.querySelector("[data-spark]");
+    s.ctx = s.canvas.getContext("2d");
+  });
+
+  const val = el => el.querySelector("[data-v]");
+  const uni = el => el.querySelector(".u");
+  const sigLog = document.getElementById("sig-log");
+
+  function sparkSize() {
+    for (const s of series) {
+      const r = s.canvas.getBoundingClientRect();
+      const w = Math.max(2, Math.round(r.width * DPR));
+      const h = Math.max(2, Math.round(r.height * DPR));
+      if (s.canvas.width !== w || s.canvas.height !== h) {
+        s.canvas.width = w; s.canvas.height = h;
+      }
+    }
+  }
+
+  function drawSpark(s) {
+    const g = s.ctx, w = s.canvas.width, h = s.canvas.height;
+    g.clearRect(0, 0, w, h);
+    if (s.data.length < 2) return;
+
+    const state = s.el.dataset.state;
+    const hue = state === "crit" ? C.critical
+              : state === "heal" ? C.restored
+              : state === "load" ? C.load
+              : C.quiet;
+
+    const top = 3 * DPR, bot = h - 2 * DPR;
+    const span = Math.max(1, s.max);
+    const xAt = i => (i / (SPAN - 1)) * w;
+    const yAt = v => bot - (Math.min(v, span) / span) * (bot - top);
+    const first = SPAN - s.data.length;
+
+    // baseline, recessive
+    g.strokeStyle = rgba(C.faint, 0.28);
+    g.lineWidth = 1;
+    g.beginPath();
+    g.moveTo(0, bot + 0.5); g.lineTo(w, bot + 0.5);
+    g.stroke();
+
+    // area
+    g.beginPath();
+    g.moveTo(xAt(first), bot);
+    for (let i = 0; i < s.data.length; i++) g.lineTo(xAt(first + i), yAt(s.data[i]));
+    g.lineTo(xAt(first + s.data.length - 1), bot);
+    g.closePath();
+    g.fillStyle = rgba(hue, 0.15);
+    g.fill();
+
+    // line
+    g.beginPath();
+    for (let i = 0; i < s.data.length; i++) {
+      const x = xAt(first + i), y = yAt(s.data[i]);
+      i ? g.lineTo(x, y) : g.moveTo(x, y);
+    }
+    g.strokeStyle = rgba(hue, 0.9);
+    g.lineWidth = 2 * DPR;
+    g.lineJoin = "round";
+    g.stroke();
+
+    // the endpoint is the only labelled moment
+    const lx = xAt(first + s.data.length - 1), ly = yAt(s.data[s.data.length - 1]);
+    g.fillStyle = rgba(hue, 1);
+    g.beginPath();
+    g.arc(lx, ly, 2.2 * DPR, 0, 6.2832);
+    g.fill();
+  }
+
+  let hudAt = 0, sampleAt = 0, bornSmooth = 0, kn = 0;
+
+  function hud(now) {
+    if (now - hudAt < 120) return;
+    hudAt = now;
+
+    const G = {};
+    for (const s of series) G[s.id] = s.el;
+
+    bornSmooth += (M.borne / Math.max(refLoad, 1e-9) - bornSmooth) * 0.22;
+    kn = bornSmooth * 34;
+    val(G["g-load"]).textContent = kn.toFixed(0);
+
+    val(G["g-struts"]).textContent = M.live;
+    uni(G["g-struts"]).textContent = "/" + M.total;
+    const liveFrac = M.total ? M.live / M.total : 0;
+    G["g-struts"].dataset.state =
+      liveFrac > 0.97 ? "" : liveFrac > 0.85 ? "load" : "crit";
+
+    val(G["g-over"]).textContent = M.over;
+    G["g-over"].dataset.state = M.over > 24 ? "crit" : M.over > 0 ? "load" : "";
+
+    val(G["g-cascade"]).textContent = M.cascades;
+    G["g-cascade"].dataset.state = M.cascades > 0 ? "load" : "";
+
+    const mttr = M.repairs > 0 ? M.repairTotal / M.repairs / 1000 : 0;
+    if (M.repairs > 0) val(G["g-mttr"]).textContent = mttr.toFixed(1);
+
+    const secs = Math.max(0, (now - M.since) / 1000);
+    const mins = Math.floor(secs / 60);
+    const clock = mins > 0
+      ? mins + " min " + String(Math.floor(secs % 60)).padStart(2, "0") + " s"
+      : Math.floor(secs) + " s";
+    sigLog.textContent =
+      "Bearing for " + clock + " · " + M.lost + " members lost, " +
+      M.repairs + " restored";
+
+    if (now - sampleAt < 500) return;
+    sampleAt = now;
+    const reading = { load: kn, live: M.live, over: M.over, casc: M.cascades, mttr };
+    for (const s of series) {
+      s.data.push(reading[s.key]);
+      if (s.data.length > SPAN) s.data.shift();
+      s.max = Math.max(s.floor, ...s.data);
+      drawSpark(s);
+    }
+  }
+
+  /* ---------- interaction ---------- */
+
+  function toLocal(ev) {
+    const r = cv.getBoundingClientRect();
+    pointer.x = (ev.clientX - r.left) * (W / r.width);
+    pointer.y = (ev.clientY - r.top)  * (H / r.height);
+    pointer.active = true;
+  }
+
+  function severAt(x, y, radius) {
+    let n = 0;
+    const r2 = radius * radius;
+    for (let i = 0; i < edges.length; i++) {
+      const e = edges[i];
+      if (!e.alive) continue;
+      const mx = (nodes[e.a].x + nodes[e.b].x) * 0.5;
+      const my = (nodes[e.a].y + nodes[e.b].y) * 0.5;
+      if ((mx - x) ** 2 + (my - y) ** 2 < r2) { e.heat = 1.5; n++; }
+    }
+    return n;
+  }
+
+  // a cut is a stroke, not a click: everything the line crosses goes
+  function severAlong(x0, y0, x1, y1, radius) {
+    const d = Math.hypot(x1 - x0, y1 - y0);
+    const steps = Math.max(1, Math.ceil(d / (radius * 0.7)));
+    let n = 0;
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      n += severAt(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, radius);
+    }
+    return n;
+  }
+
+  let cutCount = 0, cutLogAt = 0;
+  function noteCut(n, now) {
+    if (!n) return;
+    cutCount += n;
+    if (now - cutLogAt > 700) {
+      cutLogAt = now;
+      logEvent("warn", "manual severance — " + cutCount + " members");
+      cutCount = 0;
+      director.recovering = now;
+      director.struck = 0;
+    }
+  }
+
+  function human(now) { defer(now, 30000); }
+
+  cv.addEventListener("pointermove", ev => {
+    const wasDown = pointer.down;
+    const ox = pointer.x, oy = pointer.y;
+    toLocal(ev);
+    if (wasDown) {
+      const now = performance.now();
+      cutTrail.push({ x: pointer.x, y: pointer.y, t: now });
+      if (cutTrail.length > 40) cutTrail.shift();
+      noteCut(severAlong(ox, oy, pointer.x, pointer.y, 26 * DPR), now);
+      human(now);
+    }
+  }, { passive: true });
+
+  cv.addEventListener("pointerleave", () => { pointer.active = false; pointer.down = false; });
+
+  cv.addEventListener("pointerdown", ev => {
+    toLocal(ev);
+    pointer.down = true;
+    const now = performance.now();
+    cutTrail = [{ x: pointer.x, y: pointer.y, t: now }];
+    noteCut(severAt(pointer.x, pointer.y, 34 * DPR), now);
+    human(now);
+    cv.setPointerCapture?.(ev.pointerId);
+  });
+
+  addEventListener("pointerup", () => {
+    pointer.down = false;
+    if (cutCount) {
+      logEvent("warn", "manual severance — " + cutCount + " members");
+      cutCount = 0;
+      cutLogAt = performance.now();
+    }
+  });
+
+  document.getElementById("btn-surge").addEventListener("click", () => {
+    surge = 1;
+    const now = performance.now();
+    logEvent("warn", "load surge applied");
+    director.recovering = now;
+    director.struck = 0;
+    human(now);
+  });
+
+  const btnChaos = document.getElementById("btn-chaos");
+  btnChaos.addEventListener("click", () => {
+    chaos = !chaos;
+    btnChaos.setAttribute("aria-pressed", String(chaos));
+    btnChaos.textContent = chaos ? "Chaos off" : "Chaos on";
+    logEvent("info", chaos ? "chaos mode engaged" : "chaos mode stood down");
+    human(performance.now());
+  });
+
+  document.getElementById("btn-rebuild").addEventListener("click", () => {
+    build();
+    logRows.length = 0;
+    logEvent("info", "structure rebuilt — " + M.total + " members");
+    human(performance.now());
+  });
+
+  /* ---------- lifecycle ---------- */
+
+  const rail = document.querySelector(".rail");
+  function measureRail() {
+    if (!rail) return;
+    document.documentElement.style.setProperty(
+      "--rail-h", Math.round(rail.getBoundingClientRect().height) + "px");
+  }
+
+  function resize() {
+    DPR = Math.min(devicePixelRatio || 1, 2);
+    const r = cv.getBoundingClientRect();
+    W = Math.max(320, r.width * DPR);
+    H = Math.max(320, r.height * DPR);
+    cv.width = W;
+    cv.height = H;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    measureRail();
+    sparkSize();
+    build();
+  }
+
+  if (window.ResizeObserver) {
+    let t;
+    new ResizeObserver(() => {
+      clearTimeout(t);
+      t = setTimeout(resize, 160);
+    }).observe(cv);
+    if (rail) new ResizeObserver(measureRail).observe(rail);
+  }
+  addEventListener("orientationchange", () => setTimeout(resize, 260));
+
+  // sleep when out of view
+  let visible = true;
+  if (window.IntersectionObserver) {
+    new IntersectionObserver(es => { visible = es[0].isIntersecting; }, { threshold: 0.02 })
+      .observe(cv);
+  }
+
+  const themeWatch = new MutationObserver(() => {
+    readTokens(); bakeColors(); series.forEach(drawSpark);
+  });
+  themeWatch.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => {
+    readTokens(); bakeColors(); series.forEach(drawSpark);
+  });
+
+  let last = performance.now();
+  const t0 = last;
+
+  function frame(now) {
+    requestAnimationFrame(frame);
+    const dt = Math.min(50, now - last);
+    last = now;
+    if (!visible || document.hidden) return;
+
+    // load drifts, breathes, and surges
+    const t = (now - t0) / 1000;
+    surge = Math.max(0, surge - dt / 2600);
+    const drive =
+      1
+      + 0.10 * Math.sin(t * 0.31)
+      + 0.06 * Math.sin(t * 0.83 + 1.7)
+      + 0.55 * surge * surge;
+
+    relax(drive, t * 0.16);
+    adapt(dt);
+    measureAndFail(now, dt);
+    settleJoints(dt);
+    direct(now);
+    draw(now);
+    hud(now);
+  }
+
+  // reduced motion: solve to a settled bearing state, paint it once, hold it
+  if (reduced.matches) {
+    resize();
+    const now = performance.now();
+    for (let i = 0; i < 90; i++) { relax(1, 0.6); adapt(16); measureAndFail(now, 16); }
+    snaps.length = 0; sparks.length = 0;
+    for (const n of nodes) { n.ox = n.oy = n.vx = n.vy = 0; }
+    draw(now);
+    // let the readings converge, then hold them: no clock, nothing moving
+    for (let i = 1; i <= 30; i++) hud(now + i * 600);
+    sigLog.textContent = "Bearing — held still by motion preference";
+    logEvent("ok", "bearing — " + M.live + " of " + M.total + " members");
+  } else {
+    resize();
+    director.next = performance.now() + CFG.quiet;
+    logEvent("info", "structure under load — " + M.total + " members");
+    requestAnimationFrame(frame);
+  }
+})();
+</script>
+</body>
+</html>
