@@ -94,7 +94,7 @@ test("state envelope and duty-cycle contracts remain measurably different", () =
   assert.equal(APU_STATE_IDENTITIES.healthy.primaryDutyCycle, 0.5);
   assert.equal(APU_STATE_IDENTITIES.warning.primaryDutyCycle, 0.125);
   assert.ok(Object.values(APU_STATE_IDENTITIES).every((identity) => identity.transitionPolicy === "one-bar-decay"));
-  assert.equal(APU_STATE_IDENTITIES.unknown.masterGainDb, APU_STATE_IDENTITIES.healthy.masterGainDb);
+  assert.equal(APU_STATE_IDENTITIES.unknown.masterGainDb - APU_STATE_IDENTITIES.healthy.masterGainDb, 3);
   assert.ok(APU_STATE_IDENTITIES.unknown.omissionThreshold > APU_STATE_IDENTITIES.warning.omissionThreshold);
   assert.ok(APU_STATE_IDENTITIES.unknown.omissionThreshold < 0.25);
   assert.ok(APU_STATE_IDENTITIES.unknown.dynamicRangeDb > APU_STATE_IDENTITIES.healthy.dynamicRangeDb);
