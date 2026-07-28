@@ -17,6 +17,7 @@ export const CARD_SIGNATURES = Object.freeze([
   "signal",
   "anomaly",
   "almost",
+  "drift",
   "console",
 ]);
 

@@ -13,6 +13,7 @@ const LAB_ROUTES = [
   { label: "Speculum", href: "/lab/speculum/" },
   { label: "Shape Detector", href: "/lab/anomaly/" },
   { label: "Almost", href: "/lab/almost/" },
+  { label: "Drift", href: "/lab/drift/" },
 ];
 
 const PRODUCTION_ORIGIN = "https://atlas-systems.uk";

@@ -146,6 +146,14 @@
       "tagline": "An endless local drawing made from imperfect frame intervals."
     },
     {
+      "file": "drift",
+      "html": "lab/drift/index.html",
+      "route": "/lab/drift/",
+      "kicker": "Explore / Estate entropy",
+      "title": ["Drift.", "Attention does not [scale.]"],
+      "tagline": "Hold the estate by hand, then hand it to policy."
+    },
+    {
       "file": "speculum",
       "html": "lab/speculum/index.html",
       "route": "/lab/speculum/",

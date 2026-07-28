@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Drift is a playable argument. Hold an estate of five hundred nodes in conformance using nothing but your own attention, then watch policy do it without you.">
+  <meta name="theme-color" content="#07070b">
+  <title>Drift // Atlas Systems</title>
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/lab/shared/systems.css">
+  <link rel="stylesheet" href="/lab/drift/drift.css">
+  <link rel="canonical" href="https://atlas-systems.uk/lab/drift/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Drift // Atlas Systems">
+  <meta property="og:description" content="Attention does not scale. Policy does. A playable proof, in one browser tab.">
+  <meta property="og:url" content="https://atlas-systems.uk/lab/drift/">
+  <meta property="og:site_name" content="Atlas Systems">
+  <meta property="og:image" content="https://atlas-systems.uk/og/drift.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Drift. Attention does not scale. // Atlas Systems">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Drift // Atlas Systems">
+  <meta name="twitter:description" content="Attention does not scale. Policy does. A playable proof, in one browser tab.">
+  <meta name="twitter:image" content="https://atlas-systems.uk/og/drift.png">
+  <meta name="twitter:image:alt" content="Drift. Attention does not scale. // Atlas Systems">
+</head>
+<body class="drift-page" data-mode="manual" data-pointer="on">
+  <nav aria-label="Primary navigation">
+    <a class="wordmark" href="/">Atlas<span>_</span>Systems</a>
+  </nav>
+
+  <main>
+    <section class="drift-stage" aria-labelledby="drift-title">
+      <div class="drift-field">
+      <canvas
+        id="drift-canvas"
+        width="1400"
+        height="700"
+        tabindex="0"
+        role="application"
+        aria-describedby="drift-help"
+        aria-label="An estate of five hundred and twelve nodes losing conformance. Move the attention field to repair what it covers."
+      >
+        Drift is an interactive lattice of estate nodes losing conformance over time.
+      </canvas>
+
+      <header class="drift-title">
+        <p class="drift-index">Atlas Systems / local process 01</p>
+        <h1 id="drift-title">Drift<span>.</span></h1>
+        <p>Five hundred and twelve nodes. One operator. Move your attention across the field and hold conformance above ninety percent for as long as you can.</p>
+      </header>
+
+      <div class="drift-controls">
+        <div class="drift-switch" role="group" aria-label="Who is holding the estate">
+          <button id="mode-manual" type="button" aria-pressed="true">By hand</button>
+          <button id="mode-policy" type="button" aria-pressed="false">By policy</button>
+        </div>
+        <button id="drift-reset" class="drift-reset" type="button">New estate</button>
+      </div>
+
+      <dl class="drift-rail">
+        <div class="drift-cell">
+          <dt>Estate conformance</dt>
+          <dd id="out-conformance" data-state="held">98.0%</dd>
+        </div>
+        <div class="drift-cell">
+          <dt>Nodes held</dt>
+          <dd id="out-held">512 / 512</dd>
+        </div>
+        <div class="drift-cell">
+          <dt>Breached</dt>
+          <dd id="out-breached" data-state="held">0</dd>
+        </div>
+        <div class="drift-cell">
+          <dt>Worst node</dt>
+          <dd id="out-worst">a00 1.00</dd>
+        </div>
+        <div class="drift-cell">
+          <dt>Coverage</dt>
+          <dd id="out-coverage">7.2%</dd>
+        </div>
+        <div class="drift-cell">
+          <dt>Line held</dt>
+          <dd id="out-clock">0s above 90%</dd>
+        </div>
+      </dl>
+
+      <div id="drift-verdict" class="drift-verdict" role="dialog" aria-modal="false" aria-labelledby="verdict-title" hidden>
+        <h2 id="verdict-title">This was never winnable by hand.</h2>
+        <div id="verdict-body"></div>
+        <div class="drift-verdict-actions">
+          <button id="verdict-accept" type="button">Hand it to policy</button>
+          <button id="verdict-decline" type="button">Keep going by hand</button>
+        </div>
+      </div>
+
+      <p id="drift-help" class="visually-hidden">
+        Move the pointer over the field, or focus the field and use the arrow keys, to place your attention.
+        Press P to hand the estate to policy, M to take it back by hand, and R for a new estate.
+      </p>
+      <p id="drift-live" class="visually-hidden" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section class="drift-note" aria-labelledby="drift-note-title">
+      <h2 id="drift-note-title">Drift is not an event. It is a rate.</h2>
+      <p>
+        Every node in this lattice loses conformance on its own quiet schedule. Nothing dramatic happens.
+        A dependency ages out. A workflow keeps a permission it stopped needing. A branch rule is edited
+        once for a good reason and never edited back. None of it is a failure on the day it happens, which
+        is exactly why none of it gets fixed on the day it happens.
+      </p>
+      <p>
+        Drift also spreads. A node next to a drifted node decays faster here, because that is what happens
+        in a real estate. The broken pattern is the one that gets copied. The stale workflow is the one that
+        gets forked. Contagion is drawn in red between failing neighbours, and once it starts you will find
+        you are no longer choosing where to look. The field is choosing for you.
+      </p>
+      <p>
+        Your attention is real and it works. Everything inside the amber circle genuinely recovers, faster
+        than it decays. The circle simply is not large enough, and it is one circle, and you are one person.
+        The coverage number in the rail is not rhetoric, it is a count of the nodes the circle reaches
+        divided by the size of the lattice. That is the share of an estate a careful operator holds at any
+        single instant.
+      </p>
+      <p>
+        Then press <strong>By policy</strong>. A sweep crosses the lattice at a constant rate and touches
+        every node, including the ones that were never interesting, including the ones nobody had a reason
+        to open this quarter. It is slower per node than you were. It never has a better idea. It holds the
+        estate anyway, and it will still be holding it after you close the tab.
+      </p>
+      <p>
+        That is the whole argument, and it is the reason
+        <a href="/systems/reliability/">reliability at Atlas Systems</a> is written as policy in a repository
+        rather than as diligence in a person. Nothing here is fetched from the live estate. This runs entirely
+        in your browser, from a seed, and no two runs are the same.
+      </p>
+      <ul class="drift-legend">
+        <li><i style="background:#4ade80"></i> held, above seventy five percent</li>
+        <li><i style="background:#f5a623"></i> drifting</li>
+        <li><i style="background:#e24b4a"></i> breached, below forty percent</li>
+        <li><i style="background:#1e0e12;outline:1px solid rgba(255,255,255,.2)"></i> gone</li>
+      </ul>
+    </section>
+  </main>
+
+  <script type="module" src="/lab/drift/drift.js"></script>
+</body>
+</html>
