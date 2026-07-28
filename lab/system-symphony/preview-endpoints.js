@@ -10,7 +10,11 @@
   const explicitAtomicPreview =
     window.location.hostname.endsWith(".pages.dev")
     && search.has("symphonyPreviewData");
-  if (!numberedPreview && !explicitAtomicPreview && !localPreview) return;
+  const productionEvidencePreview =
+    window.location.hostname === "atlas-systems.uk"
+    && search.get("symphonyPreviewData") === "1"
+    && /^[0-9a-f]{40}$/i.test(search.get("atlas-deploy") ?? "");
+  if (!numberedPreview && !explicitAtomicPreview && !localPreview && !productionEvidencePreview) return;
 
   const endpointMap = new Map([
     ["https://api.atlas-systems.uk/sonify", "/lab/system-symphony/preview-data/sonify.json"],
