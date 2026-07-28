@@ -1,6 +1,6 @@
 import { masteringProfileForState } from "./apu-mastering.js?v=20260726-system-symphony-mastering-v4";
 
-export const APU_STATE_IDENTITY_BUILD_ID = "20260727-system-symphony-state-identities-v6";
+export const APU_STATE_IDENTITY_BUILD_ID = "20260728-system-symphony-state-identities-v7";
 export const APU_STATE_KEYS = Object.freeze(["healthy", "warning", "critical", "unknown"]);
 
 const freezeArray = (values) => Object.freeze([...values]);
@@ -32,7 +32,7 @@ export const APU_STATE_IDENTITIES = Object.freeze({
     mastering: HEALTHY_MASTERING,
     masterGainDb: HEALTHY_MASTERING.masterGainDb,
     dynamicRangeDb: 12,
-    transitionPolicy: "crossfade",
+    transitionPolicy: "one-bar-decay",
     tensionPolicy: "diatonic",
     soundLaw: "explorer-counterpoint",
   }),
@@ -55,7 +55,7 @@ export const APU_STATE_IDENTITIES = Object.freeze({
     mastering: WARNING_MASTERING,
     masterGainDb: WARNING_MASTERING.masterGainDb,
     dynamicRangeDb: 8,
-    transitionPolicy: "tight-crossfade",
+    transitionPolicy: "one-bar-decay",
     tensionPolicy: "approach-resolve",
     soundLaw: "diagnostic-stutter",
   }),
@@ -78,7 +78,7 @@ export const APU_STATE_IDENTITIES = Object.freeze({
     mastering: CRITICAL_MASTERING,
     masterGainDb: CRITICAL_MASTERING.masterGainDb,
     dynamicRangeDb: 5,
-    transitionPolicy: "hard-choke",
+    transitionPolicy: "one-bar-decay",
     tensionPolicy: "bounded-alarm",
     soundLaw: "boss-lockstep",
   }),
