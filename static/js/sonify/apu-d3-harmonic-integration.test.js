@@ -33,9 +33,10 @@ const frames = ["healthy", "warning", "critical", "unknown"].map((scoreState) =>
   tension: scoreState === "critical" ? 0.9 : 0.35,
   stale: scoreState === "unknown",
 }));
+const preservedFrames = frames.filter((frame) => frame.scoreState !== "unknown");
 
-test("D3 preserves primary events except the reviewed state-specific Peak octave policy", () => {
-  for (const frame of frames) {
+test("D3 preserves the approved three-state primary events except the reviewed Peak octave policy", () => {
+  for (const frame of preservedFrames) {
     resetD2Baseline();
     resetMelodyPreservingD2Planner();
     for (let phrase = 0; phrase < 32; phrase += 1) {
@@ -61,6 +62,22 @@ test("D3 preserves primary events except the reviewed state-specific Peak octave
         }), `${frame.scoreState}/phrase-${phrase}/step-${step}`);
       }
     }
+  }
+});
+
+test("D3 keeps Unknown harmony while applying the reviewed question-theme exception", () => {
+  const frame = frames.find((candidate) => candidate.scoreState === "unknown");
+  resetD2Baseline();
+  resetMelodyPreservingD2Planner();
+  for (let phrase = 0; phrase < 16; phrase += 1) {
+    const baseline = d2ArrangementForPhrase(frame, directorPlan, phrase);
+    const candidate = arrangementForPhrase(frame, directorPlan, phrase);
+    assert.deepEqual(candidate.harmony, baseline.harmony);
+    assert.equal(candidate.motifMode, "question");
+    assert.deepEqual(candidate.motifDegrees, [0, 2, 0, 4, 2]);
+    const activeSteps = Array.from({ length: 32 }, (_, step) => step)
+      .filter((step) => primaryPulseEventForTrackStep(frame, candidate, step));
+    assert.deepEqual(activeSteps, [0, 6, 12, 21, 28]);
   }
 });
 
