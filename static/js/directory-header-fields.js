@@ -3,11 +3,11 @@
 import {
   defineAtlasFieldConsumer,
   mountAtlasFieldConsumer,
-} from "./atlas-field-consumer.js?v=20260728-directory-header-compositions-v1";
+} from "./atlas-field-consumer.js?v=20260728-directory-header-compositions-v2";
 
 const HEADER_STYLESHEETS = Object.freeze([
-  "/static/css/atlas-field-consumer.css?v=20260728-directory-header-compositions-v1",
-  "/static/css/directory-header-fields.css?v=20260728-directory-header-compositions-v1",
+  "/static/css/atlas-field-consumer.css?v=20260728-directory-header-compositions-v2",
+  "/static/css/directory-header-fields.css?v=20260728-directory-header-compositions-v2",
 ]);
 
 export const DIRECTORY_HEADER_COMPOSITIONS = Object.freeze({
@@ -18,17 +18,17 @@ export const DIRECTORY_HEADER_COMPOSITIONS = Object.freeze({
     hostClasses: ["atlas-page-header", "atlas-page-header--systems", "atlas-header-composition--topology-current"],
     errorLabel: "Systems topology-current header",
     options: {
-      seed: "atlas-systems-topology-current-v1",
+      seed: "atlas-systems-topology-current-v2",
       canvasClass: "directory-header-field-canvas",
-      density: { min: 260, max: 760, reduced: 220, areaDivisor: 1050 },
-      domainBreaks: [0.46, 0.76],
+      density: { min: 170, max: 480, reduced: 150, areaDivisor: 1550 },
+      domainBreaks: [0.5, 0.82],
       domainStyles: [
-        "rgba(74, 222, 128, 0.105)",
-        "rgba(56, 189, 248, 0.135)",
-        "rgba(245, 166, 35, 0.055)",
+        "rgba(74, 222, 128, 0.07)",
+        "rgba(56, 189, 248, 0.09)",
+        "rgba(245, 166, 35, 0.035)",
       ],
       pointer: { enabled: false },
-      light: { radiusMin: 190, radiusRatio: 0.32, smoothing: 0.016 },
+      light: { radiusMin: 80, radiusRatio: 0.12, smoothing: 0.01 },
     },
   }),
   work: defineAtlasFieldConsumer({
@@ -38,17 +38,17 @@ export const DIRECTORY_HEADER_COMPOSITIONS = Object.freeze({
     hostClasses: ["atlas-page-header", "atlas-page-header--work", "atlas-header-composition--build-fragments"],
     errorLabel: "Work build-fragments header",
     options: {
-      seed: "atlas-work-build-fragments-v1",
+      seed: "atlas-work-build-fragments-v2",
       canvasClass: "directory-header-field-canvas",
-      density: { min: 210, max: 620, reduced: 180, areaDivisor: 1180 },
-      domainBreaks: [0.3, 0.72],
+      density: { min: 120, max: 340, reduced: 110, areaDivisor: 1900 },
+      domainBreaks: [0.28, 0.7],
       domainStyles: [
-        "rgba(245, 166, 35, 0.145)",
-        "rgba(232, 232, 224, 0.07)",
-        "rgba(56, 189, 248, 0.07)",
+        "rgba(245, 166, 35, 0.085)",
+        "rgba(232, 232, 224, 0.035)",
+        "rgba(56, 189, 248, 0.04)",
       ],
       pointer: { enabled: false },
-      light: { radiusMin: 160, radiusRatio: 0.28, smoothing: 0.014 },
+      light: { radiusMin: 65, radiusRatio: 0.1, smoothing: 0.008 },
     },
   }),
   writing: defineAtlasFieldConsumer({
@@ -58,17 +58,17 @@ export const DIRECTORY_HEADER_COMPOSITIONS = Object.freeze({
     hostClasses: ["atlas-page-header", "atlas-page-header--writing", "atlas-header-composition--editorial-drift"],
     errorLabel: "Writing editorial-drift header",
     options: {
-      seed: "atlas-writing-editorial-drift-v1",
+      seed: "atlas-writing-editorial-drift-v2",
       canvasClass: "directory-header-field-canvas",
-      density: { min: 140, max: 430, reduced: 130, areaDivisor: 1450 },
-      domainBreaks: [0.5, 0.82],
+      density: { min: 80, max: 220, reduced: 72, areaDivisor: 2600 },
+      domainBreaks: [0.58, 0.9],
       domainStyles: [
-        "rgba(232, 232, 224, 0.075)",
-        "rgba(245, 166, 35, 0.075)",
-        "rgba(170, 169, 160, 0.045)",
+        "rgba(232, 232, 224, 0.035)",
+        "rgba(245, 166, 35, 0.038)",
+        "rgba(170, 169, 160, 0.02)",
       ],
       pointer: { enabled: false },
-      light: { radiusMin: 210, radiusRatio: 0.42, smoothing: 0.012 },
+      light: { radiusMin: 48, radiusRatio: 0.075, smoothing: 0.006 },
     },
   }),
 });
