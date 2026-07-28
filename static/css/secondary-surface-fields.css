@@ -1,0 +1,129 @@
+.atlas-composition-host {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.atlas-composition-host > :not(.atlas-field-canvas) {
+  position: relative;
+  z-index: 3;
+}
+
+.atlas-composition-host > .atlas-composition-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.atlas-composition-host::before,
+.atlas-composition-host::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.atlas-composition-host::before { z-index: 1; }
+.atlas-composition-host::after { z-index: 2; }
+
+/* Reliability: decorative monitoring cadence, never a live status signal. */
+.atlas-composition--pulse-horizon > .atlas-composition-canvas {
+  opacity: .15;
+  filter: saturate(.68) brightness(.72) contrast(1.14);
+  transform: scaleX(1.24) scaleY(.62) translateY(7%);
+  transform-origin: 70% 50%;
+  mask-image: linear-gradient(90deg, transparent 0 38%, #000 56% 96%, transparent 100%);
+}
+
+.atlas-composition--pulse-horizon::before {
+  inset: 10% 0 8% 42%;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 42px, rgba(232,232,224,.035) 42px 43px),
+    linear-gradient(90deg, transparent 0 14%, rgba(74,222,128,.26) 14% 38%, transparent 38% 100%) 0 24% / 100% 1px no-repeat,
+    linear-gradient(90deg, transparent 0 42%, rgba(245,166,35,.24) 42% 72%, transparent 72% 100%) 0 51% / 100% 1px no-repeat,
+    linear-gradient(90deg, transparent 0 64%, rgba(56,189,248,.2) 64% 91%, transparent 91% 100%) 0 76% / 100% 1px no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 79px, rgba(255,255,255,.028) 79px 80px);
+  opacity: .82;
+  animation: pulse-horizon-scan 8s ease-in-out infinite alternate;
+}
+
+.atlas-composition--pulse-horizon::after {
+  background: linear-gradient(90deg, rgba(10,10,15,.98) 0%, rgba(10,10,15,.9) 42%, rgba(10,10,15,.38) 72%, rgba(10,10,15,.78) 100%);
+}
+
+/* About: warm contour field with generous negative space. */
+.atlas-composition--identity-field > .atlas-composition-canvas {
+  opacity: .16;
+  filter: sepia(.22) saturate(.72) brightness(.78);
+  transform: rotate(-7deg) scale(1.16) translate(9%, 2%);
+  transform-origin: 72% 50%;
+  mask-image: radial-gradient(ellipse at 76% 46%, #000 0 34%, transparent 70%);
+}
+
+.atlas-composition--identity-field::before {
+  inset: 7% 0 8% 46%;
+  background:
+    repeating-radial-gradient(ellipse at 72% 46%, transparent 0 34px, rgba(245,166,35,.08) 35px 36px, transparent 37px 70px),
+    radial-gradient(circle at 74% 44%, rgba(245,166,35,.12), transparent 28%),
+    linear-gradient(115deg, transparent 0 58%, rgba(232,232,224,.07) 58% 58.15%, transparent 58.15% 100%);
+  opacity: .7;
+  animation: identity-orbit 16s ease-in-out infinite alternate;
+}
+
+.atlas-composition--identity-field::after {
+  background: linear-gradient(90deg, rgba(10,10,15,.99) 0%, rgba(10,10,15,.91) 45%, rgba(10,10,15,.44) 76%, rgba(10,10,15,.82) 100%);
+}
+
+/* Lab: irregular bloom pockets and exploratory signal motion. */
+.atlas-composition--signal-bloom > .atlas-composition-canvas {
+  opacity: .24;
+  filter: saturate(.9) brightness(.82) contrast(1.06);
+  transform: scale(1.12) translate(5%, 1%);
+  transform-origin: 70% 50%;
+  mask-image: linear-gradient(90deg, transparent 0 30%, #000 52% 96%, transparent 100%);
+}
+
+.atlas-composition--signal-bloom::before {
+  inset: 4% 0 5% 38%;
+  background:
+    radial-gradient(circle at 20% 68%, rgba(74,222,128,.18), transparent 18%),
+    radial-gradient(circle at 64% 28%, rgba(56,189,248,.18), transparent 16%),
+    radial-gradient(circle at 84% 72%, rgba(245,166,35,.13), transparent 15%),
+    repeating-linear-gradient(112deg, transparent 0 54px, rgba(255,255,255,.025) 54px 55px);
+  opacity: .85;
+  animation: signal-bloom-drift 11s ease-in-out infinite alternate;
+}
+
+.atlas-composition--signal-bloom::after {
+  background: linear-gradient(90deg, rgba(10,10,15,.98) 0%, rgba(10,10,15,.86) 38%, rgba(10,10,15,.28) 74%, rgba(10,10,15,.68) 100%);
+}
+
+@keyframes pulse-horizon-scan {
+  from { transform: translateX(-1.5%); opacity: .62; }
+  to { transform: translateX(1.5%); opacity: .94; }
+}
+
+@keyframes identity-orbit {
+  from { transform: rotate(-1deg) scale(.99); opacity: .56; }
+  to { transform: rotate(1deg) scale(1.02); opacity: .82; }
+}
+
+@keyframes signal-bloom-drift {
+  from { transform: translate3d(0, -5px, 0); }
+  to { transform: translate3d(-16px, 9px, 0); }
+}
+
+@media (max-width: 760px) {
+  .atlas-composition-host::before { left: 20%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atlas-composition-host > .atlas-composition-canvas,
+  .atlas-composition-host::before {
+    animation: none;
+    transform: none;
+  }
+}
