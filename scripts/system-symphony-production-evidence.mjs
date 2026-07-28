@@ -20,12 +20,39 @@ export const SYSTEM_SYMPHONY_STATE_WINDOWS = Object.freeze({
 });
 
 export const SYSTEM_SYMPHONY_BAR_DURATION_MS = 2400;
+export const SYSTEM_SYMPHONY_STEPS_PER_BAR = 16;
+export const SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR = 5;
+export const SYSTEM_SYMPHONY_STATE_ALIGNMENT_STEP = (
+  (SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR - 1) * SYSTEM_SYMPHONY_STEPS_PER_BAR
+);
 export const SYSTEM_SYMPHONY_STATE_MEASUREMENT_BARS = 8;
 export const SYSTEM_SYMPHONY_STATE_MEASUREMENT_MS = (
   SYSTEM_SYMPHONY_BAR_DURATION_MS * SYSTEM_SYMPHONY_STATE_MEASUREMENT_BARS
 );
 export const SYSTEM_SYMPHONY_SAMPLE_INTERVAL_MS = 200;
 export const SYSTEM_SYMPHONY_TRANSITION_MARGIN_DB = 10;
+export const SYSTEM_SYMPHONY_STATE_PAGE_POLICY = "fresh-page-aligned-form-window";
+export const SYSTEM_SYMPHONY_TRANSITION_PAGE_POLICY = "fresh-page-warmed-handover";
+
+export function buildStateMeasurementPlan(states = SYSTEM_SYMPHONY_STATES) {
+  const requestedStates = [...states];
+  const unknownStates = requestedStates.filter((state) => !SYSTEM_SYMPHONY_STATES.includes(state));
+  if (unknownStates.length) {
+    throw new Error(`Unknown production measurement states: ${unknownStates.join(", ")}`);
+  }
+  if (new Set(requestedStates).size !== requestedStates.length) {
+    throw new Error("Production measurement states must be unique");
+  }
+  return Object.freeze(requestedStates.map((state) => Object.freeze({
+    state,
+    mode: state,
+    pagePolicy: SYSTEM_SYMPHONY_STATE_PAGE_POLICY,
+    alignmentBar: SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR,
+    alignmentStep: SYSTEM_SYMPHONY_STATE_ALIGNMENT_STEP,
+    measurementBars: SYSTEM_SYMPHONY_STATE_MEASUREMENT_BARS,
+    finalBar: SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR + SYSTEM_SYMPHONY_STATE_MEASUREMENT_BARS - 1,
+  })));
+}
 
 // Eulerian circuit over the complete directed four-state graph. Every ordered
 // transition appears exactly once and the route returns to Healthy.
@@ -50,6 +77,16 @@ export function transitionPairs(route = SYSTEM_SYMPHONY_TRANSITION_ROUTE) {
     from: route[index],
     to,
     key: `${route[index]}->${to}`,
+  })));
+}
+
+export function buildTransitionMeasurementPlan(route = SYSTEM_SYMPHONY_TRANSITION_ROUTE) {
+  return Object.freeze(transitionPairs(route).map((pair) => Object.freeze({
+    ...pair,
+    pagePolicy: SYSTEM_SYMPHONY_TRANSITION_PAGE_POLICY,
+    alignmentBar: SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR,
+    alignmentStep: SYSTEM_SYMPHONY_STATE_ALIGNMENT_STEP,
+    measurementBars: 1,
   })));
 }
 
@@ -103,6 +140,9 @@ export function buildProgrammeSummary(stateMeasurements) {
       (total, measurement) => total + Number(measurement.measurementBars ?? 0),
       0,
     ),
+    pagePolicies: Object.freeze([...new Set(stateMeasurements.map((measurement) => measurement.pagePolicy).filter(Boolean))]),
+    alignmentSteps: Object.freeze([...new Set(stateMeasurements.map((measurement) => measurement.alignmentStep).filter(Number.isFinite))]),
+    alignmentPositions: Object.freeze([...new Set(stateMeasurements.map((measurement) => measurement.startPosition).filter(Boolean))]),
     states: Object.fromEntries(SYSTEM_SYMPHONY_STATES.map((state) => {
       const measurement = byState[state];
       const integratedLufs = measurement.metrics.integratedLufs;
@@ -113,6 +153,8 @@ export function buildProgrammeSummary(stateMeasurements) {
         peakToLoudnessRatioDb: sessionTruePeakDbtp - integratedLufs,
         blockCount: measurement.metrics.blockCount,
         gatedBlockCount: measurement.metrics.gatedBlockCount,
+        startSection: measurement.startSection ?? null,
+        startPosition: measurement.startPosition ?? null,
         sections: Object.freeze([...new Set((measurement.samples ?? []).map((sample) => sample.section).filter(Boolean))]),
       })];
     })),
@@ -156,6 +198,9 @@ export function buildTransitionSummary(
       to: transition.to,
       key: `${transition.from}->${transition.to}`,
       policy: transition.policy,
+      pagePolicy: transition.pagePolicy ?? null,
+      startSection: transition.startSection ?? null,
+      startPosition: transition.startPosition ?? null,
       sampleCount: transition.samples?.length ?? 0,
       finiteShortTermSamples: shortTermValues.length,
       shortTermLufs: range(shortTermValues),
@@ -170,6 +215,8 @@ export function buildTransitionSummary(
     expectedTransitionCount: transitionPairs().length,
     measuredTransitionCount: transitions.length,
     uniqueTransitionCount: new Set(transitions.map(({ key }) => key)).size,
+    pagePolicies: Object.freeze([...new Set(transitions.map(({ pagePolicy }) => pagePolicy).filter(Boolean))]),
+    alignmentPositions: Object.freeze([...new Set(transitions.map(({ startPosition }) => startPosition).filter(Boolean))]),
     marginDb,
     allPassed: transitions.every(({ passed }) => passed),
     transitions: Object.freeze(transitions),
