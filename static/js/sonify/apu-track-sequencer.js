@@ -11,8 +11,10 @@ import {
   scaleMidi,
   secondaryPulseEventForTrackStep as baselineSecondaryPulseEventForTrackStep,
   serviceEventForTrackStep,
-  transitionEventForTrackStep,
 } from "./apu-track-sequencer-d2-baseline.js?v=20260726-system-symphony-atlas-chip-laws-v3";
+import {
+  transitionEventForTrackStep,
+} from "./apu-transition-events.js?v=20260728-system-symphony-transition-events-v1";
 import {
   peakRegisterShiftForState,
 } from "./apu-signature-gestures-d3.js?v=20260727-system-symphony-pass-d3-signature-gestures-v1";
