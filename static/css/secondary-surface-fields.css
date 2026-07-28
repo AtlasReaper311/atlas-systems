@@ -31,57 +31,62 @@
 
 /* Reliability: decorative monitoring cadence, never a live status signal. */
 .atlas-composition--pulse-horizon > .atlas-composition-canvas {
-  opacity: .28;
-  filter: saturate(.9) brightness(.9) contrast(1.22);
+  opacity: .42;
+  filter: saturate(1.08) brightness(1.02) contrast(1.3);
   transform: scaleX(1.24) scaleY(.62) translateY(7%);
   transform-origin: 70% 50%;
-  mask-image: linear-gradient(90deg, transparent 0 32%, #000 50% 98%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0 24%, #000 43% 99%, transparent 100%);
 }
 
 .atlas-composition--pulse-horizon::before {
-  inset: 8% 0 7% 36%;
+  inset: 6% 0 6% 31%;
   background:
-    repeating-linear-gradient(0deg, transparent 0 35px, rgba(232,232,224,.065) 35px 36px),
-    linear-gradient(90deg, transparent 0 8%, rgba(74,222,128,.42) 8% 38%, transparent 38% 100%) 0 20% / 100% 1px no-repeat,
-    linear-gradient(90deg, transparent 0 28%, rgba(56,189,248,.34) 28% 66%, transparent 66% 100%) 0 38% / 100% 1px no-repeat,
-    linear-gradient(90deg, transparent 0 40%, rgba(245,166,35,.38) 40% 78%, transparent 78% 100%) 0 56% / 100% 1px no-repeat,
-    linear-gradient(90deg, transparent 0 58%, rgba(74,222,128,.3) 58% 92%, transparent 92% 100%) 0 74% / 100% 1px no-repeat,
-    repeating-linear-gradient(90deg, transparent 0 47px, rgba(255,255,255,.06) 47px 48px, transparent 48px 79px);
-  opacity: .98;
-  animation: pulse-horizon-scan 6.8s ease-in-out infinite alternate;
+    linear-gradient(90deg, transparent 0 20%, rgba(232,232,224,.05) 20% 20.15%, transparent 20.15% 100%),
+    linear-gradient(90deg, transparent 0 48%, rgba(232,232,224,.07) 48% 48.15%, transparent 48.15% 100%),
+    linear-gradient(90deg, transparent 0 76%, rgba(232,232,224,.05) 76% 76.15%, transparent 76.15% 100%),
+    repeating-linear-gradient(0deg, transparent 0 34px, rgba(232,232,224,.1) 34px 35px),
+    linear-gradient(90deg, transparent 0 5%, rgba(74,222,128,.62) 5% 43%, transparent 43% 100%) 0 18% / 100% 1px no-repeat,
+    linear-gradient(90deg, transparent 0 22%, rgba(56,189,248,.54) 22% 72%, transparent 72% 100%) 0 37% / 100% 1px no-repeat,
+    linear-gradient(90deg, transparent 0 34%, rgba(245,166,35,.58) 34% 83%, transparent 83% 100%) 0 56% / 100% 1px no-repeat,
+    linear-gradient(90deg, transparent 0 54%, rgba(74,222,128,.48) 54% 96%, transparent 96% 100%) 0 75% / 100% 1px no-repeat,
+    linear-gradient(90deg, transparent 0 12%, rgba(56,189,248,.38) 12% 31%, transparent 31% 100%) 0 88% / 100% 1px no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 46px, rgba(255,255,255,.095) 46px 47px, transparent 47px 78px);
+  opacity: 1;
+  animation: pulse-horizon-scan 6.2s ease-in-out infinite alternate;
 }
 
 .atlas-composition--pulse-horizon::after {
   background:
-    linear-gradient(90deg, rgba(10,10,15,.98) 0%, rgba(10,10,15,.88) 36%, rgba(10,10,15,.16) 68%, rgba(10,10,15,.54) 100%),
-    linear-gradient(0deg, transparent 0 46%, rgba(56,189,248,.08) 49%, rgba(245,166,35,.1) 51%, transparent 54% 100%);
+    linear-gradient(90deg, rgba(10,10,15,.98) 0%, rgba(10,10,15,.82) 31%, rgba(10,10,15,.08) 63%, rgba(10,10,15,.34) 100%),
+    linear-gradient(90deg, transparent 0 41%, rgba(232,232,224,.08) 49%, rgba(56,189,248,.2) 50%, rgba(245,166,35,.18) 51%, rgba(232,232,224,.06) 52%, transparent 61%) 0 49% / 100% 2px no-repeat;
 }
 
 /* About: warm contour field with generous negative space. */
 .atlas-composition--identity-field > .atlas-composition-canvas {
-  opacity: .3;
-  filter: sepia(.28) saturate(1.02) brightness(.94) contrast(1.14);
+  opacity: .46;
+  filter: sepia(.32) saturate(1.18) brightness(1.03) contrast(1.22);
   transform: rotate(-7deg) scale(1.16) translate(9%, 2%);
   transform-origin: 72% 50%;
-  mask-image: radial-gradient(ellipse at 76% 46%, #000 0 42%, transparent 76%);
+  mask-image: radial-gradient(ellipse at 75% 47%, #000 0 50%, rgba(0,0,0,.9) 62%, transparent 82%);
 }
 
 .atlas-composition--identity-field::before {
-  inset: 3% 0 4% 39%;
+  inset: 1% 0 2% 34%;
   background:
-    repeating-radial-gradient(ellipse at 72% 46%, transparent 0 30px, rgba(245,166,35,.15) 31px 32px, transparent 33px 62px),
-    repeating-radial-gradient(ellipse at 64% 52%, transparent 0 48px, rgba(232,232,224,.075) 49px 50px, transparent 51px 94px),
-    radial-gradient(circle at 63% 49%, rgba(245,166,35,.24) 0 3%, rgba(245,166,35,.11) 9%, transparent 28%),
-    radial-gradient(circle at 78% 42%, rgba(245,166,35,.17), transparent 24%),
-    linear-gradient(115deg, transparent 0 55%, rgba(232,232,224,.11) 55% 55.18%, transparent 55.18% 100%);
-  opacity: .9;
-  animation: identity-orbit 14s ease-in-out infinite alternate;
+    repeating-radial-gradient(ellipse at 73% 47%, transparent 0 27px, rgba(245,166,35,.24) 28px 29px, transparent 30px 56px),
+    repeating-radial-gradient(ellipse at 65% 53%, transparent 0 43px, rgba(232,232,224,.11) 44px 45px, transparent 46px 85px),
+    repeating-radial-gradient(ellipse at 81% 43%, transparent 0 66px, rgba(245,166,35,.12) 67px 68px, transparent 69px 126px),
+    radial-gradient(circle at 66% 52%, rgba(245,166,35,.34) 0 2.5%, rgba(245,166,35,.18) 8%, rgba(245,166,35,.06) 19%, transparent 34%),
+    radial-gradient(circle at 81% 44%, rgba(247,184,74,.25) 0 4%, rgba(245,166,35,.1) 13%, transparent 29%),
+    linear-gradient(115deg, transparent 0 53%, rgba(232,232,224,.16) 53% 53.16%, transparent 53.16% 100%);
+  opacity: 1;
+  animation: identity-orbit 13s ease-in-out infinite alternate;
 }
 
 .atlas-composition--identity-field::after {
   background:
-    linear-gradient(90deg, rgba(10,10,15,.99) 0%, rgba(10,10,15,.88) 39%, rgba(10,10,15,.2) 70%, rgba(10,10,15,.58) 100%),
-    radial-gradient(circle at 70% 48%, transparent 0 28%, rgba(10,10,15,.18) 54%, transparent 76%);
+    linear-gradient(90deg, rgba(10,10,15,.99) 0%, rgba(10,10,15,.84) 35%, rgba(10,10,15,.08) 64%, rgba(10,10,15,.28) 100%),
+    radial-gradient(circle at 76% 48%, transparent 0 32%, rgba(10,10,15,.08) 52%, transparent 78%);
 }
 
 /* Lab: irregular bloom pockets and exploratory signal motion. */
@@ -109,13 +114,13 @@
 }
 
 @keyframes pulse-horizon-scan {
-  from { transform: translateX(-2.5%); opacity: .72; }
-  to { transform: translateX(2.5%); opacity: 1; }
+  from { transform: translateX(-3.5%); opacity: .76; }
+  to { transform: translateX(3.5%); opacity: 1; }
 }
 
 @keyframes identity-orbit {
-  from { transform: rotate(-1.4deg) scale(.985); opacity: .68; }
-  to { transform: rotate(1.4deg) scale(1.025); opacity: 1; }
+  from { transform: rotate(-1.8deg) scale(.98); opacity: .72; }
+  to { transform: rotate(1.8deg) scale(1.035); opacity: 1; }
 }
 
 @keyframes signal-bloom-drift {
