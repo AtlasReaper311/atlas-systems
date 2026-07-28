@@ -146,6 +146,14 @@
       "tagline": "An endless local drawing made from imperfect frame intervals."
     },
     {
+      "file": "speculum",
+      "html": "lab/speculum/index.html",
+      "route": "/lab/speculum/",
+      "kicker": "Explore / Systems artwork",
+      "title": ["The estate keeps", "building [eyes.]"],
+      "tagline": "A time-compressed field of verified public attention paths."
+    },
+    {
       "file": "overclocking-specular-core",
       "html": "writing/overclocking-specular-core/index.html",
       "route": "/writing/overclocking-specular-core/",
