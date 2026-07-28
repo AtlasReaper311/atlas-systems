@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import difflib
+import os
 import subprocess
 import sys
 from datetime import date, datetime, timezone
@@ -109,12 +110,14 @@ def main() -> int:
             return 1
         current = out.read_text(encoding="utf-8")
         if current != xml_text:
-            print("sitemap.xml is stale", file=sys.stderr)
+            candidate = Path(os.environ.get("SITEMAP_CANDIDATE_PATH", "sitemap.generated.xml"))
+            candidate.write_text(xml_text, encoding="utf-8")
+            print(f"sitemap.xml is stale; generated candidate: {candidate}", file=sys.stderr)
             diff = difflib.unified_diff(
                 current.splitlines(),
                 xml_text.splitlines(),
                 fromfile=str(out),
-                tofile="generated sitemap",
+                tofile=str(candidate),
                 lineterm="",
             )
             for line in diff:
