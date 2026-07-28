@@ -21,8 +21,8 @@ test("mastering policy applies the measured browser calibration without burying 
   assert.equal(APU_MASTERING_PROFILES.healthy.masterGainDb, 4);
   assert.equal(APU_MASTERING_PROFILES.warning.masterGainDb, 4);
   assert.equal(APU_MASTERING_PROFILES.critical.masterGainDb, 4);
-  assert.equal(APU_MASTERING_PROFILES.unknown.masterGainDb, 7);
-  assert.equal(APU_MASTERING_PROFILES.unknown.masterGainDb - APU_MASTERING_PROFILES.healthy.masterGainDb, 3);
+  assert.equal(APU_MASTERING_PROFILES.unknown.masterGainDb, 8);
+  assert.equal(APU_MASTERING_PROFILES.unknown.masterGainDb - APU_MASTERING_PROFILES.healthy.masterGainDb, 4);
   assert.equal(APU_MASTERING_PROFILES.unknown.targetIntegratedLufs, -24);
   assert.equal(APU_MASTERING_PROFILES.unknown.toleranceDb, 3);
   assert.ok(APU_MASTERING_PROFILES.unknown.programmeTrimDb > APU_MASTERING_PROFILES.healthy.programmeTrimDb);
