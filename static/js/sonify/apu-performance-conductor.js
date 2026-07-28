@@ -8,6 +8,11 @@ import {
   supplementalRhythmForDensity,
 } from "./apu-performance-conductor-d1a-baseline.js?v=20260727-system-symphony-pass-d1a-state-orchestration-v1";
 import {
+  APU_ARPEGGIO_COMPOSER_D4_BUILD_ID,
+  d4ArpeggioInstructionsForPhrase,
+  d4ArpeggioPlanForPhrase,
+} from "./apu-arpeggio-composer-d4.js?v=20260728-system-symphony-pass-d4-prominent-arps-v2";
+import {
   APU_D3_SIGNATURE_GESTURE_BUILD_ID,
   isPeakPhraseIndex,
   isPrePeakCutoutStep,
@@ -17,6 +22,7 @@ import {
 } from "./apu-signature-gestures-d3.js?v=20260727-system-symphony-pass-d3-signature-gestures-v1";
 
 export {
+  d4ArpeggioPlanForPhrase,
   describeConductor,
   performanceCategories,
   supplementalRhythmForDensity,
@@ -26,6 +32,8 @@ export const APU_PERFORMANCE_CONDUCTOR_BUILD_ID =
   D1A_PERFORMANCE_CONDUCTOR_BUILD_ID;
 export const APU_D3_LISTENER_POLISH_BUILD_ID =
   "20260727-system-symphony-pass-d3-listener-polish-v4";
+export const APU_D4_ARPEGGIO_PERFORMANCE_BUILD_ID =
+  APU_ARPEGGIO_COMPOSER_D4_BUILD_ID;
 
 const DENSITY_TARGETS = Object.freeze({
   rhythm: Object.freeze({ min: 0.72, max: 0.9 }),
@@ -115,11 +123,21 @@ function baselineInstructionsForPhrase(perfPlan, instructions) {
   const state = perfPlan?.state ?? "unknown";
   const cutoutStart = prePeakCutoutStartStep(perfPlan);
   const signatureMoment = signatureGestureInstructionsForPhrase(perfPlan).length > 0;
+  const d4Plan = d4ArpeggioPlanForPhrase(perfPlan);
 
   return instructions
+    // A major D4 feature replaces only the older small arp layers in that
+    // phrase. Melody, pads, services, bass, drums and non-arp ornaments remain.
+    .filter((instruction) => !(
+      d4Plan.active
+      && ["connective-arp", "state-arp"].includes(instruction.ornament)
+    ))
     // Keep the legacy ornament vocabulary, but suppress a selected shimmer at
-    // the three guaranteed signature moments so two lead arcs never stack.
-    .filter((instruction) => !(signatureMoment && instruction.ornament === "shimmer"))
+    // signature or D4 feature moments so two lead arcs never stack.
+    .filter((instruction) => !(
+      (signatureMoment || d4Plan.active)
+      && instruction.ornament === "shimmer"
+    ))
     // Explorer Peak keeps the complete approved lead without the later D1A overlay.
     .filter((instruction) => !(
       state === "healthy"
@@ -146,10 +164,14 @@ export function ornamentInstructionsForPhrase(perfPlan) {
   const baseline = d1aOrnamentInstructionsForPhrase(perfPlan);
   const polished = baselineInstructionsForPhrase(perfPlan, baseline);
   const signatures = signatureGestureInstructionsForPhrase(perfPlan);
+  const d4Arpeggios = d4ArpeggioInstructionsForPhrase(perfPlan);
   return Object.freeze([
     ...polished,
     ...signatures.map((instruction) => withListenerMetadata(instruction, {
       signatureGestureBuildId: APU_D3_SIGNATURE_GESTURE_BUILD_ID,
+    })),
+    ...d4Arpeggios.map((instruction) => withListenerMetadata(instruction, {
+      d4ArpeggioBuildId: APU_ARPEGGIO_COMPOSER_D4_BUILD_ID,
     })),
   ]);
 }
