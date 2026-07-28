@@ -16,7 +16,7 @@ test("every current Lab and Systems card resolves to a specialised SVG signature
   const sprite = fs.readFileSync("static/media/card-signatures.svg", "utf8");
   const labCards = cardRecords(lab);
   const systemCards = cardRecords(systems);
-  assert.equal(labCards.length, 20);
+  assert.equal(labCards.length, 21);
   assert.equal(systemCards.length, 17);
   for (const [page, cards] of [["Lab", labCards], ["Systems", systemCards]]) {
     for (const [index, card] of cards.entries()) {

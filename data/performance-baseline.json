@@ -7,26 +7,26 @@
       "route": "/",
       "html_bytes": 21179,
       "first_party_request_count": 21,
-      "referenced_asset_bytes": 132914,
-      "total_static_bytes": 154093,
+      "referenced_asset_bytes": 133519,
+      "total_static_bytes": 154698,
       "largest_referenced_asset": "lab/index.html",
-      "largest_referenced_asset_bytes": 20418
+      "largest_referenced_asset_bytes": 21023
     },
     {
       "route": "/systems/",
       "html_bytes": 16678,
       "first_party_request_count": 13,
-      "referenced_asset_bytes": 91073,
-      "total_static_bytes": 107751,
+      "referenced_asset_bytes": 91086,
+      "total_static_bytes": 107764,
       "largest_referenced_asset": "static/css/v2-directory-pages.css",
       "largest_referenced_asset_bytes": 24796
     },
     {
       "route": "/lab/",
-      "html_bytes": 20418,
+      "html_bytes": 21023,
       "first_party_request_count": 16,
-      "referenced_asset_bytes": 145036,
-      "total_static_bytes": 165454,
+      "referenced_asset_bytes": 145049,
+      "total_static_bytes": 166072,
       "largest_referenced_asset": "lab/lab-card.js",
       "largest_referenced_asset_bytes": 42997
     },
@@ -49,6 +49,15 @@
       "largest_referenced_asset_bytes": 18515
     },
     {
+      "route": "/lab/bearing/",
+      "html_bytes": 59619,
+      "first_party_request_count": 7,
+      "referenced_asset_bytes": 26039,
+      "total_static_bytes": 85658,
+      "largest_referenced_asset": "favicon.ico",
+      "largest_referenced_asset_bytes": 15406
+    },
+    {
       "route": "/writing/",
       "html_bytes": 28412,
       "first_party_request_count": 20,
@@ -58,5 +67,5 @@
       "largest_referenced_asset_bytes": 23671
     }
   ],
-  "sha256": "5a76d18cfd28a0886d094b0765d3aa6708265b5a4f914cb1d086ad6cd4a45ba7"
+  "sha256": "365d75cc96030d90b77425f15c92a9801b159e71a4cdb8e28888d6d966abbe95"
 }

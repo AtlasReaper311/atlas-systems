@@ -61,7 +61,7 @@ test("performance evidence is non-blocking and covers representative routes", ()
   assert.equal(performance.blocking_thresholds, false);
   assert.deepEqual(
     performance.routes.map(({ route }) => route),
-    ["/", "/systems/", "/lab/", "/lab/signal/", "/lab/almost/", "/writing/"],
+    ["/", "/systems/", "/lab/", "/lab/signal/", "/lab/almost/", "/lab/bearing/", "/writing/"],
   );
   for (const route of performance.routes) {
     assert.ok(route.html_bytes > 0);

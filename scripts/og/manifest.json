@@ -154,6 +154,14 @@
       "tagline": "Hold the estate by hand, then hand it to policy."
     },
     {
+      "file": "bearing",
+      "html": "lab/bearing/index.html",
+      "route": "/lab/bearing/",
+      "kicker": "Explore / Structural simulation",
+      "title": ["The Bearing.", "Failure finds a [path.]"],
+      "tagline": "A local lattice simulation of load, failure, rerouting, and recovery."
+    },
+    {
       "file": "speculum",
       "html": "lab/speculum/index.html",
       "route": "/lab/speculum/",
