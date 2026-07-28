@@ -5,11 +5,16 @@ import test from 'node:test';
 const read = (path) => fs.readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
 const html = read('lab/speculum/index.html');
 const css = read('lab/speculum/speculum-accessibility-v7.css');
+const interaction = read('lab/speculum/speculum-interaction-v6.js');
 
-test('scrollable rail regions are named and keyboard focusable', () => {
-  assert.match(html, /class="controls"[^>]*role="region"[^>]*aria-label="Speculum controls"[^>]*tabindex="0"/);
-  assert.match(html, /class="detail"[^>]*role="region"[^>]*aria-label="Node dossier"[^>]*tabindex="0"/);
-  assert.match(html, /class="ledger"[^>]*aria-label="Generated observation ledger"[^>]*tabindex="0"/);
+test('scrollable rail regions receive named keyboard focus semantics at boot', () => {
+  assert.match(interaction, /function installScrollableRegionSemantics\(root\)/);
+  assert.match(interaction, /\['\.controls', 'Speculum controls', true\]/);
+  assert.match(interaction, /\['\.detail', 'Node dossier', true\]/);
+  assert.match(interaction, /\['\.ledger', 'Generated observation ledger', false\]/);
+  assert.match(interaction, /element\.tabIndex = 0/);
+  assert.match(interaction, /element\.setAttribute\('aria-label', label\)/);
+  assert.match(interaction, /element\.setAttribute\('role', 'region'\)/);
   assert.match(css, /\.controls:focus-visible,[\s\S]*\.detail:focus-visible,[\s\S]*\.ledger:focus-visible/);
 });
 
