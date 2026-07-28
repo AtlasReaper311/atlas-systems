@@ -29,6 +29,13 @@ import {
   normalizePerformanceSeed,
 } from "./performance.js?v=20260720-system-symphony-loop-production-v2";
 import { resolveSamplePalette } from "./samples.js?v=20260720-system-symphony-loop-production-v2";
+import {
+  boardGeometry,
+  chamferedPath,
+  chipStateForVoice,
+  copperRoute,
+  routeOffsets,
+} from "./trace-board.js?v=20260728-system-symphony-trace-board-v1";
 
 if (typeof window !== "undefined") {
   window.__ATLAS_SYSTEM_SYMPHONY_BUILD__ = SYSTEM_SYMPHONY_BUILD_ID;
@@ -39,16 +46,7 @@ if (typeof document !== "undefined") {
 
 const WIDGET_ID = "system-symphony-widget";
 const SVG_NS = "http://www.w3.org/2000/svg";
-const LAYER_ORDER = [
-  "surface",
-  "public-api",
-  "observability",
-  "edge",
-  "local-ai",
-  "infra",
-  "reusable-kit",
-  "unknown",
-];
+const NARROW_BOARD_QUERY = "(max-width: 700px)";
 
 const STATUS_LABELS = {
   healthy: "Healthy",
@@ -266,7 +264,7 @@ function template() {
             <div class="symphony-section-heading">
               <div><span>02</span><h3 id="symphony-orchestra-title">APU topology panel</h3></div>
               <div class="symphony-section-heading__tools">
-                <p>Nodes pulse when their APU role sounds. Arrows are declared dependencies, not live traffic.</p>
+                <p>A trace lights only while that service voice is sounding. Copper is declared dependency, not live traffic.</p>
                 <div class="symphony-segmented symphony-filter" role="group" aria-label="Filter estate components">
                   <button type="button" data-component-filter="all" aria-pressed="true">All</button>
                   <button type="button" data-component-filter="measured" aria-pressed="false">Measured</button>
@@ -275,17 +273,18 @@ function template() {
               </div>
             </div>
             <div class="symphony-legend" aria-label="Topology legend">
-              <span><i class="status-healthy"></i>Healthy</span>
-              <span><i class="status-degraded"></i>Warning</span>
-              <span><i class="status-down"></i>Critical</span>
-              <span><i class="status-unknown"></i>Unknown</span>
-              <span><i class="status-unmeasured"></i>Unmeasured</span>
-              <span class="symphony-legend__edge">A → B means A depends on B</span>
-              <span class="symphony-legend__external">Dashed boundary nodes are external systems</span>
+              <span><i class="status-healthy"></i>Healthy chip</span>
+              <span><i class="status-degraded"></i>Warning / jitter</span>
+              <span><i class="status-down"></i>Critical / clipping</span>
+              <span><i class="status-unknown"></i>Unknown, measured</span>
+              <span><i class="status-unmeasured"></i>Socket — declared, unmeasured</span>
+              <span class="symphony-legend__edge">Copper trace: A → B means A depends on B</span>
+              <span class="symphony-legend__edge">Lit path — voice sounding</span>
+              <span class="symphony-legend__external">Dashed boundary chips are external systems</span>
             </div>
             <div class="symphony-orchestra__grid">
               <div class="symphony-visual" data-visual>
-                <svg class="symphony-topology" data-topology viewBox="0 0 960 520" role="img" aria-label="Atlas estate topology mapped to musical service voices"></svg>
+                <svg class="symphony-topology" data-topology viewBox="0 0 1360 584" preserveAspectRatio="xMidYMin meet" role="group" aria-label="Atlas estate topology board. Service chips, dependency traces and unmeasured sockets."></svg>
                 <div class="symphony-analyser-grid">
                   <div class="symphony-waveform-wrap">
                     <span>Master waveform / real analyser</span>
@@ -392,7 +391,10 @@ export function initSystemSymphony() {
   const spectrumCanvas = host.querySelector("[data-spectrum]");
   const spectrumContext = spectrumCanvas.getContext("2d");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const narrowBoard = window.matchMedia(NARROW_BOARD_QUERY);
   const topologyNodes = new Map();
+  const topologyEdges = new Map();
+  const voiceTimers = new Map();
   const muted = new Set();
   const soloed = new Set();
 
@@ -660,32 +662,11 @@ export function initSystemSymphony() {
     renderHybridState(frame);
   }
 
-  function layerPositions(voices) {
-    const groups = new Map();
-    for (const voice of voices) {
-      const layer = voice.layer || "unknown";
-      if (!groups.has(layer)) groups.set(layer, []);
-      groups.get(layer).push(voice);
-    }
-    const layers = [...groups.keys()].sort((left, right) => {
-      const leftIndex = LAYER_ORDER.indexOf(left);
-      const rightIndex = LAYER_ORDER.indexOf(right);
-      return (leftIndex < 0 ? 99 : leftIndex) - (rightIndex < 0 ? 99 : rightIndex);
-    });
-    const positions = new Map();
-    layers.forEach((layer, layerIndex) => {
-      const row = groups.get(layer).sort((a, b) => a.name.localeCompare(b.name));
-      const y = layers.length === 1
-        ? 260
-        : 45 + layerIndex * (390 / (layers.length - 1));
-      row.forEach((voice, index) => {
-        positions.set(voice.name, {
-          x: ((index + 1) * 920) / (row.length + 1) + 20,
-          y,
-        });
-      });
-    });
-    return positions;
+  function boardLayout() {
+    // Below the narrow breakpoint the board is recomposed as stacked carrier
+    // bands rather than scaled down, because a 1360px board is unreadable at
+    // phone width.
+    return narrowBoard.matches ? "mobile" : "desktop";
   }
 
   function svgElement(tag, attributes = {}) {
@@ -733,27 +714,9 @@ export function initSystemSymphony() {
     }
   }
 
-  function shortenedEdge(from, to, targetRadius = 16) {
-    const dx = to.x - from.x;
-    const dy = to.y - from.y;
-    const length = Math.hypot(dx, dy) || 1;
-    return {
-      x1: from.x,
-      y1: from.y,
-      x2: to.x - (dx / length) * targetRadius,
-      y2: to.y - (dy / length) * targetRadius,
-    };
-  }
-
-  function renderTopology(frame) {
-    topologyNodes.clear();
-    topologySvg.replaceChildren();
-    topologySvg.classList.toggle("is-critical", frame.scoreState === "critical");
-    const filteredVoices = visibleVoices(frame);
-    const positions = layerPositions(filteredVoices);
-    const graph = buildDependencyGraph(filteredVoices, frame.voices);
-
+  function boardDefs() {
     const defs = svgElement("defs");
+
     const marker = svgElement("marker", {
       id: "symphony-arrow",
       viewBox: "0 0 10 10",
@@ -764,52 +727,236 @@ export function initSystemSymphony() {
       orient: "auto-start-reverse",
     });
     marker.append(svgElement("path", { d: "M 0 0 L 10 5 L 0 10 z" }));
-    defs.append(marker);
-    topologySvg.append(defs);
 
-    const externalPositions = new Map();
-    graph.externalNodes.forEach((name, index) => {
-      externalPositions.set(name, {
-        x: ((index + 1) * 920) / (graph.externalNodes.length + 1) + 20,
-        y: 497,
-      });
+    // Hatch fill for unmeasured sockets. A socket cavity is hatched, never
+    // filled like a live die.
+    const hatch = svgElement("pattern", {
+      id: "symphony-socket-hatch",
+      width: "6",
+      height: "6",
+      patternUnits: "userSpaceOnUse",
+      patternTransform: "rotate(45)",
+    });
+    hatch.append(svgElement("line", {
+      x1: "0", y1: "0", x2: "0", y2: "6", class: "symphony-hatch-line",
+    }));
+
+    const fixture = svgElement("pattern", {
+      id: "symphony-fixture-hatch",
+      width: "10",
+      height: "10",
+      patternUnits: "userSpaceOnUse",
+      patternTransform: "rotate(45)",
+    });
+    fixture.append(svgElement("line", {
+      x1: "0", y1: "0", x2: "0", y2: "10", class: "symphony-fixture-line",
+    }));
+
+    defs.append(marker, hatch, fixture);
+    return defs;
+  }
+
+  function appendChipBody(group, voice, chip, state) {
+    const { w, h } = chip;
+
+    group.append(svgElement("rect", {
+      class: "symphony-chip__frame",
+      x: 0, y: 0, width: w, height: h, rx: 3,
+    }));
+
+    // Copper pin stubs on both sides so a chip reads as seated on the board.
+    const pins = svgElement("g", { class: "symphony-chip__pins" });
+    for (const offset of [12, h / 2, h - 12]) {
+      pins.append(svgElement("line", { x1: -6, y1: offset, x2: 0, y2: offset }));
+      pins.append(svgElement("line", { x1: w, y1: offset, x2: w + 6, y2: offset }));
+    }
+    group.append(pins);
+
+    if (state.unmeasured) {
+      // Socket: hatched cavity and contact holes, no die and no LED.
+      group.append(svgElement("rect", {
+        class: "symphony-chip__cavity",
+        x: 10, y: 10, width: w - 20, height: h - 20, rx: 2,
+        fill: "url(#symphony-socket-hatch)",
+      }));
+      const holes = svgElement("g", { class: "symphony-chip__holes" });
+      for (const cx of [w - 18, w - 30]) {
+        holes.append(svgElement("circle", { cx, cy: 15, r: 2.4 }));
+      }
+      group.append(holes);
+    } else {
+      group.append(svgElement("rect", {
+        class: "symphony-chip__die",
+        x: 10, y: 10, width: w - 20, height: h - 20, rx: 2,
+      }));
+      // Degraded and critical carry a waveform on the die: uneven jitter for
+      // warning, a clipped square wave for critical. Geometry, not just colour.
+      if (state.status === "degraded" || state.status === "down") {
+        const baseline = h - 15;
+        const wave = state.status === "down"
+          ? `M ${w - 62} ${baseline} L ${w - 54} ${baseline} L ${w - 54} ${baseline - 9} L ${w - 44} ${baseline - 9} L ${w - 44} ${baseline} L ${w - 34} ${baseline} L ${w - 34} ${baseline - 9} L ${w - 26} ${baseline - 9}`
+          : `M ${w - 62} ${baseline} L ${w - 55} ${baseline - 7} L ${w - 48} ${baseline - 1} L ${w - 41} ${baseline - 8} L ${w - 34} ${baseline - 2} L ${w - 26} ${baseline - 6}`;
+        group.append(svgElement("path", { class: "symphony-chip__wave", d: wave }));
+      }
+      group.append(svgElement("rect", {
+        class: "symphony-chip__led",
+        x: 12, y: h / 2 - 12, width: 8, height: 8, rx: 1,
+      }));
+    }
+
+    const identity = svgElement("text", {
+      class: "symphony-chip__identity", x: 26, y: h / 2 - 4,
+    });
+    identity.textContent = voice.displayName.length > 22
+      ? `${voice.displayName.slice(0, 21)}…`
+      : voice.displayName;
+
+    const meta = svgElement("text", {
+      class: "symphony-chip__meta", x: 26, y: h / 2 + 10,
+    });
+    meta.textContent = state.meta;
+
+    const code = svgElement("text", {
+      class: "symphony-chip__state", x: w - 12, y: h / 2 + 10, "text-anchor": "end",
+    });
+    code.textContent = state.code;
+
+    group.append(identity, meta, code);
+
+    // Corner brackets for selection. Dashes are centred on each corner so the
+    // bracket reads as a seated component marker rather than a dashed outline.
+    group.append(svgElement("rect", {
+      class: "symphony-chip__brackets",
+      x: -3, y: -3, width: w + 6, height: h + 6, rx: 3,
+      "stroke-dasharray": `12 ${w + 6 - 24} 12 ${h + 6 - 24} 12 ${w + 6 - 24} 12 ${h + 6 - 24}`,
+      "stroke-dashoffset": 6,
+    }));
+  }
+
+  function renderTopology(frame) {
+    topologyNodes.clear();
+    topologyEdges.clear();
+    topologySvg.replaceChildren();
+    topologySvg.classList.toggle("is-critical", frame.scoreState === "critical");
+
+    const filteredVoices = visibleVoices(frame);
+    const graph = buildDependencyGraph(filteredVoices, frame.voices);
+    const layout = boardLayout();
+    const source = sourceState(frame);
+    const board = boardGeometry({
+      voices: filteredVoices,
+      externalNodes: graph.externalNodes,
+      layout,
     });
 
-    const edgeGroup = svgElement("g", { class: "symphony-topology__edges" });
-    for (const edge of [...graph.internalEdges, ...graph.externalEdges]) {
-      const from = positions.get(edge.from);
-      const to = positions.get(edge.to) ?? externalPositions.get(edge.to);
-      if (!from || !to) continue;
-      edgeGroup.append(svgElement("line", {
-        ...shortenedEdge(from, to, graph.externalNodes.includes(edge.to) ? 11 : 17),
-        class: `symphony-edge${graph.externalNodes.includes(edge.to) ? " is-external" : ""}`,
-        "data-from": edge.from,
-        "data-to": edge.to,
-        "marker-end": "url(#symphony-arrow)",
+    topologySvg.setAttribute("viewBox", `0 0 ${board.width} ${board.height}`);
+    topologySvg.dataset.layout = board.layout;
+    topologySvg.dataset.source = source.key;
+    topologySvg.dataset.scope = componentFilter;
+
+    topologySvg.append(boardDefs());
+
+    // Board plate and district silkscreen.
+    const plate = svgElement("g", { class: "symphony-board__plate" });
+    for (const district of board.districts) {
+      const label = svgElement("text", {
+        class: "symphony-board__district",
+        x: district.x,
+        y: layout === "mobile" ? district.y + 18 : district.y,
+      });
+      label.textContent = district.label;
+      plate.append(label);
+      if (layout === "mobile") {
+        const measured = svgElement("text", {
+          class: "symphony-board__district-count",
+          x: board.width - 16,
+          y: district.y + 18,
+          "text-anchor": "end",
+        });
+        measured.textContent = `${district.measured}/${district.count} measured`;
+        plate.append(measured);
+      }
+    }
+    if (layout === "mobile") {
+      plate.append(svgElement("line", {
+        class: "symphony-board__spine",
+        x1: board.spineX, y1: board.topBus, x2: board.spineX, y2: board.bottomBus,
       }));
+    }
+    topologySvg.append(plate);
+
+    // Copper traces. Declared dependencies only; this is not live traffic.
+    const edges = [...graph.internalEdges, ...graph.externalEdges];
+    const offsets = routeOffsets(edges);
+    const statusByName = new Map(
+      filteredVoices.map((voice) => [voice.name, presentationForVoice(voice).key]),
+    );
+    const edgeGroup = svgElement("g", { class: "symphony-topology__edges" });
+    for (const edge of edges) {
+      const from = board.chips.get(edge.from);
+      const to = board.chips.get(edge.to);
+      if (!from || !to) continue;
+      const points = copperRoute(from, to, {
+        offset: offsets.get(`${edge.from} ${edge.to}`) ?? 0,
+        topBus: board.topBus,
+        bottomBus: board.bottomBus,
+        layout: board.layout,
+        spineX: board.spineX,
+      });
+      const path = svgElement("path", {
+        class: `symphony-edge${to.external ? " is-external" : ""}`,
+        d: chamferedPath(points),
+        fill: "none",
+        "marker-end": "url(#symphony-arrow)",
+      });
+      path.dataset.from = edge.from;
+      path.dataset.to = edge.to;
+      // The trace carries its source chip's pressure, so degraded jitter and
+      // critical clipping read as damage on the signal itself.
+      path.dataset.status = statusByName.get(edge.from) ?? "unknown";
+      edgeGroup.append(path);
+
+      // A via dot at each bend, as on a routed board.
+      for (const bend of points.slice(1, -1)) {
+        edgeGroup.append(svgElement("circle", {
+          class: "symphony-edge__via", cx: bend.x, cy: bend.y, r: 1.6,
+        }));
+      }
+
+      if (!topologyEdges.has(edge.from)) topologyEdges.set(edge.from, []);
+      topologyEdges.get(edge.from).push(path);
     }
     topologySvg.append(edgeGroup);
 
+    const chipGroup = svgElement("g", { class: "symphony-topology__chips" });
     for (const voice of filteredVoices) {
-      const position = positions.get(voice.name);
+      const chip = board.chips.get(voice.name);
+      if (!chip) continue;
       const presentation = presentationForVoice(voice);
+      const state = chipStateForVoice(voice, presentation);
+      const role = apuRoleLabel(voice);
+      const evidence = voice.evidenceLabel
+        ?? (voice.measured ? "Current measurement" : "Topology only");
+
       const group = svgElement("g", {
         class: `symphony-node status-${presentation.key}${topologySelectionActive && voice.name === selectedName ? " is-selected" : ""}`,
-        transform: `translate(${position.x} ${position.y})`,
+        transform: `translate(${chip.x} ${chip.y})`,
         tabindex: "0",
         role: "button",
-        "aria-label": `${voice.displayName}, ${presentation.label}, ${apuRoleLabel(voice)}`,
+        "aria-label": `${voice.displayName}, ${state.code === "LAST KNOWN" ? "last known" : presentation.label}, ${state.kind}, APU role ${role}, ${evidence}, source ${source.label}`,
       });
       group.dataset.node = voice.name;
+      group.dataset.status = presentation.key;
+      group.dataset.evidence = state.evidence;
+      group.dataset.kind = state.kind;
+      group.dataset.district = chip.districtId;
+      group.dataset.voice = "false";
+
       const title = svgElement("title");
-      title.textContent = `${voice.displayName}: ${presentation.label} / ${apuRoleLabel(voice)}`;
-      const circle = svgElement("circle", { r: 13 });
-      const core = svgElement("circle", { r: 4, class: "symphony-node__core" });
-      const label = svgElement("text", { y: 28, "text-anchor": "middle" });
-      label.textContent = voice.displayName.length > 18
-        ? `${voice.displayName.slice(0, 16)}…`
-        : voice.displayName;
-      group.append(title, circle, core, label);
+      title.textContent = `${voice.displayName}: ${presentation.label} / ${role}`;
+      group.append(title);
+      appendChipBody(group, voice, chip, state);
+
       group.addEventListener("click", () => selectService(voice.name));
       group.addEventListener("keydown", (event) => {
         if (event.key === "Enter" || event.key === " ") {
@@ -817,25 +964,64 @@ export function initSystemSymphony() {
           selectService(voice.name);
         }
       });
-      topologySvg.append(group);
+      chipGroup.append(group);
       topologyNodes.set(voice.name, group);
     }
 
-    for (const [name, position] of externalPositions) {
+    for (const name of graph.externalNodes) {
+      const chip = board.chips.get(name);
+      if (!chip) continue;
       const group = svgElement("g", {
         class: "symphony-node symphony-node--external status-unmeasured",
-        transform: `translate(${position.x} ${position.y})`,
-        "aria-label": `${name}, external dependency boundary`,
+        transform: `translate(${chip.x} ${chip.y})`,
+        "aria-label": `${name}, external dependency boundary, health not measured here`,
       });
+      group.dataset.node = name;
+      group.dataset.status = "unmeasured";
+      group.dataset.evidence = "external";
+      group.dataset.kind = "external";
+      group.dataset.district = chip.districtId;
+
       const title = svgElement("title");
       title.textContent = `${name}: external dependency (health not measured here)`;
-      const circle = svgElement("circle", { r: 8 });
-      const label = svgElement("text", { y: 22, "text-anchor": "middle" });
-      label.textContent = name.length > 18 ? `${name.slice(0, 16)}…` : name;
-      group.append(title, circle, label);
-      topologySvg.append(group);
+      group.append(title);
+      appendChipBody(
+        group,
+        { displayName: name },
+        chip,
+        { unmeasured: true, status: "unmeasured", kind: "external", code: "NO MEAS", meta: "external" },
+      );
+      chipGroup.append(group);
       topologyNodes.set(name, group);
     }
+    topologySvg.append(chipGroup);
+
+    // Source overlay. A stale board stops all flow; a fixture board is framed
+    // and hatched so it can never be read as live.
+    if (source.key === "stale") {
+      for (const path of topologySvg.querySelectorAll(".symphony-edge")) {
+        path.classList.remove("is-lit");
+      }
+    }
+    if (source.key === "preview" || source.key === "demo") {
+      const overlay = svgElement("g", { class: "symphony-board__fixture" });
+      overlay.append(svgElement("rect", {
+        x: 2, y: 2, width: board.width - 4, height: board.height - 4,
+        fill: "url(#symphony-fixture-hatch)",
+      }));
+      overlay.append(svgElement("rect", {
+        class: "symphony-board__fixture-frame",
+        x: 2, y: 2, width: board.width - 4, height: board.height - 4,
+      }));
+      const plateLabel = svgElement("text", {
+        class: "symphony-board__fixture-plate",
+        x: board.width / 2, y: 26, "text-anchor": "middle",
+      });
+      plateLabel.textContent = `NOT LIVE — ${source.label}`;
+      overlay.append(plateLabel);
+      topologySvg.append(overlay);
+    }
+
     applyTopologySelection();
   }
 
@@ -1013,6 +1199,12 @@ export function initSystemSymphony() {
     renderServiceTable();
     renderInspector();
   }
+
+  // Crossing the narrow breakpoint recomposes the board rather than scaling it,
+  // so the layout has to be rebuilt rather than restyled.
+  narrowBoard.addEventListener("change", () => {
+    if (currentFrame) renderTopology(currentFrame);
+  });
 
   function applyAndRender(frame, { applyAudio = true } = {}) {
     currentFrame = frame;
@@ -1204,10 +1396,23 @@ export function initSystemSymphony() {
   function flashVoice(name) {
     const node = topologyNodes.get(name);
     if (!node) return;
+    const lit = topologyEdges.get(name) ?? [];
+
     node.classList.remove("is-playing");
     void node.getBoundingClientRect();
     node.classList.add("is-playing");
-    window.setTimeout(() => node.classList.remove("is-playing"), 520);
+    // A lit trace means one sounding voice, so the outgoing copper is only
+    // energised for as long as the voice actually sounds.
+    node.dataset.voice = "true";
+    for (const path of lit) path.classList.add("is-lit");
+
+    window.clearTimeout(voiceTimers.get(name));
+    voiceTimers.set(name, window.setTimeout(() => {
+      node.classList.remove("is-playing");
+      node.dataset.voice = "false";
+      for (const path of lit) path.classList.remove("is-lit");
+      voiceTimers.delete(name);
+    }, 520));
   }
 
   function drawWaveform(timestamp = 0) {

@@ -733,13 +733,82 @@ body.symphony-page { overflow-x: hidden; }
 .symphony-page-host .symphony-visual,
 .symphony-page-host .symphony-table-wrap { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
 .symphony-page-host .symphony-table-wrap { contain: inline-size; }
-.symphony-page-host .symphony-topology,
 .symphony-page-host [data-waveform] { display: block; width: 100%; min-width: 680px; }
+
+/* The desktop board keeps its readable width and the surface scrolls to it.
+   The mobile composition is a different layout, not a scaled one, so it drops
+   the minimum entirely. */
+.symphony-page-host .symphony-topology { display: block; width: 100%; min-width: 1100px; }
+.symphony-page-host .symphony-topology[data-layout="mobile"] { min-width: 0; }
 .symphony-page-host [data-service-table] tr.is-role-highlight { outline: 1px solid rgba(245, 166, 35, .56); outline-offset: -1px; background: rgba(245, 166, 35, .08); }
 
 .symphony-page-host .symphony-source-panel,
 .symphony-page-host .symphony-orchestra,
 .symphony-page-host .symphony-service-section { scroll-margin-top: 112px; }
+
+/* The scope filter and source badge stay reachable while the board scrolls,
+   so the reading of the board is never separated from what produced it. */
+@media (min-width: 701px) {
+  .symphony-page-host .symphony-section-heading__tools {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    padding-block: 8px;
+    background: rgba(10, 10, 15, .92);
+  }
+}
+
+/* ------------------------------------------------- narrow recomposition -- */
+
+@media (max-width: 700px) {
+  /* Seven roles plus off scroll horizontally instead of collapsing into
+     unreadable slivers. */
+  .symphony-role-board {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .symphony-role-board button {
+    flex: 0 0 auto;
+    min-width: 96px;
+    min-height: 44px;
+    scroll-snap-align: start;
+  }
+
+  /* The board no longer scrolls sideways: it is recomposed as carrier bands. */
+  .symphony-page-host .symphony-visual { overflow-x: visible; }
+
+  /* The inspector becomes a compact bottom sheet pinned to the viewport. */
+  .symphony-page-host .symphony-inspector {
+    position: sticky;
+    bottom: 0;
+    z-index: 4;
+    max-height: 54vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-top: 2px solid var(--accent);
+    border-radius: 12px 12px 0 0;
+    background: rgba(10, 10, 15, .97);
+    box-shadow: 0 -12px 28px rgba(0, 0, 0, .55);
+  }
+
+  .symphony-page-host .symphony-inspector::before {
+    display: block;
+    width: 36px;
+    height: 4px;
+    margin: 0 auto 10px;
+    border-radius: 2px;
+    background: var(--border);
+    content: "";
+  }
+
+  .symphony-page-host .symphony-table-action,
+  .symphony-page-host .symphony-segmented button { min-height: 44px; }
+}
 
 /* --------------------------------------------------------- side routes -- */
 
