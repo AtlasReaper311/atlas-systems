@@ -54,13 +54,8 @@ test("Lab and Systems load the signature assets", () => {
 
 test("governed preview validates card layout and watches every signature asset", () => {
   const workflow = fs.readFileSync(".github/workflows/interface-preview.yml", "utf8");
-  for (const path of [
-    "static/css/card-signatures.css",
-    "static/js/card-signatures.js",
-    "static/media/card-signatures.svg",
-    "js/tests/card-signatures.test.mjs",
-  ]) {
-    assert.ok(workflow.includes(`- "${path}"`), `${path} preview trigger`);
+  for (const path of ["static/css/**", "static/js/**", "static/media/**", "js/tests/*.test.mjs"]) {
+    assert.ok(workflow.includes(`- "${path}"`), `${path} grouped preview trigger`);
   }
 
   const evidence = fs.readFileSync("scripts/capture_interface_evidence.mjs", "utf8");
