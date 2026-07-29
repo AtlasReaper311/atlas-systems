@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
 
 import {
@@ -10,6 +12,11 @@ import {
   classifyChangedFiles,
   parseSitemapRoutes,
 } from "../../scripts/interface-evidence/contract.mjs";
+import {
+  REPORTING_BASELINE,
+  acceptedReportingFinding,
+  reconcileEvidenceReport,
+} from "../../scripts/interface-evidence/reporting-baseline.mjs";
 
 const sitemapXml = readFileSync("sitemap.xml", "utf8");
 const sitemapRoutes = parseSitemapRoutes(sitemapXml);
@@ -65,4 +72,76 @@ test("changed-file classification binds route work and shared assets to evidence
   assert.equal(harness.visual_change, false);
   assert.equal(harness.evidence_contract_change, true);
   assert.equal(harness.evidence_required, true);
+});
+
+test("the reporting baseline is pinned to the reviewed Phase 2 evidence", () => {
+  assert.equal(REPORTING_BASELINE.schema_version, "atlas-systems/public-interface-reporting-baseline/v1");
+  assert.equal(REPORTING_BASELINE.source.pull_request, "AtlasReaper311/atlas-systems#168");
+  assert.equal(REPORTING_BASELINE.source.reviewed_head, "4dafa7d1d4690e94e36e9342e672d41307633d19");
+  assert.equal(REPORTING_BASELINE.source.workflow_run, 30386218935);
+  assert.equal(REPORTING_BASELINE.source.artifact_id, 8699615072);
+  assert.equal(REPORTING_BASELINE.source.reviewed_finding_count, 36);
+});
+
+test("baseline matching is route, browser, viewport, issue, and target specific", () => {
+  const accepted = acceptedReportingFinding({
+    routeName: "lab-signal",
+    browser: "firefox",
+    viewport: "375",
+    message: 'lab-signal/375: serious accessibility findings [{"id":"color-contrast","nodes":[{"target":["span[data-layer=\\"noise\\"]"]}]}]',
+  });
+  assert.ok(accepted);
+
+  assert.equal(acceptedReportingFinding({
+    routeName: "lab-speculum",
+    browser: "firefox",
+    viewport: "375",
+    message: 'lab-speculum/375: serious accessibility findings [{"id":"color-contrast","nodes":[{"target":["span[data-layer=\\"noise\\"]"]}]}]',
+  }), null);
+
+  assert.equal(acceptedReportingFinding({
+    routeName: "lab-signal",
+    browser: "firefox",
+    viewport: "375",
+    message: 'lab-signal/375: serious accessibility findings [{"id":"aria-required-attr","nodes":[{"target":["span[data-layer=\\"noise\\"]"]}]}]',
+  }), null);
+});
+
+test("reconciliation preserves reviewed findings and retains unknown blockers", () => {
+  const directory = mkdtempSync(path.join(os.tmpdir(), "atlas-interface-baseline-"));
+  const reportPath = path.join(directory, "evidence.json");
+  const errorPath = path.join(directory, "capture-error.txt");
+  const acceptedMessage = 'writing-sonin-generative-system/375: console errors [{"type":"error","text":"Content-Security-Policy blocked youtube.com/embed/O5f1tB5bdyE"}]';
+  const unknownMessage = "lab-speculum/375: expected one h1, found 2";
+  writeFileSync(reportPath, `${JSON.stringify({
+    routes: [
+      {
+        routeName: "writing-sonin-generative-system",
+        browser: "chrome",
+        viewport: "375",
+        findings: [],
+        blockingFailures: [acceptedMessage],
+      },
+      {
+        routeName: "lab-speculum",
+        browser: "chrome",
+        viewport: "375",
+        findings: [],
+        blockingFailures: [unknownMessage],
+      },
+    ],
+    findings: [],
+    blockingFailures: [acceptedMessage, unknownMessage],
+  }, null, 2)}\n`);
+
+  const result = reconcileEvidenceReport({ reportPath, errorPath });
+  const report = JSON.parse(readFileSync(reportPath, "utf8"));
+  assert.equal(result.reconciled, false);
+  assert.equal(result.acceptedCount, 1);
+  assert.equal(result.blockingCount, 1);
+  assert.equal(report.reportingBaseline.accepted_count, 1);
+  assert.deepEqual(report.blockingFailures, [unknownMessage]);
+  assert.match(report.findings[0], /accepted Phase 2 reporting baseline/);
+  assert.match(readFileSync(errorPath, "utf8"), /lab-speculum/);
+  rmSync(directory, { recursive: true, force: true });
 });
