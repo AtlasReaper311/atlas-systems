@@ -147,14 +147,10 @@
 .prose ul li{font-size:16px;line-height:1.8}
 .callout p{font-size:14px;line-height:1.75}
 .table-wrap{max-width:100%;overscroll-behavior-inline:contain}
-.article-footer.atlas-footer{max-width:var(--content-w);margin:0 auto;display:grid;grid-template-columns:auto auto auto;justify-content:center;align-items:center;gap:.75rem .55rem;border-top:1px solid var(--atlas-border,var(--border));padding:var(--atlas-space-6,1.5rem) 0 var(--atlas-space-8,3rem)}
-.article-footer .atlas-footer__sequence{grid-column:1/-1;width:100%;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.article-footer.atlas-footer{max-width:var(--content-w);margin:0 auto;display:block;border-top:1px solid var(--atlas-border,var(--border));padding:var(--atlas-space-6,1.5rem) 0 var(--atlas-space-7,2rem)}
+.article-footer .atlas-footer__sequence{width:100%;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:1rem}
 .article-footer .atlas-footer__sequence>:last-child{margin-left:auto;text-align:right}
-.article-footer .atlas-footer__context,.article-footer .atlas-footer__identity,.article-footer .atlas-footer__escape{display:inline-flex;align-items:center;min-width:0;color:var(--text-faint);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
-.article-footer .atlas-footer__context::after,.article-footer .atlas-footer__identity::after{content:'·';margin-left:.55rem;color:var(--text-faint)}
-.article-footer .atlas-footer__context a,.article-footer .atlas-footer__escape a{color:var(--text-faint);font-size:inherit;letter-spacing:inherit;text-decoration:none;text-transform:inherit}
-.article-footer .atlas-footer__context a:hover,.article-footer .atlas-footer__escape a:hover{color:var(--text)}
-.article-footer .atlas-footer__identity span{color:var(--text-faint);white-space:nowrap}
+.article-footer .footer-back,.article-footer .footer-next{min-height:44px}
 :where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 @media(max-width:767px){
   .article-footer.atlas-footer{padding-inline:0}
@@ -169,7 +165,7 @@
   main{padding-bottom:2rem}
   .article-footer .atlas-footer__sequence{flex-direction:column;align-items:stretch;gap:.25rem}
   .article-footer .atlas-footer__sequence>:last-child{margin-left:0;align-self:flex-end;text-align:right}
-  .article-footer .footer-back{max-width:100%;white-space:normal}
+  .article-footer .footer-back,.article-footer .footer-next{max-width:100%;white-space:normal}
 }
 @media(max-width:420px){
   .atlas-estate-status-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
@@ -378,7 +374,7 @@
     </article>
   </div>
 
-  <footer class="article-footer atlas-footer atlas-footer--editorial" aria-label="Article footer">
+  <footer class="article-footer atlas-footer atlas-footer--editorial" aria-label="Article navigation">
     <nav class="atlas-footer__sequence" aria-label="Article sequence">
       <a href="/writing/atlas-pipeline-infrastructure-dashboard/" class="footer-back">
     <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
@@ -389,15 +385,6 @@
     <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
   </a>
     </nav>
-    <div class="atlas-footer__context">
-      <a href="/writing/">Writing index</a>
-    </div>
-    <div class="atlas-footer__identity">
-      <span>W-06</span>
-    </div>
-    <div class="atlas-footer__escape">
-      <a href="/">Atlas Systems</a>
-    </div>
   </footer>
 
 </main>
