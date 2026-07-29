@@ -51,11 +51,16 @@ export function partitionBlockingFindings({ routeName, browser, viewport, messag
 }
 
 export function reconcileEvidenceReport({ reportPath, errorPath }) {
-  if (!fs.existsSync(reportPath)) {
-    return { reconciled: false, acceptedCount: 0, blockingCount: 1, reason: "evidence report is missing" };
+  let report;
+  try {
+    report = JSON.parse(fs.readFileSync(reportPath, "utf8"));
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      return { reconciled: false, acceptedCount: 0, blockingCount: 1, reason: "evidence report is missing" };
+    }
+    throw error;
   }
 
-  const report = JSON.parse(fs.readFileSync(reportPath, "utf8"));
   const accepted = [];
   const blocking = [];
 
@@ -98,6 +103,6 @@ export function reconcileEvidenceReport({ reportPath, errorPath }) {
     return { reconciled: false, acceptedCount: accepted.length, blockingCount: blocking.length };
   }
 
-  if (fs.existsSync(errorPath)) fs.rmSync(errorPath);
+  fs.rmSync(errorPath, { force: true });
   return { reconciled: true, acceptedCount: accepted.length, blockingCount: 0 };
 }
