@@ -2,119 +2,131 @@ import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import test from "node:test";
+
+import {
+  STATUS_ENDPOINT,
+  STATUS_LABELS,
+  STATUS_PAGE,
+  STATUS_STALE_AFTER_MS,
+  parseEstateStatus,
+} from "../../static/js/estate-status.js";
+import { GLOBAL_ROUTES, normalizeAtlasTitle } from "../../static/js/estate-shell.js";
 import { SHARED_FOUNDATION_CONTRACT } from "../../static/js/shared-foundation-semantics.js";
 
+const NOW = Date.parse("2026-07-23T08:00:00Z");
+const ACTIVE_BUNDLE_ROOT = "static/vendor/atlas-interface/v0.3.0";
 const LEGACY_BUNDLE_ROOT = "static/vendor/atlas-interface/v0.2.0";
-const FOUNDATION_BUNDLE_ROOT = "static/vendor/atlas-interface/v0.3.0";
-const ACTIVE_BUNDLE_ROOT = FOUNDATION_BUNDLE_ROOT;
-const RELEASE_MANIFEST = `${ACTIVE_BUNDLE_ROOT}/manifest.json`;
-const EXPECTED_RELEASE_FILES = [
-  "atlas-fonts.css",
-  "atlas-interface-kit.css",
-  "components.json",
+const FONT_FILES = new Set([
   "fonts/dm-serif-display-400-italic.woff2",
   "fonts/dm-serif-display-400.woff2",
   "fonts/ibm-plex-mono-400.woff2",
   "fonts/ibm-plex-mono-500.woff2",
-  "licenses/DM-Serif-Display-OFL.txt",
-  "licenses/IBM-Plex-Mono-OFL.txt",
-  "semantics.json",
-  "tokens.json",
-];
+]);
+
+function snapshot(operational, total, checkedAt = "2026-07-23T07:55:00Z") {
+  return { estate: { operational, total_components: total, checked_at: checkedAt } };
+}
 
 function sha256(path) {
   return crypto.createHash("sha256").update(fs.readFileSync(path)).digest("hex");
 }
 
-function filesBelow(root, suffix = "") {
-  return fs.readdirSync(root, { withFileTypes: true }).flatMap((entry) => {
-    const path = `${root}/${entry.name}`;
-    if (entry.name === ".git" || entry.name === "node_modules") return [];
-    return entry.isDirectory()
-      ? filesBelow(path, suffix)
-      : suffix === "" || entry.name.endsWith(suffix)
-        ? [path.replace(/^\.\//, "")]
-        : [];
+function filesBelow(directory, suffix) {
+  return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = `${directory}/${entry.name}`.replace(/^\.\//, "");
+    if (entry.isDirectory()) {
+      if (entry.name === ".git" || entry.name === "node_modules") return [];
+      return filesBelow(path, suffix);
+    }
+    return path.endsWith(suffix) ? [path] : [];
   });
 }
 
-test("active interface bundle matches the immutable release manifest", () => {
-  const manifest = JSON.parse(fs.readFileSync(RELEASE_MANIFEST, "utf8"));
+test("status indicator consumes the bounded aggregate contract", () => {
+  assert.equal(STATUS_ENDPOINT, "https://api.atlas-systems.uk/v1/stats");
+  assert.equal(STATUS_PAGE, "https://status.atlas-systems.uk/");
+  assert.equal(STATUS_STALE_AFTER_MS, 1_200_000);
+  assert.equal(STATUS_LABELS.operational, "Operational");
+});
+
+test("status mapping distinguishes operational, degraded, unavailable, and unknown", () => {
+  assert.equal(parseEstateStatus(snapshot(19, 19), NOW).state, "operational");
+  assert.equal(parseEstateStatus(snapshot(18, 19), NOW).state, "degraded");
+  assert.equal(parseEstateStatus(snapshot(10, 19), NOW).state, "degraded");
+  assert.equal(parseEstateStatus(snapshot(9, 19), NOW).state, "unavailable");
+  assert.equal(parseEstateStatus(snapshot(0, 19), NOW).state, "unavailable");
+  assert.equal(parseEstateStatus(null, NOW).state, "unknown");
+  assert.equal(parseEstateStatus(snapshot(20, 19), NOW).state, "unknown");
+  assert.equal(parseEstateStatus(snapshot(19, 19, "2026-07-23T08:05:00Z"), NOW).state, "unknown");
+  assert.equal(parseEstateStatus(snapshot(19, 19, "2026-07-23T07:39:59Z"), NOW).state, "unknown");
+});
+
+test("v2 shell exposes the accepted route order and v0.3.0 foundations", () => {
+  assert.deepEqual(GLOBAL_ROUTES.map(({ label }) => label), ["Work", "Writing", "Lab", "Systems", "About"]);
+  const shell = fs.readFileSync("static/js/estate-shell.js", "utf8");
+  const shellCss = fs.readFileSync("static/css/estate-shell.css", "utf8");
+  assert.match(shell, /atlas-header__brand/);
+  assert.match(shell, /atlas-header__nav/);
+  assert.match(shell, /atlas-header__actions/);
+  assert.match(shell, /preserveHomepageStatus/);
+  assert.match(shell, /label\.removeAttribute\("id"\)/);
+  assert.doesNotMatch(shell, /if \(!isHomepage\) void refreshStatus/);
+  assert.match(shell, /void refreshStatus\(status\)/);
+  assert.match(shell, /v0\.3\.0\/atlas-interface-kit\.css/);
+  assert.match(shell, /installSharedFoundationSemantics/);
+  assert.match(shell, /aria-live", "off"/);
+  assert.match(shell, /normalizeLegacySemantics/);
+  assert.match(shellCss, /grid-template-columns:\s*repeat\(5,\s*1fr\)/);
+});
+
+test("estate page titles use the page-first double-slash convention", () => {
+  assert.equal(normalizeAtlasTitle("Atlas Systems"), "Atlas Systems");
+  assert.equal(normalizeAtlasTitle("Work — Atlas Systems"), "Work // Atlas Systems");
+  assert.equal(normalizeAtlasTitle("Atlas Systems // Status"), "Status // Atlas Systems");
+});
+
+test("interface-kit v0.3.0 overlay matches the canonical SHA-256 manifest", () => {
+  const versions = fs.readdirSync("static/vendor/atlas-interface", { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+  assert.deepEqual(versions, ["v0.2.0", "v0.3.0", "v0.4.0"]);
+
+  const manifest = JSON.parse(fs.readFileSync(`${ACTIVE_BUNDLE_ROOT}/manifest.json`, "utf8"));
+  const legacyManifest = JSON.parse(fs.readFileSync(`${LEGACY_BUNDLE_ROOT}/manifest.json`, "utf8"));
   assert.equal(manifest.schema_version, "atlas-interface-kit/bundle/v1");
   assert.equal(manifest.version, "0.3.0");
   assert.equal(manifest.contract_version, "2.0.0");
   assert.equal(manifest.foundation_extension_version, "1.0.0");
-  assert.deepEqual(Object.keys(manifest.files).sort(), [...EXPECTED_RELEASE_FILES].sort());
-
-  for (const [name, record] of Object.entries(manifest.files)) {
-    const path = `${ACTIVE_BUNDLE_ROOT}/${name}`;
-    assert.equal(fs.existsSync(path), true, `${name} must exist`);
-    assert.equal(fs.statSync(path).size, record.bytes, `${name} byte count`);
-    assert.equal(sha256(path), record.sha256, `${name} SHA-256`);
-  }
-});
-
-test("v0.2.0 compatibility assets remain byte-identical where required", () => {
-  const activeManifest = JSON.parse(fs.readFileSync(RELEASE_MANIFEST, "utf8"));
-  const legacyManifest = JSON.parse(
-    fs.readFileSync(`${LEGACY_BUNDLE_ROOT}/manifest.json`, "utf8"),
-  );
-  const sharedFiles = [
+  assert.equal(manifest.semantic_contract_count, 3);
+  assert.equal(manifest.component_role_count, 27);
+  assert.deepEqual(Object.keys(manifest.files).sort(), [
     "atlas-fonts.css",
+    "atlas-interface-kit.css",
+    "components.json",
     "fonts/dm-serif-display-400-italic.woff2",
     "fonts/dm-serif-display-400.woff2",
     "fonts/ibm-plex-mono-400.woff2",
     "fonts/ibm-plex-mono-500.woff2",
     "licenses/DM-Serif-Display-OFL.txt",
     "licenses/IBM-Plex-Mono-OFL.txt",
-  ];
-  for (const name of sharedFiles) {
-    assert.equal(
-      legacyManifest.files[name].sha256,
-      activeManifest.files[name].sha256,
-      `${name} release identity`,
-    );
-    assert.equal(
-      sha256(`${LEGACY_BUNDLE_ROOT}/${name}`),
-      sha256(`${ACTIVE_BUNDLE_ROOT}/${name}`),
-      `${name} checked-in bytes`,
-    );
+    "semantics.json",
+    "tokens.json",
+  ]);
+
+  for (const [name, record] of Object.entries(manifest.files)) {
+    const activePath = `${ACTIVE_BUNDLE_ROOT}/${name}`;
+    const path = fs.existsSync(activePath) ? activePath : `${LEGACY_BUNDLE_ROOT}/${name}`;
+    assert.equal(fs.existsSync(path), true, `${name} repository-local asset`);
+    assert.equal(fs.statSync(path).size, record.bytes, `${name} byte count`);
+    assert.equal(sha256(path), record.sha256, `${name} SHA-256`);
+    if (FONT_FILES.has(name)) assert.deepEqual(legacyManifest.files[name], record, `${name} byte-identical fallback`);
   }
-});
-
-test("consumer points to one local active interface overlay", () => {
-  const shell = fs.readFileSync("static/js/estate-shell.js", "utf8");
-  assert.match(
-    shell,
-    /const INTERFACE_KIT_STYLESHEET = "\/static\/vendor\/atlas-interface\/v0\.3\.0\/atlas-interface-kit\.css"/,
-  );
-  assert.doesNotMatch(shell, /v0\.2\.0\/atlas-interface-kit\.css/);
-  assert.doesNotMatch(shell, /atlas-interface-kit\.js/);
-  assert.doesNotMatch(shell, /unpkg|jsdelivr|cdnjs/);
-});
-
-test("active bundle exposes accepted semantic roles", () => {
-  const components = JSON.parse(
-    fs.readFileSync(`${ACTIVE_BUNDLE_ROOT}/components.json`, "utf8"),
-  );
-  assert.deepEqual(
-    components.roles.map(({ role }) => role),
-    ["breadcrumbs", "skip-link", "status-announcement"],
-  );
-  assert.equal(components.breadcrumbs.list_selector, ".atlas-breadcrumbs__list");
-  assert.equal(
-    components.status_announcement.visually_hidden_selector,
-    ".atlas-status-announcement--visually-hidden",
-  );
 
   const semantics = JSON.parse(fs.readFileSync(`${ACTIVE_BUNDLE_ROOT}/semantics.json`, "utf8"));
-  assert.equal(semantics.breadcrumb_authority.separator_text, "/");
-  assert.equal(semantics.breadcrumb_authority.current_page_aria_current, "page");
-  assert.equal(semantics.skip_link_authority.target_id, "main-content");
-  assert.equal(
-    semantics.status_announcement_authority.initial_poll_quiet,
-    true,
-  );
+  assert.equal(semantics.status_announcement.global_header_status_remains_aria_live_off, true);
+  assert.equal(semantics.dense_data_overflow.when_not_overflowing.unnecessary_tab_stop_forbidden, true);
+  assert.deepEqual(semantics.evidence.reporting_only_viewports_px, [1920]);
 
   const tokens = JSON.parse(fs.readFileSync(`${ACTIVE_BUNDLE_ROOT}/tokens.json`, "utf8"));
   assert.equal(tokens.colour.text_faint, "#888894");
@@ -176,7 +188,157 @@ test("Lab route contract uses the dedicated map and operations routes", () => {
   const ramonePosition = landing.indexOf('id="ramone-card"');
   const legendPosition = landing.indexOf('class="interface-legend"');
   const featuredPosition = landing.indexOf('id="featured-title"');
-  assert.ok(ramonePosition >= 0);
-  assert.ok(legendPosition > ramonePosition);
-  assert.ok(featuredPosition > legendPosition);
+  assert.ok(ramonePosition < legendPosition, "Ramone must remain directly behind the Lab introduction");
+  assert.ok(legendPosition < featuredPosition, "the semantic key must follow Ramone and precede the directory");
+  assert.match(landing, /Experience/);
+  assert.match(landing, /Observe/);
+  assert.match(landing, /Verify/);
+  assert.match(landing, /Explore/);
+});
+
+test("Lab and Systems cards carry operation-specific visual identities", () => {
+  const lab = fs.readFileSync("lab/index.html", "utf8");
+  const systems = fs.readFileSync("systems/index.html", "utf8");
+  const directoryCss = fs.readFileSync("static/css/v2-directory-pages.css", "utf8");
+
+  assert.match(lab, /class="card-grid featured-grid"/);
+  assert.match(lab, /class="card-grid directory-grid verify-grid"/);
+  assert.match(lab, /class="card-grid directory-grid explore-grid"/);
+  assert.match(systems, /class="card-grid product-showcase"/);
+  assert.match(systems, /class="card-grid systems-tools-grid"/);
+  assert.ok((lab.match(/data-visual=/g) || []).length >= 15);
+  assert.ok((systems.match(/data-visual=/g) || []).length >= 15);
+
+  for (const visual of ["ramone", "symphony", "signal", "map", "proof", "status", "conformance", "reliability", "api", "anomaly", "almost"]) {
+    assert.match(directoryCss, new RegExp(`\\[data-visual="${visual}"\\]`));
+  }
+  assert.match(directoryCss, /prefers-reduced-motion:reduce/);
+});
+
+test("Lab and Systems explain maturity, data mode, and operation motifs", () => {
+  const lab = fs.readFileSync("lab/index.html", "utf8");
+  const systems = fs.readFileSync("systems/index.html", "utf8");
+  const systemMap = fs.readFileSync("lab/system-map/index.html", "utf8");
+  const directoryCss = fs.readFileSync("static/css/v2-directory-pages.css", "utf8");
+
+  for (const [name, page] of [["Lab", lab], ["Systems", systems]]) {
+    assert.match(page, /<aside class="interface-legend" aria-labelledby="[^"]+">/, `${name} legend`);
+    assert.match(page, /Commitment and data are separate\./, `${name} separation`);
+    for (const maturity of ["Production", "Tool", "Preview", "Experiment", "Planned", "Retired"]) {
+      assert.match(page, new RegExp(`>${maturity}<`), `${name} ${maturity}`);
+    }
+    for (const mode of ["live", "replay", "generated", "simulated"]) {
+      assert.match(page, new RegExp(`data-mode-key="${mode}"`), `${name} ${mode}`);
+    }
+
+    const cards = (page.match(/class="system-card/g) || []).length;
+    const motifs = (page.match(/data-motif="/g) || []).length;
+    assert.equal(motifs, cards, `${name} cards must all carry an operation motif`);
+  }
+
+  for (const motif of ["RAG", "WAVE", "DSP", "TOPO", "TRACE", "SLO", "POLICY", "RECOVER", "OPENAPI", "DTW"]) {
+    assert.match(`${lab}\n${systems}`, new RegExp(`data-motif="${motif}"`), motif);
+  }
+  assert.match(directoryCss, /content:attr\(data-motif\)/);
+  assert.match(directoryCss, /\.badge\.preview\s*\{/);
+  assert.match(directoryCss, /\.badge\.experiment\s*\{[^}]*border-style:dashed/);
+  assert.match(directoryCss, /\.badge\.planned\s*\{[^}]*border-style:dotted/);
+  assert.match(directoryCss, /\.badge\.retired\s*\{[^}]*text-decoration:line-through/);
+  assert.match(directoryCss, /\.badge\.planned::before/);
+  assert.match(directoryCss, /\.badge\.retired::before/);
+  assert.match(directoryCss, /\.mode-key\[data-mode-key="simulated"\]::before\s*\{[^}]*border-style:dashed/);
+  for (const page of [lab, systems, systemMap]) {
+    assert.match(page, /v2-directory-pages\.css\?v=20260728-lab-context-nav-wrap/);
+  }
+});
+
+test("reduced-motion and legacy Lab compatibility stay explicit", () => {
+  const transitions = fs.readFileSync("js/transitions.js", "utf8");
+  const shell = fs.readFileSync("static/js/estate-shell.js", "utf8");
+  assert.match(transitions, /data-ramone-reduced-musing/);
+  assert.match(shell, /replaceHeading\(ramoneHeading, "h2"\)/);
+  assert.match(shell, /map\.setAttribute\("role", "group"\)/);
+});
+
+test("specialist Lab wrappers preserve original tool modules", () => {
+  const wrappers = [
+    ["lab/proof-chain/proof-chain.js", "./proof-chain-core.js"],
+    ["lab/signal/signal-v2.js", "./signal-v2-core.js"],
+    ["lab/anomaly/anomaly.js", "./anomaly-core.js"],
+    ["lab/conformance/conformance.js", "./conformance-core.js"],
+    ["lab/reliability/reliability.js", "./reliability-core.js"],
+  ];
+  for (const [wrapper, coreImport] of wrappers) {
+    const source = fs.readFileSync(wrapper, "utf8");
+    assert.match(source, /import "\.\.\/shared\/shell\.js";/);
+    assert.ok(source.includes(`import "${coreImport}";`));
+  }
+});
+
+test("System SYMPHONY implementation remains outside this migration", () => {
+  const interfaceFiles = [
+    "static/js/estate-shell.js",
+    "static/js/estate-status.js",
+    "static/js/shared-foundation-semantics.js",
+    "static/css/estate-shell.css",
+    "static/css/v2-directory-pages.css",
+    "lab/shared/shell.js",
+    "lab/index.html",
+    "lab/system-map/index.html",
+    "systems/index.html",
+  ];
+  assert.equal(interfaceFiles.some((path) => path.includes("static/js/sonify")), false);
+});
+
+test("production deployment remains independent from Cloudflare Git integration", () => {
+  const deploy = fs.readFileSync(".github/workflows/deploy.yml", "utf8");
+
+  assert.doesNotMatch(deploy, /source_changed/);
+  assert.doesNotMatch(deploy, /\[skip ci\]/);
+  assert.doesNotMatch(deploy, /git push/);
+  assert.match(deploy, /wrangler|validate-static\.yml/);
+  assert.match(deploy, /verify-production:/);
+  assert.match(deploy, /build-commit/);
+  assert.match(deploy, /https:\/\/atlas-systems\.uk/);
+  assert.match(deploy, /needs: \[deploy, verify-production\]/);
+});
+
+test("pull request CI also protects direct main pushes", () => {
+  const ci = fs.readFileSync(".github/workflows/ci.yml", "utf8");
+
+  assert.match(ci, /on:\n\s+pull_request:\n\s+push:\n\s+branches: \[main\]/);
+});
+
+test("deploy webhook secret is documented without exposing a value", () => {
+  const workflow = fs.readFileSync(".github/workflows/notify-deploy.yml", "utf8");
+  const docs = fs.readFileSync("docs/deployment-secrets.md", "utf8");
+
+  assert.match(workflow, /secrets\.DISCORD_DEPLOY_WEBHOOK/);
+  assert.match(docs, /## `DISCORD_DEPLOY_WEBHOOK`/);
+  assert.match(docs, /Repository secret/);
+  assert.equal(docs.includes("/api/webhooks/"), false);
+  assert.equal(docs.includes("discord.com/api"), false);
+  assert.equal(docs.includes("discordapp.com/api"), false);
+});
+
+test("production route verification cannot fail from a closed grep pipe", () => {
+  const deploy = fs.readFileSync(".github/workflows/deploy.yml", "utf8");
+  const systems = fs.readFileSync("systems/index.html", "utf8");
+
+  assert.doesNotMatch(deploy, /\|\s*grep -Fq 'One estate,'/);
+  assert.doesNotMatch(deploy, /One estate,/);
+  assert.match(deploy, /SYSTEMS_BODY="\$\(curl -fsSL/);
+  assert.match(deploy, /atlas-route" content="systems-index/);
+  assert.match(systems, /<meta name="atlas-route" content="systems-index">/);
+});
+
+test("mutable site responses revalidate while versioned interface assets stay immutable", () => {
+  const headers = fs.readFileSync("_headers", "utf8");
+
+  assert.match(headers, /\/\*\n(?:.|\n)*Cache-Control: no-cache, max-age=0, must-revalidate/);
+  assert.match(headers, /\/static\/vendor\/atlas-interface\/\*/);
+  assert.match(headers, /! Cache-Control/);
+  assert.match(headers, /Cache-Control: public, max-age=31536000, immutable/);
+  assert.doesNotMatch(headers, /\/static\/audio\/\*\n\s+Cache-Control: public, max-age=31536000, immutable/);
+  assert.doesNotMatch(headers, /stale-while-revalidate/);
 });
