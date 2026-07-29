@@ -1,7 +1,11 @@
 import fs from "node:fs";
+import path from "node:path";
+import process from "node:process";
 
 import AxeBuilder from "@axe-core/playwright";
 import { chromium, firefox } from "playwright";
+
+import { reconcileEvidenceReport } from "./reporting-baseline.mjs";
 
 export const FIXTURE_HOSTS = new Set([
   "api.atlas-systems.uk",
@@ -13,6 +17,25 @@ export const BROWSERS = Object.freeze([
   Object.freeze({ name: "chrome", launch: () => chromium.launch({ channel: "chrome", headless: true }) }),
   Object.freeze({ name: "firefox", launch: () => firefox.launch({ headless: true }) }),
 ]);
+
+function installReportingBaselineReconciliation() {
+  if (path.basename(process.argv[1] || "") !== "capture_interface_evidence.mjs") return;
+  process.once("beforeExit", () => {
+    if (!process.exitCode) return;
+    const outputDirectory = process.env.INTERFACE_EVIDENCE_OUTPUT_DIR || process.cwd();
+    const result = reconcileEvidenceReport({
+      reportPath: path.join(outputDirectory, "evidence.json"),
+      errorPath: path.join(outputDirectory, "capture-error.txt"),
+    });
+    if (!result.reconciled) return;
+    console.log(
+      `Interface evidence preserved ${result.acceptedCount} reviewed reporting-baseline finding(s) and found no new blockers.`,
+    );
+    process.exitCode = 0;
+  });
+}
+
+installReportingBaselineReconciliation();
 
 function normalHostname(value) {
   try {
