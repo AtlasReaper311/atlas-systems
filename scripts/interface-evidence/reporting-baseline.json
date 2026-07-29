@@ -127,9 +127,16 @@
     {
       "route": "writing-sonin-generative-system",
       "kind": "console",
-      "browsers": ["chrome", "firefox"],
+      "browsers": ["chrome"],
       "viewports": ["320", "375", "768", "1024", "1440", "1920"],
-      "contains": ["Content-Security-Policy", "youtube.com/embed/O5f1tB5bdyE"]
+      "contains": ["Framing 'https://www.youtube.com/'", "Content Security Policy", "default-src 'self'"]
+    },
+    {
+      "route": "writing-sonin-generative-system",
+      "kind": "console",
+      "browsers": ["firefox"],
+      "viewports": ["320", "375", "768", "1024", "1440", "1920"],
+      "contains": ["Content-Security-Policy", "youtube.com/embed/O5f1tB5bdyE", "default-src 'self'"]
     }
   ]
 }
