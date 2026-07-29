@@ -11,9 +11,17 @@ import {
   parseEstateStatus,
 } from "../../static/js/estate-status.js";
 import { GLOBAL_ROUTES, normalizeAtlasTitle } from "../../static/js/estate-shell.js";
+import { SHARED_FOUNDATION_CONTRACT } from "../../static/js/shared-foundation-semantics.js";
 
 const NOW = Date.parse("2026-07-23T08:00:00Z");
-const BUNDLE_ROOT = "static/vendor/atlas-interface/v0.2.0";
+const ACTIVE_BUNDLE_ROOT = "static/vendor/atlas-interface/v0.3.0";
+const LEGACY_BUNDLE_ROOT = "static/vendor/atlas-interface/v0.2.0";
+const FONT_FILES = new Set([
+  "fonts/dm-serif-display-400-italic.woff2",
+  "fonts/dm-serif-display-400.woff2",
+  "fonts/ibm-plex-mono-400.woff2",
+  "fonts/ibm-plex-mono-500.woff2",
+]);
 
 function snapshot(operational, total, checkedAt = "2026-07-23T07:55:00Z") {
   return { estate: { operational, total_components: total, checked_at: checkedAt } };
@@ -53,7 +61,7 @@ test("status mapping distinguishes operational, degraded, unavailable, and unkno
   assert.equal(parseEstateStatus(snapshot(19, 19, "2026-07-23T07:39:59Z"), NOW).state, "unknown");
 });
 
-test("v2 shell exposes the accepted route order", () => {
+test("v2 shell exposes the accepted route order and v0.3.0 foundations", () => {
   assert.deepEqual(GLOBAL_ROUTES.map(({ label }) => label), ["Work", "Writing", "Lab", "Systems", "About"]);
   const shell = fs.readFileSync("static/js/estate-shell.js", "utf8");
   const shellCss = fs.readFileSync("static/css/estate-shell.css", "utf8");
@@ -64,7 +72,9 @@ test("v2 shell exposes the accepted route order", () => {
   assert.match(shell, /label\.removeAttribute\("id"\)/);
   assert.doesNotMatch(shell, /if \(!isHomepage\) void refreshStatus/);
   assert.match(shell, /void refreshStatus\(status\)/);
-  assert.match(shell, /v0\.2\.0\/atlas-interface-kit\.css/);
+  assert.match(shell, /v0\.3\.0\/atlas-interface-kit\.css/);
+  assert.match(shell, /installSharedFoundationSemantics/);
+  assert.match(shell, /aria-live", "off"/);
   assert.match(shell, /normalizeLegacySemantics/);
   assert.match(shellCss, /grid-template-columns:\s*repeat\(5,\s*1fr\)/);
 });
@@ -75,18 +85,21 @@ test("estate page titles use the page-first double-slash convention", () => {
   assert.equal(normalizeAtlasTitle("Atlas Systems // Status"), "Status // Atlas Systems");
 });
 
-test("interface-kit vendor copy matches the canonical SHA-256 manifest", () => {
+test("interface-kit v0.3.0 overlay matches the canonical SHA-256 manifest", () => {
   const versions = fs.readdirSync("static/vendor/atlas-interface", { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
     .sort();
-  assert.deepEqual(versions, ["v0.2.0"]);
+  assert.deepEqual(versions, ["v0.2.0", "v0.3.0"]);
 
-  const manifest = JSON.parse(fs.readFileSync(`${BUNDLE_ROOT}/manifest.json`, "utf8"));
+  const manifest = JSON.parse(fs.readFileSync(`${ACTIVE_BUNDLE_ROOT}/manifest.json`, "utf8"));
+  const legacyManifest = JSON.parse(fs.readFileSync(`${LEGACY_BUNDLE_ROOT}/manifest.json`, "utf8"));
   assert.equal(manifest.schema_version, "atlas-interface-kit/bundle/v1");
-  assert.equal(manifest.version, "0.2.0");
+  assert.equal(manifest.version, "0.3.0");
   assert.equal(manifest.contract_version, "2.0.0");
-  assert.equal(manifest.component_role_count, 25);
+  assert.equal(manifest.foundation_extension_version, "1.0.0");
+  assert.equal(manifest.semantic_contract_count, 3);
+  assert.equal(manifest.component_role_count, 27);
   assert.deepEqual(Object.keys(manifest.files).sort(), [
     "atlas-fonts.css",
     "atlas-interface-kit.css",
@@ -97,23 +110,47 @@ test("interface-kit vendor copy matches the canonical SHA-256 manifest", () => {
     "fonts/ibm-plex-mono-500.woff2",
     "licenses/DM-Serif-Display-OFL.txt",
     "licenses/IBM-Plex-Mono-OFL.txt",
+    "semantics.json",
     "tokens.json",
   ]);
 
   for (const [name, record] of Object.entries(manifest.files)) {
-    const path = `${BUNDLE_ROOT}/${name}`;
+    const activePath = `${ACTIVE_BUNDLE_ROOT}/${name}`;
+    const path = fs.existsSync(activePath) ? activePath : `${LEGACY_BUNDLE_ROOT}/${name}`;
+    assert.equal(fs.existsSync(path), true, `${name} repository-local asset`);
     assert.equal(fs.statSync(path).size, record.bytes, `${name} byte count`);
     assert.equal(sha256(path), record.sha256, `${name} SHA-256`);
+    if (FONT_FILES.has(name)) assert.deepEqual(legacyManifest.files[name], record, `${name} byte-identical fallback`);
   }
 
-  const tokens = JSON.parse(fs.readFileSync(`${BUNDLE_ROOT}/tokens.json`, "utf8"));
+  const semantics = JSON.parse(fs.readFileSync(`${ACTIVE_BUNDLE_ROOT}/semantics.json`, "utf8"));
+  assert.equal(semantics.status_announcement.global_header_status_remains_aria_live_off, true);
+  assert.equal(semantics.dense_data_overflow.when_not_overflowing.unnecessary_tab_stop_forbidden, true);
+  assert.deepEqual(semantics.evidence.reporting_only_viewports_px, [1920]);
+
+  const tokens = JSON.parse(fs.readFileSync(`${ACTIVE_BUNDLE_ROOT}/tokens.json`, "utf8"));
   assert.equal(tokens.colour.text_faint, "#888894");
   for (const obsolete of ["atlas-interface.css", "atlas-interface.js", "tokens.schema.json"]) {
-    assert.equal(fs.existsSync(`${BUNDLE_ROOT}/${obsolete}`), false, `${obsolete} must not remain`);
+    assert.equal(fs.existsSync(`${ACTIVE_BUNDLE_ROOT}/${obsolete}`), false, `${obsolete} must not remain`);
   }
 });
 
-test("every HTML route consumes the repository-local font bundle", () => {
+test("shared foundation semantics remain consumer-owned and bounded", () => {
+  const semantics = fs.readFileSync("static/js/shared-foundation-semantics.js", "utf8");
+  assert.equal(SHARED_FOUNDATION_CONTRACT.activeBundle, "0.3.0");
+  assert.equal(SHARED_FOUNDATION_CONTRACT.foundationExtension, "1.0.0");
+  assert.equal(SHARED_FOUNDATION_CONTRACT.reportingOnlyViewport, 1920);
+  assert.match(semantics, /className = "atlas-breadcrumbs"/);
+  assert.match(semantics, /aria-label", "Breadcrumb"/);
+  assert.match(semantics, /atlas-status-announcement--visually-hidden/);
+  assert.match(semantics, /initialPollSettled/);
+  assert.match(semantics, /scrollWidth > region\.clientWidth \+ 1/);
+  assert.match(semantics, /region\.removeAttribute\("tabindex"\)/);
+  assert.match(semantics, /BREADCRUMB_EXCLUSIONS/);
+  assert.doesNotMatch(semantics, /fetch\(/);
+});
+
+test("every HTML route consumes repository-local fonts without generated output edits", () => {
   const publicRoutes = filesBelow(".", ".html").filter(
     (path) => !path.startsWith("site-snippet/"),
   );
@@ -242,6 +279,7 @@ test("System SYMPHONY implementation remains outside this migration", () => {
   const interfaceFiles = [
     "static/js/estate-shell.js",
     "static/js/estate-status.js",
+    "static/js/shared-foundation-semantics.js",
     "static/css/estate-shell.css",
     "static/css/v2-directory-pages.css",
     "lab/shared/shell.js",
