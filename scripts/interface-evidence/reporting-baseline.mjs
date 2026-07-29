@@ -49,3 +49,55 @@ export function partitionBlockingFindings({ routeName, browser, viewport, messag
   }
   return { accepted, blocking };
 }
+
+export function reconcileEvidenceReport({ reportPath, errorPath }) {
+  if (!fs.existsSync(reportPath)) {
+    return { reconciled: false, acceptedCount: 0, blockingCount: 1, reason: "evidence report is missing" };
+  }
+
+  const report = JSON.parse(fs.readFileSync(reportPath, "utf8"));
+  const accepted = [];
+  const blocking = [];
+
+  for (const route of report.routes || []) {
+    const original = [...(route.blockingFailures || [])];
+    const partitioned = partitionBlockingFindings({
+      routeName: route.routeName,
+      browser: route.browser,
+      viewport: String(route.viewport),
+      messages: original,
+    });
+    if (original.length) route.preReconciliationBlockingFailures = original;
+    route.blockingFailures = partitioned.blocking;
+    route.findings = [...(route.findings || []), ...partitioned.accepted];
+    if (partitioned.accepted.length) {
+      route.acceptanceMode = partitioned.blocking.length
+        ? "blocking-changed-route-with-reviewed-baseline"
+        : "reporting-reviewed-baseline";
+    }
+    accepted.push(...partitioned.accepted);
+    blocking.push(...partitioned.blocking);
+  }
+
+  report.preReconciliationBlockingFailures = [...(report.blockingFailures || [])];
+  report.findings = [...(report.findings || []), ...accepted];
+  report.blockingFailures = blocking;
+  report.reportingBaseline = {
+    schema_version: REPORTING_BASELINE.schema_version,
+    source: REPORTING_BASELINE.source,
+    accepted_count: accepted.length,
+    unresolved_count: blocking.length,
+  };
+  fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+
+  if (blocking.length) {
+    fs.writeFileSync(
+      errorPath,
+      `Interface evidence retained ${blocking.length} unaccepted blocking finding(s):\n${blocking.join("\n")}\n`,
+    );
+    return { reconciled: false, acceptedCount: accepted.length, blockingCount: blocking.length };
+  }
+
+  if (fs.existsSync(errorPath)) fs.rmSync(errorPath);
+  return { reconciled: true, acceptedCount: accepted.length, blockingCount: 0 };
+}
