@@ -11,6 +11,8 @@ const BREADCRUMB_EXCLUSIONS = Object.freeze([
   "/writing/",
 ]);
 
+const DENSE_REGION_SELECTOR = ".atlas-table-wrap, .table-wrap, pre, [data-atlas-dense-region]";
+
 function normalizePath(pathname) {
   if (pathname === "/") return pathname;
   return pathname.endsWith("/") ? pathname : `${pathname}/`;
@@ -63,6 +65,29 @@ function installBreadcrumbs() {
   main.prepend(nav);
 }
 
+function normalizeSameOriginLinks(root = document) {
+  if (!(root instanceof Element || root instanceof Document)) return;
+  const links = [];
+  if (root instanceof HTMLAnchorElement) links.push(root);
+  links.push(...root.querySelectorAll("a[href]"));
+  for (const link of links) {
+    let url;
+    try {
+      url = new URL(link.href, window.location.href);
+    } catch {
+      continue;
+    }
+    if (url.origin !== window.location.origin) continue;
+    link.removeAttribute("target");
+    const relations = (link.getAttribute("rel") || "")
+      .split(/\s+/)
+      .filter(Boolean)
+      .filter((value) => value !== "noopener" && value !== "noreferrer");
+    if (relations.length) link.setAttribute("rel", relations.join(" "));
+    else link.removeAttribute("rel");
+  }
+}
+
 function ensureStatusAnnouncement() {
   let announcement = document.querySelector("[data-atlas-status-announcement]");
   if (announcement) return announcement;
@@ -100,14 +125,14 @@ function installStatusAnnouncements() {
 }
 
 function generatedOverflowLabel(region) {
-  const caption = region.querySelector("caption");
+  const caption = region.querySelector?.("caption");
   if (caption?.textContent.trim()) return `Scrollable table: ${caption.textContent.trim()}`;
 
   const section = region.closest("section, article, main");
   const heading = section?.querySelector("h1, h2, h3, h4");
   if (heading?.textContent.trim()) return `Scrollable data for ${heading.textContent.trim()}`;
 
-  return "Scrollable data region";
+  return region.matches("pre") ? "Scrollable preformatted output" : "Scrollable data region";
 }
 
 function updateDenseRegion(region) {
@@ -130,13 +155,26 @@ function updateDenseRegion(region) {
   }
 }
 
+function ensureTableContainers(root = document) {
+  if (!(root instanceof Element || root instanceof Document)) return;
+  const tables = [];
+  if (root instanceof HTMLTableElement) tables.push(root);
+  tables.push(...root.querySelectorAll("table"));
+  for (const table of tables) {
+    if (table.closest(".atlas-table-wrap, .table-wrap, [data-atlas-dense-region]")) continue;
+    const wrapper = document.createElement("div");
+    wrapper.className = "atlas-table-wrap";
+    wrapper.dataset.atlasGeneratedTableWrap = "true";
+    table.before(wrapper);
+    wrapper.appendChild(table);
+  }
+}
+
 function denseRegions(root = document) {
   const regions = [];
-  if (root instanceof Element && root.matches(".atlas-table-wrap, [data-atlas-dense-region]")) {
-    regions.push(root);
-  }
+  if (root instanceof Element && root.matches(DENSE_REGION_SELECTOR)) regions.push(root);
   if (root instanceof Element || root instanceof Document) {
-    regions.push(...root.querySelectorAll(".atlas-table-wrap, [data-atlas-dense-region]"));
+    regions.push(...root.querySelectorAll(DENSE_REGION_SELECTOR));
   }
   return regions;
 }
@@ -148,6 +186,7 @@ function installDenseOverflow() {
     : new ResizeObserver((entries) => entries.forEach(({ target }) => updateDenseRegion(target)));
 
   const register = (root) => {
+    ensureTableContainers(root);
     for (const region of denseRegions(root)) {
       if (tracked.has(region)) continue;
       tracked.add(region);
@@ -161,7 +200,9 @@ function installDenseOverflow() {
   new MutationObserver((records) => {
     for (const record of records) {
       for (const node of record.addedNodes) {
-        if (node instanceof Element) register(node);
+        if (!(node instanceof Element)) continue;
+        normalizeSameOriginLinks(node);
+        register(node);
       }
     }
   }).observe(document.body, { childList: true, subtree: true });
@@ -169,6 +210,7 @@ function installDenseOverflow() {
 
 export function installSharedFoundationSemantics() {
   installBreadcrumbs();
+  normalizeSameOriginLinks();
   installStatusAnnouncements();
   installDenseOverflow();
 }
