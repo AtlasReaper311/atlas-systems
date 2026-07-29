@@ -111,7 +111,7 @@ test("reconciliation preserves reviewed findings and retains unknown blockers", 
   const directory = mkdtempSync(path.join(os.tmpdir(), "atlas-interface-baseline-"));
   const reportPath = path.join(directory, "evidence.json");
   const errorPath = path.join(directory, "capture-error.txt");
-  const acceptedMessage = 'writing-sonin-generative-system/375: console errors [{"type":"error","text":"Content-Security-Policy blocked youtube.com/embed/O5f1tB5bdyE"}]';
+  const acceptedMessage = 'writing-sonin-generative-system/375: console errors [{"type":"error","text":"Framing \'https://www.youtube.com/\' violates the following Content Security Policy directive: \\"default-src \'self\'\\"."}]';
   const unknownMessage = "lab-speculum/375: expected one h1, found 2";
   writeFileSync(reportPath, `${JSON.stringify({
     routes: [
