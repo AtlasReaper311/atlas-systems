@@ -1,0 +1,97 @@
+{
+  "authority": {
+    "base_contract_version": "2.0.0",
+    "foundation_extension_source": "AtlasReaper311/atlas-infra:policy/public-interface-foundation-extension-v1.json",
+    "foundation_extension_version": "1.0.0"
+  },
+  "breadcrumb_navigation": {
+    "accessible_name_required": true,
+    "applies_to": "hierarchical-human-facing-routes",
+    "current_page": [
+      "text",
+      "aria-current=page"
+    ],
+    "homepage_forbidden": true,
+    "landmark": "nav",
+    "machine_surfaces_excluded": true,
+    "ordered_list_required": true,
+    "purpose_specific_opt_out_allowed": true,
+    "required": false,
+    "role": "breadcrumb-navigation",
+    "selector": ".atlas-breadcrumbs"
+  },
+  "dense_data_overflow": {
+    "applies_to": [
+      "table",
+      "code",
+      "preformatted-output",
+      "dense-data-region"
+    ],
+    "content_and_rendering_owner": "consumer",
+    "extends_role": "table-wrapper",
+    "overflow_detection_owner": "consumer",
+    "overflow_state_attribute": "data-overflow=true",
+    "selector": ".atlas-table-wrap",
+    "when_not_overflowing": {
+      "unnecessary_tab_stop_forbidden": true
+    },
+    "when_overflowing": {
+      "accessible_name_required": true,
+      "keyboard_focus_required": true,
+      "local_horizontal_scroll_required": true,
+      "tabindex": "0",
+      "visible_focus_required": true
+    }
+  },
+  "distribution": {
+    "consumer_adoption_requires_separate_pull_request": true,
+    "consumer_rollout_requires_separate_approval": true,
+    "remote_runtime_dependency_forbidden": true,
+    "repository_local_assets_required": true,
+    "shared_runtime_javascript_forbidden": true
+  },
+  "evidence": {
+    "blocking_viewports_px": [
+      320,
+      375,
+      768,
+      1024,
+      1440
+    ],
+    "reporting_only_changes_content_width": false,
+    "reporting_only_changes_layout_tokens": false,
+    "reporting_only_is_breakpoint": false,
+    "reporting_only_is_budget": false,
+    "reporting_only_viewports_px": [
+      1920
+    ]
+  },
+  "schema_version": "atlas-interface-kit/semantics/v1",
+  "status_announcement": {
+    "announce_on": [
+      "meaningful-user-visible-state-transition"
+    ],
+    "blocking_failure_semantics": {
+      "role": "alert",
+      "use": "immediate-blocking-failure-only"
+    },
+    "default_semantics": {
+      "aria_atomic": "true",
+      "aria_live": "polite",
+      "role": "status"
+    },
+    "global_header_status_remains_aria_live_off": true,
+    "required": false,
+    "role": "status-announcement",
+    "selector": ".atlas-status-announcement",
+    "shared_runtime_javascript_forbidden": true,
+    "silent_on": [
+      "initial-poll",
+      "unchanged-poll",
+      "routine-refresh"
+    ],
+    "trigger_owner": "consumer",
+    "wording_owner": "consumer"
+  },
+  "version": "0.3.0"
+}
