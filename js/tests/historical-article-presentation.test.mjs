@@ -5,6 +5,7 @@ import test from "node:test";
 
 const stylesheetHref =
   "/static/css/article-interface-v2.css?v=20260724-phase-b-v1";
+const classicPlusStylesheet = "static/css/article-classic-plus-footer.css";
 const articles = [
   ["sonin-generative-system", "W-01"],
   ["slampunk-dynamic-mix-engine", "W-02"],
@@ -22,6 +23,16 @@ test("historical articles consume one versioned presentation layer", () => {
     );
     assert.match(html, new RegExp(`article-index">\\s*${number}`));
   }
+});
+
+test("Classic Plus stylesheet preserves sequence-first editorial hierarchy", () => {
+  const css = fs.readFileSync(classicPlusStylesheet, "utf8");
+  assert.match(css, /\.article-footer\.atlas-footer\s*\{/);
+  assert.match(css, /grid-template-columns:\s*auto auto auto/);
+  assert.match(css, /\.atlas-footer__sequence\s*\{[\s\S]*grid-column:\s*1 \/ -1/);
+  assert.match(css, /justify-content:\s*space-between/);
+  assert.match(css, /\.atlas-footer__context::after,[\s\S]*content:\s*"·"/);
+  assert.match(css, /@media \(max-width:\s*680px\)/);
 });
 
 test("historical article shells expose the current Systems route", () => {
@@ -76,6 +87,44 @@ test("presentation refresh preserved bodies before the approved title normalizat
   }
   assert.equal(current.protected_indexes["writing/index.html"].unchanged, true);
   assert.equal(current.protected_indexes["work/index.html"].unchanged, true);
+});
+
+test("completed Classic Plus migration has bounded footer-only evidence", () => {
+  const evidencePath =
+    "docs/evidence/historical-article-presentation-v2.json";
+  if (!fs.existsSync(evidencePath)) return;
+
+  const evidence = JSON.parse(fs.readFileSync(evidencePath, "utf8"));
+  assert.equal(
+    evidence.schema,
+    "atlas-scheduler/published-article-presentation-refresh/v2",
+  );
+  assert.equal(evidence.production_write, false);
+  assert.equal(evidence.articles.length, articles.length);
+
+  for (const article of evidence.articles) {
+    assert.equal(article.content_unchanged, true);
+    assert.equal(article.footer_migrated, true);
+    assert.equal(article.content_sha256_before, article.content_sha256_after);
+  }
+
+  for (const [slug, number] of articles) {
+    const html = fs.readFileSync(`writing/${slug}/index.html`, "utf8");
+    assert.match(
+      html,
+      /<footer class="article-footer atlas-footer atlas-footer--editorial" aria-label="Article footer">/,
+      `${number} must expose the semantic editorial footer`,
+    );
+    assert.match(html, /class="atlas-footer__sequence"/);
+    assert.match(html, />Writing index<\/a>/);
+    assert.match(html, new RegExp(`>${number}<\\/span>`));
+    assert.match(html, />Atlas Systems<\/a>/);
+    assert.equal(
+      html.split("article-classic-plus-footer.css").length - 1,
+      1,
+      `${number} must load one Classic Plus stylesheet`,
+    );
+  }
 });
 
 test("shared article layer carries the long-form accessibility contract", () => {
