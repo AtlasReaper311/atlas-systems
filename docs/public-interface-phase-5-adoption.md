@@ -23,9 +23,9 @@ The release archive and release manifest remain verified by SHA-256:
 
 ## Repository-local distribution
 
-The v0.3.0 text assets are copied verbatim into `static/vendor/atlas-interface/v0.3.0/` and verified against the release bundle manifest.
+The changed v0.3.0 CSS and JSON assets, plus the exact v0.3.0 manifest, are copied verbatim into `static/vendor/atlas-interface/v0.3.0/` and verified against the release bundle manifest.
 
-The four font binaries are byte-identical between v0.2.0 and v0.3.0. They remain at their existing repository-local v0.2.0 paths during this phase so generated Writing and article HTML does not require direct edits outside `atlas-article-gen` and `atlas-scheduler` ownership. The consumer verifier proves each retained font has the exact v0.3.0 byte count and SHA-256 before accepting the overlay.
+The font stylesheet, four font binaries, and two font licences are byte-identical between v0.2.0 and v0.3.0. They remain at their existing repository-local v0.2.0 paths during this phase so generated Writing and article HTML does not require direct edits outside `atlas-article-gen` and `atlas-scheduler` ownership. The consumer verifier proves each retained unchanged asset has the exact v0.3.0 byte count and SHA-256 before accepting the overlay.
 
 This is a bounded compatibility bridge, not a remote runtime dependency. No asset is loaded from `atlas-interface-kit` or another Atlas Systems domain. Phase 10 owns removal of the generated-output compatibility path through the generator and scheduler contracts.
 
