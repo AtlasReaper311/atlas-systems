@@ -168,6 +168,8 @@ function findExistingFooter() {
 function installPhase6Footer() {
   const path = normalizePath(window.location.pathname);
   if (isExcludedFooterRoute(path)) return null;
+  ensureStylesheet();
+
   const current = document.querySelector("footer[data-atlas-phase6-footer]");
   if (current) return current;
 
@@ -175,7 +177,6 @@ function installPhase6Footer() {
   const configuration = footerConfiguration(path, document.title, existingEvidenceText(existing));
   if (!configuration) return null;
 
-  ensureStylesheet();
   const footer = buildFooter(configuration);
   if (existing) {
     existing.replaceWith(footer);
