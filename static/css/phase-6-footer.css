@@ -1,0 +1,112 @@
+/*
+ * Atlas Systems Phase 6 footer consumer layer.
+ * Structure and responsive behaviour are derived from immutable
+ * atlas-interface-kit v0.4.0. This file intentionally carries only the
+ * footer selectors so the existing v0.3.0 site foundations remain active.
+ */
+
+.atlas-footer {
+  max-width: var(--atlas-content, 1100px);
+  margin: var(--atlas-space-9, 96px) auto 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "identity escape"
+    "context context"
+    "evidence evidence";
+  align-items: start;
+  gap: var(--atlas-space-4, 16px) var(--atlas-space-6, 32px);
+  border-top: 1px solid var(--atlas-border, rgba(255,255,255,0.08));
+  padding: var(--atlas-space-6, 32px) var(--atlas-space-5, 24px) var(--atlas-space-8, 64px);
+  color: var(--atlas-text-faint, var(--text-faint, #888894));
+  background: transparent;
+  font: 400 var(--atlas-type-meta, 11px)/1.6 var(--atlas-font-body, var(--mono, "IBM Plex Mono", monospace));
+  position: relative;
+  z-index: 1;
+}
+
+.atlas-footer__identity {
+  grid-area: identity;
+  min-width: 0;
+  color: var(--atlas-text, var(--text, #e8e8e0));
+}
+
+.atlas-footer__identity strong,
+.atlas-footer__identity span {
+  display: block;
+}
+
+.atlas-footer__identity strong {
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.atlas-footer__identity span {
+  margin-top: var(--atlas-space-1, 4px);
+  color: var(--atlas-text-faint, var(--text-faint, #888894));
+}
+
+.atlas-footer__context { grid-area: context; }
+.atlas-footer__evidence { grid-area: evidence; }
+.atlas-footer__escape { grid-area: escape; justify-self: end; }
+
+.atlas-footer__context,
+.atlas-footer__evidence,
+.atlas-footer__escape {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--atlas-space-2, 8px) var(--atlas-space-4, 16px);
+}
+
+.atlas-footer :where(a, button) {
+  min-height: var(--atlas-touch-min, 44px);
+  display: inline-flex;
+  align-items: center;
+  color: var(--atlas-text-dim, var(--text-dim, #aaa9a0));
+  text-underline-offset: 0.22em;
+}
+
+.atlas-footer :where(a, button):hover {
+  color: var(--atlas-text, var(--text, #e8e8e0));
+}
+
+.atlas-footer :where(a, button):focus-visible {
+  outline: 2px solid var(--atlas-accent, var(--accent, #f5a623));
+  outline-offset: 3px;
+}
+
+.atlas-footer--estate,
+.atlas-footer--product,
+.atlas-footer--tool {
+  max-width: var(--atlas-content, 1100px);
+}
+
+@media (max-width: 767px) {
+  .atlas-footer {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "identity"
+      "context"
+      "evidence"
+      "escape";
+    gap: var(--atlas-space-3, 12px);
+    padding-inline: var(--atlas-space-4, 16px);
+    padding-bottom: calc(var(--atlas-space-8, 64px) + env(safe-area-inset-bottom));
+  }
+
+  .atlas-footer__escape {
+    justify-self: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atlas-footer *,
+  .atlas-footer *::before,
+  .atlas-footer *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
