@@ -1,0 +1,97 @@
+/*
+ * Classic Plus editorial footer presentation.
+ *
+ * Previous and next article navigation remains the dominant first row. The
+ * semantic Writing context, W-number and Atlas Systems escape form one quiet
+ * centred row beneath it. Article sequencing remains owned by atlas-scheduler.
+ */
+
+.article-footer.atlas-footer {
+  width: min(100%, 720px);
+  max-width: var(--content-w, 720px);
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  justify-content: center;
+  align-items: center;
+  gap: 12px 9px;
+  border-top: 1px solid var(--atlas-border, var(--border));
+}
+
+.article-footer .atlas-footer__sequence {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.article-footer .atlas-footer__sequence > :last-child {
+  margin-left: auto;
+  text-align: right;
+}
+
+.article-footer .atlas-footer__context,
+.article-footer .atlas-footer__identity,
+.article-footer .atlas-footer__escape {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  color: var(--text-faint, #777780);
+  font-size: 10px;
+  line-height: 1.4;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.article-footer .atlas-footer__context::after,
+.article-footer .atlas-footer__identity::after {
+  content: "·";
+  margin-left: 9px;
+  color: var(--text-faint, #777780);
+}
+
+.article-footer .atlas-footer__context a,
+.article-footer .atlas-footer__escape a {
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-decoration: none;
+  text-transform: inherit;
+}
+
+.article-footer .atlas-footer__context a:hover,
+.article-footer .atlas-footer__escape a:hover {
+  color: var(--text, #e8e8e0);
+}
+
+.article-footer .atlas-footer__identity span {
+  color: inherit;
+  white-space: nowrap;
+}
+
+@media (max-width: 680px) {
+  .article-footer.atlas-footer {
+    grid-template-columns: auto auto auto;
+    align-items: center;
+  }
+
+  .article-footer .atlas-footer__sequence {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .article-footer .atlas-footer__sequence > :last-child {
+    margin-left: 0;
+    align-self: flex-end;
+    text-align: right;
+  }
+
+  .article-footer .atlas-footer__sequence .footer-back {
+    max-width: 100%;
+    white-space: normal;
+  }
+}
