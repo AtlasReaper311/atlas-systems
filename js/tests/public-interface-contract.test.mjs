@@ -90,7 +90,7 @@ test("interface-kit v0.3.0 overlay matches the canonical SHA-256 manifest", () =
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
     .sort();
-  assert.deepEqual(versions, ["v0.2.0", "v0.3.0"]);
+  assert.deepEqual(versions, ["v0.2.0", "v0.3.0", "v0.4.0"]);
 
   const manifest = JSON.parse(fs.readFileSync(`${ACTIVE_BUNDLE_ROOT}/manifest.json`, "utf8"));
   const legacyManifest = JSON.parse(fs.readFileSync(`${LEGACY_BUNDLE_ROOT}/manifest.json`, "utf8"));
