@@ -9,17 +9,21 @@
 .article-footer.atlas-footer {
   width: min(100%, 720px);
   max-width: var(--content-w, 720px);
-  margin-inline: auto;
+  margin: 0 auto;
   display: grid;
-  grid-template-columns: auto auto auto;
-  justify-content: center;
+  grid-template-columns: minmax(0, 1fr) auto auto auto minmax(0, 1fr);
+  grid-template-areas:
+    "sequence sequence sequence sequence sequence"
+    ". context identity escape .";
+  justify-content: stretch;
   align-items: center;
-  gap: 12px 9px;
+  gap: 6px 9px;
   border-top: 1px solid var(--atlas-border, var(--border));
+  padding: 24px 0 32px;
 }
 
 .article-footer .atlas-footer__sequence {
-  grid-column: 1 / -1;
+  grid-area: sequence;
   width: 100%;
   min-width: 0;
   display: flex;
@@ -31,6 +35,19 @@
 .article-footer .atlas-footer__sequence > :last-child {
   margin-left: auto;
   text-align: right;
+}
+
+.article-footer .atlas-footer__context {
+  grid-area: context;
+}
+
+.article-footer .atlas-footer__identity {
+  grid-area: identity;
+}
+
+.article-footer .atlas-footer__escape {
+  grid-area: escape;
+  justify-self: auto;
 }
 
 .article-footer .atlas-footer__context,
@@ -73,11 +90,6 @@
 }
 
 @media (max-width: 680px) {
-  .article-footer.atlas-footer {
-    grid-template-columns: auto auto auto;
-    align-items: center;
-  }
-
   .article-footer .atlas-footer__sequence {
     flex-direction: column;
     align-items: stretch;
@@ -93,5 +105,14 @@
   .article-footer .atlas-footer__sequence .footer-back {
     max-width: 100%;
     white-space: normal;
+  }
+}
+
+@media (max-width: 420px) {
+  .article-footer.atlas-footer {
+    grid-template-columns: auto auto auto;
+    grid-template-areas:
+      "sequence sequence sequence"
+      "context identity escape";
   }
 }
