@@ -1,0 +1,173 @@
+/*
+ * Atlas Systems Phase 6 footer consumer layer.
+ * Structure and responsive behaviour are derived from immutable
+ * atlas-interface-kit v0.4.0. This file intentionally carries only the
+ * footer selectors so the existing v0.3.0 site foundations remain active.
+ */
+
+.atlas-footer {
+  position: relative;
+  z-index: 1;
+  max-width: var(--atlas-content, 1100px);
+  margin: var(--atlas-space-7, 48px) auto 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--atlas-space-4, 16px);
+  border-top: 1px solid var(--atlas-border-hi, rgba(255,255,255,0.16));
+  padding: var(--atlas-space-4, 16px) var(--atlas-space-5, 24px);
+  color: var(--atlas-text-faint, var(--text-faint, #888894));
+  background: transparent;
+  font: 400 var(--atlas-type-meta, 11px)/1.5 var(--atlas-font-body, var(--mono, "IBM Plex Mono", monospace));
+}
+
+.atlas-footer__identity {
+  min-width: min(100%, 220px);
+  flex: 1 1 260px;
+  display: grid;
+  gap: 2px;
+  color: var(--atlas-text, var(--text, #e8e8e0));
+}
+
+.atlas-footer__identity strong,
+.atlas-footer__identity span {
+  display: block;
+}
+
+.atlas-footer__identity strong {
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.atlas-footer__identity span {
+  color: var(--atlas-text-faint, var(--text-faint, #888894));
+  line-height: 1.45;
+}
+
+.atlas-footer__context,
+.atlas-footer__evidence,
+.atlas-footer__escape {
+  min-width: 0;
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0 var(--atlas-space-3, 12px);
+  white-space: nowrap;
+}
+
+.atlas-footer__evidence,
+.atlas-footer__escape {
+  border-left: 1px solid var(--atlas-border, rgba(255,255,255,0.08));
+  padding-left: var(--atlas-space-4, 16px);
+}
+
+.atlas-footer :where(a, button) {
+  min-width: var(--atlas-touch-min, 44px);
+  min-height: var(--atlas-touch-min, 44px);
+  display: inline-flex;
+  align-items: center;
+  color: var(--atlas-text-dim, var(--text-dim, #aaa9a0));
+  text-decoration: underline;
+  text-decoration-color: currentColor;
+  text-decoration-thickness: from-font;
+  text-underline-offset: 0.22em;
+}
+
+.atlas-footer :where(a, button):hover {
+  color: var(--atlas-text, var(--text, #e8e8e0));
+}
+
+.atlas-footer :where(a, button):focus-visible {
+  outline: 2px solid var(--atlas-accent, var(--accent, #f5a623));
+  outline-offset: 3px;
+}
+
+.atlas-footer--estate,
+.atlas-footer--product,
+.atlas-footer--tool {
+  max-width: var(--atlas-content, 1100px);
+}
+
+/*
+ * The Bearing is a self-contained dual-theme instrument rather than an
+ * Atlas shell consumer. Its light palette therefore does not expose the
+ * Atlas text tokens inherited by the shared footer. Bridge those tokens at
+ * the route boundary and raise its small amber/code annotations to WCAG AA.
+ */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) body:has(#lattice) {
+    --bearing-phase6-accessible-accent: #8a4c00;
+    --bearing-phase6-accessible-muted: #5b5d60;
+    --atlas-border-hi: #cec8b7;
+    --atlas-text: #171a20;
+    --atlas-text-dim: #5b5d60;
+    --atlas-text-faint: #5b5d60;
+    --atlas-accent: #8a4c00;
+  }
+}
+
+:root[data-theme="light"] body:has(#lattice) {
+  --bearing-phase6-accessible-accent: #8a4c00;
+  --bearing-phase6-accessible-muted: #5b5d60;
+  --atlas-border-hi: #cec8b7;
+  --atlas-text: #171a20;
+  --atlas-text-dim: #5b5d60;
+  --atlas-text-faint: #5b5d60;
+  --atlas-accent: #8a4c00;
+}
+
+body:has(#lattice) .step .n,
+body:has(#lattice) pre.snip .a {
+  color: var(--bearing-phase6-accessible-accent, var(--load));
+}
+
+body:has(#lattice) pre.snip .c {
+  color: var(--bearing-phase6-accessible-muted, var(--ink-faint));
+}
+
+@media (max-width: 767px) {
+  .atlas-footer {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 0;
+    padding: var(--atlas-space-4, 16px);
+    padding-bottom: calc(var(--atlas-space-8, 64px) + env(safe-area-inset-bottom));
+  }
+
+  .atlas-footer__identity {
+    width: 100%;
+    min-width: 0;
+    margin-bottom: var(--atlas-space-1, 4px);
+  }
+
+  .atlas-footer__context,
+  .atlas-footer__evidence,
+  .atlas-footer__escape {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0 var(--atlas-space-3, 12px);
+    border-left: 0;
+    padding-left: 0;
+    white-space: normal;
+  }
+
+  body:has(#lattice) pre.snip {
+    overflow-x: visible;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atlas-footer *,
+  .atlas-footer *::before,
+  .atlas-footer *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

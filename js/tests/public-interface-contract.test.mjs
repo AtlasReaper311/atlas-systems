@@ -150,7 +150,7 @@ test("shared foundation semantics remain consumer-owned and bounded", () => {
   assert.doesNotMatch(semantics, /fetch\(/);
 });
 
-test("every HTML route consumes repository-local fonts without generated output edits", () => {
+test("every HTML route consumes an accepted repository-local font bundle", () => {
   const publicRoutes = filesBelow(".", ".html").filter(
     (path) => !path.startsWith("site-snippet/"),
   );
@@ -159,7 +159,7 @@ test("every HTML route consumes repository-local fonts without generated output 
     assert.doesNotMatch(source, /fonts\.(?:googleapis|gstatic)\.com/, path);
     assert.match(
       source,
-      /\/static\/vendor\/atlas-interface\/v0\.2\.0\/atlas-fonts\.css/,
+      /\/static\/vendor\/atlas-interface\/v0\.(?:2|4)\.0\/atlas-fonts\.css/,
       path,
     );
   }
