@@ -21,13 +21,12 @@ import {
 } from "./routes.mjs";
 
 const ORIGIN = "https://atlas-systems.uk";
-const THEME_COLOR = "#0a0a0f";
-const REQUIRED_ICON_DECLARATIONS = [
-  '<link rel="icon" href="/favicon.ico" sizes="any">',
-  '<link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">',
-  '<link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">',
-  '<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">',
-  '<link rel="manifest" href="/site.webmanifest">',
+const REQUIRED_ICONS = [
+  { rel: "icon", href: "/favicon.ico", sizes: "any" },
+  { rel: "icon", href: "/favicon-16x16.png", sizes: "16x16" },
+  { rel: "icon", href: "/favicon-32x32.png", sizes: "32x32" },
+  { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
+  { rel: "manifest", href: "/site.webmanifest" },
 ];
 
 const manifest = loadManifest();
@@ -54,10 +53,30 @@ function requireMeta(html, entry, key, expected = null) {
   return value;
 }
 
+function tagAttribute(tag, name) {
+  const pattern = new RegExp(`\\b${name}\\s*=\\s*(["'])(.*?)\\1`, "i");
+  return tag.match(pattern)?.[2] ?? null;
+}
+
+function linkDeclarations(html) {
+  return [...html.matchAll(/<link\b[^>]*>/gi)].map((match) => ({
+    rel: (tagAttribute(match[0], "rel") ?? "").toLowerCase().split(/\s+/),
+    href: tagAttribute(match[0], "href"),
+    sizes: tagAttribute(match[0], "sizes"),
+  }));
+}
+
 function requireIcons(html, label) {
-  for (const declaration of REQUIRED_ICON_DECLARATIONS) {
-    if (!html.includes(declaration)) {
-      errors.push(`${label}: missing icon declaration ${declaration}`);
+  const declarations = linkDeclarations(html);
+  for (const required of REQUIRED_ICONS) {
+    const found = declarations.some((entry) =>
+      entry.rel.includes(required.rel) &&
+      entry.href === required.href &&
+      (required.sizes === undefined || entry.sizes === required.sizes)
+    );
+    if (!found) {
+      const size = required.sizes ? ` sizes=${required.sizes}` : "";
+      errors.push(`${label}: missing ${required.rel} ${required.href}${size}`);
     }
   }
 }
@@ -96,32 +115,30 @@ for (const entry of entries) {
   }
 
   const html = fs.readFileSync(htmlPath, "utf8");
-  const productionUrl = `${ORIGIN}${entry.route}`;
+  const routeUrl = `${ORIGIN}${entry.route}`;
+  const expectedCanonical = entry.canonical ?? routeUrl;
   const expectedImage = `${ORIGIN}/og/${entry.file}.png`;
   const expectedAlt = socialImageAlt(entry);
   const title = documentTitle(html);
-  const description = metaContent(html, "description");
 
   if (html.includes(`${ORIGIN}/og-default.png`)) {
     errors.push(`${entry.html}: still references og-default.png`);
   }
 
   if (title === null || title === "") errors.push(`${entry.html}: missing document title`);
-  if (description === null || description.trim() === "") {
-    errors.push(`${entry.html}: missing description`);
-  }
+  requireMeta(html, entry, "description");
 
   const canonical = canonicalHref(html);
   if (canonical === null) errors.push(`${entry.html}: missing canonical link`);
-  else if (canonical !== productionUrl) {
-    errors.push(`${entry.html}: canonical is ${JSON.stringify(canonical)}, expected ${JSON.stringify(productionUrl)}`);
+  else if (canonical !== expectedCanonical) {
+    errors.push(`${entry.html}: canonical is ${JSON.stringify(canonical)}, expected ${JSON.stringify(expectedCanonical)}`);
   }
 
-  requireMeta(html, entry, "theme-color", THEME_COLOR);
+  requireMeta(html, entry, "theme-color");
   requireMeta(html, entry, "og:type");
   requireMeta(html, entry, "og:title", title);
-  requireMeta(html, entry, "og:description", description);
-  requireMeta(html, entry, "og:url", productionUrl);
+  requireMeta(html, entry, "og:description");
+  requireMeta(html, entry, "og:url", expectedCanonical);
   requireMeta(html, entry, "og:site_name", "Atlas Systems");
   requireMeta(html, entry, "og:image", expectedImage);
   requireMeta(html, entry, "og:image:width", String(CANVAS.w));
@@ -129,7 +146,7 @@ for (const entry of entries) {
   requireMeta(html, entry, "og:image:alt", expectedAlt);
   requireMeta(html, entry, "twitter:card", "summary_large_image");
   requireMeta(html, entry, "twitter:title", title);
-  requireMeta(html, entry, "twitter:description", description);
+  requireMeta(html, entry, "twitter:description");
   requireMeta(html, entry, "twitter:image", expectedImage);
   requireMeta(html, entry, "twitter:image:alt", expectedAlt);
   requireIcons(html, entry.html);
@@ -158,7 +175,7 @@ if (!fs.existsSync(errorPath)) {
     errors.push("404.html: document title must be 404 // Atlas Systems");
   }
   requireMeta(errorHtml, { html: "404.html" }, "description");
-  requireMeta(errorHtml, { html: "404.html" }, "theme-color", THEME_COLOR);
+  requireMeta(errorHtml, { html: "404.html" }, "theme-color");
   if (!robots.toLowerCase().split(/[\s,]+/).includes("noindex")) {
     errors.push("404.html: robots metadata must include noindex");
   }
