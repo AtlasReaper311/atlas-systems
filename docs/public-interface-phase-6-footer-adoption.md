@@ -22,9 +22,20 @@ The existing site foundation remains on its accepted v0.3.0 presentation layer. 
 | `/writing/<slug>/` | excluded under ADR-0009 |
 | `/lab/console/` | deferred to Phase 11 |
 
-Estate footers contain identity, context, evidence, and estate escape. Tool footers contain identity, tool context, evidence, and estate escape. Neither profile contains an editorial sequence slot.
+Estate footers contain identity, evidence, and estate escape. They deliberately omit the optional context slot because repeating the complete global navigation is forbidden by the accepted footer contract. Tool footers contain identity, bounded tool context, evidence, and estate escape. Neither profile contains an editorial sequence slot.
 
 The shared estate-search renderer imports the footer installer because that renderer is already present on the public portfolio, directory, error, Lab-shell, and generated Writing surfaces. The installer is idempotent and checks the route before touching the document. The Bearing loads the same installer directly because it is a deliberately self-contained Lab instrument outside the shared shell.
+
+## Visual presentation
+
+The governed slots are presented as a compact product rail rather than visible rows or a second sitemap:
+
+- identity occupies at most two text lines;
+- estate pages expose three links;
+- tool pages expose no more than four links;
+- context, evidence, and escape remain separate DOM slots but share one desktop rail;
+- underlines remain visible in default and hover states;
+- mobile uses a dense single-column flow without changing slot order.
 
 ## Writing boundary
 
@@ -49,6 +60,7 @@ No generated article HTML, metadata, publication-plan state, scheduler queue sta
 
 - estate, tool, Writing, and console route resolution;
 - the required footer slots for estate and tool variants;
+- bounded link counts and absence of duplicated global navigation;
 - route coverage through the existing shared module path;
 - the footer-only v0.4.0 selector contract;
 - preservation of W-01 through W-07 classic footers;
