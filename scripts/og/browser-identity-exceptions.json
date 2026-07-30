@@ -1,0 +1,13 @@
+{
+  "schema_version": "atlas-systems/browser-identity-exceptions/v1",
+  "exceptions": [
+    {
+      "html": "lab/console/index.html",
+      "scope": "complete-icon-declarations",
+      "reason": "Legacy operations console remains outside the shared shell until the accepted Phase 11 Lab integration.",
+      "resume_phase": 11,
+      "required_robots": "noindex",
+      "required_canonical": "https://atlas-systems.uk/lab/"
+    }
+  ]
+}
