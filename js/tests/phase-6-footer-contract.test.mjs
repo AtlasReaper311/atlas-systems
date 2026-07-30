@@ -70,16 +70,22 @@ test("shared estate-search path installs the footer without editing content page
   }
 });
 
-test("footer-only stylesheet retains immutable v0.4.0 behaviour", () => {
+test("footer-only stylesheet keeps a compact two-band rail and immutable v0.4.0 behaviour", () => {
   const css = fs.readFileSync("static/css/phase-6-footer.css", "utf8");
   assert.match(css, /atlas-interface-kit v0\.4\.0/);
   assert.match(css, /\.atlas-footer\s*\{/);
-  assert.match(css, /grid-template-areas:/);
+  assert.match(
+    css,
+    /grid-template-areas:\s*"identity escape"\s*"context evidence"/,
+  );
+  assert.match(css, /margin: var\(--atlas-space-7, 48px\) auto 0/);
+  assert.match(css, /padding: var\(--atlas-space-5, 24px\)/);
   assert.match(css, /\.atlas-footer__identity/);
   assert.match(css, /\.atlas-footer__context/);
   assert.match(css, /\.atlas-footer__evidence/);
   assert.match(css, /\.atlas-footer__escape/);
-  assert.match(css, /--atlas-touch-min, 44px/);
+  assert.match(css, /min-width: var\(--atlas-touch-min, 44px\)/);
+  assert.match(css, /min-height: var\(--atlas-touch-min, 44px\)/);
   assert.match(css, /@media \(max-width: 767px\)/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.doesNotMatch(css, /\.atlas-footer__sequence/);
