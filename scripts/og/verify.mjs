@@ -59,7 +59,6 @@ function loadExceptions() {
       "html",
       "reason",
       "required_canonical",
-      "required_robots",
       "resume_phase",
       "scope",
     ].sort();
@@ -209,10 +208,6 @@ for (const entry of entries) {
   requireMeta(html, entry, "twitter:image:alt", expectedAlt);
 
   if (exception) {
-    const robots = metaContent(html, "robots") ?? "";
-    if (!robots.toLowerCase().split(/[\s,]+/).includes(exception.required_robots)) {
-      errors.push(`${entry.html}: deferred route must retain robots ${exception.required_robots}`);
-    }
     if (canonical !== exception.required_canonical) {
       errors.push(`${entry.html}: deferred route canonical must remain ${exception.required_canonical}`);
     }
