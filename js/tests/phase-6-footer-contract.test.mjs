@@ -91,6 +91,20 @@ test("footer-only stylesheet keeps a compact two-band rail and immutable v0.4.0 
   assert.doesNotMatch(css, /\.atlas-footer__sequence/);
 });
 
+test("Bearing light mode bridges its local palette into accessible footer tokens", () => {
+  const css = fs.readFileSync("static/css/phase-6-footer.css", "utf8");
+  assert.match(css, /:root:not\(\[data-theme="dark"\]\) body:has\(#lattice\)/);
+  assert.match(css, /:root\[data-theme="light"\] body:has\(#lattice\)/);
+  assert.match(css, /--bearing-phase6-accessible-accent: #8a4c00/);
+  assert.match(css, /--bearing-phase6-accessible-muted: #5b5d60/);
+  assert.match(css, /--atlas-text: #171a20/);
+  assert.match(css, /--atlas-text-dim: #5b5d60/);
+  assert.match(css, /--atlas-text-faint: #5b5d60/);
+  assert.match(css, /body:has\(#lattice\) \.step \.n/);
+  assert.match(css, /body:has\(#lattice\) pre\.snip \.a/);
+  assert.match(css, /body:has\(#lattice\) pre\.snip \.c/);
+});
+
 test("W-01 through W-07 keep the classic scheduler-owned footer", () => {
   for (const path of CLASSIC_WRITING_ARTICLES) {
     const html = fs.readFileSync(path, "utf8");
