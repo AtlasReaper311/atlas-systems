@@ -43,7 +43,7 @@
     </ul>
   </nav>
   <main class="focus-main">
-    <header class="focus-hero" data-systems-detail-hero>
+    <header class="focus-hero">
       <nav class="atlas-breadcrumbs systems-detail-breadcrumbs" aria-label="Breadcrumb">
         <ol>
           <li><a href="/systems/">Systems</a></li>
@@ -111,16 +111,8 @@
           <p>Health and activity are labelled separately. Activity is never presented as runtime health.</p>
         </div>
         <div class="systems-detail-stack">
-          <article class="focus-panel">
-            <h3>Infrastructure health</h3>
-            <span id="infra-state" class="focus-state" data-state="unknown">unknown</span>
-            <p id="infra-detail">No sentinel report loaded.</p>
-          </article>
-          <article class="focus-panel">
-            <h3>Corpus index activity</h3>
-            <span id="corpus-state" class="focus-state" data-state="unknown">unknown</span>
-            <p id="corpus-detail">No aggregate query evidence loaded.</p>
-          </article>
+          <article class="focus-panel"><h3>Infrastructure health</h3><span id="infra-state" class="focus-state" data-state="unknown">unknown</span><p id="infra-detail">No sentinel report loaded.</p></article>
+          <article class="focus-panel"><h3>Corpus index activity</h3><span id="corpus-state" class="focus-state" data-state="unknown">unknown</span><p id="corpus-detail">No aggregate query evidence loaded.</p></article>
         </div>
       </section>
     </div>
@@ -131,28 +123,18 @@
         <p id="registry-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for public inventory, topology, and measured health.</p>
       </div>
       <section class="focus-table-wrap" tabindex="0" aria-label="Observed services table">
-        <table class="focus-table">
-          <thead><tr><th scope="col">Service</th><th scope="col">Layer</th><th scope="col">Observed state</th><th scope="col">Evidence</th></tr></thead>
-          <tbody id="registry-rows"><tr><td colspan="4">No composed service evidence loaded.</td></tr></tbody>
-        </table>
+        <table class="focus-table"><thead><tr><th scope="col">Service</th><th scope="col">Layer</th><th scope="col">Observed state</th><th scope="col">Evidence</th></tr></thead><tbody id="registry-rows"><tr><td colspan="4">No composed service evidence loaded.</td></tr></tbody></table>
       </section>
       <p class="focus-note">Inventory establishes what exists. Only a compatible measured source establishes observed health.</p>
     </section>
 
     <div class="systems-detail-workbench systems-detail-workbench--support">
       <section class="systems-detail-panel" aria-labelledby="incidents-title">
-        <div class="focus-section-head">
-          <div><p class="systems-detail-kicker">Change and failure signals</p><h2 id="incidents-title">Recent failure feed</h2></div>
-          <p id="incident-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for bounded recent events.</p>
-        </div>
+        <div class="focus-section-head"><div><p class="systems-detail-kicker">Change and failure signals</p><h2 id="incidents-title">Recent failure feed</h2></div><p id="incident-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for bounded recent events.</p></div>
         <ul id="failure-feed" class="focus-list"><li><strong>No failure evidence loaded.</strong><span>Unknown is not healthy.</span></li></ul>
       </section>
-
       <section class="systems-detail-panel" aria-labelledby="operations-title">
-        <div class="focus-section-head">
-          <div><p class="systems-detail-kicker">Inspect the basis</p><h2 id="operations-title">Raw public sources</h2></div>
-          <p>These records support the page. They do not grant mutation authority.</p>
-        </div>
+        <div class="focus-section-head"><div><p class="systems-detail-kicker">Inspect the basis</p><h2 id="operations-title">Raw public sources</h2></div><p>These records support the page. They do not grant mutation authority.</p></div>
         <div class="focus-rail">
           <a href="https://api.atlas-systems.uk/specular"><strong>SPECULAR telemetry</strong><span>/specular</span></a>
           <a href="https://api.atlas-systems.uk/v1/registry"><strong>Service inventory</strong><span>/v1/registry</span></a>
