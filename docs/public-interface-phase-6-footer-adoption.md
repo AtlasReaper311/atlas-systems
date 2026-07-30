@@ -4,8 +4,8 @@
 
 This consumer implementation follows:
 
-- `atlas-infra/docs/adrs/ADR-0008-public-interface-programme-governance.md`;
-- `atlas-infra/docs/adrs/ADR-0009-classic-writing-article-footer-exception.md`;
+- `atlas-infra/docs/adrs/ADR-0008-public-interface-system-v2.md`;
+- `atlas-infra/docs/adrs/ADR-0009-classic-writing-footer-exception.md`;
 - `atlas-infra/policy/public-interface-footer-extension-v1.json` at contract version `1.1.0`;
 - immutable `atlas-interface-kit v0.4.0` footer structure and responsive behaviour.
 
