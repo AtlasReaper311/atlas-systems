@@ -21,6 +21,7 @@ import {
 } from "./routes.mjs";
 
 const ORIGIN = "https://atlas-systems.uk";
+const EXCEPTIONS_PATH = path.join(REPO, "scripts", "og", "browser-identity-exceptions.json");
 const REQUIRED_ICONS = [
   { rel: "icon", href: "/favicon.ico", sizes: "any" },
   { rel: "icon", href: "/favicon-16x16.png", sizes: "16x16" },
@@ -34,6 +35,56 @@ const localRoutes = resolveRoutes(manifest);
 const satellites = resolveSatellites(manifest);
 const entries = [...localRoutes, ...satellites];
 const errors = entryIdentityErrors(entries);
+
+function loadExceptions() {
+  if (!fs.existsSync(EXCEPTIONS_PATH)) return new Map();
+  let document;
+  try {
+    document = JSON.parse(fs.readFileSync(EXCEPTIONS_PATH, "utf8"));
+  } catch (error) {
+    errors.push(`scripts/og/browser-identity-exceptions.json: invalid JSON: ${error.message}`);
+    return new Map();
+  }
+  if (document.schema_version !== "atlas-systems/browser-identity-exceptions/v1") {
+    errors.push("scripts/og/browser-identity-exceptions.json: unsupported schema_version");
+  }
+  if (!Array.isArray(document.exceptions)) {
+    errors.push("scripts/og/browser-identity-exceptions.json: exceptions must be an array");
+    return new Map();
+  }
+  const exceptions = new Map();
+  for (const entry of document.exceptions) {
+    const keys = Object.keys(entry).sort();
+    const expected = [
+      "html",
+      "reason",
+      "required_canonical",
+      "required_robots",
+      "resume_phase",
+      "scope",
+    ].sort();
+    if (JSON.stringify(keys) !== JSON.stringify(expected)) {
+      errors.push(`${entry.html ?? "<missing>"}: browser identity exception has unexpected fields`);
+      continue;
+    }
+    if (entry.scope !== "complete-icon-declarations") {
+      errors.push(`${entry.html}: unsupported browser identity exception scope ${JSON.stringify(entry.scope)}`);
+    }
+    if (!Number.isInteger(entry.resume_phase) || entry.resume_phase < 8 || entry.resume_phase > 15) {
+      errors.push(`${entry.html}: resume_phase must be an integer from 8 through 15`);
+    }
+    if (typeof entry.reason !== "string" || entry.reason.trim().length < 20) {
+      errors.push(`${entry.html}: browser identity exception requires a concrete reason`);
+    }
+    if (exceptions.has(entry.html)) {
+      errors.push(`${entry.html}: duplicate browser identity exception`);
+    }
+    exceptions.set(entry.html, entry);
+  }
+  return exceptions;
+}
+
+const browserIdentityExceptions = loadExceptions();
 
 function pngSize(file) {
   const bytes = fs.readFileSync(file);
@@ -91,6 +142,12 @@ function validateJsonLd(html, label) {
   }
 }
 
+for (const exceptionPath of browserIdentityExceptions.keys()) {
+  if (!localRoutes.some((entry) => entry.html === exceptionPath)) {
+    errors.push(`${exceptionPath}: browser identity exception does not match a resolved local route`);
+  }
+}
+
 for (const entry of entries) {
   const image = path.join(OUT_DIR, `${entry.file}.png`);
   if (!fs.existsSync(image)) {
@@ -120,6 +177,7 @@ for (const entry of entries) {
   const expectedImage = `${ORIGIN}/og/${entry.file}.png`;
   const expectedAlt = socialImageAlt(entry);
   const title = documentTitle(html);
+  const exception = browserIdentityExceptions.get(entry.html);
 
   if (html.includes(`${ORIGIN}/og-default.png`)) {
     errors.push(`${entry.html}: still references og-default.png`);
@@ -149,7 +207,18 @@ for (const entry of entries) {
   requireMeta(html, entry, "twitter:description");
   requireMeta(html, entry, "twitter:image", expectedImage);
   requireMeta(html, entry, "twitter:image:alt", expectedAlt);
-  requireIcons(html, entry.html);
+
+  if (exception) {
+    const robots = metaContent(html, "robots") ?? "";
+    if (!robots.toLowerCase().split(/[\s,]+/).includes(exception.required_robots)) {
+      errors.push(`${entry.html}: deferred route must retain robots ${exception.required_robots}`);
+    }
+    if (canonical !== exception.required_canonical) {
+      errors.push(`${entry.html}: deferred route canonical must remain ${exception.required_canonical}`);
+    }
+  } else {
+    requireIcons(html, entry.html);
+  }
   validateJsonLd(html, entry.html);
 }
 
@@ -199,5 +268,6 @@ const auto = localRoutes.filter((entry) => entry.auto).length;
 console.log(
   `Estate browser-identity check passed: ${entries.length} cards ` +
   `(${localRoutes.length} local, ${satellites.length} external, ${auto} auto-discovered), ` +
-  `all ${CANVAS.w}x${CANVAS.h}; every local route is fully wired and exact.`,
+  `${browserIdentityExceptions.size} bounded exception, all cards ${CANVAS.w}x${CANVAS.h}; ` +
+  `every non-exempt local route is fully wired and exact.`,
 );
