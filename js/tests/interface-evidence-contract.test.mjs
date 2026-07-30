@@ -83,27 +83,35 @@ test("the reporting baseline is pinned to the reviewed Phase 2 evidence", () => 
   assert.equal(REPORTING_BASELINE.source.reviewed_finding_count, 36);
 });
 
-test("baseline matching is route, browser, viewport, issue, and target specific", () => {
+test("baseline matching remains route, browser, viewport, and diagnostic specific", () => {
+  const message = 'lab-signal/375: console errors [{"type":"error","text":"Error loading deterministic fixture"}]';
   const accepted = acceptedReportingFinding({
     routeName: "lab-signal",
-    browser: "firefox",
+    browser: "chrome",
     viewport: "375",
-    message: 'lab-signal/375: serious accessibility findings [{"id":"color-contrast","nodes":[{"target":["span[data-layer=\\"noise\\"]"]}]}]',
+    message,
   });
   assert.ok(accepted);
 
   assert.equal(acceptedReportingFinding({
     routeName: "lab-speculum",
-    browser: "firefox",
+    browser: "chrome",
     viewport: "375",
-    message: 'lab-speculum/375: serious accessibility findings [{"id":"color-contrast","nodes":[{"target":["span[data-layer=\\"noise\\"]"]}]}]',
+    message,
   }), null);
 
   assert.equal(acceptedReportingFinding({
     routeName: "lab-signal",
     browser: "firefox",
     viewport: "375",
-    message: 'lab-signal/375: serious accessibility findings [{"id":"aria-required-attr","nodes":[{"target":["span[data-layer=\\"noise\\"]"]}]}]',
+    message,
+  }), null);
+
+  assert.equal(acceptedReportingFinding({
+    routeName: "lab-signal",
+    browser: "chrome",
+    viewport: "1024",
+    message: "lab-signal/1024: console errors [{\"type\":\"error\",\"text\":\"Different diagnostic\"}]",
   }), null);
 });
 
