@@ -61,7 +61,7 @@ test("route scripts retain every dynamic rendering target", () => {
 
 test("Phase 9 preserves exact-route AtlasField host continuity", () => {
   for (const html of Object.values(routes)) {
-    assert.equal((html.match(/<header class="focus-hero" data-systems-detail-hero>/g) || []).length, 1);
+    assert.equal((html.match(/<header class="focus-hero">/g) || []).length, 1);
     assert.doesNotMatch(html, /<canvas/i);
     assert.match(html, /\/static\/js\/focused-systems-shell\.js\?v=20260725-batch-h-fixes/);
   }
