@@ -1,19 +1,12 @@
 "use strict";
 
-const FOOTER_STYLESHEET = "/static/css/phase-6-footer.css?v=20260730-phase-6-v1";
+const FOOTER_STYLESHEET = "/static/css/phase-6-footer.css?v=20260730-phase-6-v2";
 const ATLAS_OWNED_HOSTS = new Set([
   "api.atlas-systems.uk",
   "atlas-systems.uk",
   "cv.atlas-systems.uk",
   "ramone.atlas-systems.uk",
   "status.atlas-systems.uk",
-]);
-const GLOBAL_CONTEXT = Object.freeze([
-  { label: "Work", href: "/work/" },
-  { label: "Writing", href: "/writing/" },
-  { label: "Lab", href: "/lab/" },
-  { label: "Systems", href: "/systems/" },
-  { label: "About", href: "/about/" },
 ]);
 const TOOL_PATHS = Object.freeze([
   "/systems/evidence/",
@@ -123,7 +116,7 @@ function footerConfiguration(pathname, title, evidenceText = "") {
     variant,
     label: "Atlas Systems footer",
     identity,
-    context: GLOBAL_CONTEXT,
+    context: [],
     evidence: [
       { label: "Estate status", href: "https://status.atlas-systems.uk/" },
       { label: "GitHub", href: "https://github.com/AtlasReaper311" },
