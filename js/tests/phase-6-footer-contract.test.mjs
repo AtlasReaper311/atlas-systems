@@ -19,6 +19,12 @@ const CLASSIC_WRITING_ARTICLES = [
   "writing/atlas-lab-observability/index.html",
 ];
 
+function linkCount(configuration) {
+  return [...configuration.context, ...configuration.evidence, ...configuration.escape]
+    .filter((item) => typeof item !== "string")
+    .length;
+}
+
 test("route resolver separates estate, tool, and excluded surfaces", () => {
   assert.equal(normalizePath("/about"), "/about/");
   assert.equal(resolveFooterVariant("/"), "estate");
@@ -31,11 +37,13 @@ test("route resolver separates estate, tool, and excluded surfaces", () => {
   assert.equal(isExcludedFooterRoute("/writing/ramone-local-ai-system/"), true);
 });
 
-test("estate and tool profiles contain only their required Phase 6 slots", () => {
+test("estate and tool profiles remain governed without duplicating global navigation", () => {
   const estate = footerConfiguration("/about/", "About // Atlas Systems");
   assert.equal(estate.variant, "estate");
   assert.ok(estate.identity.name);
+  assert.deepEqual(estate.context, []);
   assert.ok(estate.escape.length > 0);
+  assert.equal(linkCount(estate), 3);
   assert.equal("sequence" in estate, false);
 
   const tool = footerConfiguration(
@@ -48,6 +56,7 @@ test("estate and tool profiles contain only their required Phase 6 slots", () =>
   assert.ok(tool.context.length > 0);
   assert.ok(tool.escape.length > 0);
   assert.equal(tool.evidence[0], "Bearing since you arrived");
+  assert.equal(linkCount(tool), 4);
   assert.equal("sequence" in tool, false);
 });
 
@@ -70,20 +79,18 @@ test("shared estate-search path installs the footer without editing content page
   }
 });
 
-test("footer-only stylesheet keeps a compact two-band rail and immutable v0.4.0 behaviour", () => {
+test("footer-only stylesheet keeps a single compact rail and immutable v0.4.0 behaviour", () => {
   const css = fs.readFileSync("static/css/phase-6-footer.css", "utf8");
   assert.match(css, /atlas-interface-kit v0\.4\.0/);
-  assert.match(css, /\.atlas-footer\s*\{/);
-  assert.match(
-    css,
-    /grid-template-areas:\s*"identity escape"\s*"context evidence"/,
-  );
+  assert.match(css, /\.atlas-footer\s*\{[\s\S]*display: flex;/);
+  assert.match(css, /flex-wrap: wrap/);
   assert.match(css, /margin: var\(--atlas-space-7, 48px\) auto 0/);
-  assert.match(css, /padding: var\(--atlas-space-5, 24px\)/);
+  assert.match(css, /padding: var\(--atlas-space-4, 16px\) var\(--atlas-space-5, 24px\)/);
   assert.match(css, /\.atlas-footer__identity/);
   assert.match(css, /\.atlas-footer__context/);
   assert.match(css, /\.atlas-footer__evidence/);
   assert.match(css, /\.atlas-footer__escape/);
+  assert.match(css, /text-decoration: underline/);
   assert.match(css, /min-width: var\(--atlas-touch-min, 44px\)/);
   assert.match(css, /min-height: var\(--atlas-touch-min, 44px\)/);
   assert.match(css, /@media \(max-width: 767px\)/);
