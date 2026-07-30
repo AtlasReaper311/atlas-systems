@@ -69,11 +69,10 @@ Only `<head>` declarations changed. Instrument bodies, scripts, audio, telemetry
 
 - path: `lab/console/index.html`;
 - scope: complete icon declarations only;
-- required robots state: `noindex`;
 - required canonical: `https://atlas-systems.uk/lab/`;
 - resume phase: Phase 11.
 
-The exception schema is fail-closed. Unknown fields, unsupported scope, invalid phase, duplicate paths, absent resolved routes, weak reasons, changed robots state, or changed canonical target fail validation. The route still passes all title, description, Open Graph, Twitter, social-image, and JSON-LD checks. No other route may inherit the exception.
+The exception schema is fail-closed. Unknown fields, unsupported scope, invalid phase, duplicate paths, absent resolved routes, weak reasons, or a changed canonical target fail validation. The route still passes all title, description, Open Graph, Twitter, social-image, and JSON-LD checks. Its existing indexing behavior remains unchanged because no accepted authority requires a compatibility alias to be `noindex`. No other route may inherit the exception.
 
 ## 404 contract
 
@@ -91,6 +90,10 @@ The 404 route is verified separately. It must:
 Published Writing pages remain scheduler-owned output. This branch validates their committed browser identity but does not edit them.
 
 `atlas-article-gen` Phase 7 PR #39 is the upstream source change for future generated article metadata. Any published-article refresh remains generator and scheduler-owned and must not be corrected by hand in this repository.
+
+## Static performance baseline
+
+The accepted repository-local static baseline was regenerated after the eight Lab routes gained local icon declarations. Signal Garden and Almost now count the favicon package as directly referenced first-party assets. Thresholds remain reporting-only; only the deterministic source fingerprint and measured request and byte totals changed.
 
 ## Validation
 
