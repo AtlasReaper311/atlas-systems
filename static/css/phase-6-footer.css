@@ -7,17 +7,17 @@
 
 .atlas-footer {
   max-width: var(--atlas-content, 1100px);
-  margin: var(--atlas-space-9, 96px) auto 0;
+  margin: var(--atlas-space-7, 48px) auto 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr);
   grid-template-areas:
     "identity escape"
-    "context context"
-    "evidence evidence";
-  align-items: start;
-  gap: var(--atlas-space-4, 16px) var(--atlas-space-6, 32px);
-  border-top: 1px solid var(--atlas-border, rgba(255,255,255,0.08));
-  padding: var(--atlas-space-6, 32px) var(--atlas-space-5, 24px) var(--atlas-space-8, 64px);
+    "context evidence";
+  align-items: center;
+  column-gap: var(--atlas-space-6, 32px);
+  row-gap: var(--atlas-space-1, 4px);
+  border-top: 1px solid var(--atlas-border-hi, rgba(255,255,255,0.16));
+  padding: var(--atlas-space-5, 24px);
   color: var(--atlas-text-faint, var(--text-faint, #888894));
   background: transparent;
   font: 400 var(--atlas-type-meta, 11px)/1.6 var(--atlas-font-body, var(--mono, "IBM Plex Mono", monospace));
@@ -28,12 +28,16 @@
 .atlas-footer__identity {
   grid-area: identity;
   min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--atlas-space-1, 4px) var(--atlas-space-3, 12px);
   color: var(--atlas-text, var(--text, #e8e8e0));
 }
 
 .atlas-footer__identity strong,
 .atlas-footer__identity span {
-  display: block;
+  display: inline;
 }
 
 .atlas-footer__identity strong {
@@ -43,24 +47,33 @@
 }
 
 .atlas-footer__identity span {
-  margin-top: var(--atlas-space-1, 4px);
+  margin-top: 0;
   color: var(--atlas-text-faint, var(--text-faint, #888894));
 }
 
 .atlas-footer__context { grid-area: context; }
-.atlas-footer__evidence { grid-area: evidence; }
-.atlas-footer__escape { grid-area: escape; justify-self: end; }
+.atlas-footer__evidence {
+  grid-area: evidence;
+  justify-self: end;
+  justify-content: flex-end;
+}
+.atlas-footer__escape {
+  grid-area: escape;
+  justify-self: end;
+}
 
 .atlas-footer__context,
 .atlas-footer__evidence,
 .atlas-footer__escape {
+  min-width: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--atlas-space-2, 8px) var(--atlas-space-4, 16px);
+  gap: 0 var(--atlas-space-4, 16px);
 }
 
 .atlas-footer :where(a, button) {
+  min-width: var(--atlas-touch-min, 44px);
   min-height: var(--atlas-touch-min, 44px);
   display: inline-flex;
   align-items: center;
@@ -91,13 +104,19 @@
       "context"
       "evidence"
       "escape";
-    gap: var(--atlas-space-3, 12px);
-    padding-inline: var(--atlas-space-4, 16px);
+    row-gap: 0;
+    padding: var(--atlas-space-4, 16px);
     padding-bottom: calc(var(--atlas-space-8, 64px) + env(safe-area-inset-bottom));
   }
 
+  .atlas-footer__identity {
+    margin-bottom: var(--atlas-space-1, 4px);
+  }
+
+  .atlas-footer__evidence,
   .atlas-footer__escape {
     justify-self: start;
+    justify-content: flex-start;
   }
 }
 
