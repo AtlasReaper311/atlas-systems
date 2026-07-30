@@ -37,10 +37,14 @@ The branch makes five measured corrections:
 
 The reporting baseline removes the resolved accessibility and horizontal-overflow signatures. A recurrence of any removed signature is therefore blocking. Reviewed console diagnostics remain reporting-only and are not hidden or reclassified as fixed.
 
+The repository static-performance measurement remains reporting-only. Because the shared stylesheet changed, the deterministic committed baseline was refreshed from CI-generated candidate `3338fbece463e31ca6a4c0ca50adbaea66e1ccac59092ed03661fea31198ad30`. No browser-performance threshold or new blocking budget was introduced.
+
 ## Changed paths
 
 - `static/css/estate-shell.css`
 - `scripts/interface-evidence/reporting-baseline.json`
+- `data/performance-baseline.json`
+- `js/tests/interface-evidence-contract.test.mjs`
 - `js/tests/phase-8-accessibility-responsive.test.mjs`
 - `docs/public-interface-phase-8-accessibility-responsive.md`
 
