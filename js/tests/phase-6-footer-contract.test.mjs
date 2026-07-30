@@ -79,6 +79,25 @@ test("shared estate-search path installs the footer without editing content page
   }
 });
 
+test("Pages artifact and production rollout require the Phase 6 footer assets", () => {
+  const prepare = fs.readFileSync("scripts/prepare_pages_publish.sh", "utf8");
+  const verifier = fs.readFileSync("scripts/verify_pages_output.py", "utf8");
+  const deploy = fs.readFileSync(".github/workflows/deploy.yml", "utf8");
+
+  for (const asset of [
+    "static/js/phase-6-footer.js",
+    "static/css/phase-6-footer.css",
+    "static/js/estate-search/render.js",
+  ]) {
+    assert.match(prepare, new RegExp(asset.replaceAll("/", "\\/")));
+    assert.match(verifier, new RegExp(asset.replaceAll("/", "\\/")));
+  }
+
+  assert.match(deploy, /name: Confirm Phase 6 footer assets are live/);
+  assert.match(deploy, /const FOOTER_STYLESHEET/);
+  assert.match(deploy, /atlas-interface-kit v0\.4\.0/);
+});
+
 test("footer-only stylesheet keeps a single compact rail and immutable v0.4.0 behaviour", () => {
   const css = fs.readFileSync("static/css/phase-6-footer.css", "utf8");
   assert.match(css, /atlas-interface-kit v0\.4\.0/);

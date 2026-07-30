@@ -20,6 +20,9 @@ rsync -a \
   "${repo_root}/" "${publish_directory}/"
 
 test -f "${publish_directory}/index.html"
+test -f "${publish_directory}/static/js/phase-6-footer.js"
+test -f "${publish_directory}/static/css/phase-6-footer.css"
+test -f "${publish_directory}/static/js/estate-search/render.js"
 
 social_card_count=0
 while IFS= read -r card; do
