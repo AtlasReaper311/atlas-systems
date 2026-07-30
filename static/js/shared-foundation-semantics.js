@@ -65,6 +65,12 @@ function installBreadcrumbs() {
   main.prepend(nav);
 }
 
+function removeRouteContextLabels() {
+  document.querySelectorAll(
+    '.atlas-breadcrumbs[data-atlas-generated-breadcrumb="true"], .focus-hero > .focus-breadcrumb:first-child',
+  ).forEach((element) => element.remove());
+}
+
 function normalizeSameOriginLinks(root = document) {
   if (!(root instanceof Element || root instanceof Document)) return;
   const links = [];
@@ -209,7 +215,7 @@ function installDenseOverflow() {
 }
 
 export function installSharedFoundationSemantics() {
-  installBreadcrumbs();
+  removeRouteContextLabels();
   normalizeSameOriginLinks();
   installStatusAnnouncements();
   installDenseOverflow();
