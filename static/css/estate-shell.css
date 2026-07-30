@@ -123,12 +123,16 @@ html[data-atlas-interface] body { font-size: max(15px, 1rem); }
 .dora-panel .dp-error { color: #e85f5e; }
 
 /* Phase 8 measured accessibility and responsive corrections. */
-.word-chip { color: var(--text-dim, #aaa9a0); }
+.word-chip { color: var(--text-dim, #aaa9a0); opacity: .75 !important; }
 .almost-prose { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
 .snip { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
 .bearing .tag,
 .bearing .gauge .k,
 .bearing .gauge .v .u { color: #8b8c98; }
+
+@media (max-width: 860px) {
+  .drift-page .drift-title::before { display: none; }
+}
 
 @media (min-width: 761px) and (max-width: 820px) {
   .almost-afterword { grid-template-columns: minmax(0, .35fr) minmax(0, .65fr); }
@@ -156,6 +160,12 @@ html[data-atlas-interface] body { font-size: max(15px, 1rem); }
   .atlas-mobile-nav__item svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.5; }
   .atlas-mobile-nav__item.active,.atlas-mobile-nav__item[aria-current="page"] { color: var(--accent, var(--atlas-accent)); }
   body[data-atlas-bottom-nav="true"] { padding-bottom: calc(64px + env(safe-area-inset-bottom)) !important; }
+  body[data-atlas-bottom-nav="true"] .term-chip {
+    right: 14px;
+    bottom: calc(64px + env(safe-area-inset-bottom) + 14px);
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
 
 @media (max-width: 520px) {
