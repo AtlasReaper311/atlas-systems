@@ -8,62 +8,15 @@
     "artifact_digest": "sha256:7d3662cdc835c5195bcca30395cc398b5423286b768ae4fdeed6d32bfd38caec",
     "reviewed_finding_count": 36,
     "expanded_matrix_base": "f82527fcfd4c62cb7cd0983b267cf4b3d639e9b8",
-    "expanded_matrix_note": "Shared-file Phase 5 evidence expands every route to all governed widths. Rules below preserve only the reviewed issue families and two source-proven pre-existing width occurrences; unmatched findings remain blocking."
+    "expanded_matrix_note": "Phase 8 retires source-corrected accessibility and responsive families. Only reviewed diagnostic console records remain reporting-only; unmatched findings remain blocking."
   },
   "families": [
     {
-      "route": "work",
-      "kind": "accessibility",
-      "id": "target-size",
-      "browsers": ["chrome", "firefox"],
-      "viewports": ["320"],
-      "contains": ["about/"]
-    },
-    {
-      "route": "writing",
-      "kind": "accessibility",
-      "id": "target-size",
-      "browsers": ["chrome", "firefox"],
-      "viewports": ["320"],
-      "contains": ["about/"]
-    },
-    {
-      "route": "lab-console",
-      "kind": "accessibility",
-      "id": "target-size",
-      "browsers": ["chrome", "firefox"],
-      "viewports": ["320"],
-      "contains": ["about/"]
-    },
-    {
-      "route": "lab-signal",
-      "kind": "horizontal-overflow",
-      "browsers": ["chrome", "firefox"],
-      "viewports": ["320", "375"],
-      "contains": ["lab-context-nav-inner", "table"]
-    },
-    {
-      "route": "lab-signal",
-      "kind": "accessibility",
-      "id": "color-contrast",
-      "browsers": ["chrome", "firefox"],
-      "viewports": ["320", "375", "768", "1024", "1440", "1920"],
-      "contains": ["data-layer"]
-    },
-    {
       "route": "lab-signal",
       "kind": "console",
       "browsers": ["chrome"],
       "viewports": ["320", "375", "768", "1024", "1440", "1920"],
       "contains": ["\"text\":\"Error\""]
-    },
-    {
-      "route": "lab-conformance",
-      "kind": "accessibility",
-      "id": "scrollable-region-focusable",
-      "browsers": ["chrome", "firefox"],
-      "viewports": ["320", "375"],
-      "contains": ["table-wrap"]
     },
     {
       "route": "lab-conformance",
@@ -74,32 +27,10 @@
     },
     {
       "route": "lab-anomaly",
-      "kind": "accessibility",
-      "id": "scrollable-region-focusable",
-      "browsers": ["chrome", "firefox"],
-      "viewports": ["320", "375"],
-      "contains": ["table-wrap"]
-    },
-    {
-      "route": "lab-anomaly",
       "kind": "console",
       "browsers": ["chrome", "firefox"],
       "viewports": ["320", "375", "768", "1024", "1440", "1920"],
       "contains": ["\"text\":\"Error\""]
-    },
-    {
-      "route": "lab-almost",
-      "kind": "horizontal-overflow",
-      "browsers": ["chrome", "firefox"],
-      "viewports": ["768"],
-      "contains": ["lab-context-nav-inner", "almost-prose"]
-    },
-    {
-      "route": "lab-drift",
-      "kind": "horizontal-overflow",
-      "browsers": ["chrome", "firefox"],
-      "viewports": ["320", "375", "768"],
-      "contains": ["lab-context-nav-inner"]
     },
     {
       "route": "lab-drift",
@@ -107,22 +38,6 @@
       "browsers": ["chrome"],
       "viewports": ["320", "375", "768"],
       "contains": ["\"text\":\"Error\""]
-    },
-    {
-      "route": "lab-bearing",
-      "kind": "accessibility",
-      "id": "color-contrast",
-      "browsers": ["chrome", "firefox"],
-      "viewports": ["320", "375", "768", "1024", "1440", "1920"],
-      "contains": ["STATE 01", "Reliability intelligence"]
-    },
-    {
-      "route": "lab-bearing",
-      "kind": "accessibility",
-      "id": "scrollable-region-focusable",
-      "browsers": ["chrome", "firefox"],
-      "viewports": ["320", "375"],
-      "contains": ["class=\"snip\""]
     },
     {
       "route": "writing-sonin-generative-system",
