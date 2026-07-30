@@ -8,6 +8,11 @@ from pathlib import Path
 
 
 SPA_DESTINATIONS = {"/", "/index.html", "index.html"}
+REQUIRED_PHASE_6_ASSETS = (
+    "static/js/phase-6-footer.js",
+    "static/css/phase-6-footer.css",
+    "static/js/estate-search/render.js",
+)
 
 
 def _is_catch_all(source: str) -> bool:
@@ -40,6 +45,11 @@ def verify(output_dir: Path) -> list[str]:
 
     if not (output_dir / "404.html").is_file():
         errors.append(f"{output_dir / '404.html'} is missing")
+
+    for relative_path in REQUIRED_PHASE_6_ASSETS:
+        asset = output_dir / relative_path
+        if not asset.is_file():
+            errors.append(f"{asset} is missing")
 
     redirects_path = output_dir / "_redirects"
     for line_number, source, destination, status in _parse_redirects(redirects_path):
