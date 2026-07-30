@@ -84,7 +84,7 @@ test("the reporting baseline is pinned to the reviewed Phase 2 evidence", () => 
 });
 
 test("baseline matching remains route, browser, viewport, and diagnostic specific", () => {
-  const message = 'lab-signal/375: console errors [{"type":"error","text":"Error loading deterministic fixture"}]';
+  const message = 'lab-signal/375: console errors [{"type":"error","text":"Error"}]';
   const accepted = acceptedReportingFinding({
     routeName: "lab-signal",
     browser: "chrome",
