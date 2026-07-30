@@ -1,0 +1,52 @@
+.blackbox-page { max-width: 1180px; }
+.blackbox-hero { max-width: 900px; }
+.blackbox-hero h1 { max-width: 12ch; }
+.blackbox-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+}
+.blackbox-hero-meta li {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-size: 10px;
+  letter-spacing: .08em;
+  padding: 7px 10px;
+  text-transform: uppercase;
+}
+.blackbox-recorder { padding-top: 2rem; }
+.blackbox-section-head {
+  align-items: end;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.blackbox-section-head h2 { margin-bottom: 0; }
+.blackbox-kicker,
+.blackbox-step {
+  color: var(--accent);
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.blackbox-source-line {
+  color: var(--text-faint);
+  font-size: 11px;
+  margin-top: 12px;
+}
+.blackbox-source-line a { color: var(--text-dim); }
+.blackbox-contract .panel h3 { margin: 12px 0 8px; }
+.blackbox-contract .panel p,
+.blackbox-honesty p { color: var(--text-dim); }
+.blackbox-honesty { margin-bottom: 5rem; }
+
+@media (max-width: 720px) {
+  .blackbox-section-head { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .blackbox-hero-meta { align-items: stretch; flex-direction: column; }
+  .blackbox-hero-meta li { width: fit-content; }
+}
