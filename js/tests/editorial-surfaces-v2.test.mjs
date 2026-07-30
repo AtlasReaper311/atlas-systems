@@ -214,13 +214,21 @@ test("active public surfaces use the canonical accessible faint-text token", () 
   }
 });
 
-test("Homepage source routes point to canonical Systems and System Map destinations", () => {
+test("Homepage source routes point to canonical product, evidence, and System Map destinations", () => {
   const home = read("index.html");
   assert.match(home, /href="\/systems\/"/);
-  assert.match(home, /href="\/systems\/index\.html#ramone"/);
+  assert.match(home, /href="https:\/\/ramone\.atlas-systems\.uk\/"/);
+  assert.match(home, /href="\/lab\/system-symphony\/"/);
+  assert.match(home, /href="\/systems\/evidence\/"/);
   assert.match(home, /href="\/lab\/system-map\/"/);
-  assert.doesNotMatch(home, /href="\/lab\/index\.html#ramone-card"/);
-  assert.doesNotMatch(home, /href="\/lab\/index\.html#system-map"/);
+  for (const staleRoute of [
+    "/systems/index.html#ramone",
+    "/lab/index.html#ramone-card",
+    "/lab/index.html#pipeline-grid-section",
+    "/lab/index.html#system-map",
+  ]) {
+    assert.ok(!home.includes(`href="${staleRoute}"`), `stale homepage route ${staleRoute}`);
+  }
   for (const hook of ["terminal-text", "terminal-output", "truth-strip", "estate-latest-deploy"]) {
     assert.match(home, new RegExp(`id="${hook}"`));
   }
