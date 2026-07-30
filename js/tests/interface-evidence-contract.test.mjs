@@ -85,25 +85,25 @@ test("the reporting baseline is pinned to the reviewed Phase 2 evidence", () => 
 
 test("baseline matching is route, browser, viewport, issue, and target specific", () => {
   const accepted = acceptedReportingFinding({
-    routeName: "lab-signal",
-    browser: "firefox",
+    routeName: "writing-sonin-generative-system",
+    browser: "chrome",
     viewport: "375",
-    message: 'lab-signal/375: serious accessibility findings [{"id":"color-contrast","nodes":[{"target":["span[data-layer=\\"noise\\"]"]}]}]',
+    message: 'writing-sonin-generative-system/375: console errors [{"type":"error","text":"Framing \'https://www.youtube.com/\' violates the following Content Security Policy directive: \\"default-src \'self\'\\"."}]',
   });
   assert.ok(accepted);
 
   assert.equal(acceptedReportingFinding({
     routeName: "lab-speculum",
-    browser: "firefox",
+    browser: "chrome",
     viewport: "375",
-    message: 'lab-speculum/375: serious accessibility findings [{"id":"color-contrast","nodes":[{"target":["span[data-layer=\\"noise\\"]"]}]}]',
+    message: 'writing-sonin-generative-system/375: console errors [{"type":"error","text":"Framing \'https://www.youtube.com/\' violates the following Content Security Policy directive: \\"default-src \'self\'\\"."}]',
   }), null);
 
   assert.equal(acceptedReportingFinding({
-    routeName: "lab-signal",
-    browser: "firefox",
+    routeName: "writing-sonin-generative-system",
+    browser: "chrome",
     viewport: "375",
-    message: 'lab-signal/375: serious accessibility findings [{"id":"aria-required-attr","nodes":[{"target":["span[data-layer=\\"noise\\"]"]}]}]',
+    message: 'writing-sonin-generative-system/375: serious accessibility findings [{"id":"color-contrast","nodes":[{"target":["span[data-layer=\\"noise\\"]"]}]}]',
   }), null);
 });
 
