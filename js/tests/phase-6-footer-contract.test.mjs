@@ -105,6 +105,14 @@ test("Bearing light mode bridges its local palette into accessible footer tokens
   assert.match(css, /body:has\(#lattice\) pre\.snip \.c/);
 });
 
+test("Bearing narrow code sample wraps instead of creating an unfocusable scroll region", () => {
+  const css = fs.readFileSync("static/css/phase-6-footer.css", "utf8");
+  assert.match(
+    css,
+    /@media \(max-width: 767px\)[\s\S]*body:has\(#lattice\) pre\.snip\s*\{[\s\S]*overflow-x: visible;[\s\S]*overflow-wrap: anywhere;[\s\S]*white-space: pre-wrap;/,
+  );
+});
+
 test("W-01 through W-07 keep the classic scheduler-owned footer", () => {
   for (const path of CLASSIC_WRITING_ARTICLES) {
     const html = fs.readFileSync(path, "utf8");
