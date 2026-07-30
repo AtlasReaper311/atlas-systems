@@ -5,6 +5,7 @@ const LAB_ROUTES = [
   { label: "System Symphony", href: "/lab/system-symphony/" },
   { label: "APU ROMs", href: "/lab/system-symphony/roms/" },
   { label: "System Map", href: "/lab/system-map/" },
+  { label: "Blackbox", href: "/lab/blackbox/" },
   { label: "Operations", href: "/lab/console/" },
   { label: "Proof Chain", href: "/lab/proof-chain/" },
   { label: "Signal Garden", href: "/lab/signal/" },
@@ -143,6 +144,49 @@ function installMetadata() {
   ensureMeta("twitter:description", description);
 }
 
+function installBlackboxDirectoryCard() {
+  if (currentPath() !== LAB_HOME_ROUTE) return;
+  const operations = document.querySelector('a.directory-card[href="/lab/console/"]');
+  if (!operations || operations.parentElement?.querySelector('a[href="/lab/blackbox/"]')) return;
+
+  const card = document.createElement("a");
+  card.className = "system-card directory-card";
+  card.dataset.family = "observe";
+  card.dataset.visual = "console";
+  card.dataset.motif = "REC";
+  card.href = "/lab/blackbox/";
+
+  const top = document.createElement("div");
+  top.className = "card-top";
+
+  const type = document.createElement("span");
+  type.className = "type-label";
+  type.textContent = "Incident evidence";
+
+  const maturity = document.createElement("span");
+  maturity.className = "badge tool";
+  maturity.textContent = "Tool";
+
+  const title = document.createElement("h3");
+  title.textContent = "Blackbox";
+
+  const description = document.createElement("p");
+  description.textContent =
+    "Replay the ten-minute evidence window before each sealed failure and open reviewed postmortems.";
+
+  const mode = document.createElement("span");
+  mode.className = "data-mode";
+  mode.textContent = "Recorded replay";
+
+  const route = document.createElement("span");
+  route.className = "card-route";
+  route.textContent = "Open recorder →";
+
+  top.append(type, maturity);
+  card.append(top, title, description, mode, route);
+  operations.insertAdjacentElement("beforebegin", card);
+}
+
 async function installLabIntroField() {
   ensureStylesheet(LAB_INTRO_FIELD_CSS);
   try {
@@ -169,6 +213,7 @@ async function installSystemMapCardField() {
 
 async function installLabHomeFields() {
   if (currentPath() !== LAB_HOME_ROUTE) return;
+  installBlackboxDirectoryCard();
   await Promise.all([
     installLabIntroField(),
     installSystemMapCardField(),

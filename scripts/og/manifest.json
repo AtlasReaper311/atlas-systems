@@ -91,6 +91,14 @@
       "tagline": "The estate's services and status, at the terminal."
     },
     {
+      "file": "blackbox",
+      "html": "lab/blackbox/index.html",
+      "route": "/lab/blackbox/",
+      "kicker": "Observe / Incident evidence",
+      "title": ["The minutes before", "failure, [kept.]"],
+      "tagline": "Replay sealed incidents and open their reviewed postmortems."
+    },
+    {
       "file": "system-symphony",
       "html": "lab/system-symphony/index.html",
       "route": "/lab/system-symphony/",
