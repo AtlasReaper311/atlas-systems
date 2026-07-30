@@ -96,6 +96,43 @@
   max-width: var(--atlas-content, 1100px);
 }
 
+/*
+ * The Bearing is a self-contained dual-theme instrument rather than an
+ * Atlas shell consumer. Its light palette therefore does not expose the
+ * Atlas text tokens inherited by the shared footer. Bridge those tokens at
+ * the route boundary and raise its small amber/code annotations to WCAG AA.
+ */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) body:has(#lattice) {
+    --bearing-phase6-accessible-accent: #8a4c00;
+    --bearing-phase6-accessible-muted: #5b5d60;
+    --atlas-border-hi: #cec8b7;
+    --atlas-text: #171a20;
+    --atlas-text-dim: #5b5d60;
+    --atlas-text-faint: #5b5d60;
+    --atlas-accent: #8a4c00;
+  }
+}
+
+:root[data-theme="light"] body:has(#lattice) {
+  --bearing-phase6-accessible-accent: #8a4c00;
+  --bearing-phase6-accessible-muted: #5b5d60;
+  --atlas-border-hi: #cec8b7;
+  --atlas-text: #171a20;
+  --atlas-text-dim: #5b5d60;
+  --atlas-text-faint: #5b5d60;
+  --atlas-accent: #8a4c00;
+}
+
+body:has(#lattice) .step .n,
+body:has(#lattice) pre.snip .a {
+  color: var(--bearing-phase6-accessible-accent, var(--load));
+}
+
+body:has(#lattice) pre.snip .c {
+  color: var(--bearing-phase6-accessible-muted, var(--ink-faint));
+}
+
 @media (max-width: 767px) {
   .atlas-footer {
     grid-template-columns: 1fr;
