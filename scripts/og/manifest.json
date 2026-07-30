@@ -1,5 +1,5 @@
 {
-  "note": "Copy source for route social-preview cards. Square brackets mark the accent word (amber italic). Local routes are wired in this repository; satellites are rendered here and wired in their owning repositories. `file` is the output name in /og/<file>.png.",
+  "note": "Copy source for route social-preview cards. Square brackets mark the accent word (amber italic). Local routes are wired in this repository; satellites are rendered here and wired in their owning repositories. `file` is the output name in /og/<file>.png. Optional `canonical` records an intentional alias target when it differs from `route`.",
   "routes": [
     {
       "file": "home",
@@ -85,6 +85,7 @@
       "file": "console",
       "html": "lab/console/index.html",
       "route": "/lab/console/",
+      "canonical": "https://atlas-systems.uk/lab/",
       "kicker": "Lab / Console",
       "title": ["Live [systems.]"],
       "tagline": "The estate's services and status, at the terminal."
@@ -117,6 +118,7 @@
       "file": "reliability-evidence",
       "html": "lab/reliability/index.html",
       "route": "/lab/reliability/",
+      "canonical": "https://atlas-systems.uk/systems/reliability/",
       "kicker": "Verify / Reliability",
       "title": ["Claims under", "[failure.]"],
       "tagline": "Bounded fault injection, detection, rollback, and recovery."
