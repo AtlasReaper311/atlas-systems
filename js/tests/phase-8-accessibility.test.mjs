@@ -8,10 +8,12 @@ const baseline = JSON.parse(
 );
 
 test("Phase 8 keeps corrected controls and dense regions accessible", () => {
-  assert.match(css, /\.word-chip \{ color: var\(--text-dim, #aaa9a0\); \}/);
+  assert.match(css, /\.word-chip \{ color: var\(--text-dim, #aaa9a0\); opacity: \.75 !important; \}/);
   assert.match(css, /\.almost-prose \{ min-width: 0; max-width: 100%; overflow-wrap: anywhere; \}/);
   assert.match(css, /\.snip \{ max-width: 100%; overflow-x: auto;/);
   assert.match(css, /\.atlas-mobile-nav__item \{ min-width: 44px; min-height: 64px;/);
+  assert.match(css, /body\[data-atlas-bottom-nav="true"\] \.term-chip \{[\s\S]*bottom: calc\(64px \+ env\(safe-area-inset-bottom\) \+ 14px\);[\s\S]*min-width: 44px;[\s\S]*min-height: 44px;/);
+  assert.match(css, /@media \(max-width: 860px\) \{[\s\S]*\.drift-page \.drift-title::before \{ display: none; \}/);
   assert.match(css, /\.bearing \.tag,/);
 });
 
