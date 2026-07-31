@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const script = readFileSync(new URL("../../writing/series.js", import.meta.url), "utf8");
+const writing = readFileSync(new URL("../../writing/index.html", import.meta.url), "utf8");
 const styles = readFileSync(new URL("../../writing/series.css", import.meta.url), "utf8");
 const articleStyles = readFileSync(new URL("../../writing/series-article.css", import.meta.url), "utf8");
 const workStyles = readFileSync(new URL("../../css/project-series.css", import.meta.url), "utf8");
@@ -15,18 +16,33 @@ test("series state is derived rather than hard-coded to one upcoming part", () =
   assert.doesNotMatch(script, /series-upcoming"\)/);
 });
 
-test("the temporary first-series bridge materializes the scheduler attribute contract", () => {
-  assert.match(script, /function materializeFallback/);
-  for (const attribute of [
-    "data-series",
-    "data-series-part",
-    "data-series-total",
-    "data-series-title",
-    "data-series-note",
-    "data-series-publish-date",
-  ]) {
-    assert.match(script, new RegExp(`setAttribute\\("${attribute}"`));
+test("the Writing source owns the complete scheduler series attribute contract", () => {
+  assert.doesNotMatch(script, /materializeFallback|\bFALLBACK\b/);
+  const cards = writing.match(
+    /<a\b[^>]*class="article-entry"[^>]*data-series="pipeline-observability"[^>]*>/g,
+  ) || [];
+  assert.equal(cards.length, 3);
+  for (const card of cards) {
+    for (const attribute of [
+      "data-series",
+      "data-series-part",
+      "data-series-total",
+      "data-series-title",
+      "data-series-note",
+      "data-series-publish-date",
+    ]) {
+      assert.match(card, new RegExp(`${attribute}="[^"]+"`));
+    }
   }
+  assert.match(script, /Invalid scheduler-owned Writing series metadata/);
+});
+
+test("series refresh is observer-idempotent", () => {
+  assert.match(script, /var observers = \[\];/);
+  assert.match(script, /function disconnectObservers\(\)/);
+  assert.match(script, /observer\.disconnect\(\)/);
+  assert.match(script, /function apply\(\) \{\s*disconnectObservers\(\);/);
+  assert.match(script, /observers\.push\(observer\)/);
 });
 
 test("writing series UI includes compact cards, progress, and contained article navigation", () => {

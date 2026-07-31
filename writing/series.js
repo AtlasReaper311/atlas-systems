@@ -1,73 +1,53 @@
 /**
- * Series Navigation v2
+ * Series Navigation v2.
  *
- * Reads source-owned data-series attributes from article cards, derives the
+ * Reads scheduler-owned data-series attributes from article cards, derives the
  * live/next/scheduled state from the DOM, and renders a compact navigable
  * series summary without moving or wrapping scheduler-owned cards.
  */
 (function () {
   "use strict";
 
-  /* Compatibility bridge for the first series while the scheduler-generated
-     cards replace the hand-authored W-05/W-06/W-07 teasers. New series must
-     arrive through data-series attributes, not this map. */
-  var FALLBACK = {
-    "W-05": {
-      id: "pipeline-observability",
-      part: 1,
-      total: 3,
-      title: "Pipeline & Observability",
-      note: "3 parts · 26–30 July 2026",
-      publishDate: "2026-07-26"
-    },
-    "W-06": {
-      id: "pipeline-observability",
-      part: 2,
-      total: 3,
-      title: "Pipeline & Observability",
-      note: "3 parts · 26–30 July 2026",
-      publishDate: "2026-07-28"
-    },
-    "W-07": {
-      id: "pipeline-observability",
-      part: 3,
-      total: 3,
-      title: "Pipeline & Observability",
-      note: "3 parts · 26–30 July 2026",
-      publishDate: "2026-07-30"
-    }
-  };
+  var observers = [];
 
   function text(card, selector) {
     var node = card.querySelector(selector);
     return node ? node.textContent.trim() : "";
   }
 
-  function materializeFallback(card, info) {
-    if (!info || card.hasAttribute("data-series")) return info;
-    card.setAttribute("data-series", info.id);
-    card.setAttribute("data-series-part", String(info.part));
-    card.setAttribute("data-series-total", String(info.total));
-    card.setAttribute("data-series-title", info.title);
-    card.setAttribute("data-series-note", info.note);
-    card.setAttribute("data-series-publish-date", info.publishDate);
-    return info;
-  }
-
   function resolve(card) {
     var id = card.getAttribute("data-series");
-    if (id) {
-      return {
-        id: id,
-        part: Number(card.getAttribute("data-series-part")) || 0,
-        total: Number(card.getAttribute("data-series-total")) || 0,
-        title: card.getAttribute("data-series-title") || id,
-        note: card.getAttribute("data-series-note") || "",
-        publishDate: card.getAttribute("data-series-publish-date") || ""
-      };
+    if (!id) return null;
+
+    var part = Number(card.getAttribute("data-series-part"));
+    var total = Number(card.getAttribute("data-series-total"));
+    var title = card.getAttribute("data-series-title") || "";
+    var note = card.getAttribute("data-series-note") || "";
+    var publishDate = card.getAttribute("data-series-publish-date") || "";
+
+    if (
+      !Number.isInteger(part) ||
+      !Number.isInteger(total) ||
+      part < 1 ||
+      total < 2 ||
+      part > total ||
+      !title ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(publishDate)
+    ) {
+      throw new Error(
+        "Invalid scheduler-owned Writing series metadata for " +
+        (text(card, ".article-number") || card.getAttribute("href") || "article card")
+      );
     }
 
-    return materializeFallback(card, FALLBACK[text(card, ".article-number")] || null);
+    return {
+      id: id,
+      part: part,
+      total: total,
+      title: title,
+      note: note,
+      publishDate: publishDate
+    };
   }
 
   function formatDate(value) {
@@ -206,7 +186,15 @@
     group.banner.hidden = allHidden;
   }
 
+  function disconnectObservers() {
+    observers.forEach(function (observer) {
+      observer.disconnect();
+    });
+    observers = [];
+  }
+
   function apply() {
+    disconnectObservers();
     document.querySelectorAll(".series-injected").forEach(function (node) { node.remove(); });
     document.querySelectorAll(".article-entry").forEach(function (card) {
       card.classList.remove(
@@ -225,7 +213,7 @@
     var groups = {};
     cards.forEach(function (card, domIndex) {
       var info = resolve(card);
-      if (!info || !info.id || !info.part || !info.total) return;
+      if (!info) return;
       if (!groups[info.id]) {
         groups[info.id] = {
           id: info.id,
@@ -235,6 +223,9 @@
           entries: []
         };
       }
+      if (groups[info.id].total !== info.total || groups[info.id].title !== info.title) {
+        throw new Error("Inconsistent scheduler-owned Writing series metadata for " + info.id);
+      }
       groups[info.id].entries.push({ card: card, info: info, domIndex: domIndex });
     });
 
@@ -243,6 +234,10 @@
       var orderedByPart = group.entries.slice().sort(function (a, b) {
         return a.info.part - b.info.part;
       });
+      var parts = orderedByPart.map(function (entry) { return entry.info.part; });
+      if (new Set(parts).size !== parts.length) {
+        throw new Error("Duplicate Writing series part metadata for " + id);
+      }
       var nextEntry = orderedByPart.find(function (entry) {
         return entry.card.classList.contains("coming-soon");
       }) || null;
@@ -260,14 +255,18 @@
       updateBannerVisibility(group);
 
       group.entries.forEach(function (entry) {
-        new MutationObserver(function () { updateBannerVisibility(group); }).observe(
-          entry.card,
-          { attributes: true, attributeFilter: ["class"] }
-        );
+        var observer = new MutationObserver(function () {
+          updateBannerVisibility(group);
+        });
+        observer.observe(entry.card, { attributes: true, attributeFilter: ["class"] });
+        observers.push(observer);
       });
     });
   }
 
   apply();
-  window.AtlasSeries = { refresh: apply };
+  window.AtlasSeries = {
+    refresh: apply,
+    disconnect: disconnectObservers
+  };
 })();
