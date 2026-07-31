@@ -47,7 +47,7 @@ jobs:
 
   deploy:
     needs: [verify-pages-output]
-    uses: AtlasReaper311/atlas-infra/.github/workflows/validate-static.yml@a9a183bc055ec5e4c878e2d5aab8cf4a38ac9656 # atlas-infra Pages artifact boundary
+    uses: AtlasReaper311/atlas-infra/.github/workflows/validate-static.yml@ba99bab755d5601204ead565a6b308d60a5c53ad # atlas-infra Pages artifact boundary with pinned Wrangler
     with:
       project_name: atlas-systems
       site_label: atlas-systems.uk
