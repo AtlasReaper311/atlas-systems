@@ -318,8 +318,15 @@
         <h2>Gating atlas-notify Through workflow_run</h2>
         <p><code>atlas-notify</code> is the only Worker with a real test suite. Wiring its deploy to the same <code>push</code> trigger as the other four would mean running Vitest twice on every push to main: once in its existing <code>ci.yml</code> (the established source of truth for test results, posted to the ci-cd channel), and once again inside the deploy workflow&#x27;s validate job. Two runs, two Discord posts, two places to trip when one of them gives a different answer.</p>
         <p>I used GitHub&#x27;s <code>workflow_run</code> trigger instead. The deploy workflow waits for the CI workflow to complete on main, and only proceeds when CI&#x27;s conclusion was success.</p>
-        <p>```yaml on:   workflow_run:     workflows: [&quot;CI&quot;]     types: [completed]     branches: [main]</p>
-        <p>jobs:   deploy:     if: ${{ github.event.workflow_run.conclusion == &#x27;success&#x27; }} ```</p>
+        <pre><code class="language-yaml">on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}</code></pre>
         <p>The behaviour is what you would want. A failing CI prevents the deploy from ever starting, the ci-cd channel stays the source of truth for test results, the api-deploys channel stays the source of truth for deploys, and Vitest runs exactly once per push.</p>
         <div class="callout"><div class="callout-label">Design Decision</div><p>CI gates the deploy through <code>workflow_run</code>, not by running tests twice. The deploy is the consequence of CI passing, not a parallel attempt at the same thing.</p></div>
       </section>
@@ -349,7 +356,9 @@
         <p>The Workers token used in CI has Workers Scripts: Edit and Workers Routes: Edit, deliberately scoped narrowly. It does not have Account: Read. Local <code>wrangler deploy</code> runs with a broader interactive token and resolves zone names fine. CI runs with the scoped token and fails silently with &quot;Could not find zone.&quot; <code>atlas-notify</code>&#x27;s wildcard route used <code>zone_name = &quot;atlas-systems.uk&quot;</code>, and every CI deploy failed on every run while the route worked perfectly when deployed locally. This was the same gap the previous month&#x27;s pipeline had already hit once, in a narrower form, and patched without fully understanding why.</p>
         <div class="callout error"><div class="callout-label">Root Cause</div><p>Resolving a Cloudflare zone name to its zone ID requires Account: Read on the calling token because the lookup happens against the account&#x27;s zone list. The scoped CI token cannot do the membership lookup. The narrower the token, the less it can introspect.</p></div>
         <p>The fix was to use the literal zone ID in every route in every <code>wrangler.toml</code> on the estate, so nothing has to introspect at deploy time:</p>
-        <p>``<code>toml routes = [   { pattern = &quot;api.atlas-systems.uk/notify*&quot;, zone_id = &quot;8ba6350a78c988447c111048b125f917&quot; } ] </code>``</p>
+        <pre><code class="language-toml">routes = [
+  { pattern = "api.atlas-systems.uk/notify*", zone_id = "8ba6350a78c988447c111048b125f917" }
+]</code></pre>
         <p>This became a hard estate rule. Its current authority lives in <code>atlas-infra/docs/adrs/</code> and the executable policy and validation code; the older <code>docs/decisions.md</code> record remains useful historical context but is not the current architecture authority.</p>
         <div class="callout success"><div class="callout-label">Resolution</div><p><code>zone_id</code> everywhere, no exceptions. The deploy works identically from any environment because nothing has to introspect.</p></div>
       </section>
