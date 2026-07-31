@@ -1,0 +1,46 @@
+name: Diagnose OG drift
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/og-drift-diagnostic.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.repository }}-og-drift-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out exact pull request head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Regenerate and report OG drift
+        run: |
+          set -euo pipefail
+          test -z "$(git status --short)"
+          npm ci
+          npm run og
+          echo "Generated OG changes:"
+          git status --short
+          echo "Generated OG name-status:"
+          git diff --name-status
+          echo "Generated OG statistics:"
+          git diff --stat
+          if ! git diff --quiet; then
+            echo "::error::Committed OG output is stale or nondeterministic"
+            exit 1
+          fi
