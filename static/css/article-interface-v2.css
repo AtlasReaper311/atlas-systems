@@ -112,6 +112,10 @@ main {
   line-height: 1.8;
 }
 
+.prose a {
+  overflow-wrap: anywhere;
+}
+
 .callout p,
 .data-table,
 .model-table,
