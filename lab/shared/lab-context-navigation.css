@@ -1,0 +1,122 @@
+.lab-context-nav {
+  min-height: 58px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  scroll-snap-type: inline proximity;
+}
+
+.lab-context-nav-inner {
+  width: max-content;
+  min-width: 100%;
+  min-height: 58px;
+  margin: 0 auto;
+  display: flex;
+  align-items: stretch;
+}
+
+.lab-context-group {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0.3rem 0.45rem 0.35rem;
+  border-inline-end: 1px solid var(--border);
+  scroll-snap-align: start;
+}
+
+.lab-context-group:last-child {
+  border-inline-end: 0;
+}
+
+.lab-context-group-label {
+  display: block;
+  padding: 0 0.35rem 0.1rem;
+  color: var(--text-faint);
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.lab-context-group-links {
+  display: flex;
+  align-items: stretch;
+  gap: 0.1rem;
+}
+
+.lab-context-nav .lab-context-group a {
+  min-height: 44px;
+  padding: 0.45rem 0.55rem;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--text-dim);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  line-height: 1.25;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.lab-context-nav .lab-context-group a:hover {
+  border-color: var(--border-hi);
+  color: var(--text);
+}
+
+.lab-context-nav .lab-context-group a:focus-visible {
+  border-color: var(--accent);
+  color: var(--text);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.lab-context-nav .lab-context-group a[aria-current="page"] {
+  border-color: rgba(245, 166, 35, 0.45);
+  background: var(--accent-dim);
+  color: var(--text);
+}
+
+@media (min-width: 1100px) {
+  .lab-context-nav {
+    overflow-x: visible;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .lab-context-nav-inner {
+    width: min(1440px, calc(100% - 2rem));
+    min-width: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .lab-context-group {
+    flex: 0 1 auto;
+  }
+}
+
+@media (max-width: 1099px) {
+  .lab-context-nav {
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent);
+  }
+}
+
+@media (max-width: 760px) {
+  .lab-context-nav {
+    top: 0;
+  }
+
+  .lab-context-group {
+    padding-inline: 0.3rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-context-nav {
+    scroll-behavior: auto;
+  }
+}
