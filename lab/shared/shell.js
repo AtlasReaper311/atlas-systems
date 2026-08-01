@@ -1,24 +1,54 @@
 "use strict";
 
-const LAB_ROUTES = [
-  { label: "Lab home", href: "/lab/" },
-  { label: "System Symphony", href: "/lab/system-symphony/" },
-  { label: "APU ROMs", href: "/lab/system-symphony/roms/" },
-  { label: "System Map", href: "/lab/system-map/" },
-  { label: "Blackbox", href: "/lab/blackbox/" },
-  { label: "Operations", href: "/lab/console/" },
-  { label: "Proof Chain", href: "/lab/proof-chain/" },
-  { label: "Signal Garden", href: "/lab/signal/" },
-  { label: "Reliability", href: "/systems/reliability/" },
-  { label: "Conformance", href: "/lab/conformance/" },
-  { label: "Speculum", href: "/lab/speculum/" },
-  { label: "Shape Detector", href: "/lab/anomaly/" },
-  { label: "Almost", href: "/lab/almost/" },
-  { label: "Drift", href: "/lab/drift/" },
-];
+const LAB_ROUTE_GROUPS = Object.freeze([
+  Object.freeze({
+    label: "Lab",
+    routes: Object.freeze([
+      Object.freeze({ label: "Lab home", href: "/lab/" }),
+    ]),
+  }),
+  Object.freeze({
+    label: "Experience",
+    routes: Object.freeze([
+      Object.freeze({ label: "Ramone", href: "https://ramone.atlas-systems.uk/", external: true }),
+      Object.freeze({ label: "System Symphony", href: "/lab/system-symphony/", match: "prefix" }),
+      Object.freeze({ label: "Signal Garden", href: "/lab/signal/" }),
+    ]),
+  }),
+  Object.freeze({
+    label: "Observe",
+    routes: Object.freeze([
+      Object.freeze({ label: "System Map", href: "/lab/system-map/" }),
+      Object.freeze({ label: "Blackbox", href: "/lab/blackbox/" }),
+      Object.freeze({ label: "Observability", href: "/systems/observability/" }),
+      Object.freeze({ label: "Detailed Console", href: "/lab/console/" }),
+    ]),
+  }),
+  Object.freeze({
+    label: "Verify",
+    routes: Object.freeze([
+      Object.freeze({ label: "Proof Chain", href: "/lab/proof-chain/" }),
+      Object.freeze({ label: "Estate Conformance", href: "/lab/conformance/" }),
+      Object.freeze({ label: "Reliability", href: "/systems/reliability/" }),
+      Object.freeze({ label: "Evidence", href: "/systems/evidence/" }),
+    ]),
+  }),
+  Object.freeze({
+    label: "Explore",
+    routes: Object.freeze([
+      Object.freeze({ label: "Speculum", href: "/lab/speculum/" }),
+      Object.freeze({ label: "Almost", href: "/lab/almost/" }),
+      Object.freeze({ label: "Drift", href: "/lab/drift/" }),
+      Object.freeze({ label: "The Bearing", href: "/lab/bearing/" }),
+      Object.freeze({ label: "Shape Detector", href: "/lab/anomaly/" }),
+    ]),
+  }),
+]);
 
+const LAB_ROUTES = Object.freeze(LAB_ROUTE_GROUPS.flatMap(({ routes }) => routes));
 const PRODUCTION_ORIGIN = "https://atlas-systems.uk";
 const SEARCH_CSS = "/static/css/estate-search.css";
+const LAB_CONTEXT_CSS = "/lab/shared/lab-context-navigation.css?v=20260801-phase-11a-v1";
 const LAB_HOME_ROUTE = "/lab/";
 const SYSTEM_SYMPHONY_ROUTE = "/lab/system-symphony/";
 const LAB_INTRO_FIELD_CSS = "/lab/shared/lab-intro-field.css?v=20260727-lab-intro-field-v1";
@@ -37,6 +67,13 @@ function currentPath() {
 
 function isSystemSymphonyPath(pathname = currentPath()) {
   return pathname.startsWith(SYSTEM_SYMPHONY_ROUTE);
+}
+
+function isCurrentLabRoute(route, pathname = currentPath()) {
+  if (route.external) return false;
+  const routePath = normalizePath(new URL(route.href, window.location.origin).pathname);
+  if (route.match === "prefix") return pathname === routePath || pathname.startsWith(routePath);
+  return pathname === routePath;
 }
 
 function ensureStylesheet(href) {
@@ -74,18 +111,46 @@ function installContextNavigation(primary) {
     primary.insertAdjacentElement("afterend", context);
   }
   context.replaceChildren();
+
   const inner = document.createElement("div");
   inner.className = "lab-context-nav-inner";
-  for (const route of LAB_ROUTES) {
-    const link = document.createElement("a");
-    link.href = route.href;
-    link.textContent = route.label;
-    if (normalizePath(new URL(route.href, window.location.origin).pathname) === currentPath()) {
-      link.setAttribute("aria-current", "page");
+  let currentLink = null;
+
+  LAB_ROUTE_GROUPS.forEach((routeGroup, groupIndex) => {
+    const group = document.createElement("div");
+    group.className = "lab-context-group";
+    group.dataset.labContextGroup = routeGroup.label.toLowerCase();
+    group.setAttribute("role", "group");
+
+    const label = document.createElement("span");
+    label.className = "lab-context-group-label";
+    label.id = `lab-context-group-${groupIndex}`;
+    label.textContent = routeGroup.label;
+    group.setAttribute("aria-labelledby", label.id);
+    group.appendChild(label);
+
+    const links = document.createElement("div");
+    links.className = "lab-context-group-links";
+    for (const route of routeGroup.routes) {
+      const link = document.createElement("a");
+      link.href = route.href;
+      link.textContent = route.label;
+      if (isCurrentLabRoute(route)) {
+        link.setAttribute("aria-current", "page");
+        currentLink = link;
+      }
+      links.appendChild(link);
     }
-    inner.appendChild(link);
-  }
+    group.appendChild(links);
+    inner.appendChild(group);
+  });
+
   context.appendChild(inner);
+  if (currentLink && window.matchMedia("(max-width: 860px)").matches) {
+    window.requestAnimationFrame(() => {
+      currentLink.scrollIntoView({ block: "nearest", inline: "center", behavior: "auto" });
+    });
+  }
 }
 
 function installFooter() {
@@ -229,6 +294,7 @@ async function installRouteEnhancements() {
 
 async function installLabShell() {
   ensureStylesheet(SEARCH_CSS);
+  ensureStylesheet(LAB_CONTEXT_CSS);
   installMetadata();
   const primary = installPrimaryNavigation();
   installContextNavigation(primary);
@@ -241,4 +307,10 @@ async function installLabShell() {
 
 void installLabShell();
 
-export { LAB_ROUTES, isSystemSymphonyPath, normalizePath };
+export {
+  LAB_ROUTE_GROUPS,
+  LAB_ROUTES,
+  isCurrentLabRoute,
+  isSystemSymphonyPath,
+  normalizePath,
+};
