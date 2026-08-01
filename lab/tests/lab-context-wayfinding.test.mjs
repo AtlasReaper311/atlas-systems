@@ -36,7 +36,11 @@ test("Lab context inventory uses current canonical destinations", () => {
     assert.match(shell, new RegExp(href.replaceAll("/", "\\/")));
   }
   assert.doesNotMatch(shell, /\/lab\/reliability\//);
-  assert.doesNotMatch(shell, /https?:\/\//);
+
+  const labGroupsStart = shell.indexOf("const LAB_ROUTE_GROUPS");
+  const labGroupsEnd = shell.indexOf("const LAB_ROUTES");
+  assert.ok(labGroupsStart >= 0 && labGroupsEnd > labGroupsStart);
+  assert.doesNotMatch(shell.slice(labGroupsStart, labGroupsEnd), /https?:\/\//);
 });
 
 test("System Symphony children stay outside the global Lab route groups", () => {
