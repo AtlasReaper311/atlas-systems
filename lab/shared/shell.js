@@ -21,7 +21,7 @@ const LAB_ROUTE_GROUPS = Object.freeze([
       Object.freeze({ label: "System Map", href: "/lab/system-map/" }),
       Object.freeze({ label: "Blackbox", href: "/lab/blackbox/" }),
       Object.freeze({ label: "Observability", href: "/systems/observability/" }),
-      Object.freeze({ label: "Detailed Console", href: "/lab/console/" }),
+      Object.freeze({ label: "Operations", href: "/lab/console/" }),
     ]),
   }),
   Object.freeze({
