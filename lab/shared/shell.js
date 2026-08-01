@@ -72,8 +72,7 @@ function currentPath() {
 }
 
 function isSystemSymphonyPath(pathname = currentPath()) {
-  if (pathname === SYSTEM_SYMPHONY_ROUTE) return true;
-  return SYSTEM_SYMPHONY_SCOPED_ROUTES.some(({ href }) => pathname === href);
+  return pathname.startsWith(SYSTEM_SYMPHONY_ROUTE);
 }
 
 function isCurrentLabRoute(route, pathname = currentPath()) {
