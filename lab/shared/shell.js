@@ -18,7 +18,6 @@ const LAB_ROUTE_GROUPS = Object.freeze([
   Object.freeze({
     label: "Experience",
     routes: Object.freeze([
-      Object.freeze({ label: "Ramone", href: "https://ramone.atlas-systems.uk/", external: true }),
       Object.freeze({ label: "System Symphony", href: "/lab/system-symphony/" }),
       Object.freeze({ label: "Signal Garden", href: "/lab/signal/" }),
     ]),
@@ -78,7 +77,6 @@ function isSystemSymphonyPath(pathname = currentPath()) {
 }
 
 function isCurrentLabRoute(route, pathname = currentPath()) {
-  if (route.external) return false;
   const routePath = normalizePath(new URL(route.href, window.location.origin).pathname);
   if (routePath === SYSTEM_SYMPHONY_ROUTE) {
     return pathname === routePath || SYSTEM_SYMPHONY_SCOPED_ROUTES.some(({ href }) => pathname === href);
