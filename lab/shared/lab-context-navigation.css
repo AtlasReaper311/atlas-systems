@@ -106,10 +106,6 @@
 }
 
 @media (max-width: 760px) {
-  .lab-context-nav {
-    top: 0;
-  }
-
   .lab-context-group {
     padding-inline: 0.3rem;
   }

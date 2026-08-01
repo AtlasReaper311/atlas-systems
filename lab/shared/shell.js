@@ -55,7 +55,7 @@ const LAB_ROUTE_GROUPS = Object.freeze([
 const LAB_ROUTES = Object.freeze(LAB_ROUTE_GROUPS.flatMap(({ routes }) => routes));
 const PRODUCTION_ORIGIN = "https://atlas-systems.uk";
 const SEARCH_CSS = "/static/css/estate-search.css";
-const LAB_CONTEXT_CSS = "/lab/shared/lab-context-navigation.css?v=20260801-phase-11a-v1";
+const LAB_CONTEXT_CSS = "/lab/shared/lab-context-navigation.css?v=20260801-phase-11a-v2";
 const LAB_HOME_ROUTE = "/lab/";
 const LAB_INTRO_FIELD_CSS = "/lab/shared/lab-intro-field.css?v=20260727-lab-intro-field-v1";
 const LAB_INTRO_FIELD_MODULE = "/lab/shared/lab-intro-field.js?v=20260727-lab-intro-field-v1";
