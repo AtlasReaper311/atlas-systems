@@ -1,5 +1,13 @@
 "use strict";
 
+const SYSTEM_SYMPHONY_ROUTE = "/lab/system-symphony/";
+const SYSTEM_SYMPHONY_SCOPED_ROUTES = Object.freeze([
+  Object.freeze({ label: "APU ROMs", href: "/lab/system-symphony/roms/" }),
+  Object.freeze({ label: "Build log", href: "/lab/system-symphony/build-log/" }),
+  Object.freeze({ label: "Radio", href: "/lab/system-symphony/radio/" }),
+  Object.freeze({ label: "Replay", href: "/lab/system-symphony/replay/" }),
+]);
+
 const LAB_ROUTE_GROUPS = Object.freeze([
   Object.freeze({
     label: "Lab",
@@ -11,7 +19,7 @@ const LAB_ROUTE_GROUPS = Object.freeze([
     label: "Experience",
     routes: Object.freeze([
       Object.freeze({ label: "Ramone", href: "https://ramone.atlas-systems.uk/", external: true }),
-      Object.freeze({ label: "System Symphony", href: "/lab/system-symphony/", match: "prefix" }),
+      Object.freeze({ label: "System Symphony", href: "/lab/system-symphony/" }),
       Object.freeze({ label: "Signal Garden", href: "/lab/signal/" }),
     ]),
   }),
@@ -50,7 +58,6 @@ const PRODUCTION_ORIGIN = "https://atlas-systems.uk";
 const SEARCH_CSS = "/static/css/estate-search.css";
 const LAB_CONTEXT_CSS = "/lab/shared/lab-context-navigation.css?v=20260801-phase-11a-v1";
 const LAB_HOME_ROUTE = "/lab/";
-const SYSTEM_SYMPHONY_ROUTE = "/lab/system-symphony/";
 const LAB_INTRO_FIELD_CSS = "/lab/shared/lab-intro-field.css?v=20260727-lab-intro-field-v1";
 const LAB_INTRO_FIELD_MODULE = "/lab/shared/lab-intro-field.js?v=20260727-lab-intro-field-v1";
 const SYSTEM_MAP_CARD_FIELD_CSS = "/lab/shared/system-map-card-field.css?v=20260727-system-map-card-field-v2";
@@ -66,13 +73,16 @@ function currentPath() {
 }
 
 function isSystemSymphonyPath(pathname = currentPath()) {
-  return pathname.startsWith(SYSTEM_SYMPHONY_ROUTE);
+  if (pathname === SYSTEM_SYMPHONY_ROUTE) return true;
+  return SYSTEM_SYMPHONY_SCOPED_ROUTES.some(({ href }) => pathname === href);
 }
 
 function isCurrentLabRoute(route, pathname = currentPath()) {
   if (route.external) return false;
   const routePath = normalizePath(new URL(route.href, window.location.origin).pathname);
-  if (route.match === "prefix") return pathname === routePath || pathname.startsWith(routePath);
+  if (routePath === SYSTEM_SYMPHONY_ROUTE) {
+    return pathname === routePath || SYSTEM_SYMPHONY_SCOPED_ROUTES.some(({ href }) => pathname === href);
+  }
   return pathname === routePath;
 }
 
@@ -310,6 +320,7 @@ void installLabShell();
 export {
   LAB_ROUTE_GROUPS,
   LAB_ROUTES,
+  SYSTEM_SYMPHONY_SCOPED_ROUTES,
   isCurrentLabRoute,
   isSystemSymphonyPath,
   normalizePath,
