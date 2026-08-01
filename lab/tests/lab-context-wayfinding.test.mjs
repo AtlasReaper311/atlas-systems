@@ -72,6 +72,7 @@ test("wayfinding styles preserve narrow access and visible keyboard focus", () =
   assert.match(styles, /a\[aria-current="page"\]/);
   assert.match(styles, /overflow-x: auto/);
   assert.match(styles, /scroll-snap-type: inline proximity/);
+  assert.match(styles, /top: var\(--atlas-header-height, var\(--global-nav-h, var\(--nav-h, 56px\)\)\)/);
   assert.doesNotMatch(styles, /@media \(max-width: 760px\)[\s\S]*?\.lab-context-nav\s*{[\s\S]*?top:\s*0/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
 });

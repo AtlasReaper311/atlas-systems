@@ -1,4 +1,5 @@
 .lab-context-nav {
+  top: var(--atlas-header-height, var(--global-nav-h, var(--nav-h, 56px)));
   min-height: 58px;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
