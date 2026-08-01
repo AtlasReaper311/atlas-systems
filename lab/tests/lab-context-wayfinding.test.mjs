@@ -37,16 +37,25 @@ test("Lab context inventory uses current canonical destinations", () => {
     assert.match(shell, new RegExp(href.replaceAll("/", "\\/")));
   }
   assert.doesNotMatch(shell, /\/lab\/reliability\//);
-  assert.doesNotMatch(shell, /APU ROMs/);
+});
+
+test("System Symphony children stay outside the global Lab route groups", () => {
+  const scopedStart = shell.indexOf("const SYSTEM_SYMPHONY_SCOPED_ROUTES");
+  const labGroupsStart = shell.indexOf("const LAB_ROUTE_GROUPS");
+  const labGroupsEnd = shell.indexOf("const LAB_ROUTES");
+  assert.ok(scopedStart >= 0 && scopedStart < labGroupsStart);
+  assert.ok(labGroupsEnd > labGroupsStart);
+  assert.match(shell.slice(scopedStart, labGroupsStart), /label: "APU ROMs", href: "\/lab\/system-symphony\/roms\/"/);
+  assert.doesNotMatch(shell.slice(labGroupsStart, labGroupsEnd), /APU ROMs|build-log|\/radio\/|\/replay\//);
 });
 
 test("nested System Symphony routes retain parent Lab context", () => {
   assert.match(
     shell,
-    /label: "System Symphony", href: "\/lab\/system-symphony\/", match: "prefix"/,
+    /label: "System Symphony", href: "\/lab\/system-symphony\/"/,
   );
-  assert.match(shell, /if \(route\.match === "prefix"\)/);
-  assert.match(shell, /pathname\.startsWith\(routePath\)/);
+  assert.match(shell, /routePath === SYSTEM_SYMPHONY_ROUTE/);
+  assert.match(shell, /SYSTEM_SYMPHONY_SCOPED_ROUTES\.some/);
   assert.match(shell, /link\.setAttribute\("aria-current", "page"\)/);
 });
 
