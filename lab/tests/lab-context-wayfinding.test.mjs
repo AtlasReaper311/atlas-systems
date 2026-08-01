@@ -10,7 +10,7 @@ test("Lab context navigation follows the accepted purpose taxonomy", () => {
     assert.match(shell, new RegExp(`label: "${label}"`));
   }
   assert.match(shell, /const LAB_ROUTES = Object\.freeze\(LAB_ROUTE_GROUPS\.flatMap/);
-  assert.match(shell, /data\.labContextGroup = routeGroup\.label\.toLowerCase\(\)/);
+  assert.match(shell, /dataset\.labContextGroup = routeGroup\.label\.toLowerCase\(\)/);
   assert.match(shell, /group\.setAttribute\("role", "group"\)/);
   assert.match(shell, /group\.setAttribute\("aria-labelledby", label\.id\)/);
 });
