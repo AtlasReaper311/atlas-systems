@@ -17,7 +17,6 @@ test("Lab context navigation follows the accepted purpose taxonomy", () => {
 
 test("Lab context inventory uses current canonical destinations", () => {
   for (const href of [
-    "https://ramone.atlas-systems.uk/",
     "/lab/system-symphony/",
     "/lab/signal/",
     "/lab/system-map/",
@@ -37,6 +36,7 @@ test("Lab context inventory uses current canonical destinations", () => {
     assert.match(shell, new RegExp(href.replaceAll("/", "\\/")));
   }
   assert.doesNotMatch(shell, /\/lab\/reliability\//);
+  assert.doesNotMatch(shell, /https?:\/\//);
 });
 
 test("System Symphony children stay outside the global Lab route groups", () => {
