@@ -6,9 +6,14 @@ const shell = fs.readFileSync("lab/shared/shell.js", "utf8");
 const styles = fs.readFileSync("lab/shared/lab-context-navigation.css", "utf8");
 
 test("Lab context navigation follows the accepted purpose taxonomy", () => {
-  for (const label of ["Lab", "Experience", "Observe", "Verify", "Explore"]) {
+  for (const label of ["Experience", "Observe", "Verify", "Explore"]) {
     assert.match(shell, new RegExp(`label: "${label}"`));
   }
+  const labGroupsStart = shell.indexOf("const LAB_ROUTE_GROUPS");
+  const labGroupsEnd = shell.indexOf("const LAB_ROUTES");
+  assert.ok(labGroupsStart >= 0 && labGroupsEnd > labGroupsStart);
+  assert.doesNotMatch(shell.slice(labGroupsStart, labGroupsEnd), /label: "Lab"/);
+  assert.doesNotMatch(shell.slice(labGroupsStart, labGroupsEnd), /label: "Lab home"/);
   assert.match(shell, /const LAB_ROUTES = Object\.freeze\(LAB_ROUTE_GROUPS\.flatMap/);
   assert.match(shell, /dataset\.labContextGroup = routeGroup\.label\.toLowerCase\(\)/);
   assert.match(shell, /group\.setAttribute\("role", "group"\)/);

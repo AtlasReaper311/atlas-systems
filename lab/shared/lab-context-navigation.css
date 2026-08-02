@@ -14,6 +14,7 @@
   margin: 0 auto;
   display: flex;
   align-items: stretch;
+  flex-wrap: nowrap;
   gap: 0;
 }
 
@@ -89,7 +90,18 @@
   }
 
   .lab-context-nav-inner {
-    justify-content: flex-start;
+    width: min(1540px, calc(100% - 96px));
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .lab-context-group {
+    flex: 0 1 auto;
+    padding-inline: clamp(0.55rem, 0.9vw, 1rem);
+  }
+
+  .lab-context-nav .lab-context-group a {
+    padding-inline: clamp(0.48rem, 0.7vw, 0.72rem);
   }
 }
 

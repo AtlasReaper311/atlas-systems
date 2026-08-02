@@ -268,15 +268,13 @@ body:has(.lab-context-nav) main { padding-top:calc(var(--nav-h) + 96px); }
 .lab-tool-footer a:hover { color:var(--accent); }
 .ramone-stage { padding:64px 0; border-bottom:1px solid var(--border); }
 .ramone-stage .ramone-hero { margin:0; }
-.lab-home-page main { width:min(calc(100% - 48px),1280px); }
+.lab-home-page main { width:min(calc(100% - 48px),1180px); }
 .lab-landing-hero {
   position:relative;
-  display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(390px,.74fr);
-  gap:clamp(32px,5vw,72px);
+  min-height:clamp(460px,calc(100vh - 228px),640px);
+  display:flex;
   align-items:center;
-  min-height:clamp(560px,calc(100vh - 188px),760px);
-  padding:34px 0 56px;
+  padding:54px 0 66px;
   border-bottom:1px solid var(--border);
 }
 .lab-landing-hero::before {
@@ -292,6 +290,7 @@ body:has(.lab-context-nav) main { padding-top:calc(var(--nav-h) + 96px); }
 }
 .lab-landing-hero .page-intro {
   min-width:0;
+  max-width:890px;
   padding:0;
   border-bottom:0;
 }
@@ -300,31 +299,30 @@ body:has(.lab-context-nav) main { padding-top:calc(var(--nav-h) + 96px); }
   font-size:clamp(3.8rem,7vw,6.45rem);
 }
 .lab-landing-hero .lede { max-width:720px; }
-.lab-landing-hero .ramone-stage {
-  min-width:0;
-  padding:0;
-  border-bottom:0;
+.lab-ramone-section {
+  padding:42px 0 66px;
+  border-bottom:1px solid var(--border);
 }
-.lab-landing-hero .ramone-hero {
+.lab-ramone-section .ramone-hero {
   margin:0;
   padding:0;
   border-bottom:0;
 }
-.lab-landing-hero .ramone-card {
-  max-width:100%;
-  transform:translateY(8px);
+.lab-ramone-section .ramone-card {
+  width:min(100%,880px);
+  margin-inline:auto;
 }
-.lab-landing-hero .ramone-hero-center {
+.lab-ramone-section .ramone-hero-center {
   padding:clamp(1.35rem,2.6vw,2.15rem);
 }
-.lab-landing-hero .ramone-boot {
+.lab-ramone-section .ramone-boot {
   max-height:7.8rem;
   overflow:hidden;
 }
-.lab-landing-hero .ramone-hero-heading {
+.lab-ramone-section .ramone-hero-heading {
   font-size:clamp(2rem,3.6vw,3.05rem);
 }
-.lab-landing-hero .ramone-hero-suggestions {
+.lab-ramone-section .ramone-hero-suggestions {
   max-height:8rem;
   overflow:hidden;
 }
@@ -343,8 +341,8 @@ body:has(.lab-context-nav) main { padding-top:calc(var(--nav-h) + 96px); }
 @media(max-width:1050px){
   .systems-tools-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
   .product-showcase { grid-template-columns:minmax(0,1.25fr) minmax(260px,.85fr); }
-  .lab-landing-hero { grid-template-columns:1fr; min-height:0; padding-top:28px; }
-  .lab-landing-hero .ramone-card { max-width:760px; transform:none; }
+  .lab-landing-hero { min-height:0; padding-top:36px; }
+  .lab-ramone-section .ramone-card { width:min(100%,760px); }
 }
 @media(max-width:900px){
   .card-grid,.card-grid.two,.portfolio-grid,.verify-grid,.systems-tools-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
