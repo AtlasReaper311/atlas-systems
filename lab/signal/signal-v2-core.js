@@ -422,6 +422,10 @@ function applyMacro() {
   macroCursor.style.top = `${(1 - macroY) * 100}%`;
   macroXOutput.textContent = macroX.toFixed(2);
   macroYOutput.textContent = macroY.toFixed(2);
+  macroPad.setAttribute(
+    "aria-label",
+    `Two-dimensional macro control: density ${macroX.toFixed(2)}, volatility ${macroY.toFixed(2)}`,
+  );
   workletNode?.port.postMessage({ type: "macro", x: macroX, y: macroY });
 }
 
@@ -434,7 +438,9 @@ function setMacroPosition(x, y) {
 function setMode(mode) {
   currentMode = mode === "perform" ? "perform" : "autonomous";
   document.querySelectorAll(".mode-btn").forEach((button) => {
-    button.classList.toggle("active", button.dataset.mode === currentMode);
+    const active = button.dataset.mode === currentMode;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
   });
   modeHelp.textContent = currentMode === "autonomous"
     ? "The garden moves through long-form states by itself. Your gestures still influence it without taking over."
@@ -798,6 +804,26 @@ function updateMacroFromPointer(event) {
   setMacroPosition(x, y);
 }
 
+function updateMacroFromKeyboard(event) {
+  const coarseStep = event.shiftKey ? 0.1 : 0.04;
+  let nextX = macroX;
+  let nextY = macroY;
+
+  if (event.key === "ArrowLeft") nextX -= coarseStep;
+  else if (event.key === "ArrowRight") nextX += coarseStep;
+  else if (event.key === "ArrowDown") nextY -= coarseStep;
+  else if (event.key === "ArrowUp") nextY += coarseStep;
+  else if (event.key === "Home") {
+    nextX = 0.5;
+    nextY = 0.5;
+  } else {
+    return;
+  }
+
+  event.preventDefault();
+  setMacroPosition(nextX, nextY);
+}
+
 async function decodeAudioFile(file) {
   if (!file || !file.type.startsWith("audio/")) {
     shareStatus.textContent = "Choose a browser-decodable audio file.";
@@ -870,7 +896,11 @@ function randomizeEcosystem() {
 
 function setWeather(name) {
   currentWeather = weatherCopy[name] ? name : "clear";
-  document.querySelectorAll("[data-weather]").forEach((button) => button.classList.toggle("active", button.dataset.weather === currentWeather));
+  document.querySelectorAll("[data-weather]").forEach((button) => {
+    const active = button.dataset.weather === currentWeather;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
   document.querySelector("#weather-help").textContent = weatherCopy[currentWeather];
   inspectFeedback.textContent = currentWeather;
   workletNode?.port.postMessage({ type: "weather", value: currentWeather });
@@ -878,7 +908,11 @@ function setWeather(name) {
 
 function setSpectralMode(name) {
   currentSpectralMode = spectralCopy[name] ? name : "off";
-  document.querySelectorAll("[data-spectral]").forEach((button) => button.classList.toggle("active", button.dataset.spectral === currentSpectralMode));
+  document.querySelectorAll("[data-spectral]").forEach((button) => {
+    const active = button.dataset.spectral === currentSpectralMode;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
   document.querySelector("#spectral-help").textContent = spectralCopy[currentSpectralMode];
   inspectSpectral.textContent = currentSpectralMode;
   workletNode?.port.postMessage({ type: "spectral-mode", value: currentSpectralMode });
@@ -1005,6 +1039,7 @@ macroPad.addEventListener("pointerup", (event) => {
   if (macroPad.hasPointerCapture(event.pointerId)) macroPad.releasePointerCapture(event.pointerId);
 });
 macroPad.addEventListener("pointercancel", () => { macroPointerActive = false; });
+macroPad.addEventListener("keydown", updateMacroFromKeyboard);
 window.addEventListener("resize", resizeCanvas);
 
 populateGenomeSelects();
