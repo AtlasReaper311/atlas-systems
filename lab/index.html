@@ -33,8 +33,10 @@
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260724-source-hardening">
   <style>
     .lab-home-page main { width:min(calc(100% - 48px),1180px); }
-    .lab-landing-hero { min-height:clamp(460px,calc(100vh - 228px),640px); display:flex; align-items:center; padding:54px 0 66px; }
-    .lab-landing-hero .page-intro { max-width:890px; }
+    .lab-landing-hero { display:block; min-height:0; padding:48px 0 56px; }
+    .lab-landing-hero .page-intro { max-width:none; }
+    .lab-landing-hero .page-intro h1 { max-width:850px; font-size:clamp(2.8rem,7vw,5.25rem); }
+    .lab-landing-hero .lede { max-width:760px; }
     .lab-ramone-section { padding:42px 0 66px; border-bottom:1px solid var(--border); }
     .lab-ramone-section .ramone-hero { margin:0; padding:0; border-bottom:0; }
     .lab-ramone-section .ramone-card { width:min(100%,880px); margin-inline:auto; }
@@ -43,12 +45,13 @@
     .lab-ramone-section .ramone-hero-heading { font-size:clamp(2rem,3.6vw,3.05rem); }
     .lab-ramone-section .ramone-hero-suggestions { max-height:8rem; overflow:hidden; }
     @media(max-width:1050px) {
-      .lab-landing-hero { min-height:0; padding-top:36px; }
+      .lab-landing-hero { padding-top:36px; }
       .lab-ramone-section .ramone-card { width:min(100%,760px); }
     }
     @media(max-width:620px) {
       .lab-home-page main { width:min(calc(100% - 32px),1180px); }
       .lab-landing-hero { padding:24px 0 42px; }
+      .lab-landing-hero .page-intro h1 { font-size:min(2.8rem,15vw); }
     }
   </style>
   <meta name="twitter:image:alt" content="Experience, observe, verify, explore. // Atlas Systems">
