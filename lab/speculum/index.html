@@ -87,7 +87,10 @@
       <div class="field-canvas">
         <canvas
           id="spc-canvas"
+          tabindex="0"
           role="img"
+          aria-describedby="spc-canvas-help"
+          aria-keyshortcuts="E L Space R N T Escape"
           aria-label="A generated field of public Atlas Systems components arranged in concentric role rings. Periodic observers rotate a beam at their reviewed cadence. The full relationship data is available as a table below."
         ></canvas>
 
@@ -100,6 +103,10 @@
 
         <p class="clock"><span id="spc-clock"></span></p>
         <p class="count" id="spc-count"></p>
+        <p id="spc-canvas-help" class="sr-only">
+          Focus the field or page, then press E for evidence marks, L for labels, Space to freeze, R to reset,
+          N for the next generated observation, T for guided trace, and Escape to clear trace or pinned focus.
+        </p>
       </div>
 
       <aside class="rail">

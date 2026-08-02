@@ -26,6 +26,7 @@ const delayOutput = document.querySelector("#delay-output");
 const longestOutput = document.querySelector("#longest-output");
 const marksOutput = document.querySelector("#marks-output");
 const elapsedOutput = document.querySelector("#elapsed-output");
+const liveRegion = document.querySelector("#almost-live");
 const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
 const TRACE_COUNT = 112;
 const TIMELINE_SLOTS = 96;
@@ -170,6 +171,10 @@ function updateControls() {
   holdButton.textContent = running ? "Hold" : "Continue";
   if (running) updateRunState("running", "drawing");
   else updateRunState("held", motionPreference.matches ? "still by preference" : "held");
+}
+
+function announce(message) {
+  if (liveRegion) liveRegion.textContent = message;
 }
 
 function renderReadout(now) {
@@ -482,6 +487,7 @@ function start() {
   startedAt = performance.now();
   lastFrameAt = null;
   updateControls();
+  announce("Almost drawing continued.");
   animationFrame = requestAnimationFrame(frame);
 }
 
@@ -495,6 +501,7 @@ function stop() {
   animationFrame = null;
   updateControls();
   renderReadout(now);
+  announce("Almost drawing held.");
 }
 
 function toggleRunning() {
@@ -526,6 +533,7 @@ function reset(nextSeed, shouldExpose = true) {
   drawFoundation();
   drawStillField();
   renderReadout(performance.now() + 1000);
+  announce(`Almost run ${String(seed).padStart(8, "0")} ready.`);
 }
 
 function saveFrame() {
@@ -542,6 +550,7 @@ function saveFrame() {
     link.click();
     URL.revokeObjectURL(url);
     saveButton.disabled = false;
+    announce("Almost frame saved.");
   }, "image/png");
 }
 

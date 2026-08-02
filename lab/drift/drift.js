@@ -422,6 +422,9 @@ function setMode(mode) {
   page.dataset.mode = mode;
   page.dataset.pointer = mode === MODE_POLICY ? "off" : "on";
   updateReadout(true);
+  liveRegion.textContent = mode === MODE_POLICY
+    ? "Policy sweep is holding the estate."
+    : "Manual attention is holding the estate.";
 }
 
 function reset() {
@@ -430,6 +433,16 @@ function reset() {
   state.verdictDismissed = false;
   verdict.hidden = true;
   updateReadout(true);
+  liveRegion.textContent = "New estate generated.";
+}
+
+function dismissVerdict() {
+  if (verdict.hidden) return false;
+  verdict.hidden = true;
+  state.verdictDismissed = true;
+  liveRegion.textContent = "Verdict dismissed. Manual attention remains active.";
+  canvas.focus();
+  return true;
 }
 
 function pointerToCell(event) {
@@ -487,6 +500,13 @@ canvas.addEventListener("keydown", (event) => {
     case "p": case "P": setMode(MODE_POLICY); break;
     case "m": case "M": setMode(MODE_MANUAL); break;
     case "r": case "R": reset(); break;
+    case "Escape":
+      if (!dismissVerdict()) {
+        state.attention.active = false;
+        state.keyboardDriving = false;
+        liveRegion.textContent = "Attention field cleared.";
+      }
+      break;
     default: handled = false;
   }
   if (handled) {
@@ -509,9 +529,7 @@ verdictAccept.addEventListener("click", () => {
 });
 
 verdictDecline.addEventListener("click", () => {
-  verdict.hidden = true;
-  state.verdictDismissed = true;
-  canvas.focus();
+  dismissVerdict();
 });
 
 const FIXED_STEP = 1 / 60;
