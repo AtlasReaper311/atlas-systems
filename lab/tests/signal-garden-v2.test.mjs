@@ -208,3 +208,16 @@ test("UI defaults to a 50 percent master volume with explicit makeup gain and li
   assert.match(mainSource, /new DynamicsCompressorNode/);
   assert.match(mainSource, /new GainNode\(audioContext, \{ gain: Number\(masterVolumeInput\.value\) \/ 100 \}\)/);
 });
+
+test("performance controls expose keyboard and pressed-state semantics", () => {
+  assert.match(htmlSource, /class="mode-btn active"[^>]*aria-pressed="true"/);
+  assert.match(htmlSource, /data-weather="clear"[^>]*aria-pressed="true"/);
+  assert.match(htmlSource, /data-spectral="off"[^>]*aria-pressed="true"/);
+  assert.match(htmlSource, /id="macro-pad"[^>]*tabindex="0"/);
+  assert.match(htmlSource, /id="macro-pad"[^>]*aria-describedby="macro-help macro-readout"/);
+  assert.match(mainSource, /function updateMacroFromKeyboard\(event\)/);
+  assert.match(mainSource, /event\.key === "ArrowLeft"/);
+  assert.match(mainSource, /event\.key === "Home"/);
+  assert.match(mainSource, /macroPad\.addEventListener\("keydown", updateMacroFromKeyboard\)/);
+  assert.match(mainSource, /button\.setAttribute\("aria-pressed", String\(active\)\)/);
+});

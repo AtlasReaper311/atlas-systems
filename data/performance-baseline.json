@@ -32,10 +32,10 @@
     },
     {
       "route": "/lab/signal/",
-      "html_bytes": 21326,
+      "html_bytes": 21797,
       "first_party_request_count": 10,
-      "referenced_asset_bytes": 44768,
-      "total_static_bytes": 66094,
+      "referenced_asset_bytes": 44998,
+      "total_static_bytes": 66795,
       "largest_referenced_asset": "favicon.ico",
       "largest_referenced_asset_bytes": 15406
     },
@@ -67,5 +67,5 @@
       "largest_referenced_asset_bytes": 23671
     }
   ],
-  "sha256": "2f6c060e434a3768527d67b7cf3e82e1aaad83a70f7eef616d859b3abf727458"
+  "sha256": "ea154efdd577937245cb761ad94a5b91113055320a7687ca05516f795c9c1126"
 }
