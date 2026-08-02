@@ -27,13 +27,13 @@
   <meta name="twitter:image" content="https://atlas-systems.uk/og/lab.png">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/lab/lab-card.css?v=20260707-lab-cache">
-  <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260728-lab-context-nav-wrap">
+  <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260802-lab-home-composition">
   <link rel="stylesheet" href="/static/css/card-signatures.css?v=20260724-card-signatures">
   <link rel="stylesheet" href="/static/css/estate-search.css">
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260724-source-hardening">
   <meta name="twitter:image:alt" content="Experience, observe, verify, explore. // Atlas Systems">
 </head>
-<body>
+<body class="lab-home-page">
   <nav aria-label="Primary navigation">
     <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
     <ul class="nav-links">
@@ -43,36 +43,42 @@
     </ul>
   </nav>
   <main>
-    <header class="page-intro">
-      <p class="eyebrow">Lab / directory</p>
-      <h1>Experience, observe,<br>verify, explore.</h1>
-      <p class="lede">The Lab is the technical workspace of Atlas Systems. Ramone remains the flagship; every other destination now carries a visual signature tied to its actual operation.</p>
-    </header>
-
-    <section class="ramone-stage" aria-labelledby="ramone-greet">
-      <div class="ramone-hero">
-        <div class="ramone-card awake" id="ramone-card">
-          <div class="ramone-hero-topbar">
-            <div class="ramone-lights"><i></i><i></i><i></i></div>
-            <div class="ramone-hero-sysinfo"><strong>atlas-systems</strong><span class="rh-sep">//</span><strong>ramone</strong></div>
-            <div class="ramone-hero-live"><span class="ramone-dot"></span><span id="ramone-state-label">connecting</span></div>
-          </div>
-          <div class="ramone-hero-center">
-            <div class="ramone-boot" id="ramone-boot" aria-hidden="true"></div>
-            <h2 class="ramone-hero-heading is-pre" id="ramone-greet">Hi, I'm <em>Ramone.</em><span class="ramone-caret"></span></h2>
-            <p class="ramone-musing" id="ramone-musing"><span class="ramone-musing-cursor"></span></p>
-            <div class="ramone-hero-composer" id="ramone-hero-composer">
-              <div class="ramone-hero-composer-prompt"><span class="blip">▍</span> ask ramone</div>
-              <div class="ramone-input-wrap"><span class="ps1">&gt;</span><textarea id="ramone-mini-input" class="ramone-hero-input" rows="1" maxlength="2000" aria-label="Ask Ramone a question" placeholder="type a question and press enter, or shift+enter for a new line"></textarea></div>
-              <div class="ramone-hero-composer-actions"><span class="ramone-hero-char-count" id="ramone-hero-char-count">0 / 2000</span><button class="ramone-hero-reset" id="ramone-mini-reset" type="button">new conversation</button><button class="ramone-hero-send" id="ramone-mini-send" type="button" disabled>transmit</button></div>
-            </div>
-            <div class="ramone-hero-suggestions" id="ramone-hero-suggestions"><span class="ramone-hero-suggestions-label">or poke me with</span><button class="ramone-hero-chip" type="button">What are you running on?</button><button class="ramone-hero-chip" type="button">Show me something you built</button><button class="ramone-hero-chip" type="button">Do you ever get bored?</button><button class="ramone-hero-chip" type="button">What's the weirdest thing in your docs?</button></div>
-            <div class="ramone-hero-answer" id="ramone-mini-answer" hidden><div class="ramone-mini-answer-text" id="ramone-mini-answer-text"></div><div class="ramone-mini-sources" id="ramone-mini-sources"></div><div class="ramone-mini-meta" id="ramone-mini-meta"></div></div>
-          </div>
-          <div class="ramone-hero-footer"><span>built &amp; maintained by atlas reaper</span><a class="ramone-hero-link" href="https://ramone.atlas-systems.uk/">open full interface →</a></div>
+    <div class="lab-landing-hero">
+      <header class="page-intro">
+        <p class="eyebrow">Lab / directory</p>
+        <h1>Experience, observe,<br>verify, explore.</h1>
+        <p class="lede">The Lab is the technical workspace of Atlas Systems. Ramone remains the flagship; every other destination now carries a visual signature tied to its actual operation.</p>
+        <div class="page-actions">
+          <a class="action primary" href="#ramone-card">Ask Ramone</a>
+          <a class="action" href="#featured-title">Browse tools</a>
         </div>
-      </div>
-    </section>
+      </header>
+
+      <section class="ramone-stage" aria-labelledby="ramone-greet">
+        <div class="ramone-hero">
+          <div class="ramone-card awake" id="ramone-card">
+            <div class="ramone-hero-topbar">
+              <div class="ramone-lights"><i></i><i></i><i></i></div>
+              <div class="ramone-hero-sysinfo"><strong>atlas-systems</strong><span class="rh-sep">//</span><strong>ramone</strong></div>
+              <div class="ramone-hero-live"><span class="ramone-dot"></span><span id="ramone-state-label">connecting</span></div>
+            </div>
+            <div class="ramone-hero-center">
+              <div class="ramone-boot" id="ramone-boot" aria-hidden="true"></div>
+              <h2 class="ramone-hero-heading is-pre" id="ramone-greet">Hi, I'm <em>Ramone.</em><span class="ramone-caret"></span></h2>
+              <p class="ramone-musing" id="ramone-musing"><span class="ramone-musing-cursor"></span></p>
+              <div class="ramone-hero-composer" id="ramone-hero-composer">
+                <div class="ramone-hero-composer-prompt"><span class="blip">▍</span> ask ramone</div>
+                <div class="ramone-input-wrap"><span class="ps1">&gt;</span><textarea id="ramone-mini-input" class="ramone-hero-input" rows="1" maxlength="2000" aria-label="Ask Ramone a question" placeholder="type a question and press enter, or shift+enter for a new line"></textarea></div>
+                <div class="ramone-hero-composer-actions"><span class="ramone-hero-char-count" id="ramone-hero-char-count">0 / 2000</span><button class="ramone-hero-reset" id="ramone-mini-reset" type="button">new conversation</button><button class="ramone-hero-send" id="ramone-mini-send" type="button" disabled>transmit</button></div>
+              </div>
+              <div class="ramone-hero-suggestions" id="ramone-hero-suggestions"><span class="ramone-hero-suggestions-label">or poke me with</span><button class="ramone-hero-chip" type="button">What are you running on?</button><button class="ramone-hero-chip" type="button">Show me something you built</button><button class="ramone-hero-chip" type="button">Do you ever get bored?</button><button class="ramone-hero-chip" type="button">What's the weirdest thing in your docs?</button></div>
+              <div class="ramone-hero-answer" id="ramone-mini-answer" hidden><div class="ramone-mini-answer-text" id="ramone-mini-answer-text"></div><div class="ramone-mini-sources" id="ramone-mini-sources"></div><div class="ramone-mini-meta" id="ramone-mini-meta"></div></div>
+            </div>
+            <div class="ramone-hero-footer"><span>built &amp; maintained by atlas reaper</span><a class="ramone-hero-link" href="https://ramone.atlas-systems.uk/">open full interface →</a></div>
+          </div>
+        </div>
+      </section>
+    </div>
 
     <aside class="interface-legend" aria-labelledby="lab-legend-title">
       <div class="interface-legend__intro">
