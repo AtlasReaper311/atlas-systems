@@ -185,6 +185,9 @@ test("Lab route contract uses the dedicated map and operations routes", () => {
   assert.match(shell, /Shape Detector", href: "\/lab\/anomaly\//);
   assert.match(shell, /Almost", href: "\/lab\/almost\//);
   const landing = fs.readFileSync("lab/index.html", "utf8");
+  assert.match(landing, /<p class="eyebrow">&mdash; Lab \/ directory<\/p>/);
+  assert.match(landing, /<a class="action primary" href="https:\/\/ramone\.atlas-systems\.uk\/">Ask Ramone<\/a>/);
+  assert.doesNotMatch(landing, /<a class="action primary" href="#ramone-card">Ask Ramone<\/a>/);
   const ramonePosition = landing.indexOf('id="ramone-card"');
   const legendPosition = landing.indexOf('class="interface-legend"');
   const featuredPosition = landing.indexOf('id="featured-title"');
@@ -248,7 +251,7 @@ test("Lab and Systems explain maturity, data mode, and operation motifs", () => 
   assert.match(directoryCss, /\.badge\.retired::before/);
   assert.match(directoryCss, /\.mode-key\[data-mode-key="simulated"\]::before\s*\{[^}]*border-style:dashed/);
   for (const page of [lab, systems, systemMap]) {
-    assert.match(page, /v2-directory-pages\.css\?v=(?:20260728-lab-context-nav-wrap|20260802-lab-home-composition)/);
+    assert.match(page, /v2-directory-pages\.css\?v=(?:20260728-lab-context-nav-wrap|20260802-lab-home-composition|20260802-lab-directory-polish)/);
   }
 });
 
