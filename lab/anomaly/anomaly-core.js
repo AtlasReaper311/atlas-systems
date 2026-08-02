@@ -186,7 +186,7 @@ async function load() {
     if (!latestResponse.ok) throw new Error(`latest returned ${latestResponse.status}`);
     latest = await latestResponse.json();
     history = historyResponse.ok ? (await historyResponse.json()).items || [] : [];
-    sourceStatus.textContent = "live evidence from specular-edge";
+    sourceStatus.textContent = "recorded telemetry-shape evidence from specular-edge";
   } catch (error) {
     console.error(error);
     history = fallbackHistory();

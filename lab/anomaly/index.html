@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Shape-aware telemetry anomaly evidence from SPECULAR-CORE using robust features, constrained DTW, and continuity-aware state decoding.">
+  <meta name="description" content="Shape Detector // Atlas Systems. Recorded telemetry-shape evidence from SPECULAR-CORE using robust features, constrained DTW, and continuity-aware state decoding.">
   <meta name="theme-color" content="#0a0a0f">
-  <title>Telemetry Anomaly Detector // Atlas Systems</title>
+  <title>Shape Detector // Atlas Systems</title>
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/lab/shared/systems.css">
   <link rel="stylesheet" href="/lab/anomaly/anomaly.css">
@@ -16,8 +16,8 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
   <link rel="manifest" href="/site.webmanifest">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Telemetry Anomaly Detector // Atlas Systems">
-  <meta property="og:description" content="Shape-aware telemetry anomaly evidence from SPECULAR-CORE using robust features, constrained DTW, and continuity-aware state decoding.">
+  <meta property="og:title" content="Shape Detector // Atlas Systems">
+  <meta property="og:description" content="Recorded telemetry-shape evidence from SPECULAR-CORE using robust features, constrained DTW, and continuity-aware state decoding.">
   <meta property="og:url" content="https://atlas-systems.uk/lab/anomaly/">
   <meta property="og:site_name" content="Atlas Systems">
   <meta property="og:image" content="https://atlas-systems.uk/og/telemetry-anomaly-detector.png">
@@ -25,8 +25,8 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Shape before threshold. // Atlas Systems">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Telemetry Anomaly Detector // Atlas Systems">
-  <meta name="twitter:description" content="Shape-aware telemetry anomaly evidence from SPECULAR-CORE using robust features, constrained DTW, and continuity-aware state decoding.">
+  <meta name="twitter:title" content="Shape Detector // Atlas Systems">
+  <meta name="twitter:description" content="Recorded telemetry-shape evidence from SPECULAR-CORE using robust features, constrained DTW, and continuity-aware state decoding.">
   <meta name="twitter:image" content="https://atlas-systems.uk/og/telemetry-anomaly-detector.png">
   <meta name="twitter:image:alt" content="Shape before threshold. // Atlas Systems">
 </head>
@@ -37,12 +37,12 @@
       <a href="/lab/">Lab</a>
       <a href="/lab/signal/">Signal</a>
       <a href="/lab/conformance/">Conformance</a>
-      <a href="/lab/reliability/">Reliability</a>
+      <a href="/lab/anomaly/" aria-current="page">Shape Detector</a>
     </div>
   </nav>
   <main>
     <header>
-      <div class="eyebrow">Signal intelligence // telemetry</div>
+      <div class="eyebrow">Explore / recorded telemetry shape</div>
       <h1>Shape before threshold.</h1>
       <p class="lede">The detector compares the active metric trajectory with historical normal motifs. Robust level, slope, volatility, derivative-DTW distance, and continuity state are combined so a sustained drift can become visible before a static red line is crossed.</p>
     </header>
@@ -53,7 +53,7 @@
         <div class="metric"><span>shape score</span><strong id="overall-score">-</strong></div>
         <div class="metric"><span>evidence time</span><strong id="generated-at">-</strong></div>
       </div>
-      <p class="status" id="source-status">contacting specular-edge</p>
+      <p class="status" id="source-status" aria-live="polite">checking specular-edge evidence</p>
     </section>
 
     <section class="section grid grid-2">
@@ -64,13 +64,13 @@
             <p class="note">Select a metric. The line is the persisted edge history; the amber area marks warning or critical observations.</p>
           </div>
           <label>Metric
-            <select id="metric-select"></select>
+            <select id="metric-select" aria-controls="chart-summary metric-table"></select>
           </label>
         </div>
         <div role="img" aria-label="Anomaly score and metric trajectory">
           <canvas id="anomaly-chart" width="900" height="360"></canvas>
         </div>
-        <p class="note" id="chart-summary">No evidence loaded.</p>
+        <p class="note" id="chart-summary" role="status">No evidence loaded.</p>
       </div>
       <div class="panel panel-deep">
         <h2>Current explanation</h2>

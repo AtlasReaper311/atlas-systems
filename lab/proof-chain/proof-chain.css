@@ -76,6 +76,12 @@
   box-shadow: 0 0 0 2px var(--accent-dim);
 }
 
+.proof-filter-help {
+  margin: 0.45rem 0 0;
+  color: var(--text-faint);
+  font-size: 10px;
+}
+
 .proof-service-list {
   display: flex;
   flex-direction: column;

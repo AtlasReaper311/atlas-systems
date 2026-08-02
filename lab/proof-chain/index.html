@@ -35,9 +35,9 @@
     <a class="wordmark" href="/">Atlas<span>_</span>Systems</a>
     <div class="nav-links">
       <a href="/lab/">Lab</a>
-      <a href="/lab/">System map</a>
+      <a href="/lab/system-map/">System Map</a>
       <a href="/lab/conformance/">Conformance</a>
-      <a href="/lab/reliability/">Reliability</a>
+      <a href="/systems/reliability/">Reliability</a>
     </div>
   </nav>
 
@@ -90,7 +90,9 @@
           autocomplete="off"
           placeholder="service or repository"
           aria-controls="proof-service-list"
+          aria-describedby="proof-filter-help"
         >
+        <p class="proof-filter-help" id="proof-filter-help">Filters by public service id or source repository.</p>
         <div id="proof-service-list" class="proof-service-list" aria-live="polite">
           <p class="proof-empty">Loading public Trace index.</p>
         </div>

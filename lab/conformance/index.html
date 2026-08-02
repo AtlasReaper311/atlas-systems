@@ -36,9 +36,9 @@
     <div class="nav-links">
       <a href="/lab/">Lab</a>
       <a href="/lab/proof-chain/">Proof Chain</a>
-      <a href="/lab/signal/">Signal</a>
-      <a href="/lab/anomaly/">Anomaly</a>
-      <a href="/lab/reliability/">Reliability</a>
+      <a href="/lab/conformance/" aria-current="page">Estate Conformance</a>
+      <a href="/lab/anomaly/">Shape Detector</a>
+      <a href="/systems/reliability/">Reliability</a>
     </div>
   </nav>
   <main>
@@ -58,7 +58,7 @@
         <span><strong id="error-count">-</strong> errors</span>
         <span><strong id="warning-count">-</strong> warnings</span>
         <span><strong id="unknown-count">-</strong> unknown</span>
-        <span class="status" id="evidence-status">contacting public evidence API</span>
+        <span class="status" id="evidence-status" aria-live="polite">checking public evidence API</span>
       </div>
     </section>
 
@@ -69,13 +69,13 @@
           <p class="note">Warnings contribute half of their rule weight. Errors contribute zero. Not-applicable rules are excluded; unreadable repositories remain unscored.</p>
         </div>
         <label>Filter
-          <input id="repo-filter" type="search" placeholder="repo or status">
+          <input id="repo-filter" type="search" placeholder="repo or status" aria-controls="repo-table">
         </label>
       </div>
       <div class="table-wrap">
         <table>
           <thead><tr><th scope="col">Repository</th><th scope="col">Score</th><th scope="col">Status</th><th scope="col">Errors</th><th scope="col">Warnings</th><th scope="col">Applicable rules</th></tr></thead>
-          <tbody id="repo-table"><tr><td colspan="6">Loading.</td></tr></tbody>
+          <tbody id="repo-table" aria-live="polite"><tr><td colspan="6">Loading.</td></tr></tbody>
         </table>
       </div>
     </section>
@@ -90,7 +90,7 @@
       <div class="table-wrap">
         <table>
           <thead><tr><th scope="col">Severity</th><th scope="col">Repository</th><th scope="col">Rule</th><th scope="col">Path</th><th scope="col">Finding</th></tr></thead>
-          <tbody id="finding-table"><tr><td colspan="5">Loading.</td></tr></tbody>
+          <tbody id="finding-table" aria-live="polite"><tr><td colspan="5">Loading.</td></tr></tbody>
         </table>
       </div>
     </section>
