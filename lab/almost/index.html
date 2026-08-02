@@ -41,8 +41,9 @@
         id="almost-canvas"
         width="1400"
         height="820"
+        tabindex="0"
         role="img"
-        aria-describedby="almost-description"
+        aria-describedby="almost-description almost-help"
         aria-label="An accumulating field of broken amber orbits. Browser scheduling delays bend the lines away from their expected path."
       >
         Almost draws broken amber orbits from local browser timing.
@@ -55,7 +56,7 @@
       </header>
 
       <div class="almost-run">
-        <span id="run-state" data-state="running">accumulating</span>
+        <span id="run-state" data-state="running" role="status" aria-live="polite">accumulating</span>
         <span>run <output id="run-seed">00000311</output></span>
       </div>
 
@@ -114,6 +115,11 @@
     </section>
 
     <p class="almost-keys">Space / hold · N / new run · S / keep this frame</p>
+    <p id="almost-help" class="sr-only">
+      Focus the drawing or the page, then press Space to hold or continue, N for a new run, and S to save the current frame.
+      The run state and seed update below the drawing without contacting the network.
+    </p>
+    <p id="almost-live" class="sr-only" role="status" aria-live="polite"></p>
   </main>
 
   <script type="module" src="/lab/almost/almost.js"></script>
