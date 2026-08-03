@@ -1,0 +1,156 @@
+name: Phase 14 closeout diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/phase-14-closeout-diagnostic.yml
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  verify:
+    name: Verify Phase 14 deployment receipts
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TARGET_SHA: 1cc32599ce1ab8630a62b013e939941f0ca4ce1a
+      SITE_URL: https://atlas-systems.uk
+      DEPLOY_WATCH_URL: https://api.atlas-systems.uk/deploy-watch/latest
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Resolve exact push deployment run
+        id: deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          run_json=""
+          for attempt in $(seq 1 40); do
+            response="$(gh api \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "repos/${GITHUB_REPOSITORY}/actions/runs?head_sha=${TARGET_SHA}&per_page=100")"
+            run_json="$(printf '%s' "$response" | jq -c \
+              --arg sha "$TARGET_SHA" \
+              '[.workflow_runs[] | select(.head_sha == $sha and .name == "Deploy" and .event == "push")] | sort_by(.created_at) | last // empty')"
+
+            if [[ -n "$run_json" ]]; then
+              status="$(printf '%s' "$run_json" | jq -r '.status')"
+              conclusion="$(printf '%s' "$run_json" | jq -r '.conclusion // ""')"
+              run_id="$(printf '%s' "$run_json" | jq -r '.id')"
+              echo "Attempt ${attempt}: Deploy run ${run_id} status=${status} conclusion=${conclusion}"
+              if [[ "$status" == "completed" ]]; then
+                [[ "$conclusion" == "success" ]]
+                break
+              fi
+            else
+              echo "Attempt ${attempt}: exact-sha Deploy run not visible yet"
+            fi
+
+            if [[ "$attempt" == "40" ]]; then
+              echo "::error::No successful exact-sha Deploy run was observed"
+              exit 1
+            fi
+            sleep 15
+          done
+
+          printf '%s\n' "$run_json" > deploy-run.json
+          run_id="$(printf '%s' "$run_json" | jq -r '.id')"
+          gh api \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100" \
+            > deploy-jobs.json
+          echo "run_id=${run_id}" >> "$GITHUB_OUTPUT"
+
+      - name: Confirm exact custom-domain build marker
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          matched=false
+          for attempt in $(seq 1 20); do
+            body="$(curl -fsSL \
+              --connect-timeout 10 \
+              --max-time 30 \
+              -H 'Cache-Control: no-cache' \
+              -H 'Pragma: no-cache' \
+              "${SITE_URL}/?atlas-phase14-closeout=${TARGET_SHA}&attempt=${attempt}" || true)"
+            if printf '%s' "$body" | grep -Fq \
+              "<meta name=\"build-commit\" content=\"${TARGET_SHA}\">"; then
+              matched=true
+              break
+            fi
+            sleep 15
+          done
+
+          [[ "$matched" == "true" ]]
+          printf '{"url":"%s","target_sha":"%s","matched":true}\n' \
+            "$SITE_URL" "$TARGET_SHA" > live-build-marker.json
+
+      - name: Confirm independent deploy-watch snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          snapshot=""
+          for attempt in $(seq 1 20); do
+            snapshot="$(curl -fsSL \
+              --connect-timeout 10 \
+              --max-time 30 \
+              -H 'Cache-Control: no-cache' \
+              -H 'Pragma: no-cache' \
+              "${DEPLOY_WATCH_URL}?atlas-phase14-closeout=${TARGET_SHA}&attempt=${attempt}" || true)"
+            commit_sha="$(printf '%s' "$snapshot" | jq -r '.commitSha // ""' 2>/dev/null || true)"
+            status="$(printf '%s' "$snapshot" | jq -r '.status // ""' 2>/dev/null || true)"
+            echo "Attempt ${attempt}: deploy-watch commit=${commit_sha} status=${status}"
+            if [[ "$commit_sha" == "$TARGET_SHA" && "$status" == "success" ]]; then
+              break
+            fi
+            if [[ "$attempt" == "20" ]]; then
+              echo "::error::deploy-watch did not confirm the exact successful deployment"
+              exit 1
+            fi
+            sleep 15
+          done
+
+          printf '%s\n' "$snapshot" | jq . > deploy-watch.json
+
+      - name: Build closeout receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          jq -n \
+            --arg target_sha "$TARGET_SHA" \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --argjson deploy_run "$(cat deploy-run.json)" \
+            --argjson deploy_jobs "$(cat deploy-jobs.json)" \
+            --argjson live_build_marker "$(cat live-build-marker.json)" \
+            --argjson deploy_watch "$(cat deploy-watch.json)" \
+            '{
+              schema_version: "atlas-systems/phase-14-closeout-diagnostic/v1",
+              repository: $repository,
+              target_sha: $target_sha,
+              deploy_run: $deploy_run,
+              deploy_jobs: $deploy_jobs.jobs,
+              live_build_marker: $live_build_marker,
+              deploy_watch: $deploy_watch
+            }' > phase-14-closeout-receipt.json
+
+      - name: Upload closeout receipt
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        with:
+          name: phase-14-closeout-receipt
+          path: |
+            deploy-run.json
+            deploy-jobs.json
+            live-build-marker.json
+            deploy-watch.json
+            phase-14-closeout-receipt.json
+          if-no-files-found: warn
+          retention-days: 14
