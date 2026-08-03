@@ -42,6 +42,19 @@ function uniqueStrings(values, label) {
   return normalized;
 }
 
+function canonicalOrigin(value) {
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error("scope.canonical_origin must be an absolute URL origin");
+  }
+  if (url.protocol !== "https:" || url.origin !== value || url.pathname !== "/") {
+    throw new Error("scope.canonical_origin must be a canonical HTTPS origin");
+  }
+  return url.origin;
+}
+
 export function validateBrowserPerformanceBudgetPolicy(policy) {
   if (!policy || typeof policy !== "object" || Array.isArray(policy)) {
     throw new Error("browser performance budget policy must be an object");
@@ -61,6 +74,7 @@ export function validateBrowserPerformanceBudgetPolicy(policy) {
   if (policy.scope?.first_party_only !== true) {
     throw new Error("scope.first_party_only must be true");
   }
+  const acceptedCanonicalOrigin = canonicalOrigin(policy.scope?.canonical_origin);
   if (!policy.routes || typeof policy.routes !== "object" || Array.isArray(policy.routes)) {
     throw new Error("routes must be an object");
   }
@@ -74,7 +88,13 @@ export function validateBrowserPerformanceBudgetPolicy(policy) {
   }
   return Object.freeze({
     ...policy,
-    scope: Object.freeze({ ...policy.scope, browsers, viewports, metrics }),
+    scope: Object.freeze({
+      ...policy.scope,
+      browsers,
+      viewports,
+      metrics,
+      canonical_origin: acceptedCanonicalOrigin,
+    }),
     routes: Object.freeze(Object.fromEntries(
       routes.map(([route, caps]) => [route, Object.freeze({ ...caps })]),
     )),
@@ -89,11 +109,11 @@ export function loadBrowserPerformanceBudgetPolicy(
   );
 }
 
-function firstPartyResources(result, preview) {
-  const previewOrigin = new URL(preview).origin;
+function firstPartyResources(result, preview, acceptedCanonicalOrigin) {
+  const acceptedOrigins = new Set([new URL(preview).origin, acceptedCanonicalOrigin]);
   return (result.resources?.resources || []).filter(({ name }) => {
     try {
-      return new URL(name).origin === previewOrigin;
+      return acceptedOrigins.has(new URL(name).origin);
     } catch {
       return false;
     }
@@ -146,7 +166,11 @@ export function evaluateBrowserPerformanceBudgets({ report, policy }) {
     expected.delete(identity);
 
     const caps = accepted.routes[route];
-    const measured = aggregateResources(firstPartyResources(result, report.preview));
+    const measured = aggregateResources(firstPartyResources(
+      result,
+      report.preview,
+      accepted.scope.canonical_origin,
+    ));
     const routeViolations = [];
     for (const metric of accepted.scope.metrics) {
       if (measured[metric] > caps[metric]) {
