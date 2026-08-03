@@ -65,3 +65,19 @@ test("governed preview validates card layout and watches every signature asset",
   assert.match(evidence, /cardRouteOverflows/);
   assert.match(evidence, /card CTA overflows/);
 });
+
+test("late-added governed cards receive signatures after the initial scan", () => {
+  const script = fs.readFileSync("static/js/card-signatures.js", "utf8");
+  const shell = fs.readFileSync("lab/shared/shell.js", "utf8");
+
+  assert.match(script, /const GOVERNED_CARD_SELECTOR/);
+  assert.match(script, /new MutationObserver/);
+  assert.match(script, /observeCardSignatures\(document\)/);
+  assert.match(script, /cardObserver\.observe\(documentNode\.body, \{ childList: true, subtree: true \}\)/);
+
+  assert.match(shell, /function installBlackboxDirectoryCard\(\)/);
+  assert.match(shell, /card\.className = "system-card directory-card"/);
+  assert.match(shell, /card\.dataset\.visual = "console"/);
+  assert.match(shell, /card\.dataset\.motif = "REC"/);
+  assert.match(shell, /installBlackboxDirectoryCard\(\)/);
+});
