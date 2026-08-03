@@ -1,0 +1,48 @@
+{
+  "schema_version": "atlas-systems/browser-performance-budgets/v1",
+  "status": "accepted",
+  "authority": {
+    "phase": "Public Interface System Phase 14",
+    "repository": "AtlasReaper311/atlas-infra",
+    "document": "docs/public-interface-phase-14-browser-budget-proposal.md",
+    "accepted_commit": "d61e0f8fa36df09c8ba10e76dacc59c8bca4a4fa",
+    "accepted_on": "2026-08-03",
+    "source_repository": "AtlasReaper311/atlas-systems",
+    "source_main_sha": "31af5f9b948a9be5dd80fd4a4e685c92137240a0",
+    "static_baseline_fingerprint": "19850b063f0817f953c0d853ae3d3d80431c05fc94371bd92f04cb27f0c6a021",
+    "evidence": {
+      "pull_request": "AtlasReaper311/atlas-systems#194",
+      "workflow_run": 30762531071,
+      "artifact_id": 8838070224,
+      "artifact_digest": "sha256:5bc2aed19685525f99f54982c6b247c5a1cf3291ea1c4999ac1cc0e5f1318e61"
+    }
+  },
+  "scope": {
+    "browsers": ["chrome", "firefox"],
+    "viewports": ["375", "1440"],
+    "metrics": ["requestCount", "encodedBytes", "decodedBytes", "scriptCount", "styleCount"],
+    "first_party_only": true,
+    "reduced_motion": true,
+    "service_workers": "block",
+    "reporting_only_viewports": ["1920"]
+  },
+  "routes": {
+    "/": {"requestCount": 44, "encodedBytes": 322560, "decodedBytes": 391168, "scriptCount": 16, "styleCount": 15},
+    "/systems/": {"requestCount": 30, "encodedBytes": 301056, "decodedBytes": 305152, "scriptCount": 12, "styleCount": 14},
+    "/lab/": {"requestCount": 47, "encodedBytes": 450560, "decodedBytes": 458752, "scriptCount": 22, "styleCount": 19},
+    "/lab/signal/": {"requestCount": 28, "encodedBytes": 289792, "decodedBytes": 297984, "scriptCount": 12, "styleCount": 12},
+    "/lab/almost/": {"requestCount": 29, "encodedBytes": 290816, "decodedBytes": 299008, "scriptCount": 12, "styleCount": 13},
+    "/lab/bearing/": {"requestCount": 9, "encodedBytes": 56320, "decodedBytes": 56320, "scriptCount": 2, "styleCount": 5},
+    "/writing/": {"requestCount": 38, "encodedBytes": 320512, "decodedBytes": 324608, "scriptCount": 18, "styleCount": 17}
+  },
+  "exclusions": [
+    "1920, 320, 768, and 1024 pixel resource measurements",
+    "runtime and paint timing metrics",
+    "network transferSize",
+    "third-party resources",
+    "fixture-host responses",
+    "external embeds",
+    "live production network measurements",
+    "routes not listed in this policy"
+  ]
+}
