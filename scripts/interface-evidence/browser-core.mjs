@@ -5,6 +5,7 @@ import process from "node:process";
 import AxeBuilder from "@axe-core/playwright";
 import { chromium, firefox } from "playwright";
 
+import { reconcileBrowserPerformanceBudgets } from "./performance-budget.mjs";
 import { reconcileEvidenceReport } from "./reporting-baseline.mjs";
 
 export const FIXTURE_HOSTS = new Set([
@@ -18,24 +19,32 @@ export const BROWSERS = Object.freeze([
   Object.freeze({ name: "firefox", launch: () => firefox.launch({ headless: true }) }),
 ]);
 
-function installReportingBaselineReconciliation() {
+function installEvidenceReconciliation() {
   if (path.basename(process.argv[1] || "") !== "capture_interface_evidence.mjs") return;
   process.once("beforeExit", () => {
-    if (!process.exitCode) return;
     const outputDirectory = process.env.INTERFACE_EVIDENCE_OUTPUT_DIR || process.cwd();
-    const result = reconcileEvidenceReport({
-      reportPath: path.join(outputDirectory, "evidence.json"),
-      errorPath: path.join(outputDirectory, "capture-error.txt"),
-    });
-    if (!result.reconciled) return;
-    console.log(
-      `Interface evidence preserved ${result.acceptedCount} reviewed reporting-baseline finding(s) and found no new blockers.`,
-    );
-    process.exitCode = 0;
+    const reportPath = path.join(outputDirectory, "evidence.json");
+    const errorPath = path.join(outputDirectory, "capture-error.txt");
+    const budgetResult = reconcileBrowserPerformanceBudgets({ reportPath, errorPath });
+    const baselineResult = reconcileEvidenceReport({ reportPath, errorPath });
+
+    if (budgetResult.violationCount) {
+      console.error(
+        `Interface evidence found ${budgetResult.violationCount} browser performance budget violation(s).`,
+      );
+      process.exitCode = 1;
+      return;
+    }
+    if (baselineResult.reconciled && baselineResult.acceptedCount) {
+      console.log(
+        `Interface evidence preserved ${baselineResult.acceptedCount} reviewed reporting-baseline finding(s) and found no new blockers.`,
+      );
+    }
+    if (baselineResult.reconciled) process.exitCode = 0;
   });
 }
 
-installReportingBaselineReconciliation();
+installEvidenceReconciliation();
 
 function normalHostname(value) {
   try {
