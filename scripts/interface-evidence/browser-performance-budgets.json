@@ -22,6 +22,7 @@
     "viewports": ["375", "1440"],
     "metrics": ["requestCount", "encodedBytes", "decodedBytes", "scriptCount", "styleCount"],
     "first_party_only": true,
+    "canonical_origin": "https://atlas-systems.uk",
     "reduced_motion": true,
     "service_workers": "block",
     "reporting_only_viewports": ["1920"]
@@ -39,7 +40,7 @@
     "1920, 320, 768, and 1024 pixel resource measurements",
     "runtime and paint timing metrics",
     "network transferSize",
-    "third-party resources",
+    "third-party resources outside the preview and canonical site origins",
     "fixture-host responses",
     "external embeds",
     "live production network measurements",
