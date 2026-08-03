@@ -122,3 +122,14 @@ test("reconciliation records budget evidence and preserves unrelated blockers", 
   assert.deepEqual(reconciled.routes[0].blockingFailures, ["existing interface blocker"]);
   rmSync(directory, { recursive: true, force: true });
 });
+
+test("the browser evidence core applies budgets before reporting-baseline reconciliation", () => {
+  const core = readFileSync("scripts/interface-evidence/browser-core.mjs", "utf8");
+  assert.match(core, /reconcileBrowserPerformanceBudgets/);
+  assert.match(core, /reconcileEvidenceReport/);
+  assert.ok(
+    core.indexOf("reconcileBrowserPerformanceBudgets({ reportPath, errorPath })")
+      < core.indexOf("reconcileEvidenceReport({ reportPath, errorPath })"),
+  );
+  assert.match(core, /if \(budgetResult\.violationCount\)/);
+});
