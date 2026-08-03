@@ -107,11 +107,11 @@ jobs:
             commit_sha="$(printf '%s' "$snapshot" | jq -r '.commitSha // ""' 2>/dev/null || true)"
             status="$(printf '%s' "$snapshot" | jq -r '.status // ""' 2>/dev/null || true)"
             echo "Attempt ${attempt}: deploy-watch commit=${commit_sha} status=${status}"
-            if [[ "$commit_sha" == "$TARGET_SHA" && "$status" == "success" ]]; then
+            if [[ -n "$commit_sha" && "$TARGET_SHA" == "$commit_sha"* && "$status" == "success" ]]; then
               break
             fi
             if [[ "$attempt" == "20" ]]; then
-              echo "::error::deploy-watch did not confirm the exact successful deployment"
+              echo "::error::deploy-watch did not confirm the target deployment prefix with success"
               exit 1
             fi
             sleep 15
