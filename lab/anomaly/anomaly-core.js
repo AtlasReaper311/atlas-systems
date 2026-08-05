@@ -8,7 +8,21 @@ const sourceStatus = document.querySelector("#source-status");
 const metricSelect = document.querySelector("#metric-select");
 const table = document.querySelector("#metric-table");
 const canvas = document.querySelector("#anomaly-chart");
-const context = canvas.getContext("2d");
+const context = canvas?.getContext?.("2d") || null;
+
+const missingElements = [];
+if (!metricSelect) missingElements.push("metric-select");
+if (!canvas || !context) missingElements.push("anomaly-chart");
+if (missingElements.length) {
+  if (sourceStatus) {
+    sourceStatus.dataset.interfaceState = "partial";
+    sourceStatus.dataset.interfaceMissing = missingElements.join(",");
+  }
+  console.warn(
+    "[lab/anomaly] optional interface elements unavailable; continuing with partial rendering",
+    { missing: missingElements },
+  );
+}
 
 let latest = null;
 let history = [];
@@ -65,49 +79,60 @@ function fallbackHistory() {
 
 function renderLatest() {
   const state = latest?.state || "unknown";
-  stateElement.textContent = state;
-  stateElement.className = stateClass(state);
-  scoreElement.textContent = latest?.score === null || latest?.score === undefined
-    ? "-"
-    : `${(Number(latest.score) * 100).toFixed(1)}%`;
-  generatedElement.textContent = relativeTime(latest?.generated_at);
-  sourceStatus.dataset.state = state;
-  metricSelect.innerHTML = "";
-  const metrics = Object.keys(latest?.metrics || {});
-  metrics.forEach((metric) => {
-    const option = document.createElement("option");
-    option.value = metric;
-    option.textContent = metric;
-    metricSelect.appendChild(option);
-  });
-  table.innerHTML = "";
-  if (!metrics.length) {
-    table.innerHTML = '<tr><td colspan="7">No metric evidence is available.</td></tr>';
-    renderSelected();
-    return;
+  if (stateElement) {
+    stateElement.textContent = state;
+    stateElement.className = stateClass(state);
   }
-  metrics.forEach((name) => {
-    const metric = latest.metrics[name];
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td><code>${name}</code></td>
-      <td class="${stateClass(metric.state)}">${metric.state}</td>
-      <td>${formatNumber(metric.score, 3)}</td>
-      <td>${formatNumber(metric.value, 2)}</td>
-      <td>${formatNumber(metric.dtw_distance, 3)}</td>
-      <td>${formatNumber(metric.slope_z, 2)}</td>
-      <td>${formatNumber(metric.confidence, 3)}</td>`;
-    table.appendChild(row);
-  });
+  if (scoreElement) {
+    scoreElement.textContent = latest?.score === null || latest?.score === undefined
+      ? "-"
+      : `${(Number(latest.score) * 100).toFixed(1)}%`;
+  }
+  if (generatedElement) generatedElement.textContent = relativeTime(latest?.generated_at);
+  if (sourceStatus) sourceStatus.dataset.state = state;
+
+  const metrics = Object.keys(latest?.metrics || {});
+  if (metricSelect) {
+    metricSelect.innerHTML = "";
+    metrics.forEach((metric) => {
+      const option = document.createElement("option");
+      option.value = metric;
+      option.textContent = metric;
+      metricSelect.appendChild(option);
+    });
+  }
+
+  if (table) {
+    table.innerHTML = "";
+    if (!metrics.length) {
+      table.innerHTML = '<tr><td colspan="7">No metric evidence is available.</td></tr>';
+      renderSelected();
+      return;
+    }
+    metrics.forEach((name) => {
+      const metric = latest.metrics[name];
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><code>${name}</code></td>
+        <td class="${stateClass(metric.state)}">${metric.state}</td>
+        <td>${formatNumber(metric.score, 3)}</td>
+        <td>${formatNumber(metric.value, 2)}</td>
+        <td>${formatNumber(metric.dtw_distance, 3)}</td>
+        <td>${formatNumber(metric.slope_z, 2)}</td>
+        <td>${formatNumber(metric.confidence, 3)}</td>`;
+      table.appendChild(row);
+    });
+  }
   renderSelected();
 }
 
 function setText(id, value) {
-  document.querySelector(id).textContent = value;
+  const element = document.querySelector(id);
+  if (element) element.textContent = value;
 }
 
 function renderSelected() {
-  const name = metricSelect.value || Object.keys(latest?.metrics || {})[0];
+  const name = metricSelect?.value || Object.keys(latest?.metrics || {})[0];
   const metric = latest?.metrics?.[name];
   setText("#metric-value", formatNumber(metric?.value));
   setText("#metric-z", formatNumber(metric?.robust_z));
@@ -121,6 +146,12 @@ function renderSelected() {
 }
 
 function drawHistory(metricName) {
+  const chartSummary = document.querySelector("#chart-summary");
+  if (!canvas || !context) {
+    if (chartSummary) chartSummary.textContent = "Chart unavailable; metric evidence remains available in the table.";
+    return;
+  }
+
   const ordered = [...history].reverse();
   const points = ordered
     .map((item) => {
@@ -140,7 +171,7 @@ function drawHistory(metricName) {
     context.stroke();
   }
   if (points.length < 2) {
-    document.querySelector("#chart-summary").textContent = "Not enough persisted evidence for a trajectory.";
+    if (chartSummary) chartSummary.textContent = "Not enough persisted evidence for a trajectory.";
     return;
   }
   const values = points.map((point) => point.value);
@@ -173,8 +204,10 @@ function drawHistory(metricName) {
     else context.lineTo(x, y);
   });
   context.stroke();
-  document.querySelector("#chart-summary").textContent =
-    `${points.length} observations. Grey: metric value normalised to its visible range. Amber: anomaly score.`;
+  if (chartSummary) {
+    chartSummary.textContent =
+      `${points.length} observations. Grey: metric value normalised to its visible range. Amber: anomaly score.`;
+  }
 }
 
 async function load() {
@@ -186,23 +219,27 @@ async function load() {
     if (!latestResponse.ok) throw new Error(`latest returned ${latestResponse.status}`);
     latest = await latestResponse.json();
     history = historyResponse.ok ? (await historyResponse.json()).items || [] : [];
-    delete sourceStatus.dataset.errorSource;
-    delete sourceStatus.dataset.errorContext;
-    sourceStatus.textContent = "recorded telemetry-shape evidence from specular-edge";
+    if (sourceStatus) {
+      delete sourceStatus.dataset.errorSource;
+      delete sourceStatus.dataset.errorContext;
+      sourceStatus.textContent = "recorded telemetry-shape evidence from specular-edge";
+    }
   } catch (error) {
-    sourceStatus.dataset.errorSource = "anomaly-evidence";
-    sourceStatus.dataset.errorContext = "live-load";
+    if (sourceStatus) {
+      sourceStatus.dataset.errorSource = "anomaly-evidence";
+      sourceStatus.dataset.errorContext = "live-load";
+      sourceStatus.textContent = "live endpoint unavailable; rendering a labelled deterministic replay";
+      sourceStatus.dataset.state = "warning";
+    }
     console.warn(
       "[lab/anomaly] live evidence load failed; rendering the existing labelled fallback",
       error,
     );
     history = fallbackHistory();
     latest = history[0];
-    sourceStatus.textContent = "live endpoint unavailable; rendering a labelled deterministic replay";
-    sourceStatus.dataset.state = "warning";
   }
   renderLatest();
 }
 
-metricSelect.addEventListener("change", renderSelected);
-load();
+metricSelect?.addEventListener("change", renderSelected);
+void load();

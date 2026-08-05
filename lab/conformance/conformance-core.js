@@ -14,6 +14,19 @@ const reportElements = {
   filter: document.querySelector("#repo-filter"),
 };
 
+const missingElements = [];
+if (!reportElements.filter) missingElements.push("repo-filter");
+if (missingElements.length) {
+  if (reportElements.status) {
+    reportElements.status.dataset.interfaceState = "partial";
+    reportElements.status.dataset.interfaceMissing = missingElements.join(",");
+  }
+  console.warn(
+    "[lab/conformance] optional interface elements unavailable; continuing with partial rendering",
+    { missing: missingElements },
+  );
+}
+
 let report = null;
 
 function relativeTime(value) {
@@ -51,25 +64,34 @@ function statusClass(value) {
   return `status-${value || "unknown"}`;
 }
 
+function setText(element, value) {
+  if (element) element.textContent = value;
+}
+
+function setTextById(id, value) {
+  setText(document.querySelector(id), value);
+}
+
 function renderSummary() {
   const summary = report.summary;
-  reportElements.score.textContent = summary.estate_score === null ? "unscored" : summary.estate_score.toFixed(1);
-  reportElements.repos.textContent = String(summary.repositories_scanned);
-  reportElements.generated.textContent = relativeTime(report.generated_at);
-  reportElements.errors.textContent = String(summary.errors);
-  reportElements.warnings.textContent = String(summary.warnings);
-  reportElements.unknown.textContent = String(summary.unknown);
-  document.querySelector("#policy-version").textContent = report.policy_version;
-  document.querySelector("#source-repository").textContent = report.source?.repository || "-";
-  document.querySelector("#source-commit").textContent = report.source?.commit || "-";
-  document.querySelector("#fingerprint").textContent = report.fingerprint || "-";
+  setText(reportElements.score, summary.estate_score === null ? "unscored" : summary.estate_score.toFixed(1));
+  setText(reportElements.repos, String(summary.repositories_scanned));
+  setText(reportElements.generated, relativeTime(report.generated_at));
+  setText(reportElements.errors, String(summary.errors));
+  setText(reportElements.warnings, String(summary.warnings));
+  setText(reportElements.unknown, String(summary.unknown));
+  setTextById("#policy-version", report.policy_version);
+  setTextById("#source-repository", report.source?.repository || "-");
+  setTextById("#source-commit", report.source?.commit || "-");
+  setTextById("#fingerprint", report.fingerprint || "-");
 }
 
 function renderRepositories() {
-  const query = reportElements.filter.value.trim().toLowerCase();
+  const query = (reportElements.filter?.value || "").trim().toLowerCase();
   const repositories = (report.repositories || []).filter((item) =>
     `${item.repository} ${item.status}`.toLowerCase().includes(query),
   );
+  if (!reportElements.repoTable) return;
   reportElements.repoTable.innerHTML = "";
   if (!repositories.length) {
     reportElements.repoTable.innerHTML = '<tr><td colspan="6">No repository rows match the current evidence.</td></tr>';
@@ -98,6 +120,7 @@ function renderRepositories() {
 }
 
 function renderRules() {
+  if (!reportElements.rules) return;
   reportElements.rules.innerHTML = "";
   if (!report.rules.length) {
     reportElements.rules.innerHTML = '<p class="note">No public rule catalogue has been published yet.</p>';
@@ -115,6 +138,7 @@ function renderRules() {
 }
 
 function renderFindings() {
+  if (!reportElements.findingTable) return;
   reportElements.findingTable.innerHTML = "";
   if (!report.findings.length) {
     reportElements.findingTable.innerHTML = '<tr><td colspan="5">No findings in the latest report.</td></tr>';
@@ -138,20 +162,24 @@ async function load() {
     if (!response.ok) throw new Error(`evidence endpoint returned ${response.status}`);
     const payload = await response.json();
     report = payload.report;
-    delete reportElements.status.dataset.errorSource;
-    delete reportElements.status.dataset.errorContext;
-    reportElements.status.textContent = "live weekly evidence";
-    reportElements.status.dataset.state = report.summary.errors ? "error" : report.summary.warnings ? "warning" : "pass";
+    if (reportElements.status) {
+      delete reportElements.status.dataset.errorSource;
+      delete reportElements.status.dataset.errorContext;
+      reportElements.status.textContent = "live weekly evidence";
+      reportElements.status.dataset.state = report.summary.errors ? "error" : report.summary.warnings ? "warning" : "pass";
+    }
   } catch (error) {
-    reportElements.status.dataset.errorSource = "conformance-evidence";
-    reportElements.status.dataset.errorContext = "live-load";
+    if (reportElements.status) {
+      reportElements.status.dataset.errorSource = "conformance-evidence";
+      reportElements.status.dataset.errorContext = "live-load";
+      reportElements.status.textContent = "no report published yet";
+      reportElements.status.dataset.state = "warning";
+    }
     console.warn(
       "[lab/conformance] live evidence load failed; rendering the existing no-report fallback",
       error,
     );
     report = fallbackReport();
-    reportElements.status.textContent = "no report published yet";
-    reportElements.status.dataset.state = "warning";
   }
   renderSummary();
   renderRepositories();
@@ -159,5 +187,5 @@ async function load() {
   renderFindings();
 }
 
-reportElements.filter.addEventListener("input", renderRepositories);
-load();
+reportElements.filter?.addEventListener("input", renderRepositories);
+void load();
