@@ -8,11 +8,38 @@
   [role="button"]:not([aria-disabled="true"]),
   [role="tab"]:not([aria-disabled="true"]),
   .focus-action,
+  .wordmark,
+  .nav-links a,
+  .lab-context-nav a,
+  .lab-tool-footer a,
+  .atlas-header__brand a,
+  .atlas-header__nav a,
+  .atlas-header__actions a,
+  .atlas-mobile-nav a,
   .symphony-product-link,
   .symphony-product-mode-link,
   .symphony-proof-open
 ) {
+  min-width: 44px;
   min-height: 44px;
+}
+
+.symphony-page :where(
+  .wordmark,
+  .nav-links a,
+  .lab-context-nav a,
+  .lab-tool-footer a,
+  .atlas-header__brand a,
+  .atlas-header__nav a,
+  .atlas-header__actions a,
+  .atlas-mobile-nav a,
+  .symphony-product-link,
+  .symphony-product-mode-link,
+  .symphony-proof-open
+) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .symphony-page .symphony-lab-tools summary,
@@ -27,6 +54,7 @@
 .symphony-page .symphony-button,
 .symphony-page .symphony-segmented button,
 .symphony-page .symphony-table-action {
+  min-width: 44px !important;
   min-height: 44px !important;
 }
 
