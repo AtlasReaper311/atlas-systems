@@ -146,7 +146,7 @@ function renderLatest() {
     generatedElement.dataset.evidenceMode = evidenceMode;
   }
   if (sourceStatus) {
-    sourceStatus.dataset.runtimeState = state;
+    sourceStatus.dataset.runtimeState = evidenceMode === "measured" ? state : "unknown";
     sourceStatus.dataset.state = evidenceMode === "measured" ? state : "unknown";
   }
 
