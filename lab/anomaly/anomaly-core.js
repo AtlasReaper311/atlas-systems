@@ -192,7 +192,7 @@ async function load() {
   } catch (error) {
     sourceStatus.dataset.errorSource = "anomaly-evidence";
     sourceStatus.dataset.errorContext = "live-load";
-    console.error(
+    console.warn(
       "[lab/anomaly] live evidence load failed; rendering the existing labelled fallback",
       error,
     );
