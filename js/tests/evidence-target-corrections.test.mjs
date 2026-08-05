@@ -65,6 +65,10 @@ test("rendered interaction targets are measured at the accepted stable 44px mini
     assert.match(css, /\.atlas-header__actions a/);
     assert.match(css, /\.lab-context-nav a/);
     assert.match(css, /\.lab-tool-footer a/);
+    assert.match(css, /\.lab-context-nav \.lab-context-group a/);
+    assert.match(css, /a\.nav-status\.atlas-status\.atlas-estate-status/);
+    assert.match(css, /button\.es-nav-search\.atlas-search-control/);
+    assert.match(css, /min-height: 44px !important/);
   }
 
   assert.match(symphony, /width: 44px/);
