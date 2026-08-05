@@ -1,6 +1,7 @@
 "use strict";
 
 const FOOTER_STYLESHEET = "/static/css/phase-6-footer.css?v=20260730-phase-6-v2";
+const LAB_SHELL_MODULE = "/lab/shared/shell.js?v=20260805-lab-consistency-v1";
 const ATLAS_OWNED_HOSTS = new Set([
   "api.atlas-systems.uk",
   "atlas-systems.uk",
@@ -25,9 +26,12 @@ function isWritingArticle(pathname) {
   return path.startsWith("/writing/") && path !== "/writing/";
 }
 
+function isLabPath(pathname) {
+  return normalizePath(pathname).startsWith("/lab/");
+}
+
 function isExcludedFooterRoute(pathname) {
-  const path = normalizePath(pathname);
-  return path === "/lab/console/" || isWritingArticle(path);
+  return isWritingArticle(pathname);
 }
 
 function resolveFooterVariant(pathname) {
@@ -184,12 +188,28 @@ function installPhase6Footer() {
   return footer;
 }
 
+function bootstrapLabShell() {
+  if (!isLabPath(window.location.pathname)) return false;
+  if (document.documentElement.hasAttribute("data-lab-shell")) return false;
+  window.setTimeout(() => {
+    void import(LAB_SHELL_MODULE).catch((error) => {
+      console.error("Lab shell bootstrap unavailable", error);
+    });
+  }, 0);
+  return true;
+}
+
+function install() {
+  installPhase6Footer();
+  bootstrapLabShell();
+}
+
 function autoInstall() {
   if (typeof document === "undefined" || typeof window === "undefined") return;
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", installPhase6Footer, { once: true });
+    document.addEventListener("DOMContentLoaded", install, { once: true });
   } else {
-    installPhase6Footer();
+    install();
   }
 }
 
@@ -197,9 +217,12 @@ autoInstall();
 
 export {
   FOOTER_STYLESHEET,
+  LAB_SHELL_MODULE,
+  bootstrapLabShell,
   footerConfiguration,
   installPhase6Footer,
   isExcludedFooterRoute,
+  isLabPath,
   isWritingArticle,
   normalizePath,
   pageIdentity,
