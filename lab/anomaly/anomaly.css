@@ -1,20 +1,43 @@
 @import url("/static/vendor/atlas-interface/v0.5.0/atlas-interface-kit.css") layer(atlas-interface-kit);
 
-body > nav[aria-label="Primary navigation"] a,
-.lab-context-nav a,
-.lab-tool-footer a {
+:where(
+  body > nav[aria-label="Primary navigation"] a,
+  .wordmark,
+  .nav-links a,
+  .lab-context-nav a,
+  .lab-tool-footer a,
+  .atlas-header__brand a,
+  .atlas-header__nav a,
+  .atlas-header__actions a,
+  .atlas-mobile-nav a,
+  button,
+  summary,
+  input:not([type="hidden"]),
+  select,
+  textarea,
+  [role="button"],
+  [role="tab"]
+) {
+  min-width: 44px;
   min-height: 44px;
-  display: inline-flex;
-  align-items: center;
 }
 
-.nav-links a,
-.lab-context-nav a {
-  min-width: 44px;
+:where(
+  body > nav[aria-label="Primary navigation"] a,
+  .wordmark,
+  .nav-links a,
+  .lab-context-nav a,
+  .lab-tool-footer a,
+  .atlas-header__brand a,
+  .atlas-header__nav a,
+  .atlas-header__actions a,
+  .atlas-mobile-nav a
+) {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
 }
 
-button { min-height: 44px; }
 .summary-grid { margin-top: 1rem; }
 .chart-head { display: flex; justify-content: space-between; align-items: end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
 .chart-head label { display: grid; gap: .35rem; color: var(--text-faint); font-size: 11px; }
