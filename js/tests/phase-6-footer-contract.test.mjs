@@ -3,8 +3,10 @@ import fs from "node:fs";
 import test from "node:test";
 
 import {
+  LAB_SHELL_MODULE,
   footerConfiguration,
   isExcludedFooterRoute,
+  isLabPath,
   normalizePath,
   resolveFooterVariant,
 } from "../../static/js/phase-6-footer.js";
@@ -31,10 +33,13 @@ test("route resolver separates estate, tool, and excluded surfaces", () => {
   assert.equal(resolveFooterVariant("/work/"), "estate");
   assert.equal(resolveFooterVariant("/lab/"), "tool");
   assert.equal(resolveFooterVariant("/lab/bearing/"), "tool");
+  assert.equal(resolveFooterVariant("/lab/console/"), "tool");
   assert.equal(resolveFooterVariant("/systems/reliability/"), "tool");
-  assert.equal(resolveFooterVariant("/lab/console/"), null);
   assert.equal(resolveFooterVariant("/writing/sonin-generative-system/"), null);
+  assert.equal(isExcludedFooterRoute("/lab/console/"), false);
   assert.equal(isExcludedFooterRoute("/writing/ramone-local-ai-system/"), true);
+  assert.equal(isLabPath("/lab/system-symphony/roms/"), true);
+  assert.equal(isLabPath("/systems/reliability/"), false);
 });
 
 test("estate and tool profiles remain governed without duplicating global navigation", () => {
@@ -150,11 +155,15 @@ test("W-01 through W-07 keep the classic scheduler-owned footer", () => {
   }
 });
 
-test("Bearing opts into the shared installer while the console stays deferred", () => {
+test("Bearing and Operations both resolve into the shared Lab shell", () => {
+  const source = fs.readFileSync("static/js/phase-6-footer.js", "utf8");
   const bearing = fs.readFileSync("lab/bearing/index.html", "utf8");
-  assert.match(bearing, /\/static\/js\/phase-6-footer\.js\?v=20260730-phase-6-v1/);
-
   const consolePage = fs.readFileSync("lab/console/index.html", "utf8");
-  assert.doesNotMatch(consolePage, /data-atlas-phase6-footer/);
-  assert.equal(isExcludedFooterRoute("/lab/console/"), true);
+
+  assert.match(bearing, /\/static\/js\/phase-6-footer\.js\?v=20260730-phase-6-v1/);
+  assert.equal(LAB_SHELL_MODULE, "/lab/shared/shell.js?v=20260805-lab-consistency-v1");
+  assert.match(source, /function bootstrapLabShell/);
+  assert.match(source, /void import\(LAB_SHELL_MODULE\)/);
+  assert.match(consolePage, /\/static\/js\/estate-search\/global-search\.js/);
+  assert.equal(resolveFooterVariant("/lab/console/"), "tool");
 });
