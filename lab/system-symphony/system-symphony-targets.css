@@ -42,6 +42,20 @@
   justify-content: center;
 }
 
+.symphony-page .lab-context-nav .lab-context-group a,
+.symphony-page a.nav-status.atlas-status.atlas-estate-status,
+.symphony-page button.es-nav-search.atlas-search-control {
+  min-height: 44px !important;
+}
+
+.symphony-page .lab-context-nav .lab-context-group a,
+.symphony-page a.nav-status.atlas-status.atlas-estate-status {
+  min-width: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
 .symphony-page .symphony-lab-tools summary,
 .symphony-page .symphony-more-menu summary,
 .symphony-page .symphony-lab-tools__menu a,
