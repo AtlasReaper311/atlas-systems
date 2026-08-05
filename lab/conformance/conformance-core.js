@@ -145,7 +145,7 @@ async function load() {
   } catch (error) {
     reportElements.status.dataset.errorSource = "conformance-evidence";
     reportElements.status.dataset.errorContext = "live-load";
-    console.error(
+    console.warn(
       "[lab/conformance] live evidence load failed; rendering the existing no-report fallback",
       error,
     );
