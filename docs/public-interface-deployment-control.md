@@ -68,9 +68,12 @@ perform that action.
 
 ## Provider prerequisites
 
-Before merging this deployment-control change, confirm that Cloudflare Pages native Git integration for the
-`atlas-systems` project is disconnected. The shared deployment workflow already declares this requirement: if native
-Git integration remains connected, Cloudflare can deploy a push independently and bypass this gate.
+Before merging this deployment-control change, confirm that Cloudflare Pages automatic Git deployments cannot
+publish independently of this workflow. For an existing Git-integrated Pages project, Cloudflare's supported control
+is to turn off automatic production branch deployments under Build > Branch control. Set automatic preview branch
+deployments to `None` as well unless native preview deployments are intentionally retained under a separate approved
+contract. A Git-integrated Pages project cannot be converted to Direct Upload after creation, so the required control
+is disabling automatic builds rather than assuming the repository connection can be removed.
 
 After merge and before the first dispatch, create or verify the GitHub `production` Environment with:
 
