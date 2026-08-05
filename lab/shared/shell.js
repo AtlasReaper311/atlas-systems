@@ -49,12 +49,29 @@ const LAB_ROUTE_GROUPS = Object.freeze([
 const LAB_ROUTES = Object.freeze(LAB_ROUTE_GROUPS.flatMap(({ routes }) => routes));
 const PRODUCTION_ORIGIN = "https://atlas-systems.uk";
 const SEARCH_CSS = "/static/css/estate-search.css";
-const LAB_CONTEXT_CSS = "/lab/shared/lab-context-navigation.css?v=20260802-lab-directory-polish";
+const LAB_CONTEXT_CSS = "/lab/shared/lab-context-navigation.css?v=20260805-lab-consistency-v1";
+const LAB_LAYOUT_CSS = "/lab/shared/lab-shell-layout.css?v=20260805-lab-consistency-v1";
+const LAB_SHELL_CONTRACT = "/lab/shared/lab-shell-contract.js?v=20260805-lab-consistency-v1";
+const TARGET_CONTRACT = "/static/js/interaction-target-contract.js?v=20260805-lab-consistency-v1";
+const PHASE6_FOOTER = "/static/js/phase-6-footer.js?v=20260805-lab-consistency-v1";
 const LAB_HOME_ROUTE = "/lab/";
 const LAB_INTRO_FIELD_CSS = "/lab/shared/lab-intro-field.css?v=20260727-lab-intro-field-v1";
 const LAB_INTRO_FIELD_MODULE = "/lab/shared/lab-intro-field.js?v=20260727-lab-intro-field-v1";
 const SYSTEM_MAP_CARD_FIELD_CSS = "/lab/shared/system-map-card-field.css?v=20260727-system-map-card-field-v2";
 const SYSTEM_MAP_CARD_FIELD_MODULE = "/lab/shared/system-map-card-field.js?v=20260727-system-map-card-field-v2";
+const LEGACY_ROUTE_ALIASES = Object.freeze(new Map([
+  ["/lab/reliability/", "/systems/reliability/"],
+]));
+const ROUTE_TITLE_OVERRIDES = Object.freeze(new Map([
+  ["/lab/console/", "Operations // Atlas Systems"],
+]));
+const IMMERSIVE_ROUTES = Object.freeze(new Set([
+  "/lab/almost/",
+  "/lab/bearing/",
+  "/lab/drift/",
+]));
+
+let shellResizeObserver = null;
 
 function normalizePath(pathname) {
   if (pathname === "/") return pathname;
@@ -67,6 +84,22 @@ function currentPath() {
 
 function isSystemSymphonyPath(pathname = currentPath()) {
   return pathname.startsWith(SYSTEM_SYMPHONY_ROUTE);
+}
+
+function labLayoutForPath(pathname = currentPath()) {
+  if (pathname === LAB_HOME_ROUTE) return "directory";
+  if (isSystemSymphonyPath(pathname)) return "product";
+  if (IMMERSIVE_ROUTES.has(pathname)) return "immersive";
+  return "standard";
+}
+
+function labRouteForPath(pathname = currentPath()) {
+  if (pathname === LAB_HOME_ROUTE) return "lab";
+  if (isSystemSymphonyPath(pathname)) return "system-symphony";
+  return pathname
+    .replace(/^\/lab\//, "")
+    .replace(/\/$/, "")
+    .split("/")[0] || "lab";
 }
 
 function isCurrentLabRoute(route, pathname = currentPath()) {
@@ -83,6 +116,14 @@ function ensureStylesheet(href) {
   link.rel = "stylesheet";
   link.href = href;
   document.head.appendChild(link);
+}
+
+function installLabIdentity() {
+  const path = currentPath();
+  document.documentElement.dataset.labShell = "";
+  document.body.dataset.labShell = "";
+  document.body.dataset.labLayout = labLayoutForPath(path);
+  document.body.dataset.labRoute = labRouteForPath(path);
 }
 
 function installPrimaryNavigation() {
@@ -147,60 +188,44 @@ function installContextNavigation(primary) {
   });
 
   context.appendChild(inner);
-  if (currentLink && window.matchMedia("(max-width: 860px)").matches) {
+  if (currentLink && window.matchMedia("(max-width: 1099px)").matches) {
     window.requestAnimationFrame(() => {
       currentLink.scrollIntoView({ block: "nearest", inline: "center", behavior: "auto" });
     });
   }
-}
-
-function installFooter() {
-  if (document.querySelector("footer.lab-tool-footer")) return;
-  const footer = document.createElement("footer");
-  footer.className = "lab-tool-footer atlas-footer";
-  footer.setAttribute("aria-label", "Lab footer");
-  const identity = document.createElement("span");
-  identity.textContent = "Atlas Systems // Lab";
-  const links = document.createElement("div");
-  for (const [label, href] of [
-    ["Lab home", "/lab/"],
-    ["Systems", "/systems/"],
-    ["Status", "https://status.atlas-systems.uk/"],
-    ["Estate home", "/"],
-  ]) {
-    const link = document.createElement("a");
-    link.href = href;
-    link.textContent = label;
-    links.appendChild(link);
-  }
-  footer.append(identity, links);
-  document.body.appendChild(footer);
+  return context;
 }
 
 function ensureMeta(property, content) {
   const attribute = property.startsWith("og:") ? "property" : "name";
-  if (document.head.querySelector(`meta[${attribute}="${property}"]`)) return;
-  const meta = document.createElement("meta");
-  meta.setAttribute(attribute, property);
+  let meta = document.head.querySelector(`meta[${attribute}="${property}"]`);
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.setAttribute(attribute, property);
+    document.head.appendChild(meta);
+  }
   meta.content = content;
-  document.head.appendChild(meta);
+  return meta;
 }
 
 function installMetadata() {
+  const path = currentPath();
+  const override = ROUTE_TITLE_OVERRIDES.get(path);
+  if (override) document.title = override;
   const title = document.title;
   const description = document.head.querySelector('meta[name="description"]')?.content || "Atlas Systems Lab interface.";
-  const productionUrl = `${PRODUCTION_ORIGIN}${currentPath()}`;
+  const productionUrl = `${PRODUCTION_ORIGIN}${path}`;
   let canonical = document.head.querySelector('link[rel="canonical"]');
   if (!canonical) {
     canonical = document.createElement("link");
     canonical.rel = "canonical";
-    canonical.href = productionUrl;
     document.head.appendChild(canonical);
   }
+  canonical.href = productionUrl;
   ensureMeta("og:type", "website");
   ensureMeta("og:title", title);
   ensureMeta("og:description", description);
-  ensureMeta("og:url", canonical.href || productionUrl);
+  ensureMeta("og:url", productionUrl);
   ensureMeta("og:site_name", "Atlas Systems");
   ensureMeta("og:image:width", "1200");
   ensureMeta("og:image:height", "630");
@@ -208,6 +233,23 @@ function installMetadata() {
   ensureMeta("twitter:card", "summary_large_image");
   ensureMeta("twitter:title", title);
   ensureMeta("twitter:description", description);
+}
+
+function normalizeLegacyRouteLinks(root = document) {
+  for (const anchor of root.querySelectorAll("a[href]")) {
+    const raw = anchor.getAttribute("href");
+    if (!raw) continue;
+    let path;
+    try {
+      path = normalizePath(new URL(raw, window.location.origin).pathname);
+    } catch {
+      continue;
+    }
+    const replacement = LEGACY_ROUTE_ALIASES.get(path);
+    if (replacement && new URL(raw, window.location.origin).origin === window.location.origin) {
+      anchor.href = replacement;
+    }
+  }
 }
 
 function installBlackboxDirectoryCard() {
@@ -293,17 +335,53 @@ async function installRouteEnhancements() {
   await import("/lab/system-symphony/trace-role-bridge.js?v=20260728-system-symphony-trace-board-v1");
 }
 
+function installMeasuredShell(header, context) {
+  const root = document.documentElement;
+  const update = () => {
+    const headerHeight = Math.max(0, Math.round(header?.getBoundingClientRect().height || 56));
+    const contextHeight = Math.max(0, Math.round(context?.getBoundingClientRect().height || 0));
+    root.style.setProperty("--lab-shell-header-height", `${headerHeight}px`);
+    root.style.setProperty("--lab-shell-context-height", `${contextHeight}px`);
+    root.style.setProperty("--lab-shell-stack-height", `${headerHeight + contextHeight}px`);
+    root.dataset.labShellReady = "";
+  };
+
+  shellResizeObserver?.disconnect();
+  if (typeof ResizeObserver !== "undefined") {
+    shellResizeObserver = new ResizeObserver(() => window.requestAnimationFrame(update));
+    if (header) shellResizeObserver.observe(header);
+    if (context) shellResizeObserver.observe(context);
+  }
+  window.addEventListener("resize", update, { passive: true });
+  window.addEventListener("pagehide", () => shellResizeObserver?.disconnect(), { once: true });
+  window.requestAnimationFrame(() => window.requestAnimationFrame(update));
+}
+
+async function installGovernedFooter() {
+  const { installPhase6Footer } = await import(PHASE6_FOOTER);
+  return installPhase6Footer();
+}
+
 async function installLabShell() {
+  installLabIdentity();
   ensureStylesheet(SEARCH_CSS);
   ensureStylesheet(LAB_CONTEXT_CSS);
+  ensureStylesheet(LAB_LAYOUT_CSS);
   installMetadata();
   const primary = installPrimaryNavigation();
-  installContextNavigation(primary);
-  installFooter();
+  const context = installContextNavigation(primary);
+  normalizeLegacyRouteLinks();
+
   await import("/static/js/estate-shell.js?v=20260723-interface-v2");
   await import("/static/js/estate-search/global-search.js");
+  await installGovernedFooter();
   await installLabHomeFields();
   await installRouteEnhancements();
+
+  const header = document.querySelector(".atlas-header");
+  installMeasuredShell(header, context);
+  await import(TARGET_CONTRACT);
+  await import(LAB_SHELL_CONTRACT);
 }
 
 void installLabShell();
@@ -314,5 +392,8 @@ export {
   SYSTEM_SYMPHONY_SCOPED_ROUTES,
   isCurrentLabRoute,
   isSystemSymphonyPath,
+  labLayoutForPath,
+  labRouteForPath,
+  normalizeLegacyRouteLinks,
   normalizePath,
 };
