@@ -186,9 +186,16 @@ async function load() {
     if (!latestResponse.ok) throw new Error(`latest returned ${latestResponse.status}`);
     latest = await latestResponse.json();
     history = historyResponse.ok ? (await historyResponse.json()).items || [] : [];
+    delete sourceStatus.dataset.errorSource;
+    delete sourceStatus.dataset.errorContext;
     sourceStatus.textContent = "recorded telemetry-shape evidence from specular-edge";
   } catch (error) {
-    console.error(error);
+    sourceStatus.dataset.errorSource = "anomaly-evidence";
+    sourceStatus.dataset.errorContext = "live-load";
+    console.warn(
+      "[lab/anomaly] live evidence load failed; rendering the existing labelled fallback",
+      error,
+    );
     history = fallbackHistory();
     latest = history[0];
     sourceStatus.textContent = "live endpoint unavailable; rendering a labelled deterministic replay";

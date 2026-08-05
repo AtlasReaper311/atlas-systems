@@ -138,10 +138,17 @@ async function load() {
     if (!response.ok) throw new Error(`evidence endpoint returned ${response.status}`);
     const payload = await response.json();
     report = payload.report;
+    delete reportElements.status.dataset.errorSource;
+    delete reportElements.status.dataset.errorContext;
     reportElements.status.textContent = "live weekly evidence";
     reportElements.status.dataset.state = report.summary.errors ? "error" : report.summary.warnings ? "warning" : "pass";
   } catch (error) {
-    console.error(error);
+    reportElements.status.dataset.errorSource = "conformance-evidence";
+    reportElements.status.dataset.errorContext = "live-load";
+    console.warn(
+      "[lab/conformance] live evidence load failed; rendering the existing no-report fallback",
+      error,
+    );
     report = fallbackReport();
     reportElements.status.textContent = "no report published yet";
     reportElements.status.dataset.state = "warning";
