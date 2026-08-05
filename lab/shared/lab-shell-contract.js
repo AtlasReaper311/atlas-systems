@@ -53,7 +53,9 @@ function inspectLabShell(root = document) {
   const heading = [...root.querySelectorAll("main h1")].find(visible) || null;
   const search = root.querySelector(".atlas-search-control");
   const footer = root.querySelector("footer[data-atlas-phase6-footer], footer.lab-tool-footer");
-  const current = context?.querySelector('[aria-current="page"]') || null;
+  const current = context?.querySelector(
+    '[aria-current="page"], .symphony-lab-crumbs__current',
+  ) || null;
   const headerRect = roundedRect(header);
   const contextRect = roundedRect(context);
   const mainRect = roundedRect(main);
