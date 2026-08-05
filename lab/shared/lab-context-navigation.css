@@ -60,16 +60,19 @@
 }
 
 .lab-context-nav .lab-context-group a {
-  min-height: 30px;
-  padding: 0.32rem 0.42rem;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.42rem 0.5rem;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   border: 1px solid transparent;
   border-radius: 4px;
   color: var(--text-dim);
   font-size: 9.5px;
   letter-spacing: 0.055em;
   line-height: 1.25;
+  text-align: center;
   text-transform: uppercase;
   white-space: normal;
 }
@@ -114,26 +117,20 @@
   .lab-context-group {
     padding-inline: 0.3rem;
   }
-
-  .lab-context-nav .lab-context-group a {
-    min-height: 36px;
-  }
 }
 
+/*
+ * The estate header is fixed while the Lab context navigation remains in
+ * document flow and becomes sticky beneath it. Its own height is therefore
+ * already accounted for. Add the fixed-header displacement plus the normal
+ * page breathing room, using the complete header-token fallback chain so the
+ * declaration remains valid on every Lab surface.
+ */
 body:has(.lab-context-nav) main {
-  padding-top: calc(var(--nav-h) + 126px);
-}
-
-@media (max-width: 1099px) {
-  body:has(.lab-context-nav) main {
-    padding-top: calc(var(--nav-h) + 166px);
-  }
-}
-
-@media (max-width: 760px) {
-  body:has(.lab-context-nav) main {
-    padding-top: calc(var(--nav-h) + 300px);
-  }
+  padding-top: calc(
+    var(--atlas-header-height, var(--global-nav-h, var(--nav-h, 56px)))
+    + 64px
+  );
 }
 
 @media (prefers-reduced-motion: reduce) {
