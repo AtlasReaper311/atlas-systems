@@ -1,9 +1,12 @@
 name: Deploy
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: "Exact 40-character commit SHA to deploy. Must equal the current origin/main head."
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -13,13 +16,67 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  resolve-commit:
+    name: Resolve and validate exact commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      commit: ${{ steps.resolve.outputs.commit }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
+        with:
+          fetch-depth: 0
+
+      - name: Validate exact-commit deployment invariant
+        id: resolve
+        env:
+          INPUT_SHA: ${{ inputs.commit_sha }}
+          DISPATCH_REF: ${{ github.ref }}
+          EVENT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "${INPUT_SHA}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::commit_sha must be a lowercase 40-character hex Git SHA, got '${INPUT_SHA}'"
+            exit 1
+          fi
+
+          if [ "${DISPATCH_REF}" != "refs/heads/main" ]; then
+            echo "::error::this workflow may only be dispatched against refs/heads/main, got '${DISPATCH_REF}'"
+            exit 1
+          fi
+
+          if [ "${INPUT_SHA}" != "${EVENT_SHA}" ]; then
+            echo "::error::commit_sha (${INPUT_SHA}) does not equal github.sha (${EVENT_SHA}). Only the current main head may be deployed."
+            exit 1
+          fi
+
+          git fetch origin main --quiet
+          ORIGIN_MAIN="$(git rev-parse origin/main)"
+          if [ "${INPUT_SHA}" != "${ORIGIN_MAIN}" ]; then
+            echo "::error::commit_sha (${INPUT_SHA}) does not equal the fetched origin/main head (${ORIGIN_MAIN}). main has moved; re-dispatch with the current head."
+            exit 1
+          fi
+
+          if ! git cat-file -e "${INPUT_SHA}^{commit}" 2>/dev/null; then
+            echo "::error::commit ${INPUT_SHA} does not exist locally after fetch"
+            exit 1
+          fi
+
+          echo "Resolved exact commit ${INPUT_SHA}, verified equal to github.sha and to the fetched origin/main head."
+          echo "commit=${INPUT_SHA}" >> "${GITHUB_OUTPUT}"
+
   verify-pages-output:
     name: Verify Pages output contract
+    needs: [resolve-commit]
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
         with:
+          ref: ${{ needs.resolve-commit.outputs.commit }}
           fetch-depth: 0
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
@@ -45,8 +102,21 @@ jobs:
           bash scripts/prepare_pages_publish.sh "${publish_directory}"
           python3 scripts/verify_pages_output.py "${publish_directory}"
 
+  production-approval:
+    name: Production rollout approval
+    needs: [resolve-commit, verify-pages-output]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    environment:
+      name: production
+      deployment: false
+    steps:
+      - name: Record approval
+        run: echo "Approved production deployment of ${{ needs.resolve-commit.outputs.commit }}"
+
   deploy:
-    needs: [verify-pages-output]
+    needs: [production-approval]
     uses: AtlasReaper311/atlas-infra/.github/workflows/validate-static.yml@ba99bab755d5601204ead565a6b308d60a5c53ad # atlas-infra Pages artifact boundary with pinned Wrangler
     with:
       project_name: atlas-systems
@@ -57,14 +127,14 @@ jobs:
 
   verify-production:
     name: Verify production custom domain
-    needs: [deploy]
+    needs: [resolve-commit, deploy]
     if: needs.deploy.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: Confirm the custom domain serves this commit
         env:
-          EXPECTED_SHA: ${{ github.sha }}
+          EXPECTED_SHA: ${{ needs.resolve-commit.outputs.commit }}
           SITE_URL: https://atlas-systems.uk
         run: |
           set -euo pipefail
@@ -92,7 +162,7 @@ jobs:
 
       - name: Confirm the v2 Systems route is live
         env:
-          EXPECTED_SHA: ${{ github.sha }}
+          EXPECTED_SHA: ${{ needs.resolve-commit.outputs.commit }}
         run: |
           set -euo pipefail
           SYSTEMS_BODY="$(curl -fsSL \
@@ -109,7 +179,7 @@ jobs:
 
       - name: Confirm Phase 6 footer assets are live
         env:
-          EXPECTED_SHA: ${{ github.sha }}
+          EXPECTED_SHA: ${{ needs.resolve-commit.outputs.commit }}
           SITE_URL: https://atlas-systems.uk
         run: |
           set -euo pipefail
@@ -145,6 +215,8 @@ jobs:
 
       - name: Check out production smoke tooling
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
+        with:
+          ref: ${{ needs.resolve-commit.outputs.commit }}
 
       - name: Set up Node.js for production smoke
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
@@ -159,7 +231,7 @@ jobs:
 
       - name: Verify the live homepage AtlasField renderer
         env:
-          EXPECTED_SHA: ${{ github.sha }}
+          EXPECTED_SHA: ${{ needs.resolve-commit.outputs.commit }}
           SITE_URL: https://atlas-systems.uk
           HOMEPAGE_FIELD_OUTPUT_DIR: ${{ runner.temp }}/homepage-atlas-field-production-smoke
         run: node scripts/smoke_homepage_atlas_field_production.mjs
@@ -175,7 +247,7 @@ jobs:
 
       - name: Verify the live System Symphony Atlas APU and topology map
         env:
-          EXPECTED_SHA: ${{ github.sha }}
+          EXPECTED_SHA: ${{ needs.resolve-commit.outputs.commit }}
           SITE_URL: https://atlas-systems.uk
           SYMPHONY_PRODUCTION_OUTPUT_DIR: ${{ runner.temp }}/system-symphony-production-smoke
         run: node scripts/smoke_system_symphony_production.mjs
