@@ -68,7 +68,7 @@ test("nested System Symphony routes retain parent Lab context", () => {
   assert.match(shell, /link\.setAttribute\("aria-current", "page"\)/);
 });
 
-test("wayfinding styles preserve narrow access and visible keyboard focus", () => {
+test("wayfinding styles preserve visible, reachable, non-overlapping navigation", () => {
   assert.match(shell, /LAB_CONTEXT_CSS/);
   assert.match(shell, /ensureStylesheet\(LAB_CONTEXT_CSS\)/);
   assert.match(styles, /a:focus-visible/);
@@ -81,9 +81,14 @@ test("wayfinding styles preserve narrow access and visible keyboard focus", () =
   assert.match(styles, /grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(styles, /flex-wrap: wrap/);
   assert.match(styles, /white-space: normal/);
+  assert.match(styles, /min-width: 44px/);
+  assert.match(styles, /min-height: 44px/);
   assert.match(styles, /top: var\(--atlas-header-height, var\(--global-nav-h, var\(--nav-h, 56px\)\)\)/);
   assert.match(styles, /body:has\(\.lab-context-nav\) main/);
-  assert.match(styles, /padding-top: calc\(var\(--nav-h\) \+ 126px\)/);
+  assert.match(styles, /var\(--atlas-header-height, var\(--global-nav-h, var\(--nav-h, 56px\)\)\)/);
+  assert.match(styles, /\+ 64px/);
+  assert.doesNotMatch(styles, /padding-top: calc\(var\(--nav-h\)/);
+  assert.doesNotMatch(styles, /padding-top: calc\(var\(--nav-h\) \+ 126px\)/);
   assert.doesNotMatch(styles, /@media \(max-width: 760px\)[\s\S]*?\.lab-context-nav\s*{[\s\S]*?top:\s*0/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
 });
