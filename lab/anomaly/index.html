@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Shape Detector // Atlas Systems. Recorded telemetry-shape evidence from SPECULAR-CORE using robust features, constrained DTW, and continuity-aware state decoding.">
+  <meta name="description" content="Shape Detector // Atlas Systems. Current telemetry-shape evidence from SPECULAR-CORE with an explicitly simulated browser fallback.">
   <meta name="theme-color" content="#0a0a0f">
   <title>Shape Detector // Atlas Systems</title>
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
@@ -17,7 +17,7 @@
   <link rel="manifest" href="/site.webmanifest">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Shape Detector // Atlas Systems">
-  <meta property="og:description" content="Recorded telemetry-shape evidence from SPECULAR-CORE using robust features, constrained DTW, and continuity-aware state decoding.">
+  <meta property="og:description" content="Current telemetry-shape evidence from SPECULAR-CORE with an explicitly simulated browser fallback.">
   <meta property="og:url" content="https://atlas-systems.uk/lab/anomaly/">
   <meta property="og:site_name" content="Atlas Systems">
   <meta property="og:image" content="https://atlas-systems.uk/og/telemetry-anomaly-detector.png">
@@ -26,7 +26,7 @@
   <meta property="og:image:alt" content="Shape before threshold. // Atlas Systems">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Shape Detector // Atlas Systems">
-  <meta name="twitter:description" content="Recorded telemetry-shape evidence from SPECULAR-CORE using robust features, constrained DTW, and continuity-aware state decoding.">
+  <meta name="twitter:description" content="Current telemetry-shape evidence with an explicitly simulated fallback.">
   <meta name="twitter:image" content="https://atlas-systems.uk/og/telemetry-anomaly-detector.png">
   <meta name="twitter:image:alt" content="Shape before threshold. // Atlas Systems">
 </head>
@@ -42,26 +42,26 @@
   </nav>
   <main>
     <header>
-      <div class="eyebrow">Explore / recorded telemetry shape</div>
+      <div class="eyebrow">Explore / telemetry shape evidence</div>
       <h1>Shape before threshold.</h1>
-      <p class="lede">The detector compares the active metric trajectory with historical normal motifs. Robust level, slope, volatility, derivative-DTW distance, and continuity state are combined so a sustained drift can become visible before a static red line is crossed.</p>
+      <p class="lede">The detector compares the active metric trajectory with historical normal motifs. Robust level, slope, volatility, derivative-DTW distance, and continuity state are combined so a sustained drift can become visible before a static red line is crossed. When the public endpoint is unavailable, the page switches to an explicitly simulated browser demonstration.</p>
     </header>
 
-    <section class="section">
+    <section id="anomaly-summary-surface" class="section atlas-evidence-surface" data-evidence-mode="unknown">
       <div class="summary-grid grid grid-3">
-        <div class="metric"><span>detector state</span><strong id="overall-state">loading</strong></div>
-        <div class="metric"><span>shape score</span><strong id="overall-score">-</strong></div>
-        <div class="metric"><span>evidence time</span><strong id="generated-at">-</strong></div>
+        <div class="metric"><span>detector state</span><strong class="atlas-evidence-value" id="overall-state" data-evidence-mode="unknown" data-runtime-state="unknown">loading</strong></div>
+        <div class="metric"><span>shape score</span><strong class="atlas-evidence-value" id="overall-score" data-evidence-mode="unknown">—</strong></div>
+        <div class="metric"><span>evidence time</span><strong class="atlas-evidence-value" id="generated-at" data-evidence-mode="unknown">—</strong></div>
       </div>
-      <p class="status" id="source-status" aria-live="polite">checking specular-edge evidence</p>
+      <p class="status atlas-evidence-mode" id="source-status" data-evidence-mode="unknown" data-runtime-state="checking" aria-live="polite">Unknown</p>
     </section>
 
     <section class="section grid grid-2">
-      <div class="panel">
+      <div id="anomaly-chart-surface" class="panel atlas-evidence-surface" data-evidence-mode="unknown">
         <div class="chart-head">
           <div>
             <h2>Trajectory evidence</h2>
-            <p class="note">Select a metric. The line is the persisted edge history; the amber area marks warning or critical observations.</p>
+            <p class="note">Select a metric. Measured mode shows persisted edge history; Simulated mode shows browser-generated demonstration values and never claims live estate state.</p>
           </div>
           <label>Metric
             <select id="metric-select" aria-controls="chart-summary metric-table"></select>
@@ -72,17 +72,17 @@
         </div>
         <p class="note" id="chart-summary" role="status">No evidence loaded.</p>
       </div>
-      <div class="panel panel-deep">
+      <div id="anomaly-explanation-surface" class="panel panel-deep atlas-evidence-surface" data-evidence-mode="unknown">
         <h2>Current explanation</h2>
         <dl class="evidence-list">
-          <div><dt>Value</dt><dd id="metric-value">-</dd></div>
-          <div><dt>Robust z</dt><dd id="metric-z">-</dd></div>
-          <div><dt>Slope z</dt><dd id="metric-slope">-</dd></div>
-          <div><dt>Volatility ratio</dt><dd id="metric-volatility">-</dd></div>
-          <div><dt>Derivative DTW</dt><dd id="metric-dtw">-</dd></div>
-          <div><dt>Decoder confidence</dt><dd id="metric-confidence">-</dd></div>
-          <div><dt>First divergence</dt><dd id="metric-divergence">-</dd></div>
-          <div><dt>Warm-up remaining</dt><dd id="metric-warmup">-</dd></div>
+          <div><dt>Value</dt><dd class="atlas-evidence-value" id="metric-value" data-evidence-mode="unknown">—</dd></div>
+          <div><dt>Robust z</dt><dd class="atlas-evidence-value" id="metric-z" data-evidence-mode="unknown">—</dd></div>
+          <div><dt>Slope z</dt><dd class="atlas-evidence-value" id="metric-slope" data-evidence-mode="unknown">—</dd></div>
+          <div><dt>Volatility ratio</dt><dd class="atlas-evidence-value" id="metric-volatility" data-evidence-mode="unknown">—</dd></div>
+          <div><dt>Derivative DTW</dt><dd class="atlas-evidence-value" id="metric-dtw" data-evidence-mode="unknown">—</dd></div>
+          <div><dt>Decoder confidence</dt><dd class="atlas-evidence-value" id="metric-confidence" data-evidence-mode="unknown">—</dd></div>
+          <div><dt>First divergence</dt><dd class="atlas-evidence-value" id="metric-divergence" data-evidence-mode="unknown">—</dd></div>
+          <div><dt>Warm-up remaining</dt><dd class="atlas-evidence-value" id="metric-warmup" data-evidence-mode="unknown">—</dd></div>
         </dl>
       </div>
     </section>
@@ -95,7 +95,7 @@
 
     <section class="section">
       <h2>Metric evidence</h2>
-      <div class="table-wrap">
+      <div id="anomaly-table-surface" class="table-wrap atlas-evidence-surface" data-evidence-mode="unknown">
         <table>
           <thead><tr><th scope="col">Metric</th><th scope="col">State</th><th scope="col">Score</th><th scope="col">Value</th><th scope="col">DTW</th><th scope="col">Slope z</th><th scope="col">Confidence</th></tr></thead>
           <tbody id="metric-table"><tr><td colspan="7">Loading.</td></tr></tbody>

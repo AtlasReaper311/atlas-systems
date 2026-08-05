@@ -1,4 +1,5 @@
 const ENDPOINT = "https://api.atlas-systems.uk/v1/evidence/conformance";
+const EM_DASH = "—";
 
 const reportElements = {
   score: document.querySelector("#estate-score"),
@@ -14,6 +15,23 @@ const reportElements = {
   filter: document.querySelector("#repo-filter"),
 };
 
+const evidenceSurfaces = [
+  document.querySelector("#conformance-summary-surface"),
+  document.querySelector("#conformance-repository-surface"),
+  document.querySelector("#conformance-rule-surface"),
+  document.querySelector("#conformance-finding-surface"),
+  document.querySelector("#conformance-provenance-surface"),
+].filter(Boolean);
+
+const evidenceValues = [
+  reportElements.score,
+  reportElements.repos,
+  reportElements.generated,
+  reportElements.errors,
+  reportElements.warnings,
+  reportElements.unknown,
+].filter(Boolean);
+
 const missingElements = [];
 if (!reportElements.filter) missingElements.push("repo-filter");
 if (missingElements.length) {
@@ -28,9 +46,10 @@ if (missingElements.length) {
 }
 
 let report = null;
+let evidenceMode = "unknown";
 
 function relativeTime(value) {
-  if (!value) return "-";
+  if (!value) return EM_DASH;
   const seconds = Math.round((Date.now() - Date.parse(value)) / 1000);
   if (Math.abs(seconds) < 60) return `${seconds}s ago`;
   if (Math.abs(seconds) < 3600) return `${Math.round(seconds / 60)}m ago`;
@@ -45,13 +64,13 @@ function fallbackReport() {
     policy_version: "not published",
     source: { repository: "AtlasReaper311/atlas-infra", commit: "unavailable" },
     summary: {
-      repositories_scanned: 0,
-      repositories_scored: 0,
+      repositories_scanned: null,
+      repositories_scored: null,
       estate_score: null,
-      errors: 0,
-      warnings: 0,
-      unknown: 0,
-      passing: 0,
+      errors: null,
+      warnings: null,
+      unknown: null,
+      passing: null,
     },
     rules: [],
     repositories: [],
@@ -72,29 +91,64 @@ function setTextById(id, value) {
   setText(document.querySelector(id), value);
 }
 
+function addClass(element, value) {
+  if (!element) return;
+  if (element.classList?.add) {
+    element.classList.add(value);
+    return;
+  }
+  const classes = new Set(String(element.className || "").split(/\s+/).filter(Boolean));
+  classes.add(value);
+  element.className = [...classes].join(" ");
+}
+
+function applyEvidenceMode(mode) {
+  evidenceMode = mode;
+  for (const surface of evidenceSurfaces) {
+    addClass(surface, "atlas-evidence-surface");
+    surface.dataset.evidenceMode = mode;
+  }
+  for (const value of evidenceValues) {
+    addClass(value, "atlas-evidence-value");
+    value.dataset.evidenceMode = mode;
+  }
+  if (reportElements.status) {
+    addClass(reportElements.status, "atlas-evidence-mode");
+    reportElements.status.dataset.evidenceMode = mode;
+  }
+}
+
+function displayCount(value) {
+  return value === null || value === undefined ? EM_DASH : String(value);
+}
+
 function renderSummary() {
   const summary = report.summary;
   setText(reportElements.score, summary.estate_score === null ? "unscored" : summary.estate_score.toFixed(1));
-  setText(reportElements.repos, String(summary.repositories_scanned));
+  setText(reportElements.repos, displayCount(summary.repositories_scanned));
   setText(reportElements.generated, relativeTime(report.generated_at));
-  setText(reportElements.errors, String(summary.errors));
-  setText(reportElements.warnings, String(summary.warnings));
-  setText(reportElements.unknown, String(summary.unknown));
+  setText(reportElements.errors, displayCount(summary.errors));
+  setText(reportElements.warnings, displayCount(summary.warnings));
+  setText(reportElements.unknown, displayCount(summary.unknown));
   setTextById("#policy-version", report.policy_version);
-  setTextById("#source-repository", report.source?.repository || "-");
-  setTextById("#source-commit", report.source?.commit || "-");
-  setTextById("#fingerprint", report.fingerprint || "-");
+  setTextById("#source-repository", report.source?.repository || EM_DASH);
+  setTextById("#source-commit", report.source?.commit || EM_DASH);
+  setTextById("#fingerprint", report.fingerprint || EM_DASH);
 }
 
 function renderRepositories() {
+  if (!reportElements.repoTable) return;
+  reportElements.repoTable.innerHTML = "";
+  if (evidenceMode !== "measured") {
+    reportElements.repoTable.innerHTML = '<tr><td colspan="6">Repository evidence is unavailable. No zero-value result has been inferred.</td></tr>';
+    return;
+  }
   const query = (reportElements.filter?.value || "").trim().toLowerCase();
   const repositories = (report.repositories || []).filter((item) =>
     `${item.repository} ${item.status}`.toLowerCase().includes(query),
   );
-  if (!reportElements.repoTable) return;
-  reportElements.repoTable.innerHTML = "";
   if (!repositories.length) {
-    reportElements.repoTable.innerHTML = '<tr><td colspan="6">No repository rows match the current evidence.</td></tr>';
+    reportElements.repoTable.innerHTML = '<tr><td colspan="6">No repository rows match the current measured evidence.</td></tr>';
     return;
   }
   repositories
@@ -110,7 +164,7 @@ function renderRepositories() {
       const row = document.createElement("tr");
       row.innerHTML = `
         <td><code>${repository.repository}</code></td>
-        <td class="score">${repository.score === null ? "unknown" : repository.score.toFixed(1)}</td>
+        <td class="score">${repository.score === null ? "unscored" : repository.score.toFixed(1)}</td>
         <td class="${statusClass(repository.status)}">${repository.status}</td>
         <td>${errors}</td>
         <td>${warnings}</td>
@@ -122,6 +176,10 @@ function renderRepositories() {
 function renderRules() {
   if (!reportElements.rules) return;
   reportElements.rules.innerHTML = "";
+  if (evidenceMode !== "measured") {
+    reportElements.rules.innerHTML = '<p class="note">The public rule catalogue is unavailable with this evidence request.</p>';
+    return;
+  }
   if (!report.rules.length) {
     reportElements.rules.innerHTML = '<p class="note">No public rule catalogue has been published yet.</p>';
     return;
@@ -140,8 +198,12 @@ function renderRules() {
 function renderFindings() {
   if (!reportElements.findingTable) return;
   reportElements.findingTable.innerHTML = "";
+  if (evidenceMode !== "measured") {
+    reportElements.findingTable.innerHTML = '<tr><td colspan="5">Finding evidence is unavailable. No clean result has been inferred.</td></tr>';
+    return;
+  }
   if (!report.findings.length) {
-    reportElements.findingTable.innerHTML = '<tr><td colspan="5">No findings in the latest report.</td></tr>';
+    reportElements.findingTable.innerHTML = '<tr><td colspan="5">No findings in the latest measured report.</td></tr>';
     return;
   }
   report.findings.forEach((finding) => {
@@ -150,7 +212,7 @@ function renderFindings() {
       <td class="severity-${finding.severity}">${finding.severity}</td>
       <td><code>${finding.repo}</code></td>
       <td><code>${finding.rule}</code></td>
-      <td><code>${finding.path || "-"}</code></td>
+      <td><code>${finding.path || EM_DASH}</code></td>
       <td>${finding.message}</td>`;
     reportElements.findingTable.appendChild(row);
   });
@@ -162,21 +224,27 @@ async function load() {
     if (!response.ok) throw new Error(`evidence endpoint returned ${response.status}`);
     const payload = await response.json();
     report = payload.report;
+    applyEvidenceMode("measured");
     if (reportElements.status) {
       delete reportElements.status.dataset.errorSource;
       delete reportElements.status.dataset.errorContext;
-      reportElements.status.textContent = "live weekly evidence";
+      reportElements.status.textContent = "Measured";
+      reportElements.status.title = "Current weekly evidence from the public conformance API.";
+      reportElements.status.dataset.runtimeState = report.summary.errors ? "error" : report.summary.warnings ? "warning" : "pass";
       reportElements.status.dataset.state = report.summary.errors ? "error" : report.summary.warnings ? "warning" : "pass";
     }
   } catch (error) {
+    applyEvidenceMode("unavailable");
     if (reportElements.status) {
       reportElements.status.dataset.errorSource = "conformance-evidence";
       reportElements.status.dataset.errorContext = "live-load";
-      reportElements.status.textContent = "no report published yet";
-      reportElements.status.dataset.state = "warning";
+      reportElements.status.textContent = "Unavailable";
+      reportElements.status.title = "The public conformance API did not provide evidence.";
+      reportElements.status.dataset.runtimeState = "unknown";
+      reportElements.status.dataset.state = "unknown";
     }
     console.warn(
-      "[lab/conformance] live evidence load failed; rendering the existing no-report fallback",
+      "[lab/conformance] live evidence load failed; rendering an unavailable evidence state",
       error,
     );
     report = fallbackReport();

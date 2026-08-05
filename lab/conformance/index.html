@@ -48,17 +48,17 @@
       <p class="lede">The same weekly policy run that gates the estate now publishes its complete denominator: which rules applied, which passed, which warned, which failed, and which repositories could not be read. The score measures Atlas conventions, not universal software quality.</p>
     </header>
 
-    <section class="section">
+    <section id="conformance-summary-surface" class="section atlas-evidence-surface" data-evidence-mode="unknown">
       <div class="grid grid-3">
-        <div class="metric"><span>estate score</span><strong id="estate-score">loading</strong></div>
-        <div class="metric"><span>repositories scanned</span><strong id="repo-count">-</strong></div>
-        <div class="metric"><span>last evidence</span><strong id="generated-at">-</strong></div>
+        <div class="metric"><span>estate score</span><strong class="atlas-evidence-value" id="estate-score" data-evidence-mode="unknown">loading</strong></div>
+        <div class="metric"><span>repositories scanned</span><strong class="atlas-evidence-value" id="repo-count" data-evidence-mode="unknown">—</strong></div>
+        <div class="metric"><span>last evidence</span><strong class="atlas-evidence-value" id="generated-at" data-evidence-mode="unknown">—</strong></div>
       </div>
       <div class="finding-strip">
-        <span><strong id="error-count">-</strong> errors</span>
-        <span><strong id="warning-count">-</strong> warnings</span>
-        <span><strong id="unknown-count">-</strong> unknown</span>
-        <span class="status" id="evidence-status" aria-live="polite">checking public evidence API</span>
+        <span><strong class="atlas-evidence-value" id="error-count" data-evidence-mode="unknown">—</strong> errors</span>
+        <span><strong class="atlas-evidence-value" id="warning-count" data-evidence-mode="unknown">—</strong> warnings</span>
+        <span><strong class="atlas-evidence-value" id="unknown-count" data-evidence-mode="unknown">—</strong> unknown</span>
+        <span class="status atlas-evidence-mode" id="evidence-status" data-evidence-mode="unknown" data-runtime-state="checking" aria-live="polite">Unknown</span>
       </div>
     </section>
 
@@ -72,7 +72,7 @@
           <input id="repo-filter" type="search" placeholder="repo or status" aria-controls="repo-table">
         </label>
       </div>
-      <div class="table-wrap">
+      <div id="conformance-repository-surface" class="table-wrap atlas-evidence-surface" data-evidence-mode="unknown">
         <table>
           <thead><tr><th scope="col">Repository</th><th scope="col">Score</th><th scope="col">Status</th><th scope="col">Errors</th><th scope="col">Warnings</th><th scope="col">Applicable rules</th></tr></thead>
           <tbody id="repo-table" aria-live="polite"><tr><td colspan="6">Loading.</td></tr></tbody>
@@ -80,14 +80,14 @@
       </div>
     </section>
 
-    <section class="section">
+    <section id="conformance-rule-surface" class="section atlas-evidence-surface" data-evidence-mode="unknown">
       <h2>Rule catalogue</h2>
       <div class="rule-grid grid grid-3" id="rule-grid"></div>
     </section>
 
     <section class="section">
       <h2>Current findings</h2>
-      <div class="table-wrap">
+      <div id="conformance-finding-surface" class="table-wrap atlas-evidence-surface" data-evidence-mode="unknown">
         <table>
           <thead><tr><th scope="col">Severity</th><th scope="col">Repository</th><th scope="col">Rule</th><th scope="col">Path</th><th scope="col">Finding</th></tr></thead>
           <tbody id="finding-table" aria-live="polite"><tr><td colspan="5">Loading.</td></tr></tbody>
@@ -95,13 +95,13 @@
       </div>
     </section>
 
-    <section class="section panel panel-deep">
+    <section id="conformance-provenance-surface" class="section panel panel-deep atlas-evidence-surface" data-evidence-mode="unknown">
       <h2>Evidence provenance</h2>
       <dl class="provenance">
-        <div><dt>Policy version</dt><dd id="policy-version">-</dd></div>
-        <div><dt>Source repository</dt><dd id="source-repository">-</dd></div>
-        <div><dt>Source commit</dt><dd id="source-commit">-</dd></div>
-        <div><dt>Fingerprint</dt><dd id="fingerprint">-</dd></div>
+        <div><dt>Policy version</dt><dd id="policy-version">—</dd></div>
+        <div><dt>Source repository</dt><dd id="source-repository">—</dd></div>
+        <div><dt>Source commit</dt><dd id="source-commit">—</dd></div>
+        <div><dt>Fingerprint</dt><dd id="fingerprint">—</dd></div>
       </dl>
     </section>
   </main>

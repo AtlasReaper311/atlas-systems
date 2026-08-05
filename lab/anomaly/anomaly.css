@@ -1,7 +1,24 @@
+@import url("/static/vendor/atlas-interface/v0.5.0/atlas-interface-kit.css") layer(atlas-interface-kit);
+
+body > nav[aria-label="Primary navigation"] a,
+.lab-context-nav a,
+.lab-tool-footer a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.nav-links a,
+.lab-context-nav a {
+  min-width: 44px;
+  justify-content: center;
+}
+
+button { min-height: 44px; }
 .summary-grid { margin-top: 1rem; }
 .chart-head { display: flex; justify-content: space-between; align-items: end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
 .chart-head label { display: grid; gap: .35rem; color: var(--text-faint); font-size: 11px; }
-select { min-width: 15rem; padding: .55rem; background: var(--bg); color: var(--text); border: 1px solid var(--border-hi); }
+select { min-width: 15rem; min-height: 44px; padding: .55rem; background: var(--bg); color: var(--text); border: 1px solid var(--border-hi); }
 #anomaly-chart { height: 360px; }
 .evidence-list { display: grid; gap: 0; margin: 0; }
 .evidence-list div { display: flex; justify-content: space-between; gap: 1rem; padding: .7rem 0; border-bottom: 1px solid var(--border); }
@@ -11,3 +28,41 @@ select { min-width: 15rem; padding: .55rem; background: var(--bg); color: var(--
 .state-normal { color: var(--green); }
 .state-watch, .state-warning { color: var(--accent); }
 .state-critical, .state-error { color: var(--red); }
+.state-simulated { color: var(--text-dim); }
+
+#anomaly-summary-surface { padding: clamp(1rem, 3vw, 1.5rem); }
+
+.atlas-evidence-mode {
+  color: var(--text-dim);
+  background: var(--bg-2);
+}
+
+.atlas-evidence-mode[data-evidence-mode="measured"][data-runtime-state="normal"] { color: var(--green); }
+.atlas-evidence-mode[data-evidence-mode="measured"][data-runtime-state="watch"],
+.atlas-evidence-mode[data-evidence-mode="measured"][data-runtime-state="warning"] { color: var(--accent); }
+.atlas-evidence-mode[data-evidence-mode="measured"][data-runtime-state="critical"] { color: var(--red); }
+
+.atlas-evidence-surface[data-evidence-mode="simulated"] {
+  border: 1px dashed var(--border-hi);
+  border-left: 3px solid var(--text-faint);
+  background: color-mix(in srgb, var(--bg-1) 88%, var(--bg-2));
+  box-shadow: none;
+}
+
+.atlas-evidence-mode[data-evidence-mode="simulated"] {
+  border-style: dashed;
+  color: var(--text-faint);
+}
+
+.atlas-evidence-surface[data-evidence-mode="simulated"] :is(.state-normal, .state-watch, .state-warning, .state-critical, .state-error) {
+  color: var(--text-dim);
+}
+
+#anomaly-chart-surface[data-evidence-mode="simulated"] canvas {
+  border-style: dashed;
+}
+
+@media (max-width: 620px) {
+  .chart-head label,
+  .chart-head select { width: 100%; min-width: 0; }
+}

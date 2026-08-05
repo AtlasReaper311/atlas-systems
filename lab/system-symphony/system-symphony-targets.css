@@ -1,0 +1,48 @@
+/* Executable 44px interaction-target corrections for System SYMPHONY. */
+.symphony-page :where(
+  button:not([disabled]),
+  summary,
+  input:not([type="hidden"]):not([disabled]),
+  select:not([disabled]),
+  textarea:not([disabled]),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="tab"]:not([aria-disabled="true"]),
+  .focus-action,
+  .symphony-product-link,
+  .symphony-product-mode-link,
+  .symphony-proof-open
+) {
+  min-height: 44px;
+}
+
+.symphony-page .symphony-lab-tools summary,
+.symphony-page .symphony-more-menu summary,
+.symphony-page .symphony-lab-tools__menu a,
+.symphony-page .symphony-more-menu__menu a,
+.symphony-page .symphony-product-link,
+.symphony-page .symphony-product-mode-link,
+.symphony-page .symphony-product-bar .symphony-mode-tabs button,
+.symphony-page .symphony-product-status,
+.symphony-page .symphony-product-audio,
+.symphony-page .symphony-button,
+.symphony-page .symphony-segmented button,
+.symphony-page .symphony-table-action {
+  min-height: 44px !important;
+}
+
+.symphony-page .symphony-performance__collapse {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+}
+
+.symphony-page input[type="range"] {
+  min-width: 44px;
+}
+
+@media (max-width: 767px) {
+  .symphony-page .symphony-lab-tools__menu,
+  .symphony-page .symphony-more-menu__menu {
+    max-width: calc(100vw - 32px);
+  }
+}
