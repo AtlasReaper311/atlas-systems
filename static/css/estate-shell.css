@@ -139,10 +139,10 @@ html[data-atlas-interface] body { font-size: max(15px, 1rem); }
   .almost-afterword .almost-prose { grid-column: 1 / -1; }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
   .atlas-nav-shell .atlas-header__inner { width: min(calc(100% - 32px), 1280px); grid-template-columns: minmax(0,1fr) auto; gap: 12px; }
   .atlas-nav-shell .atlas-header__nav { display: none; }
-  .atlas-search-control { width: 40px; min-width: 40px; padding: 0 !important; justify-content: center; }
+  .atlas-search-control { width: var(--atlas-touch-min, 44px); min-width: var(--atlas-touch-min, 44px); min-height: var(--atlas-touch-min, 44px) !important; padding: 0 !important; justify-content: center; }
   .atlas-search-control__label,.atlas-search-control kbd { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .atlas-mobile-nav {
     position: fixed;
