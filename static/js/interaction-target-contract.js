@@ -1,4 +1,5 @@
 const TARGET_MINIMUM = 44;
+const STABILITY_DELAY_MS = 240;
 const TARGET_SELECTOR = [
   "button:not([disabled])",
   "summary",
@@ -22,7 +23,9 @@ const TARGET_SELECTOR = [
 ].join(",");
 
 let auditTimer = null;
-let previousFailureKey = "";
+let stabilityTimer = null;
+let pendingFailureKey = "";
+let confirmedFailureKey = "";
 let observer = null;
 
 function selectorFor(element) {
@@ -42,8 +45,8 @@ function isVisible(element) {
   return rect.width > 0 && rect.height > 0;
 }
 
-function auditInteractionTargets(root = document) {
-  const failures = [...root.querySelectorAll(TARGET_SELECTOR)]
+function measureInteractionTargets(root = document) {
+  return [...root.querySelectorAll(TARGET_SELECTOR)]
     .filter(isVisible)
     .map((element) => {
       const rect = element.getBoundingClientRect();
@@ -54,21 +57,37 @@ function auditInteractionTargets(root = document) {
       };
     })
     .filter(({ width, height }) => width + 0.1 < TARGET_MINIMUM || height + 0.1 < TARGET_MINIMUM);
+}
 
+function auditInteractionTargets(root = document) {
+  const failures = measureInteractionTargets(root);
   const documentElement = root.documentElement || document.documentElement;
   const failureKey = JSON.stringify(failures);
-  if (failures.length) {
-    documentElement.dataset.atlasTargetContract = "fail";
-    if (failureKey !== previousFailureKey) {
-      console.error(
-        `[interaction-target-contract] ${failures.length} visible target(s) are smaller than ${TARGET_MINIMUM}px`,
-        failures,
-      );
-    }
-  } else {
+
+  if (!failures.length) {
+    window.clearTimeout(stabilityTimer);
+    stabilityTimer = null;
+    pendingFailureKey = "";
+    confirmedFailureKey = "";
     documentElement.dataset.atlasTargetContract = "pass";
+    return failures;
   }
-  previousFailureKey = failureKey;
+
+  if (failureKey !== pendingFailureKey) {
+    pendingFailureKey = failureKey;
+    documentElement.dataset.atlasTargetContract = "pending";
+    window.clearTimeout(stabilityTimer);
+    stabilityTimer = window.setTimeout(() => auditInteractionTargets(root), STABILITY_DELAY_MS);
+    return failures;
+  }
+
+  documentElement.dataset.atlasTargetContract = "fail";
+  if (failureKey !== confirmedFailureKey) {
+    console.error(
+      `[interaction-target-contract] ${failures.length} visible target(s) are smaller than ${TARGET_MINIMUM}px: ${failureKey}`,
+    );
+    confirmedFailureKey = failureKey;
+  }
   return failures;
 }
 
@@ -81,7 +100,13 @@ function scheduleAudit() {
   }, 120);
 }
 
+async function waitForPageLoad() {
+  if (document.readyState === "complete") return;
+  await new Promise((resolve) => window.addEventListener("load", resolve, { once: true }));
+}
+
 async function startInteractionTargetContract() {
+  await waitForPageLoad();
   try {
     await document.fonts?.ready;
   } catch {
@@ -101,11 +126,13 @@ async function startInteractionTargetContract() {
 }
 
 if (typeof document !== "undefined") {
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", startInteractionTargetContract, { once: true });
-  } else {
-    void startInteractionTargetContract();
-  }
+  void startInteractionTargetContract();
 }
 
-export { TARGET_MINIMUM, TARGET_SELECTOR, auditInteractionTargets };
+export {
+  STABILITY_DELAY_MS,
+  TARGET_MINIMUM,
+  TARGET_SELECTOR,
+  auditInteractionTargets,
+  measureInteractionTargets,
+};
