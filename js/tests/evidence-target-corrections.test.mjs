@@ -42,15 +42,31 @@ test("Lab and Systems directory cards share live-and-simulated Shape Detector wo
   assert.match(source, /evidenceDirectoryMode = "live-simulated"/);
 });
 
-test("rendered interaction targets are measured at the accepted 44px minimum", () => {
+test("rendered interaction targets are measured at the accepted stable 44px minimum", () => {
   const contract = read("static/js/interaction-target-contract.js");
+  const conformance = read("lab/conformance/conformance.css");
+  const anomaly = read("lab/anomaly/anomaly.css");
   const symphony = read("lab/system-symphony/system-symphony-targets.css");
   const cards = read("static/js/card-signatures.js");
+
   assert.match(contract, /const TARGET_MINIMUM = 44/);
+  assert.match(contract, /const STABILITY_DELAY_MS = 240/);
   assert.match(contract, /getBoundingClientRect/);
+  assert.match(contract, /atlasTargetContract = "pending"/);
   assert.match(contract, /atlasTargetContract = "fail"/);
+  assert.match(contract, /JSON\.stringify\(failures\)/);
+  assert.match(contract, /await waitForPageLoad\(\)/);
   assert.match(contract, /console\.error/);
-  assert.match(symphony, /min-height: 44px/);
+
+  for (const css of [conformance, anomaly, symphony]) {
+    assert.match(css, /min-width: 44px/);
+    assert.match(css, /min-height: 44px/);
+    assert.match(css, /\.atlas-header__nav a/);
+    assert.match(css, /\.atlas-header__actions a/);
+    assert.match(css, /\.lab-context-nav a/);
+    assert.match(css, /\.lab-tool-footer a/);
+  }
+
   assert.match(symphony, /width: 44px/);
   assert.match(symphony, /height: 44px/);
   assert.match(cards, /system-symphony-targets\.css/);
