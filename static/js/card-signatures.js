@@ -22,11 +22,13 @@ export const CARD_SIGNATURES = Object.freeze([
   "console",
 ]);
 
+const GOVERNED_CARD_SELECTOR = ".system-card[data-visual][data-motif]";
 const SIGNATURE_SET = new Set(CARD_SIGNATURES);
 const SVG_NS = "http://www.w3.org/2000/svg";
 const SPRITE_PATH = new URL("../media/card-signatures.svg", import.meta.url).href;
 const SPRITE_ID = "atlas-card-signature-sprite";
 let spritePromise;
+let cardObserver;
 
 async function installSprite(documentNode) {
   if (documentNode.getElementById(SPRITE_ID)) {
@@ -63,7 +65,7 @@ export async function enhanceCardSignatures(root = document) {
   spritePromise ??= installSprite(documentNode);
   await spritePromise;
 
-  const cards = root.querySelectorAll(".system-card[data-visual][data-motif]");
+  const cards = root.querySelectorAll(GOVERNED_CARD_SELECTOR);
   for (const card of cards) {
     if (card.dataset.cardSignatureReady === "true") {
       continue;
@@ -98,7 +100,38 @@ export async function enhanceCardSignatures(root = document) {
   }
 }
 
+function containsGovernedCard(node) {
+  if (node?.nodeType !== 1) {
+    return false;
+  }
+  return Boolean(
+    node.matches?.(GOVERNED_CARD_SELECTOR)
+    || node.querySelector?.(GOVERNED_CARD_SELECTOR),
+  );
+}
+
+export function observeCardSignatures(documentNode = document) {
+  if (cardObserver || !documentNode.body || typeof MutationObserver === "undefined") {
+    return;
+  }
+
+  cardObserver = new MutationObserver((records) => {
+    const cardAdded = records.some(({ addedNodes }) =>
+      [...addedNodes].some(containsGovernedCard),
+    );
+    if (!cardAdded) {
+      return;
+    }
+
+    enhanceCardSignatures(documentNode).catch((error) => {
+      console.warn(`[card-signatures] ${error.message}; preserving CSS motif fallback`);
+    });
+  });
+  cardObserver.observe(documentNode.body, { childList: true, subtree: true });
+}
+
 function startEnhancement() {
+  observeCardSignatures(document);
   enhanceCardSignatures().catch((error) => {
     console.warn(`[card-signatures] ${error.message}; preserving CSS motif fallback`);
   });
