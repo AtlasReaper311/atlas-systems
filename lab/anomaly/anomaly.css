@@ -38,6 +38,20 @@
   justify-content: center;
 }
 
+body .lab-context-nav .lab-context-group a,
+body a.nav-status.atlas-status.atlas-estate-status,
+body button.es-nav-search.atlas-search-control {
+  min-height: 44px !important;
+}
+
+body .lab-context-nav .lab-context-group a,
+body a.nav-status.atlas-status.atlas-estate-status {
+  min-width: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
 .summary-grid { margin-top: 1rem; }
 .chart-head { display: flex; justify-content: space-between; align-items: end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
 .chart-head label { display: grid; gap: .35rem; color: var(--text-faint); font-size: 11px; }
