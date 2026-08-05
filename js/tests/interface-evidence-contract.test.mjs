@@ -32,6 +32,16 @@ test("the evidence inventory is derived from every current sitemap route plus re
   assert.ok(sitemapRoutes.includes("/lab/drift/"));
   assert.ok(sitemapRoutes.includes("/lab/speculum/"));
   assert.ok(sitemapRoutes.includes("/writing/atlas-systems-cicd-pipeline/"));
+  for (const route of [
+    "/lab/console/",
+    "/lab/system-symphony/roms/",
+    "/lab/system-symphony/build-log/",
+    "/lab/system-symphony/radio/",
+    "/404.html",
+  ]) {
+    assert.ok(NON_INDEXED_ROUTES.includes(route), `missing reviewed override ${route}`);
+    assert.ok(routes.includes(route), `missing evidence route ${route}`);
+  }
   for (const route of NON_INDEXED_ROUTES) assert.ok(routes.includes(route), `missing reviewed override ${route}`);
   assert.equal(routes.length, sitemapRoutes.length + NON_INDEXED_ROUTES.length);
 });
@@ -52,6 +62,20 @@ test("the plan gives every route semantic coverage and expands representative ro
   }
 });
 
+test("every Lab route requires the governed header, search, and mobile shell", () => {
+  const plan = buildEvidencePlan({ sitemapXml });
+  const labRoutes = plan.routes.filter(({ path: route }) => route === "/lab/" || route.startsWith("/lab/"));
+  assert.ok(labRoutes.length >= 16, `expected complete Lab inventory, found ${labRoutes.length}`);
+  for (const route of labRoutes) {
+    assert.equal(route.requiresStandardShell, true, `${route.path} does not require the governed shell`);
+  }
+  assert.equal(descriptor(plan, "/lab/bearing/").profile, "bearing");
+  assert.equal(descriptor(plan, "/lab/speculum/").profile, "speculum");
+  assert.equal(descriptor(plan, "/lab/system-symphony/roms/").profile, "system-symphony");
+  assert.equal(descriptor(plan, "/lab/system-symphony/build-log/").profile, "system-symphony");
+  assert.equal(descriptor(plan, "/lab/system-symphony/radio/").profile, "system-symphony");
+});
+
 test("changed routes receive the complete screenshot matrix", () => {
   const plan = buildEvidencePlan({ sitemapXml, changedRoutes: ["/lab/anomaly/"] });
   const anomaly = descriptor(plan, "/lab/anomaly/");
@@ -63,6 +87,11 @@ test("changed-file classification binds route work and shared assets to evidence
   const bearing = classifyChangedFiles({ changedFiles: ["lab/bearing/index.html"], routes });
   assert.equal(bearing.evidence_required, true);
   assert.deepEqual(bearing.changed_routes, ["/lab/bearing/"]);
+
+  const sharedLab = classifyChangedFiles({ changedFiles: ["lab/shared/lab-shell-layout.css"], routes });
+  const expectedLabRoutes = routes.filter((route) => route === "/lab/" || route.startsWith("/lab/"));
+  assert.equal(sharedLab.visual_change, true);
+  assert.deepEqual(new Set(sharedLab.changed_routes), new Set(expectedLabRoutes));
 
   const shared = classifyChangedFiles({ changedFiles: ["static/css/estate-shell.css"], routes });
   assert.equal(shared.visual_change, true);
