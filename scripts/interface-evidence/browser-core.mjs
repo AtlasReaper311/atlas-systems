@@ -193,6 +193,12 @@ export function summarizeViolation(item) {
 }
 
 export async function accessibilityReport(page) {
+  // The focus-placement probe may scroll to a valid control near the document
+  // end. Reset to the canonical route origin before geometry and accessibility
+  // observers settle so sticky-shell contracts are not evaluated against a
+  // deliberately scrolled-off heading.
+  await page.evaluate(() => window.scrollTo({ top: 0, left: 0, behavior: "auto" }));
+  await page.waitForTimeout(400);
   const result = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();

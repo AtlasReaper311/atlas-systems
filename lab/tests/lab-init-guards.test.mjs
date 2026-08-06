@@ -11,6 +11,7 @@ class StubElement {
     this.dataset = {};
     this.innerHTML = "";
     this.textContent = "";
+    this.title = "";
     this.value = "";
   }
 
@@ -55,6 +56,7 @@ async function executeBrowserScript(path, document) {
       Number,
       Object,
       Promise,
+      Set,
       String,
     },
     { filename: path },
@@ -64,7 +66,7 @@ async function executeBrowserScript(path, document) {
   return { warnings, errors };
 }
 
-test("LAB-009 keeps the anomaly fallback reachable without chart or metric controls", async () => {
+test("LAB-009 keeps the anomaly fallback reachable and explicitly simulated without chart controls", async () => {
   const document = createDocument([
     "#overall-state",
     "#overall-score",
@@ -88,13 +90,18 @@ test("LAB-009 keeps the anomaly fallback reachable without chart or metric contr
   assert.equal(errors.length, 0);
   assert.equal(status.dataset.interfaceState, "partial");
   assert.equal(status.dataset.interfaceMissing, "metric-select,anomaly-chart");
-  assert.match(status.textContent, /labelled deterministic replay/);
+  assert.equal(status.dataset.evidenceMode, "simulated");
+  assert.equal(status.dataset.runtimeState, "unknown");
+  assert.equal(status.textContent, "Simulated");
+  assert.match(status.title, /Browser-generated demonstration/);
   assert.match(document.elements.get("#chart-summary").textContent, /Chart unavailable/);
+  assert.match(document.elements.get("#overall-state").className, /state-simulated/);
   assert.ok(warnings.some(([message]) => message.startsWith("[lab/anomaly] optional interface elements unavailable")));
   assert.ok(warnings.some(([message]) => message.startsWith("[lab/anomaly] live evidence load failed")));
+  assert.equal(warnings.some(([message]) => /replay/i.test(message)), false);
 });
 
-test("LAB-009 keeps the conformance fallback reachable without its repository filter", async () => {
+test("LAB-009 keeps the conformance fallback reachable without inferring zero evidence", async () => {
   const document = createDocument([
     "#estate-score",
     "#repo-count",
@@ -118,9 +125,16 @@ test("LAB-009 keeps the conformance fallback reachable without its repository fi
   assert.equal(errors.length, 0);
   assert.equal(status.dataset.interfaceState, "partial");
   assert.equal(status.dataset.interfaceMissing, "repo-filter");
-  assert.equal(status.textContent, "no report published yet");
+  assert.equal(status.dataset.evidenceMode, "unavailable");
+  assert.equal(status.dataset.runtimeState, "unknown");
+  assert.equal(status.textContent, "Unavailable");
   assert.equal(document.elements.get("#estate-score").textContent, "unscored");
-  assert.match(document.elements.get("#repo-table").innerHTML, /No repository rows match/);
+  assert.equal(document.elements.get("#repo-count").textContent, "—");
+  assert.equal(document.elements.get("#error-count").textContent, "—");
+  assert.equal(document.elements.get("#warning-count").textContent, "—");
+  assert.equal(document.elements.get("#unknown-count").textContent, "—");
+  assert.match(document.elements.get("#repo-table").innerHTML, /evidence is unavailable/i);
+  assert.doesNotMatch(document.elements.get("#repo-table").innerHTML, />0</);
   assert.ok(warnings.some(([message]) => message.startsWith("[lab/conformance] optional interface elements unavailable")));
   assert.ok(warnings.some(([message]) => message.startsWith("[lab/conformance] live evidence load failed")));
 });

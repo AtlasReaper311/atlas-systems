@@ -4,6 +4,7 @@ import test from "node:test";
 
 const shell = fs.readFileSync("lab/shared/shell.js", "utf8");
 const styles = fs.readFileSync("lab/shared/lab-context-navigation.css", "utf8");
+const layout = fs.readFileSync("lab/shared/lab-shell-layout.css", "utf8");
 
 test("Lab context navigation follows the accepted purpose taxonomy", () => {
   for (const label of ["Experience", "Observe", "Verify", "Explore"]) {
@@ -40,7 +41,9 @@ test("Lab context inventory uses current canonical destinations", () => {
   ]) {
     assert.match(shell, new RegExp(href.replaceAll("/", "\\/")));
   }
-  assert.doesNotMatch(shell, /\/lab\/reliability\//);
+  assert.doesNotMatch(shell, /label: "Reliability", href: "\/lab\/reliability\/"/);
+  assert.match(shell, /LEGACY_ROUTE_ALIASES/);
+  assert.match(shell, /\["\/lab\/reliability\/", "\/systems\/reliability\/"\]/);
 
   const labGroupsStart = shell.indexOf("const LAB_ROUTE_GROUPS");
   const labGroupsEnd = shell.indexOf("const LAB_ROUTES");
@@ -66,24 +69,41 @@ test("nested System Symphony routes retain parent Lab context", () => {
   assert.match(shell, /routePath === SYSTEM_SYMPHONY_ROUTE/);
   assert.match(shell, /SYSTEM_SYMPHONY_SCOPED_ROUTES\.some/);
   assert.match(shell, /link\.setAttribute\("aria-current", "page"\)/);
+  assert.match(shell, /if \(isSystemSymphonyPath\(pathname\)\) return "product"/);
 });
 
-test("wayfinding styles preserve narrow access and visible keyboard focus", () => {
+test("wayfinding keeps one measured rail and visible keyboard focus", () => {
   assert.match(shell, /LAB_CONTEXT_CSS/);
+  assert.match(shell, /LAB_LAYOUT_CSS/);
   assert.match(shell, /ensureStylesheet\(LAB_CONTEXT_CSS\)/);
+  assert.match(shell, /ensureStylesheet\(LAB_LAYOUT_CSS\)/);
   assert.match(styles, /a:focus-visible/);
   assert.match(styles, /outline: 2px solid var\(--accent\)/);
   assert.match(styles, /a\[aria-current="page"\]/);
-  assert.match(styles, /overflow-x: hidden/);
-  assert.match(styles, /\.lab-context-nav-inner[\s\S]*?overflow-x: visible/);
+  assert.match(styles, /min-width: 44px/);
+  assert.match(styles, /min-height: 44px/);
+  assert.match(styles, /overflow-x: auto/);
+  assert.match(styles, /grid-template-columns: repeat\(4, minmax\(250px, 1fr\)\)/);
   assert.match(styles, /scrollbar-width: none/);
-  assert.match(styles, /scroll-snap-type: none/);
-  assert.match(styles, /grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
-  assert.match(styles, /flex-wrap: wrap/);
   assert.match(styles, /white-space: normal/);
-  assert.match(styles, /top: var\(--atlas-header-height, var\(--global-nav-h, var\(--nav-h, 56px\)\)\)/);
-  assert.match(styles, /body:has\(\.lab-context-nav\) main/);
-  assert.match(styles, /padding-top: calc\(var\(--nav-h\) \+ 126px\)/);
-  assert.doesNotMatch(styles, /@media \(max-width: 760px\)[\s\S]*?\.lab-context-nav\s*{[\s\S]*?top:\s*0/);
+  assert.match(styles, /top: var\(--lab-shell-header-height/);
+  assert.doesNotMatch(styles, /body:has\(\.lab-context-nav\) main/);
+  assert.match(layout, /--lab-shell-stack-height/);
+  assert.match(layout, /body\[data-lab-shell\]/);
+  assert.match(layout, /data-lab-layout="standard"/);
+  assert.match(layout, /data-lab-layout="immersive"/);
+  assert.match(layout, /data-lab-layout="product"/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
+});
+
+test("shell height is measured instead of guessed per route", () => {
+  assert.match(shell, /function installMeasuredShell/);
+  assert.match(shell, /new ResizeObserver/);
+  assert.match(shell, /--lab-shell-header-height/);
+  assert.match(shell, /--lab-shell-context-height/);
+  assert.match(shell, /--lab-shell-stack-height/);
+  assert.match(shell, /dataset\.labShellReady/);
+  assert.match(shell, /document\.body\.dataset\.labLayout = labLayoutForPath/);
+  assert.doesNotMatch(layout, /padding-top:\s*122px/);
+  assert.doesNotMatch(layout, /padding-top:\s*300px/);
 });

@@ -1,8 +1,62 @@
+@import url("/static/vendor/atlas-interface/v0.5.0/atlas-interface-kit.css") layer(atlas-interface-kit);
+
+:where(
+  body > nav[aria-label="Primary navigation"] a,
+  .wordmark,
+  .nav-links a,
+  .lab-context-nav a,
+  .lab-tool-footer a,
+  .atlas-header__brand a,
+  .atlas-header__nav a,
+  .atlas-header__actions a,
+  .atlas-mobile-nav a,
+  button,
+  summary,
+  input:not([type="hidden"]),
+  select,
+  textarea,
+  [role="button"],
+  [role="tab"]
+) {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+:where(
+  body > nav[aria-label="Primary navigation"] a,
+  .wordmark,
+  .nav-links a,
+  .lab-context-nav a,
+  .lab-tool-footer a,
+  .atlas-header__brand a,
+  .atlas-header__nav a,
+  .atlas-header__actions a,
+  .atlas-mobile-nav a
+) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body .lab-context-nav .lab-context-group a,
+body a.nav-status.atlas-status.atlas-estate-status,
+body button.es-nav-search.atlas-search-control {
+  min-height: 44px !important;
+}
+
+body .lab-context-nav .lab-context-group a,
+body a.nav-status.atlas-status.atlas-estate-status {
+  min-width: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
 .finding-strip { display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: center; margin-top: 1rem; color: var(--text-dim); font-size: 12px; }
 .finding-strip strong { color: var(--text); }
 .section-head { display: flex; justify-content: space-between; align-items: end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
 .section-head label { display: grid; gap: .35rem; color: var(--text-faint); font-size: 11px; }
-.section-head input { min-width: 18rem; padding: .6rem; background: var(--bg); color: var(--text); border: 1px solid var(--border-hi); }
+.section-head input { min-width: 18rem; min-height: 44px; padding: .6rem; background: var(--bg); color: var(--text); border: 1px solid var(--border-hi); }
 .table-wrap { overflow-x: auto; }
 .score { font-variant-numeric: tabular-nums; }
 .rule-card { display: grid; gap: .55rem; }
@@ -18,3 +72,39 @@
 .status-pass { color: var(--green); }
 .status-warning { color: var(--accent); }
 .status-error, .status-unknown { color: var(--red); }
+
+#conformance-summary-surface,
+#conformance-rule-surface {
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+.atlas-evidence-mode {
+  color: var(--text-dim);
+  background: var(--bg-2);
+}
+
+.atlas-evidence-mode[data-evidence-mode="measured"][data-runtime-state="pass"] { color: var(--green); }
+.atlas-evidence-mode[data-evidence-mode="measured"][data-runtime-state="warning"] { color: var(--accent); }
+.atlas-evidence-mode[data-evidence-mode="measured"][data-runtime-state="error"] { color: var(--red); }
+
+.atlas-evidence-surface[data-evidence-mode="unavailable"] {
+  border: 1px solid var(--border-hi);
+  border-left: 3px solid var(--text-faint);
+  background: color-mix(in srgb, var(--bg-1) 88%, var(--bg-2));
+  box-shadow: none;
+}
+
+.atlas-evidence-mode[data-evidence-mode="unavailable"] {
+  border-style: dashed;
+  color: var(--text-faint);
+}
+
+.atlas-evidence-value[data-evidence-mode="unavailable"] {
+  color: var(--text-dim);
+}
+
+@media (max-width: 620px) {
+  .section-head label,
+  .section-head input { width: 100%; min-width: 0; }
+  .provenance div { grid-template-columns: 1fr; gap: .25rem; }
+}

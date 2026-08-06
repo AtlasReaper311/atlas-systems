@@ -13,7 +13,13 @@ export const STANDARD_VIEWPORTS = Object.freeze([
 ]);
 
 export const SEMANTIC_VIEWPORT_NAMES = Object.freeze(["375", "1440"]);
-export const NON_INDEXED_ROUTES = Object.freeze(["/lab/console/", "/404.html"]);
+export const NON_INDEXED_ROUTES = Object.freeze([
+  "/lab/console/",
+  "/lab/system-symphony/roms/",
+  "/lab/system-symphony/build-log/",
+  "/lab/system-symphony/radio/",
+  "/404.html",
+]);
 
 const EVIDENCE_CONTRACT_PATHS = Object.freeze([
   ".github/workflows/interface-preview.yml",
@@ -72,7 +78,7 @@ function routeKind(route) {
 function routeProfile(route) {
   if (route === "/lab/bearing/") return "bearing";
   if (route === "/lab/speculum/") return "speculum";
-  if (route === "/lab/system-symphony/") return "system-symphony";
+  if (route.startsWith("/lab/system-symphony/")) return "system-symphony";
   if (route === "/404.html") return "error";
   return "standard-shell";
 }
@@ -120,6 +126,7 @@ function representativePaths(routes) {
 
 export function routeDescriptor(route, { representative = false, changed = false } = {}) {
   const profile = routeProfile(route);
+  const kind = routeKind(route);
   const expanded = representative || changed;
   const viewportNames = expanded
     ? STANDARD_VIEWPORTS.map(({ name }) => name)
@@ -127,10 +134,15 @@ export function routeDescriptor(route, { representative = false, changed = false
   return Object.freeze({
     name: routeSlug(route),
     path: route,
-    kind: routeKind(route),
+    kind,
     profile,
     activeSection: activeSection(route),
-    requiresStandardShell: profile === "standard-shell" || profile === "system-symphony" || profile === "error",
+    requiresStandardShell:
+      kind === "lab"
+      || kind === "lab-tool"
+      || profile === "standard-shell"
+      || profile === "system-symphony"
+      || profile === "error",
     representative,
     changed,
     viewportNames,

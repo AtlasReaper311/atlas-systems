@@ -1,0 +1,186 @@
+:root {
+  --lab-shell-header-height: var(--atlas-header-height, var(--global-nav-h, var(--nav-h, 56px)));
+  --lab-shell-context-height: 0px;
+  --lab-shell-stack-height: calc(var(--lab-shell-header-height) + var(--lab-shell-context-height));
+  --lab-shell-content-gap: clamp(40px, 5vw, 64px);
+  --lab-shell-page-gutter: clamp(16px, 3vw, 48px);
+}
+
+html[data-lab-shell] {
+  scroll-padding-top: calc(var(--lab-shell-stack-height) + 24px);
+}
+
+body[data-lab-shell] {
+  padding-top: var(--lab-shell-header-height) !important;
+}
+
+body[data-lab-shell] > .lab-context-nav {
+  position: sticky !important;
+  inset: auto !important;
+  top: var(--lab-shell-header-height) !important;
+  z-index: 90 !important;
+}
+
+body[data-lab-shell] main {
+  min-width: 0;
+}
+
+body[data-lab-shell][data-lab-layout="standard"] main {
+  padding-top: var(--lab-shell-content-gap) !important;
+}
+
+body[data-lab-shell][data-lab-layout="directory"] main,
+body[data-lab-shell][data-lab-layout="immersive"] main {
+  padding-top: 0 !important;
+}
+
+body[data-lab-shell][data-lab-layout="product"] main {
+  padding-top: clamp(24px, 3vw, 40px) !important;
+}
+
+body[data-lab-shell] :where(
+  button:not([disabled]),
+  summary,
+  input:not([type="hidden"]):not([disabled]),
+  select:not([disabled]),
+  textarea:not([disabled]),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="tab"]:not([aria-disabled="true"]),
+  .action,
+  .focus-action,
+  .page-actions a,
+  .atlas-footer a
+) {
+  min-width: 44px !important;
+  min-height: 44px !important;
+}
+
+body[data-lab-shell] :where(
+  .action,
+  .focus-action,
+  .page-actions a,
+  .atlas-footer a,
+  .wordmark,
+  .atlas-header__brand a
+) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body[data-lab-shell] :where(
+  .wordmark,
+  .atlas-header__brand a,
+  .atlas-estate-status,
+  .atlas-search-control
+) {
+  min-width: 44px !important;
+  min-height: 44px !important;
+}
+
+body[data-lab-route="signal"] .bank-btn,
+body[data-lab-layout="product"] :where(
+  .symphony-product-link,
+  .symphony-product-mode-link,
+  .symphony-product-bar .symphony-mode-tabs button
+) {
+  min-height: 44px !important;
+}
+
+body[data-lab-route="console"] main {
+  padding-top: 0 !important;
+}
+
+body[data-lab-route="console"] .page-header {
+  padding-top: var(--lab-shell-content-gap) !important;
+}
+
+body[data-lab-route="speculum"] .masthead {
+  display: none !important;
+}
+
+body[data-lab-route="speculum"] main {
+  padding-top: 0 !important;
+}
+
+body[data-lab-route="speculum"] .intro {
+  padding-top: clamp(32px, 5vw, 52px) !important;
+}
+
+body[data-lab-route="almost"] .lab-context-nav {
+  position: sticky !important;
+  inset: auto !important;
+  top: var(--lab-shell-header-height) !important;
+}
+
+body[data-lab-route="almost"] main {
+  padding-top: 0 !important;
+}
+
+body[data-lab-route="almost"] .almost-stage {
+  min-height: min(calc(100svh - var(--lab-shell-stack-height) - 16px), 820px);
+}
+
+body[data-lab-route="drift"] main {
+  padding-top: 0 !important;
+}
+
+body[data-lab-route="drift"] .drift-stage {
+  min-height: calc(100svh - var(--lab-shell-stack-height));
+}
+
+body[data-lab-route="bearing"] {
+  --bg: var(--ground);
+  --bg-1: var(--surface);
+  --bg-2: var(--ground-deep);
+  --border: var(--rule);
+  --border-hi: color-mix(in srgb, var(--rule) 58%, var(--ink));
+  --text: var(--ink);
+  --text-dim: var(--ink-quiet);
+  --text-faint: var(--ink-faint);
+  --accent: var(--load);
+}
+
+body[data-lab-route="bearing"] main {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0 !important;
+}
+
+body[data-lab-route="bearing"] .bearing {
+  height: calc(100svh - var(--lab-shell-stack-height));
+  min-height: 560px;
+}
+
+body[data-lab-layout="product"] {
+  --symphony-shell-offset: var(--lab-shell-stack-height);
+}
+
+body[data-lab-shell] .atlas-footer {
+  position: relative;
+  z-index: 2;
+}
+
+@media (max-width: 767px) {
+  body[data-lab-shell][data-lab-layout="standard"] main {
+    padding-top: clamp(28px, 7vw, 44px) !important;
+  }
+
+  body[data-lab-route="almost"] .almost-stage {
+    min-height: calc(100svh - var(--lab-shell-stack-height) - 8px);
+  }
+
+  body[data-lab-route="bearing"] .bearing {
+    height: auto;
+    min-height: max(560px, calc(100svh - var(--lab-shell-stack-height)));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-lab-shell] *,
+  body[data-lab-shell] *::before,
+  body[data-lab-shell] *::after {
+    scroll-behavior: auto !important;
+  }
+}
