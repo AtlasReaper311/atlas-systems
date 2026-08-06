@@ -8,6 +8,7 @@ import {
 } from "../../static/js/directory-header-fields.js";
 
 const css = fs.readFileSync("static/css/directory-header-fields.css", "utf8");
+const convergenceCss = fs.readFileSync("static/css/surface-convergence.css", "utf8");
 const enableEnhancements = fs.readFileSync("static/js/enable-enhancements.js", "utf8");
 const cardSignatures = fs.readFileSync("static/js/card-signatures.js", "utf8");
 const headers = fs.readFileSync("_headers", "utf8");
@@ -79,6 +80,14 @@ test("shared header CSS normalises geometry and typography", () => {
   assert.match(css, /\.atlas-page-header h1,[\s\S]*font:\s*400 clamp\(2\.8rem, 7vw, 5\.25rem\)\/1 var\(--serif\)/);
   assert.match(css, /\.atlas-page-header \.page-sub,[\s\S]*font-size:\s*16px[\s\S]*line-height:\s*1\.8/);
   assert.match(css, /\.atlas-page-header \.section-label,[\s\S]*letter-spacing:\s*\.2em/);
+});
+
+test("Systems convergence preserves the shared directory tier", () => {
+  assert.match(convergenceCss, /--atlas-surface-title-directory:\s*clamp\(2\.8rem, 7vw, 5\.25rem\)/);
+  assert.match(convergenceCss, /data-atlas-surface-mode="directory"\] \.atlas-surface-title\s*\{[\s\S]*font-size:\s*var\(--atlas-surface-title-directory\)[\s\S]*line-height:\s*1 !important/);
+  assert.match(convergenceCss, /data-atlas-surface="systems"\]\[data-atlas-surface-mode="directory"\] main\s*\{\s*padding-top:\s*0 !important/);
+  assert.match(convergenceCss, /data-atlas-surface="systems"\]\[data-atlas-surface-mode="directory"\] \.page-intro\s*\{\s*padding:\s*calc\(var\(--atlas-header-height, 56px\) \+ 5rem\) 0 4rem !important/);
+  assert.match(convergenceCss, /data-atlas-surface-mode="directory"\] \.atlas-surface-lede\s*\{\s*font-size:\s*16px !important/);
 });
 
 test("each composition has a materially different silhouette and animation grammar", () => {
