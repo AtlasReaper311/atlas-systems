@@ -52,10 +52,10 @@
       "route": "/lab/bearing/",
       "html_bytes": 63681,
       "first_party_request_count": 8,
-      "referenced_asset_bytes": 48710,
-      "total_static_bytes": 112391,
-      "largest_referenced_asset": "static/js/phase-6-footer.js",
-      "largest_referenced_asset_bytes": 22671
+      "referenced_asset_bytes": 34798,
+      "total_static_bytes": 98479,
+      "largest_referenced_asset": "favicon.ico",
+      "largest_referenced_asset_bytes": 15406
     },
     {
       "route": "/writing/",
@@ -67,5 +67,5 @@
       "largest_referenced_asset_bytes": 23671
     }
   ],
-  "sha256": "6dbfa3549f0e3857be18c84c07f744bd3be67c4e7dc8162e4f85ae1b5d41dde0"
+  "sha256": "7176b7169f24ae551b86df2ea6fd39ab159d198b774e2a7fb8d0bf4bc2514cc1"
 }
