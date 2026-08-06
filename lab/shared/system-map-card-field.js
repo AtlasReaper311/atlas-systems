@@ -4,13 +4,13 @@ import {
 } from "../../static/js/atlas-field-consumer.js?v=20260728-consumer-contract-v1";
 
 export const SYSTEM_MAP_CARD_FIELD = defineAtlasFieldConsumer({
-  selector: "#system-map.featured",
+  selector: 'a.directory-card[href="/lab/system-map/"]',
   preset: "card",
   hostClasses: ["system-map-card-atlas-field"],
-  errorLabel: "System Map card AtlasField",
+  errorLabel: "System Map directory card AtlasField",
   options: {
     canvasClass: "system-map-card-field-canvas",
-    seed: "atlas-system-map-featured-card-v2",
+    seed: "atlas-system-map-directory-card-v1",
     density: {
       min: 230,
       max: 520,
