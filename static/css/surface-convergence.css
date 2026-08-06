@@ -414,6 +414,12 @@ body[data-systems-directory-presentation="purpose-first"] aside[hidden] {
   }
 }
 
+@media (min-width: 769px) {
+  body[data-lab-route="bearing"] .controls {
+    display: grid !important;
+  }
+}
+
 @media (max-width: 620px) {
   .directory-taxonomy__content,
   .lab-directory-secondary__links {
