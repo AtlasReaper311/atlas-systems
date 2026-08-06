@@ -1,3 +1,5 @@
+import { installCompactLabContext } from "./lab-context-compact.js?v=20260806-lab-context-v1";
+
 const LAB_SHELL_STABILITY_MS = 280;
 const LAB_SHELL_TOLERANCE_PX = 2;
 
@@ -56,12 +58,15 @@ function inspectLabShell(root = document) {
   const current = context?.querySelector(
     '[aria-current="page"], .symphony-lab-crumbs__current',
   ) || null;
+  const toolsTrigger = context?.querySelector(".lab-context-tools > summary") || null;
   const headerRect = roundedRect(header);
   const contextRect = roundedRect(context);
   const mainRect = roundedRect(main);
   const headingRect = roundedRect(heading);
+  const toolsTriggerRect = roundedRect(toolsTrigger);
   const bodyPaddingTop = Number.parseFloat(getComputedStyle(document.body).paddingTop) || 0;
   const layout = document.body.dataset.labLayout || "";
+  const contextMode = context?.dataset.labContextMode || "";
   const failures = [];
 
   if (!header) failures.push({ rule: "header-present" });
@@ -71,8 +76,21 @@ function inspectLabShell(root = document) {
   if (!search) failures.push({ rule: "search-present" });
   if (!footer) failures.push({ rule: "footer-present" });
   if (!layout) failures.push({ rule: "layout-mode-present" });
+  if (!contextMode) failures.push({ rule: "context-navigation-mode-present" });
+  if (path === "/lab/" && contextMode && contextMode !== "directory") {
+    failures.push({ rule: "directory-navigation-home-only", contextMode });
+  }
+  if (path !== "/lab/" && contextMode && contextMode !== "compact") {
+    failures.push({ rule: "compact-navigation-individual-routes", contextMode });
+  }
   if (path !== "/lab/" && context && !current) {
     failures.push({ rule: "current-lab-route-present" });
+  }
+  if (path !== "/lab/" && !toolsTrigger) {
+    failures.push({ rule: "compact-tools-trigger-present" });
+  }
+  if (toolsTrigger && !visible(toolsTrigger)) {
+    failures.push({ rule: "compact-tools-trigger-visible", trigger: toolsTriggerRect });
   }
 
   if (headerRect && bodyPaddingTop + LAB_SHELL_TOLERANCE_PX < headerRect.height) {
@@ -111,12 +129,14 @@ function inspectLabShell(root = document) {
   return {
     path,
     layout,
+    contextMode,
     bodyPaddingTop,
     header: headerRect,
     context: contextRect,
     main: mainRect,
     heading: headingRect,
     current: roundedRect(current),
+    toolsTrigger: toolsTriggerRect,
     failures,
   };
 }
@@ -163,6 +183,7 @@ function scheduleAudit() {
 }
 
 async function startLabShellContract() {
+  installCompactLabContext();
   if (document.readyState !== "complete") {
     await new Promise((resolve) => window.addEventListener("load", resolve, { once: true }));
   }
