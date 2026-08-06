@@ -56,7 +56,7 @@ test("route eyebrows use the approved three-part grammar", () => {
   assert.equal(SURFACE_ROUTES["/systems/reliability/"].eyebrow, "SYSTEMS / RELIABILITY / SERVICE EVIDENCE");
 });
 
-test("shared tokens enforce the approved spacing, type, and title tiers", () => {
+test("shared tokens enforce the approved spacing, type, title, and directory tiers", () => {
   const css = read("static/css/surface-convergence.css");
   assert.match(css, /--atlas-surface-gap-standard:\s*clamp\(40px, 4vw, 48px\)/);
   assert.match(css, /--atlas-surface-gap-immersive:\s*clamp\(24px, 3vw, 32px\)/);
@@ -67,6 +67,8 @@ test("shared tokens enforce the approved spacing, type, and title tiers", () => 
   assert.match(css, /data-lab-route="bearing"[\s\S]*--f-display:\s*"DM Serif Display"/);
   assert.match(css, /data-lab-route="almost"[\s\S]*atlas-surface-title span/);
   assert.match(css, /data-lab-route="bearing"[\s\S]*atlas-surface-title em/);
+  assert.match(css, /\.directory-taxonomy/);
+  assert.match(css, /\.lab-directory-secondary__links/);
 });
 
 test("The Bearing no longer receives a parallel hand-built estate shell", () => {
@@ -77,15 +79,25 @@ test("The Bearing no longer receives a parallel hand-built estate shell", () => 
   assert.match(footer, /function installBearingShell\(\) \{\s*return bootstrapLabShell\(\);\s*\}/);
 });
 
-test("Lab and Systems entrypoints install the convergence contract", () => {
+test("the shared footer owns convergence bootstrap without duplicate directory or Systems imports", () => {
   const footer = read("static/js/phase-6-footer.js");
   const focused = read("static/js/focused-systems-shell.js");
   const directory = read("static/js/directory-header-fields.js");
-  for (const source of [footer, focused, directory]) {
-    assert.match(source, /surface-convergence\.js/);
-    assert.match(source, /surface-convergence\.css/);
-    assert.match(source, /installSurfaceConvergence/);
-  }
-  assert.match(focused, /installPhase6Footer/);
+
+  assert.match(footer, /surface-convergence\.js/);
+  assert.match(footer, /surface-convergence\.css/);
+  assert.match(footer, /isSurfaceConvergencePath/);
+  assert.match(footer, /installSurfaceConvergence/);
+  assert.doesNotMatch(footer, /directory-convergence\.css/);
+
+  assert.doesNotMatch(focused, /surface-convergence\.js/);
+  assert.doesNotMatch(focused, /surface-convergence\.css/);
+  assert.doesNotMatch(focused, /installSurfaceConvergence/);
+  assert.doesNotMatch(focused, /installPhase6Footer/);
+
+  assert.doesNotMatch(directory, /surface-convergence\.js/);
+  assert.doesNotMatch(directory, /surface-convergence\.css/);
+  assert.doesNotMatch(directory, /installSurfaceConvergence/);
+  assert.doesNotMatch(directory, /installPhase6Footer/);
   assert.match(directory, /path === "\/systems\/"/);
 });
