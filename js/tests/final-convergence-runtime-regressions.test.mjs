@@ -43,6 +43,12 @@ test("convergence CSS is injected in one request with card geometry corrections"
   assert.match(footer, /CONVERGENCE_FIXES/);
   assert.match(footer, /system-card\.directory-card \.card-route/);
   assert.match(footer, /white-space:normal!important/);
+  assert.match(footer, /width:fit-content!important/);
+  assert.match(
+    footer,
+    /max-width:calc\(100% - var\(--card-signature-directory-width\) - var\(--card-signature-directory-gap\)\)!important/,
+  );
+  assert.doesNotMatch(footer, /display:block!important;width:calc/);
   assert.match(footer, /directory-card--wide\{--card-signature-directory-width:190px\}/);
   assert.match(footer, /max-width:620px/);
   assert.match(footer, /function installBearingMobileWrap\(\)/);
