@@ -4,13 +4,10 @@ import {
   defineAtlasFieldConsumer,
   mountAtlasFieldConsumer,
 } from "./atlas-field-consumer.js?v=20260728-directory-header-compositions-v2";
-import { installPhase6Footer } from "./phase-6-footer.js?v=20260806-final-convergence-v1";
-import { installSurfaceConvergence } from "./surface-convergence.js?v=20260806-final-convergence-v1";
 
 const HEADER_STYLESHEETS = Object.freeze([
   "/static/css/atlas-field-consumer.css?v=20260728-directory-header-compositions-v2",
   "/static/css/directory-header-fields.css?v=20260728-directory-header-compositions-v2",
-  "/static/css/surface-convergence.css?v=20260806-final-convergence-v1",
 ]);
 
 export const DIRECTORY_HEADER_COMPOSITIONS = Object.freeze({
@@ -107,10 +104,7 @@ export function mountDirectoryHeaderField(root = document, pathname = window.loc
 }
 
 function startDirectoryHeaderField() {
-  const path = normalizePath(window.location.pathname);
-  installSurfaceConvergence();
   mountDirectoryHeaderField();
-  if (path === "/systems/") installPhase6Footer();
 }
 
 if (typeof document !== "undefined") {
