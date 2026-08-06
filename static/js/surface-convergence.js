@@ -64,10 +64,117 @@ function findLede(hero) {
   ].join(", "));
 }
 
+function createTaxonomyDisclosure(documentNode) {
+  const details = documentNode.createElement("details");
+  details.className = "directory-taxonomy";
+  const summary = documentNode.createElement("summary");
+  summary.textContent = "What maturity and data mode mean";
+  const content = documentNode.createElement("div");
+  content.className = "directory-taxonomy__content";
+  const maturity = documentNode.createElement("p");
+  maturity.innerHTML = "<strong>Maturity</strong> describes the public commitment around a destination: Production, Tool, Preview, or Experiment.";
+  const data = documentNode.createElement("p");
+  data.innerHTML = "<strong>Data mode</strong> describes what the interface is using now: Live, Replay, Generated, or Simulated. Runtime state remains separate.";
+  content.append(maturity, data);
+  details.append(summary, content);
+  return details;
+}
+
+function installTaxonomyDisclosure(hero, documentNode) {
+  if (!hero || hero.querySelector(":scope > .directory-taxonomy")) return;
+  const actions = hero.querySelector(":scope .page-actions");
+  const disclosure = createTaxonomyDisclosure(documentNode);
+  if (actions) actions.insertAdjacentElement("afterend", disclosure);
+  else hero.appendChild(disclosure);
+}
+
+function createSecondaryDirectoryRoutes(documentNode) {
+  const details = documentNode.createElement("details");
+  details.className = "lab-directory-secondary";
+  const summary = documentNode.createElement("summary");
+  summary.textContent = "Advanced and contract routes";
+  const content = documentNode.createElement("div");
+  content.className = "lab-directory-secondary__links";
+  for (const route of [
+    {
+      href: "/lab/console/",
+      title: "Detailed Console",
+      detail: "Protected noindex compatibility and operator route.",
+    },
+    {
+      href: "https://api.atlas-systems.uk/v1/docs",
+      title: "API Docs",
+      detail: "Human-readable public machine contract.",
+    },
+  ]) {
+    const link = documentNode.createElement("a");
+    link.href = route.href;
+    const title = documentNode.createElement("strong");
+    title.textContent = route.title;
+    const detail = documentNode.createElement("span");
+    detail.textContent = route.detail;
+    link.append(title, detail);
+    content.appendChild(link);
+  }
+  details.append(summary, content);
+  return details;
+}
+
+function normalizeLabDirectory(documentNode, hero) {
+  const main = documentNode.querySelector("main");
+  const directory = main?.querySelector('section[aria-labelledby="directory-title"]');
+  if (!main || !directory) return;
+
+  const lede = hero?.querySelector(".lede");
+  if (lede) {
+    lede.textContent = "The Lab is the technical workspace of Atlas Systems. Sixteen public destinations are grouped by what you do with them. Ramone remains the flagship.";
+  }
+  const browse = hero?.querySelector('a[href="#featured-title"]');
+  if (browse) browse.href = "#directory-title";
+
+  main.querySelector('section[aria-labelledby="featured-title"]')?.setAttribute("hidden", "");
+  main.querySelector("aside.interface-legend")?.setAttribute("hidden", "");
+  main.querySelector(".console-callout")?.closest("section")?.setAttribute("hidden", "");
+
+  for (const selector of [
+    'a.directory-card[href="/lab/console/"]',
+    'a.directory-card[href="https://api.atlas-systems.uk/v1/docs"]',
+  ]) {
+    const card = directory.querySelector(selector);
+    if (card) card.hidden = true;
+  }
+
+  const groupStack = directory.querySelector(".group-stack");
+  if (groupStack && !directory.querySelector(".lab-directory-secondary")) {
+    groupStack.insertAdjacentElement("afterend", createSecondaryDirectoryRoutes(documentNode));
+  }
+  installTaxonomyDisclosure(hero, documentNode);
+  documentNode.body.dataset.labDirectoryPresentation = "single";
+}
+
+function normalizeSystemsDirectory(documentNode, hero) {
+  const main = documentNode.querySelector("main");
+  if (!main) return;
+  main.querySelector("aside.interface-legend")?.setAttribute("hidden", "");
+  installTaxonomyDisclosure(hero, documentNode);
+
+  for (const badge of main.querySelectorAll(".portfolio-grid .card-top .badge")) {
+    if (badge.textContent.trim() !== "Portfolio") continue;
+    badge.className = "directory-group-marker";
+    badge.setAttribute("aria-label", "Directory group: Portfolio");
+  }
+  documentNode.body.dataset.systemsDirectoryPresentation = "purpose-first";
+}
+
+function normalizeDirectory(pathname, documentNode, hero) {
+  if (pathname === "/lab/") normalizeLabDirectory(documentNode, hero);
+  if (pathname === "/systems/") normalizeSystemsDirectory(documentNode, hero);
+}
+
 function installSurfaceConvergence(root = document) {
   if (typeof document === "undefined") return null;
   const documentNode = root?.nodeType === 9 ? root : root?.ownerDocument || document;
-  const pathname = documentNode.defaultView?.location?.pathname || window.location.pathname;
+  const pathname = normalizePath(documentNode.defaultView?.location?.pathname || window.location.pathname);
   const descriptor = descriptorForPath(pathname);
   if (!descriptor || !documentNode.body) return null;
 
@@ -78,7 +185,7 @@ function installSurfaceConvergence(root = document) {
 
   documentNode.body.dataset.atlasSurface = descriptor.surface;
   documentNode.body.dataset.atlasSurfaceMode = descriptor.mode;
-  documentNode.body.dataset.atlasSurfaceRoute = normalizePath(pathname);
+  documentNode.body.dataset.atlasSurfaceRoute = pathname;
   if (descriptor.surface === "lab") documentNode.body.dataset.labLayout = descriptor.mode;
 
   hero?.classList.add("atlas-surface-hero");
@@ -91,6 +198,7 @@ function installSurfaceConvergence(root = document) {
     eyebrow.textContent = descriptor.eyebrow;
   }
   lede?.classList.add("atlas-surface-lede");
+  normalizeDirectory(pathname, documentNode, hero);
 
   documentNode.documentElement.dataset.atlasSurfaceConvergence = "ready";
   return { descriptor, hero, title, eyebrow, lede };
