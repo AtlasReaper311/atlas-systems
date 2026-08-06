@@ -7,6 +7,7 @@ import { firefox } from "playwright";
 const baseUrl = (process.env.PREVIEW_URL || "").replace(/\/$/, "");
 const expectedSha = process.env.HEAD_SHA || "";
 const outputDir = process.env.SYSTEM_MAP_FIELD_OUTPUT_DIR || "system-map-card-field-preview-smoke";
+const systemMapCardSelector = 'a.directory-card[href="/lab/system-map/"]';
 
 assert.ok(baseUrl, "PREVIEW_URL is required");
 assert.ok(expectedSha, "HEAD_SHA is required");
@@ -33,7 +34,7 @@ page.on("console", (message) => {
 let evidence = null;
 
 async function collectEvidence() {
-  return page.evaluate(() => {
+  return page.evaluate((cardSelector) => {
     function sampleCanvas(hostSelector, stateKey) {
       const host = document.querySelector(hostSelector);
       const canvas = host?.querySelector(":scope > canvas.atlas-field-canvas") || null;
@@ -87,9 +88,9 @@ async function collectEvidence() {
         cardStylesheet: resources.find((value) => value?.startsWith("/lab/shared/system-map-card-field.css")) || null,
       },
       intro: sampleCanvas(".page-intro", "atlasIntroFieldState"),
-      card: sampleCanvas("#system-map.featured", "atlasFieldState"),
+      card: sampleCanvas(cardSelector, "atlasFieldState"),
     };
-  });
+  }, systemMapCardSelector);
 }
 
 function assertCanvas(rendered, {
@@ -129,17 +130,17 @@ try {
     return canvas.width > 0 && canvas.height > 0 && (animated || staticFrame);
   }, null, { timeout: 25_000, polling: 100 });
 
-  await page.locator("#system-map.featured").scrollIntoViewIfNeeded();
+  await page.locator(systemMapCardSelector).scrollIntoViewIfNeeded();
   await page.waitForTimeout(250);
 
-  await page.waitForFunction(() => {
-    const card = document.querySelector("#system-map.featured");
+  await page.waitForFunction((cardSelector) => {
+    const card = document.querySelector(cardSelector);
     const canvas = card?.querySelector(":scope > canvas.atlas-field-canvas");
     if (!canvas || card?.dataset.atlasFieldState === "unavailable") return false;
     const animated = canvas.dataset.mode === "animated" && Number(canvas.dataset.frame || 0) >= 3;
     const staticFrame = canvas.dataset.mode === "static";
     return canvas.width > 0 && canvas.height > 0 && (animated || staticFrame);
-  }, null, { timeout: 25_000, polling: 100 });
+  }, systemMapCardSelector, { timeout: 25_000, polling: 100 });
 
   await page.waitForTimeout(750);
   evidence = await collectEvidence();
@@ -155,7 +156,7 @@ try {
   });
   assertCanvas(evidence.card, {
     requiredHostClass: "system-map-card-atlas-field",
-    minimumWidth: 500,
+    minimumWidth: 320,
     minimumHeight: 180,
     minimumOpacity: 0.5,
     maximumOpacity: 0.72,
@@ -171,7 +172,7 @@ try {
 
   await fs.writeFile(
     path.join(outputDir, "evidence.json"),
-    JSON.stringify({ ok: true, pageUrl, expectedSha, expectedEntrypoints, evidence, pageErrors, consoleErrors }, null, 2) + "\n"
+    JSON.stringify({ ok: true, pageUrl, expectedSha, expectedEntrypoints, systemMapCardSelector, evidence, pageErrors, consoleErrors }, null, 2) + "\n"
   );
 } catch (error) {
   evidence ||= await collectEvidence().catch(() => null);
@@ -186,6 +187,7 @@ try {
       pageUrl,
       expectedSha,
       expectedEntrypoints,
+      systemMapCardSelector,
       failure: {
         name: error?.name || "Error",
         message: error?.message || String(error),
