@@ -43,6 +43,10 @@ test("convergence CSS is injected in one request with card geometry corrections"
   assert.match(footer, /CONVERGENCE_FIXES/);
   assert.match(footer, /system-card\.directory-card \.card-route/);
   assert.match(footer, /white-space:normal!important/);
+  assert.match(footer, /directory-card--wide\{--card-signature-directory-width:190px\}/);
+  assert.match(footer, /max-width:620px/);
+  assert.match(footer, /function installBearingMobileWrap\(\)/);
+  assert.match(footer, /pre\.snip\{overflow-x:visible;overflow-wrap:anywhere;white-space:pre-wrap\}/);
 });
 
 test("reduced-motion console headings are stabilised before shell auditing", () => {
