@@ -60,15 +60,15 @@ function findLede(hero) {
     ":scope .focus-lede",
     ":scope > .lede",
     ":scope > .thesis",
-    ":scope > .almost-title > p:last-child",
-    ":scope > .drift-title > p:last-child",
+    ":scope > p:last-child",
   ].join(", "));
 }
 
 function installSurfaceConvergence(root = document) {
   if (typeof document === "undefined") return null;
   const documentNode = root?.nodeType === 9 ? root : root?.ownerDocument || document;
-  const descriptor = descriptorForPath(documentNode.defaultView?.location?.pathname || window.location.pathname);
+  const pathname = documentNode.defaultView?.location?.pathname || window.location.pathname;
+  const descriptor = descriptorForPath(pathname);
   if (!descriptor || !documentNode.body) return null;
 
   const title = documentNode.querySelector("main h1");
@@ -78,9 +78,8 @@ function installSurfaceConvergence(root = document) {
 
   documentNode.body.dataset.atlasSurface = descriptor.surface;
   documentNode.body.dataset.atlasSurfaceMode = descriptor.mode;
-  documentNode.body.dataset.atlasSurfaceRoute = normalizePath(
-    documentNode.defaultView?.location?.pathname || window.location.pathname,
-  );
+  documentNode.body.dataset.atlasSurfaceRoute = normalizePath(pathname);
+  if (descriptor.surface === "lab") documentNode.body.dataset.labLayout = descriptor.mode;
 
   hero?.classList.add("atlas-surface-hero");
   if (title) {
