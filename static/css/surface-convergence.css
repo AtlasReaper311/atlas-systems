@@ -6,6 +6,7 @@
   --atlas-surface-gap-immersive: clamp(24px, 3vw, 32px);
   --atlas-surface-gap-directory: clamp(56px, 6vw, 72px);
   --atlas-surface-title-standard: clamp(3rem, 6vw, 5rem);
+  --atlas-surface-title-directory: clamp(2.8rem, 7vw, 5.25rem);
   --atlas-surface-title-immersive: clamp(4rem, 8vw, 7rem);
   --atlas-surface-copy-standard: 760px;
   --atlas-surface-copy-immersive: 52ch;
@@ -36,9 +37,14 @@ body[data-atlas-surface] .atlas-surface-title {
   text-wrap: balance;
 }
 
-body[data-atlas-surface-mode="standard"] .atlas-surface-title,
-body[data-atlas-surface-mode="directory"] .atlas-surface-title {
+body[data-atlas-surface-mode="standard"] .atlas-surface-title {
   font-size: var(--atlas-surface-title-standard) !important;
+}
+
+body[data-atlas-surface-mode="directory"] .atlas-surface-title {
+  font-size: var(--atlas-surface-title-directory) !important;
+  line-height: 1 !important;
+  letter-spacing: -0.02em !important;
 }
 
 body[data-atlas-surface-mode="immersive"] .atlas-surface-title,
@@ -69,6 +75,10 @@ body[data-atlas-surface] .atlas-surface-lede {
   line-height: 1.8 !important;
 }
 
+body[data-atlas-surface-mode="directory"] .atlas-surface-lede {
+  font-size: 16px !important;
+}
+
 body[data-atlas-surface-mode="immersive"] .atlas-surface-lede,
 body[data-atlas-surface-mode="product"] .atlas-surface-lede {
   max-width: var(--atlas-surface-copy-immersive) !important;
@@ -76,11 +86,11 @@ body[data-atlas-surface-mode="product"] .atlas-surface-lede {
 
 /* Systems directory and evidence surfaces share one editorial frame. */
 body[data-atlas-surface="systems"][data-atlas-surface-mode="directory"] main {
-  padding-top: calc(var(--atlas-header-height, 56px) + var(--atlas-surface-gap-directory)) !important;
+  padding-top: 0 !important;
 }
 
 body[data-atlas-surface="systems"][data-atlas-surface-mode="directory"] .page-intro {
-  padding-top: 0 !important;
+  padding: calc(var(--atlas-header-height, 56px) + 5rem) 0 4rem !important;
 }
 
 body[data-atlas-surface="systems"][data-atlas-surface-mode="standard"] .focus-main {
@@ -254,10 +264,18 @@ body[data-lab-route="bearing"] .gauge .v {
     --atlas-surface-gap-immersive: 20px;
     --atlas-surface-gap-directory: 36px;
     --atlas-surface-title-standard: clamp(2.6rem, 13vw, 4rem);
+    --atlas-surface-title-directory: clamp(2.45rem, 13vw, 4rem);
     --atlas-surface-title-immersive: clamp(3.2rem, 18vw, 4.75rem);
   }
 
-  body[data-atlas-surface="systems"][data-atlas-surface-mode="directory"] main,
+  body[data-atlas-surface="systems"][data-atlas-surface-mode="directory"] main {
+    padding-top: 0 !important;
+  }
+
+  body[data-atlas-surface="systems"][data-atlas-surface-mode="directory"] .page-intro {
+    padding: calc(var(--atlas-header-height, 56px) + 3.5rem) 0 3rem !important;
+  }
+
   body[data-atlas-surface="systems"][data-atlas-surface-mode="standard"] .focus-main {
     padding-top: calc(var(--atlas-header-height, 56px) + var(--atlas-surface-gap-standard)) !important;
   }
