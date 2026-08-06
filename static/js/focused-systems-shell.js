@@ -2,6 +2,7 @@
 
 import "./estate-shell.js?v=20260723-interface-v2";
 import "./estate-search/global-search.js";
+import { installPhase6Footer } from "./phase-6-footer.js?v=20260806-final-convergence-v1";
 import { installSurfaceConvergence } from "./surface-convergence.js?v=20260806-final-convergence-v1";
 
 if ([
@@ -25,3 +26,4 @@ for (const href of [
 }
 
 installSurfaceConvergence();
+installPhase6Footer();
