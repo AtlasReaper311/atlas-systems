@@ -5,7 +5,7 @@ const COMPACT_BEARING_SHELL_MODULE="/lab/shared/compact-bearing-shell.js?v=20260
 const SURFACE_CONVERGENCE_MODULE="/static/js/surface-convergence.js?v=20260806-final-convergence-v1";
 const SURFACE_CONVERGENCE_STYLESHEET="/static/css/surface-convergence.css?v=20260806-final-convergence-v1";
 const BEARING_ROUTE="/lab/bearing/";
-const CONVERGENCE_FIXES=".system-card .card-route{max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere}.system-card.directory-card .card-route{display:block!important;width:calc(100% - var(--card-signature-directory-width,150px) - var(--card-signature-directory-gap,18px))!important}";
+const CONVERGENCE_FIXES=".system-card .card-route{max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere}.system-card.directory-card .card-route{display:block!important;width:calc(100% - var(--card-signature-directory-width,150px) - var(--card-signature-directory-gap,18px))!important}.system-card.directory-card--wide{--card-signature-directory-width:190px}@media(max-width:620px){.system-card.directory-card--wide{--card-signature-directory-width:118px}}";
 const OWNED=new Set(["api.atlas-systems.uk","atlas-systems.uk","cv.atlas-systems.uk","ramone.atlas-systems.uk","status.atlas-systems.uk"]);
 const TOOL_PATHS=Object.freeze(["/systems/evidence/","/systems/observability/","/systems/reliability/"]);
 const SURFACE_PATHS=Object.freeze(new Set(["/lab/","/lab/system-map/","/lab/blackbox/","/lab/console/","/lab/proof-chain/","/lab/conformance/","/lab/anomaly/","/lab/speculum/","/lab/signal/","/lab/almost/","/lab/drift/",BEARING_ROUTE,"/lab/system-symphony/","/systems/","/systems/observability/","/systems/reliability/","/systems/evidence/"]));
