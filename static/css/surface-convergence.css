@@ -1,0 +1,301 @@
+/* Final public-surface convergence contract for Lab and Systems routes. */
+
+:root {
+  --atlas-surface-gutter: clamp(16px, 3vw, 48px);
+  --atlas-surface-gap-standard: clamp(40px, 4vw, 48px);
+  --atlas-surface-gap-immersive: clamp(24px, 3vw, 32px);
+  --atlas-surface-gap-directory: clamp(56px, 6vw, 72px);
+  --atlas-surface-title-standard: clamp(3rem, 6vw, 5rem);
+  --atlas-surface-title-immersive: clamp(4rem, 8vw, 7rem);
+  --atlas-surface-copy-standard: 760px;
+  --atlas-surface-copy-immersive: 52ch;
+}
+
+body[data-atlas-surface] .atlas-surface-eyebrow {
+  margin-top: 0;
+  color: var(--accent, #f5a623) !important;
+  font-family: var(--mono, "IBM Plex Mono", monospace) !important;
+  font-size: 10px !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+}
+
+body[data-atlas-surface] .atlas-surface-title {
+  max-width: 940px;
+  margin-top: 0.65rem !important;
+  color: var(--text, #e8e8e0) !important;
+  font-family: var(--serif, "DM Serif Display", Georgia, serif) !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  line-height: 0.96 !important;
+  letter-spacing: -0.035em !important;
+  text-transform: none !important;
+  text-wrap: balance;
+}
+
+body[data-atlas-surface-mode="standard"] .atlas-surface-title,
+body[data-atlas-surface-mode="directory"] .atlas-surface-title {
+  font-size: var(--atlas-surface-title-standard) !important;
+}
+
+body[data-atlas-surface-mode="immersive"] .atlas-surface-title,
+body[data-atlas-surface-mode="product"] .atlas-surface-title {
+  font-size: var(--atlas-surface-title-immersive) !important;
+}
+
+body[data-atlas-surface-mode="standard"] .atlas-surface-title :is(span, em, strong),
+body[data-atlas-surface-mode="directory"] .atlas-surface-title :is(span, em, strong),
+body[data-atlas-surface-mode="immersive"] .atlas-surface-title :is(span, em, strong),
+body[data-atlas-surface-mode="product"] .atlas-surface-title :is(span, em, strong) {
+  color: inherit !important;
+  font: inherit !important;
+  text-transform: inherit !important;
+}
+
+body[data-lab-route="almost"] .atlas-surface-title span,
+body[data-lab-route="drift"] .atlas-surface-title span,
+body[data-lab-route="bearing"] .atlas-surface-title em {
+  color: var(--accent, #f5a623) !important;
+}
+
+body[data-atlas-surface] .atlas-surface-lede {
+  max-width: var(--atlas-surface-copy-standard) !important;
+  color: var(--text-dim, #aaa9a0) !important;
+  font-family: var(--mono, "IBM Plex Mono", monospace) !important;
+  font-size: clamp(15px, 1.35vw, 17px) !important;
+  line-height: 1.8 !important;
+}
+
+body[data-atlas-surface-mode="immersive"] .atlas-surface-lede,
+body[data-atlas-surface-mode="product"] .atlas-surface-lede {
+  max-width: var(--atlas-surface-copy-immersive) !important;
+}
+
+/* Systems directory and evidence surfaces share one editorial frame. */
+body[data-atlas-surface="systems"][data-atlas-surface-mode="directory"] main {
+  padding-top: calc(var(--atlas-header-height, 56px) + var(--atlas-surface-gap-directory)) !important;
+}
+
+body[data-atlas-surface="systems"][data-atlas-surface-mode="directory"] .page-intro {
+  padding-top: 0 !important;
+}
+
+body[data-atlas-surface="systems"][data-atlas-surface-mode="standard"] .focus-main {
+  padding-top: calc(var(--atlas-header-height, 56px) + var(--atlas-surface-gap-standard)) !important;
+}
+
+body[data-atlas-surface="systems"] .focus-hero,
+body[data-atlas-surface="systems"] .systems-detail-intro {
+  margin-top: 0 !important;
+}
+
+body[data-atlas-surface="systems"] .systems-detail-breadcrumbs {
+  margin-bottom: 1rem;
+}
+
+body[data-atlas-surface="systems"] .systems-detail-kicker.atlas-surface-eyebrow {
+  margin-bottom: 0.75rem;
+}
+
+body[data-atlas-surface="systems"] .focus-lede.atlas-surface-lede {
+  margin-top: 1.25rem;
+}
+
+/* Lab directories breathe; individual tools start from one measured rhythm. */
+body[data-lab-shell][data-atlas-surface-mode="directory"] main {
+  padding-top: 0 !important;
+}
+
+body[data-lab-shell][data-atlas-surface-mode="directory"] .lab-landing-hero {
+  padding-top: var(--atlas-surface-gap-directory) !important;
+}
+
+body[data-lab-shell][data-atlas-surface-mode="standard"] main {
+  padding-top: var(--atlas-surface-gap-standard) !important;
+}
+
+body[data-lab-shell][data-atlas-surface-mode="standard"] .atlas-surface-hero {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+body[data-lab-shell][data-atlas-surface-mode="immersive"] main {
+  padding-top: 0 !important;
+}
+
+body[data-lab-shell][data-atlas-surface-mode="product"] main {
+  padding-top: var(--atlas-surface-gap-immersive) !important;
+}
+
+body[data-lab-route="speculum"] main {
+  padding-top: 0 !important;
+}
+
+body[data-lab-route="speculum"] .intro {
+  margin-top: 0 !important;
+  padding-top: var(--atlas-surface-gap-standard) !important;
+}
+
+body[data-lab-route="speculum"] .intro .thesis {
+  margin-top: 0.75rem;
+}
+
+body[data-lab-route="signal"] .hero {
+  max-width: var(--atlas-surface-copy-standard);
+  margin-top: 0 !important;
+  padding-top: var(--atlas-surface-gap-immersive) !important;
+}
+
+body[data-lab-route="almost"] .almost-title,
+body[data-lab-route="drift"] .drift-title {
+  top: var(--atlas-surface-gap-immersive) !important;
+  left: var(--atlas-surface-gutter) !important;
+}
+
+body[data-lab-route="almost"] .almost-title h1,
+body[data-lab-route="drift"] .drift-title h1 {
+  font-size: var(--atlas-surface-title-immersive) !important;
+}
+
+body[data-lab-route="almost"] .almost-title > p:last-child,
+body[data-lab-route="drift"] .drift-title > p:last-child {
+  max-width: var(--atlas-surface-copy-immersive);
+  color: var(--text-dim, #aaa9a0) !important;
+  font-family: var(--mono, "IBM Plex Mono", monospace) !important;
+  font-size: 12px !important;
+  line-height: 1.7 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+/* The Bearing keeps its lattice and telemetry, but adopts the estate shell and type system. */
+body[data-lab-route="bearing"] {
+  --ground: #07070b;
+  --ground-deep: #030305;
+  --surface: #0f1017;
+  --rule: rgba(255, 255, 255, 0.08);
+  --rule-soft: rgba(255, 255, 255, 0.055);
+  --ink: #e8e8e0;
+  --ink-quiet: #aaa9a0;
+  --ink-faint: #888894;
+  --strut: #4a4d5c;
+  --load: #f5a623;
+  --load-hot: #ffd27a;
+  --critical: #e24b4a;
+  --restored: #4ade80;
+  --flash: #fff6e2;
+  --glow: 0.9;
+  --paper-grid: 0;
+  --f-display: "DM Serif Display", Georgia, serif;
+  --f-body: "IBM Plex Mono", monospace;
+  --f-data: "IBM Plex Mono", monospace;
+  font-family: var(--f-body) !important;
+}
+
+body[data-lab-route="bearing"] .nameplate {
+  top: var(--atlas-surface-gap-immersive) !important;
+  bottom: auto !important;
+  left: var(--atlas-surface-gutter) !important;
+  max-width: min(var(--atlas-surface-copy-standard), calc(100% - (2 * var(--atlas-surface-gutter)))) !important;
+}
+
+body[data-lab-route="bearing"] .nameplate .eyebrow {
+  margin-bottom: 0.75rem !important;
+}
+
+body[data-lab-route="bearing"] .nameplate .eyebrow .sep {
+  display: none !important;
+}
+
+body[data-lab-route="bearing"] h1.title {
+  font-size: var(--atlas-surface-title-immersive) !important;
+  line-height: 0.9 !important;
+  letter-spacing: -0.04em !important;
+  text-transform: none !important;
+}
+
+body[data-lab-route="bearing"] h1.title em {
+  display: block;
+  text-shadow: 0 0 34px rgba(245, 166, 35, 0.3) !important;
+}
+
+body[data-lab-route="bearing"] .nameplate p.thesis {
+  max-width: var(--atlas-surface-copy-immersive) !important;
+  margin-top: 1rem !important;
+  font-family: var(--f-body) !important;
+  font-size: clamp(14px, 1.25vw, 17px) !important;
+  line-height: 1.7 !important;
+}
+
+body[data-lab-route="bearing"] .controls {
+  top: var(--atlas-surface-gap-immersive) !important;
+  right: var(--atlas-surface-gutter) !important;
+}
+
+body[data-lab-route="bearing"] :is(.tag, .act, .gauge .k, .gauge .v, .gauge .u, .hint, .log, .band p, .step p, .embed p) {
+  font-family: var(--f-body) !important;
+}
+
+body[data-lab-route="bearing"] :is(.sect, .step h3) {
+  font-family: var(--f-display) !important;
+  font-weight: 400 !important;
+}
+
+body[data-lab-route="bearing"] .gauge .v {
+  font-weight: 500 !important;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --atlas-surface-gap-standard: 24px;
+    --atlas-surface-gap-immersive: 20px;
+    --atlas-surface-gap-directory: 36px;
+    --atlas-surface-title-standard: clamp(2.6rem, 13vw, 4rem);
+    --atlas-surface-title-immersive: clamp(3.2rem, 18vw, 4.75rem);
+  }
+
+  body[data-atlas-surface="systems"][data-atlas-surface-mode="directory"] main,
+  body[data-atlas-surface="systems"][data-atlas-surface-mode="standard"] .focus-main {
+    padding-top: calc(var(--atlas-header-height, 56px) + var(--atlas-surface-gap-standard)) !important;
+  }
+
+  body[data-lab-route="almost"] .almost-title,
+  body[data-lab-route="drift"] .drift-title,
+  body[data-lab-route="bearing"] .nameplate {
+    left: 20px !important;
+    max-width: calc(100% - 40px) !important;
+  }
+
+  body[data-lab-route="bearing"] .controls {
+    top: auto !important;
+    right: 16px !important;
+    bottom: calc(var(--rail-h) + 16px) !important;
+  }
+
+  body[data-lab-route="bearing"] .nameplate p.thesis {
+    max-width: 34ch !important;
+    font-size: 13px !important;
+  }
+}
+
+@media (max-width: 520px) {
+  body[data-lab-route="bearing"] .nameplate p.thesis {
+    max-width: 30ch !important;
+  }
+
+  body[data-lab-route="bearing"] .nameplate p.thesis br {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-atlas-surface] .atlas-surface-hero,
+  body[data-atlas-surface] .atlas-surface-title,
+  body[data-atlas-surface] .atlas-surface-eyebrow {
+    animation: none !important;
+    transition: none !important;
+  }
+}
