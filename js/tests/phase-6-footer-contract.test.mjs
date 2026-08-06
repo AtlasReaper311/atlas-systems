@@ -155,15 +155,17 @@ test("W-01 through W-07 keep the classic scheduler-owned footer", () => {
   }
 });
 
-test("Bearing and Operations both resolve into the shared Lab shell", () => {
+test("Bearing and Operations both resolve into the final shared Lab shell", () => {
   const source = fs.readFileSync("static/js/phase-6-footer.js", "utf8");
   const bearing = fs.readFileSync("lab/bearing/index.html", "utf8");
   const consolePage = fs.readFileSync("lab/console/index.html", "utf8");
 
   assert.match(bearing, /\/static\/js\/phase-6-footer\.js\?v=20260730-phase-6-v1/);
-  assert.equal(LAB_SHELL_MODULE, "/lab/shared/shell.js?v=20260805-lab-consistency-v1");
+  assert.equal(LAB_SHELL_MODULE, "/lab/shared/shell.js?v=20260806-final-convergence-v1");
   assert.match(source, /function bootstrapLabShell/);
   assert.match(source, /void import\(LAB_SHELL_MODULE\)/);
+  assert.match(source, /surface-convergence\.js/);
+  assert.match(source, /directory-convergence\.css/);
   assert.match(consolePage, /\/static\/js\/estate-search\/global-search\.js/);
   assert.equal(resolveFooterVariant("/lab/console/"), "tool");
 });
