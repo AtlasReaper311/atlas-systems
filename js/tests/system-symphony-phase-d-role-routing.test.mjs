@@ -8,9 +8,18 @@ const bridgeCss = readFileSync("lab/system-symphony/trace-role-bridge.css", "utf
 const romPage = readFileSync("lab/system-symphony/roms/index.html", "utf8");
 const romLibrary = readFileSync("lab/system-symphony/rom-library.js", "utf8");
 
+function traceBridgeIsFlagshipOnly() {
+  const routeEnhancementsStart = labShell.indexOf("async function installRouteEnhancements()");
+  const routeEnhancementsEnd = labShell.indexOf("function installMeasuredShell", routeEnhancementsStart);
+  const routeEnhancements = labShell.slice(routeEnhancementsStart, routeEnhancementsEnd);
+  const earlyReturnGuard = /if \(currentPath\(\) !== SYSTEM_SYMPHONY_ROUTE\) return;\s*await import\("\/lab\/system-symphony\/trace-role-bridge\.js\?v=20260728-system-symphony-trace-board-v1"\);/s;
+  const positiveRootGuard = /if \(currentPath\(\) === SYSTEM_SYMPHONY_ROUTE\) \{\s*await import\("\/lab\/system-symphony\/trace-role-bridge\.js\?v=20260728-system-symphony-trace-board-v1"\);\s*\}/s;
+  return earlyReturnGuard.test(routeEnhancements) || positiveRootGuard.test(routeEnhancements);
+}
+
 test("System Symphony loads the Phase D role bridge only on the flagship route", () => {
   assert.ok(labShell.includes('const SYSTEM_SYMPHONY_ROUTE = "/lab/system-symphony/"'));
-  assert.ok(labShell.includes("currentPath() !== SYSTEM_SYMPHONY_ROUTE"));
+  assert.ok(traceBridgeIsFlagshipOnly());
   assert.ok(labShell.includes("trace-role-bridge.js?v=20260728-system-symphony-trace-board-v1"));
 });
 
