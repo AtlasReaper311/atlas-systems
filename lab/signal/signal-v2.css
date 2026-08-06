@@ -112,7 +112,7 @@
 .environment-group > span { color: var(--text-dim); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
 .environment-group p { color: var(--text-faint); font-size: 10px; }
 .button-bank { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .55rem; }
-.bank-btn { padding: .5rem .65rem; font-size: 10px; }
+.bank-btn { min-height: 44px; padding: .5rem .65rem; font-size: 10px; }
 .bank-btn[aria-pressed="true"] { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
 
 .drop-zone { display: grid; gap: .35rem; padding: 1rem; margin: 1rem 0; border: 1px dashed var(--border-hi); background: var(--bg); cursor: pointer; }
