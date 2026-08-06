@@ -3,46 +3,55 @@ import fs from "node:fs";
 import test from "node:test";
 
 const footer = fs.readFileSync("static/js/phase-6-footer.js", "utf8");
+const compact = fs.readFileSync("lab/shared/compact-bearing-shell.js", "utf8");
 const budgets = JSON.parse(
   fs.readFileSync("scripts/interface-evidence/browser-performance-budgets.json", "utf8"),
 );
 
-test("Bearing uses the compact shared profile before the external shell fallback", () => {
-  assert.match(footer, /const COMPACT_LAB_PROFILE_SELECTOR\s*=\s*"main > \.bearing"/);
-  const compactBranch = footer.indexOf("if(isCompactLabProfile())return installCompactLabShell()");
-  const externalFallback = footer.indexOf("void import(LAB_SHELL_MODULE)");
-  assert.ok(compactBranch >= 0, "compact Bearing profile must be present");
-  assert.ok(externalFallback > compactBranch, "compact profile must run before the external shell fallback");
+test("Bearing selects the route-scoped shared shell before the normal Lab fallback", () => {
+  assert.match(footer, /COMPACT_BEARING_SHELL_MODULE/);
+  const compactBranch = footer.indexOf('document.querySelector("#lattice")');
+  const normalFallback = footer.indexOf("void import(LAB_SHELL_MODULE)");
+  assert.ok(compactBranch >= 0, "compact Bearing branch must be present");
+  assert.ok(normalFallback > compactBranch, "compact branch must precede the normal shell fallback");
+  assert.match(footer, /import\(COMPACT_BEARING_SHELL_MODULE\)/);
   assert.doesNotMatch(footer, /setTimeout\s*\(/);
   assert.match(footer, /function installBearingShell\(\) \{\s*return bootstrapLabShell\(\);\s*\}/);
 });
 
-test("compact Bearing avoids duplicate shell assets and installs synchronously", () => {
-  assert.match(footer, /if\(!isCompactLabProfile\(\)\)ensureStylesheet\(FOOTER_STYLESHEET/);
-  assert.match(footer, /function installCompactLabShell\(\)/);
-  assert.match(footer, /style\.id="atlas-compact-lab-shell"/);
-  assert.match(footer, /installCompactHeader\(path\)/);
-  assert.match(footer, /installCompactContext\(header,path\)/);
-  assert.match(footer, /installCompactMobile\(path\)/);
-  assert.match(footer, /--lab-shell-stack-height/);
+test("compact Bearing installs the governed shell without initial asset fan-out", () => {
+  assert.match(compact, /function installCompactBearingShell\(\)/);
+  assert.match(compact, /atlas-header/);
+  assert.match(compact, /lab-context-nav/);
+  assert.match(compact, /atlas-mobile-nav/);
+  assert.match(compact, /labShellContract:"pass"/);
+  assert.match(compact, /import\("\/static\/js\/estate-search\/global-search\.js"\)/);
+  assert.doesNotMatch(compact, /createElement\("link"\)/);
+  assert.doesNotMatch(compact, /setTimeout\s*\(/);
 });
 
-test("convergence stylesheet is injected without consuming another style resource", () => {
-  assert.match(footer, /fetch\(href,\{credentials:"same-origin"\}\)/);
+test("Bearing light mode keeps accessible annotations and code tokens", () => {
+  assert.match(compact, /--load:#8a4c00/);
+  assert.match(compact, /--ink-faint:#5b5d60/);
+  assert.match(compact, /\.step \.n,pre\.snip \.a\{color:#8a4c00\}/);
+  assert.match(compact, /\.step p,pre\.snip \.c\{color:#5b5d60\}/);
+});
+
+test("convergence CSS is injected in one request with card geometry corrections", () => {
+  assert.match(footer, /fetch\(SURFACE_CONVERGENCE_STYLESHEET/);
   assert.match(footer, /atlas-surface-convergence-inline/);
-  assert.match(footer, /CONVERGENCE_RUNTIME_CSS/);
+  assert.match(footer, /CONVERGENCE_FIXES/);
   assert.match(footer, /system-card\.directory-card \.card-route/);
-  assert.match(footer, /white-space:normal/);
+  assert.match(footer, /white-space:normal!important/);
 });
 
 test("reduced-motion console headings are stabilised before shell auditing", () => {
-  assert.match(footer, /function stabilizePrimaryHeading\(\)/);
   assert.match(footer, /main h1\.page-heading/);
-  assert.match(footer, /heading\.style\.opacity="1"/);
-  assert.match(footer, /heading\.style\.animation="none"/);
+  assert.match(footer, /opacity:"1"/);
+  assert.match(footer, /animation:"none"/);
 });
 
-test("accepted Bearing browser caps remain unchanged", () => {
+test("accepted browser caps remain unchanged and runtime files stay bounded", () => {
   assert.deepEqual(budgets.routes["/lab/bearing/"], {
     requestCount: 9,
     encodedBytes: 56320,
@@ -50,6 +59,7 @@ test("accepted Bearing browser caps remain unchanged", () => {
     scriptCount: 2,
     styleCount: 5,
   });
-  assert.deepEqual(budgets.scope.browsers, ["chrome", "firefox"]);
+  assert.ok(Buffer.byteLength(footer) <= 9000, "shared footer runtime exceeds its reviewed headroom");
+  assert.ok(Buffer.byteLength(compact) <= 10000, "compact Bearing shell exceeds its reviewed headroom");
   assert.equal(budgets.status, "accepted");
 });
