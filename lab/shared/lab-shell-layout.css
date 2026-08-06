@@ -38,11 +38,6 @@ body[data-lab-shell][data-lab-layout="product"] main {
   padding-top: clamp(24px, 3vw, 40px) !important;
 }
 
-/*
- * The Lab owns one interaction-size contract. Route-specific visual systems
- * can keep their typography and density, but their actual controls do not get
- * to shrink below the accepted rendered target.
- */
 body[data-lab-shell] :where(
   button:not([disabled]),
   summary,
@@ -64,7 +59,9 @@ body[data-lab-shell] :where(
   .action,
   .focus-action,
   .page-actions a,
-  .atlas-footer a
+  .atlas-footer a,
+  .wordmark,
+  .atlas-header__brand a
 ) {
   display: inline-flex;
   align-items: center;
@@ -72,13 +69,24 @@ body[data-lab-shell] :where(
 }
 
 body[data-lab-shell] :where(
+  .wordmark,
+  .atlas-header__brand a,
   .atlas-estate-status,
   .atlas-search-control
+) {
+  min-width: 44px !important;
+  min-height: 44px !important;
+}
+
+body[data-lab-route="signal"] .bank-btn,
+body[data-lab-layout="product"] :where(
+  .symphony-product-link,
+  .symphony-product-mode-link,
+  .symphony-product-bar .symphony-mode-tabs button
 ) {
   min-height: 44px !important;
 }
 
-/* The old Operations page includes the fixed header in its own hero offset. */
 body[data-lab-route="console"] main {
   padding-top: 0 !important;
 }
@@ -87,7 +95,6 @@ body[data-lab-route="console"] .page-header {
   padding-top: var(--lab-shell-content-gap) !important;
 }
 
-/* Speculum carried a second masthead underneath the governed estate shell. */
 body[data-lab-route="speculum"] .masthead {
   display: none !important;
 }
@@ -100,7 +107,6 @@ body[data-lab-route="speculum"] .intro {
   padding-top: clamp(32px, 5vw, 52px) !important;
 }
 
-/* Almost previously fixed the Lab strip independently and guessed its height. */
 body[data-lab-route="almost"] .lab-context-nav {
   position: sticky !important;
   inset: auto !important;
@@ -115,7 +121,6 @@ body[data-lab-route="almost"] .almost-stage {
   min-height: min(calc(100svh - var(--lab-shell-stack-height) - 16px), 820px);
 }
 
-/* Drift remains an immersive field, but it now consumes only the free viewport. */
 body[data-lab-route="drift"] main {
   padding-top: 0 !important;
 }
@@ -124,11 +129,6 @@ body[data-lab-route="drift"] .drift-stage {
   min-height: calc(100svh - var(--lab-shell-stack-height));
 }
 
-/*
- * The Bearing keeps its local instrument palette. These aliases let the
- * governed shell and footer read that palette instead of rendering as a
- * foreign dark rectangle above the simulation.
- */
 body[data-lab-route="bearing"] {
   --bg: var(--ground);
   --bg-1: var(--surface);
