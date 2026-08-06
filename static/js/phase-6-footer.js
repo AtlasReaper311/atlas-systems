@@ -4,7 +4,6 @@ const FOOTER_STYLESHEET = "/static/css/phase-6-footer.css?v=20260730-phase-6-v2"
 const LAB_SHELL_MODULE = "/lab/shared/shell.js?v=20260806-final-convergence-v1";
 const SURFACE_CONVERGENCE_MODULE = "/static/js/surface-convergence.js?v=20260806-final-convergence-v1";
 const SURFACE_CONVERGENCE_STYLESHEET = "/static/css/surface-convergence.css?v=20260806-final-convergence-v1";
-const DIRECTORY_CONVERGENCE_STYLESHEET = "/static/css/directory-convergence.css?v=20260806-final-convergence-v1";
 const BEARING_ROUTE = "/lab/bearing/";
 const ATLAS_OWNED_HOSTS = new Set([
   "api.atlas-systems.uk",
@@ -18,6 +17,25 @@ const TOOL_PATHS = Object.freeze([
   "/systems/observability/",
   "/systems/reliability/",
 ]);
+const SURFACE_PATHS = Object.freeze(new Set([
+  "/lab/",
+  "/lab/system-map/",
+  "/lab/blackbox/",
+  "/lab/console/",
+  "/lab/proof-chain/",
+  "/lab/conformance/",
+  "/lab/anomaly/",
+  "/lab/speculum/",
+  "/lab/signal/",
+  "/lab/almost/",
+  "/lab/drift/",
+  "/lab/bearing/",
+  "/lab/system-symphony/",
+  "/systems/",
+  "/systems/observability/",
+  "/systems/reliability/",
+  "/systems/evidence/",
+]));
 
 function normalizePath(pathname) {
   const path = String(pathname || "/").split("?")[0].split("#")[0] || "/";
@@ -32,6 +50,11 @@ function isWritingArticle(pathname) {
 
 function isLabPath(pathname) {
   return normalizePath(pathname).startsWith("/lab/");
+}
+
+function isSurfaceConvergencePath(pathname) {
+  const path = normalizePath(pathname);
+  return SURFACE_PATHS.has(path) || path.startsWith("/lab/system-symphony/");
 }
 
 function isExcludedFooterRoute(pathname) {
@@ -191,14 +214,11 @@ function installPhase6Footer() {
 }
 
 async function installSurfaceConvergence({ moveStylesheetToEnd = false } = {}) {
+  const path = normalizePath(window.location.pathname);
+  if (!isSurfaceConvergencePath(path)) return null;
   ensureStylesheet(
     SURFACE_CONVERGENCE_STYLESHEET,
     "atlasSurfaceConvergenceStyles",
-    moveStylesheetToEnd,
-  );
-  ensureStylesheet(
-    DIRECTORY_CONVERGENCE_STYLESHEET,
-    "atlasDirectoryConvergenceStyles",
     moveStylesheetToEnd,
   );
   const module = await import(SURFACE_CONVERGENCE_MODULE);
@@ -253,11 +273,11 @@ autoInstall();
 
 export {
   BEARING_ROUTE,
-  DIRECTORY_CONVERGENCE_STYLESHEET,
   FOOTER_STYLESHEET,
   LAB_SHELL_MODULE,
   SURFACE_CONVERGENCE_MODULE,
   SURFACE_CONVERGENCE_STYLESHEET,
+  SURFACE_PATHS,
   bootstrapLabShell,
   footerConfiguration,
   installBearingShell,
@@ -265,6 +285,7 @@ export {
   installSurfaceConvergence,
   isExcludedFooterRoute,
   isLabPath,
+  isSurfaceConvergencePath,
   isWritingArticle,
   normalizePath,
   pageIdentity,
