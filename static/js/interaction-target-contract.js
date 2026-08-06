@@ -47,6 +47,7 @@ function isVisible(element) {
 
 function measureInteractionTargets(root = document) {
   return [...root.querySelectorAll(TARGET_SELECTOR)]
+    .filter((element) => !(element instanceof SVGElement))
     .filter(isVisible)
     .map((element) => {
       const rect = element.getBoundingClientRect();
