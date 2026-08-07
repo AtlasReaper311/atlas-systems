@@ -110,9 +110,9 @@ test("each composition has a materially different silhouette and animation gramm
 });
 
 test("route entrypoints and cache boundaries are explicit", () => {
-  assert.match(enableEnhancements, /directory-header-fields\.js\?v=20260728-directory-header-compositions-v2/);
+  assert.match(enableEnhancements, /directory-header-fields\.js\?v=20260807-hero-contrast/);
   assert.match(enableEnhancements, /"\/work\/", "\/writing\/"/);
-  assert.match(cardSignatures, /^import "\.\/directory-header-fields\.js\?v=20260728-directory-header-compositions-v2";/);
+  assert.match(cardSignatures, /^import "\.\/directory-header-fields\.js\?v=20260807-hero-contrast";/);
 
   for (const asset of [
     "/static/js/directory-header-fields.js",

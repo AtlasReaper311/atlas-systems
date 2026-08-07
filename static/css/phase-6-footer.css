@@ -92,13 +92,13 @@
 }
 
 /*
- * The Bearing is a self-contained dual-theme instrument rather than an
- * Atlas shell consumer. Its light palette therefore does not expose the
- * Atlas text tokens inherited by the shared footer. Bridge those tokens at
- * the route boundary and raise its small amber/code annotations to WCAG AA.
+ * The Bearing used to bridge light-theme Atlas footer tokens when it owned its
+ * own chrome. Shared Lab shell + surface-convergence now force a dark estate
+ * palette on this route, so light-preference bridges must not run there or
+ * amber/code annotations and footer copy fail color-contrast on #07070b.
  */
 @media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) body:has(#lattice) {
+  :root:not([data-theme="dark"]) body:has(#lattice):not([data-lab-shell]) {
     --bearing-phase6-accessible-accent: #8a4c00;
     --bearing-phase6-accessible-muted: #5b5d60;
     --atlas-border-hi: #cec8b7;
@@ -109,7 +109,7 @@
   }
 }
 
-:root[data-theme="light"] body:has(#lattice) {
+:root[data-theme="light"] body:has(#lattice):not([data-lab-shell]) {
   --bearing-phase6-accessible-accent: #8a4c00;
   --bearing-phase6-accessible-muted: #5b5d60;
   --atlas-border-hi: #cec8b7;
@@ -119,13 +119,32 @@
   --atlas-accent: #8a4c00;
 }
 
-body:has(#lattice) .step .n,
-body:has(#lattice) pre.snip .a {
+body:has(#lattice):not([data-lab-shell]) .step .n,
+body:has(#lattice):not([data-lab-shell]) pre.snip .a {
   color: var(--bearing-phase6-accessible-accent, var(--load));
 }
 
-body:has(#lattice) pre.snip .c {
+body:has(#lattice):not([data-lab-shell]) pre.snip .c {
   color: var(--bearing-phase6-accessible-muted, var(--ink-faint));
+}
+
+body[data-lab-shell][data-lab-route="bearing"] {
+  --atlas-border: var(--rule);
+  --atlas-border-hi: color-mix(in srgb, var(--rule) 58%, var(--ink));
+  --atlas-text: var(--ink);
+  --atlas-text-dim: var(--ink-quiet);
+  --atlas-text-faint: var(--ink-faint);
+  --atlas-accent: var(--load);
+}
+
+body[data-lab-shell][data-lab-route="bearing"] .step .n,
+body[data-lab-shell][data-lab-route="bearing"] pre.snip .a {
+  color: var(--load);
+}
+
+body[data-lab-shell][data-lab-route="bearing"] pre.snip .c,
+body[data-lab-shell][data-lab-route="bearing"] .step p {
+  color: var(--ink-quiet);
 }
 
 @media (max-width: 767px) {

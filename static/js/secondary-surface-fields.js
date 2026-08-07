@@ -3,7 +3,7 @@
 import { mountAtlasFieldConsumer } from "./atlas-field-consumer.js?v=20260728-consumer-contract-v1";
 import { compositionForRoute } from "./atlas-field-composition-registry.js?v=20260728-evidence-surfaces-v1";
 
-const STYLESHEET = "/static/css/secondary-surface-fields.css?v=20260728-evidence-surfaces-v1";
+const STYLESHEET = "/static/css/secondary-surface-fields.css?v=20260807-hero-contrast";
 
 function ensureStylesheet() {
   if (document.head.querySelector(`link[href="${STYLESHEET}"]`)) return;

@@ -17,7 +17,7 @@ body[data-atlas-directory-header] main {
 
 .atlas-page-header > :not(.atlas-field-canvas) {
   position: relative;
-  z-index: 4;
+  z-index: 5;
 }
 
 .atlas-page-header .section-label,
