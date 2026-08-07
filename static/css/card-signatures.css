@@ -36,7 +36,10 @@
 .system-card .data-mode { overflow-wrap: anywhere; }
 .system-card .card-route { white-space: nowrap; }
 .system-card[data-card-signature-ready]::before { content: ""; width: 0; height: 0; padding: 0; border: 0; background: none; opacity: 0; }
-.system-card > .card-signature { z-index: 0; }
+.system-card > .card-signature {
+  position: absolute;
+  z-index: 0;
+}
 .system-card:hover .card-signature, .system-card:focus-visible .card-signature { opacity: .94; transform: translateY(-2px) scale(1.025); border-color: color-mix(in srgb, var(--card-accent) 52%, transparent); }
 .system-card.specimen-card .card-signature { right: 22px; bottom: 22px; width: var(--card-signature-feature-width); min-width: 190px; max-width: 320px; opacity: .72; }
 .system-card.specimen-card:not([data-card-signature-ready]) > h3,
@@ -54,8 +57,14 @@
 .system-card.directory-card {
   padding-bottom: calc(16px + var(--card-signature-directory-height) + var(--card-signature-directory-gap));
 }
-.system-card.directory-card .card-route { max-width: none; }
+.system-card.directory-card .card-route {
+  width: fit-content !important;
+  max-width: calc(100% - var(--card-signature-directory-width) - var(--card-signature-directory-gap)) !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+}
 .system-card.directory-card--wide {
+  --card-signature-directory-width: 190px;
   --card-signature-directory-height: 143px;
 }
 .system-card.directory-card--wide .card-signature { width: 190px; }
@@ -113,6 +122,9 @@
   }
   .system-card.directory-card {
     padding-bottom: 132px;
+  }
+  .system-card.directory-card--wide {
+    --card-signature-directory-width: 118px;
   }
   .system-card.specimen-card:not([data-card-signature-ready]) {
     padding-bottom: 132px;

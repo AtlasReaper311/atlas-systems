@@ -14,7 +14,7 @@
   pointer-events: none;
 }
 
-.atlas-field-surface > :not(.atlas-field-canvas) {
+.atlas-field-surface > :not(.atlas-field-canvas):not(.card-signature) {
   position: relative;
   z-index: 2;
 }

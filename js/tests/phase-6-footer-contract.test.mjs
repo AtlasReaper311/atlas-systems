@@ -7,6 +7,7 @@ import {
   footerConfiguration,
   isExcludedFooterRoute,
   isLabPath,
+  isSurfaceConvergencePath,
   normalizePath,
   resolveFooterVariant,
 } from "../../static/js/phase-6-footer.js";
@@ -27,7 +28,7 @@ function linkCount(configuration) {
     .length;
 }
 
-test("route resolver separates estate, tool, and excluded surfaces", () => {
+test("route resolver separates estate, tool, excluded, and convergence surfaces", () => {
   assert.equal(normalizePath("/about"), "/about/");
   assert.equal(resolveFooterVariant("/"), "estate");
   assert.equal(resolveFooterVariant("/work/"), "estate");
@@ -40,6 +41,11 @@ test("route resolver separates estate, tool, and excluded surfaces", () => {
   assert.equal(isExcludedFooterRoute("/writing/ramone-local-ai-system/"), true);
   assert.equal(isLabPath("/lab/system-symphony/roms/"), true);
   assert.equal(isLabPath("/systems/reliability/"), false);
+  assert.equal(isSurfaceConvergencePath("/"), false);
+  assert.equal(isSurfaceConvergencePath("/writing/"), false);
+  assert.equal(isSurfaceConvergencePath("/lab/"), true);
+  assert.equal(isSurfaceConvergencePath("/lab/system-symphony/radio/"), true);
+  assert.equal(isSurfaceConvergencePath("/systems/"), true);
 });
 
 test("estate and tool profiles remain governed without duplicating global navigation", () => {
@@ -155,15 +161,18 @@ test("W-01 through W-07 keep the classic scheduler-owned footer", () => {
   }
 });
 
-test("Bearing and Operations both resolve into the shared Lab shell", () => {
+test("Bearing and Operations both resolve into the final shared Lab shell", () => {
   const source = fs.readFileSync("static/js/phase-6-footer.js", "utf8");
   const bearing = fs.readFileSync("lab/bearing/index.html", "utf8");
   const consolePage = fs.readFileSync("lab/console/index.html", "utf8");
 
   assert.match(bearing, /\/static\/js\/phase-6-footer\.js\?v=20260730-phase-6-v1/);
-  assert.equal(LAB_SHELL_MODULE, "/lab/shared/shell.js?v=20260805-lab-consistency-v1");
+  assert.equal(LAB_SHELL_MODULE, "/lab/shared/shell.js?v=20260806-final-convergence-v1");
   assert.match(source, /function bootstrapLabShell/);
   assert.match(source, /void import\(LAB_SHELL_MODULE\)/);
+  assert.match(source, /surface-convergence\.js/);
+  assert.match(source, /isSurfaceConvergencePath/);
+  assert.doesNotMatch(source, /directory-convergence\.css/);
   assert.match(consolePage, /\/static\/js\/estate-search\/global-search\.js/);
   assert.equal(resolveFooterVariant("/lab/console/"), "tool");
 });

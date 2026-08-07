@@ -18,16 +18,16 @@ const headers = fs.readFileSync("_headers", "utf8");
 const previewWorkflow = fs.readFileSync(".github/workflows/interface-preview.yml", "utf8");
 const previewSmoke = fs.readFileSync("scripts/smoke_system_map_card_field_preview.mjs", "utf8");
 
-test("Lab AtlasField targets remain bounded to the intro and featured System Map card", () => {
+test("Lab AtlasField targets remain bounded to the intro and visible System Map directory card", () => {
   assert.equal(LAB_INTRO_FIELD.selector, ".page-intro");
   assert.equal(LAB_INTRO_FIELD.preset, "ambient");
   assert.equal(LAB_INTRO_FIELD.options.pointer.enabled, false);
-  assert.equal(SYSTEM_MAP_CARD_FIELD.selector, "#system-map.featured");
+  assert.equal(SYSTEM_MAP_CARD_FIELD.selector, 'a.directory-card[href="/lab/system-map/"]');
   assert.equal(SYSTEM_MAP_CARD_FIELD.preset, "card");
   assert.equal(SYSTEM_MAP_CARD_FIELD.options.pointer.enabled, false);
   assert.ok(Object.isFrozen(LAB_INTRO_FIELD));
   assert.ok(Object.isFrozen(SYSTEM_MAP_CARD_FIELD));
-  assert.equal((markup.match(/id="system-map"/g) || []).length, 1);
+  assert.equal((markup.match(/class="system-card directory-card"[^>]*href="\/lab\/system-map\/"/g) || []).length, 1);
   assert.doesNotMatch(systemMapPage, /system-map-card-field|lab-intro-field/);
 });
 
@@ -37,9 +37,11 @@ test("Lab card remains local while the intro uses the named composition registry
   assert.match(introModule, /ATLAS_FIELD_COMPOSITIONS\["signal-bloom"\]/);
   assert.match(introModule, /mountSecondarySurfaceField/);
   assert.match(registryModule, /"signal-bloom": composition/);
-  assert.match(cardCss, /atlas-field-consumer\.css\?v=20260728-consumer-contract-v1/);
+  assert.match(cardCss, /atlas-field-consumer\.css\?v=20260807-signature-position/);
+  assert.match(cardCss, /\.system-map-card-atlas-field > \.card-signature\s*\{[^}]*position:\s*absolute/s);
   assert.match(compositionCss, /atlas-composition--signal-bloom/);
   assert.match(sharedCss, /\.atlas-field-surface > \.atlas-field-canvas/);
+  assert.match(sharedCss, /\.atlas-field-surface > :not\(\.atlas-field-canvas\):not\(\.card-signature\)/);
   assert.match(sharedCss, /pointer-events:\s*none/);
 });
 
@@ -67,7 +69,7 @@ test("Lab field bootstrap assets cannot be retained stale", () => {
 });
 
 test("surface-specific composition remains local", () => {
-  assert.match(cardCss, /#system-map\.system-map-card-atlas-field::before\s*\{[^}]*linear-gradient/s);
+  assert.match(cardCss, /\.system-map-card-atlas-field::before\s*\{[^}]*linear-gradient/s);
   assert.match(cardCss, /opacity:\s*\.64/);
   assert.match(cardCss, /backdrop-filter:\s*blur\(4px\)/s);
   assert.match(compositionCss, /atlas-composition--signal-bloom::before/);
@@ -77,8 +79,10 @@ test("surface-specific composition remains local", () => {
 
 test("governed preview verifies both visible Lab fields at pixel level", () => {
   assert.match(previewWorkflow, /smoke_system_map_card_field_preview\.mjs/);
+  assert.match(previewSmoke, /systemMapCardSelector/);
   assert.match(previewSmoke, /atlasIntroFieldState/);
   assert.match(previewSmoke, /scrollIntoViewIfNeeded/);
+  assert.match(previewSmoke, /minimumWidth:\s*320/);
   assert.match(previewSmoke, /minimumLuminousPixels:\s*4/);
   assert.match(previewSmoke, /minimumLuminousPixels:\s*8/);
 });

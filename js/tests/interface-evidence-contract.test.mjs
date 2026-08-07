@@ -103,13 +103,13 @@ test("changed-file classification binds route work and shared assets to evidence
   assert.equal(harness.evidence_required, true);
 });
 
-test("the reporting baseline is pinned to the reviewed Phase 2 evidence", () => {
+test("the reporting baseline is pinned to the reviewed Phase 15 evidence", () => {
   assert.equal(REPORTING_BASELINE.schema_version, "atlas-systems/public-interface-reporting-baseline/v1");
-  assert.equal(REPORTING_BASELINE.source.pull_request, "AtlasReaper311/atlas-systems#168");
-  assert.equal(REPORTING_BASELINE.source.reviewed_head, "4dafa7d1d4690e94e36e9342e672d41307633d19");
-  assert.equal(REPORTING_BASELINE.source.workflow_run, 30386218935);
-  assert.equal(REPORTING_BASELINE.source.artifact_id, 8699615072);
-  assert.equal(REPORTING_BASELINE.source.reviewed_finding_count, 36);
+  assert.equal(REPORTING_BASELINE.source.pull_request, "AtlasReaper311/atlas-systems#205");
+  assert.equal(REPORTING_BASELINE.source.reviewed_head, "92db23a9fe795c641b640b27dae94d6b0a44d006");
+  assert.equal(REPORTING_BASELINE.source.workflow_run, 31066093763);
+  assert.equal(REPORTING_BASELINE.source.artifact_id, 8954248381);
+  assert.equal(REPORTING_BASELINE.source.reviewed_finding_count, 12);
 });
 
 test("baseline matching is route, browser, viewport, issue, and target specific", () => {
