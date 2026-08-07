@@ -66,10 +66,10 @@ const PHASE6_FOOTER = "/static/js/phase-6-footer.js";
 const ESTATE_SHELL = "/static/js/estate-shell.js";
 const GLOBAL_SEARCH = "/static/js/estate-search/global-search.js";
 const LAB_HOME_ROUTE = "/lab/";
-const LAB_INTRO_FIELD_CSS = "/lab/shared/lab-intro-field.css?v=20260727-lab-intro-field-v1";
+const LAB_INTRO_FIELD_CSS = "/lab/shared/lab-intro-field.css?v=20260807-signature-position";
 const LAB_INTRO_FIELD_MODULE = "/lab/shared/lab-intro-field.js?v=20260727-lab-intro-field-v1";
-const SYSTEM_MAP_CARD_FIELD_CSS = "/lab/shared/system-map-card-field.css?v=20260727-system-map-card-field-v2";
-const SYSTEM_MAP_CARD_FIELD_MODULE = "/lab/shared/system-map-card-field.js?v=20260727-system-map-card-field-v2";
+const SYSTEM_MAP_CARD_FIELD_CSS = "/lab/shared/system-map-card-field.css?v=20260807-signature-position";
+const SYSTEM_MAP_CARD_FIELD_MODULE = "/lab/shared/system-map-card-field.js?v=20260807-signature-position";
 const LEGACY_ROUTE_ALIASES = Object.freeze(new Map([
   ["/lab/reliability/", "/systems/reliability/"],
 ]));

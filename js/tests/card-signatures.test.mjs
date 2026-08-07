@@ -33,11 +33,12 @@ test("every current Lab and Systems card resolves to a specialised SVG signature
 test("Lab and Systems load the signature assets", () => {
   for (const path of ["lab/index.html", "systems/index.html"]) {
     const markup = fs.readFileSync(path, "utf8");
-    assert.match(markup, /\/static\/css\/card-signatures\.css\?v=20260807-card-signatures/);
-    assert.match(markup, /\/static\/js\/card-signatures\.js\?v=20260807-card-signatures/);
+    assert.match(markup, /\/static\/css\/card-signatures\.css\?v=20260807-signature-position/);
+    assert.match(markup, /\/static\/js\/card-signatures\.js\?v=20260807-signature-position/);
   }
   const css = fs.readFileSync("static/css/card-signatures.css", "utf8");
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
+  assert.match(css, /\.system-card > \.card-signature\s*\{[^}]*position:\s*absolute/s);
   assert.match(css, /\.system-card\.directory-card\s*\{[^}]*padding-bottom:/s);
   assert.match(css, /\.system-card\.directory-card \.card-route\s*\{[^}]*width:\s*fit-content\s*!important/s);
   assert.match(css, /\.system-card\.directory-card \.card-route\s*\{[^}]*max-width:\s*calc\(100% - var\(--card-signature-directory-width\) - var\(--card-signature-directory-gap\)\)\s*!important/s);

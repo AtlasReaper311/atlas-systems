@@ -36,7 +36,10 @@
 .system-card .data-mode { overflow-wrap: anywhere; }
 .system-card .card-route { white-space: nowrap; }
 .system-card[data-card-signature-ready]::before { content: ""; width: 0; height: 0; padding: 0; border: 0; background: none; opacity: 0; }
-.system-card > .card-signature { z-index: 0; }
+.system-card > .card-signature {
+  position: absolute;
+  z-index: 0;
+}
 .system-card:hover .card-signature, .system-card:focus-visible .card-signature { opacity: .94; transform: translateY(-2px) scale(1.025); border-color: color-mix(in srgb, var(--card-accent) 52%, transparent); }
 .system-card.specimen-card .card-signature { right: 22px; bottom: 22px; width: var(--card-signature-feature-width); min-width: 190px; max-width: 320px; opacity: .72; }
 .system-card.specimen-card:not([data-card-signature-ready]) > h3,

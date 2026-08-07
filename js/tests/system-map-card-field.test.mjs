@@ -37,9 +37,11 @@ test("Lab card remains local while the intro uses the named composition registry
   assert.match(introModule, /ATLAS_FIELD_COMPOSITIONS\["signal-bloom"\]/);
   assert.match(introModule, /mountSecondarySurfaceField/);
   assert.match(registryModule, /"signal-bloom": composition/);
-  assert.match(cardCss, /atlas-field-consumer\.css\?v=20260728-consumer-contract-v1/);
+  assert.match(cardCss, /atlas-field-consumer\.css\?v=20260807-signature-position/);
+  assert.match(cardCss, /\.system-map-card-atlas-field > \.card-signature\s*\{[^}]*position:\s*absolute/s);
   assert.match(compositionCss, /atlas-composition--signal-bloom/);
   assert.match(sharedCss, /\.atlas-field-surface > \.atlas-field-canvas/);
+  assert.match(sharedCss, /\.atlas-field-surface > :not\(\.atlas-field-canvas\):not\(\.card-signature\)/);
   assert.match(sharedCss, /pointer-events:\s*none/);
 });
 
