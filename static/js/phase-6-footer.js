@@ -1,5 +1,5 @@
 "use strict";
-const FOOTER_STYLESHEET="/static/css/phase-6-footer.css?v=20260807-bearing-shell";
+const FOOTER_STYLESHEET="/static/css/phase-6-footer.css?v=20260807-bearing-contrast";
 const LAB_SHELL_MODULE="/lab/shared/shell.js?v=20260807-bearing-shell";
 const SURFACE_CONVERGENCE_MODULE="/static/js/surface-convergence.js?v=20260807-bearing-shell";
 const SURFACE_CONVERGENCE_STYLESHEET="/static/css/surface-convergence.css?v=20260807-bearing-shell";

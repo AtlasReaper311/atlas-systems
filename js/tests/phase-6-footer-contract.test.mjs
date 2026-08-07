@@ -128,18 +128,21 @@ test("footer-only stylesheet keeps a single compact rail and immutable v0.4.0 be
   assert.doesNotMatch(css, /\.atlas-footer__sequence/);
 });
 
-test("Bearing light mode bridges its local palette into accessible footer tokens", () => {
+test("Bearing light mode bridges stay off the shared Lab shell dark palette", () => {
   const css = fs.readFileSync("static/css/phase-6-footer.css", "utf8");
-  assert.match(css, /:root:not\(\[data-theme="dark"\]\) body:has\(#lattice\)/);
-  assert.match(css, /:root\[data-theme="light"\] body:has\(#lattice\)/);
+  assert.match(css, /:root:not\(\[data-theme="dark"\]\) body:has\(#lattice\):not\(\[data-lab-shell\]\)/);
+  assert.match(css, /:root\[data-theme="light"\] body:has\(#lattice\):not\(\[data-lab-shell\]\)/);
   assert.match(css, /--bearing-phase6-accessible-accent: #8a4c00/);
   assert.match(css, /--bearing-phase6-accessible-muted: #5b5d60/);
   assert.match(css, /--atlas-text: #171a20/);
   assert.match(css, /--atlas-text-dim: #5b5d60/);
   assert.match(css, /--atlas-text-faint: #5b5d60/);
-  assert.match(css, /body:has\(#lattice\) \.step \.n/);
-  assert.match(css, /body:has\(#lattice\) pre\.snip \.a/);
-  assert.match(css, /body:has\(#lattice\) pre\.snip \.c/);
+  assert.match(css, /body:has\(#lattice\):not\(\[data-lab-shell\]\) \.step \.n/);
+  assert.match(css, /body:has\(#lattice\):not\(\[data-lab-shell\]\) pre\.snip \.a/);
+  assert.match(css, /body:has\(#lattice\):not\(\[data-lab-shell\]\) pre\.snip \.c/);
+  assert.match(css, /body\[data-lab-shell\]\[data-lab-route="bearing"\] \.step \.n/);
+  assert.match(css, /body\[data-lab-shell\]\[data-lab-route="bearing"\]\s*\{[^}]*--atlas-text:\s*var\(--ink\)/s);
+  assert.match(css, /body\[data-lab-shell\]\[data-lab-route="bearing"\] pre\.snip \.c/);
 });
 
 test("Bearing narrow code sample wraps instead of creating an unfocusable scroll region", () => {
