@@ -101,6 +101,7 @@ test("standard and experimental route entrypoints all reach the shared shell", (
     "lab/index.html",
     "lab/system-map/index.html",
     "lab/speculum/index.html",
+    "lab/bearing/index.html",
     "lab/system-symphony/index.html",
     "lab/system-symphony/roms/index.html",
     "lab/system-symphony/build-log/index.html",

@@ -166,13 +166,15 @@ test("Bearing and Operations both resolve into the final shared Lab shell", () =
   const bearing = fs.readFileSync("lab/bearing/index.html", "utf8");
   const consolePage = fs.readFileSync("lab/console/index.html", "utf8");
 
-  assert.match(bearing, /\/static\/js\/phase-6-footer\.js\?v=20260730-phase-6-v1/);
-  assert.equal(LAB_SHELL_MODULE, "/lab/shared/shell.js?v=20260806-final-convergence-v1");
+  assert.match(bearing, /\/lab\/shared\/shell\.js\?v=20260807-bearing-shell/);
+  assert.match(bearing, /\/static\/js\/phase-6-footer\.js\?v=20260807-bearing-shell/);
+  assert.equal(LAB_SHELL_MODULE, "/lab/shared/shell.js?v=20260807-bearing-shell");
   assert.match(source, /function bootstrapLabShell/);
   assert.match(source, /void import\(LAB_SHELL_MODULE\)/);
   assert.match(source, /surface-convergence\.js/);
   assert.match(source, /isSurfaceConvergencePath/);
   assert.doesNotMatch(source, /directory-convergence\.css/);
+  assert.doesNotMatch(source, /COMPACT_BEARING_SHELL_MODULE/);
   assert.match(consolePage, /\/static\/js\/estate-search\/global-search\.js/);
   assert.equal(resolveFooterVariant("/lab/console/"), "tool");
 });

@@ -3,11 +3,11 @@
 import {
   defineAtlasFieldConsumer,
   mountAtlasFieldConsumer,
-} from "./atlas-field-consumer.js?v=20260728-directory-header-compositions-v2";
+} from "./atlas-field-consumer.js?v=20260807-hero-contrast";
 
 const HEADER_STYLESHEETS = Object.freeze([
-  "/static/css/atlas-field-consumer.css?v=20260807-signature-position",
-  "/static/css/directory-header-fields.css?v=20260728-directory-header-compositions-v2",
+  "/static/css/atlas-field-consumer.css?v=20260807-hero-contrast",
+  "/static/css/directory-header-fields.css?v=20260807-hero-contrast",
 ]);
 
 export const DIRECTORY_HEADER_COMPOSITIONS = Object.freeze({

@@ -100,8 +100,8 @@ async function snapshot(route) {
       headingLineHeight: headingStyle?.lineHeight ?? null,
       copyFontSize: copyStyle?.fontSize ?? null,
       copyLineHeight: copyStyle?.lineHeight ?? null,
-      helperLoaded: resources.some((resource) => resource.startsWith("/static/js/directory-header-fields.js?v=20260728-directory-header-compositions-v2")),
-      stylesheetLoaded: Boolean(document.querySelector('link[href="/static/css/directory-header-fields.css?v=20260728-directory-header-compositions-v2"]')),
+      helperLoaded: resources.some((resource) => resource.startsWith("/static/js/directory-header-fields.js?v=20260807-hero-contrast")),
+      stylesheetLoaded: Boolean(document.querySelector('link[href="/static/css/directory-header-fields.css?v=20260807-hero-contrast"]')),
     };
   }, route);
 }
