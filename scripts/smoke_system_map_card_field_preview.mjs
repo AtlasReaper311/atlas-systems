@@ -14,7 +14,7 @@ assert.ok(expectedSha, "HEAD_SHA is required");
 
 const pageUrl = `${baseUrl}/lab/?atlas-field-preview=${encodeURIComponent(expectedSha)}`;
 const expectedEntrypoints = {
-  shell: "/lab/shared/shell.js?v=20260723-interface-v2",
+  shell: "/lab/shared/shell.js?v=20260807-signature-position",
   introStylesheet: "/lab/shared/lab-intro-field.css?v=20260807-signature-position",
   cardStylesheet: "/lab/shared/system-map-card-field.css?v=20260807-signature-position",
 };
