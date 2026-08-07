@@ -33,8 +33,8 @@ test("every current Lab and Systems card resolves to a specialised SVG signature
 test("Lab and Systems load the signature assets", () => {
   for (const path of ["lab/index.html", "systems/index.html"]) {
     const markup = fs.readFileSync(path, "utf8");
-    assert.match(markup, /\/static\/css\/card-signatures\.css\?v=20260724-card-signatures/);
-    assert.match(markup, /\/static\/js\/card-signatures\.js\?v=20260724-card-signatures/);
+    assert.match(markup, /\/static\/css\/card-signatures\.css\?v=20260807-card-signatures/);
+    assert.match(markup, /\/static\/js\/card-signatures\.js\?v=20260807-card-signatures/);
   }
   const css = fs.readFileSync("static/css/card-signatures.css", "utf8");
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
