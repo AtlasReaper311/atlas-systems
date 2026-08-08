@@ -1,25 +1,43 @@
 [
   {
+    "slug": "atlas-lab-observability",
+    "title": "Atlas Lab",
+    "date": "2026-07-29",
+    "w_number": "W-07"
+  },
+  {
+    "slug": "atlas-systems-cicd-pipeline",
+    "title": "Atlas Systems CI/CD",
+    "date": "2026-07-28",
+    "w_number": "W-06"
+  },
+  {
+    "slug": "atlas-pipeline-infrastructure-dashboard",
+    "title": "Atlas Systems Infrastructure",
+    "date": "2026-07-26",
+    "w_number": "W-05"
+  },
+  {
     "slug": "overclocking-specular-core",
-    "title": "Overclocking SPECULAR-CORE",
+    "title": "Pushing the Limits: Overclocking SPECULAR-CORE",
     "date": "2026-06-22",
     "w_number": "W-04"
   },
   {
     "slug": "ramone-local-ai-system",
-    "title": "Ramone: Local AI System",
+    "title": "Building a Private AI Infrastructure From Scratch",
     "date": "2026-05-27",
     "w_number": "W-03"
   },
   {
     "slug": "slampunk-dynamic-mix-engine",
-    "title": "SlamPunk: Dynamic Mix Engine",
+    "title": "Engineering a 15-Stem Dynamic Audio Engine for Competitive Game",
     "date": "2026-04-30",
     "w_number": "W-02"
   },
   {
     "slug": "sonin-generative-system",
-    "title": "SONIN: Dual-Engine Generative System",
+    "title": "Building an Autonomous Generative Audio-Visual System",
     "date": "2026-03-28",
     "w_number": "W-01"
   }
