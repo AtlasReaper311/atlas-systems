@@ -1,6 +1,32 @@
 # Public interface final convergence
 
-Status: implementation candidate on `interface/final-convergence-cleanup`. Merge remains exact-head, preview, and manual-approval gated. The existing automatic deployment from reviewed `main` remains unchanged.
+Status: CLOSED
+
+Closed: 2026-08-10
+
+The Atlas Systems public interface programme, including the Phase 0-15 implementation sequence and the final convergence pass, is complete as a design and source programme.
+
+## Closeout record
+
+Final convergence implementation:
+
+- PR #207, `Converge Lab and Systems presentation`
+- reviewed head: `95e0e8500676af6a75c62769881a4f9eb47fe0cf`
+- merge commit: `39ed0fa935bf767f94ff5b089bccc7121e410d00`
+
+Final residual alignment correction:
+
+- PR #208, `Restore hero contrast and align Bearing Lab chrome`
+- reviewed head: `95398e9818f17e77d6fb652cab876008933c2685`
+- merge commit: `aeaac264616dd9fcdc8510a3886382462f3a9077`
+
+The only later `main` change observed during closeout was a scheduler-owned `writing/manifest.json` refresh. No later interface source drift was identified.
+
+A post-implementation design sweep against the original design direction returned `PROGRAMME COMPLETE`. It identified no remaining visual gap that justified another mockup, redesign batch, or interface implementation PR.
+
+No further public-interface cleanup batch is planned.
+
+Operational deployment verification remains governed by the repository's normal deployment workflow and live evidence contract. That standing operational contract is not an open design item and this closeout does not infer any future deployment from merge state alone.
 
 ## Accepted direction
 
@@ -81,6 +107,8 @@ The following remain purpose-specific:
 
 The Bearing no longer owns a parallel header, status chip, search treatment, context rail, mobile navigation, or shell geometry. It enters through the same Lab shell as every other Lab route. Its lattice, load simulation, stress palette, controls, metric rail, incident behaviour, and recovery model remain purpose-specific.
 
+The final #208 correction also keeps meaningful content above ambient visual layers so shared AtlasField and composition effects cannot obscure the route heading or purpose copy.
+
 ## Protected boundaries
 
 This cleanup does not change:
@@ -93,4 +121,20 @@ This cleanup does not change:
 
 ## Validation
 
-Before merge, the exact branch head must pass repository-native CI, public-interface conformance, static performance checks, and isolated browser preview validation. Every changed Lab and Systems route requires Chromium and Firefox evidence at 320, 375, 768, 1024, and 1440 pixels, followed by manual visual approval.
+The final reviewed #208 head `95398e9818f17e77d6fb652cab876008933c2685` completed the required pull-request validation:
+
+- Pull request CI: success, run `31174211336`;
+- Public interface conformance: success, run `31174211174`;
+- Public interface preview: success, run `31174209296`;
+- CodeQL: success, run `31174210325`;
+- OpenSSF Scorecard: success, run `31174210316`;
+- Dependabot review policy: skipped as expected;
+- Cloudflare Pages preview: skipped as expected.
+
+The governed preview remains the acceptance record for browser evidence. The final implementation retains the repository's accepted browser-performance budgets and evidence acceptance rules.
+
+## Completion decision
+
+The public interface rebuild and cleanup programme is closed.
+
+Future interface work must be treated as a new, separately scoped design or product task. Historical Phase 0-15 and final-convergence documents remain evidence of how the current system was reached, not an open backlog.
