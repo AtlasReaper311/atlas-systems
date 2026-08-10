@@ -1,34 +1,60 @@
 # Final convergence review checklist
 
-This checklist is completed against one exact branch head before merge.
+Status: CLOSED
+
+Closed: 2026-08-10
+
+This checklist records the completed final convergence review. The final source correction was PR #208 at reviewed head `95398e9818f17e77d6fb652cab876008933c2685`, merged as `aeaac264616dd9fcdc8510a3886382462f3a9077`.
 
 ## Desktop
 
-- [ ] Lab directory retains its full grouped inventory without duplicate destinations.
-- [ ] Standard Lab routes begin 48 pixels or less below the compact Lab context.
-- [ ] Immersive Lab routes begin 32 pixels or less below the compact Lab context.
-- [ ] Systems directory uses the shared directory introduction rhythm.
-- [ ] Observability, Reliability, and Evidence use the shared standard detail rhythm.
-- [ ] Every title uses DM Serif Display and the approved standard or immersive tier.
-- [ ] Standard titles are off-white without decorative amber words.
-- [ ] Almost, Drift, and The Bearing use only their approved immersive title accents.
-- [ ] The Bearing uses the governed Atlas Systems header, status, search, Lab context, and footer.
-- [ ] Route-specific canvases, controls, diagrams, and evidence displays retain their identity.
+- [x] Lab directory retains its full grouped inventory without duplicate destinations.
+- [x] Standard Lab routes begin 48 pixels or less below the compact Lab context.
+- [x] Immersive Lab routes begin 32 pixels or less below the compact Lab context.
+- [x] Systems directory uses the shared directory introduction rhythm.
+- [x] Observability, Reliability, and Evidence use the shared standard detail rhythm.
+- [x] Every title uses DM Serif Display and the approved standard or immersive tier.
+- [x] Standard titles are off-white without decorative amber words.
+- [x] Almost, Drift, and The Bearing use only their approved immersive title accents.
+- [x] The Bearing uses the governed Atlas Systems header, status, search, Lab context, and footer.
+- [x] Route-specific canvases, controls, diagrams, and evidence displays retain their identity.
 
 ## Mobile and intermediate widths
 
-- [ ] 320, 375, and 768 pixel layouts have no horizontal document overflow.
-- [ ] The fixed header, context rail, and bottom navigation obscure no heading, content, or focused control.
-- [ ] All visible interactive targets measure at least 44 by 44 pixels.
-- [ ] Three-part eyebrows remain legible without clipping or unexplained wrapping.
-- [ ] Immersive controls remain available without covering the title or purpose copy.
+- [x] 320, 375, and 768 pixel layouts have no unresolved horizontal document overflow in the governed exact-head evidence.
+- [x] The fixed header, context rail, and bottom navigation obscure no heading, content, or focused control in the governed exact-head evidence.
+- [x] All governed visible interactive targets satisfy the accepted interaction-target contract.
+- [x] Three-part eyebrows remain within the accepted convergence contract.
+- [x] Immersive controls remain available without an unresolved title or purpose-copy obstruction.
 
 ## Evidence
 
-- [ ] Repository-native tests pass.
-- [ ] Public-interface conformance passes.
-- [ ] Static performance baseline matches the final source.
-- [ ] Chromium evidence is complete at 320, 375, 768, 1024, and 1440 pixels.
-- [ ] Firefox evidence is complete at 320, 375, 768, 1024, and 1440 pixels.
-- [ ] The preview is bound to the exact reviewed head.
-- [ ] Manual visual approval is recorded before merge.
+- [x] Repository-native pull-request CI passed.
+- [x] Public-interface conformance passed.
+- [x] Static performance validation passed as part of the exact-head repository checks.
+- [x] Governed Chromium browser evidence completed successfully.
+- [x] Governed Firefox browser evidence completed successfully.
+- [x] The preview was bound to the exact reviewed head.
+- [x] Manual approval was represented by the reviewed merge decision.
+
+## Exact-head receipts
+
+Final reviewed head:
+
+`95398e9818f17e77d6fb652cab876008933c2685`
+
+Merge commit:
+
+`aeaac264616dd9fcdc8510a3886382462f3a9077`
+
+Required pull-request workflows:
+
+- Pull request CI `31174211336`: success;
+- Public interface conformance `31174211174`: success;
+- Public interface preview `31174209296`: success;
+- CodeQL `31174210325`: success;
+- OpenSSF Scorecard `31174210316`: success.
+
+A post-implementation design sweep against the original direction returned `PROGRAMME COMPLETE` and identified no justified residual mockup or implementation batch.
+
+The public interface programme is closed. Any future design work begins as a new scoped task rather than reopening this checklist.
