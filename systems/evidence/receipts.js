@@ -137,6 +137,30 @@ function showTooltip(tooltip, cell, event) {
   tooltip.style.top = `${Math.max(8, event.clientY - 38)}px`;
 }
 
+export function activityDisclosureLabel(payload) {
+  const truncated = payload?.truncated === true || (Array.isArray(payload?.truncatedRepos) && payload.truncatedRepos.length > 0);
+  return truncated
+    ? "Show complete 90-day evidence table, including unknown source-capped days"
+    : "Show complete 90-day evidence table";
+}
+
+function ensureActivityDisclosure(payload = null) {
+  const wrap = byId("activity-rows")?.closest(".focus-table-wrap");
+  if (!wrap) return;
+  const existing = wrap.closest(".systems-evidence-disclosure");
+  if (existing) {
+    const summary = existing.querySelector(":scope > summary");
+    if (summary && payload) summary.textContent = activityDisclosureLabel(payload);
+    return;
+  }
+  const details = document.createElement("details");
+  details.className = "systems-evidence-disclosure";
+  const summary = document.createElement("summary");
+  summary.textContent = activityDisclosureLabel(payload ?? {});
+  wrap.insertAdjacentElement("beforebegin", details);
+  details.append(summary, wrap);
+}
+
 function renderActivity(payload) {
   const days = denseActivityDays(payload);
   const heatmap = byId("activity-heatmap");
@@ -177,6 +201,7 @@ function renderActivity(payload) {
     rows.appendChild(row);
   }
 
+  ensureActivityDisclosure(payload);
   const generatedAt = payload?.generated_at ?? payload?.generatedAt ?? payload?.fetched_at ?? null;
   const truncatedRepos = Array.isArray(payload?.truncatedRepos) ? payload.truncatedRepos : [];
   const truncated = payload?.truncated === true || truncatedRepos.length > 0;
@@ -188,15 +213,15 @@ function renderActivity(payload) {
   if (status) {
     status.dataset.state = truncated || sourceMode === "stale-measured" ? "warning" : "healthy";
     status.textContent = truncated
-      ? `90 calendar positions rendered; ${activeDays} contain recorded activity. Daily distribution is partial because ${truncatedRepos.length || "one or more"} repository histories hit the source cap; headline total remains source-reported. Source ${ageLabel(generatedAt)}.`
+      ? `90 calendar positions rendered; ${activeDays} contain recorded activity. Daily distribution is partial because ${truncatedRepos.length || "one or more"} repository histories still exceed the bounded source history; headline total remains source-reported. Source ${ageLabel(generatedAt)}.`
       : `90 calendar days rendered; ${activeDays} contain recorded activity. Source ${ageLabel(generatedAt)}.`;
   }
   const source = byId("source-activity");
   if (source) source.textContent = `${sourceMode}; ${ageLabel(generatedAt)}; 90 calendar days; ${activeDays} active day${activeDays === 1 ? "" : "s"}${truncated ? "; partial daily distribution" : ""}`;
   const note = byId("activity-note");
   if (note) note.textContent = truncated
-    ? "Hover cells for per-day receipts. The table is the complete keyboard and screen-reader alternative. Unknown cells are never rendered as zero when GitHub Pulse reports a truncated distribution."
-    : "Hover cells for per-day receipts. The table is the complete keyboard and screen-reader alternative; all 90 calendar days are represented, including measured zero-commit days.";
+    ? "Hover cells for per-day receipts. Expand the complete 90-day table for keyboard and screen-reader access. Unknown cells are never rendered as zero while the source reports a bounded partial distribution."
+    : "Hover cells for per-day receipts. Expand the complete 90-day table for keyboard and screen-reader access; all calendar days are represented, including measured zero-commit days.";
 }
 
 export function deploymentReceipt(payload) {
@@ -345,6 +370,53 @@ function renderAvailability(sloPayload, statsPayload) {
   if (note) note.textContent = `Coverage means calendar days with probe evidence inside the configured window, not days that were fully up. Availability is successful probes divided by total probes. Current estate snapshot ${ageLabel(checked)}.`;
 }
 
+export function assuranceStateSummary(states) {
+  const normalized = states.map((state) => String(state ?? "unknown").trim().toLowerCase());
+  const failures = normalized.filter((state) => ["fail", "failure", "failed"].includes(state)).length;
+  const unknown = normalized.filter((state) => ["unknown", "unavailable", "stale", ""].includes(state)).length;
+  return {
+    total: normalized.length,
+    failures,
+    unknown,
+    state: failures ? "failure" : unknown ? "warning" : normalized.length ? "healthy" : "warning",
+  };
+}
+
+function reconcileAssuranceState() {
+  const rows = [...(byId("report-rows")?.querySelectorAll("tr") ?? [])]
+    .filter((row) => row.cells?.length >= 2 && row.cells[0].colSpan !== 4);
+  if (!rows.length) return;
+  const summary = assuranceStateSummary(rows.map((row) => row.cells[1]?.textContent));
+  const status = byId("reports-status");
+  const source = byId("source-reports");
+  const overall = byId("evidence-status");
+
+  if (summary.failures) {
+    if (status) {
+      status.dataset.state = "failure";
+      status.textContent = `${summary.total} assurance records; ${summary.failures} explicit failure state${summary.failures === 1 ? "" : "s"}.`;
+    }
+    if (source) source.textContent = `failure; ${summary.failures}/${summary.total} report states failed`;
+    if (overall) {
+      overall.dataset.state = "failure";
+      overall.textContent = "At least one public assurance record is explicitly failed.";
+    }
+    return;
+  }
+
+  if (summary.unknown) {
+    if (status) {
+      status.dataset.state = "warning";
+      status.textContent = `${summary.total} assurance records; ${summary.unknown} state${summary.unknown === 1 ? " is" : "s are"} unknown or non-current. Freshness does not promote an unknown assurance verdict to healthy.`;
+    }
+    if (source) source.textContent = `warning; ${summary.unknown}/${summary.total} report states unknown or non-current; freshness is independent of verdict`;
+    if (overall?.dataset.state !== "failure") {
+      overall.dataset.state = "warning";
+      overall.textContent = "The evidence set contains an assurance record whose verdict is unknown or non-current.";
+    }
+  }
+}
+
 function watch(section, apply) {
   if (!section || typeof MutationObserver === "undefined") return;
   const observer = new MutationObserver(() => {
@@ -356,6 +428,10 @@ function watch(section, apply) {
 }
 
 async function load() {
+  ensureActivityDisclosure();
+  reconcileAssuranceState();
+  watch(byId("report-rows"), reconcileAssuranceState);
+
   const [activity, deployment, slo, stats] = await Promise.all([
     fetchJson(ENDPOINTS.activity),
     fetchJson(ENDPOINTS.deployment),
