@@ -33,8 +33,8 @@ test("every current Lab and Systems card resolves to a specialised SVG signature
 test("Lab and Systems load the signature assets", () => {
   for (const path of ["lab/index.html", "systems/index.html"]) {
     const markup = fs.readFileSync(path, "utf8");
-    assert.match(markup, /\/static\/css\/card-signatures\.css\?v=20260807-signature-position/);
-    assert.match(markup, /\/static\/js\/card-signatures\.js\?v=20260807-signature-position/);
+    assert.match(markup, /\/static\/css\/card-signatures\.css\?v=20260811-bearing-lattice/);
+    assert.match(markup, /\/static\/js\/card-signatures\.js\?v=20260811-bearing-lattice/);
   }
   const css = fs.readFileSync("static/css/card-signatures.css", "utf8");
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
@@ -56,7 +56,11 @@ test("Lab and Systems load the signature assets", () => {
   assert.match(css, /max-width:\s*620px[^]*grid-row:\s*6/);
   const script = fs.readFileSync("static/js/card-signatures.js", "utf8");
   assert.match(script, /fetch\(SPRITE_PATH/);
+  assert.match(script, /card-signatures\.svg\?v=20260811-bearing-lattice/);
   assert.match(script, /preserving CSS motif fallback/);
+  const sprite = fs.readFileSync("static/media/card-signatures.svg", "utf8");
+  assert.match(sprite, /<symbol id="signature-bearing"/);
+  assert.match(sprite, /fill="currentColor"/); // denser Explore-weight lattice uses filled joints
 });
 
 test("governed preview validates card layout and watches every signature asset", () => {

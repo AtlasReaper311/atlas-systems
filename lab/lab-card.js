@@ -620,7 +620,11 @@
     runMusings();
   }
 
-  (function runBoot() {
+  let bootStarted = false;
+
+  function runBoot() {
+    if (bootStarted) return;
+    bootStarted = true;
     if (!bootEl) { runGreeting(); return; }
     if (reduce) {
       BOOT.forEach(b => {
@@ -644,6 +648,24 @@
       }, t);
     });
     setTimeout(runGreeting, t + 260);
+  }
+
+  // Play the cold-start once when the hero is actually on screen. Landing on the
+  // Lab header otherwise finishes the sequence before Ramone enters the viewport.
+  (function scheduleBoot() {
+    const hero = document.querySelector(".lab-ramone-section .ramone-card")
+      || document.querySelector(".ramone-card")
+      || bootEl;
+    if (!hero || typeof IntersectionObserver !== "function") {
+      runBoot();
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries.some((entry) => entry.isIntersecting && entry.intersectionRatio >= 0.4)) return;
+      observer.disconnect();
+      runBoot();
+    }, { threshold: [0.4] });
+    observer.observe(hero);
   })();
 
   /* =====================================================================
