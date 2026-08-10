@@ -166,15 +166,16 @@
   text-align: right;
 }
 
-.systems-detail-workbench {
+/* Stack workbench pairs full-width so a short panel cannot leave a dead
+   column beside a taller neighbour. Desktop and narrow share one rhythm. */
+.systems-detail-workbench,
+.systems-detail-workbench--support {
   margin-top: clamp(2.5rem, 6vw, 4.5rem);
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.85fr);
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
   gap: clamp(1.25rem, 3vw, 2rem);
 }
-
-.systems-detail-workbench--support { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
 .systems-detail-panel {
   min-width: 0;
@@ -256,10 +257,31 @@
 
 .systems-detail-page .focus-heatmap {
   margin-bottom: 1rem;
-  padding: 1rem;
+  padding: 0.75rem;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg-1);
+}
+
+/* Edge-to-edge contribution grid: week columns share the panel width equally
+   so density comes from packing, not from a floating island of 14px cells. */
+.systems-detail-page[data-systems-detail="evidence"] .focus-heatmap {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, auto);
+  grid-auto-columns: minmax(0, 1fr);
+  justify-content: stretch;
+  gap: 2px;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.systems-detail-page[data-systems-detail="evidence"] .focus-heatmap-cell {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 2px;
 }
 
 .systems-detail-page .focus-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -269,8 +291,7 @@
 }
 
 @media (max-width: 1024px) {
-  .systems-detail-hero-grid,
-  .systems-detail-workbench { grid-template-columns: 1fr; }
+  .systems-detail-hero-grid { grid-template-columns: 1fr; }
   .systems-detail-boundary { max-width: 720px; }
   .systems-detail-compact-grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
@@ -279,7 +300,6 @@
   .systems-detail-page .focus-main { width: min(calc(100% - 32px), 1240px); }
   .systems-detail-summary { padding: 1.25rem; }
   .systems-detail-summary .focus-status-line { text-align: left; }
-  .systems-detail-workbench--support { grid-template-columns: 1fr; }
   .systems-detail-page .focus-rail { grid-template-columns: 1fr; }
 }
 

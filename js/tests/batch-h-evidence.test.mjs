@@ -61,3 +61,9 @@ test("evidence keeps freshness and failure states independent", () => {
   assert.ok(page.includes("One fresh source cannot wash a stale or unavailable source green."));
   assert.ok(page.includes("Empty evidence is not a successful pipeline."));
 });
+
+test("evidence pipeline list stays capped to the newest events", () => {
+  assert.match(script, /const PIPELINE_VISIBLE_LIMIT = 6/);
+  assert.match(script, /pipelineEvents\.slice\(0,\s*PIPELINE_VISIBLE_LIMIT\)/);
+  assert.match(script, /Newest \$\{events\.length\} of \$\{pipelineEvents\.length\} pipeline events/);
+});

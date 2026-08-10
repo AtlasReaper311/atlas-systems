@@ -114,5 +114,5 @@ test("Verify source layout contains wide tables before JavaScript enhancement", 
     "document-level overflow clip must not hide no-JavaScript overflow regressions",
   );
   assert.match(evidenceHtml, /<details class="systems-evidence-disclosure">[\s\S]*?<tbody id="activity-rows">/);
-  assert.match(evidenceHtml, /systems-evidence-truthfulness\.css\?v=20260810-evidence-truthfulness-2/);
+  assert.match(evidenceHtml, /systems-evidence-truthfulness\.css\?v=20260811-heatmap-density/);
 });

@@ -27,7 +27,6 @@
 .systems-heatmap-cell {
   cursor: crosshair;
   transition:
-    transform 120ms ease,
     border-color 120ms ease,
     opacity 120ms ease;
 }
@@ -35,8 +34,7 @@
 .systems-heatmap-cell:hover {
   z-index: 1;
   border-color: var(--accent);
-  opacity: 0.9;
-  transform: scale(1.35);
+  opacity: 0.95;
 }
 
 .systems-heatmap-cell[data-evidence-mode="unknown"] {
@@ -197,11 +195,6 @@
 
 @media (min-width: 1025px) {
   .systems-detail-page[data-systems-detail="reliability"]
-    .systems-detail-workbench:not(.systems-detail-workbench--support) {
-    grid-template-columns: 1fr;
-  }
-
-  .systems-detail-page[data-systems-detail="reliability"]
     .systems-detail-workbench:not(.systems-detail-workbench--support)
     .focus-table {
     min-width: 0;
@@ -245,9 +238,5 @@
 @media (prefers-reduced-motion: reduce) {
   .systems-heatmap-cell {
     transition: none;
-  }
-
-  .systems-heatmap-cell:hover {
-    transform: none;
   }
 }
