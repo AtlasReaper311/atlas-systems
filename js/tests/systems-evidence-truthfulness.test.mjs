@@ -244,6 +244,7 @@ test("Systems detail routes consume Interface Kit v0.5.0 evidence semantics", ()
   assert.match(routes.evidence, /systems\/evidence\/receipts\.js/);
   assert.match(routes.evidence, /\/v1\/stats/);
   assert.match(routes.evidence, /\/v1\/slo/);
+  assert.match(routes.evidence, /systems-evidence-truthfulness\.css\?v=20260810-evidence-truthfulness-2-layout-4/);
 });
 
 test("Evidence layout corrections remove desktop clipping without deleting accessible detail", () => {
@@ -253,6 +254,9 @@ test("Evidence layout corrections remove desktop clipping without deleting acces
   assert.match(css, /systems-evidence-disclosure/);
   assert.match(css, /table-layout:\s*fixed/);
   assert.match(css, /data-systems-detail="reliability"/);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*?overflow-x:\s*clip/);
+  assert.match(css, /max-width:\s*100vw/);
+  assert.match(css, /max-width:\s*calc\(100vw - 32px\)/);
   assert.match(observe, /registry-scope-status/);
   assert.match(receipts, /document\.createElement\("details"\)/);
   assert.match(receipts, /Freshness does not promote an unknown assurance verdict to healthy/);
