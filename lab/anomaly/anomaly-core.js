@@ -278,15 +278,25 @@ function drawHistory(metricName) {
   }
 }
 
+async function fetchJson(url, signal) {
+  const response = await fetch(url, { cache: "no-store", signal });
+  if (!response.ok) throw new Error(`${url} returned ${response.status}`);
+  return response.json();
+}
+
 async function load() {
+  const controller = typeof AbortController === "function" ? new AbortController() : null;
+  const timer = controller
+    ? setTimeout(() => controller.abort(), 4500)
+    : null;
   try {
-    const [latestResponse, historyResponse] = await Promise.all([
-      fetch(LATEST_URL, { cache: "no-store" }),
-      fetch(HISTORY_URL, { cache: "no-store" }),
+    const signal = controller?.signal;
+    const [latestPayload, historyPayload] = await Promise.all([
+      fetchJson(LATEST_URL, signal),
+      fetchJson(HISTORY_URL, signal).catch(() => ({ items: [] })),
     ]);
-    if (!latestResponse.ok) throw new Error(`latest returned ${latestResponse.status}`);
-    latest = await latestResponse.json();
-    history = historyResponse.ok ? (await historyResponse.json()).items || [] : [];
+    latest = latestPayload;
+    history = historyPayload.items || [];
     applyEvidenceMode("measured");
     if (sourceStatus) {
       delete sourceStatus.dataset.errorSource;
@@ -310,6 +320,8 @@ async function load() {
     );
     history = fallbackHistory();
     latest = history[0];
+  } finally {
+    if (timer) clearTimeout(timer);
   }
   renderLatest();
 }

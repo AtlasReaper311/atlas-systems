@@ -7,8 +7,8 @@
       "route": "/",
       "html_bytes": 21156,
       "first_party_request_count": 20,
-      "referenced_asset_bytes": 120082,
-      "total_static_bytes": 141238,
+      "referenced_asset_bytes": 120243,
+      "total_static_bytes": 141399,
       "largest_referenced_asset": "lab/index.html",
       "largest_referenced_asset_bytes": 22744
     },
@@ -16,8 +16,8 @@
       "route": "/systems/",
       "html_bytes": 16678,
       "first_party_request_count": 13,
-      "referenced_asset_bytes": 97851,
-      "total_static_bytes": 114529,
+      "referenced_asset_bytes": 98012,
+      "total_static_bytes": 114690,
       "largest_referenced_asset": "static/css/v2-directory-pages.css",
       "largest_referenced_asset_bytes": 26708
     },
@@ -25,8 +25,8 @@
       "route": "/lab/",
       "html_bytes": 22744,
       "first_party_request_count": 16,
-      "referenced_asset_bytes": 178281,
-      "total_static_bytes": 201025,
+      "referenced_asset_bytes": 178442,
+      "total_static_bytes": 201186,
       "largest_referenced_asset": "lab/lab-card.js",
       "largest_referenced_asset_bytes": 43782
     },
@@ -50,10 +50,10 @@
     },
     {
       "route": "/lab/bearing/",
-      "html_bytes": 63768,
+      "html_bytes": 64747,
       "first_party_request_count": 9,
       "referenced_asset_bytes": 67016,
-      "total_static_bytes": 130784,
+      "total_static_bytes": 131763,
       "largest_referenced_asset": "lab/shared/shell.js",
       "largest_referenced_asset_bytes": 32817
     },
@@ -61,11 +61,11 @@
       "route": "/writing/",
       "html_bytes": 30385,
       "first_party_request_count": 21,
-      "referenced_asset_bytes": 134377,
-      "total_static_bytes": 164762,
+      "referenced_asset_bytes": 134538,
+      "total_static_bytes": 164923,
       "largest_referenced_asset": "js/atlas-terminal-card-v3.js",
       "largest_referenced_asset_bytes": 23671
     }
   ],
-  "sha256": "7a7587daf935e45cfba6d2c1e82e854263d81c2c49ff332ceec853abf461a724"
+  "sha256": "5a7d4068721e9ede882f8a4398a65acbcd81ea51afa35540edbe4fd36de8c16d"
 }

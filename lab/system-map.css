@@ -1,6 +1,10 @@
 /* Atlas Systems Lab system map */
 
-.smap-section {
+/* Role/edge colours must resolve on both Operations (.smap-section) and the
+   dedicated System Map route (.map-shell) so the legend matches the 3D field. */
+.smap-section,
+.map-shell,
+.smap-legend {
   --map-role-worker: #4ade80;
   --map-role-site: #e8935c;
   --map-role-repo: #f5a623;
@@ -16,6 +20,9 @@
   --map-edge-dispatch: #b186ee;
   --map-edge-notify: #d277cf;
   --map-edge-alert: #f06d4f;
+}
+
+.smap-section {
   padding: 5rem 0;
   border-bottom: 1px solid var(--border, rgba(255,255,255,0.08));
 }

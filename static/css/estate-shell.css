@@ -131,7 +131,9 @@ html[data-atlas-interface] body { font-size: max(15px, 1rem); }
 .bearing .gauge .v .u { color: #8b8c98; }
 
 @media (max-width: 860px) {
+  /* Drift title now lives above the canvas; keep the selector for older caches. */
   .drift-page .drift-title::before { display: none; }
+  .drift-page .drift-legend--field { position: static; margin: .85rem 0 0; }
 }
 
 @media (min-width: 761px) and (max-width: 820px) {
