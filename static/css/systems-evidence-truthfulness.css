@@ -1,0 +1,102 @@
+.systems-evidence-mode-inline {
+  margin-inline-start: 0.5rem;
+  vertical-align: middle;
+}
+
+.focus-metric strong[data-evidence-mode="stale-measured"] {
+  color: var(--warning);
+}
+
+.focus-metric strong[data-evidence-mode="unavailable"],
+.focus-metric strong[data-evidence-mode="unknown"] {
+  color: var(--text-dim);
+}
+
+.systems-evidence-cell {
+  min-width: 240px;
+}
+
+.systems-evidence-detail {
+  margin-top: 0.45rem;
+  display: block;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+
+.systems-heatmap-cell {
+  cursor: crosshair;
+  transition:
+    transform 120ms ease,
+    border-color 120ms ease,
+    opacity 120ms ease;
+}
+
+.systems-heatmap-cell:hover {
+  z-index: 1;
+  border-color: var(--accent);
+  opacity: 0.9;
+  transform: scale(1.35);
+}
+
+.systems-heatmap-cell[data-evidence-mode="unknown"] {
+  border-style: dashed;
+  border-color: var(--border-hi);
+  background: transparent;
+}
+
+.systems-heatmap-padding {
+  visibility: hidden;
+}
+
+.systems-activity-tooltip {
+  position: fixed;
+  z-index: 500;
+  max-width: min(360px, calc(100vw - 32px));
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-hi);
+  border-radius: 4px;
+  background: var(--bg-1);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.5;
+  pointer-events: none;
+}
+
+.systems-activity-tooltip[hidden] {
+  display: none;
+}
+
+.systems-availability-table td:nth-child(2),
+.systems-availability-table td:nth-child(3),
+.systems-availability-table td:nth-child(4),
+.systems-availability-table td:nth-child(5) {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+#deployment-evidence-mode {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 620px) {
+  .systems-evidence-mode-inline {
+    margin-inline-start: 0;
+    margin-top: 0.5rem;
+  }
+
+  .systems-evidence-cell {
+    min-width: 210px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .systems-heatmap-cell {
+    transition: none;
+  }
+
+  .systems-heatmap-cell:hover {
+    transform: none;
+  }
+}
