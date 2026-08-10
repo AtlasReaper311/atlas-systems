@@ -8,6 +8,7 @@ const contract = readFileSync("scripts/interface-evidence/contract.mjs", "utf8")
 const browserCore = readFileSync("scripts/interface-evidence/browser-core.mjs", "utf8");
 const workflow = readFileSync(".github/workflows/interface-preview.yml", "utf8");
 const evidenceCss = readFileSync("static/css/systems-evidence-truthfulness.css", "utf8");
+const evidenceHtml = readFileSync("systems/evidence/index.html", "utf8");
 
 test("Batch H browser evidence preserves every focused destination", () => {
   for (const route of [
@@ -87,7 +88,10 @@ test("preview evidence captures cannot cascade into a misleading missing-artifac
   assert.match(workflow, /name: Capture Batch H product assertions[\s\S]*?if: always\(\)/);
 });
 
-test("Verify wide tables are constrained by their own scroll regions before JavaScript enhancement", () => {
-  assert.match(evidenceCss, /data-systems-detail="evidence"[\s\S]*?\.focus-table-wrap[\s\S]*?contain:\s*inline-size/);
+test("Verify source layout contains wide tables before JavaScript enhancement", () => {
+  assert.match(evidenceCss, /data-systems-detail="evidence"[\s\S]*?\.focus-table-wrap[\s\S]*?contain:\s*layout paint inline-size/);
   assert.match(evidenceCss, /\.focus-table-wrap[\s\S]*?max-width:\s*100%/);
+  assert.match(evidenceCss, /\.focus-table-wrap[\s\S]*?overflow-x:\s*auto/);
+  assert.match(evidenceHtml, /<details class="systems-evidence-disclosure">[\s\S]*?<tbody id="activity-rows">/);
+  assert.match(evidenceHtml, /systems-evidence-truthfulness\.css\?v=20260810-evidence-truthfulness-2/);
 });
