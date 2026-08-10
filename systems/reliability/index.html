@@ -27,11 +27,13 @@
   <meta name="twitter:image" content="https://atlas-systems.uk/og/reliability.png">
   <meta name="twitter:image:alt" content="Reliability under measured failure. // Atlas Systems">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.5.0/atlas-interface-kit.css">
   <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260728-lab-context-nav-wrap">
   <link rel="stylesheet" href="/static/css/estate-search.css">
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
   <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h-fixes">
   <link rel="stylesheet" href="/static/css/systems-detail-surfaces.css?v=20260730-phase-9">
+  <link rel="stylesheet" href="/static/css/systems-evidence-truthfulness.css?v=20260810-evidence-truthfulness">
 </head>
 <body class="systems-detail-page" data-systems-detail="reliability">
   <nav aria-label="Primary navigation">
@@ -64,9 +66,9 @@
           <p class="systems-detail-kicker">Evidence boundary</p>
           <h2 id="reliability-boundary-title">Measured, policy-backed, and deliberately incomplete</h2>
           <dl>
-            <div><dt>Reads</dt><dd>Public reliability evaluation, objective policy, DORA metrics, and published chaos reports.</dd></div>
-            <div><dt>Does not infer</dt><dd>Unsupported percentiles, missing measurements, or success from an absent report.</dd></div>
-            <div><dt>Freshness</dt><dd>Each source keeps its own stale, unavailable, malformed, and insufficient-evidence state.</dd></div>
+            <div><dt>Reads</dt><dd>Public reliability evaluation, objective policy, raw SLO counters, DORA metrics, and published chaos reports.</dd></div>
+            <div><dt>Does not infer</dt><dd>Unsupported percentiles, missing measurements, current health from a historical budget, or success from an absent report.</dd></div>
+            <div><dt>Freshness</dt><dd>Each evaluator reason is shown with its evaluation age; raw failure-day history remains separate from the current runtime view.</dd></div>
           </dl>
         </aside>
       </div>
@@ -94,7 +96,7 @@
       <section class="systems-detail-panel systems-detail-panel--dominant" aria-labelledby="budgets-title">
         <div class="focus-section-head">
           <div><p class="systems-detail-kicker">Primary evaluation</p><h2 id="budgets-title">Error budgets and burn states</h2></div>
-          <p>Burn rates are day-granular because the public counters are day-granular. Unsupported percentiles are not invented.</p>
+          <p>Burn rates are day-granular because the public counters are day-granular. Historical budget state is not presented as current service health.</p>
         </div>
         <section class="focus-table-wrap" tabindex="0" aria-label="Error budgets and burn states table">
           <table class="focus-table">
@@ -148,6 +150,7 @@
         <div class="focus-rail">
           <a href="https://api.atlas-systems.uk/v1/reliability"><strong>Reliability evaluation</strong><span>/v1/reliability</span></a>
           <a href="https://api.atlas-systems.uk/v1/reliability/objectives"><strong>Objective policy</strong><span>/v1/reliability/objectives</span></a>
+          <a href="https://api.atlas-systems.uk/v1/slo"><strong>Raw SLO counters</strong><span>/v1/slo</span></a>
           <a href="https://api.atlas-systems.uk/dora/metrics"><strong>DORA metrics</strong><span>/dora/metrics</span></a>
           <a href="https://api.atlas-systems.uk/v1/evidence/chaos"><strong>Chaos evidence</strong><span>/v1/evidence/chaos</span></a>
           <a href="https://github.com/AtlasReaper311/atlas-infra/tree/main/docs/runbooks"><strong>Reliability runbooks</strong><span>atlas-infra/docs/runbooks</span></a>
@@ -158,5 +161,6 @@
   </main>
   <script type="module" src="/static/js/focused-systems-shell.js?v=20260725-batch-h-fixes"></script>
   <script type="module" src="/systems/reliability/reliability.js?v=20260725-batch-h"></script>
+  <script type="module" src="/systems/reliability/evidence-mode.js?v=20260810-evidence-truthfulness"></script>
 </body>
 </html>
