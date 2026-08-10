@@ -370,6 +370,26 @@ function renderAvailability(sloPayload, statsPayload) {
   if (note) note.textContent = `Coverage means calendar days with probe evidence inside the configured window, not days that were fully up. Availability is successful probes divided by total probes. Current estate snapshot ${ageLabel(checked)}.`;
 }
 
+function renderAvailabilityUnavailable() {
+  const body = byId("availability-rows");
+  if (body) {
+    body.replaceChildren();
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.colSpan = 6;
+    cell.textContent = "Raw availability counters are unavailable. No availability value is inferred.";
+    row.appendChild(cell);
+    body.appendChild(row);
+  }
+  const status = byId("availability-status");
+  if (status) {
+    status.dataset.state = "failure";
+    status.textContent = "Raw availability counters are unavailable.";
+  }
+  setText("source-availability", "unavailable; raw probe counters could not be retrieved");
+  setText("availability-note", "Coverage and availability remain unavailable until raw probe evidence can be retrieved.");
+}
+
 export function assuranceStateSummary(states) {
   const normalized = states.map((state) => String(state ?? "unknown").trim().toLowerCase());
   const failures = normalized.filter((state) => ["fail", "failure", "failed"].includes(state)).length;
@@ -432,19 +452,30 @@ async function load() {
   reconcileAssuranceState();
   watch(byId("report-rows"), reconcileAssuranceState);
 
-  const [activity, deployment, slo, stats] = await Promise.all([
+  const [activity, deployment, slo, stats] = await Promise.allSettled([
     fetchJson(ENDPOINTS.activity),
     fetchJson(ENDPOINTS.deployment),
     fetchJson(ENDPOINTS.slo),
     fetchJson(ENDPOINTS.stats),
   ]);
-  const applyActivity = () => renderActivity(activity);
-  const applyDeployment = () => renderDeployment(deployment);
-  applyActivity();
-  applyDeployment();
-  renderAvailability(slo, stats);
-  watch(byId("activity-heatmap")?.closest("section"), applyActivity);
-  watch(byId("deploy-outcome")?.closest("section"), applyDeployment);
+
+  if (activity.status === "fulfilled") {
+    const applyActivity = () => renderActivity(activity.value);
+    applyActivity();
+    watch(byId("activity-heatmap")?.closest("section"), applyActivity);
+  }
+
+  if (deployment.status === "fulfilled") {
+    const applyDeployment = () => renderDeployment(deployment.value);
+    applyDeployment();
+    watch(byId("deploy-outcome")?.closest("section"), applyDeployment);
+  }
+
+  if (slo.status === "fulfilled") {
+    renderAvailability(slo.value, stats.status === "fulfilled" ? stats.value : null);
+  } else {
+    renderAvailabilityUnavailable();
+  }
 }
 
 if (typeof document !== "undefined") void load();
