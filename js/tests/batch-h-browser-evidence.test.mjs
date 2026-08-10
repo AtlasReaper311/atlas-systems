@@ -69,3 +69,14 @@ test("the preview workflow enforces approval before evidence deployment", () => 
   assert.equal((workflow.match(/npm install --save-exact playwright@1\.61\.1 @axe-core\/playwright@4\.12\.1/g) || []).length, 1);
   assert.ok(workflow.includes("retention-days: 14"));
 });
+
+test("preview evidence captures cannot cascade into a misleading missing-artifact failure", () => {
+  assert.ok(workflow.includes("id: route-capture"));
+  assert.ok(workflow.includes("id: batch-h-capture"));
+  assert.ok(workflow.includes("continue-on-error: true"));
+  assert.ok(workflow.includes("Enforce browser evidence capture results"));
+  assert.ok(workflow.includes("ROUTE_CAPTURE_OUTCOME"));
+  assert.ok(workflow.includes("BATCH_H_CAPTURE_OUTCOME"));
+  assert.ok(workflow.includes("if-no-files-found: warn"));
+  assert.match(workflow, /name: Capture Batch H product assertions[\s\S]*?if: always\(\)/);
+});
