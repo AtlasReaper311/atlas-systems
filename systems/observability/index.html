@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Current bounded public observations across SPECULAR-CORE, measured public services, incidents, corpus state, and Atlas Systems operations.">
+  <meta name="description" content="Current bounded public observations across SPECULAR-CORE, measured public services, incidents, corpus activity, and Atlas Systems operations.">
   <meta name="theme-color" content="#0a0a0f">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
@@ -14,7 +14,7 @@
   <link rel="canonical" href="https://atlas-systems.uk/systems/observability/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Observability // Atlas Systems">
-  <meta property="og:description" content="What Atlas Systems is observing now, with explicit stale, unknown, and unmeasured states.">
+  <meta property="og:description" content="What Atlas Systems is observing now, with runtime state kept separate from evidence freshness.">
   <meta property="og:url" content="https://atlas-systems.uk/systems/observability/">
   <meta property="og:site_name" content="Atlas Systems">
   <meta property="og:image" content="https://atlas-systems.uk/og/observability.png">
@@ -27,11 +27,13 @@
   <meta name="twitter:image" content="https://atlas-systems.uk/og/observability.png">
   <meta name="twitter:image:alt" content="What is being observed now? // Atlas Systems">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.5.0/atlas-interface-kit.css">
   <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260728-lab-context-nav-wrap">
   <link rel="stylesheet" href="/static/css/estate-search.css">
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
   <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h-fixes">
   <link rel="stylesheet" href="/static/css/systems-detail-surfaces.css?v=20260730-phase-9">
+  <link rel="stylesheet" href="/static/css/systems-evidence-truthfulness.css?v=20260810-evidence-truthfulness">
 </head>
 <body class="systems-detail-page" data-systems-detail="observability">
   <nav aria-label="Primary navigation">
@@ -54,7 +56,7 @@
         <div class="systems-detail-intro">
           <p class="systems-detail-kicker">Observe the estate</p>
           <h1 class="focus-title">What is being observed now?</h1>
-          <p class="focus-lede">A focused read-only view of public telemetry, service inventory joined to measured health, incident evidence, corpus activity, and the operations links that support those observations. Inventory is not treated as health. Missing evidence remains missing. Stale evidence remains stale.</p>
+          <p class="focus-lede">A focused read-only view of public telemetry, service inventory joined to measured health, incident evidence, corpus activity, and the operations links that support those observations. Runtime state and evidence freshness are separate axes. Inventory is not treated as health. Missing evidence remains missing. Stale evidence remains stale.</p>
           <div class="focus-actions">
             <a class="focus-action primary" href="https://status.atlas-systems.uk/">Open public status</a>
             <a class="focus-action" href="/lab/system-map/">Open System Map</a>
@@ -65,8 +67,8 @@
           <h2 id="observability-boundary-title">Public signals, not an internal control plane</h2>
           <dl>
             <div><dt>Reads</dt><dd>Fixed public telemetry, inventory, topology, measured health, event, infrastructure, and corpus endpoints.</dd></div>
+            <div><dt>Separates</dt><dd>Current runtime condition from measured, stale-measured, unavailable, and unknown evidence modes.</dd></div>
             <div><dt>Renders</dt><dd>Only allowlisted aggregate fields through text nodes. Terms and IPs are not rendered. Credentials and provider payloads stay private.</dd></div>
-            <div><dt>Freshness</dt><dd>Each observation keeps its own current, stale, unavailable, malformed, or unmeasured state.</dd></div>
           </dl>
         </aside>
       </div>
@@ -107,12 +109,12 @@
 
       <section class="systems-detail-panel" aria-labelledby="infra-title">
         <div class="focus-section-head">
-          <div><p class="systems-detail-kicker">Local AI boundary</p><h2 id="infra-title">Infrastructure and corpus state</h2></div>
-          <p>Health and activity are labelled separately. Activity is never presented as runtime health.</p>
+          <div><p class="systems-detail-kicker">Local AI boundary</p><h2 id="infra-title">Infrastructure and corpus evidence</h2></div>
+          <p>Local runtime health and corpus activity evidence are labelled separately. Cached activity never becomes a healthy runtime verdict.</p>
         </div>
         <div class="systems-detail-stack">
-          <article class="focus-panel"><h3>Infrastructure health</h3><span id="infra-state" class="focus-state" data-state="unknown">unknown</span><p id="infra-detail">No sentinel report loaded.</p></article>
-          <article class="focus-panel"><h3>Corpus index activity</h3><span id="corpus-state" class="focus-state" data-state="unknown">unknown</span><p id="corpus-detail">No aggregate query evidence loaded.</p></article>
+          <article class="focus-panel"><h3>Infrastructure runtime</h3><span id="infra-state" class="focus-state" data-state="unknown">unknown</span><p id="infra-detail">No sentinel report loaded.</p></article>
+          <article class="focus-panel"><h3>Corpus activity evidence</h3><span id="corpus-state" class="atlas-evidence-mode" data-evidence-mode="unknown">Unknown</span><p id="corpus-detail">No aggregate query evidence loaded.</p></article>
         </div>
       </section>
     </div>
@@ -123,9 +125,9 @@
         <p id="registry-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for public inventory, topology, and measured health.</p>
       </div>
       <section class="focus-table-wrap" tabindex="0" aria-label="Observed services table">
-        <table class="focus-table"><thead><tr><th scope="col">Service</th><th scope="col">Layer</th><th scope="col">Observed state</th><th scope="col">Evidence</th></tr></thead><tbody id="registry-rows"><tr><td colspan="4">No composed service evidence loaded.</td></tr></tbody></table>
+        <table class="focus-table"><thead><tr><th scope="col">Service</th><th scope="col">Layer</th><th scope="col">Public endpoint state</th><th scope="col">Evidence</th></tr></thead><tbody id="registry-rows"><tr><td colspan="4">No composed service evidence loaded.</td></tr></tbody></table>
       </section>
-      <p class="focus-note">Inventory establishes what exists. Only a compatible measured source establishes observed health.</p>
+      <p class="focus-note">This table reports the public service contract named in each row. Edge Workers may remain healthy while SPECULAR-CORE is off; local runtime state is reported separately above.</p>
     </section>
 
     <div class="systems-detail-workbench systems-detail-workbench--support">
@@ -151,5 +153,6 @@
   </main>
   <script type="module" src="/static/js/focused-systems-shell.js?v=20260725-batch-h-fixes"></script>
   <script type="module" src="/systems/observability/observability.js?v=20260725-observability-contracts"></script>
+  <script type="module" src="/systems/observability/evidence-mode.js?v=20260810-evidence-truthfulness"></script>
 </body>
 </html>
