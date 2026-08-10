@@ -82,7 +82,10 @@
 }
 
 .systems-evidence-disclosure {
+  min-width: 0;
+  max-width: 100%;
   margin-top: 1rem;
+  overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: rgba(17, 17, 24, 0.62);
@@ -114,13 +117,18 @@
   border-radius: 0 0 8px 8px;
 }
 
-/* Keep wide evidence tables contained by their own scroll regions. This is
-   required even before JavaScript progressively wraps the activity ledger. */
+/* Keep wide evidence tables inside their own scrollports, including the source
+   HTML before JavaScript enhancement. Layout and paint containment prevent a
+   wide table from contributing to document-level horizontal overflow while the
+   scroll region remains independently usable. */
 .systems-detail-page[data-systems-detail="evidence"] .focus-table-wrap {
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  contain: inline-size;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-gutter: stable;
+  contain: layout paint inline-size;
 }
 
 .systems-detail-page[data-systems-detail="evidence"]
