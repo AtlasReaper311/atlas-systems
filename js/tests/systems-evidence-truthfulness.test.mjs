@@ -8,10 +8,15 @@ import {
   deriveTelemetryEvidence,
 } from "../../systems/observability/evidence-mode.js";
 import {
+  budgetRemainingLabel,
+  calendarDayAgeLabel,
+  doraPresentation,
   failureHistory,
   reliabilityEvidenceText,
 } from "../../systems/reliability/evidence-mode.js";
 import {
+  activityDisclosureLabel,
+  assuranceStateSummary,
   availabilityRows,
   denseActivityDays,
   deploymentReceipt,
@@ -79,6 +84,7 @@ test("Reliability receipts include raw failure span and evaluation age", () => {
     { failedProbes: history.failedProbes, firstDay: history.firstDay, lastDay: history.lastDay },
     { failedProbes: 6, firstDay: "2026-07-22", lastDay: "2026-07-23" },
   );
+  assert.equal(history.lastAge, "18 days ago");
   const text = reliabilityEvidenceText(
     { reasons: ["the error budget for the window is exhausted"] },
     { evaluated_at: "2026-08-10T11:55:00.000Z" },
@@ -87,8 +93,53 @@ test("Reliability receipts include raw failure span and evaluation age", () => {
   );
   assert.match(text, /error budget/);
   assert.match(text, /6 failed probes/);
-  assert.match(text, /last failed day/);
+  assert.match(text, /last failed day 18 days ago/);
   assert.match(text, /evaluated 5m old/);
+});
+
+test("Reliability date-only receipts do not turn the current day into a future 0-second timestamp", () => {
+  assert.equal(calendarDayAgeLabel("2026-08-10", NOW), "today");
+  assert.equal(calendarDayAgeLabel("2026-08-09", NOW), "1 day ago");
+});
+
+test("Reliability budget labels distinguish remaining budget from overspend", () => {
+  assert.equal(budgetRemainingLabel(0.42), "42.0%");
+  assert.equal(budgetRemainingLabel(0), "0.0% remaining");
+  assert.equal(budgetRemainingLabel(-2.361), "0.0% remaining");
+  const text = reliabilityEvidenceText(
+    { budget: { remaining_fraction: -2.361 }, reasons: ["the error budget for the window is exhausted"] },
+    { evaluated_at: "2026-08-10T11:55:00.000Z" },
+    null,
+    NOW,
+    { indicator: "availability", windowDays: 30 },
+  );
+  assert.match(text, /30-day availability objective/);
+  assert.match(text, /236\.1% beyond the error budget/);
+});
+
+test("DORA presentation withholds unstable weekly extrapolation from a short event window", () => {
+  const short = doraPresentation({
+    computedAt: "2026-08-10T11:55:00.000Z",
+    window: { days: 0.13 },
+    deploymentFrequency: { perWeek: 52.42, totalInWindow: 1 },
+    degraded: false,
+  });
+  assert.equal(short.statusState, "warning");
+  assert.equal(short.frequencyLabel, "Observed deployments");
+  assert.equal(short.frequencyValue, "1");
+  assert.match(short.frequencyBasis, /52\.42\/week/);
+  assert.match(short.statusText, /withheld/);
+
+  const stable = doraPresentation({
+    computedAt: "2026-08-10T11:55:00.000Z",
+    window: { days: 14 },
+    deploymentFrequency: { perWeek: 3.5, totalInWindow: 7 },
+    degraded: false,
+  });
+  assert.equal(stable.statusState, "healthy");
+  assert.equal(stable.frequencyLabel, "Deploys per week");
+  assert.equal(stable.frequencyValue, "3.50");
+  assert.match(stable.frequencyBasis, /7 deployments across 14 days/);
 });
 
 test("Verify renders exactly ninety calendar days without turning unknown truncation into zero", () => {
@@ -108,6 +159,14 @@ test("Verify renders exactly ninety calendar days without turning unknown trunca
   }, NOW);
   assert.equal(truncated.find((day) => day.date === "2026-08-09").count, null);
   assert.equal(truncated.find((day) => day.date === "2026-08-09").evidenceMode, "unknown");
+});
+
+test("Verify keeps the full activity ledger accessible without making it the default page length", () => {
+  assert.equal(activityDisclosureLabel({ truncated: false }), "Show complete 90-day evidence table");
+  assert.match(
+    activityDisclosureLabel({ truncated: true, truncatedRepos: ["atlas-systems"] }),
+    /unknown source-capped days/,
+  );
 });
 
 test("Verify deployment receipt consumes deploy-watch camelCase contract", () => {
@@ -143,6 +202,17 @@ test("Verify availability rows expose coverage, probes, percentage, and latency"
   assert.equal(rows[0].avgMs, 264);
 });
 
+test("Assurance freshness cannot promote an unknown report verdict to healthy", () => {
+  assert.deepEqual(assuranceStateSummary(["pass", "pass"]), {
+    total: 2,
+    failures: 0,
+    unknown: 0,
+    state: "healthy",
+  });
+  assert.equal(assuranceStateSummary(["unknown", "pass"]).state, "warning");
+  assert.equal(assuranceStateSummary(["failure", "pass"]).state, "failure");
+});
+
 test("Systems detail routes consume Interface Kit v0.5.0 evidence semantics", () => {
   const routes = {
     observability: read("systems/observability/index.html"),
@@ -167,6 +237,18 @@ test("Systems detail routes consume Interface Kit v0.5.0 evidence semantics", ()
   assert.match(routes.evidence, /systems\/evidence\/receipts\.js/);
   assert.match(routes.evidence, /\/v1\/stats/);
   assert.match(routes.evidence, /\/v1\/slo/);
+});
+
+test("Evidence layout corrections remove desktop clipping without deleting accessible detail", () => {
+  const css = read("static/css/systems-evidence-truthfulness.css");
+  const observe = read("systems/observability/evidence-mode.js");
+  const receipts = read("systems/evidence/receipts.js");
+  assert.match(css, /systems-evidence-disclosure/);
+  assert.match(css, /table-layout:\s*fixed/);
+  assert.match(css, /data-systems-detail="reliability"/);
+  assert.match(observe, /registry-scope-status/);
+  assert.match(receipts, /document\.createElement\("details"\)/);
+  assert.match(receipts, /Freshness does not promote an unknown assurance verdict to healthy/);
 });
 
 test("Correction modules keep public rendering bounded and secret-free", () => {
