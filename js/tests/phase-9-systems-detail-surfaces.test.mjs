@@ -83,13 +83,17 @@ test("Systems detail workbenches stack full-width to avoid empty side columns", 
   );
   assert.match(
     css,
-    /data-systems-detail="evidence"[\s\S]*?\.focus-heatmap \{[\s\S]*?grid-auto-columns:\s*minmax\(0,\s*1fr\)/,
+    /data-systems-detail="evidence"[\s\S]*?\.focus-heatmap \{[\s\S]*?grid-auto-columns:\s*11px/,
   );
   assert.match(
     css,
-    /data-systems-detail="evidence"[\s\S]*?\.focus-heatmap-cell \{[\s\S]*?aspect-ratio:\s*1/,
+    /data-systems-detail="evidence"[\s\S]*?\.focus-heatmap \{[\s\S]*?justify-content:\s*start/,
+  );
+  assert.match(
+    css,
+    /data-systems-detail="evidence"[\s\S]*?\.focus-heatmap-cell \{[\s\S]*?width:\s*11px/,
   );
   for (const html of Object.values(routes)) {
-    assert.match(html, /systems-detail-surfaces\.css\?v=20260811-workbench-stack/);
+    assert.match(html, /systems-detail-surfaces\.css\?v=20260811-heatmap-compact/);
   }
 });

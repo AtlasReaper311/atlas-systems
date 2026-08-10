@@ -263,24 +263,27 @@
   background: var(--bg-1);
 }
 
-/* Edge-to-edge contribution grid: week columns share the panel width equally
-   so density comes from packing, not from a floating island of 14px cells. */
+/* Compact GitHub-like contribution grid: fixed small cells, left-aligned so the
+   unused panel width stays modest instead of inflating every cell. */
 .systems-detail-page[data-systems-detail="evidence"] .focus-heatmap {
   display: grid;
   grid-auto-flow: column;
-  grid-template-rows: repeat(7, auto);
-  grid-auto-columns: minmax(0, 1fr);
-  justify-content: stretch;
-  gap: 2px;
+  grid-template-rows: repeat(7, 11px);
+  grid-auto-columns: 11px;
+  justify-content: start;
+  align-content: start;
+  gap: 3px;
   width: 100%;
-  overflow-x: hidden;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
 }
 
 .systems-detail-page[data-systems-detail="evidence"] .focus-heatmap-cell {
-  width: 100%;
-  min-width: 0;
-  height: auto;
-  aspect-ratio: 1;
+  width: 11px;
+  height: 11px;
+  min-width: 11px;
+  aspect-ratio: auto;
   border-radius: 2px;
 }
 

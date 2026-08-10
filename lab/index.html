@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/lab/lab-card.css?v=20260707-lab-cache">
   <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260802-lab-directory-polish">
-  <link rel="stylesheet" href="/static/css/card-signatures.css?v=20260807-signature-position">
+  <link rel="stylesheet" href="/static/css/card-signatures.css?v=20260811-bearing-lattice">
   <link rel="stylesheet" href="/static/css/estate-search.css">
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260724-source-hardening">
   <style>
@@ -41,7 +41,8 @@
     .lab-ramone-section .ramone-hero { margin:0; padding:0; border-bottom:0; }
     .lab-ramone-section .ramone-card { width:min(100%,880px); margin-inline:auto; }
     .lab-ramone-section .ramone-hero-center { padding:clamp(1.35rem,2.6vw,2.15rem); }
-    .lab-ramone-section .ramone-boot { max-height:7.8rem; overflow:hidden; }
+    /* Six boot lines need ~9.5rem; the previous 7.8rem clip cut the final two. */
+    .lab-ramone-section .ramone-boot { max-height:9.75rem; overflow:hidden; }
     .lab-ramone-section .ramone-hero-heading { font-size:clamp(2rem,3.6vw,3.05rem); }
     .lab-ramone-section .ramone-hero-suggestions { max-height:8rem; overflow:hidden; }
     @media(max-width:1050px) {
@@ -286,8 +287,8 @@
     </section>
   </main>
   <script src="/js/transitions.js?v=20260706-history"></script>
-  <script src="/lab/lab-card.js?v=20260701-session-fallback" defer></script>
+  <script src="/lab/lab-card.js?v=20260811-boot-on-scroll" defer></script>
   <script type="module" src="/lab/shared/shell.js?v=20260807-signature-position"></script>
-  <script type="module" src="/static/js/card-signatures.js?v=20260807-signature-position"></script>
+  <script type="module" src="/static/js/card-signatures.js?v=20260811-bearing-lattice"></script>
 </body>
 </html>

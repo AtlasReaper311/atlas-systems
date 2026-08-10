@@ -7,28 +7,28 @@
       "route": "/",
       "html_bytes": 21156,
       "first_party_request_count": 20,
-      "referenced_asset_bytes": 120006,
-      "total_static_bytes": 141162,
+      "referenced_asset_bytes": 120082,
+      "total_static_bytes": 141238,
       "largest_referenced_asset": "lab/index.html",
-      "largest_referenced_asset_bytes": 22668
+      "largest_referenced_asset_bytes": 22744
     },
     {
       "route": "/systems/",
-      "html_bytes": 16684,
+      "html_bytes": 16678,
       "first_party_request_count": 13,
-      "referenced_asset_bytes": 97824,
-      "total_static_bytes": 114508,
+      "referenced_asset_bytes": 97851,
+      "total_static_bytes": 114529,
       "largest_referenced_asset": "static/css/v2-directory-pages.css",
       "largest_referenced_asset_bytes": 26708
     },
     {
       "route": "/lab/",
-      "html_bytes": 22668,
+      "html_bytes": 22744,
       "first_party_request_count": 16,
-      "referenced_asset_bytes": 177469,
-      "total_static_bytes": 200137,
+      "referenced_asset_bytes": 178281,
+      "total_static_bytes": 201025,
       "largest_referenced_asset": "lab/lab-card.js",
-      "largest_referenced_asset_bytes": 42997
+      "largest_referenced_asset_bytes": 43782
     },
     {
       "route": "/lab/signal/",
@@ -67,5 +67,5 @@
       "largest_referenced_asset_bytes": 23671
     }
   ],
-  "sha256": "59980e5941aa0153168b888d1104b345906e41e7caf2ff816860402592b71867"
+  "sha256": "7a7587daf935e45cfba6d2c1e82e854263d81c2c49ff332ceec853abf461a724"
 }
