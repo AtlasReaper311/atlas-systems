@@ -292,22 +292,29 @@ function renderAvailability(sloPayload, statsPayload) {
   const records = availabilityRows(sloPayload);
   body.replaceChildren();
   for (const record of records) {
+    const measured = record.total > 0;
     const row = document.createElement("tr");
-    const values = [record.label, `${record.observed} / ${record.window} days`, record.availability, `${record.ok} / ${record.total}`, record.avgMs === null ? "—" : `${record.avgMs} ms`];
+    const values = [
+      record.label,
+      measured ? `${record.observed} / ${record.window} days` : "—",
+      measured ? record.availability : "—",
+      measured ? `${record.ok} / ${record.total}` : "—",
+      measured && record.avgMs !== null ? `${record.avgMs} ms` : "—",
+    ];
     for (const value of values) {
       const cell = document.createElement("td");
       cell.textContent = value;
       row.appendChild(cell);
     }
     const evidence = document.createElement("td");
-    const mode = record.total > 0 ? "measured" : "unknown";
+    const mode = measured ? "measured" : "unknown";
     const badge = document.createElement("span");
     badge.className = "atlas-evidence-mode";
     badge.dataset.evidenceMode = mode;
     badge.textContent = evidenceLabel(mode);
     const detail = document.createElement("span");
     detail.className = "systems-evidence-detail";
-    detail.textContent = record.total > 0
+    detail.textContent = measured
       ? `first measured day ${record.firstDay ?? "unknown"}; one probe pass every ten minutes`
       : "no probe counters are available for this component";
     evidence.className = "systems-evidence-cell";
