@@ -87,7 +87,9 @@ export function deriveCorpusEvidence(payload, nowMs = Date.now()) {
       : source === "none"
         ? "unavailable"
         : "unknown";
-  const countText = Number.isFinite(hour) ? `${hour} / hour` : Number.isFinite(today) ? `${today} today` : "—";
+  const countText = ["measured", "stale-measured"].includes(evidenceMode)
+    ? Number.isFinite(hour) ? `${hour} / hour` : Number.isFinite(today) ? `${today} today` : "—"
+    : "—";
   return { hour, today, total, source, sourceAt, evidenceMode, countText, nowMs };
 }
 
