@@ -33,7 +33,7 @@
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
   <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h-fixes">
   <link rel="stylesheet" href="/static/css/systems-detail-surfaces.css?v=20260730-phase-9">
-  <link rel="stylesheet" href="/static/css/systems-evidence-truthfulness.css?v=20260810-evidence-truthfulness">
+  <link rel="stylesheet" href="/static/css/systems-evidence-truthfulness.css?v=20260810-evidence-truthfulness-2-layout-5">
 </head>
 <body class="systems-detail-page" data-systems-detail="evidence">
   <nav aria-label="Primary navigation">
@@ -108,8 +108,11 @@
     <section class="focus-section" aria-labelledby="activity-title">
       <div class="focus-section-head"><div><p class="systems-detail-kicker">Longitudinal context</p><h2 id="activity-title">Ninety days of public commit evidence</h2></div><p id="activity-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for the public activity proxy.</p></div>
       <div id="activity-heatmap" class="focus-heatmap" role="img" aria-label="Commit activity over the last ninety calendar days"></div>
-      <section class="focus-table-wrap" tabindex="0" aria-label="Commit activity table"><table class="focus-table"><thead><tr><th scope="col">Date</th><th scope="col">Commit count</th><th scope="col">Evidence state</th></tr></thead><tbody id="activity-rows"><tr><td colspan="3">No activity evidence loaded.</td></tr></tbody></table></section>
-      <p id="activity-note" class="focus-note">The heatmap is a visual summary. The table is the complete keyboard and screen-reader alternative.</p>
+      <details class="systems-evidence-disclosure">
+        <summary>Show complete 90-day evidence table</summary>
+        <section class="focus-table-wrap" tabindex="0" aria-label="Commit activity table"><table class="focus-table"><thead><tr><th scope="col">Date</th><th scope="col">Commit count</th><th scope="col">Evidence state</th></tr></thead><tbody id="activity-rows"><tr><td colspan="3">No activity evidence loaded.</td></tr></tbody></table></section>
+      </details>
+      <p id="activity-note" class="focus-note">The heatmap is a visual summary. Expand the table for the complete keyboard and screen-reader alternative.</p>
     </section>
 
     <section class="focus-section" aria-labelledby="availability-title">

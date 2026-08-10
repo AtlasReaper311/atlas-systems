@@ -269,9 +269,15 @@ jobs:
           DIRECTORY_HEADER_FIELD_OUTPUT_DIR: ${{ runner.temp }}/interface-evidence/directory-header-field-preview-smoke
         run: node smoke_directory_header_fields_preview.mjs
       - name: Capture route-derived browser and viewport evidence
+        id: route-capture
+        if: always()
+        continue-on-error: true
         working-directory: ${{ runner.temp }}/interface-evidence
         run: node capture_interface_evidence.mjs
       - name: Capture Batch H product assertions
+        id: batch-h-capture
+        if: always()
+        continue-on-error: true
         working-directory: ${{ runner.temp }}/interface-evidence
         run: node capture_batch_h_evidence.mjs
       - name: Upload route-derived visual and accessibility evidence
@@ -300,3 +306,20 @@ jobs:
             ${{ runner.temp }}/interface-evidence/batch-h-screenshots/*.png
           if-no-files-found: error
           retention-days: 14
+      - name: Enforce browser evidence capture results
+        if: always()
+        env:
+          ROUTE_CAPTURE_OUTCOME: ${{ steps.route-capture.outcome }}
+          BATCH_H_CAPTURE_OUTCOME: ${{ steps.batch-h-capture.outcome }}
+        run: |
+          set -euo pipefail
+          failed=0
+          if [ "${ROUTE_CAPTURE_OUTCOME}" != "success" ]; then
+            echo "::error::Route-derived browser evidence capture failed. Inspect the uploaded route-derived evidence artifact for the primary findings."
+            failed=1
+          fi
+          if [ "${BATCH_H_CAPTURE_OUTCOME}" != "success" ]; then
+            echo "::error::Batch H browser evidence capture failed. Inspect the uploaded Batch H evidence artifact for the primary findings."
+            failed=1
+          fi
+          exit "${failed}"
