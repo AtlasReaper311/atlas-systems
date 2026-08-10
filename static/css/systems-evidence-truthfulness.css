@@ -114,6 +114,15 @@
   border-radius: 0 0 8px 8px;
 }
 
+/* Keep wide evidence tables contained by their own scroll regions. This is
+   required even before JavaScript progressively wraps the activity ledger. */
+.systems-detail-page[data-systems-detail="evidence"] .focus-table-wrap {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  contain: inline-size;
+}
+
 .systems-detail-page[data-systems-detail="evidence"]
   .systems-detail-workbench--support
   .systems-detail-panel:first-child
