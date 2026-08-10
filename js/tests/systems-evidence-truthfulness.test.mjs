@@ -169,6 +169,13 @@ test("Verify keeps the full activity ledger accessible without making it the def
   );
 });
 
+test("Verify supplementary receipts isolate unavailable sources instead of leaking rejected fetches", () => {
+  const receipts = read("systems/evidence/receipts.js");
+  assert.match(receipts, /Promise\.allSettled/);
+  assert.match(receipts, /renderAvailabilityUnavailable/);
+  assert.doesNotMatch(receipts, /await Promise\.all\(\[/);
+});
+
 test("Verify deployment receipt consumes deploy-watch camelCase contract", () => {
   const receipt = deploymentReceipt({
     status: "success",
