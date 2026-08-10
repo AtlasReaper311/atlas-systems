@@ -213,18 +213,10 @@
   }
 }
 
-/* The source-only mobile fallback has exactly two document-level regions: the
-   fixed source navigation and the focused main content. Both own local scroll
-   regions, so neither should ever enlarge the document viewport. This boundary
-   keeps wide evidence content inside those local regions without disabling the
-   table scrollports themselves. */
+/* Keep the source-only mobile fallback inside the viewport without clipping
+   overflow out of existence. Wide tables must stay in their own scrollports;
+   document-level clip would hide regressions from the Batch H overflow gate. */
 @media (max-width: 767px) {
-  .systems-detail-page[data-systems-detail="evidence"]
-    > nav[aria-label="Primary navigation"]:not(.atlas-nav-shell),
-  .systems-detail-page[data-systems-detail="evidence"] .focus-main {
-    overflow-x: clip;
-  }
-
   .systems-detail-page[data-systems-detail="evidence"]
     > nav[aria-label="Primary navigation"]:not(.atlas-nav-shell) {
     max-width: 100vw;

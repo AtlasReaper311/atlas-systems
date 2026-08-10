@@ -174,6 +174,39 @@ export async function openWithRetry(page, url, {
   throw lastError;
 }
 
+/**
+ * Wait until linked author stylesheets are present in the CSSOM and applied.
+ * `domcontentloaded` alone is insufficient for no-JavaScript acceptance: the
+ * HTML can parse before CSS arrives, so overflow checks would measure unstyled
+ * UA layout and report false document-width failures.
+ */
+export async function waitForAppliedStylesheets(page, {
+  minimumStylesheets = 1,
+  timeout = 15_000,
+} = {}) {
+  await page.waitForFunction((minimum) => {
+    const expected = document.querySelectorAll('link[rel="stylesheet"][href]').length;
+    if (expected < minimum) return false;
+    if (document.styleSheets.length < expected) return false;
+    const bodyStyle = getComputedStyle(document.body);
+    // Estate shell CSS zeroes body margin; unstyled Chromium keeps the UA 8px margin.
+    return bodyStyle.marginTop === "0px" && bodyStyle.marginLeft === "0px";
+  }, minimumStylesheets, { timeout });
+}
+
+export async function openSourceDocument(page, url, {
+  timeout = 30_000,
+  minimumStylesheets = 1,
+} = {}) {
+  const response = await page.goto(url, { waitUntil: "load", timeout });
+  if (!response?.ok()) throw new Error(`HTTP ${response?.status() ?? "no response"}`);
+  await waitForAppliedStylesheets(page, {
+    minimumStylesheets,
+    timeout: Math.min(timeout, 15_000),
+  });
+  return { status: response.status() };
+}
+
 export function summarizeViolation(item) {
   return {
     id: item.id,

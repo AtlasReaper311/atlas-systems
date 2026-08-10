@@ -45,8 +45,17 @@ test("Batch H retains keyboard, unavailable-data, audio-consent, and no-JavaScri
   assert.ok(runner.includes("activeElementInsideSymphony"));
   assert.ok(runner.includes("Symphony stole focus during page load"));
   assert.ok(runner.includes("Symphony is not embedded as a non-modal page region"));
-  assert.ok(runner.includes("evidence.scrollWidth > evidence.width + 1"));
+  assert.ok(runner.includes("openSourceDocument"));
+  assert.ok(runner.includes("stylesApplied"));
+  assert.ok(runner.includes("stylesheets were not applied before no-JavaScript measurement"));
+  assert.ok(runner.includes("evidence.stylesApplied && evidence.scrollWidth > evidence.width + 1"));
   assert.ok(runner.includes("horizontal overflow"));
+  assert.doesNotMatch(runner, /waitUntil:\s*"domcontentloaded"/);
+  assert.ok(browserCore.includes("export async function waitForAppliedStylesheets"));
+  assert.ok(browserCore.includes("export async function openSourceDocument"));
+  assert.ok(browserCore.includes('waitUntil: "load"'));
+  assert.ok(browserCore.includes('link[rel="stylesheet"][href]'));
+  assert.ok(browserCore.includes('bodyStyle.marginTop === "0px"'));
 });
 
 test("shared diagnostics record console, request, resource, and accessibility evidence", () => {
@@ -81,17 +90,29 @@ test("preview evidence captures cannot cascade into a misleading missing-artifac
   assert.ok(workflow.includes("Enforce browser evidence capture results"));
   assert.ok(workflow.includes("ROUTE_CAPTURE_OUTCOME"));
   assert.ok(workflow.includes("BATCH_H_CAPTURE_OUTCOME"));
-  assert.ok(workflow.includes("if-no-files-found: warn"));
   assert.ok(workflow.includes('if [ "${ROUTE_CAPTURE_OUTCOME}" != "success" ]'));
   assert.ok(workflow.includes('if [ "${BATCH_H_CAPTURE_OUTCOME}" != "success" ]'));
   assert.ok(workflow.includes('exit "${failed}"'));
   assert.match(workflow, /name: Capture Batch H product assertions[\s\S]*?if: always\(\)/);
+  assert.match(
+    workflow,
+    /name: Upload route-derived visual and accessibility evidence[\s\S]*?if-no-files-found: error/,
+  );
+  assert.match(
+    workflow,
+    /name: Upload Batch H visual and accessibility evidence[\s\S]*?if-no-files-found: error/,
+  );
 });
 
 test("Verify source layout contains wide tables before JavaScript enhancement", () => {
   assert.match(evidenceCss, /data-systems-detail="evidence"[\s\S]*?\.focus-table-wrap[\s\S]*?contain:\s*layout paint inline-size/);
   assert.match(evidenceCss, /\.focus-table-wrap[\s\S]*?max-width:\s*100%/);
   assert.match(evidenceCss, /\.focus-table-wrap[\s\S]*?overflow-x:\s*auto/);
+  assert.doesNotMatch(
+    evidenceCss,
+    /data-systems-detail="evidence"[\s\S]*?overflow-x:\s*clip/,
+    "document-level overflow clip must not hide no-JavaScript overflow regressions",
+  );
   assert.match(evidenceHtml, /<details class="systems-evidence-disclosure">[\s\S]*?<tbody id="activity-rows">/);
   assert.match(evidenceHtml, /systems-evidence-truthfulness\.css\?v=20260810-evidence-truthfulness-2/);
 });

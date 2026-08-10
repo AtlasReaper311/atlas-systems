@@ -293,7 +293,7 @@ jobs:
             ${{ runner.temp }}/interface-evidence/system-map-card-field-preview-smoke/system-map-card-field-preview.png
             ${{ runner.temp }}/interface-evidence/directory-header-field-preview-smoke/evidence.json
             ${{ runner.temp }}/interface-evidence/directory-header-field-preview-smoke/*.png
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
       - name: Upload Batch H visual and accessibility evidence
         if: always()
@@ -304,7 +304,7 @@ jobs:
             ${{ runner.temp }}/interface-evidence/batch-h-evidence.json
             ${{ runner.temp }}/interface-evidence/batch-h-capture-error.txt
             ${{ runner.temp }}/interface-evidence/batch-h-screenshots/*.png
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
       - name: Enforce browser evidence capture results
         if: always()
