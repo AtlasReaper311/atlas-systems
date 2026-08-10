@@ -75,3 +75,21 @@ test("Phase 9 stylesheet supplies responsive and reduced-motion hierarchy", () =
   assert.match(css, /@media \(max-width: 620px\)/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
 });
+
+test("Systems detail workbenches stack full-width to avoid empty side columns", () => {
+  assert.match(
+    css,
+    /\.systems-detail-workbench,\s*\n\.systems-detail-workbench--support \{[\s\S]*?grid-template-columns:\s*minmax\(0,\s*1fr\)/,
+  );
+  assert.match(
+    css,
+    /data-systems-detail="evidence"[\s\S]*?\.focus-heatmap \{[\s\S]*?grid-auto-columns:\s*minmax\(0,\s*1fr\)/,
+  );
+  assert.match(
+    css,
+    /data-systems-detail="evidence"[\s\S]*?\.focus-heatmap-cell \{[\s\S]*?aspect-ratio:\s*1/,
+  );
+  for (const html of Object.values(routes)) {
+    assert.match(html, /systems-detail-surfaces\.css\?v=20260811-workbench-stack/);
+  }
+});

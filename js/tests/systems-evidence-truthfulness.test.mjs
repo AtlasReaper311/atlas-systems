@@ -244,7 +244,7 @@ test("Systems detail routes consume Interface Kit v0.5.0 evidence semantics", ()
   assert.match(routes.evidence, /systems\/evidence\/receipts\.js/);
   assert.match(routes.evidence, /\/v1\/stats/);
   assert.match(routes.evidence, /\/v1\/slo/);
-  assert.match(routes.evidence, /systems-evidence-truthfulness\.css\?v=20260810-evidence-truthfulness-2-layout-5/);
+  assert.match(routes.evidence, /systems-evidence-truthfulness\.css\?v=20260811-heatmap-density/);
 });
 
 test("Evidence layout corrections remove desktop clipping without deleting accessible detail", () => {
