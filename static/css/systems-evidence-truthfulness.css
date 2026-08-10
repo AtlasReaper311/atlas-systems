@@ -127,8 +127,36 @@
   max-width: 100%;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
-  scrollbar-gutter: stable;
   contain: layout paint inline-size;
+}
+
+/* The no-JavaScript source document must obey the same shrink boundary as the
+   enhanced shell. Grid and flex descendants can otherwise retain an intrinsic
+   min-content width even when their own table scrollports are contained. Keep
+   every structural evidence container shrinkable without clipping its intended
+   local overflow regions. */
+.systems-detail-page[data-systems-detail="evidence"] .focus-main,
+.systems-detail-page[data-systems-detail="evidence"] .focus-main > *,
+.systems-detail-page[data-systems-detail="evidence"] .focus-section,
+.systems-detail-page[data-systems-detail="evidence"] .systems-detail-workbench,
+.systems-detail-page[data-systems-detail="evidence"] .systems-detail-panel,
+.systems-detail-page[data-systems-detail="evidence"] .focus-grid,
+.systems-detail-page[data-systems-detail="evidence"] .focus-provenance,
+.systems-detail-page[data-systems-detail="evidence"] .focus-rail,
+.systems-detail-page[data-systems-detail="evidence"] .systems-detail-boundary,
+.systems-detail-page[data-systems-detail="evidence"] .systems-detail-ledger,
+.systems-detail-page[data-systems-detail="evidence"] .systems-evidence-disclosure {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.systems-detail-page[data-systems-detail="evidence"] .focus-rail a,
+.systems-detail-page[data-systems-detail="evidence"] .focus-note,
+.systems-detail-page[data-systems-detail="evidence"] .systems-detail-boundary dd,
+.systems-detail-page[data-systems-detail="evidence"] .systems-detail-ledger dd {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .systems-detail-page[data-systems-detail="evidence"]
