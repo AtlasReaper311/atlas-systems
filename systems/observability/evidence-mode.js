@@ -8,6 +8,7 @@ const FETCH_TIMEOUT_MS = 6000;
 const TELEMETRY_STALE_MS = 2 * 60 * 1000;
 const INFRA_STALE_MS = 20 * 60 * 1000;
 const byId = (id) => document.getElementById(id);
+let latestInfraView = null;
 
 function timestampMs(value) {
   const parsed = Date.parse(value ?? "");
@@ -146,6 +147,27 @@ function temp(value) {
   return Number.isFinite(number) ? `${Math.round(number)}°C` : "—";
 }
 
+function ensureRegistryScope(view = latestInfraView) {
+  const tableWrap = byId("registry-rows")?.closest(".focus-table-wrap");
+  if (!tableWrap) return;
+  let callout = byId("registry-scope-status");
+  if (!callout) {
+    callout = document.createElement("p");
+    callout.id = "registry-scope-status";
+    callout.className = "focus-note";
+    tableWrap.insertAdjacentElement("beforebegin", callout);
+  }
+  if (view?.runtime === "down") {
+    callout.textContent = "Scope reconciliation: SPECULAR-CORE local runtime is down. Healthy rows below mean their public edge or Worker contract is reachable; they do not clear the estate-level degraded state.";
+  } else if (view?.runtime === "degraded") {
+    callout.textContent = "Scope reconciliation: local runtime is degraded. Public edge rows below are a separate availability axis and may remain healthy.";
+  } else if (view?.runtime === "unknown") {
+    callout.textContent = "Scope reconciliation: local runtime health is unknown from current evidence. Public edge rows below must not be used to infer SPECULAR-CORE health.";
+  } else {
+    callout.textContent = "Scope reconciliation: this table reports public endpoint contracts. Local runtime state is evaluated separately and is never inferred from healthy edge Workers.";
+  }
+}
+
 function applyTelemetry(payload) {
   const view = deriveTelemetryEvidence(payload);
   setRuntimeBadge("telemetry-state", view.runtime, view.runtime === "down" ? "offline" : view.runtime);
@@ -175,8 +197,10 @@ function applyTelemetry(payload) {
 
 function applyInfra(payload) {
   const view = deriveInfraEvidence(payload);
+  latestInfraView = view;
   setRuntimeBadge("infra-state", view.runtime, view.runtime);
   ensureEvidenceBadge("infra-state", "infra-evidence-mode", view.evidenceMode);
+  ensureRegistryScope(view);
   const detail = byId("infra-detail");
   if (!detail) return;
   const count = view.components.length;
@@ -216,9 +240,10 @@ function clarifyObservedServices() {
   const table = byId("registry-rows")?.closest("table");
   const headers = table?.querySelectorAll("thead th");
   if (headers?.[2]) headers[2].textContent = "Public endpoint state";
+  ensureRegistryScope(latestInfraView);
   const note = table?.closest("section")?.nextElementSibling;
   if (note?.classList.contains("focus-note")) {
-    note.textContent = "This table reports the public service contract named in each row. Edge Workers may remain healthy while SPECULAR-CORE is off; local runtime state is reported separately above.";
+    note.textContent = "Each row reports the public service contract named in that row. Edge Workers can remain reachable while SPECULAR-CORE is offline; local runtime state and its evidence freshness are reported separately above.";
   }
 }
 
