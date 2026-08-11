@@ -57,7 +57,24 @@ body a.nav-status.atlas-status.atlas-estate-status {
 .section-head { display: flex; justify-content: space-between; align-items: end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
 .section-head label { display: grid; gap: .35rem; color: var(--text-faint); font-size: 11px; }
 .section-head input { min-width: 18rem; min-height: 44px; padding: .6rem; background: var(--bg); color: var(--text); border: 1px solid var(--border-hi); }
-.table-wrap { overflow-x: auto; }
+.section-head input:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border-hi));
+}
+.section-head input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-color: var(--accent);
+}
+.table-wrap {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-faint) 55%, transparent) transparent;
+}
+.table-wrap::-webkit-scrollbar { height: 8px; }
+.table-wrap::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-faint) 55%, transparent);
+  border-radius: 999px;
+}
 .score { font-variant-numeric: tabular-nums; }
 .rule-card { display: grid; gap: .55rem; }
 .rule-card header { display: flex; justify-content: space-between; gap: 1rem; }
@@ -86,6 +103,17 @@ body a.nav-status.atlas-status.atlas-estate-status {
 .atlas-evidence-mode[data-evidence-mode="measured"][data-runtime-state="pass"] { color: var(--green); }
 .atlas-evidence-mode[data-evidence-mode="measured"][data-runtime-state="warning"] { color: var(--accent); }
 .atlas-evidence-mode[data-evidence-mode="measured"][data-runtime-state="error"] { color: var(--red); }
+
+.atlas-evidence-surface[data-evidence-mode="unknown"] {
+  border: 1px solid var(--border-hi);
+  border-left: 3px solid color-mix(in srgb, var(--accent) 55%, var(--border-hi));
+  background: color-mix(in srgb, var(--bg-1) 92%, var(--accent));
+  box-shadow: none;
+}
+
+.atlas-evidence-mode[data-evidence-mode="unknown"] {
+  color: var(--accent);
+}
 
 .atlas-evidence-surface[data-evidence-mode="unavailable"] {
   border: 1px solid var(--border-hi);

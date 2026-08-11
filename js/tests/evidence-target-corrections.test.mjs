@@ -9,15 +9,23 @@ function read(path) {
 test("Conformance unavailable mode cannot masquerade as a clean zero report", () => {
   const html = read("lab/conformance/index.html");
   const source = read("lab/conformance/conformance-core.js");
+  const css = read("lab/conformance/conformance.css");
   assert.match(html, /id="evidence-status"[^>]+data-evidence-mode="unknown"/);
+  assert.match(html, /Probing live/);
+  assert.match(html, /conformance\.css\?v=20260811-timeout/);
+  assert.match(source, /HARD_ABORT_MS = 4500/);
+  assert.match(source, /AbortController/);
   assert.match(source, /applyEvidenceMode\("unavailable"\)/);
   assert.match(source, /textContent = "Unavailable"/);
+  assert.match(source, /textContent = "Probing live"/);
   assert.match(source, /repositories_scanned: null/);
   assert.match(source, /errors: null/);
   assert.match(source, /warnings: null/);
   assert.match(source, /unknown: null/);
   assert.match(source, /No zero-value result has been inferred/i);
   assert.doesNotMatch(source, /no report published yet/i);
+  assert.match(css, /data-evidence-mode="unknown"/);
+  assert.match(css, /input:focus-visible/);
 });
 
 test("Shape Detector browser fallback is persistently simulated and neutral", () => {
