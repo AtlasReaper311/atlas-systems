@@ -59,7 +59,10 @@ test("security contact remains canonical and time-bounded", () => {
 test("performance evidence is non-blocking and covers representative routes", () => {
   assert.equal(performance.schema_version, "atlas-systems/static-performance-baseline/v1");
   assert.equal(performance.blocking_thresholds, false);
-  assert.deepEqual(performance.routes.map(({ route }) => route), ["/", "/systems/", "/lab/", "/lab/signal/", "/writing/"]);
+  assert.deepEqual(
+    performance.routes.map(({ route }) => route),
+    ["/", "/systems/", "/lab/", "/lab/signal/", "/lab/almost/", "/lab/bearing/", "/writing/"],
+  );
   for (const route of performance.routes) {
     assert.ok(route.html_bytes > 0);
     assert.ok(route.first_party_request_count > 0);

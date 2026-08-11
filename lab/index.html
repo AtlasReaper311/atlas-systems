@@ -27,13 +27,37 @@
   <meta name="twitter:image" content="https://atlas-systems.uk/og/lab.png">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/lab/lab-card.css?v=20260707-lab-cache">
-  <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260724-maturity-completion">
-  <link rel="stylesheet" href="/static/css/card-signatures.css?v=20260724-card-signatures">
+  <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260811-explore-chroma">
+  <link rel="stylesheet" href="/static/css/card-signatures.css?v=20260811-bearing-lattice">
   <link rel="stylesheet" href="/static/css/estate-search.css">
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260724-source-hardening">
+  <style>
+    .lab-home-page main { width:min(calc(100% - 48px),1180px); }
+    .lab-landing-hero { display:block; min-height:0; padding:48px 0 56px; }
+    .lab-landing-hero .page-intro { max-width:none; }
+    .lab-landing-hero .page-intro h1 { max-width:850px; font-size:clamp(2.8rem,7vw,5.25rem); }
+    .lab-landing-hero .lede { max-width:760px; }
+    .lab-ramone-section { padding:42px 0 66px; border-bottom:1px solid var(--border); }
+    .lab-ramone-section .ramone-hero { margin:0; padding:0; border-bottom:0; }
+    .lab-ramone-section .ramone-card { width:min(100%,880px); margin-inline:auto; }
+    .lab-ramone-section .ramone-hero-center { padding:clamp(1.35rem,2.6vw,2.15rem); }
+    /* Six boot lines need ~9.5rem; the previous 7.8rem clip cut the final two. */
+    .lab-ramone-section .ramone-boot { max-height:9.75rem; overflow:hidden; }
+    .lab-ramone-section .ramone-hero-heading { font-size:clamp(2rem,3.6vw,3.05rem); }
+    .lab-ramone-section .ramone-hero-suggestions { max-height:8rem; overflow:hidden; }
+    @media(max-width:1050px) {
+      .lab-landing-hero { padding-top:36px; }
+      .lab-ramone-section .ramone-card { width:min(100%,760px); }
+    }
+    @media(max-width:620px) {
+      .lab-home-page main { width:min(calc(100% - 32px),1180px); }
+      .lab-landing-hero { padding:24px 0 42px; }
+      .lab-landing-hero .page-intro h1 { font-size:min(2.8rem,15vw); }
+    }
+  </style>
   <meta name="twitter:image:alt" content="Experience, observe, verify, explore. // Atlas Systems">
 </head>
-<body>
+<body class="lab-home-page">
   <nav aria-label="Primary navigation">
     <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
     <ul class="nav-links">
@@ -43,13 +67,19 @@
     </ul>
   </nav>
   <main>
-    <header class="page-intro">
-      <p class="eyebrow">Lab / directory</p>
-      <h1>Experience, observe,<br>verify, explore.</h1>
-      <p class="lede">The Lab is the technical workspace of Atlas Systems. Ramone remains the flagship; every other destination now carries a visual signature tied to its actual operation.</p>
-    </header>
+    <div class="lab-landing-hero">
+      <header class="page-intro">
+        <p class="eyebrow">&mdash; Lab / directory</p>
+        <h1>Experience, observe,<br>verify, explore.</h1>
+        <p class="lede">The Lab is the technical workspace of Atlas Systems. Ramone remains the flagship; every other destination now carries a visual signature tied to its actual operation.</p>
+        <div class="page-actions">
+          <a class="action primary" href="https://ramone.atlas-systems.uk/">Ask Ramone</a>
+          <a class="action" href="#featured-title">Browse tools</a>
+        </div>
+      </header>
+    </div>
 
-    <section class="ramone-stage" aria-labelledby="ramone-greet">
+    <section class="ramone-stage lab-ramone-section" aria-labelledby="ramone-greet">
       <div class="ramone-hero">
         <div class="ramone-card awake" id="ramone-card">
           <div class="ramone-hero-topbar">
@@ -214,11 +244,35 @@
         <div class="group-block" data-family="explore">
           <div class="group-label">Explore</div>
           <div class="card-grid directory-grid explore-grid">
-            <a class="system-card directory-card directory-card--wide" data-family="explore" data-visual="anomaly" data-motif="DTW" href="/lab/anomaly/">
-              <div class="card-top"><span class="type-label">Telemetry analysis</span><span class="badge experiment">Experiment</span></div>
+            <a class="system-card directory-card directory-card--wide" data-family="explore" data-explore="speculum" data-visual="map" data-motif="ATTN" href="/lab/speculum/">
+              <div class="card-top"><span class="type-label">Attention field</span><span class="badge experiment">Experiment</span></div>
+              <h3>Speculum</h3>
+              <p>A time-compressed field of verified public attention paths, with pinning, guided traces, and generated ledger output.</p>
+              <span class="data-mode">Generated simulation</span><span class="card-route">Enter the field →</span>
+            </a>
+            <a class="system-card directory-card directory-card--wide" data-family="explore" data-explore="almost" data-visual="almost" data-motif="ΔT" href="/lab/almost/">
+              <div class="card-top"><span class="type-label">Timing artwork</span><span class="badge experiment">Experiment</span></div>
+              <h3>Almost</h3>
+              <p>An endless drawing made from seeded geometry and the imperfect frame timing of the viewer's own tab.</p>
+              <span class="data-mode">Local generated state</span><span class="card-route">Enter the process →</span>
+            </a>
+            <a class="system-card directory-card directory-card--wide" data-family="explore" data-explore="drift" data-visual="drift" data-motif="dS" href="/lab/drift/">
+              <div class="card-top"><span class="type-label">Playable argument</span><span class="badge experiment">Experiment</span></div>
+              <h3>Drift</h3>
+              <p>Five hundred and twelve nodes losing conformance in real time. Hold them with your attention, then hand them to policy.</p>
+              <span class="data-mode">Local generated state</span><span class="card-route">Hold the line →</span>
+            </a>
+            <a class="system-card directory-card directory-card--wide" data-family="explore" data-explore="bearing" data-visual="bearing" data-motif="LOAD" href="/lab/bearing/">
+              <div class="card-top"><span class="type-label">Structural simulation</span><span class="badge experiment">Experiment</span></div>
+              <h3>The Bearing</h3>
+              <p>A load-bearing lattice stages failures, reroutes pressure, records incidents, and recovers without network input.</p>
+              <span class="data-mode">Local simulated state</span><span class="card-route">Stress the frame →</span>
+            </a>
+            <a class="system-card directory-card directory-card--wide" data-family="explore" data-explore="shape" data-visual="anomaly" data-motif="DTW" href="/lab/anomaly/">
+              <div class="card-top"><span class="type-label">Trajectory detector</span><span class="badge experiment">Experiment</span></div>
               <h3>Shape Detector</h3>
-              <p>Feature extraction, constrained DTW, and temporal decoding against recorded telemetry.</p>
-              <span class="data-mode">Recorded replay</span><span class="card-route">Open detector →</span>
+              <p>Detect trajectory bends from level, slope, volatility, and DTW before a static threshold fires.</p>
+              <span class="data-mode">Live and simulated</span><span class="card-route">Open detector →</span>
             </a>
           </div>
         </div>
@@ -233,8 +287,8 @@
     </section>
   </main>
   <script src="/js/transitions.js?v=20260706-history"></script>
-  <script src="/lab/lab-card.js?v=20260701-session-fallback" defer></script>
-  <script type="module" src="/lab/shared/shell.js?v=20260723-interface-v2"></script>
-  <script type="module" src="/static/js/card-signatures.js?v=20260724-card-signatures"></script>
+  <script src="/lab/lab-card.js?v=20260811-boot-on-scroll" defer></script>
+  <script type="module" src="/lab/shared/shell.js?v=20260807-signature-position"></script>
+  <script type="module" src="/static/js/card-signatures.js?v=20260811-bearing-lattice"></script>
 </body>
 </html>

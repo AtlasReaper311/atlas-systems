@@ -34,6 +34,10 @@ body.symphony-page { overflow-x: hidden; }
   max-width: none;
 }
 
+body[data-symphony-mode="trace"] .symphony-page-main {
+  padding-top: calc(var(--nav-h) + 8px) !important;
+}
+
 .symphony-flagship {
   padding: clamp(18px, 2.4vw, 32px);
   border: 1px solid var(--border-hi);
@@ -724,6 +728,595 @@ body.symphony-page { overflow-x: hidden; }
 .symphony-flagship[data-symphony-mode="replay"] .symphony-page-host .symphony-orchestra__grid { grid-template-columns: minmax(0, 1fr); }
 .symphony-flagship[data-symphony-mode="replay"] .symphony-page-host .symphony-inspector { display: none; }
 
+/* ------------------------------------------------ trace composition -- */
+
+/* TRACE is a diagnostic surface, so the board is the subject rather than the
+   payoff at the bottom of an essay. The intro keeps its wording and its truth
+   labels; it just stops occupying the first screen. PLAY and REPLAY keep the
+   editorial hero unchanged. */
+
+/* TRACE keeps the title and lede wording, but as a label above a diagnostic
+   surface rather than as an editorial hero.
+   system-symphony-navigation.css sets the flagship title with !important, so
+   the mode-scoped override has to carry it too. */
+.symphony-flagship[data-symphony-mode="trace"] .focus-title {
+  max-width: none !important;
+  font-size: clamp(29px, 2.45vw, 35px) !important;
+  line-height: 1.04 !important;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .focus-lede {
+  display: none;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-mode-panel h2 {
+  font-size: 26px;
+}
+
+/* The panel copy is reference material once the board is on screen. */
+.symphony-flagship[data-symphony-mode="trace"] #symphony-panel-trace .symphony-panel-copy {
+  margin: 0;
+  font-size: .88rem;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-stage {
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-mode-panel {
+  gap: 12px;
+}
+
+/* The sleeve stays present and legible, but it is not a 300px block above the
+   diagnostic surface. */
+.symphony-flagship[data-symphony-mode="trace"] .symphony-cartridge-cover {
+  min-height: 0;
+  padding: 14px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-cartridge-cover strong {
+  font-size: clamp(1.3rem, 2vw, 1.7rem);
+}
+
+/* The board carries its own framing, so the surface sits tight under the
+   controls that drive it. */
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host {
+  margin-top: 12px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-orchestra {
+  padding-block: 0;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__header,
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-hybrid-state {
+  display: none;
+}
+
+/*
+ * Put the board directly under the source state, and drop the two audio
+ * readouts below it. Both moved blocks are pure readouts with no focusable
+ * children, and the service table keeps its position relative to the board,
+ * so visual order and focus order still agree.
+ */
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__scroll {
+  display: flex;
+  flex-direction: column;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel { order: 0; }
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-orchestra { order: 1; }
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-service-section { order: 2; }
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-metrics { order: 3; }
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-modulation-inspector { order: 4; }
+
+/* The source state travels with the board rather than scrolling away from it,
+   so what produced a reading is never separated from the reading. */
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: rgba(10, 10, 15, .96);
+}
+
+/* The heading still carries the scope filter and the "copper is declared
+   dependency" caveat; it just stops being a full editorial band. */
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-section-heading {
+  margin-bottom: 6px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-section-heading h3 {
+  font-size: 20px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-section-heading__tools p {
+  margin: 0;
+  font-size: .78rem;
+}
+
+/* ----------------------------------------------- trace board-first pass -- */
+
+/*
+ * TRACE keeps the original instrument flow, but the board owns the viewport.
+ * Proof, score and analyser readouts stay available in their deliberate homes;
+ * the permanent inspector rail is replaced by a comparison drawer opened by a
+ * chip or service row.
+ */
+.symphony-flagship[data-symphony-mode="trace"] {
+  padding: clamp(12px, 1.6vw, 20px);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-flagship__top {
+  align-items: center;
+  gap: 16px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 6px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-cartridge-cover,
+.symphony-flagship[data-symphony-mode="trace"] .symphony-score,
+.symphony-flagship[data-symphony-mode="trace"] .symphony-proof-strip,
+.symphony-flagship[data-symphony-mode="trace"] .symphony-frame-ribbon-wrap,
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-summary,
+.symphony-flagship[data-symphony-mode="trace"] #page-source-status,
+.symphony-flagship[data-symphony-mode="trace"] .symphony-proof-console,
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-analyser-grid,
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-metrics,
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-modulation-inspector {
+  display: none !important;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-mode-panel {
+  gap: 10px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] #symphony-panel-trace .symphony-panel-copy {
+  display: none;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] #symphony-panel-trace > .symphony-panel-kicker,
+.symphony-flagship[data-symphony-mode="trace"] #symphony-panel-trace > h2 {
+  display: none;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] #symphony-panel-trace .symphony-panel-actions {
+  display: none;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-role-board {
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  margin: 2px 0 0;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-role-board button {
+  min-height: 44px;
+  padding: 6px 8px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] [data-apu-role-status] {
+  margin: 0;
+  color: var(--text-faint);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host {
+  margin-top: 6px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__scroll {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: visible;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel {
+  order: 0;
+  position: relative;
+  top: 0;
+  z-index: 1;
+  display: none;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  margin-inline: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-top: 0;
+  border-radius: 0;
+  background: rgba(10, 10, 15, .95);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel > div:first-child {
+  display: none;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel__controls {
+  justify-items: end;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-update-time {
+  display: none;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-orchestra {
+  order: 1;
+  display: flex;
+  flex-direction: column;
+  margin-inline: 0;
+  padding-block: 0;
+  border-bottom: 0;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-section-heading {
+  order: 1;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-top: 0;
+  background: rgba(10, 10, 15, .78);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-section-heading h3 {
+  font-size: 16px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-section-heading__tools {
+  position: static;
+  z-index: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-block: 0;
+  background: transparent;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-section-heading__tools p {
+  max-width: 58ch;
+  font-size: 8px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-legend {
+  order: 2;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-top: 0;
+  background: rgba(10, 10, 15, .72);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-orchestra__grid {
+  order: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+  border-color: var(--border-hi);
+  border-radius: 8px 8px 0 0;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-visual {
+  display: block;
+  min-height: 0;
+  padding: 4px;
+  overflow: auto;
+  border-right: 0;
+  background:
+    linear-gradient(rgba(255, 255, 255, .018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .018) 1px, transparent 1px),
+    rgba(8, 8, 12, .82);
+  background-size: 42px 42px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-topology {
+  width: min(100%, 1220px);
+  min-width: 0;
+  max-width: none !important;
+  margin: 0 auto;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-service-section {
+  order: 3;
+  margin-inline: 0;
+  margin-top: 18px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-inspector {
+  display: none;
+  padding: 18px;
+  border-top: 1px solid var(--border-hi);
+  background: rgba(17, 17, 24, .97);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .system-symphony[data-trace-selection="true"] .symphony-inspector {
+  display: block;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-inspector dl {
+  grid-template-columns: minmax(90px, .45fr) minmax(0, 1fr);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-live-lock {
+  margin-top: 14px;
+}
+
+body[data-symphony-mode="trace"] .symphony-boot {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+@media (max-width: 1100px) {
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-role-board {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel {
+    position: relative;
+    grid-template-columns: 1fr;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel__controls {
+    justify-items: start;
+  }
+}
+
+/*
+ * TRACE keeps the PR 160 chiptune console as its visual and interaction
+ * contract. The later PCB work changes the topology renderer, not the
+ * instrument chrome around it.
+ */
+.symphony-flagship[data-symphony-mode="trace"] {
+  padding: 0;
+  overflow: clip;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] > .symphony-flagship__top,
+.symphony-flagship[data-symphony-mode="trace"] > .symphony-stage {
+  display: none !important;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host {
+  margin: 0;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console {
+  border: 0;
+  border-radius: 0;
+  background: var(--bg);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__header {
+  display: flex;
+  min-height: 92px;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__header h2 {
+  margin: 2px 0 0;
+  font-size: 44px;
+  line-height: .92;
+  letter-spacing: 0;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__mode,
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-kicker {
+  letter-spacing: 0;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__header-controls {
+  flex-wrap: nowrap;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-important-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__scroll {
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel {
+  order: 0;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(360px, auto);
+  gap: 18px;
+  align-items: center;
+  margin: 0;
+  padding: 10px 22px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel > div:first-child {
+  display: grid;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel > div:first-child p {
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel__controls {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel .symphony-segmented {
+  width: auto;
+  min-width: 360px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-update-time {
+  display: block;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-performance {
+  position: static;
+  width: min(780px, calc(100vw - 96px));
+  max-height: none;
+  margin-top: 4px;
+  overflow: visible;
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+  background: var(--bg-2);
+  box-shadow: none;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-performance.is-collapsed {
+  width: min(420px, calc(100vw - 96px));
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-metrics {
+  order: 1;
+  display: grid !important;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  margin: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-metrics article {
+  min-height: 56px;
+  padding: 8px 10px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-metrics span {
+  min-height: 0;
+  font-size: 7px;
+  letter-spacing: 0;
+  line-height: 1.2;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-metrics strong {
+  margin-top: 5px;
+  font-size: 11px;
+  line-height: 1.15;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-hybrid-state {
+  display: none;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-orchestra {
+  order: 2;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-service-section {
+  order: 3;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-section-heading {
+  order: 0;
+  border-top: 0;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-role-board[data-trace-docked="true"] {
+  order: 1;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  margin: 0;
+  border-inline: 1px solid var(--border);
+  border-radius: 0;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host [data-apu-role-status][data-trace-docked="true"] {
+  order: 2;
+  margin: 0;
+  padding: 7px 12px;
+  border-inline: 1px solid var(--border);
+  color: var(--text-faint);
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-legend {
+  order: 3;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-orchestra__grid {
+  order: 4;
+}
+
+@media (max-width: 1100px) {
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__header {
+    align-items: flex-start;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__header-controls {
+    flex-wrap: wrap;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel__controls {
+    justify-items: start;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-metrics {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-role-board[data-trace-docked="true"] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__header {
+    min-height: 0;
+    padding: 14px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__header h2 {
+    font-size: 34px;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__header-controls {
+    width: 100%;
+    max-width: none;
+    justify-content: flex-start;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel {
+    padding: 10px 14px;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel .symphony-segmented,
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-performance,
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-performance.is-collapsed {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 .symphony-page-host .symphony-button,
 .symphony-page-host .symphony-segmented button,
 .symphony-page-host .symphony-table-action,
@@ -733,13 +1326,106 @@ body.symphony-page { overflow-x: hidden; }
 .symphony-page-host .symphony-visual,
 .symphony-page-host .symphony-table-wrap { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
 .symphony-page-host .symphony-table-wrap { contain: inline-size; }
-.symphony-page-host .symphony-topology,
 .symphony-page-host [data-waveform] { display: block; width: 100%; min-width: 680px; }
+
+/* The desktop board keeps its readable width and the surface scrolls to it.
+   The mobile composition is a different layout, not a scaled one, so it drops
+   the minimum entirely. */
+.symphony-page-host .symphony-topology { display: block; width: 100%; min-width: 1000px; }
+.symphony-page-host .symphony-topology[data-layout="mobile"] { min-width: 0; }
 .symphony-page-host [data-service-table] tr.is-role-highlight { outline: 1px solid rgba(245, 166, 35, .56); outline-offset: -1px; background: rgba(245, 166, 35, .08); }
 
 .symphony-page-host .symphony-source-panel,
 .symphony-page-host .symphony-orchestra,
 .symphony-page-host .symphony-service-section { scroll-margin-top: 112px; }
+
+/* The scope filter and source badge stay reachable while the board scrolls,
+   so the reading of the board is never separated from what produced it. */
+@media (min-width: 701px) {
+  .symphony-page-host .symphony-section-heading__tools {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    padding-block: 8px;
+    background: rgba(10, 10, 15, .92);
+  }
+}
+
+/* ------------------------------------------------- narrow recomposition -- */
+
+@media (max-width: 700px) {
+  /* Eight role states scroll horizontally instead of collapsing into
+     unreadable slivers. */
+  .symphony-role-board {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .symphony-role-board button {
+    flex: 0 0 auto;
+    min-width: 96px;
+    min-height: 44px;
+    scroll-snap-align: start;
+  }
+
+  /* The board no longer scrolls sideways: it is recomposed as carrier bands. */
+  .symphony-page-host .symphony-visual { overflow-x: visible; }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-orchestra__grid {
+    height: auto;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-section-heading__tools {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-section-heading__tools p {
+    max-width: none;
+    text-align: left;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-inspector {
+    position: static;
+    width: auto;
+    max-width: none;
+    max-height: none;
+  }
+
+  /*
+   * The mobile inspector keeps the compact sheet vocabulary while TRACE opens
+   * it only after a chip or row selection.
+   */
+  .symphony-page-host .symphony-inspector {
+    border-top: 2px solid var(--accent);
+    border-radius: 12px 12px 0 0;
+    background: rgba(10, 10, 15, .97);
+    box-shadow: 0 -12px 28px rgba(0, 0, 0, .55);
+  }
+
+  .symphony-page-host .symphony-inspector::before {
+    display: block;
+    width: 36px;
+    height: 4px;
+    margin: 0 auto 10px;
+    border-radius: 2px;
+    background: var(--border);
+    content: "";
+  }
+
+  .symphony-page-host .symphony-table-action,
+  .symphony-page-host .symphony-segmented button { min-height: 44px; }
+}
 
 /* --------------------------------------------------------- side routes -- */
 

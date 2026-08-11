@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="The public activity, deployment, pipeline, timestamp, and provenance evidence supporting Atlas Systems claims.">
+  <meta name="description" content="The public activity, deployment, availability, pipeline, timestamp, and provenance evidence supporting Atlas Systems claims.">
   <meta name="theme-color" content="#0a0a0f">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
@@ -14,7 +14,7 @@
   <link rel="canonical" href="https://atlas-systems.uk/systems/evidence/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Evidence // Atlas Systems">
-  <meta property="og:description" content="Activity, deployment, pipeline, timestamp, and provenance evidence supporting public claims.">
+  <meta property="og:description" content="Activity, deployment, availability, pipeline, timestamp, and provenance evidence supporting public claims.">
   <meta property="og:url" content="https://atlas-systems.uk/systems/evidence/">
   <meta property="og:site_name" content="Atlas Systems">
   <meta property="og:image" content="https://atlas-systems.uk/og/evidence.png">
@@ -27,12 +27,15 @@
   <meta name="twitter:image" content="https://atlas-systems.uk/og/evidence.png">
   <meta name="twitter:image:alt" content="Claims need provenance. // Atlas Systems">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
-  <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260724-maturity-completion">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.5.0/atlas-interface-kit.css">
+  <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260728-lab-context-nav-wrap">
   <link rel="stylesheet" href="/static/css/estate-search.css">
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
   <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h-fixes">
+  <link rel="stylesheet" href="/static/css/systems-detail-surfaces.css?v=20260811-heatmap-compact">
+  <link rel="stylesheet" href="/static/css/systems-evidence-truthfulness.css?v=20260811-heatmap-density">
 </head>
-<body>
+<body class="systems-detail-page" data-systems-detail="evidence">
   <nav aria-label="Primary navigation">
     <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
     <ul class="nav-links">
@@ -43,21 +46,35 @@
   </nav>
   <main class="focus-main">
     <header class="focus-hero">
-      <p class="focus-breadcrumb">Systems / evidence</p>
-      <h1 class="focus-title">What supports the public claims?</h1>
-      <p class="focus-lede">A provenance-first view of recent activity, deployment outcomes, pipeline events, evidence reports, and source timestamps. This surface distinguishes a claim, the record supporting it, and the freshness of that record.</p>
-      <div class="focus-actions">
-        <a class="focus-action primary" href="/systems/reliability/">Reliability evidence</a>
-        <a class="focus-action" href="/systems/observability/">Current observations</a>
-        <a class="focus-action" href="/lab/proof-chain/">Proof Chain</a>
+      <nav class="atlas-breadcrumbs systems-detail-breadcrumbs" aria-label="Breadcrumb">
+        <ol><li><a href="/systems/">Systems</a></li><li aria-current="page">Evidence</li></ol>
+      </nav>
+      <div class="systems-detail-hero-grid">
+        <div class="systems-detail-intro">
+          <p class="systems-detail-kicker">Verify the claim</p>
+          <h1 class="focus-title">What supports the public claims?</h1>
+          <p class="focus-lede">A provenance-first view of recent activity, measured availability, deployment outcomes, pipeline events, evidence reports, and source timestamps. This surface distinguishes a claim, the record supporting it, and the freshness of that record.</p>
+          <div class="focus-actions"><a class="focus-action primary" href="/lab/proof-chain/">Open Proof Chain</a><a class="focus-action" href="https://status.atlas-systems.uk/">Open public status</a></div>
+        </div>
+        <aside class="systems-detail-boundary" aria-labelledby="evidence-boundary-title">
+          <p class="systems-detail-kicker">Provenance boundary</p>
+          <h2 id="evidence-boundary-title">A record can support a claim without proving the whole estate</h2>
+          <dl>
+            <div><dt>Reads</dt><dd>Public activity, raw availability, deployment, pipeline event, and assurance-report records.</dd></div>
+            <div><dt>Separates</dt><dd>Claim, runtime state, evidence mode, supporting record, observation time, source time, and freshness.</dd></div>
+            <div><dt>Freshness</dt><dd>Every source is judged independently. One fresh record cannot mask another stale or unavailable source.</dd></div>
+          </dl>
+        </aside>
       </div>
+      <nav class="systems-detail-sequence" aria-label="Systems evidence sequence">
+        <a href="/systems/observability/"><span>01 // Observe</span><strong>What is happening?</strong></a>
+        <a href="/systems/reliability/"><span>02 // Evaluate</span><strong>Is it reliable?</strong></a>
+        <a href="/systems/evidence/" aria-current="page"><span>03 // Verify</span><strong>What proves it?</strong></a>
+      </nav>
     </header>
 
-    <section class="focus-section" aria-labelledby="evidence-summary-title">
-      <div class="focus-section-head">
-        <div><p class="focus-breadcrumb">Public record</p><h2 id="evidence-summary-title">Evidence summary</h2></div>
-        <p id="evidence-status" class="focus-status-line" data-state="unknown" aria-live="polite">Contacting public evidence sources.</p>
-      </div>
+    <section class="focus-section systems-detail-summary" aria-labelledby="evidence-summary-title">
+      <div class="focus-section-head"><div><p class="systems-detail-kicker">Public record</p><h2 id="evidence-summary-title">Evidence summary</h2></div><p id="evidence-status" class="focus-status-line" data-state="unknown" aria-live="polite">Contacting public evidence sources.</p></div>
       <div class="focus-grid cols-4">
         <article class="focus-metric"><span>Commits in 90 days</span><strong id="summary-commits">unknown</strong></article>
         <article class="focus-metric"><span>Latest deployment</span><strong id="summary-deployment">unknown</strong></article>
@@ -66,77 +83,77 @@
       </div>
     </section>
 
+    <div class="systems-detail-workbench">
+      <section class="systems-detail-panel systems-detail-panel--dominant" aria-labelledby="deployment-title">
+        <div class="focus-section-head"><div><p class="systems-detail-kicker">Primary receipt</p><h2 id="deployment-title">Latest bounded deployment record</h2></div><p id="deployment-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for deploy-watch.</p></div>
+        <span id="deployment-evidence-mode" class="atlas-evidence-mode" data-evidence-mode="unknown">Unknown</span>
+        <dl class="focus-provenance systems-detail-ledger">
+          <div><dt>Outcome</dt><dd id="deploy-outcome">unknown</dd></div>
+          <div><dt>Repository</dt><dd id="deploy-repository">unknown</dd></div>
+          <div><dt>Branch</dt><dd id="deploy-branch">unknown</dd></div>
+          <div><dt>Commit</dt><dd id="deploy-commit">unknown</dd></div>
+          <div><dt>Deployment id</dt><dd id="deploy-id">unknown</dd></div>
+          <div><dt>Started</dt><dd id="deploy-started">unknown</dd></div>
+          <div><dt>Finished</dt><dd id="deploy-finished">unknown</dd></div>
+          <div><dt>Duration</dt><dd id="deploy-duration">unknown</dd></div>
+          <div><dt>Observed at</dt><dd id="deploy-time">unknown</dd></div>
+        </dl>
+      </section>
+      <section class="systems-detail-panel" aria-labelledby="pipeline-title">
+        <div class="focus-section-head"><div><p class="systems-detail-kicker">Supporting sequence</p><h2 id="pipeline-title">Recent CI and deployment events</h2></div><p id="pipeline-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for the bounded event stream.</p></div>
+        <ul id="pipeline-list" class="focus-list"><li><strong>No pipeline events loaded.</strong><span>Empty evidence is not a successful pipeline.</span></li></ul>
+      </section>
+    </div>
+
     <section class="focus-section" aria-labelledby="activity-title">
-      <div class="focus-section-head">
-        <div><p class="focus-breadcrumb">Activity heatmap</p><h2 id="activity-title">Ninety days of public commit evidence</h2></div>
-        <p id="activity-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for the public activity proxy.</p>
-      </div>
-      <div id="activity-heatmap" class="focus-heatmap" role="img" aria-label="Commit activity over the last ninety days"></div>
-      <section class="focus-table-wrap" tabindex="0" aria-label="Commit activity table">
-        <table class="focus-table">
-          <thead><tr><th scope="col">Date</th><th scope="col">Commit count</th><th scope="col">Evidence state</th></tr></thead>
-          <tbody id="activity-rows"><tr><td colspan="3">No activity evidence loaded.</td></tr></tbody>
+      <div class="focus-section-head"><div><p class="systems-detail-kicker">Longitudinal context</p><h2 id="activity-title">Ninety days of public commit evidence</h2></div><p id="activity-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for the public activity proxy.</p></div>
+      <div id="activity-heatmap" class="focus-heatmap" role="img" aria-label="Commit activity over the last ninety calendar days"></div>
+      <details class="systems-evidence-disclosure">
+        <summary>Show complete 90-day evidence table</summary>
+        <section class="focus-table-wrap" tabindex="0" aria-label="Commit activity table"><table class="focus-table"><thead><tr><th scope="col">Date</th><th scope="col">Commit count</th><th scope="col">Evidence state</th></tr></thead><tbody id="activity-rows"><tr><td colspan="3">No activity evidence loaded.</td></tr></tbody></table></section>
+      </details>
+      <p id="activity-note" class="focus-note">The heatmap is a visual summary. Expand the table for the complete keyboard and screen-reader alternative.</p>
+    </section>
+
+    <section class="focus-section" aria-labelledby="availability-title">
+      <div class="focus-section-head"><div><p class="systems-detail-kicker">Availability receipts</p><h2 id="availability-title">Thirty-day measured availability</h2></div><p id="availability-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for raw probe counters.</p></div>
+      <section class="focus-table-wrap" tabindex="0" aria-label="Thirty-day measured availability table">
+        <table class="focus-table systems-availability-table">
+          <thead><tr><th scope="col">Service</th><th scope="col">Coverage</th><th scope="col">Availability</th><th scope="col">Successful probes</th><th scope="col">Average latency</th><th scope="col">Evidence</th></tr></thead>
+          <tbody id="availability-rows"><tr><td colspan="6">No availability evidence loaded.</td></tr></tbody>
         </table>
       </section>
-      <p class="focus-note">The heatmap is a visual summary. The table is the complete keyboard and screen-reader alternative.</p>
+      <p id="availability-note" class="focus-note">Coverage and probe evidence are loading.</p>
     </section>
 
-    <section class="focus-section" aria-labelledby="deployment-title">
-      <div class="focus-section-head">
-        <div><p class="focus-breadcrumb">Deployment ledger</p><h2 id="deployment-title">Latest bounded deployment record</h2></div>
-        <p id="deployment-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for deploy-watch.</p>
-      </div>
-      <dl class="focus-provenance">
-        <div><dt>Outcome</dt><dd id="deploy-outcome">unknown</dd></div>
-        <div><dt>Repository</dt><dd id="deploy-repository">unknown</dd></div>
-        <div><dt>Commit</dt><dd id="deploy-commit">unknown</dd></div>
-        <div><dt>Deployment id</dt><dd id="deploy-id">unknown</dd></div>
-        <div><dt>Observed at</dt><dd id="deploy-time">unknown</dd></div>
-      </dl>
-    </section>
-
-    <section class="focus-section" aria-labelledby="pipeline-title">
-      <div class="focus-section-head">
-        <div><p class="focus-breadcrumb">Pipeline evidence</p><h2 id="pipeline-title">Recent CI and deployment events</h2></div>
-        <p id="pipeline-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for the bounded event stream.</p>
-      </div>
-      <ul id="pipeline-list" class="focus-list"><li><strong>No pipeline events loaded.</strong><span>Empty evidence is not a successful pipeline.</span></li></ul>
-    </section>
-
-    <section class="focus-section" aria-labelledby="reports-title">
-      <div class="focus-section-head">
-        <div><p class="focus-breadcrumb">Report provenance</p><h2 id="reports-title">Published assurance records</h2></div>
-        <p id="reports-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for the public evidence index.</p>
-      </div>
-      <section class="focus-table-wrap" tabindex="0" aria-label="Published assurance records table">
-        <table class="focus-table">
-          <thead><tr><th scope="col">Report</th><th scope="col">State</th><th scope="col">Generated</th><th scope="col">Fingerprint</th></tr></thead>
-          <tbody id="report-rows"><tr><td colspan="4">No assurance records loaded.</td></tr></tbody>
-        </table>
+    <div class="systems-detail-workbench systems-detail-workbench--support">
+      <section class="systems-detail-panel" aria-labelledby="reports-title">
+        <div class="focus-section-head"><div><p class="systems-detail-kicker">Published assurance</p><h2 id="reports-title">Published assurance records</h2></div><p id="reports-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for the public evidence index.</p></div>
+        <section class="focus-table-wrap" tabindex="0" aria-label="Published assurance records table"><table class="focus-table"><thead><tr><th scope="col">Report</th><th scope="col">State</th><th scope="col">Generated</th><th scope="col">Fingerprint</th></tr></thead><tbody id="report-rows"><tr><td colspan="4">No assurance records loaded.</td></tr></tbody></table></section>
       </section>
-    </section>
-
-    <section class="focus-section" aria-labelledby="provenance-title">
-      <div class="focus-section-head">
-        <div><p class="focus-breadcrumb">Source timestamps</p><h2 id="provenance-title">Freshness and provenance</h2></div>
-        <p>Every source is evaluated independently. One fresh source cannot wash a stale or unavailable source green.</p>
-      </div>
-      <dl id="source-provenance" class="focus-provenance">
-        <div><dt>Activity</dt><dd id="source-activity">not loaded</dd></div>
-        <div><dt>Deployment</dt><dd id="source-deployment">not loaded</dd></div>
-        <div><dt>Pipeline</dt><dd id="source-pipeline">not loaded</dd></div>
-        <div><dt>Assurance reports</dt><dd id="source-reports">not loaded</dd></div>
-      </dl>
-      <div class="focus-rail focus-rail-spaced">
-        <a href="https://api.atlas-systems.uk/pulse/heatmap"><strong>Activity JSON</strong><span>/pulse/heatmap</span></a>
-        <a href="https://api.atlas-systems.uk/deploy-watch/latest"><strong>Deployment JSON</strong><span>/deploy-watch/latest</span></a>
-        <a href="https://api.atlas-systems.uk/notify/recent"><strong>Pipeline event JSON</strong><span>/notify/recent</span></a>
-        <a href="https://api.atlas-systems.uk/v1/evidence"><strong>Evidence index JSON</strong><span>/v1/evidence</span></a>
-        <a href="/lab/console/"><strong>Preserved console</strong><span>noindex compatibility route</span></a>
-      </div>
-    </section>
+      <section class="systems-detail-panel" aria-labelledby="provenance-title">
+        <div class="focus-section-head"><div><p class="systems-detail-kicker">Source timestamps</p><h2 id="provenance-title">Freshness and provenance</h2></div><p>Every source is evaluated independently. One fresh source cannot wash a stale or unavailable source green.</p></div>
+        <dl id="source-provenance" class="focus-provenance">
+          <div><dt>Activity</dt><dd id="source-activity">not loaded</dd></div>
+          <div><dt>Availability</dt><dd id="source-availability">not loaded</dd></div>
+          <div><dt>Deployment</dt><dd id="source-deployment">not loaded</dd></div>
+          <div><dt>Pipeline</dt><dd id="source-pipeline">not loaded</dd></div>
+          <div><dt>Assurance reports</dt><dd id="source-reports">not loaded</dd></div>
+        </dl>
+        <div class="focus-rail focus-rail-spaced">
+          <a href="https://api.atlas-systems.uk/pulse/heatmap"><strong>Activity JSON</strong><span>/pulse/heatmap</span></a>
+          <a href="https://api.atlas-systems.uk/v1/slo"><strong>Availability counters</strong><span>/v1/slo</span></a>
+          <a href="https://api.atlas-systems.uk/v1/stats"><strong>Current estate snapshot</strong><span>/v1/stats</span></a>
+          <a href="https://api.atlas-systems.uk/deploy-watch/latest"><strong>Deployment JSON</strong><span>/deploy-watch/latest</span></a>
+          <a href="https://api.atlas-systems.uk/notify/recent"><strong>Pipeline event JSON</strong><span>/notify/recent</span></a>
+          <a href="https://api.atlas-systems.uk/v1/evidence"><strong>Evidence index JSON</strong><span>/v1/evidence</span></a>
+          <a href="/lab/console/"><strong>Preserved console</strong><span>noindex compatibility route</span></a>
+        </div>
+      </section>
+    </div>
   </main>
   <script type="module" src="/static/js/focused-systems-shell.js?v=20260725-batch-h-fixes"></script>
-  <script type="module" src="/systems/evidence/evidence.js?v=20260725-batch-h"></script>
+  <script type="module" src="/systems/evidence/evidence.js?v=20260811-pipeline-cap"></script>
+  <script type="module" src="/systems/evidence/receipts.js?v=20260810-evidence-truthfulness"></script>
 </body>
 </html>

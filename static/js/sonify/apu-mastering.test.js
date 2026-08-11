@@ -21,8 +21,10 @@ test("mastering policy applies the measured browser calibration without burying 
   assert.equal(APU_MASTERING_PROFILES.healthy.masterGainDb, 4);
   assert.equal(APU_MASTERING_PROFILES.warning.masterGainDb, 4);
   assert.equal(APU_MASTERING_PROFILES.critical.masterGainDb, 4);
-  assert.equal(APU_MASTERING_PROFILES.unknown.masterGainDb, 4);
-  assert.equal(APU_MASTERING_PROFILES.unknown.targetIntegratedLufs, -27);
+  assert.equal(APU_MASTERING_PROFILES.unknown.masterGainDb, 11.5);
+  assert.equal(APU_MASTERING_PROFILES.unknown.masterGainDb - APU_MASTERING_PROFILES.healthy.masterGainDb, 7.5);
+  assert.equal(APU_MASTERING_PROFILES.unknown.targetIntegratedLufs, -24);
+  assert.equal(APU_MASTERING_PROFILES.unknown.toleranceDb, 3);
   assert.ok(APU_MASTERING_PROFILES.unknown.programmeTrimDb > APU_MASTERING_PROFILES.healthy.programmeTrimDb);
 });
 
@@ -35,10 +37,11 @@ test("programme trims reconcile exactly with the original state gains", () => {
 test("target windows remain state-specific and deterministic", () => {
   assert.deepEqual(masteringTargetWindow("healthy"), { minimumLufs: -26, maximumLufs: -18 });
   assert.deepEqual(masteringTargetWindow("critical"), { minimumLufs: -23, maximumLufs: -15 });
-  assert.deepEqual(masteringTargetWindow("unknown"), { minimumLufs: -32, maximumLufs: -22 });
+  assert.deepEqual(masteringTargetWindow("unknown"), { minimumLufs: -27, maximumLufs: -21 });
   assert.equal(isWithinMasteringTarget("healthy", -22), true);
   assert.equal(isWithinMasteringTarget("healthy", -30), false);
-  assert.equal(isWithinMasteringTarget("unknown", -27), true);
+  assert.equal(isWithinMasteringTarget("unknown", -24), true);
+  assert.equal(isWithinMasteringTarget("unknown", -30), false);
 });
 
 test("unknown remains the safe fallback profile", () => {

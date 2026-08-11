@@ -26,6 +26,40 @@ import {
   APU_MASTERING_LIMITER_CEILING_DB,
 } from "./apu-mastering.js?v=20260726-system-symphony-mastering-v4";
 
+// Pass C v3 wiring imports -------------------------------------------
+import {
+  tanhCurve,
+  quantiseCurve8Bit,
+  setSoftClipperDrive as setChipSoftClipperDrive,
+} from "./apu-soft-clipper.js?v=20260727-apu-soft-clipper-v1";
+import { createDrumSculptorKit } from "./apu-drum-sculptor.js?v=20260727-apu-drum-sculptor-v1";
+import {
+  chipWaveKindForDuty,
+  createRawChipVoice,
+  extractRawContext,
+} from "./apu-chip-voice-adapter.js?v=20260727-apu-chip-voice-adapter-v2";
+import { masterStageProfileForState } from "./apu-master-stage-profiles.js?v=20260727-apu-master-stage-profiles-v1";
+import { createPerformanceDirector } from "./apu-performance-director-v4.js?v=20260727-apu-performance-director-v4";
+import { mixDirectiveFor } from "./apu-mix-director.js?v=20260727-apu-mix-director-v1";
+import {
+  APU_MIX_WIRING_BUILD_ID,
+  attachMixWiring,
+  createMixBus,
+} from "./apu-mix-wiring.js?v=20260727-apu-mix-wiring-v2";
+import {
+  ornamentInstructionsForPhrase,
+  shouldOmitForPhase,
+  supplementalRhythmForDensity,
+  velocityScaleForDensity,
+} from "./apu-performance-conductor.js?v=20260727-apu-performance-conductor-v2";
+import { conductServiceEvent } from "./apu-service-voice-conductor.js?v=20260727-apu-service-voice-conductor-v2";
+import {
+  createReplaySongCursor,
+  createReplaySongPlan,
+  performancePlanForReplayMovement,
+  replayFrameForMovement,
+} from "./apu-replay-song.js?v=20260727-apu-replay-song-v3";
+
 export const APU_TRACK_AUDIO_START_TIMEOUT_MS = 8000;
 export const APU_TRACK_DEFAULT_GAIN = APU_MASTERING_DEFAULT_USER_GAIN;
 export const APU_TRACK_WAVEFORM_SIZE = 512;
@@ -35,6 +69,7 @@ export const APU_TRACK_BPM = 100;
 export const APU_TRACK_CRITICAL_CHOKE_SECONDS = 0.09;
 export const APU_TRACK_PULSE_WIDTH_LEAD_SECONDS = 0.028;
 export const APU_TRACK_TRANSITION_ORNAMENT_OFFSET_SECONDS = 0.012;
+export const APU_TRACK_PASS_C_V3_BUILD_ID = "20260727-apu-track-engine-pass-c-v3";
 
 function requireTone() {
   const Tone = globalThis.Tone;
@@ -93,53 +128,54 @@ async function startToneWithTimeout(Tone) {
   }
 }
 
-function setBits(crusher, bits) {
-  if (!crusher?.bits) return;
-  const value = Math.round(clamp(bits, 4, 16));
-  if (crusher.bits.value !== value) crusher.bits.value = value;
-}
-
 function setPulseWidth(synth, width, at = undefined) {
+  const bounded = clamp(width, 0.08, 0.75);
+  if (typeof synth?.setDutyCycle === "function") {
+    synth.setDutyCycle(bounded, at);
+    return;
+  }
   const parameter = synth?.oscillator?.width;
-  if (parameter) safeRamp(parameter, clamp(width, 0.08, 0.75), 0.04, at);
+  if (parameter) safeRamp(parameter, bounded, 0.04, at);
 }
-
 function pulseWidthLeadTime(time) {
   return Number.isFinite(time)
     ? Math.max(0, time - APU_TRACK_PULSE_WIDTH_LEAD_SECONDS)
     : undefined;
 }
 
+/**
+ * Service voice: each service in the pool gets a chip-wave oscillator via
+ * the chip voice adapter. The oscillator kind is chosen from the same
+ * four-wave rotation as before but now uses the Part 1 factories.
+ */
 function createServiceVoice(Tone, output, index) {
-  const oscillators = [
-    { type: "pulse", width: 0.25 },
-    { type: "triangle" },
-    { type: "sawtooth" },
-    { type: "square" },
-  ];
-  const oscillator = oscillators[index % oscillators.length];
-  const synth = new Tone.Synth({
-    oscillator,
-    envelope: {
-      attack: index % 2 === 0 ? 0.003 : 0.012,
-      decay: index % 3 === 0 ? 0.055 : 0.09,
-      sustain: index % 2 === 0 ? 0.12 : 0.22,
-      release: index % 3 === 0 ? 0.08 : 0.16,
-    },
-    volume: -17,
-  });
+  const layers = ["primary", "secondary", "pad", "accent", "bass"];
+  const kinds = ["pulse-hollow", "triangle-4bit", "vrc6-sawtooth", "pulse-square", "pulse-narrow"];
+  const layer = layers[index % layers.length];
+  const chipKind = kinds[index % kinds.length];
   const filter = new Tone.Filter({
     type: index % 3 === 1 ? "bandpass" : "lowpass",
     frequency: 2800 + index * 180,
     Q: index % 3 === 1 ? 1.8 : 0.7,
     rolloff: -24,
   });
-  const panner = new Tone.Panner(0);
+  const basePan = ((index % 4) - 1.5) * 0.22;
+  const panner = new Tone.Panner(basePan);
   const gain = new Tone.Gain(index % 2 === 0 ? 0.64 : 0.52);
-  synth.chain(filter, panner, gain, output);
-  return { synth, filter, panner, gain, oscillatorType: oscillator.type };
+  filter.chain(panner, gain, output);
+  const synth = createRawChipVoice(Tone, filter, {
+    waveKind: chipKind,
+    envelope: {
+      attack: index % 2 === 0 ? 0.003 : 0.012,
+      decay: index % 3 === 0 ? 0.055 : 0.09,
+      sustain: index % 2 === 0 ? 0.12 : 0.22,
+      release: index % 3 === 0 ? 0.08 : 0.16,
+    },
+    volumeDb: -17,
+    maxVoices: 4,
+  });
+  return { synth, filter, panner, gain, chipKind, layer, basePan };
 }
-
 function stateKey(frame) {
   const value = String(frame?.scoreState ?? "unknown");
   return ["healthy", "warning", "critical", "unknown"].includes(value) ? value : "unknown";
@@ -162,8 +198,10 @@ export function createApuTrackEngine({
   let running = false;
   let disposed = false;
   let currentFrame = null;
+  let currentScoreFrame = null;
   let pendingFrame = null;
   let currentDirectorPlan = null;
+  let currentPerfPlan = null;
   let currentArrangement = null;
   let trackPhraseIndex = -1;
   let stepIndex = 0;
@@ -176,8 +214,12 @@ export function createApuTrackEngine({
   let currentEngineControls = engineControlsForFrame();
 
   const director = createCompositionDirector({ seed: "ATLAS-APU-TRACK" });
+  const perfDirector = createPerformanceDirector({ seed: "ATLAS-APU-PERF-V4" });
+  let mixWiring = null;
+  let currentReplayPlan = null;
+  let replayCursor = null;
+  let currentReplayMovement = null;
   const channelFailures = new Map();
-  const scheduledCueIds = new Set();
   const nodes = {};
   let serviceVoices = [];
 
@@ -198,9 +240,21 @@ export function createApuTrackEngine({
   }
 
   function buildGraph(Tone) {
+    const rawContext = extractRawContext(Tone);
+    if (!rawContext) throw new Error("system-symphony-apu-track: raw AudioContext unavailable");
+
+    // Master: buses -> colour -> dynamics -> DAC -> clipper -> limiter.
     nodes.output = new Tone.Gain(0).toDestination();
     nodes.limiter = new Tone.Limiter(APU_MASTERING_LIMITER_CEILING_DB);
+    nodes.softClipper = new Tone.WaveShaper(Array.from(tanhCurve(1.35)));
+    nodes.softClipper.oversample = "2x";
+    nodes.masterDac = new Tone.WaveShaper(Array.from(quantiseCurve8Bit()));
+    nodes.masterDac.oversample = "none";
+    nodes.masterDacDry = new Tone.Gain(0.94);
+    nodes.masterDacWet = new Tone.Gain(0.06);
+    nodes.masterDacMix = new Tone.Gain(1);
     nodes.compressor = new Tone.Compressor({ threshold: -18, ratio: 1.7, attack: 0.022, release: 0.24 });
+    nodes.softenerShelf = new Tone.Filter({ type: "highshelf", frequency: 4200, gain: -0.8, Q: 0.6 });
     nodes.masterFilter = new Tone.Filter({ type: "lowpass", frequency: 9000, rolloff: -24, Q: 0.7 });
     nodes.masterHighpass = new Tone.Filter({ type: "highpass", frequency: 24, rolloff: -12, Q: 0.5 });
     nodes.masterVolume = new Tone.Volume(-10);
@@ -209,10 +263,14 @@ export function createApuTrackEngine({
       nodes.masterVolume,
       nodes.masterHighpass,
       nodes.masterFilter,
+      nodes.softenerShelf,
       nodes.compressor,
-      nodes.limiter,
-      nodes.output,
     );
+    nodes.compressor.connect(nodes.masterDacDry);
+    nodes.compressor.chain(nodes.masterDac, nodes.masterDacWet);
+    nodes.masterDacDry.connect(nodes.masterDacMix);
+    nodes.masterDacWet.connect(nodes.masterDacMix);
+    nodes.masterDacMix.chain(nodes.softClipper, nodes.limiter, nodes.output);
 
     nodes.waveform = new Tone.Analyser("waveform", APU_TRACK_WAVEFORM_SIZE);
     nodes.spectrum = new Tone.Analyser("fft", APU_TRACK_SPECTRUM_SIZE);
@@ -222,115 +280,97 @@ export function createApuTrackEngine({
     nodes.melodyBus = new Tone.Gain(0.9).connect(nodes.chipBus);
     nodes.chipColor = new Tone.BitCrusher(12);
     nodes.chipColor.wet.value = 0.08;
-    nodes.primaryBus = new Tone.Gain(0).connect(nodes.melodyBus);
-    nodes.secondaryBus = new Tone.Gain(0).connect(nodes.melodyBus);
-    nodes.serviceBus = new Tone.Gain(0);
-    nodes.serviceBus.chain(nodes.chipColor, nodes.melodyBus);
-    nodes.bassBus = new Tone.Gain(0).connect(nodes.chipBus);
-    nodes.drumBus = new Tone.Gain(0).connect(nodes.chipBus);
-    nodes.padBus = new Tone.Gain(0).connect(nodes.chipBus);
-    nodes.accentBus = new Tone.Gain(0).connect(nodes.chipBus);
+    nodes.chipColor.connect(nodes.melodyBus);
 
     nodes.delay = new Tone.FeedbackDelay({ delayTime: "8n", feedback: 0.13, wet: 1 });
     nodes.delaySend = new Tone.Gain(0.06);
     nodes.delayReturn = new Tone.Gain(0.08).connect(nodes.chipBus);
     nodes.delaySend.chain(nodes.delay, nodes.delayReturn);
-    nodes.primaryBus.connect(nodes.delaySend);
-    nodes.secondaryBus.connect(nodes.delaySend);
-
     nodes.reverb = new Tone.Freeverb({ roomSize: 0.7, dampening: 3900, wet: 1 });
     nodes.reverbSend = new Tone.Gain(0.1);
     nodes.reverbReturn = new Tone.Gain(0.1).connect(nodes.chipBus);
     nodes.reverbSend.chain(nodes.reverb, nodes.reverbReturn);
-    nodes.padBus.connect(nodes.reverbSend);
-    nodes.accentBus.connect(nodes.reverbSend);
 
-    nodes.primary = new Tone.Synth({
-      oscillator: { type: "pulse", width: 0.5 },
-      envelope: { attack: 0.006, decay: 0.075, sustain: 0.2, release: 0.13 },
-      volume: -12,
+    nodes.mixBuses = Object.freeze({
+      primary: createMixBus(Tone, { name: "primary", downstream: nodes.melodyBus, auxiliarySends: [nodes.delaySend] }),
+      secondary: createMixBus(Tone, { name: "secondary", downstream: nodes.melodyBus, auxiliarySends: [nodes.delaySend] }),
+      services: createMixBus(Tone, { name: "services", downstream: nodes.chipColor }),
+      bass: createMixBus(Tone, { name: "bass", downstream: nodes.chipBus }),
+      drums: createMixBus(Tone, { name: "drums", downstream: nodes.chipBus }),
+      pad: createMixBus(Tone, { name: "pad", downstream: nodes.chipBus, auxiliarySends: [nodes.reverbSend] }),
+      accent: createMixBus(Tone, { name: "accent", downstream: nodes.chipBus, auxiliarySends: [nodes.reverbSend] }),
     });
+    nodes.primaryBus = nodes.mixBuses.primary.input;
+    nodes.secondaryBus = nodes.mixBuses.secondary.input;
+    nodes.serviceBus = nodes.mixBuses.services.input;
+    nodes.bassBus = nodes.mixBuses.bass.input;
+    nodes.drumBus = nodes.mixBuses.drums.input;
+    nodes.padBus = nodes.mixBuses.pad.input;
+    nodes.accentBus = nodes.mixBuses.accent.input;
+
     nodes.primaryFilter = new Tone.Filter({ type: "lowpass", frequency: 4800, Q: 1.25, rolloff: -24 });
     nodes.primaryPanner = new Tone.Panner(-0.2);
-    nodes.primary.chain(nodes.primaryFilter, nodes.primaryPanner, nodes.primaryBus);
-
-    nodes.secondary = new Tone.FMSynth({
-      harmonicity: 1.5,
-      modulationIndex: 3.2,
-      oscillator: { type: "pulse", width: 0.25 },
-      modulation: { type: "square" },
-      envelope: { attack: 0.003, decay: 0.08, sustain: 0.08, release: 0.12 },
-      modulationEnvelope: { attack: 0.002, decay: 0.06, sustain: 0.12, release: 0.1 },
-      volume: -16,
+    nodes.primaryFilter.chain(nodes.primaryPanner, nodes.primaryBus);
+    nodes.primary = createRawChipVoice(Tone, nodes.primaryFilter, {
+      waveKind: "pulse-square",
+      envelope: { attack: 0.006, decay: 0.075, sustain: 0.2, release: 0.13 },
+      volumeDb: -12,
+      maxVoices: 8,
     });
+
     nodes.secondaryFilter = new Tone.Filter({ type: "bandpass", frequency: 3300, Q: 1.1, rolloff: -24 });
     nodes.secondaryPanner = new Tone.Panner(0.2);
-    nodes.secondary.chain(nodes.secondaryFilter, nodes.secondaryPanner, nodes.secondaryBus);
+    nodes.secondaryFilter.chain(nodes.secondaryPanner, nodes.secondaryBus);
+    nodes.secondary = createRawChipVoice(Tone, nodes.secondaryFilter, {
+      waveKind: "pulse-hollow",
+      envelope: { attack: 0.003, decay: 0.08, sustain: 0.08, release: 0.12 },
+      volumeDb: -16,
+      maxVoices: 6,
+    });
 
-    nodes.bass = new Tone.MonoSynth({
-      oscillator: { type: "triangle" },
-      filter: { type: "lowpass", Q: 0.5, rolloff: -24 },
+    nodes.bass = createRawChipVoice(Tone, nodes.bassBus, {
+      waveKind: "triangle-4bit",
       envelope: { attack: 0.004, decay: 0.08, sustain: 0.68, release: 0.12 },
-      filterEnvelope: {
-        attack: 0.006,
-        decay: 0.08,
-        sustain: 0.56,
-        release: 0.1,
-        baseFrequency: 72,
-        octaves: 1.25,
-      },
-      volume: -11,
-    }).connect(nodes.bassBus);
+      volumeDb: -11,
+      maxVoices: 4,
+    });
 
     nodes.pad = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: "sine" },
       envelope: { attack: 0.16, decay: 0.36, sustain: 0.5, release: 1.2 },
       volume: -22,
     });
-    nodes.padSub = new Tone.MonoSynth({
-      oscillator: { type: "square" },
-      filter: { type: "lowpass", frequency: 310, Q: 0.8, rolloff: -24 },
-      envelope: { attack: 0.004, decay: 0.075, sustain: 0.08, release: 0.06 },
-      volume: -18,
-    });
     nodes.padFilter = new Tone.Filter({ type: "lowpass", frequency: 3800, Q: 0.5, rolloff: -24 });
     nodes.pad.connect(nodes.padFilter);
-    nodes.padSub.connect(nodes.padFilter);
     nodes.padFilter.connect(nodes.padBus);
+    nodes.padSub = createRawChipVoice(Tone, nodes.padFilter, {
+      waveKind: "pulse-square",
+      envelope: { attack: 0.004, decay: 0.075, sustain: 0.08, release: 0.06 },
+      volumeDb: -18,
+      maxVoices: 3,
+    });
 
-    nodes.kick = new Tone.MembraneSynth({
-      pitchDecay: 0.028,
-      octaves: 2.6,
-      envelope: { attack: 0.002, decay: 0.14, sustain: 0, release: 0.12 },
-      volume: -11,
-    }).connect(nodes.drumBus);
-    nodes.snare = new Tone.NoiseSynth({
-      noise: { type: "white" },
-      envelope: { attack: 0.003, decay: 0.064, sustain: 0, release: 0.025 },
-      volume: -19,
-    }).connect(nodes.drumBus);
-    nodes.hat = new Tone.NoiseSynth({
-      noise: { type: "white" },
-      envelope: { attack: 0.002, decay: 0.018, sustain: 0 },
-      volume: -30,
-    });
-    nodes.openHat = new Tone.NoiseSynth({
-      noise: { type: "white" },
-      envelope: { attack: 0.003, decay: 0.08, sustain: 0, release: 0.032 },
-      volume: -31,
-    });
     nodes.hatFilter = new Tone.Filter({ type: "highpass", frequency: 6100, Q: 0.5, rolloff: -24 });
-    nodes.hat.connect(nodes.hatFilter);
-    nodes.openHat.connect(nodes.hatFilter);
     nodes.hatFilter.connect(nodes.drumBus);
-
-    nodes.noiseAccent = new Tone.NoiseSynth({
-      noise: { type: "pink" },
-      envelope: { attack: 0.004, decay: 0.095, sustain: 0, release: 0.045 },
-      volume: -25,
-    });
     nodes.noiseAccentFilter = new Tone.Filter({ type: "bandpass", frequency: 1500, Q: 1.35 });
-    nodes.noiseAccent.chain(nodes.noiseAccentFilter, nodes.accentBus);
+    nodes.noiseAccentFilter.connect(nodes.accentBus);
+    nodes.rawDrumBridge = rawContext.createGain();
+    nodes.rawHatBridge = rawContext.createGain();
+    nodes.rawAccentBridge = rawContext.createGain();
+    Tone.connect(nodes.rawDrumBridge, nodes.drumBus);
+    Tone.connect(nodes.rawHatBridge, nodes.hatFilter);
+    Tone.connect(nodes.rawAccentBridge, nodes.noiseAccentFilter);
+    nodes.drumKit = createDrumSculptorKit(rawContext, {
+      kickOutput: nodes.rawDrumBridge,
+      snareOutput: nodes.rawDrumBridge,
+      hatOutput: nodes.rawHatBridge,
+      accentOutput: nodes.rawAccentBridge,
+    }, { mode: "polished", state: stateKey(currentScoreFrame ?? currentFrame), bpm: APU_TRACK_BPM });
+    nodes.kick = nodes.drumKit.kick;
+    nodes.snare = nodes.drumKit.snare;
+    nodes.hat = nodes.drumKit.hat;
+    nodes.openHat = nodes.drumKit.openHat;
+    nodes.noiseAccent = nodes.drumKit.noiseAccent;
 
     nodes.telemetryHum = new Tone.Oscillator({ frequency: 55, type: "sine", volume: -34 });
     nodes.telemetryHumFilter = new Tone.Filter({ type: "lowpass", frequency: 240, Q: 0.8, rolloff: -24 });
@@ -338,27 +378,38 @@ export function createApuTrackEngine({
     nodes.telemetryHum.chain(nodes.telemetryHumFilter, nodes.telemetryHumGain, nodes.accentBus);
     nodes.telemetryHum.start();
 
-    nodes.deployment = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: "triangle" },
+    nodes.deployment = createRawChipVoice(Tone, nodes.accentBus, {
+      waveKind: "vrc6-sawtooth",
       envelope: { attack: 0.002, decay: 0.1, sustain: 0.16, release: 0.24 },
-      volume: -12,
-    }).connect(nodes.accentBus);
-    nodes.incident = new Tone.Synth({
-      oscillator: { type: "square" },
+      volumeDb: -12,
+      maxVoices: 8,
+    });
+    nodes.incident = createRawChipVoice(Tone, nodes.accentBus, {
+      waveKind: "pulse-narrow",
       envelope: { attack: 0.001, decay: 0.045, sustain: 0.04, release: 0.035 },
-      volume: -15,
-    }).connect(nodes.accentBus);
+      volumeDb: -15,
+      maxVoices: 8,
+    });
 
     serviceVoices = Array.from(
       { length: APU_TRACK_SERVICE_POOL },
       (_, index) => createServiceVoice(Tone, nodes.serviceBus, index),
     );
 
+    mixWiring = attachMixWiring(Tone, {
+      buses: nodes.mixBuses,
+      masterFilter: nodes.masterFilter,
+      softenerShelf: nodes.softenerShelf,
+      compressor: nodes.compressor,
+      primaryPanner: nodes.primaryPanner,
+      secondaryPanner: nodes.secondaryPanner,
+      servicePanners: serviceVoices.map((voice) => ({ panner: voice.panner, basePan: voice.basePan })),
+    });
+
     nodes.transport = Tone.getTransport();
     nodes.schedulerId = nodes.transport.scheduleRepeat(onStep, "16n");
     initialized = true;
   }
-
   function barDurationSeconds() {
     return 240 / APU_TRACK_BPM;
   }
@@ -371,47 +422,64 @@ export function createApuTrackEngine({
     const timbre = currentArrangement.timbre ?? {};
     const scoreTimbre = currentEngineControls.timbre;
     const compression = compressionForRange(timbre.dynamicRangeDb ?? 12);
+    const state = stateKey(frame);
+    const perfPhase = currentPerfPlan?.phase ?? "groove";
+    nodes.drumKit?.setState?.(state);
+    const masterStage = masterStageProfileForState(state);
+    setChipSoftClipperDrive(nodes.softClipper, masterStage.drive);
+    safeRamp(nodes.masterDacWet.gain, masterStage.quantiseWet, duration, at);
+    safeRamp(nodes.masterDacDry.gain, 1 - masterStage.quantiseWet, duration, at);
+    mixWiring?.applyDirective(mixDirectiveFor({ state, phase: perfPhase }), {
+      at,
+      duration,
+      compressionTarget: compression,
+      safeRamp,
+    });
     safeRamp(nodes.transport.bpm, APU_TRACK_BPM, 0.08, at);
     safeRamp(nodes.masterVolume.volume, timbre.masterGainDb ?? scene.masterGainDb, duration, at);
     safeRamp(nodes.masterFilter.frequency, scene.masterFilterHz * (scoreTimbre?.masterFilterScale ?? 1), duration, at);
     safeRamp(nodes.masterHighpass.frequency, scene.masterHpHz * (scoreTimbre?.masterHighpassScale ?? 1), duration, at);
     safeRamp(nodes.primaryFilter.Q, scoreTimbre?.leadFilterQ ?? 1.25, duration, at);
     safeRamp(nodes.secondaryFilter.Q, scoreTimbre?.counterFilterQ ?? 1.1, duration, at);
-    safeRamp(nodes.compressor.threshold, compression.threshold, duration, at);
-    safeRamp(nodes.compressor.ratio, compression.ratio, duration, at);
-    safeRamp(nodes.compressor.attack, compression.attack, duration, at);
-    safeRamp(nodes.compressor.release, compression.release, duration, at);
     setBits(nodes.chipColor, scoreTimbre?.chipBits ?? profile.crusherBits);
     safeRamp(nodes.chipColor.wet, scoreTimbre?.chipWet ?? profile.crusherWet, duration, at);
     safeRamp(nodes.delayReturn.gain, scoreTimbre?.delayGain ?? profile.delayWet, duration, at);
     safeRamp(nodes.reverbReturn.gain, scoreTimbre?.reverbGain ?? profile.reverbWet, duration, at);
     safeRamp(nodes.hatFilter.frequency, scoreTimbre?.hatFilterHz ?? Math.max(2800, profile.noiseBrightnessHz), duration, at);
     safeRamp(nodes.noiseAccentFilter.frequency, scoreTimbre?.noiseAccentFilterHz ?? 1500, duration, at);
-    safeRamp(nodes.telemetryHumGain.gain, scoreTimbre?.telemetryHumGain ?? (stateKey(frame) === "unknown" ? 0.045 : 0), duration, at);
+    safeRamp(nodes.telemetryHumGain.gain, scoreTimbre?.telemetryHumGain ?? (state === "unknown" ? 0.045 : 0), duration, at);
   }
-
   function applyArrangementMix(at = undefined, duration = 0.18) {
     if (!currentArrangement) return;
     const mix = currentArrangement.mix;
     const timbre = currentArrangement.timbre ?? {};
     const scoreBuses = currentEngineControls.buses;
     const scoreTimbre = currentEngineControls.timbre;
-    const width = clamp(timbre.stereoWidth ?? 0.5, 0, 1);
-    safeRamp(nodes.primaryBus.gain, clamp(mix.primary * (scoreBuses?.primary ?? 1), 0, 1), duration, at);
-    safeRamp(nodes.secondaryBus.gain, clamp(mix.secondary * (scoreBuses?.secondary ?? 1), 0, 1), duration, at);
-    safeRamp(nodes.serviceBus.gain, clamp(mix.services * (scoreBuses?.services ?? 1), 0, 1), duration, at);
-    safeRamp(nodes.bassBus.gain, clamp(mix.bass * (scoreBuses?.bass ?? 1), 0, 1), duration, at);
-    safeRamp(nodes.drumBus.gain, clamp(mix.drums * (scoreBuses?.drums ?? 1), 0, 1), duration, at);
-    safeRamp(nodes.padBus.gain, clamp(mix.pad * (scoreBuses?.pad ?? 1), 0, 1), duration, at);
-    safeRamp(nodes.accentBus.gain, clamp(mix.accent * (scoreBuses?.accent ?? 1), 0, 1), duration, at);
+    const m = (name) => mixWiring?.getGainMultiplier(name) ?? 1;
+    safeRamp(nodes.primaryBus.gain, clamp(mix.primary * (scoreBuses?.primary ?? 1) * m("primary"), 0, 1), duration, at);
+    safeRamp(nodes.secondaryBus.gain, clamp(mix.secondary * (scoreBuses?.secondary ?? 1) * m("secondary"), 0, 1), duration, at);
+    safeRamp(nodes.serviceBus.gain, clamp(mix.services * (scoreBuses?.services ?? 1) * m("services"), 0, 1), duration, at);
+    safeRamp(nodes.bassBus.gain, clamp(mix.bass * (scoreBuses?.bass ?? 1) * m("bass"), 0, 1), duration, at);
+    safeRamp(nodes.drumBus.gain, clamp(mix.drums * (scoreBuses?.drums ?? 1) * m("drums"), 0, 1), duration, at);
+    safeRamp(nodes.padBus.gain, clamp(mix.pad * (scoreBuses?.pad ?? 1) * m("pad"), 0, 1), duration, at);
+    safeRamp(nodes.accentBus.gain, clamp(mix.accent * (scoreBuses?.accent ?? 1) * m("accent"), 0, 1), duration, at);
     safeRamp(nodes.primaryFilter.frequency, (timbre.leadCutoffHz ?? 4800) * (scoreTimbre?.leadFilterScale ?? 1), duration, at);
     safeRamp(nodes.secondaryFilter.frequency, (timbre.counterCutoffHz ?? 3300) * (scoreTimbre?.counterFilterScale ?? 1), duration, at);
-    const scene = sceneForFrame(currentFrame, currentDirectorPlan);
+    const scene = sceneForFrame(currentScoreFrame ?? currentFrame, currentDirectorPlan);
     safeRamp(nodes.padFilter.frequency, scene.profile.padCutoffHz * (timbre.padCutoffScale ?? 1) * (scoreTimbre?.padFilterScale ?? 1), duration, at);
-    safeRamp(nodes.primaryPanner.pan, -0.42 * width, duration, at);
-    safeRamp(nodes.secondaryPanner.pan, 0.42 * width, duration, at);
-    setPulseWidth(nodes.primary, scoreTimbre?.primaryDutyCycle ?? timbre.primaryDutyCycle ?? 0.5, at);
-    setPulseWidth(nodes.secondary, scoreTimbre?.counterDutyCycle ?? timbre.counterDutyCycle ?? 0.25, at);
+  }
+  function emitArrangement(at) {
+    requireTone().Draw.schedule(() => onArrangement?.({
+      arrangement: currentArrangement,
+      scene: sceneForFrame(currentScoreFrame ?? currentFrame, currentDirectorPlan),
+      cycleProgress: `${currentArrangement.cyclePhrase + 1}/${APU_TRACK_PHRASES}`,
+    }), at);
+  }
+
+  function setBits(crusher, bits) {
+    if (!crusher?.bits) return;
+    const value = Math.round(clamp(bits, 4, 16));
+    if (crusher.bits.value !== value) crusher.bits.value = value;
   }
 
   function applyStateTransition(previousFrame, nextFrame, at) {
@@ -434,115 +502,239 @@ export function createApuTrackEngine({
     return 0.28;
   }
 
-  function emitArrangement(at) {
-    requireTone().Draw.schedule(() => onArrangement?.({
-      arrangement: currentArrangement,
-      scene: sceneForFrame(currentFrame, currentDirectorPlan),
-      cycleProgress: `${currentArrangement.cyclePhrase + 1}/${APU_TRACK_PHRASES}`,
-    }), at);
+  function replayMovementForCurrentBar() {
+    if (!replayCursor || replayCursor.isFinished()) return null;
+    return replayCursor.movementForBar(replayCursor.getBar());
+  }
+
+  function refreshScoreFrame() {
+    currentReplayMovement = replayMovementForCurrentBar();
+    currentScoreFrame = currentReplayMovement
+      ? replayFrameForMovement(currentFrame, currentReplayMovement, currentReplayPlan?.sourceLabel)
+      : currentFrame;
+    return currentScoreFrame;
+  }
+
+  function advanceReplayBar() {
+    if (!replayCursor || replayCursor.isFinished()) return;
+    replayCursor.advance(1);
   }
 
   function commitPhrase(at) {
-    const previousFrame = currentFrame;
+    const previousScoreFrame = currentScoreFrame ?? currentFrame;
     if (pendingFrame) {
       currentFrame = pendingFrame;
       pendingFrame = null;
     }
     if (!currentFrame) return;
-    director.observe(currentFrame);
+    const scoreFrame = refreshScoreFrame();
+    director.observe(scoreFrame);
+    perfDirector.observe(scoreFrame);
     currentDirectorPlan = director.advancePhrase();
+    const basePerfPlan = perfDirector.advancePhrase();
+    currentPerfPlan = performancePlanForReplayMovement(basePerfPlan, currentReplayMovement);
     trackPhraseIndex += 1;
-    currentArrangement = arrangementForPhrase(currentFrame, currentDirectorPlan, trackPhraseIndex);
-    const duration = applyStateTransition(previousFrame, currentFrame, at);
-    applyScene(currentFrame, at, duration);
+    currentArrangement = arrangementForPhrase(scoreFrame, currentDirectorPlan, trackPhraseIndex);
+    const duration = applyStateTransition(previousScoreFrame, scoreFrame, at);
+    applyScene(scoreFrame, at, duration);
     applyArrangementMix(at, duration);
+    scheduleOrnamentsForPhrase(at);
     emitArrangement(at);
   }
-
   function commitBarFrame(at) {
-    if (!pendingFrame || !currentFrame || trackPhraseIndex < 0) return;
-    const previousFrame = currentFrame;
-    currentFrame = pendingFrame;
-    pendingFrame = null;
-    director.observe(currentFrame);
-    currentArrangement = arrangementForPhrase(currentFrame, currentDirectorPlan, trackPhraseIndex);
-    const duration = applyStateTransition(previousFrame, currentFrame, at);
-    applyScene(currentFrame, at, duration);
+    if (!currentFrame || trackPhraseIndex < 0) return;
+    const previousScoreFrame = currentScoreFrame ?? currentFrame;
+    if (pendingFrame) {
+      currentFrame = pendingFrame;
+      pendingFrame = null;
+    }
+    const scoreFrame = refreshScoreFrame();
+    director.observe(scoreFrame);
+    perfDirector.observe(scoreFrame);
+    currentPerfPlan = performancePlanForReplayMovement(currentPerfPlan, currentReplayMovement);
+    currentArrangement = arrangementForPhrase(scoreFrame, currentDirectorPlan, trackPhraseIndex);
+    const duration = applyStateTransition(previousScoreFrame, scoreFrame, at);
+    applyScene(scoreFrame, at, duration);
     applyArrangementMix(at, duration);
     emitArrangement(at);
   }
-
-  function playRhythm(time, step) {
-    const events = rhythmEventsForTrackStep(currentFrame, currentArrangement, step);
-    if (events.kick) nodes.kick.triggerAttackRelease("F1", "16n", time, events.kick.velocity);
-    if (events.snare) nodes.snare.triggerAttackRelease(0.05, time, events.snare.velocity);
-    if (events.hat) nodes.hat.triggerAttackRelease(0.015, time, events.hat.velocity);
-    if (events.openHat) nodes.openHat.triggerAttackRelease(0.075, time, events.openHat.velocity);
-    if (events.noiseAccent) {
-      const accentVelocity = Math.min(stateKey(currentFrame) === "critical" ? 0.24 : 0.22, events.noiseAccent.velocity);
-      nodes.noiseAccent.triggerAttackRelease(0.085, time, accentVelocity);
+  function scheduleOrnamentsForPhrase(baseTime) {
+    if (!currentPerfPlan || !Number.isFinite(baseTime)) return;
+    const stepSeconds = requireTone().Time("16n").toSeconds();
+    for (const instruction of ornamentInstructionsForPhrase(currentPerfPlan)) {
+      const fireAt = baseTime + Math.max(0, instruction.offsetSteps ?? 0) * stepSeconds;
+      triggerOrnamentInstruction(instruction, fireAt);
+    }
+  }
+  function triggerOrnamentInstruction(inst, time) {
+    const rootMidi = currentArrangement?.rootMidi ?? 41;
+    const midi = quantizeMidiToHarmony(
+      currentScoreFrame ?? currentFrame, currentArrangement, 0,
+      rootMidi + (inst.midiOffset ?? 0),
+      24, 96,
+    );
+    const velocity = clamp(inst.velocity ?? 0.3, 0.05, 0.6);
+    const duration = inst.duration ?? "16n";
+    switch (inst.voice) {
+      case "primary":
+        nodes.primary.triggerAttackRelease(midiToFrequencyHz(midi), duration, time, velocity);
+        mixWiring?.duckOnHit("primary", time);
+        break;
+      case "secondary":
+        nodes.secondary.triggerAttackRelease(midiToFrequencyHz(midi), duration, time, velocity);
+        break;
+      case "pad":
+        nodes.pad.triggerAttackRelease(midiToFrequencyHz(midi), duration, time, velocity);
+        break;
+      case "accent":
+        nodes.incident.triggerAttackRelease(midiToFrequencyHz(midi), duration, time, velocity);
+        break;
+      case "kick":
+        nodes.kick.triggerAttackRelease?.("F1", "16n", time, velocity);
+        mixWiring?.duckOnHit("kick", time);
+        break;
+      case "openHat":
+        nodes.openHat.triggerAttackRelease?.(0.075, time, velocity);
+        break;
+      case "hat":
+        nodes.hat.triggerAttackRelease?.(0.015, time, velocity);
+        break;
+      case "noiseAccent":
+        nodes.noiseAccent.triggerAttackRelease?.(0.085, time, velocity);
+        break;
+      default:
+        break;
     }
   }
 
+  // ---- Per-step channels --------------------------------------
+  function playRhythm(time, step) {
+    if (shouldOmitForPhase({
+      perfPlan: currentPerfPlan, category: "rhythm",
+      stepIndex, phraseIndex: trackPhraseIndex,
+    })) return;
+    const events = rhythmEventsForTrackStep(currentScoreFrame ?? currentFrame, currentArrangement, step);
+    const densityScale = velocityScaleForDensity(currentPerfPlan, "rhythm");
+    if (events.kick) {
+      const velocity = clamp(events.kick.velocity * densityScale, 0.04, 0.9);
+      nodes.kick.triggerAttackRelease("F1", "16n", time, velocity);
+      mixWiring?.duckOnHit("kick", time);
+      mixWiring?.duckOnHit("drums", time);
+    }
+    if (events.snare) {
+      nodes.snare.triggerAttackRelease(0.05, time, clamp(events.snare.velocity * densityScale, 0.04, 0.9));
+      mixWiring?.duckOnHit("drums", time);
+    }
+    if (events.hat) nodes.hat.triggerAttackRelease(0.015, time, clamp(events.hat.velocity * densityScale, 0.04, 0.9));
+    if (events.openHat) nodes.openHat.triggerAttackRelease(0.075, time, clamp(events.openHat.velocity * densityScale, 0.04, 0.9));
+    if (events.noiseAccent) {
+      const limit = stateKey(currentScoreFrame ?? currentFrame) === "critical" ? 0.24 : 0.22;
+      nodes.noiseAccent.triggerAttackRelease(0.085, time, clamp(Math.min(limit, events.noiseAccent.velocity) * densityScale, 0.04, 0.5));
+    }
+    for (const extra of supplementalRhythmForDensity(currentPerfPlan, step, trackPhraseIndex)) {
+      if (extra.voice === "hat" && !events.hat) nodes.hat.triggerAttackRelease(0.015, time, extra.velocity);
+      if (extra.voice === "noiseAccent" && !events.noiseAccent) nodes.noiseAccent.triggerAttackRelease(0.085, time, extra.velocity);
+    }
+  }
   function playBass(time, step) {
-    const event = bassEventForTrackStep(currentFrame, currentArrangement, step);
+    if (shouldOmitForPhase({
+      perfPlan: currentPerfPlan, category: "bass",
+      stepIndex: stepIndex, phraseIndex: trackPhraseIndex,
+    })) return;
+    const event = bassEventForTrackStep((currentScoreFrame ?? currentFrame), currentArrangement, step);
     if (!event) return;
-    nodes.bass.triggerAttackRelease(midiToFrequencyHz(event.midi), event.duration, time, event.velocity);
-    if (stateKey(currentFrame) === "critical") {
+    const v = clamp(event.velocity * velocityScaleForDensity(currentPerfPlan, "bass"), 0.04, 0.9);
+    nodes.bass.triggerAttackRelease(midiToFrequencyHz(event.midi), event.duration, time, v);
+    if (stateKey((currentScoreFrame ?? currentFrame)) === "critical") {
       nodes.padSub.triggerAttackRelease(
         midiToFrequencyHz(Math.max(24, event.midi - 12)),
         "32n",
         time,
-        Math.min(0.34, event.velocity * 0.48),
+        Math.min(0.34, v * 0.48),
       );
     }
   }
 
   function playPad(time, step) {
-    const event = padChordForTrackStep(currentFrame, currentArrangement, step);
-    if (event) nodes.pad.triggerAttackRelease(event.midis.map(midiToFrequencyHz), event.duration, time, event.velocity);
+    if (shouldOmitForPhase({
+      perfPlan: currentPerfPlan, category: "pad",
+      stepIndex: stepIndex, phraseIndex: trackPhraseIndex,
+    })) return;
+    const event = padChordForTrackStep((currentScoreFrame ?? currentFrame), currentArrangement, step);
+    if (event) {
+      const v = clamp(event.velocity * velocityScaleForDensity(currentPerfPlan, "pad"), 0.04, 0.9);
+      nodes.pad.triggerAttackRelease(event.midis.map(midiToFrequencyHz), event.duration, time, v);
+    }
   }
 
   function playPrimary(time, step) {
-    const event = primaryPulseEventForTrackStep(currentFrame, currentArrangement, step);
+    if (shouldOmitForPhase({ perfPlan: currentPerfPlan, category: "primary", stepIndex, phraseIndex: trackPhraseIndex })) return;
+    const event = primaryPulseEventForTrackStep(currentScoreFrame ?? currentFrame, currentArrangement, step);
     if (!event) return;
+    const chipKind = chipWaveKindForDuty(event.dutyCycle);
+    if (nodes.primary.getWaveKind?.() !== chipKind) nodes.primary.setWaveKind?.(chipKind);
     setPulseWidth(nodes.primary, event.dutyCycle, pulseWidthLeadTime(time));
-    nodes.primary.triggerAttackRelease(midiToFrequencyHz(event.midi), event.duration, time, event.velocity);
+    const velocity = clamp(event.velocity * velocityScaleForDensity(currentPerfPlan, "primary"), 0.04, 0.9);
+    nodes.primary.triggerAttackRelease(midiToFrequencyHz(event.midi), event.duration, time, velocity);
+    mixWiring?.duckOnHit("primary", time);
   }
-
   function playSecondary(time, step) {
-    const event = secondaryPulseEventForTrackStep(currentFrame, currentArrangement, step);
+    if (shouldOmitForPhase({
+      perfPlan: currentPerfPlan, category: "secondary",
+      stepIndex: stepIndex, phraseIndex: trackPhraseIndex,
+    })) return;
+    const event = secondaryPulseEventForTrackStep((currentScoreFrame ?? currentFrame), currentArrangement, step);
     if (!event) return;
     setPulseWidth(nodes.secondary, event.dutyCycle, pulseWidthLeadTime(time));
-    nodes.secondary.triggerAttackRelease(midiToFrequencyHz(event.midi), event.duration, time, event.velocity);
+    const v = clamp(event.velocity * velocityScaleForDensity(currentPerfPlan, "secondary"), 0.04, 0.9);
+    nodes.secondary.triggerAttackRelease(midiToFrequencyHz(event.midi), event.duration, time, v);
   }
 
   function playService(time, step) {
-    const event = serviceEventForTrackStep(currentFrame, currentArrangement, step);
-    if (!event) return;
-    const slot = serviceVoices[servicePoolCursor % serviceVoices.length];
+    if (shouldOmitForPhase({ perfPlan: currentPerfPlan, category: "service", stepIndex, phraseIndex: trackPhraseIndex })) return;
+    const frame = currentScoreFrame ?? currentFrame;
+    const rawEvent = serviceEventForTrackStep(frame, currentArrangement, step);
+    if (!rawEvent) return;
+    const played = conductServiceEvent({
+      event: rawEvent,
+      frame,
+      arrangement: currentArrangement,
+      perfPlan: currentPerfPlan,
+      step,
+      phraseIndex: trackPhraseIndex,
+    });
+    if (!played) return;
+    const matching = serviceVoices.filter((voice) => voice.layer === played.route);
+    const pool = matching.length ? matching : serviceVoices;
+    const slot = pool[servicePoolCursor % pool.length];
     servicePoolCursor += 1;
-    const width = clamp(currentArrangement?.timbre?.stereoWidth ?? 0.5, 0, 1);
-    safeRamp(slot.panner.pan, event.identity.pan * width, 0.02, time);
     const scale = currentArrangement?.timbre?.serviceCutoffScale ?? 1;
-    const cutoff = event.identity.filtered
-      ? Math.min(1400, event.voice.filterHz ?? 1400)
-      : event.voice.filterHz ?? 3200;
+    const cutoff = played.identity.filtered
+      ? Math.min(1400, played.voice.filterHz ?? 1400)
+      : played.voice.filterHz ?? 3200;
     safeRamp(slot.filter.frequency, cutoff * scale, 0.03, time);
-    setPulseWidth(slot.synth, event.identity.dutyCycle, pulseWidthLeadTime(time));
-    if (slot.synth.detune) safeRamp(slot.synth.detune, event.voice.detuneCents ?? 0, 0.03, time);
-    slot.synth.triggerAttackRelease(midiToFrequencyHz(event.midi), event.duration, time, event.velocity);
+    setPulseWidth(slot.synth, played.identity.dutyCycle, pulseWidthLeadTime(time));
+    safeRamp(slot.synth.detune, played.voice.detuneCents ?? 0, 0.03, time);
+    const velocity = clamp(played.velocity * velocityScaleForDensity(currentPerfPlan, "service"), 0.04, 0.5);
+    slot.synth.triggerAttackRelease(midiToFrequencyHz(played.midi), played.duration, time, velocity);
+    mixWiring?.duckOnHit("services", time);
     requireTone().Draw.schedule(() => onVoice?.({
-      name: event.voice.name,
-      channel: event.identity.channel,
-      label: event.identity.label,
-      oscillator: slot.oscillatorType,
+      name: played.voice.name,
+      channel: played.identity.channel,
+      label: played.identity.label,
+      oscillator: slot.chipKind,
+      preferredLayer: played.preferredLayer,
+      routedLayer: slot.layer,
+      motifDegree: played.motifDegree,
+      motifSlotIndex: played.motifSlotIndex,
+      rhythmSlotIndex: played.rhythmSlotIndex,
+      mutation: played.mutation,
+      provenance: played.provenance,
     }), time);
   }
-
   function playTransition(time, step) {
     const event = transitionEventForTrackStep(
-      currentFrame,
+      (currentScoreFrame ?? currentFrame),
       currentArrangement,
       step,
       lastStateTransition,
@@ -582,18 +774,12 @@ export function createApuTrackEngine({
   }
 
   function scheduleCue(events, voice, startAt, subdivision = "16n") {
-    const Tone = requireTone();
-    const stepSeconds = Tone.Time(subdivision).toSeconds();
+    const stepSeconds = requireTone().Time(subdivision).toSeconds();
     for (const event of events) {
-      let cueId = null;
-      cueId = nodes.transport.scheduleOnce((time) => {
-        scheduledCueIds.delete(cueId);
-        voice.triggerAttackRelease(midiToFrequencyHz(event.midi), event.duration, time, event.velocity);
-      }, startAt + event.offset * stepSeconds);
-      scheduledCueIds.add(cueId);
+      const fireAt = startAt + event.offset * stepSeconds;
+      voice.triggerAttackRelease(midiToFrequencyHz(event.midi), event.duration, fireAt, event.velocity);
     }
   }
-
   function deploymentSequence(identity = "deployment") {
     const text = String(identity);
     let hash = 2166136261;
@@ -604,7 +790,7 @@ export function createApuTrackEngine({
     const root = [65, 67, 68][(hash >>> 0) % 3];
     return [0, 2, 4, 5, 4, 7].map((offset, index) => ({
       offset: index,
-      midi: quantizeMidiToHarmony(currentFrame, currentArrangement, index * 2, root + offset, 60, 84),
+      midi: quantizeMidiToHarmony((currentScoreFrame ?? currentFrame), currentArrangement, index * 2, root + offset, 60, 84),
       duration: index === 5 ? "4n" : "16n",
       velocity: index === 5 ? 0.42 : 0.3,
     }));
@@ -614,7 +800,7 @@ export function createApuTrackEngine({
     const total = Math.max(1, Math.min(4, Math.trunc(count) || 1)) * 2;
     return Array.from({ length: total }, (_, index) => ({
       offset: index,
-      midi: quantizeMidiToHarmony(currentFrame, currentArrangement, index, index % 2 === 0 ? 53 : 60, 48, 72),
+      midi: quantizeMidiToHarmony((currentScoreFrame ?? currentFrame), currentArrangement, index, index % 2 === 0 ? 53 : 60, 48, 72),
       duration: "32n",
       velocity: index % 2 === 0 ? 0.38 : 0.28,
     }));
@@ -638,10 +824,7 @@ export function createApuTrackEngine({
   function onStep(time) {
     if (!running || !currentFrame || !Number.isFinite(time)) return;
     const step = stepIndex % APU_TRACK_STEPS;
-
-    // Advance before rendering so a channel exception cannot pin transport.
     stepIndex += 1;
-
     if (step === 0) {
       runChannel("phrase", () => commitPhrase(time));
       runChannel("queued-cues", () => flushQueuedCues(time));
@@ -655,28 +838,47 @@ export function createApuTrackEngine({
     runChannel("secondary", () => playSecondary(time, step));
     runChannel("services", () => playService(time, step));
     runChannel("transition", () => playTransition(time, step));
+    if ((step === 0 || step === 16) && replayCursor && !replayCursor.isFinished()) advanceReplayBar();
   }
-
   function disposeGraph() {
     if (!initialized) return;
     nodes.transport?.stop?.();
-    if (nodes.schedulerId !== null) nodes.transport.clear(nodes.schedulerId);
-    for (const cueId of scheduledCueIds) nodes.transport.clear(cueId);
-    scheduledCueIds.clear();
+    if (nodes.schedulerId !== null && nodes.schedulerId !== undefined) nodes.transport.clear(nodes.schedulerId);
     nodes.telemetryHum?.stop?.();
+    mixWiring?.dispose?.();
+    mixWiring = null;
+    nodes.drumKit?.dispose?.();
     for (const voice of serviceVoices) {
-      voice.synth.dispose();
-      voice.filter.dispose();
-      voice.panner.dispose();
-      voice.gain.dispose();
+      voice.synth.dispose?.();
+      voice.filter.dispose?.();
+      voice.panner.dispose?.();
+      voice.gain.dispose?.();
     }
     serviceVoices = [];
-    for (const node of Object.values(nodes).reverse()) node?.dispose?.();
+    for (const handle of Object.values(nodes.mixBuses ?? {})) handle.dispose?.();
+    const owned = [
+      nodes.primary, nodes.secondary, nodes.bass, nodes.pad, nodes.padSub,
+      nodes.telemetryHum, nodes.telemetryHumFilter, nodes.telemetryHumGain,
+      nodes.deployment, nodes.incident,
+      nodes.primaryFilter, nodes.primaryPanner, nodes.secondaryFilter, nodes.secondaryPanner,
+      nodes.padFilter, nodes.hatFilter, nodes.noiseAccentFilter,
+      nodes.delay, nodes.delaySend, nodes.delayReturn,
+      nodes.reverb, nodes.reverbSend, nodes.reverbReturn,
+      nodes.melodyBus, nodes.chipColor, nodes.chipBus,
+      nodes.masterVolume, nodes.masterHighpass, nodes.masterFilter, nodes.softenerShelf,
+      nodes.compressor, nodes.masterDac, nodes.masterDacDry, nodes.masterDacWet,
+      nodes.masterDacMix, nodes.softClipper, nodes.limiter,
+      nodes.waveform, nodes.spectrum, nodes.output,
+    ];
+    for (const node of owned) node?.dispose?.();
+    for (const bridge of [nodes.rawDrumBridge, nodes.rawHatBridge, nodes.rawAccentBridge]) {
+      try { bridge?.disconnect?.(); } catch { /* already disconnected */ }
+    }
     initialized = false;
   }
-
   return Object.freeze({
     buildId: ATLAS_APU_TRACK_BUILD_ID,
+    passCV3BuildId: APU_TRACK_PASS_C_V3_BUILD_ID,
 
     async start() {
       if (disposed) throw new Error("system-symphony-apu-track: engine is disposed");
@@ -706,6 +908,7 @@ export function createApuTrackEngine({
       if (!frame || typeof frame !== "object") return false;
       if (!currentFrame || !initialized || !running) {
         currentFrame = frame;
+        currentScoreFrame = frame;
         pendingFrame = null;
         return true;
       }
@@ -742,7 +945,7 @@ export function createApuTrackEngine({
     },
 
     getScene() {
-      return currentFrame ? sceneForFrame(currentFrame, currentDirectorPlan) : null;
+      return (currentScoreFrame ?? currentFrame) ? sceneForFrame(currentScoreFrame ?? currentFrame, currentDirectorPlan) : null;
     },
 
     getArrangement() {
@@ -753,13 +956,45 @@ export function createApuTrackEngine({
       return currentDirectorPlan?.phase ?? "standby";
     },
 
+    getPerformancePhase() {
+      return currentPerfPlan?.phase ?? "standby";
+    },
+
+    getPerformancePlan() {
+      return currentPerfPlan;
+    },
+
+    // ---- Replay ---------------------------------------------
+    setReplayIncident(incident, options = {}) {
+      if (incident == null) {
+        currentReplayPlan = null;
+        replayCursor = null;
+        currentReplayMovement = null;
+        currentScoreFrame = currentFrame;
+        return null;
+      }
+      currentReplayPlan = createReplaySongPlan(incident, options);
+      replayCursor = createReplaySongCursor(currentReplayPlan);
+      currentReplayMovement = replayCursor.movementForBar(0);
+      currentScoreFrame = replayFrameForMovement(currentFrame, currentReplayMovement, currentReplayPlan.sourceLabel);
+      return currentReplayPlan;
+    },
+
+    getReplayPlan() {
+      return currentReplayPlan;
+    },
+
+    getReplayMovementAtBar(bar) {
+      return replayCursor?.movementForBar(bar) ?? null;
+    },
+
     getDiagnostics() {
       return Object.freeze({
         stepIndex,
         trackPhraseIndex,
         section: currentArrangement?.section ?? null,
         cyclePhrase: currentArrangement?.cyclePhrase ?? null,
-        state: stateKey(currentFrame),
+        state: stateKey(currentScoreFrame ?? currentFrame),
         pendingState: pendingFrame ? stateKey(pendingFrame) : null,
         lastStateTransition,
         lastTransitionEvent,
@@ -768,6 +1003,23 @@ export function createApuTrackEngine({
         scorePlanMovement: currentEngineControls.movement,
         sampleFree: currentEngineControls.sampleFree,
         channelFailures: Object.freeze(Object.fromEntries(channelFailures)),
+        // Pass C v3 diagnostics
+        performancePhase: currentPerfPlan?.phase ?? "standby",
+        performanceSilenceBudget: currentPerfPlan?.silenceBudget ?? 0,
+        performanceDensity: currentPerfPlan?.density ?? 0,
+        performanceOrnaments: currentPerfPlan?.ornaments ?? [],
+        mixWiringBuildId: APU_MIX_WIRING_BUILD_ID,
+        passCV3BuildId: APU_TRACK_PASS_C_V3_BUILD_ID,
+        replayPlanId: currentReplayPlan?.incidentId ?? null,
+        replaySourceLabel: currentReplayPlan?.sourceLabel ?? null,
+        replayCurrentMovement: currentReplayMovement?.kind ?? null,
+        replayBar: replayCursor?.getBar() ?? null,
+        chipVoiceKinds: Object.freeze({
+          primary: nodes.primary?.getWaveKind?.() ?? null,
+          secondary: nodes.secondary?.getWaveKind?.() ?? null,
+          bass: nodes.bass?.getWaveKind?.() ?? null,
+          padSub: nodes.padSub?.getWaveKind?.() ?? null,
+        }),
       });
     },
 

@@ -43,13 +43,19 @@ test("valid score plans activate the guarded engine-control path", () => {
   const guard = scorePlanGuardForFrame(frame);
   const controls = engineControlsForFrame(frame);
 
-  assert.match(ATLAS_APU_ENGINE_CONTROLS_BUILD_ID, /engine-controls-v4$/);
+  assert.match(ATLAS_APU_ENGINE_CONTROLS_BUILD_ID, /engine-controls-v6$/);
   assert.equal(guard.active, true);
   assert.equal(guard.mode, "score-plan");
   assert.equal(guard.sampleFree, true);
   assert.deepEqual(guard.reasons, []);
   assert.equal(controls.sampleFree, true);
   assert.equal(controls.movement, "Green Clock");
+  assert.deepEqual(controls.themeWeights, {
+    healthy: 1,
+    warning: 0,
+    critical: 0,
+    unknown: 0,
+  });
   assert.ok(controls.buses.primary > 1);
   assert.equal(controls.timbre.primaryDutyCycle, frame.scorePlan.motif.dutyCycle);
 });
@@ -71,11 +77,16 @@ test("missing or invalid plans fall back to legacy frame controls", () => {
   const controls = engineControlsForFrame(invalid);
   assert.equal(controls.guard.active, false);
   assert.equal(controls.sampleFree, false);
+  assert.equal(controls.themeWeights, null);
   assert.equal(controls.buses, null);
   assert.match(controls.guard.reasons.join(" "), /sample-free target/);
 });
 
-test("theme controls make critical urgent and unknown carrier-led", () => {
+test("theme controls make critical urgent and unknown carrier-led without muting it", () => {
+  const healthy = engineControlsForFrame(frameFor([
+    service("atlas-systems", "healthy"),
+    service("atlas-api-public", "healthy"),
+  ]));
   const critical = engineControlsForFrame(frameFor([
     service("atlas-systems", "healthy"),
     service("atlas-api-public", "down", { latency_ms: null, error_rate: 0.04 }),
@@ -85,21 +96,56 @@ test("theme controls make critical urgent and unknown carrier-led", () => {
     service("atlas-api-public", "unknown", { evidence_source: null, measured_at: null }),
   ]));
 
-  assert.equal(critical.movement, "Critical Choke");
-  assert.ok(critical.buses.drums > 1);
-  assert.ok(critical.buses.bass > 1);
-  assert.ok(critical.buses.pad < 0.5);
-  assert.equal(critical.timbre.chipBits, 7);
+  assert.equal(critical.movement, "Boss Protocol");
+  assert.ok(critical.themeWeights.critical > critical.themeWeights.healthy);
+  assert.ok(critical.buses.drums > healthy.buses.drums);
+  assert.ok(critical.buses.bass > healthy.buses.bass);
+  assert.ok(critical.buses.pad < healthy.buses.pad);
+  assert.ok(critical.timbre.chipBits < healthy.timbre.chipBits);
   assert.ok(critical.timbre.chipWet <= 0.175);
   assert.ok(critical.timbre.counterFilterQ <= 2.25);
-  assert.ok(critical.timbre.noiseAccentFilterHz > 2000);
+  assert.ok(critical.timbre.noiseAccentFilterHz > 1800);
 
   assert.equal(unknown.movement, "Unknown Drift");
+  assert.deepEqual(unknown.themeWeights, {
+    healthy: 0,
+    warning: 0,
+    critical: 0,
+    unknown: 1,
+  });
+  assert.ok(unknown.buses.primary >= 0.9);
+  assert.ok(unknown.buses.secondary >= 0.8);
+  assert.ok(unknown.buses.services >= 0.75);
+  assert.ok(unknown.buses.bass >= 0.8);
+  assert.ok(unknown.buses.drums >= 0.55 && unknown.buses.drums < healthy.buses.drums);
   assert.ok(unknown.buses.pad > 1);
-  assert.ok(unknown.buses.drums < 0.5);
   assert.ok(unknown.timbre.telemetryHumGain > critical.timbre.telemetryHumGain);
   assert.ok(unknown.timbre.reverbGain > critical.timbre.reverbGain);
   assert.ok(unknown.timbre.chipWet < critical.timbre.chipWet);
+});
+
+test("mixed estate health is audible in buses and timbre without changing dominant harmony", () => {
+  const mixedServices = [
+    ...Array.from({ length: 18 }, (_, index) => service(`healthy-${index}`, "healthy")),
+    service("warning-0", "degraded", { latency_ms: 260, error_rate: 0.01 }),
+    service("unknown-0", "unknown", { evidence_source: null, measured_at: null }),
+    service("unknown-1", "unknown", { evidence_source: null, measured_at: null }),
+  ];
+  const mixedFrame = frameFor(mixedServices);
+  const pureFrame = frameFor(Array.from({ length: mixedServices.length }, (_, index) => service(`pure-${index}`, "healthy")));
+  const mixed = engineControlsForFrame(mixedFrame);
+  const pure = engineControlsForFrame(pureFrame);
+
+  assert.equal(mixed.movement, "Green Clock");
+  assert.equal(mixedFrame.scorePlan.dominantState, "healthy");
+  assert.ok(mixed.themeWeights.healthy > 0.7);
+  assert.ok(mixed.themeWeights.warning > 0);
+  assert.ok(mixed.themeWeights.unknown > 0);
+  assert.ok(Math.abs(Object.values(mixed.themeWeights).reduce((sum, value) => sum + value, 0) - 1) < 0.001);
+  assert.notDeepEqual(mixed.buses, pure.buses);
+  assert.ok(mixed.timbre.chipBits < pure.timbre.chipBits);
+  assert.ok(mixed.timbre.telemetryHumGain > pure.timbre.telemetryHumGain);
+  assert.ok(mixed.timbre.primaryDutyCycle < pure.timbre.primaryDutyCycle);
 });
 
 test("dependency contention tightens the counter-pulse duty cycle", () => {

@@ -1,0 +1,224 @@
+export const SYSTEM_SYMPHONY_STATES = Object.freeze([
+  "healthy",
+  "warning",
+  "critical",
+  "unknown",
+]);
+
+export const SYSTEM_SYMPHONY_STATE_LABELS = Object.freeze({
+  healthy: "Healthy",
+  warning: "Warning",
+  critical: "Critical",
+  unknown: "Unknown",
+});
+
+export const SYSTEM_SYMPHONY_STATE_WINDOWS = Object.freeze({
+  healthy: Object.freeze({ minimum: -31, maximum: -12 }),
+  warning: Object.freeze({ minimum: -31, maximum: -12 }),
+  critical: Object.freeze({ minimum: -30, maximum: -11 }),
+  unknown: Object.freeze({ minimum: -27, maximum: -16 }),
+});
+
+export const SYSTEM_SYMPHONY_BAR_DURATION_MS = 2400;
+export const SYSTEM_SYMPHONY_STEPS_PER_BAR = 16;
+export const SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR = 5;
+export const SYSTEM_SYMPHONY_STATE_ALIGNMENT_STEP = (
+  (SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR - 1) * SYSTEM_SYMPHONY_STEPS_PER_BAR
+);
+export const SYSTEM_SYMPHONY_STATE_MEASUREMENT_BARS = 8;
+export const SYSTEM_SYMPHONY_STATE_MEASUREMENT_MS = (
+  SYSTEM_SYMPHONY_BAR_DURATION_MS * SYSTEM_SYMPHONY_STATE_MEASUREMENT_BARS
+);
+export const SYSTEM_SYMPHONY_SAMPLE_INTERVAL_MS = 200;
+export const SYSTEM_SYMPHONY_TRANSITION_MARGIN_DB = 10;
+export const SYSTEM_SYMPHONY_STATE_PAGE_POLICY = "fresh-page-aligned-form-window";
+export const SYSTEM_SYMPHONY_TRANSITION_PAGE_POLICY = "fresh-page-warmed-handover";
+
+export function buildStateMeasurementPlan(states = SYSTEM_SYMPHONY_STATES) {
+  const requestedStates = [...states];
+  const unknownStates = requestedStates.filter((state) => !SYSTEM_SYMPHONY_STATES.includes(state));
+  if (unknownStates.length) {
+    throw new Error(`Unknown production measurement states: ${unknownStates.join(", ")}`);
+  }
+  if (new Set(requestedStates).size !== requestedStates.length) {
+    throw new Error("Production measurement states must be unique");
+  }
+  return Object.freeze(requestedStates.map((state) => Object.freeze({
+    state,
+    mode: state,
+    pagePolicy: SYSTEM_SYMPHONY_STATE_PAGE_POLICY,
+    alignmentBar: SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR,
+    alignmentStep: SYSTEM_SYMPHONY_STATE_ALIGNMENT_STEP,
+    measurementBars: SYSTEM_SYMPHONY_STATE_MEASUREMENT_BARS,
+    finalBar: SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR + SYSTEM_SYMPHONY_STATE_MEASUREMENT_BARS - 1,
+  })));
+}
+
+// Eulerian circuit over the complete directed four-state graph. Every ordered
+// transition appears exactly once and the route returns to Healthy.
+export const SYSTEM_SYMPHONY_TRANSITION_ROUTE = Object.freeze([
+  "healthy",
+  "unknown",
+  "critical",
+  "unknown",
+  "warning",
+  "unknown",
+  "healthy",
+  "critical",
+  "warning",
+  "critical",
+  "healthy",
+  "warning",
+  "healthy",
+]);
+
+export function transitionPairs(route = SYSTEM_SYMPHONY_TRANSITION_ROUTE) {
+  return Object.freeze(route.slice(1).map((to, index) => Object.freeze({
+    from: route[index],
+    to,
+    key: `${route[index]}->${to}`,
+  })));
+}
+
+export function buildTransitionMeasurementPlan(route = SYSTEM_SYMPHONY_TRANSITION_ROUTE) {
+  return Object.freeze(transitionPairs(route).map((pair) => Object.freeze({
+    ...pair,
+    pagePolicy: SYSTEM_SYMPHONY_TRANSITION_PAGE_POLICY,
+    alignmentBar: SYSTEM_SYMPHONY_STATE_ALIGNMENT_BAR,
+    alignmentStep: SYSTEM_SYMPHONY_STATE_ALIGNMENT_STEP,
+    measurementBars: 1,
+  })));
+}
+
+function finiteValues(samples, key) {
+  return samples
+    .map((sample) => Number(sample?.[key]))
+    .filter(Number.isFinite);
+}
+
+function range(values) {
+  if (!values.length) return Object.freeze({ minimum: null, maximum: null });
+  return Object.freeze({
+    minimum: Math.min(...values),
+    maximum: Math.max(...values),
+  });
+}
+
+export function buildProgrammeSummary(stateMeasurements) {
+  const byState = Object.fromEntries(stateMeasurements.map((measurement) => [
+    measurement.state,
+    measurement,
+  ]));
+  const missingStates = SYSTEM_SYMPHONY_STATES.filter((state) => !byState[state]);
+  if (missingStates.length) {
+    throw new Error(`Missing production state measurements: ${missingStates.join(", ")}`);
+  }
+
+  const sectionSamples = new Map();
+  for (const measurement of stateMeasurements) {
+    for (const sample of measurement.samples ?? []) {
+      const section = sample.section ?? "unknown";
+      const bucket = sectionSamples.get(section) ?? [];
+      bucket.push(sample);
+      sectionSamples.set(section, bucket);
+    }
+  }
+
+  const sectionExtremes = Object.fromEntries([...sectionSamples.entries()].map(([section, samples]) => [
+    section,
+    Object.freeze({
+      sampleCount: samples.length,
+      momentaryLufs: range(finiteValues(samples, "momentaryLufs")),
+      shortTermLufs: range(finiteValues(samples, "shortTermLufs")),
+      truePeakDbtp: range(finiteValues(samples, "truePeakDbtp")),
+    }),
+  ]));
+
+  const unknownLufs = byState.unknown.metrics.integratedLufs;
+  return Object.freeze({
+    measuredBars: stateMeasurements.reduce(
+      (total, measurement) => total + Number(measurement.measurementBars ?? 0),
+      0,
+    ),
+    pagePolicies: Object.freeze([...new Set(stateMeasurements.map((measurement) => measurement.pagePolicy).filter(Boolean))]),
+    alignmentSteps: Object.freeze([...new Set(stateMeasurements.map((measurement) => measurement.alignmentStep).filter(Number.isFinite))]),
+    alignmentPositions: Object.freeze([...new Set(stateMeasurements.map((measurement) => measurement.startPosition).filter(Boolean))]),
+    states: Object.fromEntries(SYSTEM_SYMPHONY_STATES.map((state) => {
+      const measurement = byState[state];
+      const integratedLufs = measurement.metrics.integratedLufs;
+      const sessionTruePeakDbtp = measurement.metrics.sessionTruePeakDbtp;
+      return [state, Object.freeze({
+        integratedLufs,
+        sessionTruePeakDbtp,
+        peakToLoudnessRatioDb: sessionTruePeakDbtp - integratedLufs,
+        blockCount: measurement.metrics.blockCount,
+        gatedBlockCount: measurement.metrics.gatedBlockCount,
+        startSection: measurement.startSection ?? null,
+        startPosition: measurement.startPosition ?? null,
+        sections: Object.freeze([...new Set((measurement.samples ?? []).map((sample) => sample.section).filter(Boolean))]),
+      })];
+    })),
+    unknownDeltas: Object.freeze({
+      healthy: Math.abs(byState.healthy.metrics.integratedLufs - unknownLufs),
+      warning: Math.abs(byState.warning.metrics.integratedLufs - unknownLufs),
+      critical: Math.abs(byState.critical.metrics.integratedLufs - unknownLufs),
+    }),
+    maximumTruePeakDbtp: Math.max(
+      ...stateMeasurements.map((measurement) => measurement.metrics.sessionTruePeakDbtp),
+    ),
+    sectionExtremes: Object.freeze(sectionExtremes),
+  });
+}
+
+export function buildTransitionSummary(
+  transitionMeasurements,
+  stateMeasurements,
+  { marginDb = SYSTEM_SYMPHONY_TRANSITION_MARGIN_DB } = {},
+) {
+  const byState = Object.fromEntries(stateMeasurements.map((measurement) => [
+    measurement.state,
+    measurement,
+  ]));
+  const missingStates = SYSTEM_SYMPHONY_STATES.filter((state) => !byState[state]);
+  if (missingStates.length) {
+    throw new Error(`Missing production transition references: ${missingStates.join(", ")}`);
+  }
+
+  const transitions = transitionMeasurements.map((transition) => {
+    const shortTermValues = finiteValues(transition.samples ?? [], "shortTermLufs");
+    const momentaryValues = finiteValues(transition.samples ?? [], "momentaryLufs");
+    const referenceLufs = Math.min(
+      byState[transition.from].metrics.integratedLufs,
+      byState[transition.to].metrics.integratedLufs,
+    );
+    const permittedFloorLufs = referenceLufs - marginDb;
+    const minimumShortTermLufs = shortTermValues.length ? Math.min(...shortTermValues) : null;
+    return Object.freeze({
+      from: transition.from,
+      to: transition.to,
+      key: `${transition.from}->${transition.to}`,
+      policy: transition.policy,
+      pagePolicy: transition.pagePolicy ?? null,
+      startSection: transition.startSection ?? null,
+      startPosition: transition.startPosition ?? null,
+      sampleCount: transition.samples?.length ?? 0,
+      finiteShortTermSamples: shortTermValues.length,
+      shortTermLufs: range(shortTermValues),
+      momentaryLufs: range(momentaryValues),
+      referenceLufs,
+      permittedFloorLufs,
+      passed: minimumShortTermLufs !== null && minimumShortTermLufs >= permittedFloorLufs,
+    });
+  });
+
+  return Object.freeze({
+    expectedTransitionCount: transitionPairs().length,
+    measuredTransitionCount: transitions.length,
+    uniqueTransitionCount: new Set(transitions.map(({ key }) => key)).size,
+    pagePolicies: Object.freeze([...new Set(transitions.map(({ pagePolicy }) => pagePolicy).filter(Boolean))]),
+    alignmentPositions: Object.freeze([...new Set(transitions.map(({ startPosition }) => startPosition).filter(Boolean))]),
+    marginDb,
+    allPassed: transitions.every(({ passed }) => passed),
+    transitions: Object.freeze(transitions),
+  });
+}

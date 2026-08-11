@@ -2,11 +2,11 @@
  * Atlas APU state-theme language.
  *
  * These profiles are descriptive composition rules, not audio scheduling code.
- * They let the score plan, debug UI and later synthesis rewrite share the same
- * authored vocabulary for why each estate state sounds different.
+ * They let the score plan, debug UI and synthesis engine share the same authored
+ * vocabulary for why each estate state sounds different.
  */
 
-export const ATLAS_APU_STATE_THEMES_BUILD_ID = "20260726-atlas-apu-state-themes-v1";
+export const ATLAS_APU_STATE_THEMES_BUILD_ID = "20260728-atlas-apu-state-themes-v2";
 
 export const ATLAS_APU_STATE_THEME_KEYS = Object.freeze([
   "healthy",
@@ -94,7 +94,7 @@ export const ATLAS_APU_STATE_THEMES = Object.freeze({
     movement: "Warning Pressure",
     emotionalIntent: "tense, mobile, under pressure",
     chapterRole: "overworld pressure when degraded evidence is present",
-    harmonicColor: "F Phrygian pressure color",
+    harmonicColor: "F Phrygian pressure colour",
     motif: {
       name: "diagnostic motif B",
       degrees: [0, 1, 3, 1, 4, 3, 1, 0],
@@ -115,10 +115,10 @@ export const ATLAS_APU_STATE_THEMES = Object.freeze({
   }),
   critical: theme({
     id: "critical",
-    movement: "Critical Choke",
+    movement: "Boss Protocol",
     emotionalIntent: "sparse, forceful, consequential",
     chapterRole: "boss-room pressure for incidents, down services or low health",
-    harmonicColor: "F Phrygian dominant impact color",
+    harmonicColor: "F Phrygian dominant impact colour",
     motif: {
       name: "interrupt motif C",
       degrees: [0, 4, 0, 1, 0, 4],
@@ -128,7 +128,7 @@ export const ATLAS_APU_STATE_THEMES = Object.freeze({
     bassPattern: "octave alarm",
     noisePattern: "burst impacts",
     counterline: "hazard",
-    transitionBias: "choke",
+    transitionBias: "impact",
     densityBias: 0.04,
     register: "low locked",
     mastering: "limited impact",
@@ -142,24 +142,24 @@ export const ATLAS_APU_STATE_THEMES = Object.freeze({
     movement: "Unknown Drift",
     emotionalIntent: "beautiful and uneasy",
     chapterRole: "fog-of-war honesty for stale, missing or unresolved evidence",
-    harmonicColor: "F suspended carrier color",
+    harmonicColor: "F suspended carrier colour",
     motif: {
       name: "question motif D",
       degrees: [0, 2, 0, 4, 2],
       contour: "unresolved question",
-      notePolicy: "missing-beat gaps and soft unstable arps",
+      notePolicy: "complete question phrase with missing-beat echoes and soft unstable arps",
     },
     bassPattern: "carrier drift",
-    noisePattern: "missing-beat gaps",
-    counterline: "absent",
-    transitionBias: "dropout",
-    densityBias: -0.1,
+    noisePattern: "carrier heartbeat with missing-beat gaps",
+    counterline: "ghost echo",
+    transitionBias: "carrier takeover",
+    densityBias: -0.04,
     register: "hollow middle",
-    mastering: "soft unstable carrier",
+    mastering: "restrained full-sized uncertainty",
     beauty: 0.72,
     urgency: 0.18,
     evidenceFocus: ["stale telemetry", "reported unknown rows", "topology-only components"],
-    constraints: ["never pretend certainty", "bounded carrier hum", "beautiful rather than broken"],
+    constraints: ["never pretend certainty", "bounded carrier hum", "beautiful rather than broken", "do not collapse into silence"],
   }),
   recovery: theme({
     id: "recovery",

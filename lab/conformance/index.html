@@ -8,8 +8,13 @@
   <title>Estate Conformance // Atlas Systems</title>
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/lab/shared/systems.css">
-  <link rel="stylesheet" href="/lab/conformance/conformance.css">
+  <link rel="stylesheet" href="/lab/conformance/conformance.css?v=20260811-timeout">
   <link rel="canonical" href="https://atlas-systems.uk/lab/conformance/">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Estate Conformance // Atlas Systems">
   <meta property="og:description" content="The public Atlas Systems estate conformance score, rule catalogue, repository results, and weekly evidence provenance.">
@@ -31,9 +36,9 @@
     <div class="nav-links">
       <a href="/lab/">Lab</a>
       <a href="/lab/proof-chain/">Proof Chain</a>
-      <a href="/lab/signal/">Signal</a>
-      <a href="/lab/anomaly/">Anomaly</a>
-      <a href="/lab/reliability/">Reliability</a>
+      <a href="/lab/conformance/" aria-current="page">Estate Conformance</a>
+      <a href="/lab/anomaly/">Shape Detector</a>
+      <a href="/systems/reliability/">Reliability</a>
     </div>
   </nav>
   <main>
@@ -43,17 +48,17 @@
       <p class="lede">The same weekly policy run that gates the estate now publishes its complete denominator: which rules applied, which passed, which warned, which failed, and which repositories could not be read. The score measures Atlas conventions, not universal software quality.</p>
     </header>
 
-    <section class="section">
+    <section id="conformance-summary-surface" class="section atlas-evidence-surface" data-evidence-mode="unknown">
       <div class="grid grid-3">
-        <div class="metric"><span>estate score</span><strong id="estate-score">loading</strong></div>
-        <div class="metric"><span>repositories scanned</span><strong id="repo-count">-</strong></div>
-        <div class="metric"><span>last evidence</span><strong id="generated-at">-</strong></div>
+        <div class="metric"><span>estate score</span><strong class="atlas-evidence-value" id="estate-score" data-evidence-mode="unknown">—</strong></div>
+        <div class="metric"><span>repositories scanned</span><strong class="atlas-evidence-value" id="repo-count" data-evidence-mode="unknown">—</strong></div>
+        <div class="metric"><span>last evidence</span><strong class="atlas-evidence-value" id="generated-at" data-evidence-mode="unknown">—</strong></div>
       </div>
       <div class="finding-strip">
-        <span><strong id="error-count">-</strong> errors</span>
-        <span><strong id="warning-count">-</strong> warnings</span>
-        <span><strong id="unknown-count">-</strong> unknown</span>
-        <span class="status" id="evidence-status">contacting public evidence API</span>
+        <span><strong class="atlas-evidence-value" id="error-count" data-evidence-mode="unknown">—</strong> errors</span>
+        <span><strong class="atlas-evidence-value" id="warning-count" data-evidence-mode="unknown">—</strong> warnings</span>
+        <span><strong class="atlas-evidence-value" id="unknown-count" data-evidence-mode="unknown">—</strong> unknown</span>
+        <span class="status atlas-evidence-mode" id="evidence-status" data-evidence-mode="unknown" data-runtime-state="checking" aria-live="polite">Probing live</span>
       </div>
     </section>
 
@@ -64,39 +69,39 @@
           <p class="note">Warnings contribute half of their rule weight. Errors contribute zero. Not-applicable rules are excluded; unreadable repositories remain unscored.</p>
         </div>
         <label>Filter
-          <input id="repo-filter" type="search" placeholder="repo or status">
+          <input id="repo-filter" type="search" placeholder="repo or status" aria-controls="repo-table">
         </label>
       </div>
-      <div class="table-wrap">
+      <div id="conformance-repository-surface" class="table-wrap atlas-evidence-surface" data-evidence-mode="unknown">
         <table>
           <thead><tr><th scope="col">Repository</th><th scope="col">Score</th><th scope="col">Status</th><th scope="col">Errors</th><th scope="col">Warnings</th><th scope="col">Applicable rules</th></tr></thead>
-          <tbody id="repo-table"><tr><td colspan="6">Loading.</td></tr></tbody>
+          <tbody id="repo-table" aria-live="polite"><tr><td colspan="6">Probing live evidence…</td></tr></tbody>
         </table>
       </div>
     </section>
 
-    <section class="section">
+    <section id="conformance-rule-surface" class="section atlas-evidence-surface" data-evidence-mode="unknown">
       <h2>Rule catalogue</h2>
       <div class="rule-grid grid grid-3" id="rule-grid"></div>
     </section>
 
     <section class="section">
       <h2>Current findings</h2>
-      <div class="table-wrap">
+      <div id="conformance-finding-surface" class="table-wrap atlas-evidence-surface" data-evidence-mode="unknown">
         <table>
           <thead><tr><th scope="col">Severity</th><th scope="col">Repository</th><th scope="col">Rule</th><th scope="col">Path</th><th scope="col">Finding</th></tr></thead>
-          <tbody id="finding-table"><tr><td colspan="5">Loading.</td></tr></tbody>
+          <tbody id="finding-table" aria-live="polite"><tr><td colspan="5">Loading.</td></tr></tbody>
         </table>
       </div>
     </section>
 
-    <section class="section panel panel-deep">
+    <section id="conformance-provenance-surface" class="section panel panel-deep atlas-evidence-surface" data-evidence-mode="unknown">
       <h2>Evidence provenance</h2>
       <dl class="provenance">
-        <div><dt>Policy version</dt><dd id="policy-version">-</dd></div>
-        <div><dt>Source repository</dt><dd id="source-repository">-</dd></div>
-        <div><dt>Source commit</dt><dd id="source-commit">-</dd></div>
-        <div><dt>Fingerprint</dt><dd id="fingerprint">-</dd></div>
+        <div><dt>Policy version</dt><dd id="policy-version">—</dd></div>
+        <div><dt>Source repository</dt><dd id="source-repository">—</dd></div>
+        <div><dt>Source commit</dt><dd id="source-commit">—</dd></div>
+        <div><dt>Fingerprint</dt><dd id="fingerprint">—</dd></div>
       </dl>
     </section>
   </main>

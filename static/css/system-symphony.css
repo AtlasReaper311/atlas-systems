@@ -216,7 +216,7 @@
 .system-symphony button:focus-visible,
 .system-symphony input:focus-visible,
 .system-symphony select:focus-visible,
-.symphony-node:focus-visible circle {
+.symphony-node:focus-visible .symphony-chip__frame {
   outline: 2px solid var(--accent, #f5a623);
   outline-offset: 3px;
 }
@@ -414,6 +414,39 @@
   margin-bottom: 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+}
+
+.symphony-performance__collapse {
+  display: grid;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid var(--border-hi, rgba(255, 255, 255, 0.16));
+  border-radius: 2px;
+  background: var(--bg-2, #15151d);
+  color: var(--accent, #f5a623);
+  cursor: pointer;
+  font: 700 12px/1 var(--mono, "IBM Plex Mono", monospace);
+}
+
+.symphony-performance.is-collapsed {
+  width: min(360px, 100%);
+  overflow: hidden;
+}
+
+.symphony-performance.is-collapsed .symphony-performance__header {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.symphony-performance.is-collapsed .symphony-demo-profiles,
+.symphony-performance.is-collapsed .symphony-performance__macros,
+.symphony-performance.is-collapsed .symphony-ghost-monitor,
+.symphony-performance.is-collapsed .symphony-performance__actions,
+.symphony-performance.is-collapsed .symphony-performance__status {
+  display: none;
 }
 
 .symphony-performance__header span,
@@ -767,9 +800,11 @@
 .symphony-visual {
   position: relative;
   display: grid;
-  grid-template-rows: minmax(500px, 1fr) 126px;
+  grid-template-rows: minmax(0, auto) 126px;
   min-width: 0;
-  overflow: hidden;
+  /* The board keeps its readable size and the surface scrolls to it, rather
+     than the board shrinking into illegibility. */
+  overflow: auto;
   border-right: 1px solid var(--border, rgba(255, 255, 255, 0.08));
 }
 
@@ -785,26 +820,148 @@
   animation: symphony-deploy-pulse 1.5s ease-out;
 }
 
+/* ---------------------------------------------------------------------------
+   TRACE board: chips, sockets and copper traces.
+
+   Every state is carried by geometry and text as well as colour. A colour
+   alone never states health, so each rule below pairs its hue with a border
+   weight, dash pattern, LED shape or state code.
+   --------------------------------------------------------------------------- */
+
 .symphony-topology {
   width: 100%;
-  height: 100%;
-  min-height: 500px;
+  height: auto;
+  display: block;
+  /* The board scales down to this floor to fit its container; below it the
+     surface scrolls rather than shrinking text past legibility. The mobile
+     composition takes over entirely at the narrow breakpoint. */
+  min-width: 1000px;
+  margin-inline: auto;
+  font: 9px var(--mono, "IBM Plex Mono", monospace);
 }
 
-.symphony-edge {
-  stroke: rgba(170, 169, 160, 0.2);
+.symphony-topology[data-layout="mobile"] {
+  min-width: 0;
+  max-width: 420px;
+  margin-inline: auto;
+}
+
+.symphony-topology__chips {
+  /* Chips are the only pointer targets; copper never intercepts a click. */
+  pointer-events: auto;
+}
+
+.symphony-topology__edges,
+.symphony-board__plate,
+.symphony-board__fixture {
+  pointer-events: none;
+}
+
+/* --- board plate and silkscreen ------------------------------------------ */
+
+.symphony-board__district {
+  fill: var(--text-faint, #888894);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.symphony-board__district-count {
+  fill: var(--text-faint, #888894);
+  font-size: 8px;
+  opacity: 0.72;
+}
+
+.symphony-board__spine {
+  stroke: rgba(245, 166, 35, 0.26);
+  stroke-width: 2;
+}
+
+.symphony-hatch-line {
+  stroke: var(--symphony-unmeasured);
   stroke-width: 1;
-  stroke-dasharray: 4 8;
+  opacity: 0.3;
+}
+
+.symphony-fixture-line {
+  stroke: var(--accent, #f5a623);
+  stroke-width: 1;
+  opacity: 0.06;
+}
+
+.symphony-board__fixture-frame {
+  fill: none;
+  stroke: var(--accent, #f5a623);
+  stroke-width: 2;
+  stroke-dasharray: 10 6;
+  opacity: 0.66;
+}
+
+.symphony-board__fixture-plate {
+  fill: var(--accent, #f5a623);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  font-weight: 600;
+}
+
+/* --- copper traces -------------------------------------------------------- */
+
+.symphony-edge {
+  fill: none;
+  stroke: rgba(245, 166, 35, 0.44);
+  stroke-width: 1.35;
+  stroke-linejoin: miter;
   vector-effect: non-scaling-stroke;
+  transition: stroke 0.18s cubic-bezier(0.2, 0, 0, 1), opacity 0.18s ease;
+}
+
+.symphony-edge__via {
+  fill: rgba(245, 166, 35, 0.54);
 }
 
 .symphony-topology marker path {
-  fill: rgba(170, 169, 160, 0.46);
+  fill: rgba(245, 166, 35, 0.64);
 }
 
 .symphony-edge.is-external {
   stroke-dasharray: 2 7;
-  stroke: rgba(149, 128, 200, 0.28);
+  stroke: rgba(149, 128, 200, 0.44);
+}
+
+/* A lit trace equals one sounding voice. Never ambience. */
+.symphony-edge.is-lit {
+  stroke: var(--accent, #f5a623);
+  stroke-dasharray: 14 22;
+  animation: symphony-trace-flow 1.5s linear infinite;
+}
+
+/* Degraded pressure jitters the signal on an uneven dash. */
+.symphony-edge[data-status="degraded"] {
+  stroke: color-mix(in srgb, var(--symphony-warning) 46%, transparent);
+  stroke-dasharray: 9 5 3 5;
+}
+
+.symphony-edge.is-lit[data-status="degraded"] {
+  stroke: var(--symphony-warning);
+  animation: symphony-trace-jitter 0.7s steps(5) infinite;
+}
+
+/* Critical clips in and out rather than flowing. */
+.symphony-edge[data-status="down"] {
+  stroke: color-mix(in srgb, var(--symphony-critical) 52%, transparent);
+  stroke-dasharray: 6 10;
+}
+
+.symphony-edge.is-lit[data-status="down"] {
+  stroke: var(--symphony-critical);
+  animation: symphony-trace-clip 0.8s steps(4) infinite;
+}
+
+/* Unknown and unmeasured sources never animate. */
+.symphony-edge[data-status="unknown"],
+.symphony-edge[data-status="unmeasured"] {
+  stroke: rgba(170, 169, 160, 0.3);
+  stroke-dasharray: 3 6;
 }
 
 .symphony-edge.is-selected {
@@ -815,97 +972,321 @@
 
 .symphony-edge.is-dimmed,
 .symphony-node.is-dimmed {
-  opacity: 0.14;
+  opacity: 0.28;
 }
 
-.system-symphony[data-running="1"] .symphony-edge {
-  animation: symphony-edge-flow 2.5s linear infinite;
-  stroke: rgba(245, 166, 35, 0.27);
-}
+/* --- chip shell ----------------------------------------------------------- */
 
 .symphony-node {
   cursor: pointer;
 }
 
-.symphony-node > circle:first-of-type {
-  fill: #24242f;
+.symphony-node text {
+  pointer-events: none;
+}
+
+.symphony-chip__frame {
+  fill: #16161d;
   stroke: var(--symphony-unknown);
-  stroke-width: 1.4;
+  stroke-width: 1;
   vector-effect: non-scaling-stroke;
-  transition: fill 0.18s ease, stroke-width 0.18s ease;
+  transition: stroke 0.18s cubic-bezier(0.2, 0, 0, 1),
+    stroke-width 0.18s cubic-bezier(0.2, 0, 0, 1),
+    fill 0.18s cubic-bezier(0.2, 0, 0, 1);
 }
 
-.symphony-node__core {
+.symphony-chip__pins line {
+  stroke: rgba(245, 166, 35, 0.4);
+  stroke-width: 1.4;
+}
+
+.symphony-chip__die {
+  fill: #0d0d13;
+  stroke: rgba(255, 255, 255, 0.05);
+  stroke-width: 1;
+}
+
+.symphony-chip__led {
   fill: var(--symphony-unknown);
-  opacity: 0.72;
 }
 
-.symphony-node.status-unmeasured > circle:first-of-type {
-  fill: #1b1b23;
-  stroke: var(--symphony-unmeasured);
-  stroke-dasharray: 3 3;
+.symphony-chip__wave {
+  fill: none;
+  stroke-width: 1.2;
+  stroke-linejoin: miter;
 }
 
-.symphony-node.status-unmeasured .symphony-node__core {
+.symphony-chip__identity {
+  fill: var(--text, #e8e8e0);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.symphony-chip__meta,
+.symphony-chip__state {
+  fill: var(--text-faint, #888894);
+  font-size: 8px;
+  letter-spacing: 0.06em;
+}
+
+.symphony-chip__state {
+  text-transform: uppercase;
+}
+
+.symphony-chip__brackets {
+  fill: none;
+  stroke: var(--accent, #f5a623);
+  stroke-width: 1.6;
+  opacity: 0;
+}
+
+/* --- measured states ------------------------------------------------------ */
+
+.symphony-node.status-healthy .symphony-chip__frame { stroke: var(--symphony-healthy); }
+.symphony-node.status-healthy .symphony-chip__led { fill: var(--symphony-healthy); }
+
+.symphony-node.status-degraded .symphony-chip__frame {
+  stroke: color-mix(in srgb, var(--symphony-warning) 44%, transparent);
+  stroke-width: 1.2;
+}
+.symphony-node.status-degraded .symphony-chip__led {
+  fill: var(--symphony-warning);
+  animation: symphony-led-breathe 1.6s ease-in-out infinite;
+}
+.symphony-node.status-degraded .symphony-chip__wave { stroke: var(--symphony-warning); }
+.symphony-node.status-degraded .symphony-chip__die {
+  fill: color-mix(in srgb, var(--symphony-warning) 8%, #0d0d13);
+}
+
+.symphony-node.status-down .symphony-chip__frame {
+  stroke: var(--symphony-critical);
+  stroke-width: 1.4;
+}
+.symphony-node.status-down .symphony-chip__led {
+  fill: var(--symphony-critical);
+  animation: symphony-led-fail 0.8s steps(4) infinite;
+}
+.symphony-node.status-down .symphony-chip__wave { stroke: var(--symphony-critical); }
+.symphony-node.status-down .symphony-chip__die {
+  fill: color-mix(in srgb, var(--symphony-critical) 12%, #0d0d13);
+  animation: symphony-heat-wash 3.2s ease-in-out infinite;
+}
+
+/* Measured but undecidable. Grey LED, no metric substituted, never promoted. */
+.symphony-node.status-unknown .symphony-chip__frame { stroke: var(--symphony-unknown); }
+.symphony-node.status-unknown .symphony-chip__led {
   fill: var(--symphony-unmeasured);
-  opacity: 0.4;
+  animation: none;
+}
+
+/* --- unmeasured socket ---------------------------------------------------- */
+
+.symphony-node.status-unmeasured .symphony-chip__frame {
+  fill: #101016;
+  stroke: var(--symphony-unmeasured);
+  stroke-dasharray: 4 3;
+}
+
+.symphony-node.status-unmeasured .symphony-chip__identity {
+  fill: var(--text-faint, #888894);
+  font-weight: 400;
+}
+
+.symphony-node.status-unmeasured .symphony-chip__pins line {
+  stroke: rgba(100, 101, 114, 0.42);
+}
+
+.symphony-chip__holes circle {
+  fill: #05050a;
+  stroke: rgba(100, 101, 114, 0.5);
+  stroke-width: 0.8;
 }
 
 .symphony-node--external {
   cursor: default;
 }
 
-.symphony-node--external text {
-  font-size: 7px;
+.symphony-node--external .symphony-chip__identity {
   font-style: italic;
 }
 
-.symphony-node.status-healthy > circle:first-of-type {
-  stroke: var(--symphony-healthy);
+/* --- stale: visible, desaturated, explicitly last known -------------------- */
+
+.symphony-topology[data-source="stale"] {
+  filter: saturate(0.35);
+  transition: filter 240ms cubic-bezier(0.2, 0, 0, 1);
 }
 
-.symphony-node.status-healthy .symphony-node__core {
-  fill: var(--symphony-healthy);
+.symphony-topology[data-source="stale"] .symphony-edge {
+  animation: none;
+  stroke-dasharray: 4 8;
 }
 
-.symphony-node.status-degraded > circle:first-of-type {
-  stroke: var(--symphony-warning);
+.symphony-topology[data-source="stale"] .symphony-chip__led,
+.symphony-node[data-evidence="stale"] .symphony-chip__led {
+  fill: none;
+  stroke: var(--symphony-unmeasured);
+  stroke-width: 1.6;
+  animation: none;
 }
 
-.symphony-node.status-degraded .symphony-node__core {
-  fill: var(--symphony-warning);
+/* --- selection, hover, focus ---------------------------------------------- */
+
+.symphony-node:hover .symphony-chip__frame {
+  stroke-width: 1.6;
+  fill: #1d1d26;
 }
 
-.symphony-node.status-down > circle:first-of-type {
-  stroke: var(--symphony-critical);
+.symphony-node.is-selected .symphony-chip__frame {
+  stroke: var(--accent, #f5a623);
+  stroke-width: 1.6;
 }
 
-.symphony-node.status-down .symphony-node__core {
-  fill: var(--symphony-critical);
+.symphony-node.is-selected .symphony-chip__brackets {
+  opacity: 1;
 }
 
-.symphony-node text {
-  fill: var(--text-faint, #888894);
-  font: 8px var(--mono, "IBM Plex Mono", monospace);
-  pointer-events: none;
-}
-
-.symphony-node:hover > circle:first-of-type,
-.symphony-node.is-selected > circle:first-of-type {
-  fill: #30303c;
-  stroke-width: 2.5;
-}
-
-.symphony-node.is-selected text {
+.symphony-node.is-selected .symphony-chip__identity {
   fill: var(--text, #e8e8e0);
 }
 
-.symphony-node.is-playing > circle:first-of-type {
-  animation: symphony-node-hit 0.5s ease-out;
+.symphony-node:focus-visible {
+  outline: none;
+}
+
+.symphony-node:focus-visible .symphony-chip__brackets {
+  opacity: 1;
+  stroke-dasharray: 2 3;
+  stroke-width: 2;
+}
+
+/* --- active audio voice --------------------------------------------------- */
+
+.symphony-node.is-playing .symphony-chip__frame {
+  stroke: var(--accent, #f5a623);
+}
+
+.symphony-node[data-voice="true"] .symphony-chip__die {
+  animation: symphony-voice-ring 1.4s ease-out;
 }
 
 .symphony-topology.is-critical {
   filter: drop-shadow(0 0 10px rgba(226, 75, 74, 0.12));
+}
+
+/*
+ * The scope filter keeps the existing widget semantics: filterVoices() removes
+ * a component from both the board and the service table, so the two stay in
+ * agreement. data-scope is published on the board for styling and testing, but
+ * nothing here fades a filtered component, because none is rendered.
+ */
+
+/* --- mobile carrier bands ------------------------------------------------- */
+
+.symphony-topology[data-layout="mobile"] .symphony-chip__identity {
+  font-size: 11px;
+}
+
+.symphony-topology[data-layout="mobile"] .symphony-chip__meta,
+.symphony-topology[data-layout="mobile"] .symphony-chip__state {
+  font-size: 9px;
+}
+
+.symphony-topology[data-layout="mobile"] .symphony-edge {
+  stroke-width: 1;
+}
+
+/* --- motion: signal only -------------------------------------------------- */
+
+@keyframes symphony-trace-flow {
+  to { stroke-dashoffset: -36; }
+}
+
+@keyframes symphony-trace-jitter {
+  0% { stroke-dashoffset: 0; transform: translateY(0); }
+  50% { stroke-dashoffset: -14; transform: translateY(0.7px); }
+  100% { stroke-dashoffset: -30; transform: translateY(0); }
+}
+
+@keyframes symphony-trace-clip {
+  0%, 45% { opacity: 1; }
+  50%, 70% { opacity: 0.12; }
+  75%, 100% { opacity: 1; }
+}
+
+@keyframes symphony-led-breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.42; }
+}
+
+@keyframes symphony-led-fail {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.15; }
+}
+
+@keyframes symphony-heat-wash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.72; }
+}
+
+@keyframes symphony-voice-ring {
+  0% { opacity: 1; }
+  30% { opacity: 0.55; }
+  100% { opacity: 1; }
+}
+
+/*
+ * Reduced motion keeps every state legible from geometry and text. Animation
+ * is replaced by its still equivalent, never simply switched off into a state
+ * that reads as healthy.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .symphony-edge.is-lit {
+    animation: none;
+    stroke-dasharray: none;
+    opacity: 0.9;
+  }
+
+  /* Uneven dash held still, so degradation is still visible without motion. */
+  .symphony-edge.is-lit[data-status="degraded"] {
+    animation: none;
+    stroke-dasharray: 9 5 3 5;
+  }
+
+  /* Broken dash at 80%, so a clipped signal still reads as broken. */
+  .symphony-edge.is-lit[data-status="down"] {
+    animation: none;
+    stroke-dasharray: 2 4;
+    opacity: 0.8;
+  }
+
+  .symphony-node.status-degraded .symphony-chip__led {
+    animation: none;
+    opacity: 0.6;
+  }
+
+  .symphony-node.status-down .symphony-chip__led {
+    animation: none;
+    opacity: 0.45;
+  }
+
+  .symphony-node.status-down .symphony-chip__die {
+    animation: none;
+    opacity: 0.8;
+  }
+
+  .symphony-node[data-voice="true"] .symphony-chip__die {
+    animation: none;
+  }
+
+  .symphony-node[data-voice="true"] .symphony-chip__frame {
+    stroke: var(--accent, #f5a623);
+    stroke-width: 1.8;
+  }
+
+  .symphony-topology[data-source="stale"] {
+    transition: none;
+  }
 }
 
 .symphony-waveform-wrap {
@@ -937,6 +1318,23 @@
   overflow: auto;
   padding: 24px;
   background: var(--bg-1, #111118);
+}
+
+.symphony-inspector__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.symphony-inspector__head > div {
+  min-width: 0;
+}
+
+.symphony-inspector__close {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding-inline: 10px;
 }
 
 .symphony-inspector h3 {
@@ -1233,16 +1631,6 @@ body.symphony-console-open {
   overflow: hidden;
 }
 
-@keyframes symphony-edge-flow {
-  to { stroke-dashoffset: -24; }
-}
-
-@keyframes symphony-node-hit {
-  0% { filter: drop-shadow(0 0 0 rgba(245, 166, 35, 0)); transform: scale(1); }
-  35% { filter: drop-shadow(0 0 9px rgba(245, 166, 35, 0.9)); transform: scale(1.48); }
-  100% { filter: drop-shadow(0 0 0 rgba(245, 166, 35, 0)); transform: scale(1); }
-}
-
 @keyframes symphony-deploy-pulse {
   0% { border-width: 0; border-color: rgba(245, 166, 35, 0); box-shadow: inset 0 0 0 rgba(245, 166, 35, 0); }
   28% { border-width: 2px; border-color: rgba(245, 166, 35, 0.95); box-shadow: inset 0 0 65px rgba(245, 166, 35, 0.22); }
@@ -1447,11 +1835,7 @@ body.symphony-console-open {
   }
 
   .symphony-visual {
-    grid-template-rows: 430px 120px;
-  }
-
-  .symphony-topology {
-    min-height: 430px;
+    grid-template-rows: minmax(0, auto) 120px;
   }
 
   .symphony-demo-editor__metrics,
@@ -1475,7 +1859,7 @@ body.symphony-console-open {
     transition-duration: 0.001ms !important;
   }
 
-  .system-symphony[data-running="1"] .symphony-edge {
+  .symphony-edge.is-lit {
     animation: none;
   }
 }

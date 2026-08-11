@@ -185,12 +185,15 @@ function eventState(event) {
   return "unknown";
 }
 
+const PIPELINE_VISIBLE_LIMIT = 6;
+
 function renderPipeline(payload) {
   const allEvents = eventsOf(payload);
-  const events = allEvents.filter(isPipelineEvent).slice(0, 20);
+  const pipelineEvents = allEvents.filter(isPipelineEvent);
+  const events = pipelineEvents.slice(0, PIPELINE_VISIBLE_LIMIT);
   const list = byId("pipeline-list");
   list.replaceChildren();
-  setText("summary-events", events.length);
+  setText("summary-events", pipelineEvents.length);
 
   if (!events.length) {
     const item = document.createElement("li");
@@ -217,10 +220,13 @@ function renderPipeline(payload) {
     list.appendChild(item);
   }
 
-  const failures = events.filter((event) => eventState(event) === "failure").length;
-  const newest = events.map(eventTime).filter(Boolean).sort().at(-1) ?? null;
+  const failures = pipelineEvents.filter((event) => eventState(event) === "failure").length;
+  const newest = pipelineEvents.map(eventTime).filter(Boolean).sort().at(-1) ?? null;
   const state = failures ? "failure" : sourceState(newest, payload?.stale === true);
-  setStatus("pipeline-status", state, `${events.length} pipeline event${events.length === 1 ? "" : "s"}; ${failures} failure-level; newest ${ageLabel(newest)}.`);
+  const countLabel = pipelineEvents.length > events.length
+    ? `Newest ${events.length} of ${pipelineEvents.length} pipeline events`
+    : `${events.length} pipeline event${events.length === 1 ? "" : "s"}`;
+  setStatus("pipeline-status", state, `${countLabel}; ${failures} failure-level; newest ${ageLabel(newest)}.`);
   setText("source-pipeline", `${state}; newest ${ageLabel(newest)}; fixed pipeline classification filter`);
   return state;
 }

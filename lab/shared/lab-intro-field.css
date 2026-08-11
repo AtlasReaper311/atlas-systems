@@ -1,0 +1,39 @@
+@import url("/static/css/atlas-field-consumer.css?v=20260807-hero-contrast");
+
+.page-intro.lab-intro-atlas-field::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(10, 10, 15, .9) 0%, rgba(10, 10, 15, .66) 42%, rgba(10, 10, 15, .18) 76%, rgba(10, 10, 15, .42) 100%);
+}
+
+.page-intro.lab-intro-atlas-field > .atlas-field-canvas {
+  inset: -28px -4vw;
+  width: calc(100% + 8vw);
+  height: calc(100% + 56px);
+  opacity: .42;
+  filter: saturate(1.12) brightness(.9) contrast(.98);
+  -webkit-mask-image: radial-gradient(ellipse 82% 94% at 66% 48%, #000 0%, rgba(0, 0, 0, .82) 52%, rgba(0, 0, 0, .25) 82%, transparent 100%);
+  mask-image: radial-gradient(ellipse 82% 94% at 66% 48%, #000 0%, rgba(0, 0, 0, .82) 52%, rgba(0, 0, 0, .25) 82%, transparent 100%);
+}
+
+.page-intro.lab-intro-atlas-field > :not(.atlas-field-canvas) {
+  text-shadow: 0 1px 14px rgba(10, 10, 15, .94);
+}
+
+@media (max-width: 620px) {
+  .page-intro.lab-intro-atlas-field > .atlas-field-canvas {
+    opacity: .32;
+    filter: saturate(1.05) brightness(.84) contrast(.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-intro.lab-intro-atlas-field > .atlas-field-canvas {
+    opacity: .34;
+    filter: saturate(1.04) brightness(.84) contrast(.98);
+  }
+}

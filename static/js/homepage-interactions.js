@@ -65,6 +65,20 @@ function initTerminal() {
   void run();
 }
 
+async function initHeroField() {
+  const hero = document.querySelector(".hero");
+  if (!hero) return;
+
+  try {
+    const { createAtlasField } = await import("/static/js/atlas-field.js?v=20260727-atlas-field-production-v2");
+    const controller = createAtlasField(hero, { preset: "hero" });
+    hero.dataset.atlasFieldState = controller ? "ready" : "unavailable";
+  } catch (error) {
+    hero.dataset.atlasFieldState = "unavailable";
+    console.warn("AtlasField could not initialise", error);
+  }
+}
+
 function initReveal() {
   const elements = document.querySelectorAll(".reveal");
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -101,6 +115,7 @@ function initFooter() {
 
 function init() {
   initTerminal();
+  void initHeroField();
   initReveal();
   initNavigation();
   initFooter();

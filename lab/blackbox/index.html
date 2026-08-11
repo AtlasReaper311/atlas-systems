@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Replay sealed Atlas Systems incidents from the ten-minute Blackbox evidence window and open reviewed postmortems attached to the record.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Blackbox // Atlas Systems</title>
+  <link rel="canonical" href="https://atlas-systems.uk/lab/blackbox/">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/lab/shared/systems.css">
+  <link rel="stylesheet" href="/lab/blackbox-timeline.css?v=20260730-dedicated-route">
+  <link rel="stylesheet" href="/lab/blackbox/blackbox.css?v=20260730-dedicated-route">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Blackbox // Atlas Systems">
+  <meta property="og:description" content="Replay sealed Atlas Systems incidents from the ten-minute Blackbox evidence window and open reviewed postmortems attached to the record.">
+  <meta property="og:url" content="https://atlas-systems.uk/lab/blackbox/">
+  <meta property="og:site_name" content="Atlas Systems">
+  <meta property="og:image" content="https://atlas-systems.uk/og/blackbox.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The minutes before failure, kept. // Atlas Systems">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Blackbox // Atlas Systems">
+  <meta name="twitter:description" content="Replay sealed Atlas Systems incidents and open reviewed postmortems attached to the record.">
+  <meta name="twitter:image" content="https://atlas-systems.uk/og/blackbox.png">
+  <meta name="twitter:image:alt" content="The minutes before failure, kept. // Atlas Systems">
+</head>
+<body>
+  <nav aria-label="Primary navigation">
+    <a class="wordmark" href="/">Atlas<span>_</span>Systems</a>
+    <div class="nav-links">
+      <a href="/lab/">Lab</a>
+      <a href="/lab/blackbox/" aria-current="page">Blackbox</a>
+      <a href="/systems/observability/">Observability</a>
+      <a href="/lab/console/">Detailed console</a>
+    </div>
+  </nav>
+
+  <main class="blackbox-page">
+    <header class="blackbox-hero">
+      <div class="eyebrow">Atlas Blackbox // incident evidence</div>
+      <h1>The minutes before failure, kept.</h1>
+      <p class="lede">
+        Every minute, the recorder keeps a bounded telemetry and event frame. A
+        failure seals the rolling window before it can rotate away. Select an
+        incident, scrub back from the trigger, and open its postmortem when a
+        reviewed record has been published.
+      </p>
+      <ul class="blackbox-hero-meta">
+        <li>10-minute rolling buffer</li>
+        <li>sealed incident replay</li>
+        <li>human-reviewed postmortems</li>
+      </ul>
+    </header>
+
+    <section class="section blackbox-recorder" aria-labelledby="blackbox-recorder-title">
+      <div class="blackbox-section-head">
+        <div>
+          <div class="blackbox-kicker">Live recorder</div>
+          <h2 id="blackbox-recorder-title">Incident replay deck</h2>
+        </div>
+        <p id="blackbox-statusline" class="bbx-statusline" aria-live="polite">contacting recorder…</p>
+      </div>
+      <div id="blackbox-host" aria-live="polite"></div>
+      <p class="blackbox-source-line">
+        Read-only source: <a href="https://api.atlas-systems.uk/blackbox/incidents">api.atlas-systems.uk/blackbox/incidents</a>
+      </p>
+    </section>
+
+    <section class="section blackbox-contract" aria-labelledby="blackbox-contract-title">
+      <div class="blackbox-kicker">Evidence boundary</div>
+      <h2 id="blackbox-contract-title">A recorder, not a verdict.</h2>
+      <div class="grid grid-3">
+        <article class="panel">
+          <span class="blackbox-step">01</span>
+          <h3>Record</h3>
+          <p>Telemetry and estate events are captured before a failure, while the evidence still exists.</p>
+        </article>
+        <article class="panel">
+          <span class="blackbox-step">02</span>
+          <h3>Draft</h3>
+          <p><code>atlas-postmortem</code> reads sealed incidents locally and writes bounded drafts that remain outside production.</p>
+        </article>
+        <article class="panel">
+          <span class="blackbox-step">03</span>
+          <h3>Review</h3>
+          <p>Only a reviewed repository change attaches a postmortem to the public incident record.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section panel panel-deep blackbox-honesty" aria-labelledby="blackbox-honesty-title">
+      <div class="blackbox-kicker">Honesty rule</div>
+      <h2 id="blackbox-honesty-title">Unknown stays unknown.</h2>
+      <div class="grid grid-2">
+        <p>
+          Telemetry is sampled once a minute. Values between samples are visibly
+          interpolated; event timestamps are not. A quiet graph cannot prove that
+          an unrelated service was healthy.
+        </p>
+        <p>
+          A published postmortem may conclude that root cause is unresolved. The
+          interface presents the reviewed evidence boundary instead of inventing
+          certainty to fill the panel.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/lab/blackbox/blackbox.js?v=20260730-dedicated-route"></script>
+</body>
+</html>

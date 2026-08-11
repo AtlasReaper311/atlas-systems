@@ -10,6 +10,11 @@
   <link rel="stylesheet" href="/lab/shared/systems.css">
   <link rel="stylesheet" href="/lab/signal/signal-v2.css">
   <link rel="canonical" href="https://atlas-systems.uk/lab/signal/">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Signal Garden // Atlas Systems">
   <meta property="og:description" content="Signal Garden: an evolving browser-native generative DSP ecosystem built on AudioWorklet, granular synthesis, modal resonance, deterministic evolution, and interactive performance control.">
@@ -69,8 +74,8 @@
         <div class="performance-control">
           <span class="control-label">Mode</span>
           <div class="segmented" role="group" aria-label="Performance mode">
-            <button class="mode-btn active" data-mode="autonomous" type="button">Autonomous</button>
-            <button class="mode-btn" data-mode="perform" type="button">Perform</button>
+            <button class="mode-btn active" data-mode="autonomous" type="button" aria-pressed="true">Autonomous</button>
+            <button class="mode-btn" data-mode="perform" type="button" aria-pressed="false">Perform</button>
           </div>
           <p id="mode-help">The garden moves through long-form states by itself. Your gestures still influence it without taking over.</p>
         </div>
@@ -167,14 +172,15 @@
           <section class="drawer-panel" aria-labelledby="macro-title">
             <span class="eyebrow">Performance field</span>
             <h3 id="macro-title">Macro movement</h3>
-            <div class="macro-pad" id="macro-pad" role="application" aria-label="Two-dimensional macro control">
+            <p class="sr-only" id="macro-help">Use arrow keys to move the macro field. Hold Shift for larger moves. Home returns to the centre.</p>
+            <div class="macro-pad" id="macro-pad" role="application" tabindex="0" aria-label="Two-dimensional macro control" aria-describedby="macro-help macro-readout">
               <span class="macro-axis macro-top">volatile</span>
               <span class="macro-axis macro-bottom">calm</span>
               <span class="macro-axis macro-left">sparse</span>
               <span class="macro-axis macro-right">dense</span>
               <span class="macro-cursor" id="macro-cursor"></span>
             </div>
-            <p class="macro-readout">density <strong id="macro-x-output">0.50</strong> // volatility <strong id="macro-y-output">0.50</strong></p>
+            <p class="macro-readout" id="macro-readout" aria-live="polite">density <strong id="macro-x-output">0.50</strong> // volatility <strong id="macro-y-output">0.50</strong></p>
             <p class="drawer-help">One gesture moves several parameters together. The individual DSP controls remain below for inspection and fine adjustment.</p>
           </section>
 
@@ -184,21 +190,21 @@
             <div class="environment-group">
               <span>Feedback weather</span>
               <div class="button-bank" id="weather-bank">
-                <button class="bank-btn active" data-weather="clear" type="button">Clear</button>
-                <button class="bank-btn" data-weather="mist" type="button">Mist</button>
-                <button class="bank-btn" data-weather="bloom" type="button">Bloom</button>
-                <button class="bank-btn" data-weather="storm" type="button">Storm</button>
-                <button class="bank-btn" data-weather="void" type="button">Void</button>
+                <button class="bank-btn active" data-weather="clear" type="button" aria-pressed="true">Clear</button>
+                <button class="bank-btn" data-weather="mist" type="button" aria-pressed="false">Mist</button>
+                <button class="bank-btn" data-weather="bloom" type="button" aria-pressed="false">Bloom</button>
+                <button class="bank-btn" data-weather="storm" type="button" aria-pressed="false">Storm</button>
+                <button class="bank-btn" data-weather="void" type="button" aria-pressed="false">Void</button>
               </div>
               <p id="weather-help">Balanced feedback with restrained modulation and a clear stereo field.</p>
             </div>
             <div class="environment-group">
               <span>Spectral veil</span>
               <div class="button-bank" id="spectral-bank">
-                <button class="bank-btn active" data-spectral="off" type="button">Off</button>
-                <button class="bank-btn" data-spectral="freeze" type="button">Freeze</button>
-                <button class="bank-btn" data-spectral="blur" type="button">Blur</button>
-                <button class="bank-btn" data-spectral="shimmer" type="button">Shimmer</button>
+                <button class="bank-btn active" data-spectral="off" type="button" aria-pressed="true">Off</button>
+                <button class="bank-btn" data-spectral="freeze" type="button" aria-pressed="false">Freeze</button>
+                <button class="bank-btn" data-spectral="blur" type="button" aria-pressed="false">Blur</button>
+                <button class="bank-btn" data-spectral="shimmer" type="button" aria-pressed="false">Shimmer</button>
               </div>
               <p id="spectral-help">The granular signal passes directly into the feedback network.</p>
             </div>

@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { chromium, firefox } from "playwright";
+import { isCloudflareInsightsUrl } from "./network-request-policy.mjs";
 
 const previewBase = process.env.PREVIEW_URL;
 if (!previewBase) throw new Error("PREVIEW_URL is required");
@@ -18,7 +19,7 @@ const stateWindows = Object.freeze({
   healthy: Object.freeze({ minimum: -31, maximum: -12 }),
   warning: Object.freeze({ minimum: -31, maximum: -12 }),
   critical: Object.freeze({ minimum: -30, maximum: -11 }),
-  unknown: Object.freeze({ minimum: -34, maximum: -18 }),
+  unknown: Object.freeze({ minimum: -27, maximum: -16 }),
 });
 
 await fs.mkdir(outputDirectory, { recursive: true });
@@ -138,23 +139,24 @@ async function resetMeter() {
 }
 
 async function measureState(label, state, policy) {
+  const expectedGainDb = state === "unknown" ? 11.5 : 4;
   await page.getByRole("button", { name: label, exact: true }).click();
   await waitForStateTransition(state, policy);
   await resetMeter();
   await page.waitForTimeout(6500);
-  await page.waitForFunction((expectedState) => {
+  await page.waitForFunction(({ expectedState, expectedGainDb: expectedGain }) => {
     const metrics = globalThis.__ATLAS_APU_LOUDNESS__?.getMetrics?.();
     const mastering = globalThis.__ATLAS_APU_MASTERING_RUNTIME__?.getStatus?.();
     return mastering?.active === true
       && mastering?.state === expectedState
-      && mastering?.targetGainDb === 4
+      && mastering?.targetGainDb === expectedGain
       && metrics?.ready === true
       && Number(metrics?.blockCount) >= 20
       && Number.isFinite(metrics?.momentaryLufs)
       && Number.isFinite(metrics?.shortTermLufs)
       && Number.isFinite(metrics?.integratedLufs)
       && Number.isFinite(metrics?.sessionTruePeakDbtp);
-  }, state, { timeout: 15_000, polling: 200 });
+  }, { expectedState: state, expectedGainDb }, { timeout: 15_000, polling: 200 });
 
   const snapshot = await collectEvidence();
   const metrics = snapshot.loudnessMetrics;
@@ -162,8 +164,12 @@ async function measureState(label, state, policy) {
   assert.equal(snapshot.metricState, label);
   assert.equal(snapshot.frame.scoreState, state);
   assert.equal(snapshot.masteringRuntime.state, state);
-  assert.equal(snapshot.masteringRuntime.policyBuildId, "20260726-system-symphony-mastering-v4");
-  assert.equal(snapshot.masteringRuntime.targetGainDb, 4);
+  assert.equal(snapshot.masteringRuntime.policyBuildId, "20260728-system-symphony-mastering-v6");
+  assert.equal(snapshot.masteringRuntime.targetGainDb, expectedGainDb);
+  if (state === "unknown") {
+    assert.equal(snapshot.masteringRuntime.targetIntegratedLufs, -24);
+    assert.equal(snapshot.masteringRuntime.targetToleranceDb, 3);
+  }
   assert.ok(metrics.integratedLufs >= window.minimum, `${browserName} ${state} fell below ${window.minimum} LUFS`);
   assert.ok(metrics.integratedLufs <= window.maximum, `${browserName} ${state} exceeded ${window.maximum} LUFS`);
   assert.ok(metrics.sessionTruePeakDbtp <= -2, `${browserName} ${state} exceeded the true-peak guard`);
@@ -226,9 +232,14 @@ try {
   assert.equal(fixtureEvidence.frame.previewEstateDerived, true);
   assert.equal(fixtureEvidence.frame.scoreState, "healthy");
   assert.equal(fixtureEvidence.metricState, "Healthy");
-  assert.equal(fixtureEvidence.metricKnown, "91%");
+  // 19 measured of 22 declared components. The preview topology fixture also
+  // declares one topology-only component and two dependencies outside the
+  // declared estate, so the TRACE board's socket and external-boundary states
+  // are reviewable. Declared-but-unmeasured components lower the known ratio
+  // without changing the measured count.
+  assert.equal(fixtureEvidence.metricKnown, "86%");
   assert.equal(fixtureEvidence.metricMeasured, "19");
-  assert.equal(fixtureEvidence.rows.length, 21);
+  assert.equal(fixtureEvidence.rows.length, 22);
   assert.equal(fixtureEvidence.rows.filter((row) => row.evidenceState === "current").length, 19);
   assert.equal(fixtureEvidence.rows.filter((row) => row.evidenceState === "reported-unknown").length, 2);
   assert.equal(fixtureEvidence.rows.filter((row) => row.cells[1] === "unknown").length, 0);
@@ -251,10 +262,10 @@ try {
     return status?.status === "running" && status?.processorReady === true && mastering?.active === true;
   }, null, { timeout: 15_000, polling: 100 });
 
-  await measureState("Warning", "warning", "tight-crossfade");
-  await measureState("Critical", "critical", "hard-choke");
+  await measureState("Warning", "warning", "one-bar-decay");
+  await measureState("Critical", "critical", "one-bar-decay");
   await measureState("Unknown", "unknown", "one-bar-decay");
-  await measureState("Healthy", "healthy", "crossfade");
+  await measureState("Healthy", "healthy", "one-bar-decay");
 
   await page.getByRole("button", { name: "Live frame", exact: true }).click();
   await page.waitForFunction(() => {
@@ -285,14 +296,14 @@ try {
   assert.equal(evidence.diagnostics?.sampleFree, true);
   assert.equal(evidence.diagnostics?.scorePlanMovement, "Green Clock");
   assert.match(evidence.loudnessBuildId ?? "", /loudness-meter-v3$/);
-  assert.match(evidence.masteringRuntimeBuildId ?? "", /mastering-runtime-v2$/);
+  assert.match(evidence.masteringRuntimeBuildId ?? "", /mastering-runtime-v4$/);
   assert.equal(evidence.ready, "true");
   assert.equal(evidence.running, "true");
   assert.equal(evidence.source, "preview");
   assert.equal(evidence.noSamples, "true");
   assert.equal(evidence.volumeValue, "62");
   assert.equal(evidence.metricMeasured, "19");
-  assert.equal(evidence.metricKnown, "91%");
+  assert.equal(evidence.metricKnown, "86%");
   assert.ok(evidence.stateVector.warning > 0);
   assert.ok(evidence.stateVector.unknown > 0);
   assert.equal(evidence.channelCards, 6);
@@ -303,16 +314,19 @@ try {
   assert.equal(evidence.engineRunning, true);
   assert.equal(stateMeasurements.length, 4);
   assert.deepEqual(stateTransitions.map(({ to, policy: transitionPolicy }) => ({ to, policy: transitionPolicy })), [
-    { to: "warning", policy: "tight-crossfade" },
-    { to: "critical", policy: "hard-choke" },
+    { to: "warning", policy: "one-bar-decay" },
+    { to: "critical", policy: "one-bar-decay" },
     { to: "unknown", policy: "one-bar-decay" },
-    { to: "healthy", policy: "crossfade" },
+    { to: "healthy", policy: "one-bar-decay" },
   ]);
 
   const unknownMeasurement = stateMeasurements.find((measurement) => measurement.state === "unknown");
-  assert.ok(unknownMeasurement.metrics.integratedLufs > -34, `${browserName} Unknown remained effectively inaudible`);
+  assert.ok(unknownMeasurement.metrics.integratedLufs >= stateWindows.unknown.minimum, `${browserName} Unknown fell outside its declared mastering window`);
+  assert.equal(unknownMeasurement.mastering.targetGainDb, 11.5);
+  assert.equal(unknownMeasurement.mastering.targetIntegratedLufs, -24);
+  assert.equal(unknownMeasurement.mastering.targetToleranceDb, 3);
   assert.deepEqual(audioRequests, [], "the hybrid APU preview requested an audio asset");
-  const materialFailures = failedRequests.filter(({ url }) => !url.includes("cloudflareinsights.com"));
+  const materialFailures = failedRequests.filter(({ url }) => !isCloudflareInsightsUrl(url));
   assert.deepEqual(materialFailures, []);
   assert.deepEqual(pageErrors, []);
   assert.deepEqual(consoleErrors, []);

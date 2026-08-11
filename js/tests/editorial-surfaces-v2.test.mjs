@@ -214,13 +214,21 @@ test("active public surfaces use the canonical accessible faint-text token", () 
   }
 });
 
-test("Homepage source routes point to canonical Systems and System Map destinations", () => {
+test("Homepage source routes point to canonical product, evidence, and System Map destinations", () => {
   const home = read("index.html");
   assert.match(home, /href="\/systems\/"/);
-  assert.match(home, /href="\/systems\/index\.html#ramone"/);
+  assert.match(home, /href="https:\/\/ramone\.atlas-systems\.uk\/"/);
+  assert.match(home, /href="\/lab\/system-symphony\/"/);
+  assert.match(home, /href="\/systems\/evidence\/"/);
   assert.match(home, /href="\/lab\/system-map\/"/);
-  assert.doesNotMatch(home, /href="\/lab\/index\.html#ramone-card"/);
-  assert.doesNotMatch(home, /href="\/lab\/index\.html#system-map"/);
+  for (const staleRoute of [
+    "/systems/index.html#ramone",
+    "/lab/index.html#ramone-card",
+    "/lab/index.html#pipeline-grid-section",
+    "/lab/index.html#system-map",
+  ]) {
+    assert.ok(!home.includes(`href="${staleRoute}"`), `stale homepage route ${staleRoute}`);
+  }
   for (const hook of ["terminal-text", "terminal-output", "truth-strip", "estate-latest-deploy"]) {
     assert.match(home, new RegExp(`id="${hook}"`));
   }
@@ -230,16 +238,20 @@ test("editorial assets remain mutable and preview evidence covers changed surfac
   const headers = read("_headers");
   const preview = read(".github/workflows/interface-preview.yml");
   const capture = read("scripts/capture_interface_evidence.mjs");
+  const sitemap = read("sitemap.xml");
+  const contract = read("scripts/interface-evidence/contract.mjs");
   assert.match(headers, /\/\*[\s\S]*Cache-Control: no-cache, max-age=0, must-revalidate/);
   assert.doesNotMatch(headers, /\/static\/css\/editorial-surfaces-v2\.css[\s\S]*immutable/);
-  for (const path of ["work/**", "writing/**", "about/**", "static/css/editorial-surfaces-v2.css"]) {
+  for (const path of ["work/**", "writing/**", "about/**", "static/css/**"]) {
     assert.ok(preview.includes(`"${path}"`), path);
   }
   assert.doesNotMatch(preview, /agent\/public-interface-system-v2-primary-site/);
   assert.match(preview, /SOURCE_BRANCH/);
-  for (const route of ["/work/", "/writing/", "/about/", "/writing/overclocking-specular-core/", "/404.html"]) {
-    assert.ok(capture.includes(`"${route}"`), route);
+  assert.match(capture, /buildEvidencePlan/);
+  for (const route of ["/work/", "/writing/", "/about/", "/writing/overclocking-specular-core/"]) {
+    assert.ok(sitemap.includes(`<loc>https://atlas-systems.uk${route}</loc>`), route);
   }
+  assert.ok(contract.includes('"/404.html"'), "/404.html reviewed non-indexed route");
   assert.match(capture, /visibleWorkProjectCount/);
   assert.match(capture, /Number\.parseFloat\(style\.opacity\) > 0/);
 });

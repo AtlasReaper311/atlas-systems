@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
         with:
           fetch-depth: 0
 
@@ -47,7 +47,7 @@ jobs:
 
   deploy:
     needs: [verify-pages-output]
-    uses: AtlasReaper311/atlas-infra/.github/workflows/validate-static.yml@a9a183bc055ec5e4c878e2d5aab8cf4a38ac9656 # atlas-infra Pages artifact boundary
+    uses: AtlasReaper311/atlas-infra/.github/workflows/validate-static.yml@ba99bab755d5601204ead565a6b308d60a5c53ad # atlas-infra Pages artifact boundary with pinned Wrangler
     with:
       project_name: atlas-systems
       site_label: atlas-systems.uk
@@ -107,8 +107,44 @@ jobs:
             exit 1
           fi
 
+      - name: Confirm Phase 6 footer assets are live
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+          SITE_URL: https://atlas-systems.uk
+        run: |
+          set -euo pipefail
+
+          for attempt in $(seq 1 30); do
+            JS_URL="${SITE_URL}/static/js/phase-6-footer.js?atlas-deploy=${EXPECTED_SHA}&attempt=${attempt}"
+            CSS_URL="${SITE_URL}/static/css/phase-6-footer.css?atlas-deploy=${EXPECTED_SHA}&attempt=${attempt}"
+            JS_BODY="$(curl -fsSL \
+              --connect-timeout 10 \
+              --max-time 20 \
+              -H 'Cache-Control: no-cache' \
+              -H 'Pragma: no-cache' \
+              "$JS_URL" || true)"
+            CSS_BODY="$(curl -fsSL \
+              --connect-timeout 10 \
+              --max-time 20 \
+              -H 'Cache-Control: no-cache' \
+              -H 'Pragma: no-cache' \
+              "$CSS_URL" || true)"
+
+            if printf '%s' "$JS_BODY" | grep -Fq 'const FOOTER_STYLESHEET' \
+              && printf '%s' "$CSS_BODY" | grep -Fq 'atlas-interface-kit v0.4.0'; then
+              echo "Phase 6 footer assets are live for ${EXPECTED_SHA}"
+              exit 0
+            fi
+
+            echo "Attempt ${attempt}/30: Phase 6 footer assets are not consistently live yet"
+            sleep 10
+          done
+
+          echo "::error::Phase 6 footer assets did not become live within five minutes"
+          exit 1
+
       - name: Check out production smoke tooling
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0, Node 24
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
 
       - name: Set up Node.js for production smoke
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
@@ -120,6 +156,22 @@ jobs:
 
       - name: Install Chromium for production smoke
         run: npx playwright install --with-deps chromium
+
+      - name: Verify the live homepage AtlasField renderer
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+          SITE_URL: https://atlas-systems.uk
+          HOMEPAGE_FIELD_OUTPUT_DIR: ${{ runner.temp }}/homepage-atlas-field-production-smoke
+        run: node scripts/smoke_homepage_atlas_field_production.mjs
+
+      - name: Upload production homepage AtlasField evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        with:
+          name: homepage-atlas-field-production-smoke
+          path: ${{ runner.temp }}/homepage-atlas-field-production-smoke
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Verify the live System Symphony Atlas APU and topology map
         env:

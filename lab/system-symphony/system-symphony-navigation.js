@@ -1,7 +1,7 @@
 "use strict";
 
 const ROOT_ROUTE = "/lab/system-symphony/";
-const NAV_STYLESHEET = "/lab/system-symphony/system-symphony-navigation.css?v=20260727-stage-2a-polish-fixes";
+const NAV_STYLESHEET = "/lab/system-symphony/system-symphony-navigation.css?v=20260728-system-symphony-trace-board-v1";
 const MODE_NAMES = new Set(["play", "trace", "replay"]);
 
 let trustReturnTarget = null;
@@ -299,9 +299,14 @@ function configureRootWorkspace() {
     trustLayer.setAttribute("aria-label", "System Symphony proof drawer");
   }
 
+  // The board is the subject of the workspace, not the payoff underneath the
+  // score and proof surfaces, so it sits directly beneath the controls that
+  // drive it. The evidence surfaces keep their existing position.
+  if (host && stage) stage.after(host);
+
   const insertionAnchor = trustLayer ?? flagship.querySelector(".symphony-proof-strip");
   if (insertionAnchor) {
-    const ordered = [host, summary, sourceStatus, proofConsole].filter(Boolean);
+    const ordered = [summary, sourceStatus, proofConsole].filter(Boolean);
     insertionAnchor.after(...ordered);
   }
 }

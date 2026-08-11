@@ -15,9 +15,11 @@ test("interface validation remains automatic while Pages publication is opt-in",
   assert.match(workflow, /test "\$\{PAGES_BRANCH\}" != "production"/);
 });
 
-test("preview evidence cannot run unless the guarded deployment completes", () => {
+test("preview evidence requires validation, approval, and the guarded deployment", () => {
   const deployBlock = workflow.match(/\n  deploy-preview:\n([\s\S]*?)\n  capture-evidence:/)?.[1];
   assert.ok(deployBlock, "deploy-preview job block");
   assert.doesNotMatch(deployBlock, /if:\s*always\(\)/);
-  assert.match(workflow, /capture-evidence:\s*[\s\S]*needs: deploy-preview/);
+  assert.match(workflow, /approval-gate:\s*[\s\S]*Evidence approval is required/);
+  assert.match(workflow, /deploy-preview:\s*[\s\S]*needs:\s*\[validate, approval-gate\]/);
+  assert.match(workflow, /capture-evidence:\s*[\s\S]*needs:\s*\[validate, deploy-preview\]/);
 });

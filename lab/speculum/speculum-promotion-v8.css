@@ -1,0 +1,51 @@
+/* Speculum promotion integration.
+ *
+ * The shared Lab shell supplies estate navigation and the standard Lab footer.
+ * Speculum keeps its own instrument geometry and grid rather than inheriting a
+ * second background layer or a third sticky header.
+ */
+
+html {
+  scroll-padding-top: 108px;
+}
+
+body::before {
+  display: none;
+}
+
+body > .masthead {
+  position: relative;
+  top: auto;
+  z-index: 1;
+}
+
+body > .masthead .eyebrow {
+  max-width: var(--max);
+}
+
+.lab-context-nav a[aria-current="page"] {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+.speculum-disclaimer {
+  max-width: var(--prose);
+  margin: -48px auto 64px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  html {
+    scroll-padding-top: 48px;
+  }
+
+  .speculum-disclaimer {
+    margin-top: -32px;
+  }
+}

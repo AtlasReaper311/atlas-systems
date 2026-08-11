@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Speculum is a time-compressed browser rendering of periodic attention paths across the reviewed public Atlas Systems topology.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Speculum // Atlas Systems</title>
+  <link rel="canonical" href="https://atlas-systems.uk/lab/speculum/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Speculum // Atlas Systems">
+  <meta property="og:description" content="A time-compressed field of verified public attention paths across Atlas Systems.">
+  <meta property="og:url" content="https://atlas-systems.uk/lab/speculum/">
+  <meta property="og:site_name" content="Atlas Systems">
+  <meta property="og:image" content="https://atlas-systems.uk/og/speculum.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The estate keeps building eyes. // Atlas Systems">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Speculum // Atlas Systems">
+  <meta name="twitter:description" content="A time-compressed field of verified public attention paths across Atlas Systems.">
+  <meta name="twitter:image" content="https://atlas-systems.uk/og/speculum.png">
+  <meta name="twitter:image:alt" content="The estate keeps building eyes. // Atlas Systems">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/lab/shared/systems.css">
+  <link rel="stylesheet" href="/static/css/surface-convergence.css?v=20260811-explore-amber">
+  <link rel="stylesheet" href="/lab/shared/explore-identities.css?v=20260811-continuity">
+  <link rel="stylesheet" href="/lab/speculum/speculum.css?v=20260727-clarity-pass-v2">
+  <link rel="stylesheet" href="/lab/speculum/speculum-layout-v3.css?v=20260727-layout-v3">
+  <link rel="stylesheet" href="/lab/speculum/speculum-investigation-v4.css?v=20260811-role-colours">
+  <link rel="stylesheet" href="/lab/speculum/speculum-polish-v5.css?v=20260811-no-hud-scroll">
+  <link rel="stylesheet" href="/lab/speculum/speculum-accessibility-v7.css?v=20260728-accessibility-v7">
+  <link rel="stylesheet" href="/lab/speculum/speculum-promotion-v8.css?v=20260728-speculum-promotion-v1">
+  <link rel="stylesheet" href="/lab/speculum/speculum-identity.css?v=20260811-amber-stop">
+</head>
+<body class="speculum-page">
+  <header class="masthead">
+    <p class="eyebrow"><a href="/">atlas-systems</a> <span>/</span> <a href="/lab/">lab</a> <span>/</span> speculum</p>
+  </header>
+
+  <main>
+    <section class="intro explore-stage-enter">
+      <p class="snapshot-label">LAB / EXPLORE / SYSTEMS ARTWORK</p>
+      <h1>Speculum<span>.</span></h1>
+      <p class="thesis">The estate keeps building eyes for itself.</p>
+      <p class="lede">
+        Periodic observers sweep at reviewed cadence. When a beam crosses a declared target,
+        the node lights, a chord appears, and the ledger records the generated path.
+      </p>
+      <p class="stats" id="spc-stats"></p>
+    </section>
+
+    <section id="speculum" class="field" aria-labelledby="field-heading">
+      <h2 id="field-heading" class="sr-only">Generated public attention field</h2>
+
+      <div class="field-bar">
+        <div class="field-bar-copy">
+          <p><strong>Attention field</strong><span>reviewed snapshot · hover / pin / Esc</span></p>
+          <p>Hover to inspect · click to pin · Esc clears</p>
+        </div>
+        <div class="field-keys" role="group" aria-label="Field legend">
+          <div class="evidence-key" role="group" aria-label="Schedule evidence">
+            <span class="key-title">Evidence</span>
+            <span class="key-item"><span class="evidence-mark is-verified" aria-hidden="true"></span>schedule verified</span>
+            <span class="key-item"><span class="evidence-mark is-assumed" aria-hidden="true"></span>schedule assumed</span>
+            <span class="key-item"><span class="evidence-mark is-na" aria-hidden="true"></span>non-periodic</span>
+          </div>
+          <div class="node-key" role="group" aria-label="Node roles">
+            <span class="key-title">Nodes</span>
+            <span class="key-item"><span class="node-mark is-product" aria-hidden="true"></span>product</span>
+            <span class="key-item"><span class="node-mark is-observer" aria-hidden="true"></span>observer</span>
+            <span class="key-item"><span class="node-mark is-service" aria-hidden="true"></span>service/tool</span>
+            <span class="key-item"><span class="node-mark is-machine" aria-hidden="true"></span>machine</span>
+            <span class="key-item"><span class="node-mark is-external" aria-hidden="true"></span>external</span>
+          </div>
+        </div>
+        <div class="field-bar-actions" role="group" aria-label="Field presentation and export">
+          <button type="button" class="field-action" id="spc-present" aria-pressed="false">Presentation</button>
+          <button type="button" class="field-action" id="spc-export">Export frame</button>
+          <button type="button" class="field-action" id="spc-sound" aria-pressed="false" aria-label="Toggle soft Lab sound">Sound</button>
+          <span class="field-action-status" id="spc-polish-status" role="status" aria-live="polite"></span>
+        </div>
+      </div>
+
+      <div class="field-canvas">
+        <canvas
+          id="spc-canvas"
+          tabindex="0"
+          role="img"
+          aria-describedby="spc-canvas-help"
+          aria-keyshortcuts="E L Space R N T Escape"
+          aria-label="A generated field of public Atlas Systems components arranged in concentric role rings. Periodic observers rotate a beam at their reviewed cadence. The full relationship data is available as a table below."
+        ></canvas>
+
+        <div class="spc-trace-completion" id="spc-trace-completion" aria-hidden="true"></div>
+
+        <div class="reduced" id="spc-reduced" hidden>
+          <p>Motion is reduced in your system settings, so the field is frozen.</p>
+          <button type="button">Run it anyway</button>
+        </div>
+
+        <p class="clock"><span id="spc-clock"></span></p>
+        <p class="count" id="spc-count"></p>
+        <p id="spc-canvas-help" class="sr-only">
+          Focus the field or page, then press E for evidence marks, L for labels, Space to freeze, R to reset,
+          N for the next generated observation, T for guided trace, and Escape to clear trace or pinned focus.
+        </p>
+      </div>
+
+      <aside class="rail">
+        <div class="controls">
+          <div class="control">
+            <p class="label">Time</p>
+            <div class="btns" id="spc-speeds" role="group" aria-label="Time compression"></div>
+            <p class="hint" id="spc-speed-hint">Observe · one simulated minute per second</p>
+          </div>
+          <div class="control">
+            <p class="label">View</p>
+            <div class="btns">
+              <button type="button" id="spc-evidence">Evidence</button>
+              <button type="button" id="spc-labels">Labels</button>
+              <button type="button" id="spc-pause">Freeze</button>
+            </div>
+            <p class="hint">Evidence marks verified schedule sources. Keys: E, L, space.</p>
+          </div>
+          <div class="control">
+            <p class="label">Playback</p>
+            <div class="btns playback-btns">
+              <button type="button" id="spc-reset">Reset</button>
+              <button type="button" id="spc-step">Next event</button>
+              <button type="button" id="spc-trace">Guided trace</button>
+            </div>
+            <p class="hint">Reset: R · next event: N · trace: T. Next event freezes the field first.</p>
+          </div>
+        </div>
+
+        <div class="detail" id="spc-detail"></div>
+
+        <div class="ledger-wrap">
+          <div class="ledger-heading">
+            <p class="label">Ledger <span class="sample">simulation output</span></p>
+            <div class="ledger-toolbar">
+              <div class="btns compact" role="group" aria-label="Ledger filter">
+                <button type="button" id="spc-ledger-all" aria-pressed="true">All</button>
+                <button type="button" id="spc-ledger-focus" aria-pressed="false">Focused</button>
+              </div>
+              <button type="button" class="ledger-pause" id="spc-ledger-pause" aria-pressed="false">Pause feed</button>
+            </div>
+            <p class="ledger-context" id="spc-ledger-context">All generated observations · repeated paths are grouped</p>
+          </div>
+          <ol class="ledger" id="spc-ledger" aria-live="off"></ol>
+        </div>
+      </aside>
+    </section>
+
+    <section class="prose">
+      <h2>What this draws</h2>
+      <p>
+        Rings are roles. The centre is the public site. The first ring contains runtime services.
+        The second contains periodic observers and the local host they can see from inside. The
+        third contains public policy, reusable tooling, and source substrate. The outer ring holds
+        dependencies outside the repository projection.
+      </p>
+      <p>
+        Beam length is reach. Rotation speed is the reviewed period, so the thirty-second local
+        telemetry sampler moves visibly while weekly dependency and resource audits barely turn.
+        At <code>Real · 1×</code>, almost nothing moves. That is the least flattering and most literal view.
+      </p>
+      <p>
+        In Evidence mode a green dot means the periodic schedule has an inspected source. A hollow
+        amber dot would mark an assumed period; this snapshot currently contains none. Nodes without
+        a dot are request-driven, event-driven, manual, continuous, boot-triggered, or external rather
+        than unverified.
+      </p>
+      <p>
+        Pinning a node filters the investigation to its declared observation and report paths. The
+        guided trace follows one deterministic route from local telemetry to the public site. It is an
+        explanatory traversal of declared relationships, not a claim that those components just ran.
+      </p>
+      <p>
+        The ledger is generated simulation output, not operational evidence. Notifications and
+        state changes are deliberately not simulated. This page does not claim that a workflow ran,
+        a service changed condition, or an alert was delivered.
+      </p>
+
+      <h2>Evidence boundary</h2>
+      <p>
+        The topology is a reviewed public snapshot dated 27 July 2026. Repository classification
+        comes from the Atlas Infra public classification projection. Runtime relationships come
+        from the public estate manifest and direct repository configuration. Periods come from the
+        owning repository's current workflow, Worker configuration, timer documentation, or sampler
+        documentation.
+      </p>
+      <p>
+        Private repository identities and private relationships are absent. This is not a live
+        health surface and makes no network request. <a href="https://status.atlas-systems.uk/">Status</a>
+        remains the public source for current service condition.
+      </p>
+
+      <details class="table-wrap">
+        <summary>Read the topology as a table</summary>
+        <div id="spc-table"></div>
+      </details>
+    </section>
+  </main>
+
+  <p class="speculum-disclaimer">Static browser simulation. No network calls, third-party scripts, storage, or production mutation.</p>
+
+  <script type="module" src="/lab/speculum/speculum-interaction-v6.js?v=20260811-role-colours"></script>
+  <script type="module" src="/lab/speculum/speculum.js?v=20260811-sound-v6"></script>
+  <script type="module" src="/lab/speculum/speculum-polish-v5.js?v=20260811-role-colours"></script>
+  <script type="module" src="/lab/shared/shell.js?v=20260811-explore-amber"></script>
+</body>
+</html>

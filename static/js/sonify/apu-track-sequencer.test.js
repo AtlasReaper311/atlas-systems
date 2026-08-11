@@ -145,6 +145,12 @@ test("Atlas chip laws create audible state contrast beyond mix changes", () => {
   const unknownLeadSteps = Array.from({ length: 32 }, (_, step) => (
     primaryPulseEventForTrackStep(unknownFrame, unknown, step) ? step : null
   )).filter(Number.isFinite);
+  const unknownEchoSteps = Array.from({ length: 32 }, (_, step) => (
+    secondaryPulseEventForTrackStep(unknownFrame, unknown, step) ? step : null
+  )).filter(Number.isFinite);
+  const unknownKickSteps = Array.from({ length: 32 }, (_, step) => (
+    rhythmEventsForTrackStep(unknownFrame, unknown, step).kick ? step : null
+  )).filter(Number.isFinite);
 
   assert.equal(healthy.chipLaw, "explorer-counterpoint");
   assert.ok(healthy.motifDegrees.includes(6));
@@ -165,10 +171,13 @@ test("Atlas chip laws create audible state contrast beyond mix changes", () => {
   assert.ok([0, 7].includes((pitchClass(criticalLead.midi) - pitchClass(criticalBass.midi) + 12) % 12));
   assert.ok([1, 6].includes((pitchClass(criticalAlarm.midi) - pitchClass(TONIC_MIDI) + 12) % 12));
 
-  assert.equal(unknown.chipLaw, "lost-signal-dropout");
-  assert.ok(unknownLeadSteps.length <= 2);
+  assert.equal(unknown.chipLaw, "lost-signal-question");
+  assert.deepEqual(unknownLeadSteps, [0, 6, 12, 21, 28]);
+  assert.ok(unknownEchoSteps.length >= 3 && unknownEchoSteps.length <= 4);
+  assert.deepEqual(unknownKickSteps, [0, 16]);
   assert.equal(padChordForTrackStep(unknownFrame, unknown, 0)?.duration, "1m");
   assert.equal(rhythmEventsForTrackStep(unknownFrame, unknown, 1).hat, null);
+  assert.equal(rhythmEventsForTrackStep(unknownFrame, unknown, 8).snare, null);
 });
 
 test("state transition signatures produce bounded audible APU events", () => {

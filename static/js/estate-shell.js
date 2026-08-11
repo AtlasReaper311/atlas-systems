@@ -6,9 +6,10 @@ import {
   STATUS_PAGE,
   parseEstateStatus,
 } from "./estate-status.js";
+import { installSharedFoundationSemantics } from "./shared-foundation-semantics.js";
 
 const STATUS_TIMEOUT_MS = 6_000;
-const KIT_STYLESHEET = "/static/vendor/atlas-interface/v0.2.0/atlas-interface-kit.css";
+const KIT_STYLESHEET = "/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css";
 const SHELL_STYLESHEET = "/static/css/estate-shell.css?v=20260723-interface-v2";
 
 const GLOBAL_ROUTES = Object.freeze([
@@ -222,6 +223,7 @@ function createAggregateStatus() {
   chip.dataset.state = "checking";
   chip.dataset.atlasStatus = "";
   chip.setAttribute("aria-label", "Atlas Systems status: Checking");
+  chip.setAttribute("aria-live", "off");
   const dot = document.createElement("span");
   dot.className = "status-dot atlas-status__dot";
   dot.setAttribute("aria-hidden", "true");
@@ -248,6 +250,7 @@ function preserveHomepageStatus(nav) {
   const status = nav.querySelector(".nav-status") || createAggregateStatus();
   status.classList.add("atlas-status", "atlas-estate-status");
   status.href = STATUS_PAGE;
+  status.setAttribute("aria-live", "off");
   const dot = status.querySelector(".status-dot") || document.createElement("span");
   dot.classList.add("status-dot", "atlas-status__dot");
   dot.setAttribute("aria-hidden", "true");
@@ -372,6 +375,7 @@ function install() {
   installMobileNavigation();
   normalizeLinks(document);
   normalizeLegacySemantics(document);
+  installSharedFoundationSemantics();
   observeDynamicContent();
 }
 

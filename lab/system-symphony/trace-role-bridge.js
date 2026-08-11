@@ -1,6 +1,6 @@
 "use strict";
 
-const TRACE_ROLE_STYLESHEET = "/lab/system-symphony/trace-role-bridge.css?v=20260726-phase-d-role-routing-v1";
+const TRACE_ROLE_STYLESHEET = "/lab/system-symphony/trace-role-bridge.css?v=20260728-system-symphony-trace-board-v1";
 const ROLE_KEYS = Object.freeze([
   "clock",
   "pulse",
@@ -10,6 +10,17 @@ const ROLE_KEYS = Object.freeze([
   "contention",
   "recovery",
 ]);
+const ROLE_LABELS = Object.freeze({
+  "": "All",
+  clock: "Clock",
+  pulse: "Pulse",
+  memory: "Memory",
+  thermal: "Thermal",
+  signal: "Signal",
+  contention: "Contention",
+  recovery: "Recovery",
+});
+const SCORE_LAW_ROLES = new Set(["thermal", "signal", "contention", "recovery"]);
 
 function ensureStylesheet(href) {
   if (document.head.querySelector(`link[href="${href}"]`)) return;
@@ -31,7 +42,7 @@ function roleKeyFromLabel(value) {
 }
 
 function selectedRole() {
-  const button = document.querySelector('[data-apu-role-highlight][aria-pressed="true"]');
+  const button = document.querySelector('button[data-apu-role-highlight][aria-pressed="true"]');
   const role = button?.dataset.apuRoleHighlight ?? "";
   return ROLE_KEYS.includes(role) ? role : "";
 }
@@ -67,6 +78,41 @@ function decorateTopology(host, roles) {
   }
 }
 
+function roleCounts(host, roles) {
+  const counts = new Map(ROLE_KEYS.map((role) => [role, 0]));
+  counts.set("", host.querySelectorAll("[data-service-table] tr").length);
+  for (const role of roles.values()) {
+    counts.set(role, (counts.get(role) ?? 0) + 1);
+  }
+  return counts;
+}
+
+function updateRoleControls(host, roles) {
+  const counts = roleCounts(host, roles);
+  for (const button of document.querySelectorAll("button[data-apu-role-highlight]")) {
+    const role = button.dataset.apuRoleHighlight ?? "";
+    const label = ROLE_LABELS[role] ?? button.dataset.roleLabel ?? button.textContent.trim();
+    const count = counts.get(role) ?? 0;
+    const scoreLawOnly = SCORE_LAW_ROLES.has(role) && count === 0;
+    const countText = role === "clock" ? "bus" : scoreLawOnly ? "law" : String(count);
+    button.dataset.roleLabel = label;
+    button.classList.toggle("is-role-empty", Boolean(role) && role !== "clock" && count === 0);
+    button.classList.toggle("is-score-law-only", scoreLawOnly);
+    button.replaceChildren();
+    const labelNode = document.createElement("span");
+    labelNode.textContent = label;
+    const countNode = document.createElement("strong");
+    countNode.textContent = countText;
+    button.append(labelNode, countNode);
+    button.setAttribute(
+      "aria-label",
+      role
+        ? `${label}, ${countText === "bus" ? "global clock bus" : scoreLawOnly ? "score law only, no service-owned chips" : `${count} service${count === 1 ? "" : "s"}`}`
+        : `${label}, ${count} service${count === 1 ? "" : "s"}`,
+    );
+  }
+}
+
 function clearRoleClasses(host) {
   for (const element of host.querySelectorAll(
     ".is-role-highlight, .is-role-dimmed, .is-role-route",
@@ -78,7 +124,9 @@ function clearRoleClasses(host) {
 function applyRoleRouting(host) {
   const roles = serviceRoleMap(host);
   decorateTopology(host, roles);
+  updateRoleControls(host, roles);
   clearRoleClasses(host);
+  delete host.dataset.traceRoleEmpty;
 
   const role = selectedRole();
   if (!role) {
@@ -90,6 +138,19 @@ function applyRoleRouting(host) {
   if (role === "clock") return;
 
   const matchingServices = new Set();
+  for (const row of host.querySelectorAll("[data-service-table] tr")) {
+    const matches = row.dataset.apuRole === role;
+    if (matches) {
+      const serviceName = row.children[0]?.textContent?.trim();
+      if (serviceName) matchingServices.add(serviceName);
+    }
+  }
+
+  if (matchingServices.size === 0) {
+    host.dataset.traceRoleEmpty = "true";
+    return;
+  }
+
   for (const row of host.querySelectorAll("[data-service-table] tr")) {
     const matches = row.dataset.apuRole === role;
     row.classList.toggle("is-role-highlight", matches);
@@ -136,7 +197,7 @@ function installBridge(host) {
   observer.observe(host, { childList: true, subtree: true });
 
   document.addEventListener("click", (event) => {
-    if (event.target.closest?.("[data-apu-role-highlight]")) {
+    if (event.target.closest?.("button[data-apu-role-highlight]")) {
       window.requestAnimationFrame(() => applyRoleRouting(host));
       return;
     }

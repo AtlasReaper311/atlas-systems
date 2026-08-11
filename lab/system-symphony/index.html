@@ -27,14 +27,14 @@
   <meta name="twitter:image" content="https://atlas-systems.uk/og/system-symphony.png">
   <meta name="twitter:image:alt" content="Hear the estate, keep uncertainty. // Atlas Systems">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
-  <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260724-maturity-completion">
+  <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260728-lab-context-nav-wrap">
   <link rel="stylesheet" href="/static/css/estate-search.css">
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
   <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h-fixes">
   <link rel="stylesheet" href="/static/css/card-signatures.css?v=20260727-symphony-stage-2a">
-  <link rel="stylesheet" href="/static/css/system-symphony.css?v=20260718-system-symphony-ghost-mix">
+  <link rel="stylesheet" href="/static/css/system-symphony.css?v=20260728-system-symphony-trace-board-v1">
   <link rel="stylesheet" href="/static/css/system-symphony-apu-live.css?v=20260726-atlas-apu-live-v7">
-  <link rel="stylesheet" href="/lab/system-symphony/system-symphony-page.css?v=20260727-stage-2a-polish-fixes">
+  <link rel="stylesheet" href="/lab/system-symphony/system-symphony-page.css?v=20260728-system-symphony-trace-pr160-v1">
 </head>
 <body class="symphony-page">
   <div class="symphony-boot" data-cartridge-boot data-running="true" aria-hidden="true">
@@ -88,6 +88,7 @@
             <h2>Diagnostic PCB for the score.</h2>
             <p class="symphony-panel-copy">Service chips, dependency traces, APU roles, measured sockets, and unmeasured blanks stay readable without turning PLAY into a debug wall.</p>
             <div class="symphony-role-board" role="group" aria-label="Atlas APU role highlights">
+              <button type="button" data-apu-role-highlight="" aria-pressed="true">All</button>
               <button type="button" data-apu-role-highlight="clock" aria-pressed="false">Clock</button>
               <button type="button" data-apu-role-highlight="pulse" aria-pressed="false">Pulse</button>
               <button type="button" data-apu-role-highlight="memory" aria-pressed="false">Memory</button>
@@ -96,7 +97,7 @@
               <button type="button" data-apu-role-highlight="contention" aria-pressed="false">Contention</button>
               <button type="button" data-apu-role-highlight="recovery" aria-pressed="false">Recovery</button>
             </div>
-            <p class="symphony-replay-status" data-apu-role-status aria-live="polite">Select a role to see its current chip law. Switch the source to Atlas APU audition, then inspect a service to solo or mute it.</p>
+            <p class="symphony-replay-status" data-apu-role-status aria-live="polite">Select a role to see its current chip law. Inspect a service to open comparison; source controls stay above the board.</p>
             <div class="symphony-panel-actions">
               <a class="focus-action primary" href="#symphony-trace-surface">Open board</a>
               <button class="focus-action" type="button" data-proof-open="cartridge">Inspect cartridge</button>
@@ -135,6 +136,8 @@
           </span>
         </aside>
       </div>
+
+      <div id="symphony-trace-surface" class="symphony-page-host" data-symphony-page-host aria-busy="true"></div>
 
       <section class="symphony-score" aria-labelledby="symphony-score-title">
         <div class="symphony-score__head">
@@ -195,8 +198,6 @@
         </div>
         <p class="symphony-replay-status" data-trust-status>Fixture, replay, stale, and live states are labelled from source data and route mode.</p>
       </section>
-
-      <div id="symphony-trace-surface" class="symphony-page-host" data-symphony-page-host aria-busy="true"></div>
 
       <div class="focus-grid cols-4 symphony-page-summary" role="group" aria-label="System Symphony evidence summary">
         <article class="focus-metric"><span>Instrument state</span><strong id="page-score-state">unknown</strong></article>
@@ -396,8 +397,8 @@
   <script src="/lab/system-symphony/preview-endpoints.js?v=20260726-phase6-cartridge-proof"></script>
   <script src="/vendor/tone.min.js?v=20260708-sonify"></script>
   <script type="module" src="/static/js/card-signatures.js?v=20260727-symphony-stage-2a"></script>
-  <script type="module" src="/lab/shared/shell.js?v=20260725-batch-h-fixes"></script>
-  <script type="module" src="/lab/system-symphony/system-symphony-page.js?v=20260727-stage-2a-polish-fixes"></script>
+  <script type="module" src="/lab/shared/shell.js?v=20260728-system-symphony-trace-board-v1"></script>
+  <script type="module" src="/lab/system-symphony/system-symphony-page.js?v=20260728-system-symphony-trace-pr160-v1"></script>
   <script type="module" src="/lab/system-symphony/symphony-flagship-2a.js?v=20260727-stage-2a-polish-fixes"></script>
 </body>
 </html>

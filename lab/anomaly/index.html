@@ -3,16 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Shape-aware telemetry anomaly evidence from SPECULAR-CORE using robust features, constrained DTW, and continuity-aware state decoding.">
-  <meta name="theme-color" content="#0a0a0f">
-  <title>Telemetry Anomaly Detector // Atlas Systems</title>
+  <meta name="description" content="Shape. // Atlas Systems. Telemetry-shape evidence from SPECULAR-CORE with an explicitly simulated browser fallback.">
+  <meta name="theme-color" content="#07070b">
+  <title>Shape. // Atlas Systems</title>
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/lab/shared/systems.css">
-  <link rel="stylesheet" href="/lab/anomaly/anomaly.css">
+  <link rel="stylesheet" href="/static/css/surface-convergence.css?v=20260811-explore-amber">
+  <link rel="stylesheet" href="/lab/shared/explore-identities.css?v=20260811-continuity">
+  <link rel="stylesheet" href="/lab/anomaly/anomaly.css?v=20260811-continuity">
   <link rel="canonical" href="https://atlas-systems.uk/lab/anomaly/">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Telemetry Anomaly Detector // Atlas Systems">
-  <meta property="og:description" content="Shape-aware telemetry anomaly evidence from SPECULAR-CORE using robust features, constrained DTW, and continuity-aware state decoding.">
+  <meta property="og:title" content="Shape. // Atlas Systems">
+  <meta property="og:description" content="Shape Detector — current telemetry-shape evidence from SPECULAR-CORE with an explicitly simulated browser fallback.">
   <meta property="og:url" content="https://atlas-systems.uk/lab/anomaly/">
   <meta property="og:site_name" content="Atlas Systems">
   <meta property="og:image" content="https://atlas-systems.uk/og/telemetry-anomaly-detector.png">
@@ -20,84 +27,101 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Shape before threshold. // Atlas Systems">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Telemetry Anomaly Detector // Atlas Systems">
-  <meta name="twitter:description" content="Shape-aware telemetry anomaly evidence from SPECULAR-CORE using robust features, constrained DTW, and continuity-aware state decoding.">
+  <meta name="twitter:title" content="Shape. // Atlas Systems">
+  <meta name="twitter:description" content="Shape Detector — current telemetry-shape evidence with an explicitly simulated fallback.">
   <meta name="twitter:image" content="https://atlas-systems.uk/og/telemetry-anomaly-detector.png">
   <meta name="twitter:image:alt" content="Shape before threshold. // Atlas Systems">
 </head>
-<body>
+<body class="shape-page">
   <nav aria-label="Primary navigation">
     <a class="wordmark" href="/">Atlas<span>_</span>Systems</a>
-    <div class="nav-links">
-      <a href="/lab/">Lab</a>
-      <a href="/lab/signal/">Signal</a>
-      <a href="/lab/conformance/">Conformance</a>
-      <a href="/lab/reliability/">Reliability</a>
-    </div>
   </nav>
   <main>
-    <header>
-      <div class="eyebrow">Signal intelligence // telemetry</div>
-      <h1>Shape before threshold.</h1>
-      <p class="lede">The detector compares the active metric trajectory with historical normal motifs. Robust level, slope, volatility, derivative-DTW distance, and continuity state are combined so a sustained drift can become visible before a static red line is crossed.</p>
-    </header>
+    <section class="shape-stage explore-stage-enter" aria-labelledby="shape-title">
+      <header class="shape-title">
+        <p class="shape-index">LAB / EXPLORE / TELEMETRY ANALYSIS</p>
+        <h1 id="shape-title">Shape<span>.</span></h1>
+        <p>Shape Detector for trajectory bends — level, slope, volatility, and DTW — before a static threshold pretends anything happened.</p>
+      </header>
 
-    <section class="section">
-      <div class="summary-grid grid grid-3">
-        <div class="metric"><span>detector state</span><strong id="overall-state">loading</strong></div>
-        <div class="metric"><span>shape score</span><strong id="overall-score">-</strong></div>
-        <div class="metric"><span>evidence time</span><strong id="generated-at">-</strong></div>
+      <div id="anomaly-summary-surface" class="shape-summary atlas-evidence-surface" data-evidence-mode="unknown">
+        <div class="shape-summary-cell">
+          <span>Detector state</span>
+          <strong class="atlas-evidence-value" id="overall-state" data-evidence-mode="unknown" data-runtime-state="unknown">probing</strong>
+        </div>
+        <div class="shape-summary-cell">
+          <span>Shape score</span>
+          <strong class="atlas-evidence-value" id="overall-score" data-evidence-mode="unknown">—</strong>
+        </div>
+        <div class="shape-summary-cell">
+          <span>Evidence age</span>
+          <strong class="atlas-evidence-value" id="generated-at" data-evidence-mode="unknown">—</strong>
+        </div>
+        <p class="shape-mode atlas-evidence-mode" id="source-status" data-evidence-mode="unknown" data-runtime-state="checking" aria-live="polite">Probing live</p>
       </div>
-      <p class="status" id="source-status">contacting specular-edge</p>
-    </section>
 
-    <section class="section grid grid-2">
-      <div class="panel">
-        <div class="chart-head">
-          <div>
-            <h2>Trajectory evidence</h2>
-            <p class="note">Select a metric. The line is the persisted edge history; the amber area marks warning or critical observations.</p>
+      <div class="shape-workbench">
+        <div id="anomaly-chart-surface" class="shape-panel atlas-evidence-surface" data-evidence-mode="unknown">
+          <div class="shape-panel-head">
+            <div>
+              <h2>Trajectory</h2>
+              <p class="note">Measured mode uses persisted edge history. If live evidence hangs, an explicit simulated demonstration paints within about a second and never claims estate state. Live still upgrades to Measured when it arrives.</p>
+            </div>
+            <div class="shape-panel-actions">
+              <label>Metric
+                <select id="metric-select" aria-controls="chart-summary metric-table"></select>
+              </label>
+              <button id="sound-button" type="button" aria-pressed="false" aria-label="Toggle soft Lab sound">Sound</button>
+            </div>
           </div>
-          <label>Metric
-            <select id="metric-select"></select>
-          </label>
+          <div class="shape-chart" role="img" aria-label="Anomaly score and metric trajectory">
+            <canvas id="anomaly-chart" width="1100" height="420"></canvas>
+          </div>
+          <p class="note" id="chart-summary" role="status">Probing live evidence…</p>
         </div>
-        <div role="img" aria-label="Anomaly score and metric trajectory">
-          <canvas id="anomaly-chart" width="900" height="360"></canvas>
-        </div>
-        <p class="note" id="chart-summary">No evidence loaded.</p>
-      </div>
-      <div class="panel panel-deep">
-        <h2>Current explanation</h2>
-        <dl class="evidence-list">
-          <div><dt>Value</dt><dd id="metric-value">-</dd></div>
-          <div><dt>Robust z</dt><dd id="metric-z">-</dd></div>
-          <div><dt>Slope z</dt><dd id="metric-slope">-</dd></div>
-          <div><dt>Volatility ratio</dt><dd id="metric-volatility">-</dd></div>
-          <div><dt>Derivative DTW</dt><dd id="metric-dtw">-</dd></div>
-          <div><dt>Decoder confidence</dt><dd id="metric-confidence">-</dd></div>
-          <div><dt>First divergence</dt><dd id="metric-divergence">-</dd></div>
-          <div><dt>Warm-up remaining</dt><dd id="metric-warmup">-</dd></div>
-        </dl>
+
+        <aside id="anomaly-explanation-surface" class="shape-panel shape-panel--deep atlas-evidence-surface" data-evidence-mode="unknown" aria-label="Current explanation">
+          <h2>Reading</h2>
+          <dl class="evidence-list">
+            <div><dt>Value</dt><dd class="atlas-evidence-value" id="metric-value" data-evidence-mode="unknown">—</dd></div>
+            <div><dt>Robust z</dt><dd class="atlas-evidence-value" id="metric-z" data-evidence-mode="unknown">—</dd></div>
+            <div><dt>Slope z</dt><dd class="atlas-evidence-value" id="metric-slope" data-evidence-mode="unknown">—</dd></div>
+            <div><dt>Volatility</dt><dd class="atlas-evidence-value" id="metric-volatility" data-evidence-mode="unknown">—</dd></div>
+            <div><dt>Derivative DTW</dt><dd class="atlas-evidence-value" id="metric-dtw" data-evidence-mode="unknown">—</dd></div>
+            <div><dt>Confidence</dt><dd class="atlas-evidence-value" id="metric-confidence" data-evidence-mode="unknown">—</dd></div>
+            <div><dt>First divergence</dt><dd class="atlas-evidence-value" id="metric-divergence" data-evidence-mode="unknown">—</dd></div>
+            <div><dt>Warm-up</dt><dd class="atlas-evidence-value" id="metric-warmup" data-evidence-mode="unknown">—</dd></div>
+          </dl>
+        </aside>
       </div>
     </section>
 
-    <section class="section grid grid-3">
-      <article class="panel"><h3>Candidate evidence</h3><p>Each sample produces several imperfect clues. Median absolute deviation keeps the baseline useful when the history contains occasional spikes; slope and volatility detect motion rather than only magnitude.</p></article>
-      <article class="panel"><h3>Constrained alignment</h3><p>The active window is compared with earlier normal windows using a Sakoe-Chiba-bounded DTW path. Derivatives carry more weight than absolute level, which makes trajectory geometry explicit without erasing amplitude evidence.</p></article>
-      <article class="panel"><h3>Continuity decoder</h3><p>State transitions penalise implausible jumps. A single sample can raise the score, but warning and critical states require temporal support. Recovery also has to earn its way back to normal.</p></article>
+    <section class="shape-note" aria-labelledby="shape-note-title">
+      <h2 id="shape-note-title">Shape before threshold.</h2>
+      <p>
+        Level, slope, volatility, derivative-DTW distance, and continuity are combined so a sustained
+        bend can become visible before a static red line is crossed. When the public endpoint is
+        unavailable or slow, this page paints an explicitly simulated browser demonstration within about a second, then upgrades to Measured if live evidence arrives.
+      </p>
+      <div role="group" aria-label="Trajectory key">
+        <ul class="shape-legend">
+          <li><i class="shape-leg-metric"></i> metric value</li>
+          <li><i class="shape-leg-score"></i> shape score</li>
+          <li><i class="shape-leg-warn"></i> warning / critical window</li>
+        </ul>
+      </div>
     </section>
 
-    <section class="section">
-      <h2>Metric evidence</h2>
-      <div class="table-wrap">
+    <section class="shape-table-section" aria-labelledby="shape-table-title">
+      <h2 id="shape-table-title">Metric evidence</h2>
+      <div id="anomaly-table-surface" class="table-wrap atlas-evidence-surface" data-evidence-mode="unknown">
         <table>
           <thead><tr><th scope="col">Metric</th><th scope="col">State</th><th scope="col">Score</th><th scope="col">Value</th><th scope="col">DTW</th><th scope="col">Slope z</th><th scope="col">Confidence</th></tr></thead>
-          <tbody id="metric-table"><tr><td colspan="7">Loading.</td></tr></tbody>
+          <tbody id="metric-table"><tr><td colspan="7">Probing live evidence…</td></tr></tbody>
         </table>
       </div>
     </section>
   </main>
-  <script type="module" src="/lab/anomaly/anomaly.js"></script>
+  <script type="module" src="/lab/anomaly/anomaly.js?v=20260811-sound-v6"></script>
 </body>
 </html>

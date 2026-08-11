@@ -1,0 +1,29 @@
+{
+  "schema_version": "atlas-systems/public-interface-reporting-baseline/v1",
+  "source": {
+    "pull_request": "AtlasReaper311/atlas-systems#205",
+    "reviewed_head": "92db23a9fe795c641b640b27dae94d6b0a44d006",
+    "workflow_run": 31066093763,
+    "artifact_id": 8954248381,
+    "artifact_digest": "sha256:3894b5c643f10540dc921ac3251fa7f2ceaf3bf7fe9ceaa2237e5c55d67d7f90",
+    "reviewed_finding_count": 12,
+    "expanded_matrix_base": "f668c36cb950f2839648e3984414065c58f5d3b7",
+    "expanded_matrix_note": "The final convergence pass retires obsolete Lab console families after the exact-head Phase 15 evidence recorded no matching Signal Garden, Estate Conformance, Shape Detector, or Drift errors. Only the reviewed historical SONIN embed CSP records remain reporting-only; unmatched findings remain blocking."
+  },
+  "families": [
+    {
+      "route": "writing-sonin-generative-system",
+      "kind": "console",
+      "browsers": ["chrome"],
+      "viewports": ["320", "375", "768", "1024", "1440", "1920"],
+      "contains": ["Framing 'https://www.youtube.com/'", "Content Security Policy", "default-src 'self'"]
+    },
+    {
+      "route": "writing-sonin-generative-system",
+      "kind": "console",
+      "browsers": ["firefox"],
+      "viewports": ["320", "375", "768", "1024", "1440", "1920"],
+      "contains": ["Content-Security-Policy", "youtube.com/embed/O5f1tB5bdyE", "default-src 'self'"]
+    }
+  ]
+}

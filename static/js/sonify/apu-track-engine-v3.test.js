@@ -60,7 +60,7 @@ test("safeRamp fallback keeps the current parameter value before ramping", () =>
   ]);
 });
 
-test("track engine source keeps crusher off the full master and schedules pulse width before note attack", () => {
+test("track engine source keeps chip colour off the full master and schedules pulse width before note attack", () => {
   const source = fs.readFileSync("static/js/sonify/apu-track-engine-v3.js", "utf8");
 
   assert.ok(APU_TRACK_CRITICAL_CHOKE_SECONDS >= 0.08);
@@ -69,13 +69,14 @@ test("track engine source keeps crusher off the full master and schedules pulse 
   assert.ok(APU_TRACK_TRANSITION_ORNAMENT_OFFSET_SECONDS < 0.02);
   assert.ok(APU_MASTERING_LIMITER_CEILING_DB <= -2);
   assert.match(source, /new Tone\.Limiter\(APU_MASTERING_LIMITER_CEILING_DB\)/);
-  assert.match(source, /nodes\.serviceBus\.chain\(nodes\.chipColor, nodes\.melodyBus\)/);
+  assert.match(source, /services: createMixBus\(Tone, \{ name: "services", downstream: nodes\.chipColor \}\)/);
+  assert.match(source, /nodes\.masterDacMix\.chain\(nodes\.softClipper, nodes\.limiter, nodes\.output\)/);
   assert.doesNotMatch(source, /nodes\.chipBus\.chain\(\s*nodes\.crusher,/);
   assert.match(source, /nodes\.noiseAccentFilter = new Tone\.Filter\(\{ type: "bandpass", frequency: 1500, Q: 1\.35 \}\)/);
   assert.match(source, /setPulseWidth\(nodes\.primary, event\.dutyCycle, pulseWidthLeadTime\(time\)\)/);
   assert.match(source, /setPulseWidth\(nodes\.secondary, event\.dutyCycle, pulseWidthLeadTime\(time\)\)/);
-  assert.match(source, /setPulseWidth\(slot\.synth, event\.identity\.dutyCycle, pulseWidthLeadTime\(time\)\)/);
-  assert.match(source, /transitionEventForTrackStep\(\s*currentFrame,\s*currentArrangement,\s*step,\s*lastStateTransition,\s*stepIndex,/);
+  assert.match(source, /setPulseWidth\(slot\.synth, played\.identity\.dutyCycle, pulseWidthLeadTime\(time\)\)/);
+  assert.match(source, /transitionEventForTrackStep\(\s*\(currentScoreFrame \?\? currentFrame\),\s*currentArrangement,\s*step,\s*lastStateTransition,\s*stepIndex,/);
   assert.match(source, /lastTransitionEvent/);
 });
 

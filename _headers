@@ -15,6 +15,66 @@
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable
 
+/static/js/homepage-interactions.js
+  Cache-Control: no-store, max-age=0
+
+/static/js/live/homepage-truth.js
+  Cache-Control: no-store, max-age=0
+
+/static/js/atlas-field.js
+  Cache-Control: no-store, max-age=0
+
+/static/js/atlas-field-consumer.js
+  Cache-Control: no-store, max-age=0
+
+/static/js/atlas-field-composition-registry.js
+  Cache-Control: no-store, max-age=0
+
+/static/js/secondary-surface-fields.js
+  Cache-Control: no-store, max-age=0
+
+/static/js/directory-header-fields.js
+  Cache-Control: no-store, max-age=0
+
+/static/js/enable-enhancements.js
+  Cache-Control: no-store, max-age=0
+
+/static/js/card-signatures.js
+  Cache-Control: no-store, max-age=0
+
+/static/js/focused-systems-shell.js
+  Cache-Control: no-store, max-age=0
+
+/js/transitions.js
+  Cache-Control: no-store, max-age=0
+
+/static/css/atlas-field-consumer.css
+  Cache-Control: no-store, max-age=0
+
+/static/css/directory-header-fields.css
+  Cache-Control: no-store, max-age=0
+
+/static/css/secondary-surface-fields.css
+  Cache-Control: no-store, max-age=0
+
+/css/home-v2-base.css
+  Cache-Control: no-store, max-age=0
+
+/lab/shared/shell.js
+  Cache-Control: no-store, max-age=0
+
+/lab/shared/system-map-card-field.js
+  Cache-Control: no-store, max-age=0
+
+/lab/shared/system-map-card-field.css
+  Cache-Control: no-store, max-age=0
+
+/lab/shared/lab-intro-field.js
+  Cache-Control: no-store, max-age=0
+
+/lab/shared/lab-intro-field.css
+  Cache-Control: no-store, max-age=0
+
 /lab/system-symphony
   Cache-Control: no-cache, max-age=0, must-revalidate
   X-Atlas-System-Symphony-Build: 20260726-system-symphony-atlas-apu-live-v7

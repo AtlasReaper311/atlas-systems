@@ -9,6 +9,11 @@
 (function () {
   "use strict";
 
+  var contract = window.AtlasWritingDirectoryContract;
+  if (!contract) {
+    throw new Error("Writing directory content-type contract is unavailable");
+  }
+
   var cards = Array.prototype.slice.call(document.querySelectorAll(".article-entry"));
   var filters = Array.prototype.slice.call(document.querySelectorAll("[data-writing-filter]"));
   var feature = document.querySelector(".writing-feature");
@@ -18,12 +23,6 @@
   function text(card, selector) {
     var node = card.querySelector(selector);
     return node ? node.textContent.trim() : "";
-  }
-
-  function type(card) {
-    if (card.classList.contains("coming-soon")) return "upcoming";
-    if (card.hasAttribute("data-series")) return "series";
-    return "case-study";
   }
 
   function isVisible(card) {
@@ -86,11 +85,12 @@
       return;
     }
 
+    var publishedType = contract.contentType(published);
     feature.hidden = false;
     feature.querySelector(".writing-feature-number").textContent = text(published, ".article-number");
     feature.querySelector(".writing-feature-date").textContent = text(published, ".article-date");
     feature.querySelector(".writing-feature-kicker").textContent =
-      text(published, ".tag.highlight") + " / Case study";
+      text(published, ".tag.highlight") + " / " + (publishedType === "series" ? "Series" : "Case study");
     feature.querySelector("h2").textContent = text(published, ".article-title");
     feature.querySelector(".writing-feature-summary").textContent = text(published, ".article-summary");
     feature.querySelector(".writing-feature-link").href = published.getAttribute("href");
@@ -122,17 +122,15 @@
       var isSeries = next && next.classList.contains("series-banner");
       heading.hidden = isSeries
         ? !cards.some(function (card) { return card.hasAttribute("data-series") && isVisible(card); })
-        : !cards.some(function (card) { return !card.classList.contains("coming-soon") && isVisible(card); });
+        : !cards.some(function (card) {
+          return contract.contentType(card) === "case-study" && isVisible(card);
+        });
     });
   }
 
   function applyFilter(value) {
     cards.forEach(function (card) {
-      var visible =
-        value === "all" ||
-        (value === "case-study" && !card.classList.contains("coming-soon")) ||
-        (value === "series" && card.hasAttribute("data-series")) ||
-        (value === "upcoming" && card.classList.contains("coming-soon"));
+      var visible = contract.matchesFilter(card, value);
       card.classList.toggle("filter-hidden", !visible);
       if (visible) card.classList.add("visible");
     });
@@ -152,7 +150,7 @@
 
   document.addEventListener("atlas:card-search", updateSupportingUi);
   cards.forEach(function (card) {
-    card.dataset.contentType = type(card);
+    card.dataset.contentType = contract.contentType(card);
   });
   updateFeature();
   installGroupHeadings();

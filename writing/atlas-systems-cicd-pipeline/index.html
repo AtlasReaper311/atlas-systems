@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Twelve consumer repositories were brought onto a consistent, gated, observable CI/CD rollout, with two reusable GitHub Actions workflows defined in">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Atlas Systems CI/CD // Atlas Systems</title>
+  <link rel="canonical" href="https://atlas-systems.uk/writing/atlas-systems-cicd-pipeline/">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Atlas Systems CI/CD // Atlas Systems">
+  <meta property="og:description" content="Twelve consumer repositories were brought onto a consistent, gated, observable CI/CD rollout, with two reusable GitHub Actions workflows defined in">
+  <meta property="og:url" content="https://atlas-systems.uk/writing/atlas-systems-cicd-pipeline/">
+  <meta property="og:site_name" content="Atlas Systems">
+  <meta property="og:image" content="https://atlas-systems.uk/og/atlas-systems-cicd-pipeline.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Atlas Systems CI/CD // Atlas Systems">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Atlas Systems CI/CD // Atlas Systems">
+  <meta name="twitter:description" content="Twelve consumer repositories were brought onto a consistent, gated, observable CI/CD rollout, with two reusable GitHub Actions workflows defined in">
+  <meta name="twitter:image" content="https://atlas-systems.uk/og/atlas-systems-cicd-pipeline.png">
+  <meta name="twitter:image:alt" content="Atlas Systems CI/CD // Atlas Systems">
+  <meta property="article:published_time" content="2026-07-28">
+  <meta property="article:author" content="Atlas Reaper">
+  <script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Atlas Systems CI/CD",
+    "description": "Twelve consumer repositories were brought onto a consistent, gated, observable CI/CD rollout, with two reusable GitHub Actions workflows defined in",
+    "datePublished": "2026-07-28",
+    "mainEntityOfPage": "https://atlas-systems.uk/writing/atlas-systems-cicd-pipeline/",
+    "author": {
+        "@type": "Person",
+        "name": "Atlas Reaper",
+        "url": "https://atlas-systems.uk/about/"
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Atlas Systems",
+        "url": "https://atlas-systems.uk/"
+    },
+    "image": "https://atlas-systems.uk/og/atlas-systems-cicd-pipeline.png",
+    "inLanguage": "en-GB"
+}
+  </script>
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.4.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.4.0/atlas-interface-kit.css">
+  <link rel="stylesheet" href="/static/css/estate-search.css">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
+  <link rel="stylesheet" href="/static/css/article-interface-v2.css?v=20260724-phase-b-v1">
+  <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;
+      --border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);
+      --text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;
+      --accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);
+      --mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px;
+      --content-w:720px
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
+    nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(10,10,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem,5vw,3rem);z-index:100}
+    .nav-wordmark{font-family:var(--mono);font-weight:500;font-size:13px;letter-spacing:0.12em;color:var(--text);text-decoration:none;text-transform:uppercase}
+    .nav-wordmark span{color:var(--accent)}
+    .nav-links{display:flex;list-style:none}
+    .nav-links a{display:block;padding:0.35rem 1rem;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color 0.15s;position:relative}
+    .nav-links a::after{content:'';position:absolute;bottom:-1px;left:50%;right:50%;height:1px;background:var(--accent);transition:left 0.2s,right 0.2s}
+    .nav-links a:hover{color:var(--text)}
+    .nav-links a:hover::after,.nav-links a.active::after{left:1rem;right:1rem}
+    .nav-links a.active{color:var(--text)}
+    main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);position:relative;z-index:1}
+    .article-header{padding-top:calc(var(--nav-h) + 5rem);padding-bottom:4rem;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr 2fr;gap:3rem}
+    .header-meta{display:flex;flex-direction:column;gap:1rem}
+    .back-link{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s;margin-bottom:0.5rem}
+    .back-link:hover{color:var(--accent)}
+    .back-link svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .article-index{font-size:11px;color:var(--text-faint);letter-spacing:0.1em}
+    .article-date{font-size:11px;color:var(--text-dim)}
+    .article-read-time{font-size:11px;color:var(--text-faint)}
+    .header-tags{display:flex;flex-direction:column;gap:0.4rem;margin-top:0.5rem}
+    .tag{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:0.2rem 0.5rem;border:1px solid var(--border);color:var(--text-dim);display:inline-block}
+    .tag.highlight{border-color:rgba(245,166,35,0.4);color:rgba(245,166,35,0.8)}
+    .section-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem}
+    .section-label::before{content:'';display:inline-block;width:24px;height:1px;background:var(--accent)}
+    .article-title{font-family:var(--serif);font-size:clamp(2rem,4vw,3.2rem);line-height:1.05;color:var(--text);margin-bottom:0.75rem}
+    .article-subtitle{font-size:12px;color:var(--accent);letter-spacing:0.06em;margin-bottom:1.5rem}
+    .article-lede{font-size:14px;color:var(--text-dim);line-height:1.9;max-width:560px}
+    .spec-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin:3rem 0}
+    .spec-cell{background:var(--bg);padding:1rem 1.25rem}
+    .spec-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.3rem}
+    .spec-value{font-size:12px;color:var(--text)}
+    .article-body{display:grid;grid-template-columns:200px 1fr;gap:4rem;padding:4rem 0}
+    .toc{position:sticky;top:calc(var(--nav-h) + 2rem);align-self:start;height:fit-content}
+    .toc-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-faint);margin-bottom:1rem}
+    .toc-list{list-style:none;display:flex;flex-direction:column;gap:0.1rem}
+    .toc-item a{font-size:11px;color:var(--text-faint);text-decoration:none;display:block;padding:0.35rem 0.75rem;border-left:1px solid var(--border);transition:all 0.15s;line-height:1.4}
+    .toc-item a:hover{color:var(--text-dim);border-left-color:var(--border-hi)}
+    .toc-item a.active{color:var(--accent);border-left-color:var(--accent)}
+    .prose{max-width:var(--content-w)}
+    .prose h2{font-family:var(--serif);font-size:1.8rem;line-height:1.1;color:var(--text);margin:3rem 0 1.25rem;padding-top:1rem}
+    .prose h2:first-child{margin-top:0}
+    .prose h3{font-size:13px;font-weight:500;color:var(--text);letter-spacing:0.06em;text-transform:uppercase;margin:2rem 0 0.75rem;display:flex;align-items:center;gap:0.6rem}
+    .prose h3::before{content:'';display:inline-block;width:16px;height:1px;background:var(--accent);flex-shrink:0}
+    .prose p{font-size:13px;color:var(--text-dim);line-height:1.9;margin-bottom:1.25rem}
+    .prose p:last-child{margin-bottom:0}
+    .prose strong{color:var(--text);font-weight:500}
+    .prose a,.prose a:visited{color:var(--accent);text-decoration-color:rgba(245,166,35,0.45);text-decoration-thickness:1px;text-underline-offset:0.18em;transition:color 0.15s,text-decoration-color 0.15s}
+    .prose a:hover{color:var(--text);text-decoration-color:var(--accent)}
+    .prose a:focus-visible{color:var(--text);outline:2px solid var(--accent);outline-offset:3px;text-decoration-color:var(--accent)}
+    .prose code{font-family:var(--mono);font-size:12px;background:var(--bg-1);border:1px solid var(--border);padding:0.15rem 0.4rem;color:var(--accent)}
+    .prose pre{background:var(--bg-1);border:1px solid var(--border);border-left:2px solid var(--accent);padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto}
+    .prose pre code{background:none;border:none;padding:0;font-size:12px;color:var(--text-dim);line-height:1.7}
+    .prose ul{margin:1rem 0 1.25rem 0;display:flex;flex-direction:column;gap:0.5rem}
+    .prose ul li{font-size:13px;color:var(--text-dim);line-height:1.7;display:flex;gap:0.75rem;align-items:flex-start}
+    .prose ul li::before{content:'→';color:var(--accent);flex-shrink:0;margin-top:0.1rem}
+    .callout{border:1px solid var(--border);border-left:2px solid var(--accent);background:var(--bg-1);padding:1.25rem 1.5rem;margin:1.5rem 0}
+    .callout-label{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem}
+    .callout p{margin-bottom:0;font-size:12px}
+    .callout.error{border-left-color:#e24b4a}
+    .callout.error .callout-label{color:#e24b4a}
+    .callout.success{border-left-color:#4ade80}
+    .callout.success .callout-label{color:#4ade80}
+    .callout.warning{border-left-color:var(--accent)}
+    .phase-marker{display:flex;align-items:center;gap:1rem;margin:2.5rem 0 1.5rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border)}
+    .phase-num{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap}
+    .phase-title{font-size:13px;font-weight:500;color:var(--text)}
+    .section-break{height:1px;background:var(--border);margin:3rem 0}
+    .outcomes-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin:1.5rem 0}
+    .outcome-cell{background:var(--bg);padding:1.25rem 1.5rem}
+    .outcome-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.4rem}
+    .outcome-value{font-size:13px;color:var(--text)}
+    .article-footer{padding:3rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+    .footer-back{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s}
+    .footer-back:hover{color:var(--accent)}
+    .footer-back svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .footer-next{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);display:flex;align-items:center;gap:0.4rem}
+    .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
+    .mobile-nav-inner{display:flex;align-items:stretch;height:100%}
+    .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.15s}
+    .mobile-nav-item:hover,.mobile-nav-item.active{color:var(--accent)}
+    .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    @media(max-width:900px){.article-body{grid-template-columns:1fr}.toc{display:none}.article-header{grid-template-columns:1fr}}
+    @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}.outcomes-grid{grid-template-columns:1fr}}
+
+    /* data tables (generated from markdown | a | b | ) */
+    .table-wrap{overflow-x:auto;margin:1.75rem 0;border:1px solid var(--border)}
+    .data-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+    .data-table th{background:var(--bg-1);color:var(--accent);text-align:left;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;font-size:10px;padding:0.6rem 0.85rem;border-bottom:1px solid var(--border-hi);white-space:nowrap}
+    .data-table td{color:var(--text-dim);padding:0.55rem 0.85rem;border-bottom:1px solid var(--border);line-height:1.5;vertical-align:top}
+    .data-table tbody tr:last-child td{border-bottom:none}
+    .data-table tbody tr:hover td{background:var(--bg-1)}
+    .data-table strong{color:var(--text);font-weight:500}
+    .data-table code{background:var(--bg-2);padding:0.1rem 0.35rem;font-size:11px;color:var(--accent)}
+
+/* Public interface contract overrides applied after the preserved article stylesheet. */
+.atlas-brand-cluster{display:inline-flex;align-items:center;gap:.75rem;min-width:0}
+.es-nav-search{display:inline-flex;align-items:center;gap:.45rem;min-height:36px;padding:.35rem .65rem;border:1px solid var(--border);background:transparent;color:var(--text-dim);font:inherit;font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.es-nav-search:hover,.es-nav-search:focus-visible{color:var(--text);border-color:var(--border-hi)}
+.es-nav-search svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.5}
+.es-nav-search kbd{color:var(--text-faint);font:inherit;font-size:8px}
+.article-lede{font-size:16px;line-height:1.8;max-width:620px}
+.prose p{font-size:16px;line-height:1.8}
+.prose ul li{font-size:16px;line-height:1.8}
+.callout p{font-size:14px;line-height:1.75}
+.table-wrap{max-width:100%;overscroll-behavior-inline:contain}
+:where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:680px){
+  :root{--nav-h:112px}
+  nav{height:auto;min-height:var(--nav-h);align-items:stretch;flex-direction:column;justify-content:center;gap:.55rem;padding:.65rem 1rem}
+  .nav-links{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));width:100%}
+  .nav-links li{min-width:0}
+  .nav-links a,.es-nav-search{display:flex;align-items:center;justify-content:center;min-width:0;min-height:44px;padding:.4rem .2rem;font-size:9px;text-align:center}
+  .es-nav-search kbd{display:none}
+  main{padding-bottom:2rem}
+}
+@media(max-width:420px){
+  .atlas-estate-status-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  .atlas-estate-status{width:32px;justify-content:center;padding:0}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto!important}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+  </style>
+  <link rel="stylesheet" href="/writing/series-article.css?v=20260722-cluster">
+</head>
+<body>
+
+<nav aria-label="Primary navigation">
+  <div class="atlas-brand-cluster">
+    <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
+    <a class="atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" aria-label="Atlas Systems status: checking">
+      <span class="atlas-estate-status-dot" aria-hidden="true"></span>
+      <span class="atlas-estate-status-label">checking</span>
+    </a>
+  </div>
+  <ul class="nav-links">
+    <li><a href="/work/">Work</a></li>
+    <li><a href="/writing/" class="active" aria-current="page">Writing</a></li>
+    <li><a href="/lab/">Lab</a></li>
+    <li><a href="/systems/">Systems</a></li>
+    <li><a href="/about/">About</a></li>
+    <li>
+      <button type="button" class="es-nav-search" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg>
+        Search
+        <kbd data-estate-search-kbd>ctrl k</kbd>
+      </button>
+    </li>
+  </ul>
+</nav>
+
+<main>
+
+  <header class="article-header">
+    <div class="header-meta">
+      <a href="/writing/" class="back-link">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        Writing
+      </a>
+      <div class="article-index">W-06</div>
+      <div class="article-date">25 July 2026</div>
+      <div class="article-read-time">~12 min read</div>
+      <div class="header-tags">
+        <span class="tag highlight">DevOps</span>
+        <span class="tag">GitHub Actions</span>
+        <span class="tag">Cloudflare</span>
+        <span class="tag">CI/CD</span>
+        <span class="tag">Infrastructure</span>
+      </div>
+    </div>
+    <div class="header-content">
+      <div class="section-label">Case Study</div>
+      <h1 class="article-title">Atlas Systems CI/CD</h1>
+      <div class="article-subtitle">Atlas Systems CI/CD — Reusable Pipelines &amp; Hard Gates // Case Study</div>
+      <p class="article-lede">Twelve consumer repositories were brought onto a consistent, gated, observable CI/CD rollout, with two reusable GitHub Actions workflows defined in atlas-infra and short caller files in each repository. The current estate pins those callers to immutable atlas-infra revisions, so later workflow changes move through explicit, reviewable pin-update pull requests rather than floating into consumers automatically.</p>
+    </div>
+  </header>
+
+<!-- AUTO-SERIES-NAV-START -->
+<nav class="article-series-nav" aria-label="Pipeline &amp; Observability series">
+  <div class="article-series-heading">
+    <span class="article-series-kicker">Writing series · Part 2 of 3</span>
+    <a class="article-series-title" href="/writing/index.html#series-pipeline-observability">Pipeline &amp; Observability</a>
+  </div>
+  <ol class="article-series-parts">
+      <li class="article-series-part is-live"><a class="series-part-link" href="/writing/atlas-pipeline-infrastructure-dashboard/"><span class="series-part-number">Part 1</span><span class="series-part-title">Atlas Systems Infrastructure</span><span class="series-part-state">Live</span></a></li>
+      <li class="article-series-part is-current"><span class="series-part-link" aria-current="page"><span class="series-part-number">Part 2</span><span class="series-part-title">Atlas Systems CI/CD</span><span class="series-part-state">Current</span></span></li>
+      <li class="article-series-part is-next is-live"><a class="series-part-link" href="/writing/atlas-lab-observability/"><span class="series-part-number">Part 3</span><span class="series-part-title">Atlas Lab</span><span class="series-part-state">Next</span></a></li>
+  </ol>
+</nav>
+<!-- AUTO-SERIES-NAV-END -->
+
+<div class="spec-strip">
+    <div class="spec-cell"><div class="spec-label">Series</div><div class="spec-value">Part 2 of 3 — Pipeline &amp; Observability</div></div>
+    <div class="spec-cell"><div class="spec-label">Rollout scope</div><div class="spec-value">12 consumer repos: 5 Workers + 3 static sites + 4 libraries</div></div>
+    <div class="spec-cell"><div class="spec-label">Control plane</div><div class="spec-value">atlas-infra reusable workflows</div></div>
+    <div class="spec-cell"><div class="spec-label">Platform</div><div class="spec-value">GitHub Actions · Cloudflare Workers + Pages</div></div>
+    <div class="spec-cell"><div class="spec-label">Cost</div><div class="spec-value">£0 for the bounded rollout</div></div>
+    <div class="spec-cell"><div class="spec-label">Gates</div><div class="spec-value">wrangler dry-run · ESLint · Vitest · html-validate · lychee</div></div>
+    <div class="spec-cell"><div class="spec-label">Avg deploy</div><div class="spec-value">38s Workers · 45s static sites</div></div>
+  </div>
+
+  <div class="article-body">
+    <aside class="toc">
+      <div class="toc-label">Contents</div>
+      <ul class="toc-list">
+        <li class="toc-item"><a href="#overview">Overview</a></li>
+        <li class="toc-item"><a href="#background">Background</a></li>
+        <li class="toc-item"><a href="#reusable-workflows-as-the-architecture">Reusable Workflows as the Architecture</a></li>
+        <li class="toc-item"><a href="#gating-atlas-notify-through-workflow-run">Gating atlas-notify Through workflow_run</a></li>
+        <li class="toc-item"><a href="#hard-gate-or-soft-gate">Hard Gate or Soft Gate</a></li>
+        <li class="toc-item"><a href="#the-token-model">The Token Model</a></li>
+        <li class="toc-item"><a href="#phase-i-the-zone-name-trap">Phase I — The zone_name Trap</a></li>
+        <li class="toc-item"><a href="#named-environments-inherit-nothing">Named Environments Inherit Nothing</a></li>
+        <li class="toc-item"><a href="#phase-ii-what-the-gates-caught-on-day-one">Phase II — What the Gates Caught</a></li>
+        <li class="toc-item"><a href="#atlas-infra-as-the-reference">atlas-infra as the Reference</a></li>
+        <li class="toc-item"><a href="#outcomes">Outcomes</a></li>
+      </ul>
+    </aside>
+
+    <article class="prose">
+      <section id="overview">
+        <h2>Overview</h2>
+        <div class="callout"><div class="callout-label">Status Note — 26 July 2026</div><p>This article documents the June 2026 CI/CD rollout across twelve consumer repositories, with <code>atlas-infra</code> acting as the control plane rather than another consumer. The estate has since added immutable workflow pins, README and runtime contract checks, action pinning, Worker <code>/_meta</code> validation, optional OpenAPI validation, and ADR-backed policy. The rollout incidents and design decisions below remain accurate to the period described.</p></div>
+        <p>The Atlas Systems estate grew quickly. Five Cloudflare Workers behind the api subdomain, three static sites on Cloudflare Pages, two Python libraries, and two private publishing-pipeline repos made twelve consumer repositories, with <code>atlas-infra</code> holding the shared workflow definitions. Every consumer was deployed by hand or by a Cloudflare integration that ran without any pre-deploy checks. A broken Worker shipped the moment I ran <code>npx wrangler deploy</code>. A malformed HTML tag shipped the moment Cloudflare&#x27;s native Git integration saw a push to main. There were no gates anywhere.</p>
+        <p>This project replaced all of that with a consistent, observable pipeline shape per kind of repo, defined once in <code>atlas-infra</code> and replicated across the rollout scope by short caller files. Every deploy now passes a real gate before it reaches production. Every outcome posts to a dedicated Discord channel. Where the live site is concerned, broken HTML or a dead internal link cannot ship at all.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="background">
+        <h2>Background</h2>
+        <p>The estate this project started from was the one built the previous month in Atlas Pipeline: ten repos with a working event bus and a first pass at automated deploys, but every Worker still running its own per-repo <code>deploy.yml</code>. That pattern was already uneven a few weeks in. <code>atlas-notify</code> had Vitest tests (12, covering all three of its auth dialects) but the test suite did not gate the deploy; tests and deploys ran in separate flows. The other four Workers had no tests and no lint. The three static sites had no validation. <code>atlas-kit-python-rag</code> had a good Python CI suite (ruff, mypy, pytest, 62% coverage with a live badge) but no Discord notification. <code>atlas-infra</code> had a dormant <code>workflow_dispatch</code> workflow and a Docker hello-world. The intent for <code>atlas-infra</code> to host canonical patterns was there in the docs; the patterns themselves were not.</p>
+        <p>The bar I set was specific. Would a senior engineer at a remote-first company look at the resulting estate and find it impressive or sloppy. Sloppy means ad-hoc deploys, no test gates, inconsistent config between repos, secrets named differently across projects, Discord channels that sometimes lie about what they contain. Impressive means consistent pipeline shape across every repo, automated gates that actually catch regressions before production, observable deploy history, infrastructure that documents itself.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="reusable-workflows-as-the-architecture">
+        <h2>Reusable Workflows as the Architecture</h2>
+        <p>The decision that shaped everything else: every deployable repo would use one of two reusable workflows defined in <code>atlas-infra</code>. <code>deploy-worker.yml</code> for Cloudflare Workers and <code>validate-static.yml</code> for Cloudflare Pages sites. Each caller would be a thin file naming the reusable workflow, passing a label and a couple of flags, and forwarding secrets with <code>secrets: inherit</code>.</p>
+        <p>The alternative was keeping five separate <code>deploy.yml</code> files, the pattern from the previous month. They had already drifted in weeks, not months; one repo&#x27;s <code>wrangler.toml</code> used <code>zone_name</code> on a route while the others used <code>zone_id</code>, the exact gap this piece resolves properly later on. The rollout established one source definition for each pipeline shape. The current estate pins each caller to an immutable <code>atlas-infra</code> commit, so workflow changes do not float into consumers at queue time. A deploy-shape change is authored once in <code>atlas-infra</code>, then propagated through explicit pin-update pull requests, keeping adoption auditable and reviewable.</p>
+        <div class="callout"><div class="callout-label">Design Decision</div><p>Every deployable repo calls a reusable workflow defined in <code>atlas-infra</code>. New repos start from a short caller file, and production callers pin an immutable control-plane revision rather than a moving branch.</p></div>
+        <h3>Worker workflow shape</h3>
+        <p>The Worker workflow runs <code>validate</code> then <code>deploy</code> then <code>notify</code>. Validate runs <code>npx wrangler deploy --dry-run --outdir dist</code> unconditionally; this bundles the Worker without publishing and exits non-zero on import errors, missing bindings the bundler can see, or syntax issues. Optional lint and test steps run after the dry-run if the caller sets <code>run_lint: true</code> or <code>run_tests: true</code>. Deploy uses wrangler directly with the production token. Notify posts a Discord embed via <code>curl</code> and <code>jq</code>, green or red, with the commit short SHA, the actor, and a link to the run logs.</p>
+        <p>The later control-plane revision expanded that validation surface with README-contract enforcement, immutable action pins, optional <code>/_meta</code> checks, and optional OpenAPI validation. Those additions are subsequent evolution, not claims about the first rollout recorded here.</p>
+        <h3>Static-site workflow shape</h3>
+        <p>The static-site workflow has the same shape but with html-validate plus an offline lychee link check in place of wrangler dry-run, and <code>wrangler pages deploy</code> in place of <code>wrangler deploy</code>. Both workflows use <code>if: always()</code> on the notify job so failures get reported with the same fidelity as successes.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="gating-atlas-notify-through-workflow-run">
+        <h2>Gating atlas-notify Through workflow_run</h2>
+        <p><code>atlas-notify</code> is the only Worker with a real test suite. Wiring its deploy to the same <code>push</code> trigger as the other four would mean running Vitest twice on every push to main: once in its existing <code>ci.yml</code> (the established source of truth for test results, posted to the ci-cd channel), and once again inside the deploy workflow&#x27;s validate job. Two runs, two Discord posts, two places to trip when one of them gives a different answer.</p>
+        <p>I used GitHub&#x27;s <code>workflow_run</code> trigger instead. The deploy workflow waits for the CI workflow to complete on main, and only proceeds when CI&#x27;s conclusion was success.</p>
+        <pre><code class="language-yaml">on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}</code></pre>
+        <p>The behaviour is what you would want. A failing CI prevents the deploy from ever starting, the ci-cd channel stays the source of truth for test results, the api-deploys channel stays the source of truth for deploys, and Vitest runs exactly once per push.</p>
+        <div class="callout"><div class="callout-label">Design Decision</div><p>CI gates the deploy through <code>workflow_run</code>, not by running tests twice. The deploy is the consequence of CI passing, not a parallel attempt at the same thing.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="hard-gate-or-soft-gate">
+        <h2>Hard Gate or Soft Gate</h2>
+        <p>Cloudflare Pages native Git integration deploys on every push to main with no pre-deploy hook on the free tier. A validation workflow running in parallel can report on a broken build after it lands, but it cannot prevent that broken build from going live. This is a soft gate. It makes the GitHub status check go red, but the user sees the broken page anyway.</p>
+        <p>A hard gate means disconnecting native Git integration entirely and deploying with <code>wrangler pages deploy</code> from inside the validated Actions workflow. The validation step runs before the deploy step, and the deploy step only runs if validation passed. A broken HTML tag or a dead internal link literally cannot reach production because nothing publishes when validation fails.</p>
+        <p>The cost is two to three minutes per deploy (validation takes time that native integration does not) and a one-time dashboard action per project to disconnect the integration. The benefit is the gate being real. I picked the hard gate on all three sites.</p>
+        <h3>Safe cutover</h3>
+        <p>The cutover was sequenced to be safe. For each site: add the workflow, let it run alongside native integration for two or three pushes, watch every run go green, then disconnect native integration in the Cloudflare dashboard. The custom domain stays attached because it is a DNS setting, not a Git setting. Until the disconnect, native integration is still the real deploy path so the live site cannot break; after the disconnect, the Actions run is the only path.</p>
+        <div class="callout"><div class="callout-label">Why This Matters</div><p>The gate must prevent harm, not report on it after it lands. Disconnecting native Git integration is the only way to make the validation step actually authoritative.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="the-token-model">
+        <h2>The Token Model</h2>
+        <p>Cloudflare&#x27;s permission system distinguishes between Workers and Pages. A token with Workers Scripts: Edit cannot deploy a Pages project; a token with Pages: Edit cannot edit a Worker. Using one account-wide token everywhere would have been simpler in the short term and worse in every other way: a leaked token would have access to everything in the account, not just the class of resource the leaking workflow needed to touch.</p>
+        <p>The estate now uses two narrowly scoped tokens. <code>CF_WORKERS_DEPLOY_TOKEN</code> carries Workers Scripts: Edit and Workers Routes: Edit, and is set on the five Worker repos. <code>CF_PAGES_DEPLOY_TOKEN</code> carries Pages: Edit only, and is set on the three static-site repos. A token leak is bounded by the token&#x27;s permission class, not by the breadth of the account.</p>
+        <h3>Deploy-time vs runtime credentials</h3>
+        <p>Runtime secrets (the tokens Workers themselves call out to other services with, such as <code>deploy-watch</code>&#x27;s Pages: Read token or <code>site-pulse</code>&#x27;s Zone Analytics: Read token) are set with <code>wrangler secret put</code> and never appear in GitHub Actions. The deploy-time and runtime credential paths share no values.</p>
+        <div class="callout"><div class="callout-label">Design Decision</div><p>Two narrowly scoped deploy tokens, never one account-wide token. Runtime secrets stay separate from deploy secrets.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="phase-i-the-zone-name-trap">
+        <h2>Phase I — The zone_name Trap</h2>
+        <div class="phase-marker"><span class="phase-num">Phase I</span><span class="phase-title">The zone_name Trap</span></div>
+        <p>The Workers token used in CI has Workers Scripts: Edit and Workers Routes: Edit, deliberately scoped narrowly. It does not have Account: Read. Local <code>wrangler deploy</code> runs with a broader interactive token and resolves zone names fine. CI runs with the scoped token and fails silently with &quot;Could not find zone.&quot; <code>atlas-notify</code>&#x27;s wildcard route used <code>zone_name = &quot;atlas-systems.uk&quot;</code>, and every CI deploy failed on every run while the route worked perfectly when deployed locally. This was the same gap the previous month&#x27;s pipeline had already hit once, in a narrower form, and patched without fully understanding why.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p>Resolving a Cloudflare zone name to its zone ID requires Account: Read on the calling token because the lookup happens against the account&#x27;s zone list. The scoped CI token cannot do the membership lookup. The narrower the token, the less it can introspect.</p></div>
+        <p>The fix was to use the literal zone ID in every route in every <code>wrangler.toml</code> on the estate, so nothing has to introspect at deploy time:</p>
+        <pre><code class="language-toml">routes = [
+  { pattern = "api.atlas-systems.uk/notify*", zone_id = "8ba6350a78c988447c111048b125f917" }
+]</code></pre>
+        <p>This became a hard estate rule. Its current authority lives in <code>atlas-infra/docs/adrs/</code> and the executable policy and validation code; the older <code>docs/decisions.md</code> record remains useful historical context but is not the current architecture authority.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p><code>zone_id</code> everywhere, no exceptions. The deploy works identically from any environment because nothing has to introspect.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="named-environments-inherit-nothing">
+        <h2>Named Environments Inherit Nothing</h2>
+        <p>The pipeline supports a dev environment per Worker out of the box. Push to a <code>dev</code> branch and the workflow deploys to a separate Worker instance on a <code>workers.dev</code> URL; push to <code>main</code> and it deploys to the production custom route. The mechanism is wrangler&#x27;s named environments.</p>
+        <p>The trap is what wrangler does and does not inherit. A <code>[env.dev]</code> block does not inherit <code>vars</code>, <code>kv_namespaces</code>, <code>routes</code>, or <code>triggers</code> from the top level of the config. A dev environment that does not redeclare its bindings deploys with them empty: KV namespaces become undefined, environment variables go missing, and the Worker runs with a broken runtime state that only shows up at request time.</p>
+        <div class="callout warning"><div class="callout-label">Caught Late</div><p>The empty-binding failure mode does not surface at deploy time. The deploy succeeds, wrangler reports green, and the Worker only breaks when a real request arrives expecting a KV namespace that does not exist. Easy to miss until a dev URL is actually hit.</p></div>
+        <p>Every <code>[env.dev]</code> block in the estate now redeclares everything the Worker reads from. They also deliberately omit <code>routes</code> (so dev never claims <code>api.atlas-systems.uk/*</code>) and <code>triggers</code> (so dev never runs the production cron). <code>workers_dev = true</code> exposes the dev Worker on a <code>workers.dev</code> URL, separate from production.</p>
+        <div class="callout"><div class="callout-label">Design Decision</div><p>Every named environment redeclares all bindings. Dev environments deliberately omit <code>routes</code> and <code>triggers</code> so dev traffic cannot reach production paths and dev crons cannot fire against production state.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="phase-ii-what-the-gates-caught-on-day-one">
+        <h2>Phase II — What the Gates Caught on Day One</h2>
+        <div class="phase-marker"><span class="phase-num">Phase II</span><span class="phase-title">What the Gates Caught</span></div>
+        <p>The rollout itself was a stress test of the gates. ESLint caught an unused <code>ctx</code> parameter on <code>site-pulse</code>&#x27;s <code>scheduled()</code> cron handler that had been quietly wrong for months. The parameter was declared but the function never called <code>ctx.waitUntil()</code>. The fix was a one-character rename to <code>_ctx</code> (the config allows underscore-prefixed unused arguments by convention) which made it explicit that the parameter is required by the platform&#x27;s function signature but deliberately unused by this Worker.</p>
+        <p>html-validate caught roughly 60 violations across the seven HTML files on the first run. The signal-to-noise ratio was the problem worth solving.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p>The default html-validate ruleset enforces a mix of genuine accessibility rules and stylistic preferences. Treating both as equal severity buried the real findings under noise: button-type defaults that already match the standard, trailing whitespace, raw <code>&amp;</code> characters in URLs that every browser handles correctly.</p></div>
+        <p>I disabled <code>no-implicit-button-type</code>, <code>no-trailing-whitespace</code>, and demoted <code>no-raw-characters</code> to a warning. The ruleset&#x27;s job is to catch things users notice, not to enforce style preferences. The real findings remained, and they were the ones worth keeping. Bare <code>&lt;nav&gt;</code> landmarks across every page needed <code>aria-label</code> attributes because each page also has a labelled mobile nav, and the WCAG rule that landmarks of the same type need distinct accessible names was correct. Fourteen gallery-dot buttons on the work page had no inner text, so screen readers had nothing to announce; each got an <code>aria-label=&quot;View image N&quot;</code> derived from its <code>onclick</code> handler. An <code>&lt;img&gt;</code> in the lightbox had <code>src=&quot;&quot;</code> (it gets set by JavaScript when the lightbox opens, but html-validate flagged the empty attribute correctly); replacing the empty value with a 1×1 transparent GIF as a data URI satisfied the validator without changing any visible behaviour.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>Three cosmetic rules turned off, one demoted to warning, every genuine landmark and label issue fixed in code. These were not problems the rollout introduced; they were pre-existing issues the new gates surfaced for the first time. That is what the gates are for.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="atlas-infra-as-the-reference">
+        <h2>atlas-infra as the Reference</h2>
+        <p>A reusable workflow that nobody can read is half useful. During this rollout, <code>atlas-infra</code> gained the workflows themselves plus <code>docs/decisions.md</code> covering the token model, Discord routing, the <code>zone_id</code> rule, named-environment inheritance, hard versus soft gates, html-validate choices, and runtime secret boundaries. The current estate has since promoted accepted architecture into <code>docs/adrs/</code> and executable policy, while keeping historical decision notes as context rather than authority.</p>
+        <div class="callout"><div class="callout-label">Why This Matters</div><p>Tribal knowledge dies; infrastructure that documents itself survives. <code>atlas-infra</code> is the canonical control-plane repository, with accepted decisions and executable policy taking precedence over historical notes.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="outcomes">
+        <h2>Outcomes</h2>
+        <div class="outcomes-grid"><div class="outcome-cell"><div class="outcome-label">Rollout scope</div><div class="outcome-value">12 consumer repos on consistent pipelines, defined once in <code>atlas-infra</code></div></div><div class="outcome-cell"><div class="outcome-label">Caller file size</div><div class="outcome-value">~12 lines per repo, three pipeline shapes (Worker, static site, library)</div></div><div class="outcome-cell"><div class="outcome-label">Deploy times</div><div class="outcome-value">38s average for Workers, 45s average for static sites</div></div><div class="outcome-cell"><div class="outcome-label">Cost</div><div class="outcome-value">£0 for the bounded rollout described here</div></div></div>
+        <p>The rollout replaced ad-hoc deploys with a consistent, gated, observable estate. Every Worker passed wrangler dry-run and ESLint before production. <code>atlas-notify</code> additionally passed Vitest, with the deploy gated on a successful CI run rather than rerunning the tests. Every static site passed html-validate and a link check before <code>wrangler pages deploy</code> ran; the alternative deploy path (Cloudflare native Git integration) was disconnected on all three so Actions became the only path to production. Every outcome posted to one of three Discord channels: api-deploys for Workers, deploy-log for static sites, ci-cd for test results. The signal was narrow, so silence in any channel was meaningful.</p>
+        <p>The deeper insight is that pipeline code rewards centralisation more than almost any other code in a codebase, because every repo using the pattern multiplies the value of each improvement. Maintaining five <code>deploy.yml</code> files is five times the work of maintaining one. Defining the pipeline once gave the estate a common contract; immutable pins and explicit pin-update pull requests later made changes reviewable without surrendering that common source. The reusable-workflow pattern is not specific to Cloudflare or even to GitHub Actions; it is what infrastructure code looks like when configuration is treated as versioned software. The notify job built here, posting a coloured outcome to Discord on every run, later became the second source feeding the Lab dashboard directly; the events were always there, the dashboard just had to learn to read them too.</p>
+      </section>
+    </article>
+  </div>
+
+  <div class="article-footer">
+    <a href="/writing/atlas-pipeline-infrastructure-dashboard/" class="footer-back">
+    <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    ← W-05 — Atlas Systems Infrastructure
+  </a>
+  <a href="/writing/atlas-lab-observability/" class="footer-back">
+    W-07 — Atlas Lab
+    <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+  </a>
+  </div>
+
+</main>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-item a');
+  const sections = document.querySelectorAll('section[id]');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        tocLinks.forEach(a => a.classList.remove('active'));
+        const active = document.querySelector(`.toc-item a[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+<script src="/js/transitions.js"></script>
+<script type="module" src="/static/js/estate-shell.js?v=20260723-interface-v2"></script>
+<script type="module" src="/static/js/estate-search/global-search.js"></script>
+
+</body>
+</html>

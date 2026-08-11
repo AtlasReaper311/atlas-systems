@@ -95,11 +95,24 @@ nav a:hover, nav a:focus-visible, nav a[aria-current] { color: var(--accent); }
   display: flex;
   align-items: stretch;
 }
+/* Wide enough to lay the routes out in full: wrap rather than hide the tail
+   behind an overlay scrollbar nobody can see. */
+@media (min-width: 861px) {
+  .lab-context-nav { overflow-x: visible; }
+  .lab-context-nav-inner { min-width: 0; flex-wrap: wrap; }
+}
+/* Narrow enough to scroll: mark the overflowing edge so it reads as scrollable. */
+@media (max-width: 860px) {
+  .lab-context-nav {
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+  }
+}
 .lab-context-nav a {
   display: inline-flex;
   align-items: center;
   min-height: 42px;
-  padding: 0 .8rem;
+  padding: 0 .55rem;
   color: var(--text-dim);
   font-size: 10px;
   letter-spacing: .08em;

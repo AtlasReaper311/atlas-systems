@@ -20,20 +20,20 @@ export const PERFORMANCE_EFFECT_LIMITS = Object.freeze({
 
 export const PERFORMANCE_SCENES = Object.freeze({
   healthy: Object.freeze({
-    name: "NIGHT DRIVE",
-    label: "Healthy // Night Drive",
+    name: "EXPLORER",
+    label: "Healthy // Explorer",
   }),
   warning: Object.freeze({
     name: "GRID PRESSURE",
     label: "Warning // Grid Pressure",
   }),
   critical: Object.freeze({
-    name: "REDLINE PROTOCOL",
-    label: "Critical // Redline Protocol",
+    name: "BOSS PROTOCOL",
+    label: "Critical // Boss Protocol",
   }),
   unknown: Object.freeze({
-    name: "GHOST SIGNAL",
-    label: "Unknown // Ghost Signal",
+    name: "LOST SIGNAL",
+    label: "Unknown // Lost Signal",
   }),
 });
 

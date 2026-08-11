@@ -1,0 +1,138 @@
+/* SPECULUM / layout pass v3
+ *
+ * Preserve the clarity-pass rendering while giving the field and its
+ * observation rail enough physical room to remain readable.
+ */
+
+:root {
+  --max: 1480px;
+  --rail: 400px;
+}
+
+.field {
+  grid-template-columns: minmax(0, 1fr) var(--rail);
+  height: clamp(900px, 90vh, 1120px);
+}
+
+.field-canvas,
+#spc-canvas {
+  height: 100%;
+  min-height: 0;
+}
+
+.rail {
+  display: grid;
+  grid-template-rows: auto minmax(250px, 0.9fr) minmax(340px, 1.1fr);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.controls {
+  min-height: 0;
+}
+
+.detail {
+  min-height: 0;
+  max-height: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-hi) transparent;
+}
+
+.ledger-wrap {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ledger {
+  min-height: 0;
+  max-height: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 8px;
+  -webkit-mask-image: none;
+  mask-image: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-hi) transparent;
+}
+
+.ledger li {
+  grid-template-columns: 62px minmax(0, 1fr);
+}
+
+.detail::-webkit-scrollbar,
+.ledger::-webkit-scrollbar {
+  width: 8px;
+}
+
+.detail::-webkit-scrollbar-thumb,
+.ledger::-webkit-scrollbar-thumb {
+  background: var(--border-hi);
+  border: 2px solid var(--bg-1);
+}
+
+@media (max-width: 1279px) and (min-width: 1081px) {
+  :root { --rail: 370px; }
+
+  .field {
+    height: clamp(860px, 88vh, 1040px);
+  }
+
+  .rail {
+    grid-template-rows: auto minmax(230px, 0.9fr) minmax(320px, 1.1fr);
+  }
+}
+
+@media (max-width: 1080px) and (min-width: 901px) {
+  :root { --rail: 340px; }
+
+  .field {
+    height: clamp(820px, 86vh, 980px);
+  }
+
+  .rail {
+    grid-template-rows: auto minmax(220px, 0.85fr) minmax(300px, 1.15fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .field {
+    height: auto;
+  }
+
+  .field-canvas,
+  #spc-canvas {
+    height: clamp(620px, 76vh, 760px);
+  }
+
+  .rail {
+    grid-template-rows: auto minmax(240px, auto) minmax(340px, 440px);
+    height: auto;
+    overflow: visible;
+  }
+
+  .detail {
+    max-height: 420px;
+  }
+
+  .ledger-wrap {
+    min-height: 340px;
+  }
+
+  .ledger {
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 560px) {
+  .field-canvas,
+  #spc-canvas {
+    height: 580px;
+  }
+
+  .rail {
+    grid-template-rows: auto minmax(220px, auto) minmax(320px, 400px);
+  }
+}

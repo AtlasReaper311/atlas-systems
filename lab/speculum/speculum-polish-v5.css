@@ -1,0 +1,285 @@
+/* SPECULUM / final presentation pass v5
+ *
+ * Keeps the observation rail in strict document flow, adds a bounded
+ * presentation state, and gives the guided trace one restrained completion
+ * gesture. The topology and cadence model remain untouched.
+ */
+
+.reduced[hidden] {
+  display: none !important;
+}
+
+.field-bar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 0 0 auto;
+  min-width: 250px;
+}
+
+.field-action {
+  min-height: 34px;
+  padding: 7px 10px;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--border-hi);
+  font: 400 10.5px/1.2 var(--mono);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.field-action:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.field-action[aria-pressed="true"] {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  box-shadow: inset 0 -1px 0 var(--accent);
+}
+
+.field-action:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.field-action-status {
+  min-width: 0;
+  max-width: 28ch;
+  color: var(--text-faint);
+  font-size: 9.5px;
+  line-height: 1.4;
+}
+
+/* Keep each rail region in its own flow box. At constrained heights the
+ * controls scroll instead of painting through the dossier beneath them. */
+.rail {
+  display: flex !important;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.controls {
+  flex: 0 0 auto;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+}
+
+.detail {
+  flex: 1 1 31%;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: relative;
+  z-index: 0;
+}
+
+.ledger-wrap {
+  flex: 1.15 1 39%;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+  z-index: 0;
+}
+
+.detail::-webkit-scrollbar,
+.ledger::-webkit-scrollbar {
+  width: 8px;
+}
+
+.detail::-webkit-scrollbar-thumb,
+.ledger::-webkit-scrollbar-thumb {
+  background: var(--border-hi);
+  border: 2px solid var(--bg-1);
+}
+
+.spc-trace-completion {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms ease-out;
+}
+
+.spc-trace-completion.is-active { opacity: 1; }
+.spc-trace-completion svg { width: 100%; height: 100%; display: block; }
+
+.spc-trace-completion .spc-trace-base {
+  fill: none;
+  stroke: rgba(245, 166, 35, 0.30);
+  stroke-width: 1.4;
+}
+
+.spc-trace-completion .spc-trace-pulse {
+  fill: none;
+  stroke: rgba(245, 166, 35, 0.98);
+  stroke-width: 3;
+  stroke-linecap: square;
+  filter: drop-shadow(0 0 5px rgba(245, 166, 35, 0.55));
+  stroke-dasharray: var(--spc-pulse-length, 18) var(--spc-path-length, 500);
+  stroke-dashoffset: var(--spc-path-length, 500);
+  animation: spc-trace-travel 1.35s cubic-bezier(0.2, 0.75, 0.24, 1) forwards;
+}
+
+.spc-trace-completion .spc-trace-arrival {
+  fill: none;
+  stroke: rgba(74, 222, 128, 0.92);
+  stroke-width: 1.5;
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: spc-trace-arrival 920ms ease-out 1.08s forwards;
+}
+
+@keyframes spc-trace-travel {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes spc-trace-arrival {
+  0% { opacity: 0; transform: scale(0.55); }
+  40% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.9); }
+}
+
+.field.is-presenting {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "bar"
+    "canvas";
+}
+
+.field.is-presenting .rail,
+.field.is-presenting .field-keys {
+  display: none !important;
+}
+
+.field.is-presenting .field-bar {
+  min-height: 56px;
+  align-items: center;
+}
+
+.field.is-presenting .field-bar-copy p:last-child {
+  color: var(--text-faint);
+}
+
+.field.is-presenting .field-bar-actions {
+  margin-left: auto;
+}
+
+body.spc-presentation .field {
+  box-shadow: 0 34px 110px rgba(0, 0, 0, 0.38);
+}
+
+@media (max-height: 820px) and (min-width: 901px) {
+  .detail { flex-basis: 28%; }
+  .ledger-wrap { flex-basis: 34%; }
+}
+
+@media (max-width: 900px) {
+  .field {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "bar"
+      "canvas"
+      "rail";
+  }
+
+  .field-canvas,
+  #spc-canvas {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .field-bar-actions {
+    width: 100%;
+    min-width: 0;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .rail {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    overflow: visible;
+  }
+
+  .controls,
+  .detail,
+  .ledger-wrap {
+    flex: none;
+    max-height: none !important;
+    overflow: visible;
+  }
+
+  .detail { min-height: 220px !important; }
+  .ledger-wrap { min-height: 360px; }
+  .ledger { max-height: 420px; overflow-y: auto; }
+
+  .field.is-presenting {
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      "bar"
+      "canvas";
+  }
+
+  .field.is-presenting .field-bar-copy { display: none; }
+  .field.is-presenting .field-bar-actions { margin-left: 0; }
+}
+
+@media (max-width: 560px), (pointer: coarse) {
+  .field-action,
+  .btns button,
+  .ledger-pause,
+  .relation-button,
+  .dossier-actions button,
+  .reduced button {
+    min-height: 44px;
+  }
+
+  .field-action-status {
+    flex-basis: 100%;
+    max-width: none;
+  }
+}
+
+/* At very narrow widths the 16px page gutters otherwise leave the canvas
+ * below the engine's 320px interaction floor. Make the instrument full-bleed
+ * and remove only its side borders so visual and pointer coordinates remain
+ * identical without introducing horizontal overflow. */
+@media (max-width: 353px) {
+  .field {
+    width: calc(100% + 32px);
+    margin-left: -16px;
+    margin-right: -16px;
+    border-left: 0;
+    border-right: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spc-trace-completion,
+  .spc-trace-completion.is-active { transition: none; }
+
+  .spc-trace-completion .spc-trace-pulse {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+    animation: none;
+    opacity: 0.72;
+  }
+
+  .spc-trace-completion .spc-trace-arrival {
+    animation: none;
+    opacity: 0.75;
+  }
+}
