@@ -40,7 +40,8 @@ test("Speculum node roles carry distinct colours in legend and engine", () => {
 test("Shape Detector presents as an Explore instrument with timed evidence fallback", () => {
   assert.match(anomalyHtml, /class="shape-page"/);
   assert.match(anomalyHtml, /id="shape-title"/);
-  assert.match(anomalyHtml, /Checking live evidence/);
+  assert.match(anomalyHtml, /Explore \/ telemetry shape evidence/);
+  assert.match(anomalyHtml, /data-evidence-mode="unknown" data-runtime-state="checking" aria-live="polite">Unknown/);
   assert.doesNotMatch(anomalyHtml, /nav-links/);
   assert.match(anomalyCore, /AbortController/);
   assert.match(anomalyCore, /4500/);
