@@ -174,6 +174,46 @@ h2 { font:400 clamp(1.7rem,4vw,2.6rem)/1.08 var(--serif); }
 [data-family="observe"] { --card-accent: var(--blue); }
 [data-family="verify"] { --card-accent: var(--violet); }
 [data-family="explore"] { --card-accent: var(--pink); }
+
+/* Explore mini-flagship card chroma — each experiment owns a colour. */
+.explore-grid [data-explore="speculum"] {
+  --card-accent: #7aa2ff;
+  background:
+    radial-gradient(circle at 88% 18%, color-mix(in srgb, #7aa2ff 16%, transparent), transparent 42%),
+    var(--bg-1);
+}
+.explore-grid [data-explore="almost"] {
+  --card-accent: #f5a623;
+  background:
+    radial-gradient(circle at 88% 18%, color-mix(in srgb, #f5a623 16%, transparent), transparent 42%),
+    var(--bg-1);
+}
+.explore-grid [data-explore="drift"] {
+  --card-accent: #4ade80;
+  background:
+    radial-gradient(circle at 88% 18%, color-mix(in srgb, #4ade80 14%, transparent), transparent 42%),
+    var(--bg-1);
+}
+.explore-grid [data-explore="bearing"] {
+  --card-accent: #f5a623;
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, #f5a623 18%, transparent), transparent 48%),
+    var(--bg-1);
+}
+.explore-grid [data-explore="shape"] {
+  --card-accent: #48b9dc;
+  background:
+    radial-gradient(circle at 88% 18%, color-mix(in srgb, #48b9dc 16%, transparent), transparent 42%),
+    var(--bg-1);
+}
+.explore-grid .system-card.directory-card--wide {
+  border-color: color-mix(in srgb, var(--card-accent) 34%, var(--border));
+}
+.explore-grid .system-card.directory-card--wide:hover,
+.explore-grid .system-card.directory-card--wide:focus-visible {
+  border-color: color-mix(in srgb, var(--card-accent) 70%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--card-accent) 28%, transparent);
+}
 [data-visual="ramone"] { --visual-image:
   linear-gradient(90deg,transparent 0 12%,color-mix(in srgb,var(--card-accent) 68%,transparent) 12% 14%,transparent 14%),
   repeating-linear-gradient(0deg,color-mix(in srgb,var(--card-accent) 16%,transparent) 0 1px,transparent 1px 12px),

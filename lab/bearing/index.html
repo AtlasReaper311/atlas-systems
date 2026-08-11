@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +11,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
 <link rel="manifest" href="/site.webmanifest">
 <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+<link rel="stylesheet" href="/lab/shared/explore-identities.css?v=20260811-flagship">
 <link rel="canonical" href="https://atlas-systems.uk/lab/bearing/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="The Bearing // Atlas Systems">
@@ -69,29 +70,7 @@
                  Consolas, monospace;
   }
 
-  /* the blueprint */
-  @media (prefers-color-scheme: light) {
-    :root {
-      --ground:      #efece2;
-      --ground-deep: #e4e0d3;
-      --surface:     #f6f4ec;
-      --rule:        #cec8b7;
-      --rule-soft:   #dfdaca;
-      --ink:         #171a20;
-      --ink-quiet:   #5b5d60;
-      --ink-faint:   #93917f;
-
-      --strut:       #7d7a6d;
-      --load:        #a8620a;
-      --load-hot:    #d99321;
-      --critical:    #b0302f;
-      --restored:    #2f7d4a;
-      --flash:       #2a2519;
-
-      --glow: 0;
-      --paper-grid: 1;
-    }
-  }
+  /* Explore flagship stay dark; light theme only via explicit data-theme=light. */
   :root[data-theme="light"] {
     --ground:      #efece2;
     --ground-deep: #e4e0d3;
@@ -162,9 +141,12 @@
     height: 100svh;
     min-height: 560px;
     overflow: hidden;
-    background: var(--ground-deep);
+    background:
+      radial-gradient(circle at 50% 18%, rgba(245, 166, 35, 0.08), transparent 42%),
+      var(--ground-deep);
     border-bottom: 1px solid var(--rule);
     isolation: isolate;
+    animation: explore-stage-in 0.6s ease both;
   }
 
   #lattice {

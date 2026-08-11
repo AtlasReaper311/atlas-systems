@@ -27,6 +27,45 @@
   border-bottom: 1px solid var(--border, rgba(255,255,255,0.08));
 }
 
+/* Night-city atmosphere for the dedicated System Map route. */
+.systems-detail-page .map-shell,
+.map-shell {
+  position: relative;
+  border: 1px solid rgba(245, 166, 35, 0.22);
+  background:
+    radial-gradient(circle at 18% 22%, rgba(72, 185, 220, 0.06), transparent 34%),
+    radial-gradient(circle at 78% 30%, rgba(245, 166, 35, 0.07), transparent 38%),
+    radial-gradient(circle at 62% 78%, rgba(74, 222, 128, 0.05), transparent 42%),
+    #07070b;
+  box-shadow:
+    0 0 0 1px rgba(122, 162, 255, 0.06),
+    0 28px 80px rgba(0, 0, 0, 0.42);
+  overflow: hidden;
+}
+
+.map-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(7, 7, 11, 0.2), transparent 18%, transparent 78%, rgba(7, 7, 11, 0.35)),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 79px,
+      rgba(255, 255, 255, 0.015) 79px 80px
+    );
+  z-index: 0;
+}
+
+.map-shell > * { position: relative; z-index: 1; }
+
+.map-shell .smap-statusline {
+  color: #7aa2ff;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .smap-head {
   display: flex;
   justify-content: space-between;
