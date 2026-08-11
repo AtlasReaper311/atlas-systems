@@ -27,7 +27,7 @@ body.speculum-page h1 {
   letter-spacing: -0.025em;
 }
 
-body.speculum-page h1 span { color: var(--explore-speculum-beam); }
+body.speculum-page h1 span { color: #f5a623; }
 
 body.speculum-page .thesis {
   color: var(--explore-chroma);
