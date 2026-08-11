@@ -1,4 +1,5 @@
 import "../shared/shell.js";
+import { mountLabSound } from "../shared/lab-explore-sound.js?v=20260811-sound-v6";
 
 import {
   DEFAULT_FRAME_MS,
@@ -18,6 +19,8 @@ const context = canvas.getContext("2d", { alpha: false });
 const holdButton = document.querySelector("#hold-button");
 const newButton = document.querySelector("#new-button");
 const saveButton = document.querySelector("#save-button");
+const soundButton = document.querySelector("#sound-button");
+const exploreSound = mountLabSound({ voice: "almost", button: soundButton });
 const runState = document.querySelector("#run-state");
 const runSeed = document.querySelector("#run-seed");
 const timingState = document.querySelector("#timing-state");
@@ -507,9 +510,11 @@ function stop() {
 function toggleRunning() {
   if (running) stop();
   else start();
+  exploreSound.cue(running ? "mark" : "tick");
 }
 
 function reset(nextSeed, shouldExpose = true) {
+  exploreSound.cue("mark");
   seed = normalizeSeed(nextSeed);
   random = createRandom(seed);
   traces = Array.from(

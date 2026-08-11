@@ -185,11 +185,36 @@ body a.nav-status.atlas-status.atlas-estate-status {
   line-height: 1.6;
 }
 
+.shape-panel-actions {
+  display: flex;
+  align-items: end;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
 .shape-panel-head label {
   display: grid;
   gap: 0.35rem;
   color: var(--text-faint);
   font-size: 11px;
+}
+
+.shape-panel-actions button {
+  min-height: 44px;
+  padding: 0 0.85rem;
+  border: 1px solid var(--border-hi);
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.shape-panel-actions button[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--explore-shape, #48b9dc) 55%, var(--border-hi));
+  color: var(--explore-shape, #48b9dc);
 }
 
 select {

@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="/lab/shared/systems.css">
   <link rel="stylesheet" href="/static/css/surface-convergence.css?v=20260811-explore-amber">
   <link rel="stylesheet" href="/lab/shared/explore-identities.css?v=20260811-flagship">
-  <link rel="stylesheet" href="/lab/anomaly/anomaly.css?v=20260811-amber-stop">
+  <link rel="stylesheet" href="/lab/anomaly/anomaly.css?v=20260811-sound">
   <link rel="canonical" href="https://atlas-systems.uk/lab/anomaly/">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
@@ -67,9 +67,12 @@
               <h2>Trajectory</h2>
               <p class="note">Measured mode uses persisted edge history. Simulated mode is an explicit browser demonstration and never claims live estate state.</p>
             </div>
-            <label>Metric
-              <select id="metric-select" aria-controls="chart-summary metric-table"></select>
-            </label>
+            <div class="shape-panel-actions">
+              <label>Metric
+                <select id="metric-select" aria-controls="chart-summary metric-table"></select>
+              </label>
+              <button id="sound-button" type="button" aria-pressed="false" aria-label="Toggle soft Lab sound">Sound</button>
+            </div>
           </div>
           <div class="shape-chart" role="img" aria-label="Anomaly score and metric trajectory">
             <canvas id="anomaly-chart" width="1100" height="420"></canvas>
@@ -119,6 +122,6 @@
       </div>
     </section>
   </main>
-  <script type="module" src="/lab/anomaly/anomaly.js?v=20260811-explore-instrument"></script>
+  <script type="module" src="/lab/anomaly/anomaly.js?v=20260811-sound-v6"></script>
 </body>
 </html>

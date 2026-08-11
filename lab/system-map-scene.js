@@ -367,7 +367,7 @@ function buildScene() {
   const hint = document.createElement("div");
   hint.className = "smap3d-hint";
   hint.textContent =
-    "hover/click trace routes · drag move · alt/right-drag orbit · wheel zoom";
+    "click pin + focus · dblclick lock-in · drag move · alt/right-drag orbit · hover map + arrows orbit · Esc clear · wheel zoom";
   hint.setAttribute("role", "note");
 
   layer.append(labels, hint);
@@ -387,7 +387,7 @@ function buildScene() {
   renderer.domElement.tabIndex = 0;
   renderer.domElement.setAttribute(
     "aria-label",
-    "Interactive 3D system map. Hover or click nodes to trace routes, drag to move, Alt-drag or right-drag to orbit, and use the wheel to zoom.",
+    "Interactive 3D system map. Hover or click nodes to trace and pin routes. Drag to move, Alt-drag or right-drag to orbit, arrow keys to orbit, Escape to clear, and the wheel to zoom. Pinning eases the camera into a soft focus orbit.",
   );
   layer.insertBefore(renderer.domElement, labels);
 
@@ -438,6 +438,7 @@ function buildScene() {
   let panBounds = null;
   let hovered = null;
   let focusedNodeId = null;
+  let pinnedFocusId = null;
   let particleGeometry = null;
   let particleRoutes = [];
   const nodeViews = [];
@@ -452,6 +453,124 @@ function buildScene() {
   );
   const activePointers = new Map();
   let pinch = null;
+  let cameraTween = null;
+  let autoOrbit = false;
+  let userSteering = false;
+  const reducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+
+  function easeInOutCubic(t) {
+    return t < 0.5
+      ? 4 * t * t * t
+      : 1 - ((-2 * t + 2) ** 3) / 2;
+  }
+
+  function cancelCameraTween() {
+    cameraTween = null;
+  }
+
+  function beginCameraTween({
+    nextTarget,
+    nextOrbit,
+    duration = 1.15,
+  }) {
+    if (reducedMotion) {
+      if (nextTarget) setBoundedTarget(nextTarget);
+      if (nextOrbit) Object.assign(orbit, nextOrbit);
+      return;
+    }
+
+    cameraTween = {
+      elapsed: 0,
+      duration,
+      fromTarget: target.clone(),
+      toTarget: nextTarget
+        ? new THREE.Vector3(nextTarget.x, 0, nextTarget.z)
+        : target.clone(),
+      fromOrbit: { ...orbit },
+      toOrbit: {
+        yaw: nextOrbit?.yaw ?? orbit.yaw,
+        pitch: nextOrbit?.pitch ?? orbit.pitch,
+        distance: nextOrbit?.distance ?? orbit.distance,
+      },
+    };
+  }
+
+  function stepCameraTween(elapsed) {
+    if (!cameraTween) return;
+    cameraTween.elapsed += elapsed;
+    const t = Math.min(
+      1,
+      cameraTween.elapsed / cameraTween.duration,
+    );
+    const e = easeInOutCubic(t);
+    const { fromTarget, toTarget, fromOrbit, toOrbit } =
+      cameraTween;
+
+    target.set(
+      fromTarget.x + (toTarget.x - fromTarget.x) * e,
+      0,
+      fromTarget.z + (toTarget.z - fromTarget.z) * e,
+    );
+    orbit.yaw =
+      fromOrbit.yaw + (toOrbit.yaw - fromOrbit.yaw) * e;
+    orbit.pitch =
+      fromOrbit.pitch +
+      (toOrbit.pitch - fromOrbit.pitch) * e;
+    orbit.distance =
+      fromOrbit.distance +
+      (toOrbit.distance - fromOrbit.distance) * e;
+
+    if (t >= 1) cameraTween = null;
+  }
+
+  function findNodeById(nodeId) {
+    return (
+      currentState?.nodes.find(
+        (candidate) => candidate.id === nodeId,
+      ) || null
+    );
+  }
+
+  function cinematicFocus(nodeId) {
+    if (!nodeId || !currentState || !defaultOrbit) return;
+    const node = findNodeById(nodeId);
+    if (!node) return;
+
+    pinnedFocusId = nodeId;
+    autoOrbit = !reducedMotion;
+    userSteering = false;
+
+    const position = toWorld(node, currentState);
+    const bounded = clampTarget(position, panBounds);
+    beginCameraTween({
+      nextTarget: bounded,
+      nextOrbit: {
+        yaw: orbit.yaw + 0.18,
+        pitch: Math.max(
+          0.42,
+          Math.min(0.92, defaultOrbit.pitch - 0.08),
+        ),
+        distance: clampZoom(
+          defaultOrbit.distance * 0.46,
+          defaultOrbit.distance,
+        ),
+      },
+      duration: 1.2,
+    });
+  }
+
+  function cinematicRelease() {
+    pinnedFocusId = null;
+    autoOrbit = false;
+    if (!defaultOrbit) return;
+    beginCameraTween({
+      nextTarget: { x: 0, z: 0 },
+      nextOrbit: { ...defaultOrbit },
+      duration: 1.05,
+    });
+  }
 
   function fitCamera(state) {
     const width = state.width * WORLD_SCALE;
@@ -1142,6 +1261,12 @@ function buildScene() {
     target.set(bounded.x, 0, bounded.z);
   }
 
+  function markUserSteering() {
+    userSteering = true;
+    autoOrbit = false;
+    cancelCameraTween();
+  }
+
   function panFromScreenDelta(
     startTarget,
     dx,
@@ -1321,6 +1446,7 @@ function buildScene() {
       if (drag?.pointerId === event.pointerId) {
         const dx = event.clientX - drag.x;
         const dy = event.clientY - drag.y;
+        markUserSteering();
 
         if (drag.mode === "orbit") {
           orbit.yaw = drag.yaw - dx * 0.006;
@@ -1375,6 +1501,7 @@ function buildScene() {
       }
 
       event.preventDefault();
+      renderer.domElement.focus({ preventScroll: true });
       activePointers.set(
         event.pointerId,
         pointerSnapshot(event),
@@ -1395,6 +1522,10 @@ function buildScene() {
         event.button === 2 || event.altKey
           ? "orbit"
           : "pan";
+      markUserSteering();
+      if (mode === "orbit") {
+        vm.onCameraGesture?.("orbit");
+      }
       drag = {
         pointerId: event.pointerId,
         mode,
@@ -1435,6 +1566,7 @@ function buildScene() {
       event.preventDefault();
       if (!defaultOrbit) return;
 
+      markUserSteering();
       applyCamera();
       camera.updateMatrixWorld();
 
@@ -1467,22 +1599,85 @@ function buildScene() {
         return;
       }
 
-      const position = toWorld(node, currentState);
-      setBoundedTarget(position);
-      orbit.distance = clampZoom(
-        defaultOrbit.distance * 0.42,
-        defaultOrbit.distance,
-      );
       vm.openDetail(node.id);
       vm.pinRouteFocus(node.id);
     },
   );
 
+  function mapKeysActive() {
+    if (!visible) return false;
+    const active = document.activeElement;
+    return (
+      active === renderer.domElement ||
+      layer.matches(":hover") ||
+      host.contains(active)
+    );
+  }
+
+  function onMapKeydown(event) {
+    if (
+      event.defaultPrevented ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.altKey ||
+      !mapKeysActive()
+    ) {
+      return;
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      vm.clearRouteFocus();
+      return;
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
+      // Space must not scroll the page while the map is active.
+      event.preventDefault();
+      if (hovered) {
+        vm.toggleRouteFocus(hovered.id);
+      } else if (pinnedFocusId) {
+        vm.clearRouteFocus();
+      }
+      return;
+    }
+
+    if (!defaultOrbit) return;
+
+    const stepYaw = 0.1;
+    const stepPitch = 0.06;
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      markUserSteering();
+      orbit.yaw -= stepYaw;
+      vm.onCameraGesture?.("orbit");
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      markUserSteering();
+      orbit.yaw += stepYaw;
+      vm.onCameraGesture?.("orbit");
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      markUserSteering();
+      orbit.pitch = Math.min(1.18, orbit.pitch + stepPitch);
+      vm.onCameraGesture?.("orbit");
+    } else if (event.key === "ArrowDown") {
+      event.preventDefault();
+      markUserSteering();
+      orbit.pitch = Math.max(0.28, orbit.pitch - stepPitch);
+      vm.onCameraGesture?.("orbit");
+    } else if (event.key.toLowerCase() === "f" && pinnedFocusId) {
+      event.preventDefault();
+      cinematicFocus(pinnedFocusId);
+    }
+  }
+
+  window.addEventListener("keydown", onMapKeydown);
+
   function reset() {
     if (!defaultOrbit) return;
 
-    Object.assign(orbit, defaultOrbit);
-    target.set(0, 0, 0);
+    userSteering = false;
     setHoveredNode(null);
     vm.clearRouteFocus();
   }
@@ -1508,6 +1703,19 @@ function buildScene() {
 
     const elapsed = Math.min(0.05, (now - previous) / 1000);
     previous = now;
+
+    if (cameraTween) {
+      stepCameraTween(elapsed);
+    } else if (
+      autoOrbit &&
+      pinnedFocusId &&
+      !drag &&
+      !pinch &&
+      !userSteering
+    ) {
+      orbit.yaw += elapsed * 0.085;
+    }
+
     applyCamera();
     updateParticles(now / 1000 + elapsed);
     renderer.render(scene, camera);
@@ -1521,6 +1729,8 @@ function buildScene() {
     update,
     setVisible,
     reset,
+    cinematicFocus,
+    cinematicRelease,
     setRouteFocus(nodeId) {
       focusedNodeId = nodeId || null;
       applyRouteFocus();
