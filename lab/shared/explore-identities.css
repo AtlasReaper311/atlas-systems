@@ -1,0 +1,40 @@
+/* Explore mini-flagship identities.
+   Estate shell stays shared; each tool owns chroma, stage atmosphere, and motion. */
+
+:root {
+  --explore-almost: #f5a623;
+  --explore-drift: #4ade80;
+  --explore-drift-warn: #f5a623;
+  --explore-drift-gone: #e24b4a;
+  --explore-bearing: #f5a623;
+  --explore-bearing-hot: #ffd27a;
+  --explore-speculum: #7aa2ff;
+  --explore-speculum-beam: #f5a623;
+  --explore-shape: #48b9dc;
+  --explore-shape-score: #f5a623;
+}
+
+@keyframes explore-live-pulse {
+  0%, 100% { opacity: .55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+@keyframes explore-stage-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .explore-stage-enter,
+  .almost-stage,
+  .drift-field,
+  .shape-workbench,
+  .field,
+  .bearing {
+    animation: none !important;
+  }
+}
+
+.explore-stage-enter {
+  animation: explore-stage-in .55s ease both;
+}

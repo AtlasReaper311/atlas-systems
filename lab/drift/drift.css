@@ -1,8 +1,12 @@
 .drift-page {
-  --drift-held: #4ade80;
-  --drift-warn: #f5a623;
-  --drift-gone: #e24b4a;
+  --drift-held: var(--explore-drift, #4ade80);
+  --drift-warn: var(--explore-drift-warn, #f5a623);
+  --drift-gone: var(--explore-drift-gone, #e24b4a);
   overflow-x: hidden;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(74, 222, 128, 0.06), transparent 32rem),
+    radial-gradient(circle at 88% 70%, rgba(226, 75, 74, 0.05), transparent 28rem),
+    var(--bg);
 }
 
 .drift-stage {
@@ -21,14 +25,20 @@
 .drift-field {
   position: relative;
   width: 100%;
+  animation: explore-stage-in 0.55s ease both;
 }
 
 #drift-canvas {
   display: block;
   width: 100%;
   aspect-ratio: 16 / 10;
-  border: 1px solid var(--border);
-  background: #07070b;
+  border: 1px solid color-mix(in srgb, var(--drift-held) 35%, var(--border));
+  background:
+    radial-gradient(circle at 50% 45%, rgba(74, 222, 128, 0.04), transparent 55%),
+    #07070b;
+  box-shadow:
+    0 0 0 1px rgba(74, 222, 128, 0.08),
+    0 28px 70px rgba(0, 0, 0, 0.38);
   cursor: none;
   touch-action: none;
 }
@@ -49,7 +59,7 @@
 
 .drift-index {
   margin: 0 0 .55rem;
-  color: var(--accent);
+  color: var(--drift-held);
   font-size: 10px;
   letter-spacing: .16em;
   text-transform: uppercase;
@@ -64,7 +74,7 @@
   letter-spacing: -.02em;
 }
 
-.drift-title h1 span { color: var(--accent); }
+.drift-title h1 span { color: var(--drift-held); }
 
 .drift-title p {
   margin: 0;
@@ -152,7 +162,7 @@
 
 .drift-switch button:hover { color: var(--text); }
 .drift-switch button[aria-pressed="true"] {
-  background: var(--accent);
+  background: var(--drift-held);
   color: #0a0a0f;
   font-weight: 500;
 }
