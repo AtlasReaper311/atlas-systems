@@ -11,7 +11,7 @@ const bearingHtml = fs.readFileSync("lab/bearing/index.html", "utf8");
 const mapJs = fs.readFileSync("lab/system-map.js", "utf8");
 const mapScene = fs.readFileSync("lab/system-map-scene.js", "utf8");
 
-test("shared Lab sound module exposes mute-default organic beds and map chip voice", () => {
+test("shared Lab sound module uses distinct sparse terminal voices", () => {
   assert.match(sound, /export function mountLabSound/);
   assert.match(sound, /almost:/);
   assert.match(sound, /drift:/);
@@ -19,11 +19,20 @@ test("shared Lab sound module exposes mute-default organic beds and map chip voi
   assert.match(sound, /shape:/);
   assert.match(sound, /bearing:/);
   assert.match(sound, /map:/);
-  assert.match(sound, /kind: "chip"/);
+  assert.match(sound, /pattern: "clock"/);
+  assert.match(sound, /pattern: "lattice"/);
+  assert.match(sound, /pattern: "beam"/);
+  assert.match(sound, /pattern: "sonar"/);
+  assert.match(sound, /pattern: "strut"/);
+  assert.match(sound, /pattern: "city-air"/);
+  assert.match(sound, /presence: "faint"/);
+  assert.match(sound, /presence: "score"/);
+  assert.match(sound, /schedulePulses/);
+  assert.match(sound, /highpass/);
+  assert.match(sound, /cueBus/);
   assert.match(sound, /exponentialRampToValueAtTime/);
   assert.match(sound, /aria-pressed/);
   assert.match(sound, /Sound on/);
-  // AudioParam.context is undefined in some browsers; ramps must use AudioContext.
   assert.match(sound, /function softRamp\(audioContext, param/);
   assert.doesNotMatch(sound, /param\.context\.currentTime/);
   assert.match(sound, /\[lab-explore-sound\] enable failed/);

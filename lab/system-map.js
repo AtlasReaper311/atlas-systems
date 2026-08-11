@@ -2,7 +2,7 @@ import {
   buildCityLayout,
   DISTRICT_ORDER,
 } from "./system-map-layout.js?v=20260715-route-clarity";
-import { mountLabSound } from "./shared/lab-explore-sound.js?v=20260811-sound-v3";
+import { mountLabSound } from "./shared/lab-explore-sound.js?v=20260811-sound-v4";
 
 const host = document.getElementById("system-map-host");
 const statusLine = document.getElementById("system-map-statusline");

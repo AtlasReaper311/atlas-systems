@@ -7,7 +7,7 @@
 
 import { NODES, RING_ORDER, SNAPSHOT, formatPeriod, summarise } from './topology.js';
 import { createEngine } from './engine.js';
-import { mountLabSound } from '../shared/lab-explore-sound.js?v=20260811-sound-v3';
+import { mountLabSound } from '../shared/lab-explore-sound.js?v=20260811-sound-v4';
 
 const SPEEDS = [
   { value: 1, label: 'Real · 1×', hint: 'Real · literal cadence. Most weekly movement is imperceptible.' },
