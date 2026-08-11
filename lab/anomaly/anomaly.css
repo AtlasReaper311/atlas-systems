@@ -212,6 +212,17 @@ body a.nav-status.atlas-status.atlas-estate-status {
   cursor: pointer;
 }
 
+.shape-panel-actions button:hover,
+.shape-panel-actions button:focus-visible {
+  border-color: color-mix(in srgb, var(--explore-shape, #48b9dc) 55%, var(--border-hi));
+  color: var(--explore-shape, #48b9dc);
+}
+
+.shape-panel-actions button:focus-visible {
+  outline: 2px solid var(--explore-shape, #48b9dc);
+  outline-offset: 2px;
+}
+
 .shape-panel-actions button[aria-pressed="true"] {
   border-color: color-mix(in srgb, var(--explore-shape, #48b9dc) 55%, var(--border-hi));
   color: var(--explore-shape, #48b9dc);
@@ -224,6 +235,20 @@ select {
   background: var(--bg);
   color: var(--text);
   border: 1px solid var(--border-hi);
+}
+
+select:hover {
+  border-color: color-mix(in srgb, var(--explore-shape, #48b9dc) 40%, var(--border-hi));
+}
+
+select:focus-visible {
+  outline: 2px solid var(--explore-shape, #48b9dc);
+  outline-offset: 2px;
+  border-color: var(--explore-shape, #48b9dc);
+}
+
+html {
+  background: #07070b;
 }
 
 .shape-chart {

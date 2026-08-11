@@ -24,9 +24,10 @@ html {
   display: none;
 }
 
+/* Shell owns sticky context + immersive top padding; avoid pre-shell 122px jump. */
 .almost-page .lab-context-nav {
-  position: fixed;
-  inset: 56px 0 auto;
+  position: sticky;
+  top: var(--lab-shell-header-height, var(--global-nav-h, 56px));
   z-index: 90;
   background: rgba(7, 7, 11, 0.94);
   backdrop-filter: blur(14px);
@@ -35,7 +36,7 @@ html {
 .almost-page main {
   width: min(1600px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 122px 0 96px;
+  padding: 0 0 96px;
 }
 
 .almost-stage {
@@ -44,10 +45,6 @@ html {
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--almost-amber) 34%, var(--almost-line));
   background: var(--almost-bg);
-  box-shadow:
-    0 0 0 1px rgba(245, 166, 35, 0.08),
-    0 45px 120px rgba(0, 0, 0, 0.32);
-  animation: explore-stage-in 0.55s ease both;
 }
 
 #almost-canvas {
