@@ -220,11 +220,21 @@ function renderFindings() {
   });
 }
 
+function scheduleTimeout(fn, ms) {
+  if (typeof setTimeout !== "function") return 0;
+  return setTimeout(fn, ms);
+}
+
+function cancelTimeout(id) {
+  if (!id || typeof clearTimeout !== "function") return;
+  clearTimeout(id);
+}
+
 async function load() {
   const controller = typeof AbortController === "function" ? new AbortController() : null;
   const hardTimer = controller
-    ? setTimeout(() => controller.abort(), HARD_ABORT_MS)
-    : null;
+    ? scheduleTimeout(() => controller.abort(), HARD_ABORT_MS)
+    : 0;
 
   applyEvidenceMode("unknown");
   if (reportElements.status) {
@@ -270,7 +280,7 @@ async function load() {
     );
     report = fallbackReport();
   } finally {
-    if (hardTimer) clearTimeout(hardTimer);
+    cancelTimeout(hardTimer);
   }
   renderSummary();
   renderRepositories();
