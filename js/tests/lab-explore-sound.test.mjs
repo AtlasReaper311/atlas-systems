@@ -23,6 +23,10 @@ test("shared Lab sound module exposes mute-default organic beds and map chip voi
   assert.match(sound, /exponentialRampToValueAtTime/);
   assert.match(sound, /aria-pressed/);
   assert.match(sound, /Sound on/);
+  // AudioParam.context is undefined in some browsers; ramps must use AudioContext.
+  assert.match(sound, /function softRamp\(audioContext, param/);
+  assert.doesNotMatch(sound, /param\.context\.currentTime/);
+  assert.match(sound, /\[lab-explore-sound\] enable failed/);
 });
 
 test("Explore tools reuse local controls for Sound toggles", () => {

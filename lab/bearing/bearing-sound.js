@@ -1,4 +1,4 @@
-import { mountLabSound } from "../shared/lab-explore-sound.js?v=20260811-sound-v2";
+import { mountLabSound } from "../shared/lab-explore-sound.js?v=20260811-sound-v3";
 
 const sound = mountLabSound({
   voice: "bearing",

@@ -1,6 +1,6 @@
 import "../shared/shell.js";
 import "../../static/js/interaction-target-contract.js";
-import { mountLabSound } from "../shared/lab-explore-sound.js?v=20260811-sound-v2";
+import { mountLabSound } from "../shared/lab-explore-sound.js?v=20260811-sound-v3";
 import "./anomaly-core.js";
 
 const soundButton = document.querySelector("#sound-button");
