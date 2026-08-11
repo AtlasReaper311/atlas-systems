@@ -45,7 +45,7 @@ test("Shape Detector presents as an Explore instrument with timed evidence fallb
   assert.match(anomalyHtml, /LAB \/ EXPLORE \/ TELEMETRY ANALYSIS/);
   assert.match(anomalyHtml, /data-evidence-mode="unknown" data-runtime-state="checking" aria-live="polite">Probing live/);
   assert.match(anomalyHtml, /Probing live evidence/);
-  assert.match(anomalyHtml, /anomaly\.css\?v=20260811-first-paint/);
+  assert.match(anomalyHtml, /anomaly\.css\?v=20260811-continuity/);
   assert.doesNotMatch(anomalyHtml, /nav-links/);
   assert.match(anomalyCore, /AbortController/);
   assert.match(anomalyCore, /SOFT_DEMO_MS = 900/);
