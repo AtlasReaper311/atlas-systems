@@ -320,10 +320,11 @@ function setSourceStatus({ mode, pendingLive = false }) {
     return;
   }
   sourceStatus.dataset.errorSource = "anomaly-evidence";
-  sourceStatus.dataset.errorContext = pendingLive ? "soft-demo" : "live-load";
+  sourceStatus.dataset.errorContext = "live-load";
   sourceStatus.dataset.runtimeState = "unknown";
   sourceStatus.dataset.state = "unknown";
   if (pendingLive) {
+    sourceStatus.dataset.errorContext = "soft-demo";
     sourceStatus.dataset.pendingLive = "true";
     sourceStatus.textContent = "Demo · probing live";
     sourceStatus.title =
@@ -348,13 +349,23 @@ function showSimulatedDemo({ pendingLive }) {
   }
 }
 
+function scheduleTimeout(fn, ms) {
+  if (typeof setTimeout !== "function") return 0;
+  return setTimeout(fn, ms);
+}
+
+function cancelTimeout(id) {
+  if (!id || typeof clearTimeout !== "function") return;
+  clearTimeout(id);
+}
+
 async function load() {
   const controller = typeof AbortController === "function" ? new AbortController() : null;
   let settled = false;
   const hardTimer = controller
-    ? setTimeout(() => controller.abort(), HARD_ABORT_MS)
-    : null;
-  const softTimer = setTimeout(() => {
+    ? scheduleTimeout(() => controller.abort(), HARD_ABORT_MS)
+    : 0;
+  const softTimer = scheduleTimeout(() => {
     if (settled || evidenceMode !== "unknown") return;
     showSimulatedDemo({ pendingLive: true });
     renderLatest();
@@ -383,8 +394,8 @@ async function load() {
     );
     showSimulatedDemo({ pendingLive: false });
   } finally {
-    if (softTimer) clearTimeout(softTimer);
-    if (hardTimer) clearTimeout(hardTimer);
+    cancelTimeout(softTimer);
+    cancelTimeout(hardTimer);
   }
   renderLatest();
 }
