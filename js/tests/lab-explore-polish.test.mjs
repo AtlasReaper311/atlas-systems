@@ -41,11 +41,17 @@ test("Shape Detector presents as an Explore instrument with timed evidence fallb
   assert.match(anomalyHtml, /class="shape-page"/);
   assert.match(anomalyHtml, /id="shape-title"/);
   assert.match(anomalyHtml, /LAB \/ EXPLORE \/ TELEMETRY ANALYSIS/);
-  assert.match(anomalyHtml, /data-evidence-mode="unknown" data-runtime-state="checking" aria-live="polite">Unknown/);
+  assert.match(anomalyHtml, /data-evidence-mode="unknown" data-runtime-state="checking" aria-live="polite">Probing live/);
+  assert.match(anomalyHtml, /Probing live evidence/);
+  assert.match(anomalyHtml, /anomaly\.css\?v=20260811-first-paint/);
   assert.doesNotMatch(anomalyHtml, /nav-links/);
   assert.match(anomalyCore, /AbortController/);
-  assert.match(anomalyCore, /4500/);
+  assert.match(anomalyCore, /SOFT_DEMO_MS = 900/);
+  assert.match(anomalyCore, /HARD_ABORT_MS = 4500/);
+  assert.match(anomalyCore, /Demo · probing live/);
+  assert.match(anomalyCore, /showSimulatedDemo/);
   assert.match(anomalyCore, /applyEvidenceMode\("simulated"\)/);
+  assert.match(anomalyCore, /textContent = "Simulated"/);
 });
 
 test("Bearing keeps a full-bleed lattice and exposes a strut colour key", () => {

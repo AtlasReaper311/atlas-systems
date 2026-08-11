@@ -48,7 +48,7 @@ test("Drift and Shape carry cinematic stage identities", () => {
   assert.match(driftCss, /--drift-held:\s*var\(--explore-drift/);
   assert.match(driftCss, /explore-stage-in/);
   assert.match(shapeHtml, /Detector for trajectory bends/);
-  assert.match(shapeHtml, /anomaly\.css\?v=20260811-sound/);
+  assert.match(shapeHtml, /anomaly\.css\?v=20260811-first-paint/);
   assert.match(shapeHtml, /surface-convergence\.css\?v=20260811-explore-amber/);
   assert.match(shapeCss, /\.shape-title h1 span \{ color: #f5a623; \}/);
 });

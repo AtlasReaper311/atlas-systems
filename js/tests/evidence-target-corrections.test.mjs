@@ -24,14 +24,18 @@ test("Shape Detector browser fallback is persistently simulated and neutral", ()
   const html = read("lab/anomaly/index.html");
   const source = read("lab/anomaly/anomaly-core.js");
   const css = read("lab/anomaly/anomaly.css");
-  assert.match(html, /explicitly simulated browser fallback/);
+  assert.match(html, /explicitly simulated browser/);
   assert.match(source, /atlas-shape-detector-simulation\/v1/);
+  assert.match(source, /SOFT_DEMO_MS = 900/);
+  assert.match(source, /HARD_ABORT_MS = 4500/);
   assert.match(source, /applyEvidenceMode\("simulated"\)/);
   assert.match(source, /textContent = "Simulated"/);
+  assert.match(source, /Demo · probing live/);
   assert.match(source, /state-simulated/);
   assert.match(source, /setLineDash\?\.\(evidenceMode === "simulated" \? \[7, 6\] : \[\]\)/);
   assert.doesNotMatch(source, /labelled deterministic replay/i);
   assert.match(css, /data-evidence-mode="simulated"/);
+  assert.match(css, /data-evidence-mode="unknown"/);
 });
 
 test("Lab and Systems directory cards share live-and-simulated Shape Detector wording", () => {

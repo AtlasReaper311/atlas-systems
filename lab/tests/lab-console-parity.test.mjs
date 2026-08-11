@@ -74,5 +74,5 @@ test("evidence tool routes use current taxonomy and escape paths", () => {
   assert.match(shapeDetector, /<title>Shape Detector \/\/ Atlas Systems<\/title>/);
   assert.match(shapeDetector, /LAB \/ EXPLORE \/ TELEMETRY ANALYSIS/);
   assert.match(shapeDetector, /explicitly simulated browser fallback/);
-  assert.match(shapeDetector, /data-evidence-mode="unknown" data-runtime-state="checking" aria-live="polite">Unknown/);
+  assert.match(shapeDetector, /data-evidence-mode="unknown" data-runtime-state="checking" aria-live="polite">Probing live/);
 });
