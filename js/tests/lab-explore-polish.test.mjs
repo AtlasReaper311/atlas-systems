@@ -20,11 +20,13 @@ test("System Map legend colours resolve outside Operations smap-section", () => 
 });
 
 test("Drift keeps the title above the canvas and keys the field plus essay", () => {
-  assert.match(driftHtml, /<header class="drift-title">[\s\S]*?<div class="drift-field">/);
+  assert.match(driftHtml, /<header class="drift-title">[\s\S]*?<div class="drift-field explore-stage-enter">/);
   assert.match(driftHtml, /drift-legend-wrap--field/);
   assert.match(driftHtml, /drift-legend--field/);
   assert.match(driftHtml, /drift-legend--essay/);
+  assert.match(driftHtml, /drift-swatch--held/);
   assert.match(driftCss, /\.drift-title \{\s*\n\s*position:\s*static/);
+  assert.match(driftCss, /lab-shell-stack-height/);
   assert.doesNotMatch(driftCss, /\.drift-title::before/);
 });
 
@@ -43,7 +45,7 @@ test("Shape Detector presents as an Explore instrument with timed evidence fallb
   assert.match(anomalyHtml, /LAB \/ EXPLORE \/ TELEMETRY ANALYSIS/);
   assert.match(anomalyHtml, /data-evidence-mode="unknown" data-runtime-state="checking" aria-live="polite">Probing live/);
   assert.match(anomalyHtml, /Probing live evidence/);
-  assert.match(anomalyHtml, /anomaly\.css\?v=20260811-first-paint/);
+  assert.match(anomalyHtml, /anomaly\.css\?v=20260811-continuity/);
   assert.doesNotMatch(anomalyHtml, /nav-links/);
   assert.match(anomalyCore, /AbortController/);
   assert.match(anomalyCore, /SOFT_DEMO_MS = 900/);

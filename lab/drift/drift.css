@@ -12,7 +12,7 @@
 .drift-stage {
   width: min(1400px, calc(100% - 2rem));
   margin: 0 auto;
-  min-height: calc(100vh - var(--global-nav-h));
+  min-height: calc(100svh - var(--lab-shell-stack-height, var(--global-nav-h, 56px)));
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -25,7 +25,6 @@
 .drift-field {
   position: relative;
   width: 100%;
-  animation: explore-stage-in 0.55s ease both;
 }
 
 #drift-canvas {
@@ -36,9 +35,6 @@
   background:
     radial-gradient(circle at 50% 45%, rgba(74, 222, 128, 0.04), transparent 55%),
     #07070b;
-  box-shadow:
-    0 0 0 1px rgba(74, 222, 128, 0.08),
-    0 28px 70px rgba(0, 0, 0, 0.38);
   cursor: none;
   touch-action: none;
 }
@@ -149,7 +145,8 @@
 }
 
 .drift-switch button {
-  min-height: 34px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0 .95rem;
   border: 0;
   background: rgba(10, 10, 15, .9);
@@ -161,6 +158,12 @@
 }
 
 .drift-switch button:hover { color: var(--text); }
+.drift-switch button:focus-visible {
+  outline: 2px solid var(--drift-held);
+  outline-offset: 2px;
+  color: var(--text);
+  z-index: 1;
+}
 .drift-switch button[aria-pressed="true"] {
   background: var(--drift-held);
   color: #0a0a0f;
@@ -168,7 +171,8 @@
 }
 
 .drift-reset {
-  min-height: 30px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0 .8rem;
   border: 1px solid var(--border);
   background: rgba(10, 10, 15, .9);
@@ -180,6 +184,20 @@
 }
 
 .drift-reset:hover { color: var(--accent); border-color: var(--accent); }
+.drift-reset:focus-visible {
+  outline: 2px solid var(--drift-held);
+  outline-offset: 2px;
+  color: var(--accent);
+  border-color: var(--drift-held);
+}
+
+.drift-legend i.drift-swatch--held { background: var(--drift-held); }
+.drift-legend i.drift-swatch--warn { background: var(--drift-warn); }
+.drift-legend i.drift-swatch--gone { background: var(--drift-gone); }
+.drift-legend i.drift-swatch--void {
+  background: #1e0e12;
+  outline: 1px solid rgba(255, 255, 255, 0.2);
+}
 
 /* The verdict, which arrives when the estate is past saving by hand. */
 .drift-verdict {
