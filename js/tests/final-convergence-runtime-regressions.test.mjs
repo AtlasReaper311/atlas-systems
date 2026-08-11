@@ -9,8 +9,8 @@ const budgets = JSON.parse(
 );
 
 test("Bearing uses the shared Lab shell entrypoint instead of the compact fork", () => {
-  assert.match(bearing, /\/lab\/shared\/shell\.js\?v=20260807-bearing-shell/);
-  assert.match(bearing, /\/static\/js\/phase-6-footer\.js\?v=20260807-bearing-shell/);
+  assert.match(bearing, /\/lab\/shared\/shell\.js\?v=20260811-explore-amber/);
+  assert.match(bearing, /\/static\/js\/phase-6-footer\.js\?v=20260811-explore-amber/);
   assert.doesNotMatch(footer, /COMPACT_BEARING_SHELL_MODULE/);
   assert.doesNotMatch(footer, /compact-bearing-shell\.js/);
   assert.match(footer, /void import\(LAB_SHELL_MODULE\)/);

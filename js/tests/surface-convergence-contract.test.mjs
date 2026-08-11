@@ -56,6 +56,13 @@ test("route eyebrows use the approved three-part grammar", () => {
   assert.equal(SURFACE_ROUTES["/systems/reliability/"].eyebrow, "SYSTEMS / RELIABILITY / SERVICE EVIDENCE");
 });
 
+test("Explore title punctuation accents cover Speculum and Shape", () => {
+  assert.equal(SURFACE_ROUTES["/lab/speculum/"].accent, "punctuation");
+  assert.equal(SURFACE_ROUTES["/lab/anomaly/"].accent, "punctuation");
+  assert.equal(SURFACE_ROUTES["/lab/almost/"].accent, "punctuation");
+  assert.equal(SURFACE_ROUTES["/lab/drift/"].accent, "punctuation");
+});
+
 test("shared tokens enforce the approved spacing, type, title, and directory tiers", () => {
   const css = read("static/css/surface-convergence.css");
   assert.match(css, /--atlas-surface-gap-standard:\s*clamp\(40px, 4vw, 48px\)/);
@@ -65,6 +72,9 @@ test("shared tokens enforce the approved spacing, type, title, and directory tie
   assert.match(css, /--atlas-surface-title-immersive:\s*clamp\(4rem, 8vw, 7rem\)/);
   assert.match(css, /font-family:\s*var\(--serif, "DM Serif Display"/);
   assert.match(css, /data-lab-route="bearing"[\s\S]*--f-display:\s*"DM Serif Display"/);
+  assert.match(css, /data-atlas-title-accent="punctuation"[\s\S]*span/);
+  assert.match(css, /data-lab-route="speculum"[\s\S]*atlas-surface-title span/);
+  assert.match(css, /data-lab-route="anomaly"[\s\S]*atlas-surface-title span/);
   assert.match(css, /data-lab-route="almost"[\s\S]*atlas-surface-title span/);
   assert.match(css, /data-lab-route="bearing"[\s\S]*atlas-surface-title em/);
   assert.match(css, /\.directory-taxonomy/);

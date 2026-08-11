@@ -7,8 +7,8 @@ const SURFACE_ROUTES = Object.freeze({
   "/lab/console/": Object.freeze({ surface: "lab", mode: "standard", eyebrow: "LAB / OBSERVE / OPERATIONS EVIDENCE" }),
   "/lab/proof-chain/": Object.freeze({ surface: "lab", mode: "standard", eyebrow: "LAB / VERIFY / TRACE EVIDENCE" }),
   "/lab/conformance/": Object.freeze({ surface: "lab", mode: "standard", eyebrow: "LAB / VERIFY / POLICY EVIDENCE" }),
-  "/lab/anomaly/": Object.freeze({ surface: "lab", mode: "standard", eyebrow: "LAB / EXPLORE / TELEMETRY ANALYSIS" }),
-  "/lab/speculum/": Object.freeze({ surface: "lab", mode: "standard", eyebrow: "LAB / EXPLORE / SYSTEMS ARTWORK" }),
+  "/lab/anomaly/": Object.freeze({ surface: "lab", mode: "standard", eyebrow: "LAB / EXPLORE / TELEMETRY ANALYSIS", accent: "punctuation" }),
+  "/lab/speculum/": Object.freeze({ surface: "lab", mode: "standard", eyebrow: "LAB / EXPLORE / SYSTEMS ARTWORK", accent: "punctuation" }),
   "/lab/signal/": Object.freeze({ surface: "lab", mode: "immersive", eyebrow: "LAB / EXPERIENCE / GENERATIVE AUDIO" }),
   "/lab/almost/": Object.freeze({ surface: "lab", mode: "immersive", eyebrow: "LAB / EXPLORE / LOCAL PROCESS", accent: "punctuation" }),
   "/lab/drift/": Object.freeze({ surface: "lab", mode: "immersive", eyebrow: "LAB / EXPLORE / CONFORMANCE SIMULATION", accent: "punctuation" }),
@@ -37,7 +37,7 @@ function findHero(title, descriptor, documentNode) {
     if (explicit) return explicit;
   }
   return title?.closest(
-    ".nameplate, .almost-title, .drift-title, .intro, .hero, .page-intro, .focus-hero, header, section",
+    ".nameplate, .almost-title, .drift-title, .shape-title, .intro, .hero, .page-intro, .focus-hero, header, section",
   ) || title?.parentElement || null;
 }
 
@@ -48,6 +48,7 @@ function findEyebrow(hero) {
     ":scope > .snapshot-label",
     ":scope > .almost-index",
     ":scope > .drift-index",
+    ":scope > .shape-index",
     ":scope > .eyebrow > .tag",
     ":scope > .eyebrow",
     ":scope > .systems-detail-kicker",
