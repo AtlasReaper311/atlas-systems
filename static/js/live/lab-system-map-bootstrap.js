@@ -6,7 +6,7 @@ import {
 
 const TOPOLOGY_URL = "https://api.atlas-systems.uk/v1/topology";
 const STATS_URL = "https://api.atlas-systems.uk/v1/stats";
-const MAP_URL = "/lab/system-map.js?v=20260811-flagship-focus";
+const MAP_URL = "/lab/system-map.js?v=20260811-map-chrome";
 const BLOCKED = new Set(["simple-proxy"]);
 
 let mounted = false;

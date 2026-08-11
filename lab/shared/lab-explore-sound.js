@@ -6,55 +6,55 @@
 const VOICES = Object.freeze({
   almost: {
     kind: "bed",
-    freqs: [174.61, 220.0],
+    freqs: [220.0, 329.63],
     types: ["sine", "triangle"],
-    bedGain: 0.045,
+    bedGain: 0.11,
     lfoHz: 0.07,
-    filterHz: 1280,
+    filterHz: 1800,
     cueHz: 392.0,
   },
   drift: {
     kind: "bed",
-    freqs: [146.83, 196.0],
+    freqs: [196.0, 293.66],
     types: ["sine", "sine"],
-    bedGain: 0.038,
+    bedGain: 0.1,
     lfoHz: 0.055,
-    filterHz: 1100,
+    filterHz: 1600,
     cueHz: 329.63,
   },
   speculum: {
     kind: "bed",
-    freqs: [261.63, 311.13],
+    freqs: [261.63, 392.0],
     types: ["sine", "triangle"],
-    bedGain: 0.034,
+    bedGain: 0.095,
     lfoHz: 0.09,
-    filterHz: 1500,
+    filterHz: 2100,
     cueHz: 523.25,
   },
   shape: {
     kind: "bed",
-    freqs: [196.0, 293.66],
+    freqs: [246.94, 369.99],
     types: ["sine", "triangle"],
-    bedGain: 0.036,
+    bedGain: 0.1,
     lfoHz: 0.08,
-    filterHz: 1350,
+    filterHz: 1900,
     cueHz: 440.0,
   },
   bearing: {
     kind: "bed",
-    freqs: [110.0, 164.81],
+    freqs: [164.81, 246.94],
     types: ["triangle", "sine"],
-    bedGain: 0.04,
+    bedGain: 0.105,
     lfoHz: 0.045,
-    filterHz: 980,
+    filterHz: 1500,
     cueHz: 246.94,
   },
   map: {
     kind: "chip",
-    bedGain: 0.022,
+    bedGain: 0.07,
     lfoHz: 0.04,
-    filterHz: 720,
-    freqs: [98.0, 130.81],
+    filterHz: 1100,
+    freqs: [130.81, 196.0],
     types: ["sine", "triangle"],
     cueHz: 280,
   },
@@ -95,7 +95,7 @@ export function mountLabSound({ voice, button }) {
   let starting = false;
   let lastCueAt = 0;
   const reduced = prefersReducedMotion();
-  const bedCeiling = reduced ? profile.bedGain * 0.55 : profile.bedGain;
+  const bedCeiling = reduced ? profile.bedGain * 0.62 : profile.bedGain;
 
   function syncButton() {
     if (!button) return;
@@ -121,8 +121,8 @@ export function mountLabSound({ voice, button }) {
 
     filter = context.createBiquadFilter();
     filter.type = "lowpass";
-    filter.frequency.value = profile.filterHz || 1200;
-    filter.Q.value = 0.55;
+    filter.frequency.value = profile.filterHz || 1600;
+    filter.Q.value = 0.45;
     bedGain.connect(filter);
     filter.connect(master);
 
@@ -131,7 +131,9 @@ export function mountLabSound({ voice, button }) {
       const gain = context.createGain();
       osc.type = profile.types[index] || "sine";
       osc.frequency.value = freq;
-      gain.gain.value = index === 0 ? 0.72 : 0.36;
+      // Slight detune on the second voice keeps the bed from sounding dead.
+      if (index > 0) osc.detune.value = -7;
+      gain.gain.value = index === 0 ? 0.78 : 0.42;
       osc.connect(gain);
       gain.connect(bedGain);
       osc.start();
@@ -142,7 +144,8 @@ export function mountLabSound({ voice, button }) {
     lfoGain = context.createGain();
     lfo.type = "sine";
     lfo.frequency.value = profile.lfoHz;
-    lfoGain.gain.value = Math.max(40, (profile.filterHz || 1200) * 0.12);
+    // Keep modulation shallow so the bed never collapses into silence.
+    lfoGain.gain.value = Math.max(30, (profile.filterHz || 1600) * 0.08);
     lfo.connect(lfoGain);
     lfoGain.connect(filter.frequency);
     lfo.start();
@@ -155,10 +158,12 @@ export function mountLabSound({ voice, button }) {
       await ensureGraph();
       if (!context) return;
       if (context.state === "suspended") await context.resume();
-      softRamp(master.gain, reduced ? 0.55 : 0.82, 1.15);
-      softRamp(bedGain.gain, bedCeiling, 1.45);
+      softRamp(master.gain, reduced ? 0.7 : 1, 0.9);
+      softRamp(bedGain.gain, bedCeiling, 1.1);
       enabled = true;
       syncButton();
+      // Confirm enable with a soft cue so the toggle is never "silent success".
+      cue("mark");
     } finally {
       starting = false;
     }
@@ -170,8 +175,8 @@ export function mountLabSound({ voice, button }) {
       syncButton();
       return;
     }
-    softRamp(bedGain.gain, 0.0001, 1.25);
-    softRamp(master.gain, 0.0001, 1.45);
+    softRamp(bedGain.gain, 0.0001, 1.1);
+    softRamp(master.gain, 0.0001, 1.25);
     enabled = false;
     syncButton();
   }
@@ -202,41 +207,41 @@ export function mountLabSound({ voice, button }) {
 
     const chip = profile.kind === "chip";
     let freq = profile.cueHz || 320;
-    let peak = reduced ? 0.016 : 0.026;
-    let attack = 0.09;
-    let release = 0.58;
+    let peak = reduced ? 0.03 : 0.048;
+    let attack = 0.08;
+    let release = 0.55;
 
     if (name === "warn") {
       freq *= 0.78;
-      peak *= 0.8;
+      peak *= 0.85;
       release = 0.72;
       osc.type = "triangle";
     } else if (name === "mark") {
-      freq *= 1.1;
-      peak *= 0.85;
+      freq *= 1.08;
+      peak *= 0.95;
       osc.type = "sine";
     } else if (name === "lock") {
-      freq = chip ? 210 : freq * 0.92;
-      peak = reduced ? 0.018 : 0.03;
-      attack = 0.12;
-      release = 0.8;
+      freq = chip ? 220 : freq * 0.92;
+      peak = reduced ? 0.034 : 0.055;
+      attack = 0.1;
+      release = 0.75;
       osc.type = chip ? "square" : "triangle";
     } else if (name === "orbit") {
-      freq = 88;
-      peak = reduced ? 0.01 : 0.016;
-      attack = 0.28;
-      release = 1.15;
+      freq = 110;
+      peak = reduced ? 0.02 : 0.032;
+      attack = 0.22;
+      release = 1.05;
       osc.type = "triangle";
     } else if (name === "edge") {
-      freq = chip ? 460 : (profile.cueHz || 320) * 1.28;
-      peak = reduced ? 0.01 : 0.018;
-      attack = 0.07;
+      freq = chip ? 480 : (profile.cueHz || 320) * 1.28;
+      peak = reduced ? 0.022 : 0.036;
+      attack = 0.06;
       release = 0.42;
       osc.type = chip ? "square" : "sine";
     } else if (name === "clear") {
       freq *= 0.66;
-      peak *= 0.65;
-      release = 0.9;
+      peak *= 0.7;
+      release = 0.85;
       osc.type = "sine";
     } else {
       osc.type = chip ? "square" : "sine";
@@ -247,9 +252,9 @@ export function mountLabSound({ voice, button }) {
       osc.frequency.exponentialRampToValueAtTime(freq * 1.16, now + release);
     }
 
-    cueFilter.frequency.setValueAtTime(chip ? 620 : 1700, now);
+    cueFilter.frequency.setValueAtTime(chip ? 820 : 2200, now);
     cueFilter.frequency.exponentialRampToValueAtTime(
-      chip ? 400 : 860,
+      chip ? 480 : 1100,
       now + release,
     );
 

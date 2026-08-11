@@ -2,7 +2,7 @@ import {
   buildCityLayout,
   DISTRICT_ORDER,
 } from "./system-map-layout.js?v=20260715-route-clarity";
-import { mountLabSound } from "./shared/lab-explore-sound.js?v=20260811-sound";
+import { mountLabSound } from "./shared/lab-explore-sound.js?v=20260811-sound-v2";
 
 const host = document.getElementById("system-map-host");
 const statusLine = document.getElementById("system-map-statusline");
@@ -985,6 +985,6 @@ setMode(preferredMode);
 
 if (canUse3D()) {
   import(
-    "/lab/system-map-scene.js?v=20260811-flagship-focus"
+    "/lab/system-map-scene.js?v=20260811-map-chrome"
   ).catch(fail3D);
 }

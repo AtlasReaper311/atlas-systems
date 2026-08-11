@@ -367,7 +367,7 @@ function buildScene() {
   const hint = document.createElement("div");
   hint.className = "smap3d-hint";
   hint.textContent =
-    "click pin + focus · dblclick lock-in · drag move · alt/right-drag orbit · arrows orbit · Esc clear · wheel zoom";
+    "click pin + focus · dblclick lock-in · drag move · alt/right-drag orbit · hover map + arrows orbit · Esc clear · wheel zoom";
   hint.setAttribute("role", "note");
 
   layer.append(labels, hint);
@@ -1501,6 +1501,7 @@ function buildScene() {
       }
 
       event.preventDefault();
+      renderer.domElement.focus({ preventScroll: true });
       activePointers.set(
         event.pointerId,
         pointerSnapshot(event),
@@ -1603,11 +1604,23 @@ function buildScene() {
     },
   );
 
-  renderer.domElement.addEventListener("keydown", (event) => {
+  function mapKeysActive() {
+    if (!visible) return false;
+    const active = document.activeElement;
+    return (
+      active === renderer.domElement ||
+      layer.matches(":hover") ||
+      host.contains(active)
+    );
+  }
+
+  function onMapKeydown(event) {
     if (
       event.defaultPrevented ||
       event.metaKey ||
-      event.ctrlKey
+      event.ctrlKey ||
+      event.altKey ||
+      !mapKeysActive()
     ) {
       return;
     }
@@ -1619,6 +1632,7 @@ function buildScene() {
     }
 
     if (event.key === "Enter" || event.key === " ") {
+      // Space must not scroll the page while the map is active.
       event.preventDefault();
       if (hovered) {
         vm.toggleRouteFocus(hovered.id);
@@ -1630,8 +1644,8 @@ function buildScene() {
 
     if (!defaultOrbit) return;
 
-    const stepYaw = 0.08;
-    const stepPitch = 0.05;
+    const stepYaw = 0.1;
+    const stepPitch = 0.06;
     if (event.key === "ArrowLeft") {
       event.preventDefault();
       markUserSteering();
@@ -1646,15 +1660,19 @@ function buildScene() {
       event.preventDefault();
       markUserSteering();
       orbit.pitch = Math.min(1.18, orbit.pitch + stepPitch);
+      vm.onCameraGesture?.("orbit");
     } else if (event.key === "ArrowDown") {
       event.preventDefault();
       markUserSteering();
       orbit.pitch = Math.max(0.28, orbit.pitch - stepPitch);
+      vm.onCameraGesture?.("orbit");
     } else if (event.key.toLowerCase() === "f" && pinnedFocusId) {
       event.preventDefault();
       cinematicFocus(pinnedFocusId);
     }
-  });
+  }
+
+  window.addEventListener("keydown", onMapKeydown);
 
   function reset() {
     if (!defaultOrbit) return;

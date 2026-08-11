@@ -1,5 +1,5 @@
 import "../shared/shell.js";
-import { mountLabSound } from "../shared/lab-explore-sound.js?v=20260811-sound";
+import { mountLabSound } from "../shared/lab-explore-sound.js?v=20260811-sound-v2";
 
 import {
   ATTENTION_RADIUS,

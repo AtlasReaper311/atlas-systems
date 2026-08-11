@@ -48,5 +48,12 @@ test("System Map mounts soft-chip sound and cinematic focus/orbit", () => {
   assert.match(mapScene, /beginCameraTween/);
   assert.match(mapScene, /autoOrbit/);
   assert.match(mapScene, /ArrowLeft/);
+  assert.match(mapScene, /window\.addEventListener\("keydown", onMapKeydown\)/);
+  assert.match(mapScene, /focus\(\{ preventScroll: true \}\)/);
   assert.match(mapScene, /soft focus orbit|ease the camera|Pinning eases/i);
+  assert.match(fs.readFileSync("lab/system-map.css", "utf8"), /#f5a623 22%/);
+  assert.doesNotMatch(
+    fs.readFileSync("lab/system-map.css", "utf8"),
+    /#7aa2ff 78%/,
+  );
 });
