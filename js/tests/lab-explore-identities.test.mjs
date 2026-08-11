@@ -85,7 +85,7 @@ test("Bearing stays forced dark and System Map gets night-city atmosphere", () =
   assert.match(bearingHtml, /data-theme="dark"/);
   assert.match(bearingHtml, /class="bearing-page"/);
   assert.match(bearingHtml, /bearing explore-stage-enter/);
-  assert.match(bearingHtml, /LAB \/ EXPLORE \/ STRUCTURAL SIMULATION/);
+  assert.match(bearingHtml, /LAB(?:\s|&nbsp;)+\/(?:\s|&nbsp;)+EXPLORE(?:\s|&nbsp;)+\/(?:\s|&nbsp;)+STRUCTURAL(?:\s|&nbsp;)+SIMULATION/);
   assert.match(bearingHtml, /Nothing falls/);
   assert.doesNotMatch(bearingHtml, /Failure finds a path/);
   assert.doesNotMatch(bearingHtml, /@media \(prefers-color-scheme: light\)/);
