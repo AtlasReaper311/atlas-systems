@@ -8,7 +8,7 @@
   <title>Estate Conformance // Atlas Systems</title>
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/lab/shared/systems.css">
-  <link rel="stylesheet" href="/lab/conformance/conformance.css">
+  <link rel="stylesheet" href="/lab/conformance/conformance.css?v=20260811-timeout">
   <link rel="canonical" href="https://atlas-systems.uk/lab/conformance/">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
@@ -50,7 +50,7 @@
 
     <section id="conformance-summary-surface" class="section atlas-evidence-surface" data-evidence-mode="unknown">
       <div class="grid grid-3">
-        <div class="metric"><span>estate score</span><strong class="atlas-evidence-value" id="estate-score" data-evidence-mode="unknown">loading</strong></div>
+        <div class="metric"><span>estate score</span><strong class="atlas-evidence-value" id="estate-score" data-evidence-mode="unknown">—</strong></div>
         <div class="metric"><span>repositories scanned</span><strong class="atlas-evidence-value" id="repo-count" data-evidence-mode="unknown">—</strong></div>
         <div class="metric"><span>last evidence</span><strong class="atlas-evidence-value" id="generated-at" data-evidence-mode="unknown">—</strong></div>
       </div>
@@ -58,7 +58,7 @@
         <span><strong class="atlas-evidence-value" id="error-count" data-evidence-mode="unknown">—</strong> errors</span>
         <span><strong class="atlas-evidence-value" id="warning-count" data-evidence-mode="unknown">—</strong> warnings</span>
         <span><strong class="atlas-evidence-value" id="unknown-count" data-evidence-mode="unknown">—</strong> unknown</span>
-        <span class="status atlas-evidence-mode" id="evidence-status" data-evidence-mode="unknown" data-runtime-state="checking" aria-live="polite">Unknown</span>
+        <span class="status atlas-evidence-mode" id="evidence-status" data-evidence-mode="unknown" data-runtime-state="checking" aria-live="polite">Probing live</span>
       </div>
     </section>
 
@@ -75,7 +75,7 @@
       <div id="conformance-repository-surface" class="table-wrap atlas-evidence-surface" data-evidence-mode="unknown">
         <table>
           <thead><tr><th scope="col">Repository</th><th scope="col">Score</th><th scope="col">Status</th><th scope="col">Errors</th><th scope="col">Warnings</th><th scope="col">Applicable rules</th></tr></thead>
-          <tbody id="repo-table" aria-live="polite"><tr><td colspan="6">Loading.</td></tr></tbody>
+          <tbody id="repo-table" aria-live="polite"><tr><td colspan="6">Probing live evidence…</td></tr></tbody>
         </table>
       </div>
     </section>

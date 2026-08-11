@@ -1,5 +1,7 @@
 const ENDPOINT = "https://api.atlas-systems.uk/v1/evidence/conformance";
 const EM_DASH = "—";
+/** Hard abort for hung public conformance evidence fetches. */
+const HARD_ABORT_MS = 4500;
 
 const reportElements = {
   score: document.querySelector("#estate-score"),
@@ -218,9 +220,38 @@ function renderFindings() {
   });
 }
 
+function scheduleTimeout(fn, ms) {
+  if (typeof setTimeout !== "function") return 0;
+  return setTimeout(fn, ms);
+}
+
+function cancelTimeout(id) {
+  if (!id || typeof clearTimeout !== "function") return;
+  clearTimeout(id);
+}
+
 async function load() {
+  const controller = typeof AbortController === "function" ? new AbortController() : null;
+  const hardTimer = controller
+    ? scheduleTimeout(() => controller.abort(), HARD_ABORT_MS)
+    : 0;
+
+  applyEvidenceMode("unknown");
+  if (reportElements.status) {
+    delete reportElements.status.dataset.errorSource;
+    delete reportElements.status.dataset.errorContext;
+    reportElements.status.dataset.runtimeState = "checking";
+    reportElements.status.dataset.state = "unknown";
+    reportElements.status.textContent = "Probing live";
+    reportElements.status.title =
+      "Checking the public conformance API. No measured estate score is shown yet.";
+  }
+
   try {
-    const response = await fetch(ENDPOINT, { cache: "no-store" });
+    const response = await fetch(ENDPOINT, {
+      cache: "no-store",
+      signal: controller?.signal,
+    });
     if (!response.ok) throw new Error(`evidence endpoint returned ${response.status}`);
     const payload = await response.json();
     report = payload.report;
@@ -248,6 +279,8 @@ async function load() {
       error,
     );
     report = fallbackReport();
+  } finally {
+    cancelTimeout(hardTimer);
   }
   renderSummary();
   renderRepositories();
