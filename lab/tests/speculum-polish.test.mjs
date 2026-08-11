@@ -15,7 +15,7 @@ test('Speculum exposes bounded presentation and frame export controls', () => {
   assert.match(html, /id="spc-export"/);
   assert.match(html, /id="spc-polish-status"[^>]*aria-live="polite"/);
   assert.match(html, /id="spc-trace-completion"[^>]*aria-hidden="true"/);
-  assert.match(html, /speculum-polish-v5\.css\?v=20260727-polish-v5/);
+  assert.match(html, /speculum-polish-v5\.css\?v=20260811-no-hud-scroll/);
   assert.match(html, /speculum-polish-v5\.js\?v=20260811-role-colours/);
   assert.match(html, /speculum-interaction-v6\.js\?v=20260811-role-colours/);
   assert.match(css, /\.reduced\[hidden\]\s*\{[\s\S]*display:\s*none\s*!important/);
@@ -23,7 +23,8 @@ test('Speculum exposes bounded presentation and frame export controls', () => {
 
 test('rail regions remain in strict flow and presentation mode expands the field', () => {
   assert.match(css, /\.rail\s*\{[\s\S]*display:\s*flex\s*!important/);
-  assert.match(css, /\.controls\s*\{[\s\S]*max-height:\s*39%[\s\S]*overflow-y:\s*auto/);
+  // Controls size to content so the HUD never shows an empty scrollbar overhang.
+  assert.match(css, /\.controls\s*\{[\s\S]*flex:\s*0 0 auto[\s\S]*max-height:\s*none[\s\S]*overflow:\s*visible/);
   assert.match(css, /\.detail\s*\{[\s\S]*max-height:\s*none\s*!important[\s\S]*overflow-y:\s*auto/);
   assert.match(css, /\.field\.is-presenting\s+\.rail,[\s\S]*\.field\.is-presenting\s+\.field-keys\s*\{[\s\S]*display:\s*none\s*!important/);
   assert.match(css, /@media \(max-width: 900px\)[\s\S]*\.controls,[\s\S]*\.detail,[\s\S]*\.ledger-wrap[\s\S]*overflow:\s*visible/);
