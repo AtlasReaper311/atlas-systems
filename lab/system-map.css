@@ -50,15 +50,15 @@
   position: absolute;
   inset: 0 auto auto 0;
   width: 100%;
-  height: 3px;
+  height: 2px;
   pointer-events: none;
+  /* Restrained estate gradient: amber load → cyan edge (map accent pair). */
   background: linear-gradient(
     90deg,
-    #48b9dc 0%,
-    #f5a623 28%,
-    #4ade80 55%,
-    #7aa2ff 78%,
-    #e8935c 100%
+    rgba(245, 166, 35, 0.15) 0%,
+    #f5a623 22%,
+    #e8935c 52%,
+    #48b9dc 100%
   );
   z-index: 2;
 }
