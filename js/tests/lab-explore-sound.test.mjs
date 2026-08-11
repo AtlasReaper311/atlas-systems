@@ -11,7 +11,7 @@ const bearingHtml = fs.readFileSync("lab/bearing/index.html", "utf8");
 const mapJs = fs.readFileSync("lab/system-map.js", "utf8");
 const mapScene = fs.readFileSync("lab/system-map-scene.js", "utf8");
 
-test("shared Lab sound module uses distinct sparse terminal voices", () => {
+test("shared Lab sound module uses musical pad beds and cues", () => {
   assert.match(sound, /export function mountLabSound/);
   assert.match(sound, /almost:/);
   assert.match(sound, /drift:/);
@@ -27,14 +27,18 @@ test("shared Lab sound module uses distinct sparse terminal voices", () => {
   assert.match(sound, /pattern: "city-air"/);
   assert.match(sound, /presence: "faint"/);
   assert.match(sound, /presence: "score"/);
-  assert.match(sound, /schedulePulses/);
-  assert.match(sound, /highpass/);
+  assert.match(sound, /breathePad/);
+  assert.match(sound, /playChordNote/);
+  assert.match(sound, /rootHz/);
+  assert.match(sound, /padGain/);
   assert.match(sound, /cueBus/);
   assert.match(sound, /exponentialRampToValueAtTime/);
   assert.match(sound, /aria-pressed/);
   assert.match(sound, /Sound on/);
   assert.match(sound, /function softRamp\(audioContext, param/);
   assert.doesNotMatch(sound, /param\.context\.currentTime/);
+  assert.doesNotMatch(sound, /airOsc/);
+  assert.doesNotMatch(sound, /airHz/);
   assert.match(sound, /\[lab-explore-sound\] enable failed/);
 });
 

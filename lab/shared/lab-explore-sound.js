@@ -1,78 +1,80 @@
 /**
- * Sparse terminal Explore sound beds + soft Map air/cues.
+ * Quiet musical Explore beds + soft interaction cues.
  * Mute-default, gesture-gated, organic ramps only.
  *
+ * Beds are soft chord pads + sparse scale notes (soundtrack-ish).
+ * No continuous high-pitched air tones. Cues stay sharp and short.
+ *
  * Never use AudioParam.context — undefined in some browsers.
- * Beds are pulsed/intermittent instruments, not continuous drones.
  */
 
 const VOICES = Object.freeze({
   almost: {
     presence: "score",
     pattern: "clock",
-    airHz: 880,
-    tickHz: [392, 494, 587],
-    intervalMs: [720, 1180],
-    airGain: 0.018,
-    tickGain: 0.085,
-    cueHz: 523,
-    highpassHz: 220,
+    rootHz: 196, // G3
+    intervals: [0, 3, 7, 10, 12],
+    padGain: 0.028,
+    noteGain: 0.05,
+    intervalMs: [1100, 1700],
+    cueHz: 392,
+    lowpassHz: 1400,
   },
   drift: {
     presence: "score",
     pattern: "lattice",
-    airHz: 740,
-    tickHz: [329.63, 415.3, 493.88],
-    intervalMs: [420, 780],
-    airGain: 0.014,
-    tickGain: 0.07,
-    cueHz: 349,
-    highpassHz: 240,
+    rootHz: 146.83, // D3
+    intervals: [0, 2, 5, 7, 10, 12],
+    padGain: 0.024,
+    noteGain: 0.045,
+    intervalMs: [900, 1500],
+    cueHz: 293.66,
+    lowpassHz: 1200,
   },
   speculum: {
     presence: "faint",
     pattern: "beam",
-    airHz: 1046,
-    tickHz: [698.46, 880, 1046.5],
-    intervalMs: [1600, 2600],
-    airGain: 0.008,
-    tickGain: 0.035,
-    cueHz: 784,
-    highpassHz: 320,
+    rootHz: 174.61, // F3
+    intervals: [0, 5, 7, 12],
+    padGain: 0.012,
+    noteGain: 0.018,
+    intervalMs: [2400, 3800],
+    cueHz: 349.23,
+    lowpassHz: 1100,
   },
   shape: {
     presence: "score",
     pattern: "sonar",
-    airHz: 620,
-    tickHz: [440, 554.37, 659.25],
-    intervalMs: [1100, 1900],
-    airGain: 0.012,
-    tickGain: 0.08,
-    cueHz: 587,
-    highpassHz: 200,
+    rootHz: 164.81, // E3
+    intervals: [0, 3, 7, 12, 15],
+    padGain: 0.022,
+    noteGain: 0.048,
+    intervalMs: [1300, 2100],
+    cueHz: 329.63,
+    lowpassHz: 1300,
   },
   bearing: {
     presence: "score",
     pattern: "strut",
-    airHz: 196,
-    tickHz: [147, 196, 247],
-    intervalMs: [860, 1500],
-    airGain: 0.01,
-    tickGain: 0.075,
-    cueHz: 233,
-    highpassHz: 90,
+    rootHz: 130.81, // C3
+    intervals: [0, 5, 7, 12],
+    padGain: 0.026,
+    noteGain: 0.052,
+    intervalMs: [1200, 1900],
+    cueHz: 196,
+    lowpassHz: 1000,
   },
   map: {
     presence: "faint",
     pattern: "city-air",
     kind: "chip",
-    airHz: 520,
-    tickHz: [210, 280, 360],
-    intervalMs: [2200, 3600],
-    airGain: 0.006,
-    tickGain: 0.028,
-    cueHz: 270,
-    highpassHz: 280,
+    rootHz: 110, // A2
+    intervals: [0, 7, 12],
+    padGain: 0.01,
+    noteGain: 0.014,
+    intervalMs: [3000, 4800],
+    cueHz: 220,
+    lowpassHz: 900,
   },
 });
 
@@ -102,6 +104,10 @@ function jitter(min, max) {
   return min + Math.random() * (max - min);
 }
 
+function midiOffsetHz(rootHz, semitones) {
+  return rootHz * 2 ** (semitones / 12);
+}
+
 /**
  * @param {{ voice: keyof typeof VOICES, button: HTMLButtonElement | null }} options
  */
@@ -115,14 +121,15 @@ export function mountLabSound({ voice, button }) {
   let master = null;
   let bedBus = null;
   let cueBus = null;
-  let highpass = null;
-  let lowpass = null;
-  let airOsc = null;
-  let airGain = null;
+  let bedFilter = null;
+  let padGain = null;
+  let padOscs = [];
   let enabled = false;
   let starting = false;
   let lastCueAt = 0;
   let pulseTimer = 0;
+  let breatheTimer = 0;
+  let scaleStep = 0;
   const reduced = prefersReducedMotion();
   const presenceScale = profile.presence === "faint" ? 0.55 : 1;
   const motionScale = reduced ? 0.7 : 1;
@@ -132,14 +139,22 @@ export function mountLabSound({ voice, button }) {
     button.setAttribute("aria-pressed", String(enabled));
     button.textContent = enabled ? "Sound on" : "Sound";
     button.title = enabled
-      ? "Mute the soft Lab sound bed"
-      : "Enable a soft Lab sound bed (starts quiet)";
+      ? "Mute the soft Lab soundtrack"
+      : "Enable a soft Lab soundtrack (starts quiet)";
   }
 
-  function stopPulses() {
+  function stopPulseTimer() {
     if (pulseTimer) {
       window.clearTimeout(pulseTimer);
       pulseTimer = 0;
+    }
+  }
+
+  function stopBedMotion() {
+    stopPulseTimer();
+    if (breatheTimer) {
+      window.clearTimeout(breatheTimer);
+      breatheTimer = 0;
     }
   }
 
@@ -149,9 +164,10 @@ export function mountLabSound({ voice, button }) {
     attack,
     release,
     type = "sine",
-    filterHz = 2400,
+    filterHz = 1400,
     destination,
     glide = 1,
+    q = 0.7,
   }) {
     if (!context || !destination) return;
     const now = context.currentTime;
@@ -169,9 +185,9 @@ export function mountLabSound({ voice, button }) {
       );
     }
 
-    filter.type = "bandpass";
+    filter.type = "lowpass";
     filter.frequency.value = filterHz;
-    filter.Q.value = profile.pattern === "strut" ? 1.8 : 0.9;
+    filter.Q.value = q;
 
     gain.gain.setValueAtTime(0.0001, now);
     gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, peak), now + attack);
@@ -181,127 +197,118 @@ export function mountLabSound({ voice, button }) {
     filter.connect(gain);
     gain.connect(destination);
     osc.start(now);
-    osc.stop(now + attack + release + 0.04);
+    osc.stop(now + attack + release + 0.05);
+  }
+
+  function playChordNote(semitone, peak, attack, release) {
+    playGrain({
+      freqs: midiOffsetHz(profile.rootHz, semitone),
+      peak,
+      attack,
+      release,
+      type: "triangle",
+      filterHz: profile.lowpassHz,
+      destination: bedBus,
+      q: 0.55,
+    });
+    // Soft octave ghost for body without bright edge.
+    playGrain({
+      freqs: midiOffsetHz(profile.rootHz, semitone - 12),
+      peak: peak * 0.35,
+      attack: attack * 1.2,
+      release: release * 1.1,
+      type: "sine",
+      filterHz: profile.lowpassHz * 0.75,
+      destination: bedBus,
+      q: 0.4,
+    });
+  }
+
+  function breathePad() {
+    if (!enabled || !context || !padGain) return;
+    const now = context.currentTime;
+    const low =
+      0.0001 +
+      profile.padGain * presenceScale * motionScale * 0.35;
+    const high =
+      profile.padGain * presenceScale * motionScale *
+      (profile.presence === "faint" ? 0.75 : 1);
+    const rise = profile.presence === "faint" ? 2.8 : 2.1;
+    const hold = profile.presence === "faint" ? 1.6 : 1.1;
+    const fall = profile.presence === "faint" ? 3.2 : 2.4;
+
+    padGain.gain.cancelScheduledValues(now);
+    padGain.gain.setValueAtTime(Math.max(0.0001, padGain.gain.value), now);
+    padGain.gain.exponentialRampToValueAtTime(high, now + rise);
+    padGain.gain.exponentialRampToValueAtTime(low, now + rise + hold + fall);
+
+    breatheTimer = window.setTimeout(
+      () => {
+        breathePad();
+      },
+      (rise + hold + fall + jitter(0.4, 1.2)) * 1000,
+    );
   }
 
   function pulseOnce() {
     if (!enabled || !context || context.state !== "running" || !bedBus) return;
 
-    const tickPeak =
-      profile.tickGain * presenceScale * motionScale *
-      (profile.presence === "faint" ? 0.85 : 1.15);
+    // Faint voices mostly live on the pad; rare soft notes only.
+    if (profile.presence === "faint" && Math.random() > 0.4) return;
+
+    const notePeak =
+      profile.noteGain * presenceScale * motionScale *
+      (profile.presence === "faint" ? 0.7 : 1);
+    const intervals = profile.intervals;
+    let semitone = intervals[scaleStep % intervals.length];
 
     if (profile.pattern === "clock") {
-      playGrain({
-        freqs: profile.tickHz,
-        peak: tickPeak,
-        attack: 0.012,
-        release: 0.16,
-        type: "sine",
-        filterHz: 3200,
-        destination: bedBus,
-      });
-      // Soft off-beat ghost tick.
-      window.setTimeout(() => {
-        if (!enabled) return;
-        playGrain({
-          freqs: profile.tickHz,
-          peak: tickPeak * 0.45,
-          attack: 0.01,
-          release: 0.12,
-          type: "triangle",
-          filterHz: 2600,
-          destination: bedBus,
-        });
-      }, 140);
+      // Steady motif: root → fifth → optional third.
+      const cycle = [0, 7, 3, 12];
+      semitone = cycle[scaleStep % cycle.length];
+      playChordNote(semitone, notePeak, 0.08, 0.55);
+      if (scaleStep % 4 === 0) {
+        playChordNote(7, notePeak * 0.45, 0.12, 0.7);
+      }
     } else if (profile.pattern === "lattice") {
-      playGrain({
-        freqs: profile.tickHz,
-        peak: tickPeak * 0.8,
-        attack: 0.008,
-        release: 0.09,
-        type: "triangle",
-        filterHz: 2800,
-        destination: bedBus,
-      });
-      if (Math.random() > 0.45) {
-        playGrain({
-          freqs: profile.tickHz,
-          peak: tickPeak * 0.5,
-          attack: 0.01,
-          release: 0.11,
-          type: "sine",
-          filterHz: 2100,
-          destination: bedBus,
-          glide: 1.06,
-        });
+      semitone = pick(intervals);
+      playChordNote(semitone, notePeak * 0.85, 0.06, 0.45);
+      if (Math.random() > 0.4) {
+        playChordNote(pick(intervals), notePeak * 0.4, 0.1, 0.55);
       }
     } else if (profile.pattern === "beam") {
-      playGrain({
-        freqs: profile.tickHz,
-        peak: tickPeak,
-        attack: 0.08,
-        release: 0.55,
-        type: "sine",
-        filterHz: 3600,
-        destination: bedBus,
-        glide: 1.12,
-      });
+      playChordNote(pick([0, 5, 7]), notePeak, 0.25, 1.4);
     } else if (profile.pattern === "sonar") {
-      playGrain({
-        freqs: profile.tickHz[0],
-        peak: tickPeak,
-        attack: 0.04,
-        release: 0.7,
-        type: "sine",
-        filterHz: 1800,
-        destination: bedBus,
-        glide: 0.72,
-      });
+      // Descending soft figure.
+      const down = [12, 7, 3, 0];
+      semitone = down[scaleStep % down.length];
+      playChordNote(semitone, notePeak, 0.12, 0.95);
     } else if (profile.pattern === "strut") {
-      playGrain({
-        freqs: profile.tickHz,
-        peak: tickPeak,
-        attack: 0.004,
-        release: 0.22,
-        type: "triangle",
-        filterHz: 900,
-        destination: bedBus,
-      });
-      if (Math.random() > 0.55) {
-        playGrain({
-          freqs: profile.tickHz,
-          peak: tickPeak * 0.35,
-          attack: 0.02,
-          release: 0.35,
-          type: "sine",
-          filterHz: 700,
-          destination: bedBus,
-          glide: 0.9,
-        });
+      const strut = [0, 0, 7, 5];
+      semitone = strut[scaleStep % strut.length];
+      playChordNote(semitone, notePeak, 0.05, 0.4);
+      if (scaleStep % 4 === 2) {
+        playChordNote(12, notePeak * 0.35, 0.08, 0.5);
       }
     } else if (profile.pattern === "city-air") {
-      // Rare soft chip dust — faint additive city texture, not a drone hit.
-      playGrain({
-        freqs: profile.tickHz,
-        peak: tickPeak,
-        attack: 0.03,
-        release: 0.28,
-        type: "square",
-        filterHz: 1400,
-        destination: bedBus,
-      });
+      playChordNote(pick([0, 7]), notePeak, 0.3, 1.6);
     }
+
+    scaleStep += 1;
   }
 
   function schedulePulses() {
-    stopPulses();
+    stopPulseTimer();
     if (!enabled) return;
     const [min, max] = profile.intervalMs;
     const wait = jitter(min, max) * (reduced ? 1.35 : 1);
-    pulseTimer = window.setTimeout(() => {
+    pulseTimer = window.setTimeout(function tick() {
       pulseOnce();
-      schedulePulses();
+      if (!enabled) return;
+      pulseTimer = window.setTimeout(
+        tick,
+        jitter(min, max) * (reduced ? 1.35 : 1),
+      );
     }, wait);
   }
 
@@ -318,36 +325,39 @@ export function mountLabSound({ voice, button }) {
     master.gain.value = 0.0001;
     master.connect(context.destination);
 
-    // Split beds and cues so interaction hits stay clear of the texture.
     bedBus = context.createGain();
     bedBus.gain.value = 0.0001;
     cueBus = context.createGain();
     cueBus.gain.value = 0.0001;
 
-    highpass = context.createBiquadFilter();
-    highpass.type = "highpass";
-    highpass.frequency.value = profile.highpassHz || 180;
-    highpass.Q.value = 0.7;
+    bedFilter = context.createBiquadFilter();
+    bedFilter.type = "lowpass";
+    bedFilter.frequency.value = profile.lowpassHz || 1200;
+    bedFilter.Q.value = 0.4;
 
-    lowpass = context.createBiquadFilter();
-    lowpass.type = "lowpass";
-    lowpass.frequency.value = profile.presence === "faint" ? 2200 : 3400;
-    lowpass.Q.value = 0.35;
-
-    bedBus.connect(highpass);
-    highpass.connect(lowpass);
-    lowpass.connect(master);
+    bedBus.connect(bedFilter);
+    bedFilter.connect(master);
     cueBus.connect(master);
 
-    // Very quiet air tone — high enough and quiet enough to avoid drone mud.
-    airOsc = context.createOscillator();
-    airGain = context.createGain();
-    airOsc.type = "sine";
-    airOsc.frequency.value = profile.airHz;
-    airGain.gain.value = 0.0001;
-    airOsc.connect(airGain);
-    airGain.connect(bedBus);
-    airOsc.start();
+    // Warm triad pad (root / third / fifth), never a single bright tone.
+    padGain = context.createGain();
+    padGain.gain.value = 0.0001;
+    padGain.connect(bedBus);
+
+    const triad = [0, profile.intervals.includes(3) ? 3 : 5, 7];
+    padOscs = triad.map((semi, index) => {
+      const osc = context.createOscillator();
+      const voiceGain = context.createGain();
+      osc.type = index === 1 ? "triangle" : "sine";
+      osc.frequency.value = midiOffsetHz(profile.rootHz, semi);
+      // Tiny detune for chorus warmth without beating harshly.
+      osc.detune.value = index === 0 ? -4 : index === 2 ? 5 : 0;
+      voiceGain.gain.value = index === 0 ? 0.55 : 0.32;
+      osc.connect(voiceGain);
+      voiceGain.connect(padGain);
+      osc.start();
+      return osc;
+    });
   }
 
   async function enable() {
@@ -355,34 +365,32 @@ export function mountLabSound({ voice, button }) {
     starting = true;
     try {
       await ensureGraph();
-      if (!context || !master || !bedBus || !cueBus || !airGain) {
+      if (!context || !master || !bedBus || !cueBus || !padGain) {
         throw new Error("Audio graph failed to initialise.");
       }
       if (context.state === "suspended") {
         await context.resume();
       }
 
-      const masterTarget = reduced ? 0.75 : 0.92;
+      const masterTarget = reduced ? 0.72 : 0.88;
       const bedTarget = presenceScale * motionScale;
-      const cueTarget = profile.presence === "faint" ? 0.7 : 0.95;
-      const airTarget =
-        profile.airGain * presenceScale * motionScale *
-        (profile.presence === "score" ? 1.15 : 1);
+      const cueTarget = profile.presence === "faint" ? 0.75 : 0.98;
 
-      softRamp(context, master.gain, masterTarget, 0.85);
-      softRamp(context, bedBus.gain, bedTarget, 1.05);
-      softRamp(context, cueBus.gain, cueTarget, 0.7);
-      softRamp(context, airGain.gain, airTarget, 1.2);
+      softRamp(context, master.gain, masterTarget, 0.9);
+      softRamp(context, bedBus.gain, bedTarget, 1.1);
+      softRamp(context, cueBus.gain, cueTarget, 0.65);
 
       enabled = true;
+      scaleStep = 0;
       syncButton();
+      breathePad();
       pulseOnce();
       schedulePulses();
       cue("mark");
     } catch (error) {
       console.error("[lab-explore-sound] enable failed", error);
       enabled = false;
-      stopPulses();
+      stopBedMotion();
       syncButton();
       if (button) {
         button.title = "Sound unavailable in this browser session";
@@ -393,16 +401,16 @@ export function mountLabSound({ voice, button }) {
   }
 
   function disable() {
-    stopPulses();
+    stopBedMotion();
     if (!context || !master || !bedBus || !cueBus) {
       enabled = false;
       syncButton();
       return;
     }
-    if (airGain) softRamp(context, airGain.gain, 0.0001, 0.9);
-    softRamp(context, bedBus.gain, 0.0001, 0.95);
+    if (padGain) softRamp(context, padGain.gain, 0.0001, 1.0);
+    softRamp(context, bedBus.gain, 0.0001, 1.0);
     softRamp(context, cueBus.gain, 0.0001, 0.7);
-    softRamp(context, master.gain, 0.0001, 1.1);
+    softRamp(context, master.gain, 0.0001, 1.15);
     enabled = false;
     syncButton();
   }
@@ -428,30 +436,30 @@ export function mountLabSound({ voice, button }) {
     const chip = profile.kind === "chip" || profile.pattern === "city-air";
     let freq = profile.cueHz || 320;
     let peak =
-      (profile.presence === "faint" ? 0.045 : 0.07) * motionScale;
-    let attack = 0.05;
-    let release = 0.35;
+      (profile.presence === "faint" ? 0.05 : 0.075) * motionScale;
+    let attack = 0.04;
+    let release = 0.32;
     let type = "sine";
-    let filterHz = 2600;
+    let filterHz = 2200;
     let glide = 1;
 
     if (name === "warn") {
-      freq *= 0.8;
+      freq *= 0.85;
       peak *= 0.9;
-      release = 0.5;
+      release = 0.48;
       type = "triangle";
-      filterHz = 1600;
+      filterHz = 1400;
     } else if (name === "mark") {
-      freq *= 1.08;
+      freq *= 1.05;
       peak *= profile.presence === "faint" ? 0.85 : 1;
       type = "sine";
     } else if (name === "lock") {
       freq = chip ? 240 : freq * 0.95;
       peak *= 1.05;
-      attack = 0.07;
-      release = 0.45;
+      attack = 0.06;
+      release = 0.42;
       type = chip ? "square" : "triangle";
-      filterHz = chip ? 1200 : 2200;
+      filterHz = chip ? 1200 : 1800;
     } else if (name === "orbit") {
       freq = 160;
       peak *= 0.7;
@@ -461,14 +469,14 @@ export function mountLabSound({ voice, button }) {
       filterHz = 900;
       glide = 1.18;
     } else if (name === "edge") {
-      freq = chip ? 420 : freq * 1.2;
+      freq = chip ? 420 : freq * 1.15;
       peak *= 0.8;
       attack = 0.03;
-      release = 0.22;
+      release = 0.2;
       type = chip ? "square" : "sine";
-      filterHz = chip ? 1500 : 2800;
+      filterHz = chip ? 1500 : 2400;
     } else if (name === "clear") {
-      freq *= 0.7;
+      freq *= 0.75;
       peak *= 0.65;
       release = 0.5;
       type = "sine";
@@ -505,13 +513,13 @@ export function mountLabSound({ voice, button }) {
     dispose() {
       disable();
       try {
-        airOsc?.stop();
+        for (const osc of padOscs) osc.stop();
         context?.close();
       } catch {
         /* already closed */
       }
       context = null;
-      airOsc = null;
+      padOscs = [];
     },
   };
 }
