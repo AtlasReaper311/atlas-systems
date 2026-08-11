@@ -6,10 +6,13 @@
 }
 
 .drift-stage {
-  width: 100%;
+  width: min(1400px, calc(100% - 2rem));
+  margin: 0 auto;
   min-height: calc(100vh - var(--global-nav-h));
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(1rem, 2.4vw, 1.6rem);
   padding: clamp(1rem, 3vw, 2rem) 0;
   isolation: isolate;
 }
@@ -18,7 +21,6 @@
 .drift-field {
   position: relative;
   width: 100%;
-  max-width: 1400px;
 }
 
 #drift-canvas {
@@ -38,28 +40,10 @@
 
 .drift-page[data-pointer="off"] #drift-canvas { cursor: crosshair; }
 
-/* Title plate, sitting over the top left of the field. */
-.drift-title::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: -7rem -26rem -9rem -7rem;
-  background: radial-gradient(
-    52% 62% at 19% 46%,
-    rgba(7, 7, 11, .97) 0%,
-    rgba(7, 7, 11, .94) 42%,
-    rgba(7, 7, 11, .62) 68%,
-    rgba(7, 7, 11, 0) 100%
-  );
-}
-
+/* Title sits above the canvas so the lattice stays fully readable. */
 .drift-title {
-  position: absolute;
-  isolation: isolate;
-  top: clamp(1.6rem, 4vw, 3rem);
-  left: clamp(1.6rem, 4vw, 3.4rem);
-  z-index: 2;
-  max-width: min(30rem, 62vw);
+  position: static;
+  max-width: min(40rem, 100%);
   pointer-events: none;
 }
 
@@ -84,7 +68,7 @@
 
 .drift-title p {
   margin: 0;
-  max-width: 26rem;
+  max-width: 36rem;
   color: var(--text-dim);
   font-size: 12px;
   line-height: 1.75;
@@ -275,11 +259,33 @@
   display: flex;
   flex-wrap: wrap;
   gap: 1.2rem;
-  margin: 1.6rem 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
   font-size: 11px;
   color: var(--text-faint);
+}
+
+.drift-legend-wrap--field {
+  position: absolute;
+  left: clamp(1rem, 2.5vw, 1.4rem);
+  bottom: calc(clamp(1.6rem, 4vw, 3rem) + 4.6rem);
+  z-index: 2;
+  padding: .45rem .7rem;
+  border: 1px solid var(--border);
+  background: rgba(10, 10, 15, .88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  pointer-events: none;
+}
+
+.drift-legend--field {
+  gap: .85rem;
+}
+
+.drift-legend--essay {
+  margin: 1.6rem 0 0;
+  gap: 1.2rem;
 }
 
 .drift-legend li { display: flex; align-items: center; gap: .5rem; }
@@ -304,9 +310,10 @@
 
 @media (max-width: 860px) {
   #drift-canvas { aspect-ratio: 16 / 9; }
-  .drift-title { position: static; max-width: none; margin-bottom: 1rem; }
-  .drift-stage { display: block; min-height: 0; padding-top: 1.5rem; }
+  .drift-stage { min-height: 0; padding-top: 1.5rem; }
+  .drift-title { max-width: none; }
   .drift-controls { position: static; align-items: flex-start; margin: 1rem 0; flex-direction: row; }
+  .drift-legend-wrap--field { position: static; margin: .85rem 0 0; }
   .drift-rail { position: static; margin-top: 1rem; }
   .drift-verdict { position: fixed; }
 }

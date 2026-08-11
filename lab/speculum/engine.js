@@ -19,7 +19,20 @@ const PALETTE = {
   live: '#4ade80',
   liveRGB: '74,222,128',
   dead: '#2a2a33',
+  role: {
+    product: '245,166,35',
+    observer: '72,185,220',
+    service: '207,200,184',
+    tool: '207,200,184',
+    substrate: '85,85,96',
+    machine: '232,147,92',
+    external: '138,138,147',
+  },
 };
+
+function roleRGB(kind) {
+  return PALETTE.role[kind] || PALETTE.role.service;
+}
 
 const RING_SCALE = { 0: 0, 1: 0.32, 2: 0.62, 3: 0.86, 4: 1.0 };
 const RING_LABELS = {
@@ -491,34 +504,36 @@ export function createEngine(canvas, nodes, ringOrder) {
     }
 
     if (node.kind === 'external') {
-      ctx.strokeStyle = `rgba(170,169,160,${(0.35 + item.lit * 0.5) * dim})`;
+      const rgb = roleRGB('external');
+      ctx.strokeStyle = `rgba(${rgb},${(0.45 + item.lit * 0.5) * dim})`;
       ctx.lineWidth = 1;
       ctx.strokeRect(x - 5, y - 5, 10, 10);
     } else if (node.kind === 'machine') {
-      ctx.strokeStyle = `rgba(232,232,224,${(0.45 + item.lit * 0.5) * dim})`;
+      const rgb = roleRGB('machine');
+      ctx.strokeStyle = `rgba(${rgb},${(0.55 + item.lit * 0.4) * dim})`;
       ctx.lineWidth = 1;
       ctx.strokeRect(x - 8, y - 4.5, 16, 9);
-      ctx.fillStyle = `rgba(245,166,35,${item.lit * 0.7 * dim})`;
+      ctx.fillStyle = `rgba(${rgb},${(0.35 + item.lit * 0.55) * dim})`;
       ctx.fillRect(x - 6, y - 2.5, 12, 5);
     } else if (node.kind === 'product') {
+      const rgb = roleRGB('product');
       const pulse = 0.5 + item.lit * 0.5;
       ctx.fillStyle = `rgba(26,26,36,${dim})`;
       ctx.fillRect(x - 9, y - 9, 18, 18);
-      ctx.strokeStyle = `rgba(245,166,35,${(0.55 + pulse * 0.45) * dim})`;
+      ctx.strokeStyle = `rgba(${rgb},${(0.55 + pulse * 0.45) * dim})`;
       ctx.lineWidth = 1;
       ctx.strokeRect(x - 9, y - 9, 18, 18);
-      ctx.fillStyle = `rgba(245,166,35,${(0.35 + item.lit * 0.65) * dim})`;
+      ctx.fillStyle = `rgba(${rgb},${(0.35 + item.lit * 0.65) * dim})`;
       ctx.fillRect(x - 3, y - 3, 6, 6);
     } else {
       const size = node.kind === 'observer' ? 6 : 5;
       const dormant = node.state === 'dormant';
       const alpha = (dormant ? 0.3 : 0.55) + item.lit * 0.45;
-      ctx.fillStyle = item.lit > 0.05
-        ? `rgba(245,166,35,${alpha * dim})`
-        : `rgba(${node.kind === 'substrate' ? '85,85,96' : '170,169,160'},${alpha * dim})`;
+      const rgb = roleRGB(node.kind);
+      ctx.fillStyle = `rgba(${rgb},${alpha * dim})`;
       ctx.fillRect(x - size / 2, y - size / 2, size, size);
       if (node.kind === 'observer') {
-        ctx.strokeStyle = `rgba(245,166,35,${(0.2 + item.lit * 0.5) * dim})`;
+        ctx.strokeStyle = `rgba(${rgb},${(0.25 + item.lit * 0.5) * dim})`;
         ctx.lineWidth = 1;
         ctx.strokeRect(x - 5.5, y - 5.5, 11, 11);
       }

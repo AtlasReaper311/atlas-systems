@@ -398,7 +398,7 @@
     position: absolute;
     z-index: 3;
     left: clamp(20px, 4.4vw, 68px);
-    bottom: calc(var(--rail-h) + 14px);
+    bottom: calc(var(--rail-h) + 38px);
     font-family: var(--f-data);
     font-size: 10px;
     letter-spacing: 0.14em;
@@ -407,6 +407,33 @@
     pointer-events: none;
   }
   .hint b { color: var(--load); font-weight: 400; }
+
+  .bearing-key {
+    position: absolute;
+    z-index: 3;
+    left: clamp(20px, 4.4vw, 68px);
+    bottom: calc(var(--rail-h) + 12px);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem 0.9rem;
+    margin: 0;
+    padding: 0;
+    color: var(--ink-faint);
+    font-family: var(--f-data);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+  .bearing-key span { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .bearing-key i {
+    width: 9px;
+    height: 9px;
+    display: inline-block;
+  }
+  .bearing-key-load { background: var(--load); }
+  .bearing-key-crit { background: var(--critical); }
+  .bearing-key-heal { background: var(--restored); }
 
   /* ---------- the incident log ---------- */
 
@@ -625,6 +652,11 @@
     </div>
 
     <p class="hint"><b>Drag</b> to cut struts &nbsp;·&nbsp; <b>Hover</b> to lean on it</p>
+    <div class="bearing-key" role="group" aria-label="Strut colour key">
+      <span><i class="bearing-key-load"></i> load</span>
+      <span><i class="bearing-key-crit"></i> over rating</span>
+      <span><i class="bearing-key-heal"></i> restored</span>
+    </div>
     <p id="bearing-help" class="sr-only">
       Focus the lattice, then use arrow keys to move the load point. Press Space or Enter to sever nearby struts,
       S to surge load, C to toggle chaos, R to rebuild, and Escape to release keyboard pressure.
