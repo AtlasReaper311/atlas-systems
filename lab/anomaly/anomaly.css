@@ -93,7 +93,7 @@ body a.nav-status.atlas-status.atlas-estate-status {
   letter-spacing: -0.02em;
 }
 
-.shape-title h1 span { color: var(--explore-shape, #48b9dc); }
+.shape-title h1 span { color: #f5a623; }
 
 .shape-title p {
   margin: 0;

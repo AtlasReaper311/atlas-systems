@@ -62,7 +62,7 @@ const LAB_CONTEXT_CSS = "/lab/shared/lab-context-navigation.css?v=20260806-lab-c
 const LAB_LAYOUT_CSS = "/lab/shared/lab-shell-layout.css?v=20260806-lab-consistency-v2";
 const LAB_SHELL_CONTRACT = "bundled:lab-shell-contract";
 const TARGET_CONTRACT = "bundled:interaction-target-contract";
-const PHASE6_FOOTER = "/static/js/phase-6-footer.js";
+const PHASE6_FOOTER = "/static/js/phase-6-footer.js?v=20260811-explore-amber";
 const ESTATE_SHELL = "/static/js/estate-shell.js";
 const GLOBAL_SEARCH = "/static/js/estate-search/global-search.js";
 const LAB_HOME_ROUTE = "/lab/";

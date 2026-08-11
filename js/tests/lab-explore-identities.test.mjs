@@ -9,6 +9,7 @@ const speculumHtml = fs.readFileSync("lab/speculum/index.html", "utf8");
 const speculumId = fs.readFileSync("lab/speculum/speculum-identity.css", "utf8");
 const driftCss = fs.readFileSync("lab/drift/drift.css", "utf8");
 const shapeHtml = fs.readFileSync("lab/anomaly/index.html", "utf8");
+const shapeCss = fs.readFileSync("lab/anomaly/anomaly.css", "utf8");
 const bearingHtml = fs.readFileSync("lab/bearing/index.html", "utf8");
 const systemMapCss = fs.readFileSync("lab/system-map.css", "utf8");
 
@@ -34,9 +35,12 @@ test("Lab Explore cards carry per-tool chroma hooks", () => {
 test("Speculum presents as a compact HUD attention flagship", () => {
   assert.match(speculumHtml, /class="speculum-page"/);
   assert.match(speculumHtml, /Speculum<span>\.<\/span>/);
-  assert.match(speculumHtml, /speculum-identity\.css\?v=20260811-flagship/);
+  assert.match(speculumHtml, /speculum-identity\.css\?v=20260811-amber-stop/);
+  assert.match(speculumHtml, /surface-convergence\.css\?v=20260811-explore-amber/);
+  assert.match(speculumHtml, /LAB \/ EXPLORE \/ SYSTEMS ARTWORK/);
   assert.match(speculumId, /\.control \.hint/);
   assert.match(speculumId, /display:\s*none/);
+  assert.match(speculumId, /h1 span \{ color: #f5a623; \}/);
   assert.match(speculumId, /--explore-chroma:\s*var\(--explore-speculum\)/);
 });
 
@@ -44,12 +48,15 @@ test("Drift and Shape carry cinematic stage identities", () => {
   assert.match(driftCss, /--drift-held:\s*var\(--explore-drift/);
   assert.match(driftCss, /explore-stage-in/);
   assert.match(shapeHtml, /Detector for trajectory bends/);
-  assert.match(shapeHtml, /explore-identities\.css\?v=20260811-flagship/);
+  assert.match(shapeHtml, /anomaly\.css\?v=20260811-amber-stop/);
+  assert.match(shapeHtml, /surface-convergence\.css\?v=20260811-explore-amber/);
+  assert.match(shapeCss, /\.shape-title h1 span \{ color: #f5a623; \}/);
 });
 
 test("Bearing stays forced dark and System Map gets night-city atmosphere", () => {
   assert.match(bearingHtml, /data-theme="dark"/);
   assert.doesNotMatch(bearingHtml, /@media \(prefers-color-scheme: light\)/);
-  assert.match(systemMapCss, /Night-city atmosphere/);
+  assert.match(systemMapCss, /Night-city frame/);
   assert.match(systemMapCss, /\.map-shell::before/);
+  assert.match(systemMapCss, /\.map-shell \.smap-host/);
 });

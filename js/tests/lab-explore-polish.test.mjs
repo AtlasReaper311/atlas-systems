@@ -16,7 +16,7 @@ test("System Map legend colours resolve outside Operations smap-section", () => 
   assert.match(systemMapCss, /\.smap-section,\s*\n\.map-shell,\s*\n\.smap-legend \{/);
   assert.match(systemMapCss, /--map-role-worker:\s*#4ade80/);
   assert.match(systemMapHtml, /Public topology,\s*<br>without invented edges\./);
-  assert.match(systemMapHtml, /system-map\.css\?v=20260811-night-city/);
+  assert.match(systemMapHtml, /system-map\.css\?v=20260811-map-chrome/);
 });
 
 test("Drift keeps the title above the canvas and keys the field plus essay", () => {
@@ -40,7 +40,7 @@ test("Speculum node roles carry distinct colours in legend and engine", () => {
 test("Shape Detector presents as an Explore instrument with timed evidence fallback", () => {
   assert.match(anomalyHtml, /class="shape-page"/);
   assert.match(anomalyHtml, /id="shape-title"/);
-  assert.match(anomalyHtml, /Explore \/ telemetry shape evidence/);
+  assert.match(anomalyHtml, /LAB \/ EXPLORE \/ TELEMETRY ANALYSIS/);
   assert.match(anomalyHtml, /data-evidence-mode="unknown" data-runtime-state="checking" aria-live="polite">Unknown/);
   assert.doesNotMatch(anomalyHtml, /nav-links/);
   assert.match(anomalyCore, /AbortController/);
