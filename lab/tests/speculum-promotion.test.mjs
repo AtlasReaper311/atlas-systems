@@ -18,7 +18,7 @@ test("Speculum is discoverable from the Explore directory and Lab context naviga
 test("Speculum consumes the standard Lab shell without losing its instrument identity", () => {
   assert.match(route, /\/lab\/shared\/systems\.css/);
   assert.match(route, /\/lab\/speculum\/speculum-promotion-v8\.css/);
-  assert.match(route, /\/lab\/shared\/shell\.js\?v=20260728-speculum-promotion-v1/);
+  assert.match(route, /\/lab\/shared\/shell\.js\?v=20260811-explore-amber/);
   assert.match(route, /class="masthead"/);
   assert.match(route, /class="speculum-disclaimer"/);
   assert.doesNotMatch(route, /<footer>/);

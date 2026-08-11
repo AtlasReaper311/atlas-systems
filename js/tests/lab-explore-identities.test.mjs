@@ -36,6 +36,8 @@ test("Speculum presents as a compact HUD attention flagship", () => {
   assert.match(speculumHtml, /class="speculum-page"/);
   assert.match(speculumHtml, /Speculum<span>\.<\/span>/);
   assert.match(speculumHtml, /speculum-identity\.css\?v=20260811-amber-stop/);
+  assert.match(speculumHtml, /surface-convergence\.css\?v=20260811-explore-amber/);
+  assert.match(speculumHtml, /LAB \/ EXPLORE \/ SYSTEMS ARTWORK/);
   assert.match(speculumId, /\.control \.hint/);
   assert.match(speculumId, /display:\s*none/);
   assert.match(speculumId, /h1 span \{ color: #f5a623; \}/);
@@ -47,6 +49,7 @@ test("Drift and Shape carry cinematic stage identities", () => {
   assert.match(driftCss, /explore-stage-in/);
   assert.match(shapeHtml, /Detector for trajectory bends/);
   assert.match(shapeHtml, /anomaly\.css\?v=20260811-amber-stop/);
+  assert.match(shapeHtml, /surface-convergence\.css\?v=20260811-explore-amber/);
   assert.match(shapeCss, /\.shape-title h1 span \{ color: #f5a623; \}/);
 });
 

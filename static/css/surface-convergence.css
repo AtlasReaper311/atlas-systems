@@ -61,9 +61,15 @@ body[data-atlas-surface-mode="product"] .atlas-surface-title :is(span, em, stron
   text-transform: inherit !important;
 }
 
+/* Explore title punctuation / emphasis must win over the inherit clamp above.
+   Key off accent metadata so Speculum/Shape cannot regress when routes are added. */
+.atlas-surface-title[data-atlas-title-accent="punctuation"] span,
 body[data-lab-route="almost"] .atlas-surface-title span,
 body[data-lab-route="drift"] .atlas-surface-title span,
-body[data-lab-route="bearing"] .atlas-surface-title em {
+body[data-lab-route="speculum"] .atlas-surface-title span,
+body[data-lab-route="anomaly"] .atlas-surface-title span,
+body[data-lab-route="bearing"] .atlas-surface-title em,
+.atlas-surface-title[data-atlas-title-accent="word"] em {
   color: var(--accent, #f5a623) !important;
 }
 

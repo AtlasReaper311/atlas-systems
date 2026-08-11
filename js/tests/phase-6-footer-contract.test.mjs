@@ -169,9 +169,9 @@ test("Bearing and Operations both resolve into the final shared Lab shell", () =
   const bearing = fs.readFileSync("lab/bearing/index.html", "utf8");
   const consolePage = fs.readFileSync("lab/console/index.html", "utf8");
 
-  assert.match(bearing, /\/lab\/shared\/shell\.js\?v=20260807-bearing-shell/);
-  assert.match(bearing, /\/static\/js\/phase-6-footer\.js\?v=20260807-bearing-shell/);
-  assert.equal(LAB_SHELL_MODULE, "/lab/shared/shell.js?v=20260807-bearing-shell");
+  assert.match(bearing, /\/lab\/shared\/shell\.js\?v=20260811-explore-amber/);
+  assert.match(bearing, /\/static\/js\/phase-6-footer\.js\?v=20260811-explore-amber/);
+  assert.equal(LAB_SHELL_MODULE, "/lab/shared/shell.js?v=20260811-explore-amber");
   assert.match(source, /function bootstrapLabShell/);
   assert.match(source, /void import\(LAB_SHELL_MODULE\)/);
   assert.match(source, /surface-convergence\.js/);
