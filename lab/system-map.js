@@ -2,6 +2,7 @@ import {
   buildCityLayout,
   DISTRICT_ORDER,
 } from "./system-map-layout.js?v=20260715-route-clarity";
+import { mountLabSound } from "./shared/lab-explore-sound.js?v=20260811-sound";
 
 const host = document.getElementById("system-map-host");
 const statusLine = document.getElementById("system-map-statusline");
@@ -55,9 +56,12 @@ let detailPanel = null;
 let threeButton = null;
 let flatButton = null;
 let resetButton = null;
+let soundButton = null;
 let loading = null;
 let pinnedNodeId = null;
 let previewNodeId = null;
+let lastPreviewCueId = null;
+let mapSound = null;
 
 function canUse3D() {
   return (
@@ -115,7 +119,16 @@ function createShell() {
   resetButton.textContent = "reset";
   resetButton.addEventListener("click", resetView);
 
-  toolbar.append(threeButton, flatButton, resetButton);
+  soundButton = document.createElement("button");
+  soundButton.type = "button";
+  soundButton.className = "smap-view-button";
+  soundButton.id = "smap-sound";
+  soundButton.setAttribute("aria-pressed", "false");
+  soundButton.setAttribute("aria-label", "Toggle soft Lab sound");
+  soundButton.textContent = "Sound";
+
+  toolbar.append(threeButton, flatButton, resetButton, soundButton);
+  mapSound = mountLabSound({ voice: "map", button: soundButton });
 
   const stage = document.createElement("div");
   stage.className = "smap-city-stage";
@@ -440,38 +453,66 @@ function showPinnedDetail() {
   }
 }
 
+function syncCinematicFocus() {
+  if (!sceneController) return;
+  if (pinnedNodeId && sceneController.cinematicFocus) {
+    sceneController.cinematicFocus(pinnedNodeId);
+  } else if (!pinnedNodeId && sceneController.cinematicRelease) {
+    sceneController.cinematicRelease();
+  }
+}
+
 function previewRouteFocus(node) {
   previewNodeId = node?.id || null;
   applyRouteFocus();
 
-  if (node) showDetail(node);
+  if (node) {
+    showDetail(node);
+    if (node.id !== lastPreviewCueId) {
+      lastPreviewCueId = node.id;
+      mapSound?.cue("edge");
+    }
+  }
 }
 
 function endRoutePreview() {
   previewNodeId = null;
+  lastPreviewCueId = null;
   applyRouteFocus();
   showPinnedDetail();
 }
 
 function toggleRouteFocus(node) {
-  pinnedNodeId = pinnedNodeId === node.id ? null : node.id;
+  const nextPinned = pinnedNodeId === node.id ? null : node.id;
+  pinnedNodeId = nextPinned;
   previewNodeId = null;
+  lastPreviewCueId = null;
   applyRouteFocus();
   showPinnedDetail();
+  syncCinematicFocus();
+  mapSound?.cue(nextPinned ? "lock" : "clear");
 }
 
 function pinRouteFocus(node) {
   pinnedNodeId = node.id;
   previewNodeId = null;
+  lastPreviewCueId = null;
   applyRouteFocus();
   showPinnedDetail();
+  syncCinematicFocus();
+  mapSound?.cue("lock");
 }
 
 function clearRouteFocus() {
+  const hadPin = Boolean(pinnedNodeId);
+  const hadFocus = Boolean(pinnedNodeId || previewNodeId);
   pinnedNodeId = null;
   previewNodeId = null;
+  lastPreviewCueId = null;
   applyRouteFocus();
   clearDetail();
+  if (hadPin) sceneController?.cinematicRelease?.();
+  if (hadFocus) mapSound?.cue("clear");
 }
 
 function renderNode(svg, node) {
@@ -923,6 +964,9 @@ window.AtlasMapVM = {
   },
   clearRouteFocus,
   clearDetail,
+  onCameraGesture(kind) {
+    if (kind === "orbit") mapSound?.cue("orbit");
+  },
 };
 
 window.addEventListener(
@@ -941,6 +985,6 @@ setMode(preferredMode);
 
 if (canUse3D()) {
   import(
-    "/lab/system-map-scene.js?v=20260715-route-clarity"
+    "/lab/system-map-scene.js?v=20260811-flagship-focus"
   ).catch(fail3D);
 }

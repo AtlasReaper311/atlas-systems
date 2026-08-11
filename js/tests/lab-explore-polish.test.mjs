@@ -16,7 +16,7 @@ test("System Map legend colours resolve outside Operations smap-section", () => 
   assert.match(systemMapCss, /\.smap-section,\s*\n\.map-shell,\s*\n\.smap-legend \{/);
   assert.match(systemMapCss, /--map-role-worker:\s*#4ade80/);
   assert.match(systemMapHtml, /Public topology,\s*<br>without invented edges\./);
-  assert.match(systemMapHtml, /system-map\.css\?v=20260811-night-city-frame/);
+  assert.match(systemMapHtml, /system-map\.css\?v=20260811-flagship-focus/);
 });
 
 test("Drift keeps the title above the canvas and keys the field plus essay", () => {

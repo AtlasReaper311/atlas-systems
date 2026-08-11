@@ -1,4 +1,5 @@
 import "../shared/shell.js";
+import { mountLabSound } from "../shared/lab-explore-sound.js?v=20260811-sound";
 
 import {
   ATTENTION_RADIUS,
@@ -32,6 +33,8 @@ const rail = document.querySelector(".drift-rail");
 const modeManualButton = document.querySelector("#mode-manual");
 const modePolicyButton = document.querySelector("#mode-policy");
 const resetButton = document.querySelector("#drift-reset");
+const soundButton = document.querySelector("#sound-button");
+const exploreSound = mountLabSound({ voice: "drift", button: soundButton });
 
 const conformanceOutput = document.querySelector("#out-conformance");
 const heldOutput = document.querySelector("#out-held");
@@ -425,9 +428,11 @@ function setMode(mode) {
   liveRegion.textContent = mode === MODE_POLICY
     ? "Policy sweep is holding the estate."
     : "Manual attention is holding the estate.";
+  exploreSound.cue(mode === MODE_POLICY ? "mark" : "tick");
 }
 
 function reset() {
+  exploreSound.cue("clear");
   state.field = createField(normalizeSeed(null));
   state.verdictShown = false;
   state.verdictDismissed = false;

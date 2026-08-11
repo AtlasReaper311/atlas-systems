@@ -7,6 +7,7 @@
 
 import { NODES, RING_ORDER, SNAPSHOT, formatPeriod, summarise } from './topology.js';
 import { createEngine } from './engine.js';
+import { mountLabSound } from '../shared/lab-explore-sound.js?v=20260811-sound';
 
 const SPEEDS = [
   { value: 1, label: 'Real · 1×', hint: 'Real · literal cadence. Most weekly movement is imperceptible.' },
@@ -519,6 +520,11 @@ export function mount(root) {
 
   canvas.addEventListener('pointermove', (event) => engine.setPointer(localPoint(event)), { signal });
   canvas.addEventListener('pointerleave', () => engine.setPointer(null), { signal });
+  const exploreSound = mountLabSound({
+    voice: 'speculum',
+    button: el('spc-sound'),
+  });
+
   canvas.addEventListener('pointerdown', (event) => {
     const activeTrace = engine.getTrace();
     if (activeTrace) clearTrace();
@@ -529,6 +535,7 @@ export function mount(root) {
     setLedgerFilter(pinned ? 'focus' : 'all');
     lastDetailKey = '\u0000';
     renderDetail(true);
+    exploreSound.cue(pinned ? 'lock' : 'clear');
   }, { signal });
 
   const speedWrap = el('spc-speeds');
