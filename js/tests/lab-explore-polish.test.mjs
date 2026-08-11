@@ -21,8 +21,9 @@ test("System Map legend colours resolve outside Operations smap-section", () => 
 
 test("Drift keeps the title above the canvas and keys the field plus essay", () => {
   assert.match(driftHtml, /<header class="drift-title">[\s\S]*?<div class="drift-field">/);
-  assert.match(driftHtml, /drift-legend drift-legend--field/);
-  assert.match(driftHtml, /drift-legend drift-legend--essay/);
+  assert.match(driftHtml, /drift-legend-wrap--field/);
+  assert.match(driftHtml, /drift-legend--field/);
+  assert.match(driftHtml, /drift-legend--essay/);
   assert.match(driftCss, /\.drift-title \{\s*\n\s*position:\s*static/);
   assert.doesNotMatch(driftCss, /\.drift-title::before/);
 });

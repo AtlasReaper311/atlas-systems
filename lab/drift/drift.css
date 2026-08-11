@@ -266,18 +266,21 @@
   color: var(--text-faint);
 }
 
-.drift-legend--field {
+.drift-legend-wrap--field {
   position: absolute;
   left: clamp(1rem, 2.5vw, 1.4rem);
   bottom: calc(clamp(1.6rem, 4vw, 3rem) + 4.6rem);
   z-index: 2;
-  gap: .85rem;
   padding: .45rem .7rem;
   border: 1px solid var(--border);
   background: rgba(10, 10, 15, .88);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   pointer-events: none;
+}
+
+.drift-legend--field {
+  gap: .85rem;
 }
 
 .drift-legend--essay {
@@ -310,7 +313,7 @@
   .drift-stage { min-height: 0; padding-top: 1.5rem; }
   .drift-title { max-width: none; }
   .drift-controls { position: static; align-items: flex-start; margin: 1rem 0; flex-direction: row; }
-  .drift-legend--field { position: static; margin: .85rem 0 0; }
+  .drift-legend-wrap--field { position: static; margin: .85rem 0 0; }
   .drift-rail { position: static; margin-top: 1rem; }
   .drift-verdict { position: fixed; }
 }

@@ -65,12 +65,14 @@
         <button id="drift-reset" class="drift-reset" type="button">New estate</button>
       </div>
 
-      <ul class="drift-legend drift-legend--field" aria-label="Node conformance key">
-        <li><i style="background:#4ade80"></i> held</li>
-        <li><i style="background:#f5a623"></i> drifting</li>
-        <li><i style="background:#e24b4a"></i> breached</li>
-        <li><i style="background:#1e0e12;outline:1px solid rgba(255,255,255,.2)"></i> gone</li>
-      </ul>
+      <div class="drift-legend-wrap drift-legend-wrap--field" role="group" aria-label="Node conformance key">
+        <ul class="drift-legend drift-legend--field">
+          <li><i style="background:#4ade80"></i> held</li>
+          <li><i style="background:#f5a623"></i> drifting</li>
+          <li><i style="background:#e24b4a"></i> breached</li>
+          <li><i style="background:#1e0e12;outline:1px solid rgba(255,255,255,.2)"></i> gone</li>
+        </ul>
+      </div>
 
       <dl class="drift-rail">
         <div class="drift-cell">
@@ -149,12 +151,14 @@
         rather than as diligence in a person. Nothing here is fetched from the live estate. This runs entirely
         in your browser, from a seed, and no two runs are the same.
       </p>
-      <ul class="drift-legend drift-legend--essay" aria-label="Colour key">
-        <li><i style="background:#4ade80"></i> held (≥75%)</li>
-        <li><i style="background:#f5a623"></i> drifting</li>
-        <li><i style="background:#e24b4a"></i> breached (&lt;40%)</li>
-        <li><i style="background:#1e0e12;outline:1px solid rgba(255,255,255,.2)"></i> gone</li>
-      </ul>
+      <div class="drift-legend-wrap" role="group" aria-label="Colour key">
+        <ul class="drift-legend drift-legend--essay">
+          <li><i style="background:#4ade80"></i> held (≥75%)</li>
+          <li><i style="background:#f5a623"></i> drifting</li>
+          <li><i style="background:#e24b4a"></i> breached (&lt;40%)</li>
+          <li><i style="background:#1e0e12;outline:1px solid rgba(255,255,255,.2)"></i> gone</li>
+        </ul>
+      </div>
     </section>
   </main>
 

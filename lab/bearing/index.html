@@ -418,7 +418,6 @@
     gap: 0.65rem 0.9rem;
     margin: 0;
     padding: 0;
-    list-style: none;
     color: var(--ink-faint);
     font-family: var(--f-data);
     font-size: 10px;
@@ -426,7 +425,7 @@
     text-transform: uppercase;
     pointer-events: none;
   }
-  .bearing-key li { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .bearing-key span { display: inline-flex; align-items: center; gap: 0.35rem; }
   .bearing-key i {
     width: 9px;
     height: 9px;
@@ -653,11 +652,11 @@
     </div>
 
     <p class="hint"><b>Drag</b> to cut struts &nbsp;·&nbsp; <b>Hover</b> to lean on it</p>
-    <ul class="bearing-key" aria-label="Strut colour key">
-      <li><i class="bearing-key-load"></i> load</li>
-      <li><i class="bearing-key-crit"></i> over rating</li>
-      <li><i class="bearing-key-heal"></i> restored</li>
-    </ul>
+    <div class="bearing-key" role="group" aria-label="Strut colour key">
+      <span><i class="bearing-key-load"></i> load</span>
+      <span><i class="bearing-key-crit"></i> over rating</span>
+      <span><i class="bearing-key-heal"></i> restored</span>
+    </div>
     <p id="bearing-help" class="sr-only">
       Focus the lattice, then use arrow keys to move the load point. Press Space or Enter to sever nearby struts,
       S to surge load, C to toggle chaos, R to rebuild, and Escape to release keyboard pressure.

@@ -16,8 +16,8 @@ test('Speculum exposes bounded presentation and frame export controls', () => {
   assert.match(html, /id="spc-polish-status"[^>]*aria-live="polite"/);
   assert.match(html, /id="spc-trace-completion"[^>]*aria-hidden="true"/);
   assert.match(html, /speculum-polish-v5\.css\?v=20260727-polish-v5/);
-  assert.match(html, /speculum-polish-v5\.js\?v=20260728-interaction-v6/);
-  assert.match(html, /speculum-interaction-v6\.js\?v=20260728-interaction-v6/);
+  assert.match(html, /speculum-polish-v5\.js\?v=20260811-role-colours/);
+  assert.match(html, /speculum-interaction-v6\.js\?v=20260811-role-colours/);
   assert.match(css, /\.reduced\[hidden\]\s*\{[\s\S]*display:\s*none\s*!important/);
 });
 
