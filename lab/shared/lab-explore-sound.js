@@ -260,7 +260,7 @@ export function mountLabSound({ voice, button }) {
       profile.noteGain * presenceScale * motionScale *
       (profile.presence === "faint" ? 0.7 : 1);
     const intervals = profile.intervals;
-    let semitone = intervals[scaleStep % intervals.length];
+    let semitone;
 
     if (profile.pattern === "clock") {
       // Steady motif: root → fifth → optional third.
