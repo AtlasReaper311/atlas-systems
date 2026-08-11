@@ -343,6 +343,37 @@ select {
 .atlas-evidence-mode[data-evidence-mode="measured"][data-runtime-state="warning"] { color: var(--accent); }
 .atlas-evidence-mode[data-evidence-mode="measured"][data-runtime-state="critical"] { color: var(--red); }
 
+/* Intentional probe chrome — not a blank broken wait. */
+.atlas-evidence-surface[data-evidence-mode="unknown"] {
+  border-style: dotted;
+  border-left: 3px solid color-mix(in srgb, var(--explore-shape, #48b9dc) 70%, var(--shape-line));
+  background: color-mix(in srgb, var(--bg-1) 92%, var(--explore-shape, #48b9dc));
+  box-shadow: none;
+}
+
+.atlas-evidence-mode[data-evidence-mode="unknown"] {
+  color: var(--explore-shape, #48b9dc);
+}
+
+#overall-state[data-evidence-mode="unknown"] {
+  color: var(--explore-shape, #48b9dc);
+  letter-spacing: 0.04em;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .atlas-evidence-mode[data-evidence-mode="unknown"]::after {
+    content: "";
+    display: inline-block;
+    width: 0.45em;
+    height: 0.45em;
+    margin-left: 0.45em;
+    border-radius: 50%;
+    background: currentColor;
+    vertical-align: 0.1em;
+    animation: explore-live-pulse 1.2s ease-in-out infinite;
+  }
+}
+
 .atlas-evidence-surface[data-evidence-mode="simulated"] {
   border-style: dashed;
   border-left: 3px solid var(--text-faint);
@@ -353,6 +384,10 @@ select {
 .atlas-evidence-mode[data-evidence-mode="simulated"] {
   border-style: dashed;
   color: var(--text-faint);
+}
+
+.atlas-evidence-mode[data-evidence-mode="simulated"][data-pending-live="true"] {
+  color: color-mix(in srgb, var(--explore-shape, #48b9dc) 55%, var(--text-faint));
 }
 
 .atlas-evidence-surface[data-evidence-mode="simulated"] :is(.state-normal, .state-watch, .state-warning, .state-critical, .state-error) {

@@ -1,6 +1,10 @@
 const LATEST_URL = "https://api.atlas-systems.uk/specular/anomaly";
 const HISTORY_URL = "https://api.atlas-systems.uk/specular/anomaly/history";
 const EM_DASH = "—";
+/** Paint an honest simulated demo if live evidence has not settled yet. */
+const SOFT_DEMO_MS = 900;
+/** Hard abort for hung public evidence fetches. */
+const HARD_ABORT_MS = 4500;
 
 const stateElement = document.querySelector("#overall-state");
 const scoreElement = document.querySelector("#overall-score");
@@ -273,7 +277,12 @@ function drawHistory(metricName) {
   context.stroke();
   context.setLineDash?.([]);
   if (chartSummary) {
-    const prefix = evidenceMode === "simulated" ? "Simulated browser demonstration." : "Measured edge history.";
+    const pendingLive = sourceStatus?.dataset.pendingLive === "true";
+    const prefix = evidenceMode === "simulated"
+      ? (pendingLive
+        ? "Simulated demonstration while live evidence is pending."
+        : "Simulated browser demonstration.")
+      : "Measured edge history.";
     chartSummary.textContent = `${prefix} ${points.length} observations. Grey: metric value normalised to its visible range. ${evidenceMode === "simulated" ? "Dashed grey" : "Amber"}: anomaly score.`;
   }
 }
@@ -284,44 +293,98 @@ async function fetchJson(url, signal) {
   return response.json();
 }
 
+function setChartSummary(text) {
+  const chartSummary = document.querySelector("#chart-summary");
+  if (chartSummary) chartSummary.textContent = text;
+}
+
+function setSourceStatus({ mode, pendingLive = false }) {
+  if (!sourceStatus) return;
+  sourceStatus.dataset.evidenceMode = mode === "probing" ? "unknown" : mode;
+  if (mode === "measured") {
+    delete sourceStatus.dataset.errorSource;
+    delete sourceStatus.dataset.errorContext;
+    delete sourceStatus.dataset.pendingLive;
+    sourceStatus.textContent = "Measured";
+    sourceStatus.title = "Current telemetry-shape evidence from specular-edge.";
+    return;
+  }
+  if (mode === "probing") {
+    delete sourceStatus.dataset.errorSource;
+    delete sourceStatus.dataset.errorContext;
+    delete sourceStatus.dataset.pendingLive;
+    sourceStatus.dataset.runtimeState = "checking";
+    sourceStatus.dataset.state = "unknown";
+    sourceStatus.textContent = "Probing live";
+    sourceStatus.title = "Checking the public telemetry endpoint. No measured estate state is shown yet.";
+    return;
+  }
+  sourceStatus.dataset.errorSource = "anomaly-evidence";
+  sourceStatus.dataset.errorContext = pendingLive ? "soft-demo" : "live-load";
+  sourceStatus.dataset.runtimeState = "unknown";
+  sourceStatus.dataset.state = "unknown";
+  if (pendingLive) {
+    sourceStatus.dataset.pendingLive = "true";
+    sourceStatus.textContent = "Demo · probing live";
+    sourceStatus.title =
+      "Simulated demonstration while live evidence is still pending. This is not measured estate state.";
+    return;
+  }
+  delete sourceStatus.dataset.pendingLive;
+  sourceStatus.textContent = "Simulated";
+  sourceStatus.title =
+    "Browser-generated demonstration values; the public telemetry endpoint is unavailable.";
+}
+
+function showSimulatedDemo({ pendingLive }) {
+  history = fallbackHistory();
+  latest = history[0];
+  applyEvidenceMode("simulated");
+  setSourceStatus({ mode: "simulated", pendingLive });
+  if (pendingLive) {
+    setChartSummary(
+      "Simulated demonstration while live evidence is pending. Dashed grey is demo score — not measured estate state.",
+    );
+  }
+}
+
 async function load() {
   const controller = typeof AbortController === "function" ? new AbortController() : null;
-  const timer = controller
-    ? setTimeout(() => controller.abort(), 4500)
+  let settled = false;
+  const hardTimer = controller
+    ? setTimeout(() => controller.abort(), HARD_ABORT_MS)
     : null;
+  const softTimer = setTimeout(() => {
+    if (settled || evidenceMode !== "unknown") return;
+    showSimulatedDemo({ pendingLive: true });
+    renderLatest();
+  }, SOFT_DEMO_MS);
+
+  applyEvidenceMode("unknown");
+  setSourceStatus({ mode: "probing" });
+  setChartSummary("Probing live evidence…");
+
   try {
     const signal = controller?.signal;
     const [latestPayload, historyPayload] = await Promise.all([
       fetchJson(LATEST_URL, signal),
       fetchJson(HISTORY_URL, signal).catch(() => ({ items: [] })),
     ]);
+    settled = true;
     latest = latestPayload;
     history = historyPayload.items || [];
     applyEvidenceMode("measured");
-    if (sourceStatus) {
-      delete sourceStatus.dataset.errorSource;
-      delete sourceStatus.dataset.errorContext;
-      sourceStatus.textContent = "Measured";
-      sourceStatus.title = "Current telemetry-shape evidence from specular-edge.";
-    }
+    setSourceStatus({ mode: "measured" });
   } catch (error) {
-    applyEvidenceMode("simulated");
-    if (sourceStatus) {
-      sourceStatus.dataset.errorSource = "anomaly-evidence";
-      sourceStatus.dataset.errorContext = "live-load";
-      sourceStatus.textContent = "Simulated";
-      sourceStatus.title = "Browser-generated demonstration values; the public telemetry endpoint is unavailable.";
-      sourceStatus.dataset.runtimeState = "unknown";
-      sourceStatus.dataset.state = "unknown";
-    }
+    settled = true;
     console.warn(
       "[lab/anomaly] live evidence load failed; rendering an explicitly simulated browser demonstration",
       error,
     );
-    history = fallbackHistory();
-    latest = history[0];
+    showSimulatedDemo({ pendingLive: false });
   } finally {
-    if (timer) clearTimeout(timer);
+    if (softTimer) clearTimeout(softTimer);
+    if (hardTimer) clearTimeout(hardTimer);
   }
   renderLatest();
 }

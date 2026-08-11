@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="/lab/shared/systems.css">
   <link rel="stylesheet" href="/static/css/surface-convergence.css?v=20260811-explore-amber">
   <link rel="stylesheet" href="/lab/shared/explore-identities.css?v=20260811-flagship">
-  <link rel="stylesheet" href="/lab/anomaly/anomaly.css?v=20260811-sound">
+  <link rel="stylesheet" href="/lab/anomaly/anomaly.css?v=20260811-first-paint">
   <link rel="canonical" href="https://atlas-systems.uk/lab/anomaly/">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
@@ -47,7 +47,7 @@
       <div id="anomaly-summary-surface" class="shape-summary atlas-evidence-surface" data-evidence-mode="unknown">
         <div class="shape-summary-cell">
           <span>Detector state</span>
-          <strong class="atlas-evidence-value" id="overall-state" data-evidence-mode="unknown" data-runtime-state="unknown">checking</strong>
+          <strong class="atlas-evidence-value" id="overall-state" data-evidence-mode="unknown" data-runtime-state="unknown">probing</strong>
         </div>
         <div class="shape-summary-cell">
           <span>Shape score</span>
@@ -57,7 +57,7 @@
           <span>Evidence age</span>
           <strong class="atlas-evidence-value" id="generated-at" data-evidence-mode="unknown">—</strong>
         </div>
-        <p class="shape-mode atlas-evidence-mode" id="source-status" data-evidence-mode="unknown" data-runtime-state="checking" aria-live="polite">Unknown</p>
+        <p class="shape-mode atlas-evidence-mode" id="source-status" data-evidence-mode="unknown" data-runtime-state="checking" aria-live="polite">Probing live</p>
       </div>
 
       <div class="shape-workbench">
@@ -65,7 +65,7 @@
           <div class="shape-panel-head">
             <div>
               <h2>Trajectory</h2>
-              <p class="note">Measured mode uses persisted edge history. Simulated mode is an explicit browser demonstration and never claims live estate state.</p>
+              <p class="note">Measured mode uses persisted edge history. If live evidence hangs, an explicit simulated demonstration paints within about a second and never claims estate state. Live still upgrades to Measured when it arrives.</p>
             </div>
             <div class="shape-panel-actions">
               <label>Metric
@@ -77,7 +77,7 @@
           <div class="shape-chart" role="img" aria-label="Anomaly score and metric trajectory">
             <canvas id="anomaly-chart" width="1100" height="420"></canvas>
           </div>
-          <p class="note" id="chart-summary" role="status">Waiting for evidence…</p>
+          <p class="note" id="chart-summary" role="status">Probing live evidence…</p>
         </div>
 
         <aside id="anomaly-explanation-surface" class="shape-panel shape-panel--deep atlas-evidence-surface" data-evidence-mode="unknown" aria-label="Current explanation">
@@ -101,7 +101,7 @@
       <p>
         Level, slope, volatility, derivative-DTW distance, and continuity are combined so a sustained
         bend can become visible before a static red line is crossed. When the public endpoint is
-        unavailable, this page switches to an explicitly simulated browser demonstration.
+        unavailable or slow, this page paints an explicitly simulated browser demonstration within about a second, then upgrades to Measured if live evidence arrives.
       </p>
       <div role="group" aria-label="Trajectory key">
         <ul class="shape-legend">
@@ -117,7 +117,7 @@
       <div id="anomaly-table-surface" class="table-wrap atlas-evidence-surface" data-evidence-mode="unknown">
         <table>
           <thead><tr><th scope="col">Metric</th><th scope="col">State</th><th scope="col">Score</th><th scope="col">Value</th><th scope="col">DTW</th><th scope="col">Slope z</th><th scope="col">Confidence</th></tr></thead>
-          <tbody id="metric-table"><tr><td colspan="7">Checking evidence…</td></tr></tbody>
+          <tbody id="metric-table"><tr><td colspan="7">Probing live evidence…</td></tr></tbody>
         </table>
       </div>
     </section>
