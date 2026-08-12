@@ -14,9 +14,9 @@ concurrency:
 jobs:
   gardener:
     if: vars.ATLAS_GARDENER_AUTOMERGE_ENABLED == 'true' && startsWith(github.event.pull_request.head.ref, 'gardener/')
-    uses: AtlasReaper311/atlas-gardener/.github/workflows/gardener-automerge-gate.yml@3939393a1f202f6e755c0c1f8e888f0d7ca27f4c
+    uses: AtlasReaper311/atlas-gardener/.github/workflows/gardener-automerge-gate.yml@333495008decf4e997548f861a31dd8e41e96335
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
       checks: read
       statuses: read
