@@ -3,7 +3,13 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const htmlUrl = new URL("../spectral-forge/index.html", import.meta.url);
-const cssUrl = new URL("../spectral-forge/spectral-forge.css", import.meta.url);
+const cssUrls = [
+  new URL("../spectral-forge/spectral-forge.css", import.meta.url),
+  new URL("../spectral-forge/spectral-forge-foundation.css", import.meta.url),
+  new URL("../spectral-forge/spectral-forge-workspace.css", import.meta.url),
+  new URL("../spectral-forge/spectral-forge-analyse.css", import.meta.url),
+  new URL("../spectral-forge/spectral-forge-responsive.css", import.meta.url),
+];
 const bootstrapUrl = new URL("../../static/js/spectral-forge/app.js", import.meta.url);
 const controllerUrl = new URL("../../static/js/spectral-forge/app-core.js", import.meta.url);
 const domainUrl = new URL("../../static/js/spectral-forge/domain.js", import.meta.url);
@@ -14,6 +20,10 @@ const shellBridgeUrl = new URL("../spectral-forge/shell-bridge.js", import.meta.
 
 async function source(url) {
   return readFile(url, "utf8");
+}
+
+async function allCss() {
+  return (await Promise.all(cssUrls.map(source))).join("\n");
 }
 
 test("Spectral Forge declares the simulated evidence boundary and canonical route", async () => {
@@ -67,8 +77,8 @@ test("Spectral Forge is an Atlas-native static route", async () => {
 });
 
 test("production source contains no Sites machine-local paths or scaffold imports", async () => {
-  const sources = await Promise.all([cssUrl, bootstrapUrl, controllerUrl, domainUrl, audioUrl, stateUrl, visualsUrl, shellBridgeUrl].map(source));
-  const combined = sources.join("\n");
+  const sources = await Promise.all([bootstrapUrl, controllerUrl, domainUrl, audioUrl, stateUrl, visualsUrl, shellBridgeUrl].map(source));
+  const combined = `${await allCss()}\n${sources.join("\n")}`;
   assert.doesNotMatch(combined, /\/workspace\/sites\/|vinext|signin-with-chatgpt|drizzle-orm|\.openai\/hosting/i);
   assert.doesNotMatch(combined, /Math\.random\s*\(/);
 });
@@ -84,7 +94,7 @@ test("audio implementation names true stereo width and a bounded sample stage", 
 });
 
 test("interface typography reserves sub-9px text for exceptional micro annotation only", async () => {
-  const css = await source(cssUrl);
+  const css = await allCss();
   assert.doesNotMatch(css, /font-size:\s*[67]px\b/);
   const eightPixelRules = css.match(/font-size:\s*8px\b/g) ?? [];
   assert.ok(eightPixelRules.length <= 1, `expected at most one 8px micro annotation, found ${eightPixelRules.length}`);
