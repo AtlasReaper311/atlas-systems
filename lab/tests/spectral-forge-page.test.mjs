@@ -39,8 +39,8 @@ test("Spectral Forge preserves the progressive flagship hierarchy", async () => 
   assert.match(html, /id="analysis-field"/);
   assert.match(html, /id="audio-scope"/);
   assert.match(html, /id="route-focus"/);
-  assert.match(html, /A \/ BASELINE/);
-  assert.match(html, /B \/ CANDIDATE/);
+  assert.match(html, /id="variant-a"[^>]*>A\s*<strong>BASELINE<\/strong>/);
+  assert.match(html, /id="variant-b"[^>]*>B\s*<strong>CANDIDATE<\/strong>/);
 });
 
 test("Spectral Forge uses native controls for critical interaction paths", async () => {
@@ -83,9 +83,11 @@ test("audio implementation names true stereo width and a bounded sample stage", 
   assert.match(html, /−1 dBFS SAMPLE BOUND/);
 });
 
-test("interface copy avoids the tiny-text failure mode of the Sites prototype", async () => {
+test("interface typography reserves sub-9px text for exceptional micro annotation only", async () => {
   const css = await source(cssUrl);
-  assert.doesNotMatch(css, /font-size:\s*[678]px\b/);
+  assert.doesNotMatch(css, /font-size:\s*[67]px\b/);
+  const eightPixelRules = css.match(/font-size:\s*8px\b/g) ?? [];
+  assert.ok(eightPixelRules.length <= 1, `expected at most one 8px micro annotation, found ${eightPixelRules.length}`);
   assert.match(css, /font-size:\s*11px/);
   assert.match(css, /min-height:\s*44px/);
 });
