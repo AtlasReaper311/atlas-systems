@@ -72,10 +72,10 @@
 
       <div class="forge-audio-controls">
         <button class="forge-primary-control" id="audio-toggle" type="button">ENABLE AUDIO</button>
-        <label class="forge-master-control">
+        <div class="forge-master-control">
           <span>MASTER <output id="master-level-label" for="master-level">−5.0 dB</output></span>
           <input id="master-level" type="range" min="0.18" max="0.78" step="0.01" value="0.56" aria-label="Master output level">
-        </label>
+        </div>
       </div>
     </section>
 
@@ -118,7 +118,7 @@
     <section class="forge-depth-panel forge-work" data-depth-panel="FORGE" aria-labelledby="forge-heading" hidden>
       <header class="forge-mode-heading">
         <div><span class="forge-micro-label">FORGE</span><h2 id="forge-heading">Shape the translation between signal and sound.</h2></div>
-        <div class="forge-compare" aria-label="Deterministic mapping comparison">
+        <div class="forge-compare" role="group" aria-label="Deterministic mapping comparison">
           <span class="forge-control-label">TELEMETRY IDENTICAL · MAPPING CHANGED</span>
           <div><button type="button" id="variant-a" aria-pressed="true">A <strong>BASELINE</strong></button><button type="button" id="variant-b" aria-pressed="false">B <strong>CANDIDATE</strong></button></div>
           <small>A <code id="fingerprint-a">--------</code> · B <code id="fingerprint-b">--------</code></small>
@@ -127,7 +127,7 @@
       </header>
 
       <div class="forge-preset-bar">
-        <label for="preset-select"><span>PRESET</span><select id="preset-select"></select></label>
+        <label><span>PRESET</span><select id="preset-select"></select></label>
         <button type="button" id="save-preset">SAVE CANDIDATE</button><button type="button" id="delete-preset" hidden>DELETE PRESET</button>
       </div>
 
@@ -138,8 +138,8 @@
           <details class="forge-route-create" id="route-create">
             <summary>+ CREATE ROUTE</summary>
             <div>
-              <label for="route-source">SOURCE<select id="route-source"></select></label>
-              <label for="route-target">TARGET<select id="route-target"></select></label>
+              <label>SOURCE<select id="route-source"></select></label>
+              <label>TARGET<select id="route-target"></select></label>
               <button type="button" id="route-create-confirm">PATCH ROUTE</button>
             </div>
           </details>
@@ -163,13 +163,13 @@
           <div class="forge-transform-chain" id="transform-chain"></div>
           <svg class="forge-transform-curve" id="transform-curve" viewBox="0 0 220 120" role="img" aria-label="Selected route transformation curve"><path class="forge-curve-grid" d="M10 10V110H210M10 60H210M110 10V110"></path><path class="forge-curve-line" id="transform-curve-line" d="M10 110L210 10"></path></svg>
           <div class="forge-inspector-controls">
-            <label for="mapping-transform">TRANSFORM<select id="mapping-transform"></select></label>
-            <label for="mapping-polarity">POLARITY<select id="mapping-polarity"></select></label>
-            <label for="mapping-smoothing">SMOOTHING<select id="mapping-smoothing"></select></label>
-            <label for="mapping-input-min">INPUT MIN<input id="mapping-input-min" type="number" min="0" max="0.99" step="0.01"></label>
-            <label for="mapping-input-max">INPUT MAX<input id="mapping-input-max" type="number" min="0.01" max="1" step="0.01"></label>
-            <label for="mapping-output-min">OUTPUT MIN<input id="mapping-output-min" type="number"></label>
-            <label for="mapping-output-max">OUTPUT MAX<input id="mapping-output-max" type="number"></label>
+            <label>TRANSFORM<select id="mapping-transform"></select></label>
+            <label>POLARITY<select id="mapping-polarity"></select></label>
+            <label>SMOOTHING<select id="mapping-smoothing"></select></label>
+            <label>INPUT MIN<input id="mapping-input-min" type="number" min="0" max="0.99" step="0.01"></label>
+            <label>INPUT MAX<input id="mapping-input-max" type="number" min="0.01" max="1" step="0.01"></label>
+            <label>OUTPUT MIN<input id="mapping-output-min" type="number"></label>
+            <label>OUTPUT MAX<input id="mapping-output-max" type="number"></label>
           </div>
           <p id="mapping-explanation" class="forge-mapping-explanation"></p>
           <div class="forge-inspector-actions"><button type="button" id="mapping-bypass">BYPASS</button><button type="button" id="mapping-remove">REMOVE ROUTE</button></div>
@@ -180,12 +180,12 @@
     <section class="forge-depth-panel forge-analysis" data-depth-panel="ANALYSE" aria-labelledby="analyse-heading" hidden>
       <header class="forge-mode-heading forge-mode-heading--analysis">
         <div><span class="forge-micro-label">ANALYSE</span><h2 id="analyse-heading">Inspect what changed and why.</h2></div>
-        <div class="forge-analysis-switch" aria-label="Analysis view"><button type="button" data-analysis="SIGNAL" aria-pressed="true">SIGNAL</button><button type="button" data-analysis="AUDIO" aria-pressed="false">AUDIO</button></div>
+        <div class="forge-analysis-switch" role="group" aria-label="Analysis view"><button type="button" data-analysis="SIGNAL" aria-pressed="true">SIGNAL</button><button type="button" data-analysis="AUDIO" aria-pressed="false">AUDIO</button></div>
       </header>
 
       <div class="forge-analysis-view" data-analysis-panel="SIGNAL">
         <section class="forge-analysis-primary" aria-labelledby="signal-analysis-title">
-          <header><span class="forge-micro-label">SELECTED SIGNAL</span><h3 id="signal-analysis-title">Signal history</h3><label for="analysis-signal-select">SIGNAL<select id="analysis-signal-select"></select></label></header>
+          <header><span class="forge-micro-label">SELECTED SIGNAL</span><h3 id="signal-analysis-title">Signal history</h3><label>SIGNAL<select id="analysis-signal-select"></select></label></header>
           <div class="forge-analysis-hero-value"><strong id="analysis-signal-value">0</strong><span id="analysis-signal-unit"></span><small>NORMALISED <b id="analysis-signal-normalised">0.000</b></small></div>
           <canvas id="analysis-signal-timeline" role="img" aria-label="Selected signal history"></canvas>
         </section>
@@ -204,7 +204,7 @@
   <dialog id="save-preset-dialog" class="forge-dialog">
     <form method="dialog" id="save-preset-form">
       <header><div><span class="forge-micro-label">LOCAL PRESET</span><h2>Save candidate mapping</h2></div><button type="button" data-dialog-close aria-label="Close save preset dialog">×</button></header>
-      <div class="forge-dialog-body"><label for="preset-name">PRESET NAME<input id="preset-name" name="preset-name" required maxlength="48" autocomplete="off"></label><p>Saved in this browser only. No account, database, or production telemetry is involved.</p><div><button type="button" data-dialog-close>CANCEL</button><button type="submit" value="save">SAVE PRESET</button></div></div>
+      <div class="forge-dialog-body"><label>PRESET NAME<input id="preset-name" name="preset-name" required maxlength="48" autocomplete="off"></label><p>Saved in this browser only. No account, database, or production telemetry is involved.</p><div><button type="button" data-dialog-close>CANCEL</button><button type="submit" value="save">SAVE PRESET</button></div></div>
     </form>
   </dialog>
 
