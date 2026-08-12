@@ -179,7 +179,4 @@ jobs:
         run: git diff --check
 
       - name: Check repository links offline
-        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
-        with:
-          args: "--offline --no-progress --include-fragments --root-dir ${{ github.workspace }} ."
-          fail: true
+        run: python3 scripts/check_repository_links.py .

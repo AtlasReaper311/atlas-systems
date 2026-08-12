@@ -99,12 +99,7 @@ jobs:
           PY
           git diff --check
       - name: Check repository links offline
-        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
-        with:
-          args: "--offline --no-progress --include-fragments --root-dir ${{ github.workspace }} ."
-          format: detailed
-          output: interface-link-report.txt
-          fail: true
+        run: python3 scripts/check_repository_links.py . --output interface-link-report.txt
       - name: Upload interface validation records
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
