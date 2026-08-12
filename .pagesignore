@@ -23,3 +23,6 @@
 /scripts/
 *.test.js
 *.test.mjs
+
+# Standalone source handoffs (not public site content)
+/source-projects/
