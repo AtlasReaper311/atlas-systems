@@ -1,0 +1,66 @@
+.forge-mode-heading { min-height: 120px; display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 24px; border-bottom: 1px solid var(--forge-border); }
+.forge-mode-heading h2 { margin: 7px 0 0; font-family: "DM Serif Display", Georgia, serif; font-size: clamp(28px, 3vw, 38px); font-weight: 400; }
+.forge-compare { display: grid; gap: 7px; }
+.forge-compare > div { display: flex; }
+.forge-compare button { min-width: 120px; border-radius: 0; }
+.forge-compare button:first-child { border-radius: 4px 0 0 4px; }
+.forge-compare button:last-child { border-radius: 0 4px 4px 0; }
+.forge-compare button[aria-pressed="true"] { border-color: var(--forge-amber); background: rgba(245,166,35,.1); color: var(--forge-amber); }
+.forge-compare button strong { font-size: 10px; }
+.forge-compare small { color: var(--forge-faint); font-size: 10px; }
+.forge-compare code { color: var(--forge-dim); font-family: inherit; }
+.forge-compare-actions { display: flex; gap: 8px; }
+.forge-compare-actions button { padding: 0 12px; color: var(--forge-dim); }
+
+.forge-preset-bar { min-height: 70px; display: flex; justify-content: flex-end; align-items: center; gap: 8px; border-bottom: 1px solid var(--forge-border); }
+.forge-preset-bar label { display: grid; grid-template-columns: auto 210px; align-items: center; gap: 10px; color: var(--forge-faint); font-size: 10px; }
+.forge-preset-bar select { height: 44px; padding: 0 10px; border: 1px solid var(--forge-border-hi); border-radius: 4px; background: var(--forge-surface); }
+.forge-preset-bar button { padding: 0 12px; }
+
+.forge-workspace { display: grid; grid-template-columns: minmax(260px,.72fr) minmax(420px,1.18fr) minmax(350px,.9fr); gap: 16px; padding-top: 16px; }
+.forge-route-rack, .forge-field-dock, .forge-route-inspector, .forge-analysis-primary, .forge-analysis-phase, .forge-signal-index, .forge-audio-scope-panel, .forge-audio-parameters, .forge-audio-field { min-width: 0; background: var(--forge-surface); border-radius: 6px; }
+.forge-route-rack, .forge-route-inspector { padding: 22px; }
+.forge-route-rack header, .forge-route-inspector header { margin-bottom: 12px; }
+.forge-route-inspector header small { color: var(--forge-faint); font-size: 10px; }
+.forge-route-list { display: grid; }
+.forge-route-list button { min-height: 54px; display: grid; grid-template-columns: 14px minmax(0,1fr) auto minmax(0,1fr); align-items: center; gap: 9px; padding: 7px 5px; border: 0; border-bottom: 1px solid var(--forge-border); background: transparent; text-align: left; }
+.forge-route-list button:hover { background: rgba(255,255,255,.018); }
+.forge-route-list button[aria-pressed="true"] { color: var(--forge-amber); }
+.forge-route-list button[data-enabled="false"] { opacity: .48; }
+.forge-route-list i { width: 9px; height: 9px; border: 1px solid var(--forge-border-hi); border-radius: 50%; }
+.forge-route-list button[aria-pressed="true"] i { border-color: var(--forge-amber); box-shadow: 0 0 0 3px rgba(245,166,35,.1); }
+.forge-route-list strong { overflow: hidden; font-size: 10px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.forge-route-list span { color: var(--forge-faint); font-size: 10px; }
+.forge-route-create { margin-top: 16px; border: 1px dashed var(--forge-border-hi); border-radius: 4px; }
+.forge-route-create summary { min-height: 44px; display: flex; align-items: center; justify-content: center; color: var(--forge-amber); font-size: 10px; letter-spacing: .07em; cursor: pointer; }
+.forge-route-create summary::marker { display: none; }
+.forge-route-create > div { display: grid; gap: 10px; padding: 14px; border-top: 1px solid var(--forge-border); }
+.forge-route-create label, .forge-inspector-controls label { display: grid; gap: 5px; color: var(--forge-faint); font-size: 10px; letter-spacing: .06em; }
+.forge-route-create select, .forge-inspector-controls select, .forge-inspector-controls input { width: 100%; min-height: 44px; padding: 0 10px; border: 1px solid var(--forge-border-hi); border-radius: 4px; background: var(--forge-deep); color: var(--forge-text); }
+.forge-route-create button { color: var(--forge-amber); }
+
+.forge-field-dock { overflow: hidden; }
+.forge-field-dock > header { padding: 18px 20px 0; }
+.forge-field-stage--compact { min-height: 470px; border-radius: 0; }
+.forge-route-focus { width: 100%; display: grid; grid-template-columns: 34px auto 1fr; align-items: center; gap: 12px; padding: 12px 18px; border-width: 1px 0 0; border-radius: 0; text-align: left; }
+.forge-route-focus > span { width: 32px; height: 18px; padding: 3px; border: 1px solid var(--forge-border-hi); border-radius: 12px; }
+.forge-route-focus > span::before { content: ""; display: block; width: 10px; height: 10px; border-radius: 50%; background: var(--forge-dim); transition: transform 140ms ease; }
+.forge-route-focus[aria-pressed="true"] { background: rgba(245,166,35,.08); }
+.forge-route-focus[aria-pressed="true"] > span { border-color: var(--forge-amber); }
+.forge-route-focus[aria-pressed="true"] > span::before { background: var(--forge-amber); transform: translateX(14px); }
+.forge-route-focus strong { font-size: 11px; }
+.forge-route-focus small { color: var(--forge-faint); font-size: 10px; }
+
+.forge-transform-chain { display: grid; gap: 1px; background: var(--forge-border); }
+.forge-transform-chain span { display: grid; gap: 3px; padding: 12px; background: var(--forge-raised); }
+.forge-transform-chain small { color: var(--forge-faint); font-size: 9px; letter-spacing: .07em; }
+.forge-transform-chain strong { font-family: "DM Serif Display", Georgia, serif; font-size: 22px; font-weight: 400; }
+.forge-transform-chain i { color: var(--forge-amber); font-size: 10px; font-style: normal; }
+.forge-transform-curve { width: 100%; height: 154px; margin: 16px 0; background: var(--forge-deep); }
+.forge-curve-grid { fill: none; stroke: rgba(255,255,255,.08); stroke-width: .7; }
+.forge-curve-line { fill: none; stroke: var(--forge-cyan); stroke-width: 1.8; vector-effect: non-scaling-stroke; }
+.forge-inspector-controls { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 11px; }
+.forge-mapping-explanation { min-height: 48px; margin: 18px 0 0; color: var(--forge-dim); font-size: 11px; line-height: 1.6; }
+.forge-inspector-actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--forge-border); }
+.forge-inspector-actions button { padding: 0 12px; color: var(--forge-dim); }
+#mapping-remove { color: var(--forge-red); }
