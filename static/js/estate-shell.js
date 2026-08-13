@@ -63,7 +63,13 @@ function normalizePageMetadata() {
 }
 
 function ensureStylesheet(href) {
-  if (document.head.querySelector(`link[href="${href}"]`)) return;
+  // Match on pathname, not the whole href. Pages carry their own cache-busting
+  // query on these stylesheets, and an exact-href comparison used to append a
+  // second copy of the same file after first paint, relaying out the page.
+  const wanted = new URL(href, window.location.origin);
+  const present = [...document.head.querySelectorAll('link[rel="stylesheet"][href]')]
+    .some((link) => new URL(link.href, window.location.origin).pathname === wanted.pathname);
+  if (present) return;
   const link = document.createElement("link");
   link.rel = "stylesheet";
   link.href = href;
@@ -203,6 +209,7 @@ function currentRouteLabel() {
 function createRouteNav() {
   const container = document.createElement("div");
   container.className = "atlas-header__nav atlas-global-header__nav";
+  container.setAttribute("role", "group");
   container.setAttribute("aria-label", "Atlas Systems sections");
   const current = currentRouteLabel();
   for (const route of GLOBAL_ROUTES) {
@@ -302,9 +309,48 @@ async function refreshStatus(chip) {
   }
 }
 
+function headerIsComplete(nav) {
+  return Boolean(
+    nav.querySelector(".atlas-header__inner")
+    && nav.querySelector(".atlas-header__brand")
+    && nav.querySelector(".atlas-header__nav")
+    && nav.querySelector(".atlas-header__actions")
+    && nav.querySelector("[data-estate-search-open]")
+    && nav.querySelector(".nav-status")
+  );
+}
+
+function markCurrentRoute(nav) {
+  const current = currentRouteLabel();
+  for (const link of nav.querySelectorAll(".atlas-header__nav a")) {
+    if (link.textContent.trim() === current) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  }
+}
+
+/**
+ * The page already ships the governed header, so first paint is correct.
+ * Adopt it: wire the live parts and leave the DOM alone. Rebuilding a
+ * complete header is what made every navigation flash a different site.
+ */
+function adoptHeader(nav) {
+  nav.classList.add("atlas-header", "atlas-nav-shell", "atlas-global-header");
+  nav.removeAttribute("style");
+  findWordmark(nav)?.classList.add("atlas-wordmark");
+  nav.querySelector("[data-estate-search-open]")?.classList.add("atlas-search-control");
+  markCurrentRoute(nav);
+  const isHomepage = normalizePath(window.location.pathname) === "/";
+  const status = isHomepage ? preserveHomepageStatus(nav) : nav.querySelector(".nav-status");
+  if (status) void refreshStatus(status);
+}
+
 function installHeader() {
   const nav = findPrimaryNav();
   if (!nav) return;
+  if (headerIsComplete(nav)) {
+    adoptHeader(nav);
+    return;
+  }
   const isHomepage = normalizePath(window.location.pathname) === "/";
   const wordmark = findWordmark(nav) || createWordmark();
   wordmark.classList.add("atlas-wordmark");
@@ -339,8 +385,30 @@ function mobileIcon(label) {
   return `<svg viewBox="0 0 24 24" aria-hidden="true">${paths[label]}</svg>`;
 }
 
+function markCurrentMobileRoute(nav) {
+  const current = currentRouteLabel();
+  for (const link of nav.querySelectorAll(".atlas-mobile-nav__item")) {
+    const active = link.textContent.trim() === current;
+    link.classList.toggle("active", active);
+    if (active) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  }
+}
+
+function mobileNavigationIsComplete(nav) {
+  return Boolean(
+    nav.querySelector(".atlas-mobile-nav__inner")
+    && nav.querySelectorAll(".atlas-mobile-nav__item").length === GLOBAL_ROUTES.length
+  );
+}
+
 function installMobileNavigation() {
   let nav = document.querySelector('nav[aria-label="Mobile navigation"]');
+  if (nav && mobileNavigationIsComplete(nav)) {
+    document.body.dataset.atlasBottomNav = "true";
+    markCurrentMobileRoute(nav);
+    return;
+  }
   if (!nav) {
     nav = document.createElement("nav");
     nav.setAttribute("aria-label", "Mobile navigation");

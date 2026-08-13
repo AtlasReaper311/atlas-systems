@@ -35,7 +35,7 @@ test("homepage keeps detailed Worker coverage in the evidence cards only", () =>
 });
 
 test("homepage keeps its initial status hook for the estate shell to replace", () => {
-  assert.match(html, /id="nav-build-status">checking…<\/span>/);
+  assert.match(html, /<span id="nav-build-status" class="atlas-estate-status-label">Checking<\/span>/);
   assert.match(html, /\/js\/live-signal\.js\?v=20260720-vector-five/);
   assert.doesNotMatch(truthSource, /nav-build-status|renderNavDot|overallHealth/);
 });
@@ -57,7 +57,7 @@ test("homepage foregrounds interactive audio engineering without overcrowding na
 
 test("AWS is officially active and Writing remains reachable on mobile", () => {
   assert.match(html, /AWS <span class="stack-state">active<\/span>/);
-  assert.match(html, /href="\/writing\/" class="mobile-nav-item"/);
+  assert.match(html, /class="mobile-nav-item atlas-mobile-nav__item" href="\/writing\/"/);
   assert.doesNotMatch(html, /AWS[\s\S]{0,80}in progress/i);
 });
 

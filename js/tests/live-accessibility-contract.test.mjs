@@ -23,7 +23,7 @@ test("homepage live state uses one narrow polite atomic announcement region", ()
   assert.match(sources.homeLive, /region\.setAttribute\("aria-atomic", "true"\)/);
   assert.match(sources.homeCss, /\.live-status-announcer\s*\{/);
 
-  const navStatus = sources.homepage.match(/<a[^>]*class="nav-status"[^>]*>/)?.[0] ?? "";
+  const navStatus = sources.homepage.match(/<a[^>]*class="nav-status[^"]*"[^>]*>/)?.[0] ?? "";
   const estateStrip = sources.homepage.match(/<a[^>]*id="estate-strip"[^>]*>/)?.[0] ?? "";
   assert.ok(navStatus);
   assert.ok(estateStrip);
