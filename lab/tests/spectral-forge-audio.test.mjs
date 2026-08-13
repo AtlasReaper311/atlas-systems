@@ -2,12 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  HEALTH_AUDIO_PROFILES,
   MASTER_DEFAULT,
   MASTER_MAX,
   MASTER_MIN,
   OUTPUT_CEILING_DBFS,
   OUTPUT_CEILING_LINEAR,
   createSoftClipCurve,
+  healthAudioProfile,
   linearToDb,
   normaliseTarget,
 } from "../../static/js/spectral-forge/audio-engine.js";
@@ -41,4 +43,29 @@ test("target normalisation clamps safely", () => {
   assert.equal(normaliseTarget("stereo_width", 150), 1);
   assert.equal(normaliseTarget("filter_cutoff", 180), 0);
   assert.equal(normaliseTarget("filter_cutoff", 8000), 1);
+});
+
+test("health audio profiles increase unease by redistribution rather than gain", () => {
+  const stable = HEALTH_AUDIO_PROFILES.STABLE;
+  const pressured = HEALTH_AUDIO_PROFILES.PRESSURED;
+  const degraded = HEALTH_AUDIO_PROFILES.DEGRADED;
+  const failed = HEALTH_AUDIO_PROFILES.FAILED;
+  assert.ok(pressured.tonalScale <= stable.tonalScale);
+  assert.ok(degraded.tonalScale < pressured.tonalScale);
+  assert.ok(failed.tonalScale < degraded.tonalScale);
+  assert.ok(failed.widthScale < degraded.widthScale);
+  assert.ok(degraded.widthScale < stable.widthScale);
+  assert.ok(failed.textureScale > stable.textureScale);
+  assert.ok(failed.pulseScale <= stable.pulseScale);
+  assert.ok(failed.brightnessScale < stable.brightnessScale);
+});
+
+test("health audio profiles remain finite and bounded", () => {
+  for (const [health, profile] of Object.entries(HEALTH_AUDIO_PROFILES)) {
+    for (const [key, value] of Object.entries(profile)) {
+      assert.equal(Number.isFinite(value), true, `${health}/${key}`);
+      assert.ok(value > 0 && value <= 1.2, `${health}/${key} bounded`);
+    }
+  }
+  assert.equal(healthAudioProfile("UNKNOWN"), HEALTH_AUDIO_PROFILES.STABLE);
 });

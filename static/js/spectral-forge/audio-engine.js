@@ -8,6 +8,18 @@ export const MASTER_MIN = 0.18;
 export const MASTER_MAX = 0.78;
 export const MASTER_DEFAULT = 0.56;
 
+export const HEALTH_AUDIO_PROFILES = Object.freeze({
+  STABLE: Object.freeze({ tonalScale: 1, textureScale: 0.9, widthScale: 1, pulseScale: 1, noiseBandScale: 1, brightnessScale: 1 }),
+  PRESSURED: Object.freeze({ tonalScale: 0.96, textureScale: 1, widthScale: 0.92, pulseScale: 0.98, noiseBandScale: 0.92, brightnessScale: 0.94 }),
+  DEGRADED: Object.freeze({ tonalScale: 0.88, textureScale: 1.08, widthScale: 0.82, pulseScale: 0.93, noiseBandScale: 0.82, brightnessScale: 0.86 }),
+  FAILED: Object.freeze({ tonalScale: 0.76, textureScale: 1.12, widthScale: 0.68, pulseScale: 0.86, noiseBandScale: 0.72, brightnessScale: 0.78 }),
+  RECOVERING: Object.freeze({ tonalScale: 0.92, textureScale: 0.96, widthScale: 0.88, pulseScale: 0.92, noiseBandScale: 0.9, brightnessScale: 0.92 }),
+});
+
+export function healthAudioProfile(health) {
+  return HEALTH_AUDIO_PROFILES[health] ?? HEALTH_AUDIO_PROFILES.STABLE;
+}
+
 export function normaliseTarget(id, value) {
   const target = TARGET_BY_ID[id];
   if (!target) throw new TypeError(`Unknown audio target: ${id}`);
@@ -202,18 +214,19 @@ export class SpectralForgeAudioEngine {
     if (this.disposed) return;
     const now = this.context.currentTime;
     const seconds = (target) => SMOOTHING_SECONDS[smoothing[target] ?? "MEDIUM"];
+    const profile = healthAudioProfile(health);
 
     ramp(this.filter.frequency, clamp(parameters.filter_cutoff, 180, 8000), now, seconds("filter_cutoff"));
 
     const brightness = normaliseTarget("harmonic_brightness", parameters.harmonic_brightness);
-    ramp(this.harmonic.gain.gain, 0.08 + brightness * 0.16, now, seconds("harmonic_brightness"));
-    ramp(this.shimmer.gain.gain, 0.025 + brightness * 0.09, now, seconds("harmonic_brightness"));
-    ramp(this.primary.gain.gain, 0.3 - brightness * 0.075, now, seconds("harmonic_brightness"));
+    ramp(this.harmonic.gain.gain, (0.08 + brightness * 0.16) * profile.brightnessScale, now, seconds("harmonic_brightness"));
+    ramp(this.shimmer.gain.gain, (0.025 + brightness * 0.09) * profile.brightnessScale, now, seconds("harmonic_brightness"));
+    ramp(this.primary.gain.gain, (0.3 - brightness * 0.075) * profile.tonalScale, now, seconds("harmonic_brightness"));
 
     const tonalLevel = normaliseTarget("tonal_level", parameters.tonal_level);
     const instabilityNormalised = normaliseTarget("instability", parameters.instability);
     const compensation = 1 - instabilityNormalised * 0.1;
-    ramp(this.tonalGain.gain, (0.28 + tonalLevel * 0.42) * compensation, now, seconds("tonal_level"));
+    ramp(this.tonalGain.gain, (0.28 + tonalLevel * 0.42) * compensation * profile.tonalScale, now, seconds("tonal_level"));
 
     const instability = clamp(parameters.instability, 0, 35);
     ramp(this.primary.oscillator.detune, -instability * 0.45, now, seconds("instability"));
@@ -222,10 +235,10 @@ export class SpectralForgeAudioEngine {
 
     const density = normaliseTarget("texture_density", parameters.texture_density);
     const errorTexture = normaliseTarget("error_texture", parameters.error_texture);
-    ramp(this.noiseGain.gain, density * 0.024 + errorTexture * 0.065, now, Math.min(seconds("texture_density"), seconds("error_texture")));
-    ramp(this.noiseFilter.frequency, 520 + density * 2350, now, seconds("texture_density"));
+    ramp(this.noiseGain.gain, (density * 0.024 + errorTexture * 0.065) * profile.textureScale, now, Math.min(seconds("texture_density"), seconds("error_texture")));
+    ramp(this.noiseFilter.frequency, (520 + density * 2350) * profile.noiseBandScale, now, seconds("texture_density"));
 
-    const width = normaliseTarget("stereo_width", parameters.stereo_width);
+    const width = normaliseTarget("stereo_width", parameters.stereo_width) * profile.widthScale;
     ramp(this.widthLeft.gain, width, now, seconds("stereo_width"));
     ramp(this.widthRight.gain, -width, now, seconds("stereo_width"));
 
@@ -234,7 +247,7 @@ export class SpectralForgeAudioEngine {
     ramp(this.delayFeedback.gain, Math.min(0.38, delay * 0.38), now, seconds("delay"));
 
     this.pulseRate = clamp(parameters.pulse_rate, 0.25, 8);
-    this.pulseIntensity = normaliseTarget("pulse_intensity", parameters.pulse_intensity);
+    this.pulseIntensity = normaliseTarget("pulse_intensity", parameters.pulse_intensity) * profile.pulseScale;
 
     if (health !== this.lastHealth) {
       this.setHarmonicState(health);
