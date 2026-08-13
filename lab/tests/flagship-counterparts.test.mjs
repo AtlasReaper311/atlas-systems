@@ -3,9 +3,9 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const labHtmlUrl = new URL("../index.html", import.meta.url);
+const labIntroFieldUrl = new URL("../shared/lab-intro-field.js", import.meta.url);
 const counterpartUrl = new URL("../shared/flagship-counterparts.js", import.meta.url);
 const counterpartCssUrl = new URL("../shared/flagship-counterparts.css", import.meta.url);
-const audioCardsUrl = new URL("../shared/audio-flagship-cards.js", import.meta.url);
 const audioCardsCssUrl = new URL("../shared/audio-flagship-cards.css", import.meta.url);
 const forgeBootstrapUrl = new URL("../../static/js/spectral-forge/app.js", import.meta.url);
 const symphonyNavigationUrl = new URL("../system-symphony/system-symphony-navigation.js", import.meta.url);
@@ -72,20 +72,24 @@ test("counterpart family styling preserves target size, focus and restrained amb
   assert.match(css, /symphony-transport__title h2\[data-page-now-playing\]/);
 });
 
-test("Lab-only flagship assets own LISTEN and DESIGN card treatment without inflating global routes", async () => {
-  const module = await source(audioCardsUrl);
+test("Lab-home boot owns LISTEN and DESIGN card treatment without adding a standalone script", async () => {
+  const labIntroField = await source(labIntroFieldUrl);
   const css = await source(audioCardsCssUrl);
   const labHtml = await source(labHtmlUrl);
   const globalJs = await source(cardSignaturesUrl);
   const globalCss = await source(cardSignaturesCssUrl);
-  assert.match(module, /family: "LISTEN"/);
-  assert.match(module, /family: "DESIGN"/);
-  assert.match(module, /`ATLAS AUDIO \/\/ \$\{definition\.family\}`/);
-  assert.match(module, /lab-flagship-card__signature/);
+  assert.match(labIntroField, /const AUDIO_FLAGSHIP_CARDS_CSS/);
+  assert.match(labIntroField, /family: "LISTEN"/);
+  assert.match(labIntroField, /family: "DESIGN"/);
+  assert.match(labIntroField, /function enhanceAudioFlagshipCards/);
+  assert.match(labIntroField, /`ATLAS AUDIO \/\/ \$\{definition\.family\}`/);
+  assert.match(labIntroField, /lab-flagship-card__signature/);
+  assert.match(labIntroField, /\/\^\\\/lab\\\/?\$\//);
+  assert.match(labIntroField, /enhanceAudioFlagshipCards\(root\)/);
   assert.match(css, /\.lab-flagship-card__signature/);
   assert.match(css, /color:var\(--accent\)/);
   assert.match(css, /em\.lab-flagship-card__signature\{font-style:italic\}/);
-  assert.match(labHtml, /\/lab\/shared\/audio-flagship-cards\.js/);
+  assert.doesNotMatch(labHtml, /\/lab\/shared\/audio-flagship-cards\.js/);
   assert.doesNotMatch(globalJs, /audio-flagship-cards\.js/);
   assert.doesNotMatch(globalJs, /const AUDIO_FLAGSHIPS|function enhanceAudioFlagshipCards/);
   assert.doesNotMatch(globalCss, /\.lab-flagship-card__signature/);
