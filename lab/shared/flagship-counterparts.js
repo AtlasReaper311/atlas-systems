@@ -1,15 +1,23 @@
 "use strict";
 
-const STYLESHEET = "/lab/shared/flagship-counterparts.css?v=20260813-spectral-forge";
+const STYLESHEET = "/lab/shared/flagship-counterparts.css?v=20260813-atlas-audio-family-v1";
 const ROUTES = Object.freeze({
   "/lab/system-symphony/": Object.freeze({
     href: "/lab/spectral-forge/",
+    family: "LISTEN",
+    counterpartFamily: "DESIGN",
+    prefix: "SYSTEM",
+    signature: "SYMPHONY",
     title: "Spectral Forge",
     thesis: "Design how a system becomes sound.",
     source: "System SYMPHONY",
   }),
   "/lab/spectral-forge/": Object.freeze({
     href: "/lab/system-symphony/",
+    family: "DESIGN",
+    counterpartFamily: "LISTEN",
+    prefix: "SPECTRAL",
+    signature: "Forge",
     title: "System SYMPHONY",
     thesis: "Listen to a system.",
     source: "Spectral Forge",
@@ -29,45 +37,109 @@ function ensureStylesheet() {
   document.head.appendChild(link);
 }
 
-function insertionAnchor(pathname) {
-  if (pathname === "/lab/spectral-forge/") return document.querySelector(".forge-product-header");
-  if (pathname === "/lab/system-symphony/") {
-    return document.querySelector("[data-symphony-product-bar]")
-      ?? document.querySelector("[data-symphony-flagship]");
+function identitySurface(pathname) {
+  if (pathname === "/lab/spectral-forge/") {
+    return {
+      title: document.querySelector(".forge-product-identity h1"),
+      copy: document.querySelector(".forge-product-identity p"),
+    };
   }
+  if (pathname === "/lab/system-symphony/") {
+    return {
+      title: document.querySelector("#symphony-page-title"),
+      copy: document.querySelector(".symphony-flagship .focus-lede"),
+    };
+  }
+  return { title: null, copy: null };
+}
+
+function createFamilyMark(documentNode, family) {
+  const mark = documentNode.createElement("p");
+  mark.className = "atlas-audio-family__mark";
+  const glyph = documentNode.createElement("span");
+  glyph.className = "atlas-audio-family__glyph";
+  glyph.setAttribute("aria-hidden", "true");
+  const text = documentNode.createElement("span");
+  text.textContent = `ATLAS AUDIO // ${family}`;
+  mark.append(glyph, text);
+  return mark;
+}
+
+function decorateIdentity(pathname, definition) {
+  const { title, copy } = identitySurface(pathname);
+  if (!title || title.dataset.atlasAudioFamilyReady === "true") return;
+
+  const documentNode = title.ownerDocument;
+  const mark = createFamilyMark(documentNode, definition.family);
+  title.parentElement?.insertBefore(mark, title);
+
+  title.classList.add("atlas-audio-title", pathname === "/lab/system-symphony/" ? "atlas-audio-title--listen" : "atlas-audio-title--design");
+  title.replaceChildren();
+
+  const prefix = documentNode.createElement("span");
+  prefix.className = "atlas-audio-title__prefix";
+  prefix.textContent = definition.prefix;
+
+  const signature = pathname === "/lab/spectral-forge/"
+    ? documentNode.createElement("em")
+    : documentNode.createElement("span");
+  signature.className = "atlas-audio-title__signature";
+  signature.textContent = definition.signature;
+  title.append(prefix, signature);
+  title.dataset.atlasAudioFamilyReady = "true";
+
+  if (copy && !copy.parentElement?.querySelector(".atlas-audio-family__counterpart")) {
+    const link = documentNode.createElement("a");
+    link.className = "atlas-audio-family__counterpart";
+    link.href = definition.href;
+    link.setAttribute("aria-label", `${definition.counterpartFamily}: open ${definition.title}`);
+    link.innerHTML = `<span>${definition.counterpartFamily}</span><strong>${definition.title}</strong><i aria-hidden="true">→</i>`;
+    copy.insertAdjacentElement("afterend", link);
+  }
+}
+
+function insertionAnchor(pathname) {
+  if (pathname === "/lab/spectral-forge/") return document.querySelector('.forge-play .forge-field-stage');
+  if (pathname === "/lab/system-symphony/") return document.querySelector(".symphony-stage");
   return null;
 }
 
 export function installFlagshipCounterpart() {
   const pathname = normalizePath(window.location.pathname);
   const counterpart = ROUTES[pathname];
-  if (!counterpart || document.querySelector("[data-flagship-counterpart]")) return null;
+  if (!counterpart) return null;
+
+  ensureStylesheet();
+  decorateIdentity(pathname, counterpart);
+
+  const existing = document.querySelector("[data-flagship-counterpart]");
+  if (existing) return existing;
+
   const anchor = insertionAnchor(pathname);
   if (!anchor) return null;
 
-  ensureStylesheet();
-  const aside = document.createElement("aside");
+  const documentNode = anchor.ownerDocument;
+  const aside = documentNode.createElement("aside");
   aside.className = "lab-flagship-counterpart";
   aside.dataset.flagshipCounterpart = "";
-  aside.setAttribute("aria-label", `${counterpart.source} counterpart`);
+  aside.setAttribute("aria-label", `${counterpart.source} audio counterpart`);
 
-  const label = document.createElement("span");
-  label.className = "lab-flagship-counterpart__label";
-  label.textContent = "Audio counterpart";
+  const family = createFamilyMark(documentNode, counterpart.counterpartFamily);
+  family.classList.add("lab-flagship-counterpart__family");
 
-  const link = document.createElement("a");
+  const link = documentNode.createElement("a");
   link.className = "lab-flagship-counterpart__link";
   link.href = counterpart.href;
 
-  const title = document.createElement("strong");
+  const title = documentNode.createElement("strong");
   title.textContent = counterpart.title;
-  const thesis = document.createElement("span");
+  const thesis = documentNode.createElement("span");
   thesis.textContent = counterpart.thesis;
-  const route = document.createElement("span");
+  const route = documentNode.createElement("span");
   route.className = "lab-flagship-counterpart__route";
-  route.textContent = "Open counterpart →";
+  route.textContent = `OPEN ${counterpart.counterpartFamily} →`;
   link.append(title, thesis, route);
-  aside.append(label, link);
+  aside.append(family, link);
   anchor.insertAdjacentElement("afterend", aside);
   return aside;
 }
