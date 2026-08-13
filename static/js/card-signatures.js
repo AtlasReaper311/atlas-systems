@@ -23,11 +23,6 @@ export const CARD_SIGNATURES = Object.freeze([
 ]);
 
 const GOVERNED_CARD_SELECTOR = ".system-card[data-visual][data-motif]";
-const AUDIO_FLAGSHIP_SELECTOR = ".lab-flagship-card--symphony, .lab-flagship-card--forge";
-const AUDIO_FLAGSHIPS = Object.freeze([
-  Object.freeze({ selector: ".lab-flagship-card--symphony", family: "LISTEN", prefix: "System", signature: "SYMPHONY", italic: false }),
-  Object.freeze({ selector: ".lab-flagship-card--forge", family: "DESIGN", prefix: "Spectral", signature: "Forge", italic: true }),
-]);
 const SHAPE_DETECTOR_SELECTOR = 'a.system-card[href="/lab/anomaly/"]';
 const SIGNATURE_SET = new Set(CARD_SIGNATURES);
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -96,29 +91,6 @@ function normalizeShapeDetectorCards(root = document) {
   }
 }
 
-function enhanceAudioFlagshipCards(root = document) {
-  const documentNode = root.ownerDocument ?? root;
-  for (const definition of AUDIO_FLAGSHIPS) {
-    for (const card of root.querySelectorAll(definition.selector)) {
-      if (card.dataset.atlasAudioFamilyReady === "true") continue;
-      const topLabel = card.querySelector(".lab-flagship-card__top span:first-child");
-      if (topLabel) topLabel.textContent = `ATLAS AUDIO // ${definition.family}`;
-
-      const title = card.querySelector(".lab-flagship-card__copy h3");
-      if (title) {
-        const prefix = documentNode.createElement("span");
-        prefix.className = "lab-flagship-card__prefix";
-        prefix.textContent = definition.prefix;
-        const signature = definition.italic ? documentNode.createElement("em") : documentNode.createElement("span");
-        signature.className = "lab-flagship-card__signature";
-        signature.textContent = definition.signature;
-        title.replaceChildren(prefix, documentNode.createTextNode(" "), signature);
-      }
-      card.dataset.atlasAudioFamilyReady = "true";
-    }
-  }
-}
-
 async function installSystemSymphonyTargetContract() {
   if (!window.location.pathname.startsWith(SYMPHONY_ROUTE)) return;
   symphonyTargetPromise ??= (async () => {
@@ -136,7 +108,6 @@ async function installSystemSymphonyTargetContract() {
 export async function enhanceCardSignatures(root = document) {
   const documentNode = root.ownerDocument ?? root;
   normalizeShapeDetectorCards(root);
-  enhanceAudioFlagshipCards(root);
   spritePromise ??= installSprite(documentNode);
   await spritePromise;
 
@@ -173,13 +144,11 @@ export async function enhanceCardSignatures(root = document) {
   }
 }
 
-function containsEnhanceableCard(node) {
+function containsGovernedCard(node) {
   if (node?.nodeType !== 1) return false;
   return Boolean(
     node.matches?.(GOVERNED_CARD_SELECTOR)
-    || node.matches?.(AUDIO_FLAGSHIP_SELECTOR)
-    || node.querySelector?.(GOVERNED_CARD_SELECTOR)
-    || node.querySelector?.(AUDIO_FLAGSHIP_SELECTOR),
+    || node.querySelector?.(GOVERNED_CARD_SELECTOR),
   );
 }
 
@@ -187,11 +156,10 @@ export function observeCardSignatures(documentNode = document) {
   if (cardObserver || !documentNode.body || typeof MutationObserver === "undefined") return;
   cardObserver = new MutationObserver((records) => {
     const cardAdded = records.some(({ addedNodes }) =>
-      [...addedNodes].some(containsEnhanceableCard),
+      [...addedNodes].some(containsGovernedCard),
     );
     if (!cardAdded) return;
     normalizeShapeDetectorCards(documentNode);
-    enhanceAudioFlagshipCards(documentNode);
     enhanceCardSignatures(documentNode).catch((error) => {
       console.warn(`[card-signatures] ${error.message}; preserving CSS motif fallback`);
     });
@@ -202,7 +170,6 @@ export function observeCardSignatures(documentNode = document) {
 async function startEnhancement() {
   observeCardSignatures(document);
   normalizeShapeDetectorCards(document);
-  enhanceAudioFlagshipCards(document);
   await Promise.all([
     enhanceCardSignatures().catch((error) => {
       console.warn(`[card-signatures] ${error.message}; preserving CSS motif fallback`);
@@ -217,4 +184,8 @@ if (typeof document !== "undefined") {
   } else {
     void startEnhancement();
   }
+}
+
+if (typeof window !== "undefined" && /^\/lab\/?$/.test(window.location.pathname)) {
+  void import("/lab/shared/audio-flagship-cards.js?v=20260813-audio-family-scope");
 }
