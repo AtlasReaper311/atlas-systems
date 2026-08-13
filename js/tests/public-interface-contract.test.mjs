@@ -235,11 +235,97 @@ const FIELD_ROUTE_STYLESHEETS = Object.freeze([
   ["work/index.html", "/static/css/atlas-field-consumer.css"],
   ["writing/index.html", "/static/css/directory-header-fields.css"],
   ["writing/index.html", "/static/css/atlas-field-consumer.css"],
+  ["systems/index.html", "/static/css/directory-header-fields.css"],
+  ["systems/index.html", "/static/css/atlas-field-consumer.css"],
   ["about/index.html", "/static/css/secondary-surface-fields.css"],
   ["systems/evidence/index.html", "/static/css/secondary-surface-fields.css"],
   ["systems/observability/index.html", "/static/css/secondary-surface-fields.css"],
   ["systems/reliability/index.html", "/static/css/secondary-surface-fields.css"],
   ["index.html", "/css/home-v2-base.css"],
+]);
+
+const FIRST_PAINT_FONT_ROUTES = Object.freeze([
+  "index.html",
+  "work/index.html",
+  "writing/index.html",
+  "systems/index.html",
+  "about/index.html",
+  "systems/evidence/index.html",
+  "systems/observability/index.html",
+  "systems/reliability/index.html",
+]);
+
+const FIRST_PAINT_FIELD_HOSTS = Object.freeze([
+  [
+    "work/index.html",
+    "<body",
+    ["data-atlas-directory-header=\"work\""],
+  ],
+  [
+    "work/index.html",
+    "<header",
+    ["atlas-page-header", "atlas-page-header--work", "atlas-header-composition--build-fragments"],
+  ],
+  [
+    "writing/index.html",
+    "<body",
+    ["data-atlas-directory-header=\"writing\""],
+  ],
+  [
+    "writing/index.html",
+    "<header",
+    ["atlas-page-header", "atlas-page-header--writing", "atlas-header-composition--editorial-drift"],
+  ],
+  [
+    "systems/index.html",
+    "<body",
+    ["data-atlas-directory-header=\"systems\""],
+  ],
+  [
+    "systems/index.html",
+    "<header",
+    ["atlas-page-header", "atlas-page-header--systems", "atlas-header-composition--topology-current"],
+  ],
+  [
+    "about/index.html",
+    "<body",
+    ["data-atlas-composition=\"identity-field\""],
+  ],
+  [
+    "about/index.html",
+    "<header",
+    ["atlas-composition-host", "atlas-composition--identity-field"],
+  ],
+  [
+    "systems/evidence/index.html",
+    "<body",
+    ["data-atlas-composition=\"proof-trace\""],
+  ],
+  [
+    "systems/evidence/index.html",
+    "<header",
+    ["atlas-composition-host", "atlas-composition--proof-trace"],
+  ],
+  [
+    "systems/observability/index.html",
+    "<body",
+    ["data-atlas-composition=\"telemetry-lattice\""],
+  ],
+  [
+    "systems/observability/index.html",
+    "<header",
+    ["atlas-composition-host", "atlas-composition--telemetry-lattice"],
+  ],
+  [
+    "systems/reliability/index.html",
+    "<body",
+    ["data-atlas-composition=\"pulse-horizon\""],
+  ],
+  [
+    "systems/reliability/index.html",
+    "<header",
+    ["atlas-composition-host", "atlas-composition--pulse-horizon"],
+  ],
 ]);
 
 test("field surfaces are contained before any canvas can mount", () => {
@@ -249,6 +335,50 @@ test("field surfaces are contained before any canvas can mount", () => {
   assert.match(shellCss, /\.atlas-field-surface\s*\{[^}]*overflow:\s*hidden/);
   assert.match(shellCss, /\.atlas-field-surface\s*>\s*\.atlas-field-canvas\s*\{[^}]*position:\s*absolute/);
   assert.match(shellCss, /\.atlas-field-surface\s*>\s*\.atlas-field-canvas\s*\{[^}]*inset:\s*0/);
+  assert.match(shellCss, /\.atlas-field-surface\s*>\s*\.atlas-field-canvas\s*\{[^}]*transition:\s*opacity 340ms ease-out/);
+});
+
+test("primary pages preload visible local fonts before the font stylesheet", () => {
+  for (const path of FIRST_PAINT_FONT_ROUTES) {
+    const head = fs.readFileSync(path, "utf8").split("</head>")[0];
+    const stylesheetIndex = head.indexOf("/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css");
+    assert.ok(stylesheetIndex > -1, `${path} must keep the repository-local font stylesheet`);
+    for (const font of [
+      "ibm-plex-mono-400.woff2",
+      "ibm-plex-mono-500.woff2",
+      "dm-serif-display-400.woff2",
+    ]) {
+      const preload = new RegExp(`<link rel="preload" href="/static/vendor/atlas-interface/v0\\.2\\.0/fonts/${font}" as="font" type="font/woff2" crossorigin>`);
+      assert.match(head, preload, `${path} must preload ${font}`);
+      assert.ok(head.indexOf(font) < stylesheetIndex, `${path} must start ${font} before atlas-fonts.css`);
+    }
+  }
+});
+
+test("field routes ship final field host classes before JavaScript mounts canvases", () => {
+  for (const [path, selectorStart, required] of FIRST_PAINT_FIELD_HOSTS) {
+    const source = fs.readFileSync(path, "utf8");
+    const tag = source.slice(source.indexOf(selectorStart), source.indexOf(">", source.indexOf(selectorStart)) + 1);
+    assert.ok(tag, `${path} must include ${selectorStart}`);
+    for (const token of required) {
+      assert.match(tag, new RegExp(token), `${path} first-paint field host must include ${token}`);
+    }
+    if (selectorStart === "<header") {
+      assert.match(tag, /atlas-field-surface/, `${path} field host needs pre-mount containment`);
+      assert.match(tag, /atlas-field-surface--ambient/, `${path} field host needs its final preset class`);
+    }
+  }
+});
+
+test("AtlasField reveals its canvas only after the first rendered frame", () => {
+  const field = fs.readFileSync("static/js/atlas-field.js", "utf8");
+  assert.match(field, /canvas\.dataset\.atlasFieldReveal = "pending"/);
+  assert.match(field, /canvas\.style\.opacity = "0"/);
+  assert.match(field, /function revealCanvas\(\) \{/);
+  assert.match(field, /canvas\.dataset\.atlasFieldReveal = "ready"/);
+  assert.match(field, /canvas\.style\.opacity = ""/);
+  assert.match(field, /canvas\.dataset\.mode = "static";\s*revealCanvas\(\);/);
+  assert.match(field, /canvas\.dataset\.pointer = pointer\.active \? "influenced" : "autonomous";\s*revealCanvas\(\);/);
 });
 
 test("every field route links its geometry stylesheet in head", () => {
