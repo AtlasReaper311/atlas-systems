@@ -84,7 +84,7 @@ test("Lab-home boot owns LISTEN and DESIGN card treatment without adding a stand
   assert.match(labIntroField, /function enhanceAudioFlagshipCards/);
   assert.match(labIntroField, /`ATLAS AUDIO \/\/ \$\{definition\.family\}`/);
   assert.match(labIntroField, /lab-flagship-card__signature/);
-  assert.match(labIntroField, /\/\^\\\/lab\\\/?\$\//);
+  assert.match(labIntroField, /new URL\(documentNode\.baseURI\)\.pathname/);
   assert.match(labIntroField, /enhanceAudioFlagshipCards\(root\)/);
   assert.match(css, /\.lab-flagship-card__signature/);
   assert.match(css, /color:var\(--accent\)/);
