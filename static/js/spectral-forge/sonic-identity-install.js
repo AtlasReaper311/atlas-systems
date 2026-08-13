@@ -39,7 +39,8 @@ prototype.schedulePulse = function sonicHeartbeat() {
 };
 
 prototype.triggerEvent = function sonicEvent(kind, health) {
-  triggerSonicEvent(this, kind, health);
+  void kind;
+  triggerSonicEvent(this, health);
 };
 
 prototype.dispose = async function sonicDispose() {
