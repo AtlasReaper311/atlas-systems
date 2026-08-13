@@ -117,6 +117,7 @@
 
 /* Lab audio flagships share this already-loaded visual stylesheet to stay inside the accepted Lab request budget. */
 .lab-audio-flagships {
+  position: relative;
   padding: 52px 0 68px;
   border-bottom: 1px solid var(--border);
 }
@@ -134,6 +135,7 @@
   grid-template-rows: auto 1fr auto;
   gap: 28px;
   overflow: hidden;
+  isolation: isolate;
   padding: 28px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -141,6 +143,18 @@
   color: var(--text);
   text-decoration: none;
   transition: border-color 160ms ease, background 160ms ease;
+}
+.lab-flagship-card::after {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 28px;
+  width: 92px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(245,166,35,.92), rgba(245,166,35,0));
+  box-shadow: 0 0 18px rgba(245,166,35,.08);
+  pointer-events: none;
 }
 .lab-flagship-card:hover {
   border-color: var(--border-hi);
@@ -163,6 +177,23 @@
   letter-spacing: .08em;
   text-transform: uppercase;
 }
+.lab-flagship-card__top span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-faint);
+  letter-spacing: .11em;
+}
+.lab-flagship-card__top span:first-child::before {
+  content: "";
+  width: 18px;
+  height: 9px;
+  flex: 0 0 auto;
+  background:
+    linear-gradient(90deg, transparent 0 1px, var(--accent) 1px 2px, transparent 2px 6px, var(--accent) 6px 7px, transparent 7px 11px, var(--accent) 11px 12px, transparent 12px 16px, var(--accent) 16px 17px, transparent 17px),
+    linear-gradient(180deg, transparent 0 4px, color-mix(in srgb, var(--accent) 34%, transparent) 4px 5px, transparent 5px);
+  opacity: .82;
+}
 .lab-flagship-card__copy {
   position: relative;
   z-index: 2;
@@ -171,12 +202,23 @@
 }
 .lab-flagship-card__copy h3 {
   margin: 0 0 8px;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .18em;
   font-family: "DM Serif Display", Georgia, serif;
   font-size: clamp(2rem, 4vw, 3.25rem);
   font-weight: 400;
   line-height: .98;
   letter-spacing: -.025em;
 }
+.lab-flagship-card__prefix { color: var(--text); }
+.lab-flagship-card__signature {
+  color: var(--accent);
+  font-weight: 400;
+  text-shadow: 0 0 18px rgba(245,166,35,.11), 0 0 38px rgba(245,166,35,.045);
+}
+em.lab-flagship-card__signature { font-style: italic; }
 .lab-flagship-card__thesis { margin: 0 0 12px; color: var(--text); font-size: .96rem; font-weight: 500; }
 .lab-flagship-card__description { margin: 0; max-width: 43rem; color: var(--text-dim); font-size: .82rem; line-height: 1.65; }
 .lab-flagship-card__route { color: var(--text); font-size: .76rem; white-space: nowrap; }
@@ -204,6 +246,12 @@
 .lab-flagship-visual--forge .wave { stroke-width: 1.65; opacity: .92; }
 .lab-flagship-visual--forge .node { fill: currentColor; opacity: .78; }
 .lab-flagship-visual--forge .accent { stroke: var(--accent); opacity: .82; }
+.lab-flagship-card--symphony {
+  background: radial-gradient(430px 220px at 82% 24%, rgba(245,166,35,.035), transparent 72%), linear-gradient(180deg, rgba(255,255,255,.018), transparent 62%), var(--bg-1, #111118);
+}
+.lab-flagship-card--symphony:hover {
+  background: radial-gradient(430px 220px at 82% 24%, rgba(245,166,35,.055), transparent 72%), linear-gradient(180deg, rgba(255,255,255,.028), transparent 62%), var(--bg-1, #111118);
+}
 .lab-flagship-card--forge {
   background: radial-gradient(460px 230px at 82% 26%, rgba(116,208,255,.055), transparent 70%), linear-gradient(180deg, rgba(255,255,255,.018), transparent 62%), var(--bg-1, #111118);
 }
@@ -215,6 +263,7 @@
   .lab-audio-flagships { padding: 40px 0 52px; }
   .lab-flagship-grid { grid-template-columns: 1fr; }
   .lab-flagship-card { min-height: 310px; padding: 24px; }
+  .lab-flagship-card::after { left: 24px; }
   .lab-flagship-visual { top: 42px; right: 8px; width: 52%; height: 158px; opacity: .68; }
 }
 
