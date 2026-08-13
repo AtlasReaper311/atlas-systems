@@ -286,6 +286,49 @@ test("field bootstraps match stylesheets by pathname so a head link counts", () 
   }
 });
 
+test("directory heroes ship their field geometry rather than growing into it", () => {
+  // The field host classes carry the hero's final size (atlas-page-header sets
+  // min-height). Added from JavaScript, they made the hero grow ~37px after
+  // load; in the HTML, first paint is already the settled geometry.
+  for (const [path, variant, composition] of [
+    ["work/index.html", "work", "build-fragments"],
+    ["writing/index.html", "writing", "editorial-drift"],
+  ]) {
+    const source = fs.readFileSync(path, "utf8");
+    const hero = source.match(/<header class="page-header[^"]*"/)?.[0] ?? "";
+    assert.ok(hero, `${path} must ship a page header`);
+    for (const className of [
+      "atlas-field-surface",
+      "atlas-field-surface--ambient",
+      "atlas-page-header",
+      `atlas-page-header--${variant}`,
+      `atlas-header-composition--${composition}`,
+    ]) {
+      assert.match(hero, new RegExp(`\\b${className}\\b`), `${path} hero must ship ${className}`);
+    }
+    assert.match(source, new RegExp(`<body[^>]*data-atlas-directory-header="${variant}"`), path);
+  }
+});
+
+test("the route enter animation moves content without ever hiding it", () => {
+  const shellCss = fs.readFileSync("static/css/estate-shell.css", "utf8");
+  const keyframes = shellCss.match(/@keyframes atlas-route-enter\s*\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.ok(keyframes, "the route enter animation must exist");
+
+  // A fade would park the page at opacity 0 until the animation ran, which is
+  // the same bargain as the overlay this replaced.
+  assert.doesNotMatch(keyframes, /opacity/, "route enter must not animate opacity");
+  assert.match(keyframes, /transform:\s*translate3d/);
+  assert.doesNotMatch(shellCss, /animation:\s*atlas-route-enter[^;]*(?:both|backwards|forwards)/);
+
+  // Motion is opt-out, and the header is the fixed point navigation is measured
+  // against: it must never animate.
+  const rule = shellCss.match(/@media \(prefers-reduced-motion: no-preference\)\s*\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.ok(rule, "route enter must be gated on prefers-reduced-motion");
+  assert.match(rule, /body > main\s*\{[\s\S]*animation:\s*atlas-route-enter/);
+  assert.doesNotMatch(rule, /atlas-header|atlas-nav-shell|Primary navigation/);
+});
+
 test("the checked-in chrome snippet teaches the header the site actually ships", () => {
   const snippet = fs.readFileSync("site-snippet/estate-search-includes.html", "utf8");
   const header = headerBlock(snippet);

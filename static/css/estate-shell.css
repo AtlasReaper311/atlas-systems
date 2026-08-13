@@ -113,6 +113,33 @@ html[data-atlas-interface] body { font-size: max(15px, 1rem); }
 .atlas-search-control kbd { color: var(--text-faint, var(--atlas-text-faint)); font: 9px var(--mono, var(--atlas-font-body)); }
 .atlas-mobile-nav { display: none; }
 
+/* Route enter.
+   The old transition was a JavaScript overlay that covered the page you were
+   leaving and faded off the one you had already arrived on. It could not cover
+   the next document's first paint, because it did not exist until that
+   document's own script ran, so it bought a delay rather than a transition.
+   This is the same gesture with none of that: content settles in from CSS the
+   browser already has, so it cannot gate first paint, cannot delay a click and
+   cannot hide a mistake. The header is deliberately excluded — it is the fixed
+   point navigation is measured against, and it must not move or fade.
+   It moves content without ever hiding it. A fade from zero would read a
+   little richer, but it would park the whole page at opacity 0 until the
+   animation ran, and a browser that has not started the animation yet —
+   a background tab, for one — would hold it there. That is the same bargain
+   as the overlay and the JS-gated body: content contingent on something
+   running. A translate cannot fail that way. If the animation never runs,
+   the page is simply where it belongs, fully visible. */
+@media (prefers-reduced-motion: no-preference) {
+  body > main {
+    animation: atlas-route-enter 320ms var(--atlas-easing-emphasized, cubic-bezier(0.2, 0, 0, 1.2));
+  }
+}
+
+@keyframes atlas-route-enter {
+  from { transform: translate3d(0, 10px, 0); }
+  to { transform: none; }
+}
+
 /* AtlasField containment.
    Field canvases are created by JavaScript, and the stylesheet that positions
    them is fetched separately. Whenever the canvas won that race it laid out in
