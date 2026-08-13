@@ -142,6 +142,17 @@
       "tagline": "A read-only generative instrument driven by bounded evidence."
     },
     {
+      "file": "spectral-forge",
+      "html": "lab/spectral-forge/index.html",
+      "route": "/lab/spectral-forge/",
+      "kicker": "Experience / Telemetry sonification",
+      "title": [
+        "Spectral Forge.",
+        "Map systems into [sound.]"
+      ],
+      "tagline": "Change the mapping. Hear the consequence."
+    },
+    {
       "file": "proof-chain",
       "html": "lab/proof-chain/index.html",
       "route": "/lab/proof-chain/",
