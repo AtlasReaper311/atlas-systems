@@ -29,12 +29,12 @@ test("historical article shells expose the current Systems route", () => {
     const html = fs.readFileSync(`writing/${slug}/index.html`, "utf8");
     assert.match(
       html,
-      /<a href="\/systems\/" class="nav-link">Systems<\/a>/,
+      /<a class="atlas-global-header__link" href="\/systems\/">Systems<\/a>/,
       `${number} desktop navigation must expose Systems`,
     );
     assert.match(
       html,
-      /<a href="\/systems\/" class="mobile-nav-item">[\s\S]*?Systems<\/a>/,
+      /<a class="mobile-nav-item atlas-mobile-nav__item" href="\/systems\/">[\s\S]*?Systems<\/span><\/a>/,
       `${number} mobile navigation must expose Systems`,
     );
   }

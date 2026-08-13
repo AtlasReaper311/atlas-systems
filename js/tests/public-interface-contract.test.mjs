@@ -23,8 +23,39 @@ const FONT_FILES = new Set([
   "fonts/ibm-plex-mono-500.woff2",
 ]);
 
+// Redirect interstitials. They replace the location before anything paints,
+// so shipping chrome on them would only slow the redirect down.
+const CHROME_EXEMPT_ROUTES = new Set([
+  "lab/reliability/index.html",
+  "lab/system-symphony/replay/index.html",
+]);
+
+// Routes that reach lab/shared/shell.js and therefore carry the Lab context
+// strip beneath the global header.
+const LAB_SHELL_ROUTES = Object.freeze([
+  "lab/almost/index.html", "lab/anomaly/index.html", "lab/bearing/index.html",
+  "lab/blackbox/index.html", "lab/conformance/index.html", "lab/console/index.html",
+  "lab/drift/index.html", "lab/index.html", "lab/proof-chain/index.html",
+  "lab/signal/index.html", "lab/spectral-forge/index.html", "lab/speculum/index.html",
+  "lab/system-map/index.html", "lab/system-symphony/build-log/index.html",
+  "lab/system-symphony/index.html", "lab/system-symphony/radio/index.html",
+  "lab/system-symphony/roms/index.html", "lab/xray/index.html",
+]);
+
 function snapshot(operational, total, checkedAt = "2026-07-23T07:55:00Z") {
   return { estate: { operational, total_components: total, checked_at: checkedAt } };
+}
+
+function governedRoutes() {
+  return filesBelow(".", ".html")
+    .filter((path) => !path.startsWith("site-snippet/"))
+    .filter((path) => !CHROME_EXEMPT_ROUTES.has(path));
+}
+
+function headerBlock(source) {
+  return source.match(
+    /<nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">[\s\S]*?<\/nav>/,
+  )?.[0] ?? "";
 }
 
 function sha256(path) {
@@ -77,6 +108,134 @@ test("v2 shell exposes the accepted route order and v0.3.0 foundations", () => {
   assert.match(shell, /aria-live", "off"/);
   assert.match(shell, /normalizeLegacySemantics/);
   assert.match(shellCss, /grid-template-columns:\s*repeat\(5,\s*1fr\)/);
+});
+
+test("first paint ships the governed header rather than a JavaScript rewrite of it", () => {
+  for (const path of governedRoutes()) {
+    const source = fs.readFileSync(path, "utf8");
+    const header = headerBlock(source);
+    assert.ok(header, `${path} must ship the global header in HTML`);
+    assert.match(header, /<div class="atlas-header__inner">/, path);
+    assert.match(header, /class="atlas-header__brand atlas-global-header__identity"/, path);
+    assert.match(header, /class="atlas-header__nav atlas-global-header__nav"/, path);
+    assert.match(header, /class="atlas-header__actions atlas-global-header__actions"/, path);
+    assert.match(header, /class="nav-wordmark atlas-wordmark"/, path);
+    assert.match(header, /class="nav-status atlas-status atlas-estate-status"/, path);
+    assert.match(header, /class="es-nav-search atlas-search-control"[^>]*data-estate-search-open/, path);
+
+    for (const { label, href } of GLOBAL_ROUTES) {
+      assert.match(
+        header,
+        new RegExp(`<a class="atlas-global-header__link" href="${href}"[^>]*>${label}</a>`),
+        `${path} header must link ${label}`,
+      );
+    }
+    assert.ok(
+      (header.match(/aria-current="page"/g) || []).length <= 1,
+      `${path} may mark at most one current section`,
+    );
+
+    // The chrome the shell used to build over the top of.
+    assert.doesNotMatch(source, /<ul class="nav-links">/, `${path} legacy nav list`);
+    assert.doesNotMatch(source, /class="nav-link"/, `${path} legacy nav link`);
+  }
+});
+
+test("header stylesheets are blocking links in head, never runtime appends", () => {
+  for (const path of governedRoutes()) {
+    const head = fs.readFileSync(path, "utf8").split("</head>")[0];
+    assert.match(
+      head,
+      /<link rel="stylesheet" href="\/static\/vendor\/atlas-interface\/v0\.3\.0\/atlas-interface-kit\.css">/,
+      `${path} must link the kit at first paint`,
+    );
+    assert.match(head, /<link rel="stylesheet" href="\/static\/css\/estate-shell\.css/, path);
+    assert.equal(
+      (head.match(/\/static\/css\/estate-shell\.css/g) || []).length,
+      1,
+      `${path} must link exactly one shell stylesheet`,
+    );
+  }
+});
+
+test("Lab routes ship the context strip beneath the header", () => {
+  for (const path of LAB_SHELL_ROUTES) {
+    const source = fs.readFileSync(path, "utf8");
+    const mode = path === "lab/index.html" ? "directory" : "compact";
+    assert.match(
+      source,
+      new RegExp(`<nav class="lab-context-nav lab-context-nav--${mode}" aria-label="Lab navigation" data-lab-context-mode="${mode}"`),
+      `${path} Lab context strip`,
+    );
+    assert.match(source, /<body[^>]*data-lab-shell/, `${path} must reserve the fixed header in flow`);
+    assert.match(source, /<body[^>]*data-lab-layout="(?:directory|standard|immersive|product)"/, path);
+    if (mode === "compact") {
+      assert.match(source, /<summary>All Lab tools<\/summary>/, path);
+      assert.match(source, /class="lab-context-compact__current" aria-current="page"/, path);
+    }
+    assert.equal(
+      (source.match(/class="lab-context-tools__group"|class="lab-context-group"/g) || []).length,
+      4,
+      `${path} must carry the four canonical Lab groups`,
+    );
+  }
+});
+
+test("navigation belongs to the browser: no click intercept, no route overlay", () => {
+  const transitions = fs.readFileSync("js/transitions.js", "utf8");
+  // Comments may name what was removed; the code may not do it.
+  const code = transitions.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  assert.doesNotMatch(code, /preventDefault/);
+  assert.doesNotMatch(code, /location\.assign/);
+  assert.doesNotMatch(code, /page-overlay/);
+  assert.doesNotMatch(code, /route-ready|route-closing/);
+  assert.doesNotMatch(code, /addEventListener\("click"/);
+  assert.doesNotMatch(code, /setTimeout/);
+
+  // The two behaviours that genuinely belong to page entry stay.
+  assert.match(transitions, /window\.location\.pathname === "\/about\/"/);
+  assert.match(transitions, /data-ramone-reduced-musing/);
+
+  for (const path of governedRoutes()) {
+    const source = fs.readFileSync(path, "utf8");
+    assert.doesNotMatch(source, /id="page-overlay"/, `${path} must not ship a route curtain`);
+  }
+});
+
+test("shells adopt a complete header instead of replacing it", () => {
+  const shell = fs.readFileSync("static/js/estate-shell.js", "utf8");
+  assert.match(shell, /function headerIsComplete\(nav\)/);
+  assert.match(shell, /if \(headerIsComplete\(nav\)\) \{\s*adoptHeader\(nav\);\s*return;\s*\}/);
+  assert.match(shell, /function mobileNavigationIsComplete\(nav\)/);
+
+  // Adopting is not ignoring: the live parts still get wired.
+  const adopt = shell.match(/function adoptHeader\(nav\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.ok(adopt, "adoptHeader must exist");
+  assert.match(adopt, /markCurrentRoute\(nav\)/);
+  assert.match(adopt, /preserveHomepageStatus\(nav\)/);
+  assert.match(adopt, /void refreshStatus\(status\)/);
+  assert.doesNotMatch(adopt, /replaceChildren/);
+
+  // One stylesheet per pathname, whatever cache-busting query a page carries.
+  assert.match(shell, /new URL\(link\.href, window\.location\.origin\)\.pathname === wanted\.pathname/);
+
+  const lab = fs.readFileSync("lab/shared/shell.js", "utf8");
+  assert.match(lab, /function contextNavigationIsComplete\(context, pathname = currentPath\(\)\)/);
+  assert.match(lab, /if \(context && contextNavigationIsComplete\(context\)\) return context;/);
+  assert.match(lab, /if \(contextNavigationIsComplete\(context, pathname\)\) \{/);
+  assert.match(lab, /if \(!complete\) installFallbackHeader\(header\)/);
+});
+
+test("the checked-in chrome snippet teaches the header the site actually ships", () => {
+  const snippet = fs.readFileSync("site-snippet/estate-search-includes.html", "utf8");
+  const header = headerBlock(snippet);
+  assert.ok(header, "snippet must carry the current header fragment");
+  assert.match(header, /class="atlas-header__inner"/);
+  assert.match(header, /class="es-nav-search atlas-search-control"/);
+  assert.match(snippet, /atlas-interface\/v0\.3\.0\/atlas-interface-kit\.css/);
+  assert.match(snippet, /class="mobile-nav atlas-mobile-nav atlas-bottom-nav"/);
+  assert.match(snippet, /class="lab-context-nav lab-context-nav--compact"/);
+  assert.doesNotMatch(snippet, /<ul class="nav-links">/);
 });
 
 test("estate page titles use the page-first double-slash convention", () => {

@@ -12,7 +12,7 @@ const security = fs.readFileSync(".well-known/security.txt", "utf8");
 const performance = JSON.parse(fs.readFileSync("data/performance-baseline.json", "utf8"));
 
 test("Atlas-owned Status navigation stays in the current tab", () => {
-  const link = home.match(/<a href="https:\/\/status\.atlas-systems\.uk" class="nav-status"[^>]*>/)?.[0];
+  const link = home.match(/<a class="nav-status[^"]*" href="https:\/\/status\.atlas-systems\.uk\/"[^>]*>/)?.[0];
   assert.ok(link);
   assert.doesNotMatch(link, /target=/);
 });

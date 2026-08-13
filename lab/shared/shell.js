@@ -244,6 +244,7 @@ function installFallbackHeader(nav) {
 
   const routes = document.createElement("div");
   routes.className = "atlas-header__nav atlas-global-header__nav";
+  routes.setAttribute("role", "group");
   routes.setAttribute("aria-label", "Atlas Systems sections");
   const current = currentGlobalRouteLabel();
   for (const route of GLOBAL_ROUTES) {
@@ -306,8 +307,27 @@ function ensureGovernedHeader(primary) {
   return document.querySelector(".atlas-header") || header;
 }
 
+/**
+ * True when the document already ships the Lab context strip this route
+ * needs. Pre-rendered chrome is the whole point of shipping it in HTML;
+ * rebuilding it would repaint the strip under a header that is already
+ * correct, which is the flash this shell used to cause.
+ */
+function contextNavigationIsComplete(context, pathname = currentPath()) {
+  if (!context) return false;
+  if (pathname === LAB_HOME_ROUTE) {
+    return context.dataset.labContextMode === "directory"
+      && context.querySelectorAll(".lab-context-group").length === LAB_ROUTE_GROUPS.length;
+  }
+  return context.dataset.labContextMode === "compact"
+    && Boolean(context.querySelector(".lab-context-compact__crumbs"))
+    && Boolean(context.querySelector(".lab-context-tools > summary"))
+    && context.querySelectorAll(".lab-context-tools__group").length === LAB_ROUTE_GROUPS.length;
+}
+
 function installContextNavigation(primary) {
   let context = document.querySelector('.lab-context-nav[aria-label="Lab navigation"]');
+  if (context && contextNavigationIsComplete(context)) return context;
   if (!context) {
     context = document.createElement("nav");
     context.className = "lab-context-nav";
@@ -415,6 +435,15 @@ function installCompactLabContext(context) {
     context.classList.remove("lab-context-nav--compact");
     context.classList.add("lab-context-nav--directory");
     context.dataset.labContextMode = "directory";
+    return context;
+  }
+
+  // Already the right strip, from HTML or from an earlier pass: keep the DOM
+  // and only (re)attach the disclosure behaviour it needs.
+  if (contextNavigationIsComplete(context, pathname)) {
+    const details = context.querySelector(".lab-context-tools");
+    const summary = details?.querySelector("summary");
+    if (details && summary) installContextBehavior(context, details, summary);
     return context;
   }
 

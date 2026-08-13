@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-atlas-interface>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,10 +21,6 @@
     html{color-scheme:dark}
     body{min-height:100vh;overflow-x:hidden;background:var(--bg);color:var(--text);font:400 14px/1.65 var(--mono)}
     body::before{content:'';position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:80px 80px}
-    nav{position:fixed;inset:0 0 auto;z-index:100;min-height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:0 clamp(1.25rem,5vw,3rem);border-bottom:1px solid var(--border);background:rgba(10,10,15,.9);backdrop-filter:blur(12px)}
-    .nav-wordmark{color:var(--text);font-size:13px;font-weight:500;letter-spacing:.12em;text-decoration:none;text-transform:uppercase;white-space:nowrap}.nav-wordmark span{color:var(--accent)}
-    .nav-links{display:flex;align-items:center;list-style:none}.nav-links a{display:flex;align-items:center;min-height:44px;padding:.35rem .85rem;color:var(--text-dim);font-size:11px;letter-spacing:.08em;text-decoration:none;text-transform:uppercase}.nav-links a:hover,.nav-links a:focus-visible{color:var(--text)}
-    .es-nav-search{display:inline-flex;align-items:center;gap:.45rem;min-height:36px;padding:.35rem .65rem;border:1px solid var(--border);background:transparent;color:var(--text-dim);font:inherit;font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}.es-nav-search:hover,.es-nav-search:focus-visible{color:var(--text);border-color:var(--border-hi)}.es-nav-search svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.5}.es-nav-search kbd{color:var(--text-faint);font:inherit;font-size:8px}
     main{position:relative;z-index:1;width:min(760px,calc(100% - 2rem));min-height:calc(100vh - 86px);margin:0 auto;padding:calc(var(--nav-h) + 5rem) 0 6rem}
     .term-echo{margin-bottom:2.5rem;color:var(--text-faint);font-size:12px;white-space:pre-wrap;word-break:break-word}.term-echo .prompt{color:var(--accent)}.term-echo .cmd{color:var(--text-dim)}
     h1{font:400 clamp(4rem,15vw,7rem)/1 var(--serif);margin-bottom:1rem}h1 em{color:var(--accent);font-style:italic}
@@ -34,24 +30,29 @@
     .deploy-count{margin-top:1.5rem;color:var(--text-dim);font-size:13px}.deploy-count strong{color:var(--text);font-weight:500;font-variant-numeric:tabular-nums}.deploy-milestone{min-height:1.6em;margin-top:.75rem;color:var(--accent);font-size:13px}.deploy-reset{margin-top:1.5rem;padding:0;border:0;border-bottom:1px solid transparent;background:none;color:var(--text-faint);font:inherit;font-size:11px;letter-spacing:.06em;cursor:pointer}.deploy-reset:hover,.deploy-reset:focus-visible{color:var(--text-dim);border-bottom-color:var(--border-hi)}
     footer{position:relative;z-index:1;display:flex;justify-content:center;flex-wrap:wrap;gap:1.75rem;padding:1.5rem;border-top:1px solid var(--border);font-size:11px;letter-spacing:.08em;text-transform:uppercase}footer a{color:var(--text-dim);text-decoration:none}footer a:hover,footer a:focus-visible{color:var(--accent)}
     :where(a,button,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-    @media(max-width:680px){:root{--nav-h:112px}nav{height:auto;align-items:stretch;flex-direction:column;justify-content:center;gap:.55rem;padding:.65rem 1rem}.nav-links{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));width:100%}.nav-links li{min-width:0}.nav-links a,.es-nav-search{display:flex;align-items:center;justify-content:center;min-width:0;min-height:44px;padding:.4rem .2rem;font-size:9px;text-align:center}.es-nav-search span,.es-nav-search kbd{display:none}main{padding-top:calc(var(--nav-h) + 3rem)}}
+    @media(max-width:680px){:root{--nav-h:112px}main{padding-top:calc(var(--nav-h) + 3rem)}}
     @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
   </style>
+<link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
 </head>
-<body>
-  <nav aria-label="Primary navigation">
-    <div class="atlas-brand-cluster">
-      <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
-      <a class="atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" aria-label="Atlas Systems status: checking"><span class="atlas-estate-status-dot" aria-hidden="true"></span><span class="atlas-estate-status-label">checking</span></a>
+<body data-atlas-bottom-nav="true">
+  <nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
+    <div class="atlas-header__inner">
+      <div class="atlas-header__brand atlas-global-header__identity">
+        <a class="nav-wordmark atlas-wordmark" href="/" data-atlas-wordmark>Atlas<span class="atlas-wordmark__cursor">_</span>Systems</a>
+        <a class="nav-status atlas-status atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" data-atlas-status aria-label="Atlas Systems status: Checking" aria-live="off"><span class="status-dot atlas-status__dot" aria-hidden="true"></span><span class="atlas-estate-status-label" data-atlas-status-label>Checking</span></a>
+      </div>
+      <div class="atlas-header__nav atlas-global-header__nav" role="group" aria-label="Atlas Systems sections">
+        <a class="atlas-global-header__link" href="/work/">Work</a>
+        <a class="atlas-global-header__link" href="/writing/">Writing</a>
+        <a class="atlas-global-header__link" href="/lab/">Lab</a>
+        <a class="atlas-global-header__link" href="/systems/">Systems</a>
+        <a class="atlas-global-header__link" href="/about/">About</a>
+      </div>
+      <div class="atlas-header__actions atlas-global-header__actions">
+        <button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button>
+      </div>
     </div>
-    <ul class="nav-links">
-      <li><a href="/work/">Work</a></li>
-      <li><a href="/writing/">Writing</a></li>
-      <li><a href="/lab/">Lab</a></li>
-      <li><a href="/systems/">Systems</a></li>
-      <li><a href="/about/">About</a></li>
-      <li><button type="button" class="es-nav-search" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span>Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button></li>
-    </ul>
   </nav>
 
   <main>
@@ -114,5 +115,14 @@ error: route not found</p>
     })();
   </script>
   <script type="module" src="/static/js/estate-search/global-search.js"></script>
+  <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-inner atlas-mobile-nav__inner">
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/writing/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="16" y2="13"></line></svg><span>Writing</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/lab/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V9"></path><path d="M14 3h7v7"></path></svg><span>Lab</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg><span>Systems</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M20 21a8 8 0 10-16 0"></path></svg><span>About</span></a>
+    </div>
+  </nav>
 </body>
 </html>

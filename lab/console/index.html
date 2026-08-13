@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-atlas-interface>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -107,72 +107,6 @@
         background-size: 80px 80px;
         pointer-events: none;
         z-index: 0;
-      }
-      nav {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: var(--nav-h);
-        background: rgba(10, 10, 15, 0.85);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 clamp(1.5rem, 5vw, 3rem);
-        z-index: 100;
-      }
-      .nav-wordmark {
-        font-family: var(--mono);
-        font-weight: 500;
-        font-size: 13px;
-        letter-spacing: 0.12em;
-        color: var(--text);
-        text-decoration: none;
-        text-transform: uppercase;
-      }
-      .nav-wordmark span {
-        color: var(--accent);
-      }
-      .nav-links {
-        display: flex;
-        list-style: none;
-      }
-      .nav-links a {
-        display: block;
-        padding: 0.35rem 1rem;
-        font-size: 12px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: var(--text-dim);
-        text-decoration: none;
-        transition: color 0.15s;
-        position: relative;
-      }
-      .nav-links a::after {
-        content: "";
-        position: absolute;
-        bottom: -1px;
-        left: 50%;
-        right: 50%;
-        height: 1px;
-        background: var(--accent);
-        transition:
-          left 0.2s,
-          right 0.2s;
-      }
-      .nav-links a:hover {
-        color: var(--text);
-      }
-      .nav-links a:hover::after,
-      .nav-links a.active::after {
-        left: 1rem;
-        right: 1rem;
-      }
-      .nav-links a.active {
-        color: var(--text);
       }
       main {
         max-width: 1420px;
@@ -1173,50 +1107,6 @@
         color: var(--dp-faint);
         font-size: 0.68rem;
       }
-      .mobile-nav {
-        display: none;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 56px;
-        background: rgba(10, 10, 15, 0.95);
-        backdrop-filter: blur(12px);
-        border-top: 1px solid var(--border);
-        z-index: 100;
-      }
-      .mobile-nav-inner {
-        display: flex;
-        align-items: stretch;
-        height: 100%;
-      }
-      .mobile-nav-item {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 3px;
-        text-decoration: none;
-        color: var(--text-dim);
-        font-size: 10px;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        transition: color 0.15s;
-      }
-      .mobile-nav-item:hover,
-      .mobile-nav-item.active {
-        color: var(--accent);
-      }
-      .mobile-nav-item svg {
-        width: 18px;
-        height: 18px;
-        stroke: currentColor;
-        fill: none;
-        stroke-width: 1.5;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-      }
       @media (max-width: 780px) {
         .lab-grid {
           grid-template-columns: 1fr;
@@ -1231,12 +1121,6 @@
         }
       }
       @media (max-width: 680px) {
-        .nav-links {
-          display: none;
-        }
-        .mobile-nav {
-          display: block;
-        }
         main {
           padding-bottom: 56px;
         }
@@ -1246,29 +1130,81 @@
     <!-- atlas-signal-reliability-landing-css -->
     <link rel="stylesheet" href="/lab/shared/landing-systems.css?v=20260728-lab-context-nav-wrap" />
   <meta name="twitter:image:alt" content="Live systems. // Atlas Systems">
+<link rel="stylesheet" href="/lab/shared/lab-context-navigation.css?v=20260806-lab-consistency-v2">
+<link rel="stylesheet" href="/lab/shared/lab-shell-layout.css?v=20260806-lab-consistency-v2">
+<link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
+<link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
 </head>
-  <body>
-    <nav aria-label="Primary navigation">
-      <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
-      <ul class="nav-links">
-        <li><a href="/work/" class="nav-link">Work</a></li>
-        <li><a href="/writing/" class="nav-link">Writing</a></li>
-        <li><a href="/lab/" class="nav-link">Lab</a></li>
-        <li><a href="#dora-metrics" class="nav-link">Delivery</a></li>
-        <li><a href="/about/" class="nav-link">About</a></li>
-        <li>
-          <button type="button" class="es-nav-search" data-estate-search-open
-                  aria-label="Search the estate" aria-haspopup="dialog">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="11" cy="11" r="7"></circle>
-              <line x1="21" y1="21" x2="16.2" y2="16.2"></line>
-            </svg>
-            Search
-            <kbd data-estate-search-kbd>ctrl k</kbd>
-          </button>
-        </li>
-      </ul>
-    </nav>
+  <body data-atlas-bottom-nav="true" data-lab-shell="" data-lab-layout="standard" data-lab-route="console">
+  <nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
+    <div class="atlas-header__inner">
+      <div class="atlas-header__brand atlas-global-header__identity">
+        <a class="nav-wordmark atlas-wordmark" href="/" data-atlas-wordmark>Atlas<span class="atlas-wordmark__cursor">_</span>Systems</a>
+        <a class="nav-status atlas-status atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" data-atlas-status aria-label="Atlas Systems status: Checking" aria-live="off"><span class="status-dot atlas-status__dot" aria-hidden="true"></span><span class="atlas-estate-status-label" data-atlas-status-label>Checking</span></a>
+      </div>
+      <div class="atlas-header__nav atlas-global-header__nav" role="group" aria-label="Atlas Systems sections">
+        <a class="atlas-global-header__link" href="/work/">Work</a>
+        <a class="atlas-global-header__link" href="/writing/">Writing</a>
+        <a class="atlas-global-header__link" href="/lab/" aria-current="page">Lab</a>
+        <a class="atlas-global-header__link" href="/systems/">Systems</a>
+        <a class="atlas-global-header__link" href="/about/">About</a>
+      </div>
+      <div class="atlas-header__actions atlas-global-header__actions">
+        <button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button>
+      </div>
+    </div>
+  </nav>
+  <nav class="lab-context-nav lab-context-nav--compact" aria-label="Lab navigation" data-lab-context-mode="compact" data-current-lab-route="Operations">
+    <div class="lab-context-compact">
+      <div class="lab-context-compact__crumbs" role="group" aria-label="Current Lab location">
+        <a href="/lab/">Lab</a>
+        <span class="lab-context-compact__separator" aria-hidden="true">/</span>
+        <span class="lab-context-compact__current" aria-current="page">Operations</span>
+      </div>
+      <details class="lab-context-tools">
+        <summary>All Lab tools</summary>
+        <div class="lab-context-tools__menu" role="group" aria-label="All Lab tools">
+          <div class="lab-context-tools__group" data-lab-context-group="experience" role="group" aria-labelledby="lab-context-tools-group-0">
+            <span class="lab-context-tools__group-label" id="lab-context-tools-group-0">Experience</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/system-symphony/">System Symphony</a>
+              <a href="/lab/spectral-forge/">Spectral Forge</a>
+              <a href="/lab/signal/">Signal Garden</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="observe" role="group" aria-labelledby="lab-context-tools-group-1">
+            <span class="lab-context-tools__group-label" id="lab-context-tools-group-1">Observe</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/system-map/">System Map</a>
+              <a href="/lab/blackbox/">Blackbox</a>
+              <a href="/systems/observability/">Observability</a>
+              <a href="/lab/console/" aria-current="page">Operations</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="verify" role="group" aria-labelledby="lab-context-tools-group-2">
+            <span class="lab-context-tools__group-label" id="lab-context-tools-group-2">Verify</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/proof-chain/">Proof Chain</a>
+              <a href="/lab/conformance/">Estate Conformance</a>
+              <a href="/lab/xray/">X-Ray</a>
+              <a href="/systems/reliability/">Reliability</a>
+              <a href="/systems/evidence/">Evidence</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="explore" role="group" aria-labelledby="lab-context-tools-group-3">
+            <span class="lab-context-tools__group-label" id="lab-context-tools-group-3">Explore</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/speculum/">Speculum</a>
+              <a href="/lab/almost/">Almost</a>
+              <a href="/lab/drift/">Drift</a>
+              <a href="/lab/bearing/">The Bearing</a>
+              <a href="/lab/anomaly/">Shape Detector</a>
+            </div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </nav>
 
     <div id="heatmap-tooltip"><strong></strong><span></span></div>
 
@@ -2191,48 +2127,15 @@
       </div>
     </main>
 
-    <nav class="mobile-nav" aria-label="Mobile navigation">
-      <div class="mobile-nav-inner">
-        <a href="/" class="mobile-nav-item">
-          <svg viewBox="0 0 24 24">
-            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
-          Home
-        </a>
-        <a href="/work/" class="mobile-nav-item">
-          <svg viewBox="0 0 24 24">
-            <polyline points="16 18 22 12 16 6" />
-            <polyline points="8 6 2 12 8 18" />
-          </svg>
-          Work
-        </a>
-        <a href="/writing/" class="mobile-nav-item">
-          <svg viewBox="0 0 24 24">
-            <path d="M12 20h9" />
-            <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
-          </svg>
-          Writing
-        </a>
-        <a href="/about/" class="mobile-nav-item">
-          <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="8" r="4" />
-            <path d="M20 21a8 8 0 10-16 0" />
-          </svg>
-          About
-        </a>
-        <button type="button" class="mobile-nav-item es-nav-search-mobile"
-                data-estate-search-open aria-label="Search the estate"
-                aria-haspopup="dialog"
-                style="background:transparent;border:none;font-family:inherit;cursor:pointer">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="11" cy="11" r="7"></circle>
-            <line x1="21" y1="21" x2="16.2" y2="16.2"></line>
-          </svg>
-          Search
-        </button>
-      </div>
-    </nav>
+  <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-inner atlas-mobile-nav__inner">
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/writing/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="16" y2="13"></line></svg><span>Writing</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item active" href="/lab/" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V9"></path><path d="M14 3h7v7"></path></svg><span>Lab</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg><span>Systems</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M20 21a8 8 0 10-16 0"></path></svg><span>About</span></a>
+    </div>
+  </nav>
 
     <script>
       document.querySelectorAll(".nav-link").forEach((a) => {

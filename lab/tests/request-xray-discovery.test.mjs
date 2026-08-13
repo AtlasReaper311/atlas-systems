@@ -22,6 +22,10 @@ test("Request X-Ray route uses the governed Lab shell instead of standalone chro
   const page = fs.readFileSync("lab/xray/index.html", "utf8");
   assert.match(page, /<script type="module" src="\/lab\/shared\/shell\.js\?v=20260813-xray-route"><\/script>/);
   assert.match(page, /<script type="module" src="\/lab\/xray\/src\/app\.js\?v=20260813-lab-shell-parity"><\/script>/);
-  assert.doesNotMatch(page, /class="atlas-nav-shell atlas-header"/);
-  assert.doesNotMatch(page, /aria-label="Mobile navigation"/);
+  // The chrome is the estate's, shipped in the document so first paint is
+  // already correct. Bespoke X-Ray navigation is what stays forbidden.
+  assert.match(page, /<nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">/);
+  assert.match(page, /<nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">/);
+  assert.match(page, /<nav class="lab-context-nav lab-context-nav--compact" aria-label="Lab navigation"/);
+  assert.doesNotMatch(page, /class="xray-nav|class="xray-header/);
 });
