@@ -25,8 +25,8 @@
       "route": "/lab/",
       "html_bytes": 32870,
       "first_party_request_count": 23,
-      "referenced_asset_bytes": 226106,
-      "total_static_bytes": 258976,
+      "referenced_asset_bytes": 226221,
+      "total_static_bytes": 259091,
       "largest_referenced_asset": "lab/lab-card.js",
       "largest_referenced_asset_bytes": 43782
     },
@@ -67,5 +67,5 @@
       "largest_referenced_asset_bytes": 24744
     }
   ],
-  "sha256": "a2700d5c6c144908d1f516f4a99426f89a44f0b9d86dde663cdcf6d7fbe4a225"
+  "sha256": "62fd7c2f8f8c9fee71481f48cf915ef720714ad1d94736e5655ceb07163a2214"
 }

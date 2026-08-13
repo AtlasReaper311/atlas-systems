@@ -74,7 +74,10 @@ test("Lab field bootstrap assets cannot be retained stale", () => {
 
 test("surface-specific composition remains local", () => {
   assert.match(cardCss, /\.system-map-card-atlas-field::before\s*\{[^}]*linear-gradient/s);
+  assert.match(cardCss, /--atlas-field-reveal-opacity:\s*\.64/);
   assert.match(cardCss, /opacity:\s*\.64/);
+  assert.match(cardCss, /--atlas-field-reveal-opacity:\s*\.56/);
+  assert.match(cardCss, /--atlas-field-reveal-opacity:\s*\.58/);
   assert.match(cardCss, /backdrop-filter:\s*blur\(4px\)/s);
   assert.match(compositionCss, /atlas-composition--signal-bloom::before/);
   assert.match(compositionCss, /opacity:\s*\.24/);
