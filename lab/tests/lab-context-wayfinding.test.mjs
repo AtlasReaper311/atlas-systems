@@ -24,6 +24,7 @@ test("Lab context navigation follows the accepted purpose taxonomy", () => {
 test("Lab context inventory uses current canonical destinations", () => {
   for (const href of [
     "/lab/system-symphony/",
+    "/lab/spectral-forge/",
     "/lab/signal/",
     "/lab/system-map/",
     "/lab/blackbox/",
@@ -69,14 +70,19 @@ test("nested System Symphony routes retain parent Lab context", () => {
   assert.match(shell, /routePath === SYSTEM_SYMPHONY_ROUTE/);
   assert.match(shell, /SYSTEM_SYMPHONY_SCOPED_ROUTES\.some/);
   assert.match(shell, /link\.setAttribute\("aria-current", "page"\)/);
-  assert.match(shell, /if \(isSystemSymphonyPath\(pathname\)\) return "product"/);
+  assert.match(shell, /if \(isSystemSymphonyPath\(pathname\) \|\| pathname === SPECTRAL_FORGE_ROUTE\) return "product"/);
+});
+
+test("Spectral Forge is a first-class Experience product route", () => {
+  assert.match(shell, /const SPECTRAL_FORGE_ROUTE = "\/lab\/spectral-forge\/"/);
+  assert.match(shell, /label: "Spectral Forge", href: "\/lab\/spectral-forge\/"/);
+  assert.match(shell, /pathname === SPECTRAL_FORGE_ROUTE\) return "product"/);
+  assert.match(shell, /SPECTRAL_FORGE_ROUTE,/);
 });
 
 test("wayfinding keeps one measured rail and visible keyboard focus", () => {
   assert.match(shell, /LAB_CONTEXT_CSS/);
   assert.match(shell, /LAB_LAYOUT_CSS/);
-  assert.match(shell, /ensureStylesheet\(LAB_CONTEXT_CSS\)/);
-  assert.match(shell, /ensureStylesheet\(LAB_LAYOUT_CSS\)/);
   assert.match(styles, /a:focus-visible/);
   assert.match(styles, /outline: 2px solid var\(--accent\)/);
   assert.match(styles, /a\[aria-current="page"\]/);

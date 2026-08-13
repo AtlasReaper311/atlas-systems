@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
 const htmlUrl = new URL("../spectral-forge/index.html", import.meta.url);
@@ -16,7 +16,8 @@ const domainUrl = new URL("../../static/js/spectral-forge/domain.js", import.met
 const audioUrl = new URL("../../static/js/spectral-forge/audio-engine.js", import.meta.url);
 const stateUrl = new URL("../../static/js/spectral-forge/state.js", import.meta.url);
 const visualsUrl = new URL("../../static/js/spectral-forge/visuals.js", import.meta.url);
-const shellBridgeUrl = new URL("../spectral-forge/shell-bridge.js", import.meta.url);
+const shellUrl = new URL("../shared/shell.js", import.meta.url);
+const removedShellBridgeUrl = new URL("../spectral-forge/shell-bridge.js", import.meta.url);
 
 async function source(url) {
   return readFile(url, "utf8");
@@ -66,18 +67,23 @@ test("Spectral Forge uses native controls for critical interaction paths", async
   assert.doesNotMatch(html, /role="menu"|role="menuitem"/);
 });
 
-test("Spectral Forge is an Atlas-native static route", async () => {
+test("Spectral Forge is an Atlas-native static route registered by the shared Lab shell", async () => {
   const html = await source(htmlUrl);
   const bootstrap = await source(bootstrapUrl);
+  const shell = await source(shellUrl);
   assert.match(html, /src="\/static\/js\/spectral-forge\/app\.js/);
   assert.match(html, /src="\/lab\/shared\/shell\.js/);
-  assert.match(bootstrap, /\/lab\/spectral-forge\/shell-bridge\.js/);
   assert.match(bootstrap, /\.\/app-core\.js/);
+  assert.doesNotMatch(bootstrap, /shell-bridge/);
+  assert.match(shell, /const SPECTRAL_FORGE_ROUTE = "\/lab\/spectral-forge\/"/);
+  assert.match(shell, /label: "Spectral Forge", href: "\/lab\/spectral-forge\/"/);
+  assert.match(shell, /isSystemSymphonyPath\(pathname\) \|\| pathname === SPECTRAL_FORGE_ROUTE/);
+  await assert.rejects(access(removedShellBridgeUrl));
   assert.doesNotMatch(html, /next\/|react|vinext|drizzle|signin-with-chatgpt|\/workspace\/sites\//i);
 });
 
 test("production source contains no Sites machine-local paths or scaffold imports", async () => {
-  const sources = await Promise.all([bootstrapUrl, controllerUrl, domainUrl, audioUrl, stateUrl, visualsUrl, shellBridgeUrl].map(source));
+  const sources = await Promise.all([bootstrapUrl, controllerUrl, domainUrl, audioUrl, stateUrl, visualsUrl].map(source));
   const combined = `${await allCss()}\n${sources.join("\n")}`;
   assert.doesNotMatch(combined, /\/workspace\/sites\/|vinext|signin-with-chatgpt|drizzle-orm|\.openai\/hosting/i);
   assert.doesNotMatch(combined, /Math\.random\s*\(/);

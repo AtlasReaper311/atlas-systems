@@ -14,6 +14,7 @@ const SURFACE_ROUTES = Object.freeze({
   "/lab/drift/": Object.freeze({ surface: "lab", mode: "immersive", eyebrow: "LAB / EXPLORE / CONFORMANCE SIMULATION", accent: "punctuation" }),
   "/lab/bearing/": Object.freeze({ surface: "lab", mode: "immersive", eyebrow: "LAB / EXPLORE / STRUCTURAL SIMULATION", accent: "word" }),
   "/lab/system-symphony/": Object.freeze({ surface: "lab", mode: "product", eyebrow: "LAB / EXPERIENCE / TELEMETRY SONIFICATION" }),
+  "/lab/spectral-forge/": Object.freeze({ surface: "lab", mode: "product", eyebrow: "LAB / EXPERIENCE / SONIFICATION INSTRUMENT" }),
   "/systems/": Object.freeze({ surface: "systems", mode: "directory", eyebrow: "SYSTEMS / DIRECTORY / PUBLIC SURFACES" }),
   "/systems/observability/": Object.freeze({ surface: "systems", mode: "standard", eyebrow: "SYSTEMS / OBSERVE / ESTATE TELEMETRY" }),
   "/systems/reliability/": Object.freeze({ surface: "systems", mode: "standard", eyebrow: "SYSTEMS / RELIABILITY / SERVICE EVIDENCE" }),
@@ -128,7 +129,7 @@ function normalizeLabDirectory(documentNode, hero) {
 
   const lede = hero?.querySelector(".lede");
   if (lede) {
-    lede.textContent = "The Lab is the technical workspace of Atlas Systems. Sixteen public destinations are grouped by what you do with them. Ramone remains the flagship.";
+    lede.textContent = "The Lab is the technical workspace of Atlas Systems. Seventeen public destinations are grouped by what you do with them. Ramone remains the flagship.";
   }
   const browse = hero?.querySelector('a[href="#featured-title"]');
   if (browse) browse.href = "#directory-title";

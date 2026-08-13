@@ -1,5 +1,7 @@
 "use strict";
 
+import { installFlagshipCounterpart } from "../shared/flagship-counterparts.js?v=20260813-spectral-forge";
+
 const ROOT_ROUTE = "/lab/system-symphony/";
 const NAV_STYLESHEET = "/lab/system-symphony/system-symphony-navigation.css?v=20260728-system-symphony-trace-board-v1";
 const MODE_NAMES = new Set(["play", "trace", "replay"]);
@@ -490,6 +492,7 @@ function initialiseNavigation() {
   configureRootWorkspace();
   collapseSupportingSections();
   installProductBar();
+  if (isRootRoute()) installFlagshipCounterpart();
   installTrustDrawerControls();
   installModeObservers();
   installStatusObserver();

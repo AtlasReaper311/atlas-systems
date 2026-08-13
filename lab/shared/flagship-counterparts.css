@@ -1,0 +1,94 @@
+.lab-flagship-counterpart {
+  width: min(1600px, calc(100% - clamp(32px, 6vw, 96px)));
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 22px;
+  margin: 0 auto;
+  padding: 10px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  background: rgba(17,17,24,.54);
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.lab-flagship-counterpart__label {
+  color: #888894;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.lab-flagship-counterpart__link {
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: minmax(150px, auto) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 0 12px;
+  border-left: 1px solid rgba(255,255,255,.16);
+  color: #e8e8e0;
+  text-decoration: none;
+}
+
+.lab-flagship-counterpart__link:hover {
+  border-left-color: #f5a623;
+  background: rgba(255,255,255,.018);
+}
+
+.lab-flagship-counterpart__link:focus-visible {
+  outline: 2px solid #f5a623;
+  outline-offset: 3px;
+}
+
+.lab-flagship-counterpart__link strong {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .06em;
+}
+
+.lab-flagship-counterpart__link > span:not(.lab-flagship-counterpart__route) {
+  overflow: hidden;
+  color: #aaa9a0;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lab-flagship-counterpart__route {
+  color: #aaa9a0;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+body[data-lab-route="system-symphony"] .lab-flagship-counterpart {
+  width: min(1180px, calc(100% - 48px));
+}
+
+@media (max-width: 720px) {
+  .lab-flagship-counterpart,
+  body[data-lab-route="system-symphony"] .lab-flagship-counterpart {
+    width: min(100% - 28px, 1600px);
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 10px 12px;
+  }
+
+  .lab-flagship-counterpart__link {
+    grid-template-columns: 1fr auto;
+    gap: 6px 12px;
+    padding: 7px 10px;
+  }
+
+  .lab-flagship-counterpart__link > span:not(.lab-flagship-counterpart__route) {
+    grid-column: 1 / -1;
+    white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-flagship-counterpart__link {
+    scroll-behavior: auto;
+  }
+}
