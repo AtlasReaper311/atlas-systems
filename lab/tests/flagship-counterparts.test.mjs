@@ -5,6 +5,8 @@ import test from "node:test";
 const labHtmlUrl = new URL("../index.html", import.meta.url);
 const counterpartUrl = new URL("../shared/flagship-counterparts.js", import.meta.url);
 const counterpartCssUrl = new URL("../shared/flagship-counterparts.css", import.meta.url);
+const audioCardsUrl = new URL("../shared/audio-flagship-cards.js", import.meta.url);
+const audioCardsCssUrl = new URL("../shared/audio-flagship-cards.css", import.meta.url);
 const forgeBootstrapUrl = new URL("../../static/js/spectral-forge/app.js", import.meta.url);
 const symphonyNavigationUrl = new URL("../system-symphony/system-symphony-navigation.js", import.meta.url);
 const cardSignaturesUrl = new URL("../../static/js/card-signatures.js", import.meta.url);
@@ -70,15 +72,19 @@ test("counterpart family styling preserves target size, focus and restrained amb
   assert.match(css, /symphony-transport__title h2\[data-page-now-playing\]/);
 });
 
-test("Lab flagship cards receive the same LISTEN and DESIGN vocabulary without changing their data labels", async () => {
-  const js = await source(cardSignaturesUrl);
-  const css = await source(cardSignaturesCssUrl);
-  assert.match(js, /AUDIO_FLAGSHIPS/);
-  assert.match(js, /family: "LISTEN"/);
-  assert.match(js, /family: "DESIGN"/);
-  assert.match(js, /`ATLAS AUDIO \/\/ \$\{definition\.family\}`/);
-  assert.match(js, /lab-flagship-card__signature/);
+test("Lab-only flagship assets own LISTEN and DESIGN card treatment without inflating global routes", async () => {
+  const module = await source(audioCardsUrl);
+  const css = await source(audioCardsCssUrl);
+  const globalJs = await source(cardSignaturesUrl);
+  const globalCss = await source(cardSignaturesCssUrl);
+  assert.match(module, /family: "LISTEN"/);
+  assert.match(module, /family: "DESIGN"/);
+  assert.match(module, /`ATLAS AUDIO \/\/ \$\{definition\.family\}`/);
+  assert.match(module, /lab-flagship-card__signature/);
   assert.match(css, /\.lab-flagship-card__signature/);
-  assert.match(css, /color:\s*var\(--accent\)/);
-  assert.match(css, /em\.lab-flagship-card__signature\s*\{\s*font-style:\s*italic/);
+  assert.match(css, /color:var\(--accent\)/);
+  assert.match(css, /em\.lab-flagship-card__signature\{font-style:italic\}/);
+  assert.match(globalJs, /audio-flagship-cards\.js/);
+  assert.doesNotMatch(globalJs, /const AUDIO_FLAGSHIPS|function enhanceAudioFlagshipCards/);
+  assert.doesNotMatch(globalCss, /\.lab-flagship-card__signature/);
 });
