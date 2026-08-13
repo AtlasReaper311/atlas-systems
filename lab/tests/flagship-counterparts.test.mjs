@@ -7,6 +7,8 @@ const counterpartUrl = new URL("../shared/flagship-counterparts.js", import.meta
 const counterpartCssUrl = new URL("../shared/flagship-counterparts.css", import.meta.url);
 const forgeBootstrapUrl = new URL("../../static/js/spectral-forge/app.js", import.meta.url);
 const symphonyNavigationUrl = new URL("../system-symphony/system-symphony-navigation.js", import.meta.url);
+const cardSignaturesUrl = new URL("../../static/js/card-signatures.js", import.meta.url);
+const cardSignaturesCssUrl = new URL("../../static/css/card-signatures.css", import.meta.url);
 
 async function source(url) {
   return readFile(url, "utf8");
@@ -30,13 +32,20 @@ test("Spectral Forge is discoverable from the Experience directory with an hones
   assert.match(html, /Three deeper ways into the estate/);
 });
 
-test("shared counterpart module links only the two root instruments", async () => {
+test("shared counterpart module gives the two root instruments a LISTEN and DESIGN family identity", async () => {
   const module = await source(counterpartUrl);
   assert.match(module, /"\/lab\/system-symphony\/"/);
   assert.match(module, /href: "\/lab\/spectral-forge\/"/);
+  assert.match(module, /family: "LISTEN"/);
+  assert.match(module, /counterpartFamily: "DESIGN"/);
   assert.match(module, /"\/lab\/spectral-forge\/"/);
   assert.match(module, /href: "\/lab\/system-symphony\/"/);
-  assert.match(module, /Audio counterpart/);
+  assert.match(module, /family: "DESIGN"/);
+  assert.match(module, /counterpartFamily: "LISTEN"/);
+  assert.match(module, /ATLAS AUDIO \/\/ \$\{family\}/);
+  assert.match(module, /\.forge-play \.forge-field-stage/);
+  assert.match(module, /\.symphony-stage/);
+  assert.match(module, /atlas-audio-title__signature/);
   assert.doesNotMatch(module, /fetch\(|localStorage|AudioContext|Math\.random/);
 });
 
@@ -49,10 +58,27 @@ test("both audio flagships install the same counterpart module", async () => {
   assert.match(symphony, /if \(isRootRoute\(\)\) installFlagshipCounterpart\(\)/);
 });
 
-test("counterpart rail preserves the 44px interaction target and responsive contract", async () => {
+test("counterpart family styling preserves target size, focus and restrained amber signature", async () => {
   const css = await source(counterpartCssUrl);
   assert.match(css, /min-height:\s*44px/);
   assert.match(css, /@media \(max-width: 720px\)/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
-  assert.match(css, /outline: 2px solid #f5a623/);
+  assert.match(css, /outline:\s*2px solid #f5a623/);
+  assert.match(css, /atlas-audio-title__signature/);
+  assert.match(css, /color:\s*#f5a623/);
+  assert.match(css, /text-shadow:/);
+  assert.match(css, /symphony-transport__title h2\[data-page-now-playing\]/);
+});
+
+test("Lab flagship cards receive the same LISTEN and DESIGN vocabulary without changing their data labels", async () => {
+  const js = await source(cardSignaturesUrl);
+  const css = await source(cardSignaturesCssUrl);
+  assert.match(js, /AUDIO_FLAGSHIPS/);
+  assert.match(js, /family: "LISTEN"/);
+  assert.match(js, /family: "DESIGN"/);
+  assert.match(js, /`ATLAS AUDIO \/\/ \$\{definition\.family\}`/);
+  assert.match(js, /lab-flagship-card__signature/);
+  assert.match(css, /\.lab-flagship-card__signature/);
+  assert.match(css, /color:\s*var\(--accent\)/);
+  assert.match(css, /em\.lab-flagship-card__signature\s*\{\s*font-style:\s*italic/);
 });
