@@ -1,0 +1,12 @@
+.lab-audio-flagships{position:relative}
+.lab-flagship-card{isolation:isolate}
+.lab-flagship-card::after{content:"";position:absolute;z-index:3;top:0;left:28px;width:92px;height:1px;background:linear-gradient(90deg,rgba(245,166,35,.92),rgba(245,166,35,0));box-shadow:0 0 18px rgba(245,166,35,.08);pointer-events:none}
+.lab-flagship-card__top span:first-child{display:inline-flex;align-items:center;gap:8px;color:var(--text-faint);letter-spacing:.11em}
+.lab-flagship-card__top span:first-child::before{content:"";width:18px;height:9px;flex:0 0 auto;background:linear-gradient(90deg,transparent 0 1px,var(--accent) 1px 2px,transparent 2px 6px,var(--accent) 6px 7px,transparent 7px 11px,var(--accent) 11px 12px,transparent 12px 16px,var(--accent) 16px 17px,transparent 17px),linear-gradient(180deg,transparent 0 4px,color-mix(in srgb,var(--accent) 34%,transparent) 4px 5px,transparent 5px);opacity:.82}
+.lab-flagship-card__copy h3{display:flex;align-items:baseline;flex-wrap:wrap;gap:.18em}
+.lab-flagship-card__prefix{color:var(--text)}
+.lab-flagship-card__signature{color:var(--accent);font-weight:400;text-shadow:0 0 18px rgba(245,166,35,.11),0 0 38px rgba(245,166,35,.045)}
+em.lab-flagship-card__signature{font-style:italic}
+.lab-flagship-card--symphony{background:radial-gradient(430px 220px at 82% 24%,rgba(245,166,35,.035),transparent 72%),linear-gradient(180deg,rgba(255,255,255,.018),transparent 62%),var(--bg-1,#111118)}
+.lab-flagship-card--symphony:hover{background:radial-gradient(430px 220px at 82% 24%,rgba(245,166,35,.055),transparent 72%),linear-gradient(180deg,rgba(255,255,255,.028),transparent 62%),var(--bg-1,#111118)}
+@media(max-width:760px){.lab-flagship-card::after{left:24px}}
