@@ -1,51 +1,208 @@
-.lab-flagship-counterpart {
-  width: min(1600px, calc(100% - clamp(32px, 6vw, 96px)));
-  min-height: 58px;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 22px;
-  margin: 0 auto;
-  padding: 10px 20px;
-  border-bottom: 1px solid rgba(255,255,255,.08);
-  background: rgba(17,17,24,.54);
-  font-family: "IBM Plex Mono", monospace;
-}
+/* Shared visual identity for Atlas Systems' two audio flagships.
+ * This file is presentation-only. It must not alter either instrument's audio behaviour.
+ */
 
-.lab-flagship-counterpart__label {
+.atlas-audio-family__mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 8px;
   color: #888894;
-  font-size: 10px;
-  letter-spacing: .12em;
+  font: 600 10px/1.2 "IBM Plex Mono", monospace;
+  letter-spacing: .14em;
   text-transform: uppercase;
-  white-space: nowrap;
 }
 
-.lab-flagship-counterpart__link {
-  min-height: 44px;
+.atlas-audio-family__glyph {
+  position: relative;
+  width: 21px;
+  height: 11px;
+  display: inline-block;
+  flex: 0 0 auto;
+  background:
+    linear-gradient(90deg, transparent 0 1px, #f5a623 1px 2px, transparent 2px 7px, #f5a623 7px 8px, transparent 8px 13px, #f5a623 13px 14px, transparent 14px 19px, #f5a623 19px 20px, transparent 20px),
+    linear-gradient(180deg, transparent 0 5px, rgba(245,166,35,.32) 5px 6px, transparent 6px);
+  opacity: .86;
+}
+
+.atlas-audio-title {
   display: grid;
-  grid-template-columns: minmax(150px, auto) minmax(0, 1fr) auto;
+  justify-items: start;
+  gap: 2px;
+}
+
+.atlas-audio-title__prefix {
+  display: block;
+  color: #aaa9a0;
+  font: 600 clamp(.68rem, .8vw, .78rem)/1.2 "IBM Plex Mono", monospace;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+
+.atlas-audio-title__signature {
+  display: block;
+  color: #f5a623;
+  font-family: "DM Serif Display", Georgia, serif;
+  font-weight: 400;
+  text-shadow:
+    0 0 18px rgba(245,166,35,.13),
+    0 0 44px rgba(245,166,35,.055);
+}
+
+.symphony-flagship #symphony-page-title.atlas-audio-title {
+  max-width: none;
+  margin: 0;
+  font-size: inherit;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.atlas-audio-title--listen .atlas-audio-title__signature {
+  font-size: clamp(3.5rem, 5.6vw, 4.8rem);
+  font-style: normal;
+  line-height: .9;
+  letter-spacing: -.045em;
+}
+
+.forge-product-identity h1.atlas-audio-title {
+  margin: 5px 0 0;
+  font-size: inherit;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.atlas-audio-title--design .atlas-audio-title__signature {
+  position: relative;
+  left: .04em;
+  font-size: clamp(3.35rem, 5.2vw, 4.7rem);
+  font-style: italic;
+  line-height: .88;
+  letter-spacing: -.045em;
+}
+
+.atlas-audio-title--design .atlas-audio-title__signature::after {
+  content: "";
+  position: absolute;
+  left: .04em;
+  right: -.14em;
+  bottom: -.08em;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(245,166,35,.88), rgba(245,166,35,0));
+}
+
+.atlas-audio-family__counterpart {
+  width: fit-content;
+  min-height: 44px;
+  display: inline-flex;
   align-items: center;
-  gap: 18px;
-  padding: 0 12px;
-  border-left: 1px solid rgba(255,255,255,.16);
-  color: #e8e8e0;
+  gap: 9px;
+  margin-top: 9px;
+  padding: 0 4px;
+  color: #888894;
+  font: 500 10px/1.2 "IBM Plex Mono", monospace;
+  letter-spacing: .045em;
   text-decoration: none;
 }
 
+.atlas-audio-family__counterpart > span {
+  color: #f5a623;
+  letter-spacing: .12em;
+}
+
+.atlas-audio-family__counterpart strong {
+  color: #aaa9a0;
+  font-weight: 500;
+}
+
+.atlas-audio-family__counterpart i {
+  color: #888894;
+  font-style: normal;
+  transition: transform 140ms ease, color 140ms ease;
+}
+
+.atlas-audio-family__counterpart:hover strong,
+.atlas-audio-family__counterpart:hover i { color: #e8e8e0; }
+.atlas-audio-family__counterpart:hover i { transform: translateX(3px); }
+.atlas-audio-family__counterpart:focus-visible {
+  outline: 2px solid #f5a623;
+  outline-offset: 3px;
+}
+
+/* Symphony remains the LISTEN instrument. Only hierarchy and spacing change. */
+.symphony-flagship .atlas-audio-family__mark { margin-bottom: 10px; }
+.symphony-flagship .focus-lede {
+  max-width: 610px;
+  margin-top: 12px;
+  color: #aaa9a0;
+}
+.symphony-transport__title h2[data-page-movement],
+.symphony-transport__title h2[data-page-now-playing] {
+  max-width: 18ch;
+  font-size: clamp(2rem, 3vw, 2.55rem);
+  line-height: .98;
+  letter-spacing: -.02em;
+}
+.symphony-cartridge-cover strong {
+  max-width: 12ch;
+  font-size: clamp(1.75rem, 2.4vw, 2.25rem);
+  line-height: .98;
+}
+
+/* The richer counterpart panel sits after each instrument's primary stage. */
+.lab-flagship-counterpart {
+  width: 100%;
+  min-height: 64px;
+  display: grid;
+  grid-template-columns: minmax(180px, .34fr) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0;
+  margin: 12px 0 0;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 6px;
+  background:
+    linear-gradient(90deg, rgba(245,166,35,.045), transparent 34%),
+    rgba(17,17,24,.62);
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.lab-flagship-counterpart__family {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0 18px;
+  border-right: 1px solid rgba(255,255,255,.08);
+}
+
+.lab-flagship-counterpart__link {
+  min-height: 64px;
+  display: grid;
+  grid-template-columns: minmax(165px, auto) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 0 18px;
+  color: #e8e8e0;
+  text-decoration: none;
+  transition: background 140ms ease;
+}
+
 .lab-flagship-counterpart__link:hover {
-  border-left-color: #f5a623;
   background: rgba(255,255,255,.018);
 }
 
 .lab-flagship-counterpart__link:focus-visible {
   outline: 2px solid #f5a623;
-  outline-offset: 3px;
+  outline-offset: -3px;
 }
 
 .lab-flagship-counterpart__link strong {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: .06em;
+  color: #f5a623;
+  font-family: "DM Serif Display", Georgia, serif;
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: -.01em;
+  text-shadow: 0 0 18px rgba(245,166,35,.08);
 }
 
 .lab-flagship-counterpart__link > span:not(.lab-flagship-counterpart__route) {
@@ -58,37 +215,57 @@
 
 .lab-flagship-counterpart__route {
   color: #aaa9a0;
-  font-size: 10px;
+  font-size: 9px;
+  letter-spacing: .1em;
   white-space: nowrap;
 }
 
-body[data-lab-route="system-symphony"] .lab-flagship-counterpart {
-  width: min(1180px, calc(100% - 48px));
+/* Forge already owns the full 1440px instrument width. Do not collapse the rail back to editorial width. */
+body[data-lab-route="spectral-forge"] .lab-flagship-counterpart,
+.spectral-forge-page .lab-flagship-counterpart { width: 100%; }
+
+@media (max-width: 900px) {
+  .atlas-audio-title--listen .atlas-audio-title__signature { font-size: clamp(3.2rem, 8vw, 4.25rem); }
+  .atlas-audio-title--design .atlas-audio-title__signature { font-size: clamp(3.1rem, 8vw, 4.2rem); }
+  .lab-flagship-counterpart { grid-template-columns: 1fr; }
+  .lab-flagship-counterpart__family {
+    min-height: 42px;
+    padding: 0 14px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+  }
 }
 
 @media (max-width: 720px) {
-  .lab-flagship-counterpart,
-  body[data-lab-route="system-symphony"] .lab-flagship-counterpart {
-    width: min(100% - 28px, 1600px);
-    grid-template-columns: 1fr;
-    gap: 4px;
-    padding: 10px 12px;
-  }
-
+  .atlas-audio-family__mark { font-size: 9px; }
+  .atlas-audio-title--listen .atlas-audio-title__signature,
+  .atlas-audio-title--design .atlas-audio-title__signature { font-size: clamp(2.75rem, 13vw, 3.7rem); }
+  .atlas-audio-family__counterpart { white-space: normal; }
+  .symphony-transport__title h2[data-page-movement],
+  .symphony-transport__title h2[data-page-now-playing] { font-size: clamp(1.75rem, 8vw, 2.2rem); }
   .lab-flagship-counterpart__link {
+    min-height: 76px;
     grid-template-columns: 1fr auto;
-    gap: 6px 12px;
-    padding: 7px 10px;
+    gap: 5px 12px;
+    padding: 10px 14px;
   }
-
   .lab-flagship-counterpart__link > span:not(.lab-flagship-counterpart__route) {
     grid-column: 1 / -1;
     white-space: normal;
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .lab-flagship-counterpart__link {
-    scroll-behavior: auto;
+@media (max-width: 480px) {
+  .atlas-audio-family__counterpart {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    width: 100%;
   }
+  .lab-flagship-counterpart__link strong { font-size: 17px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atlas-audio-family__counterpart i,
+  .lab-flagship-counterpart__link { transition: none; }
+  .atlas-audio-family__counterpart:hover i { transform: none; }
 }
