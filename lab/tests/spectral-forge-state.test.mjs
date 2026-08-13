@@ -75,7 +75,7 @@ test("route focus preserves baseline smoothing outside the selected target", () 
   const other = initial.candidate[1];
   let edited = updateCandidateMapping(initial, selected.id, { smoothing: "FAST" });
   edited = updateCandidateMapping(edited, other.id, { smoothing: "IMMEDIATE" });
-  const state = setAuditionMode(edited, "ROUTE_FOCUS");
+  const state = setAuditionMode({ ...edited, selectedMappingId: selected.id }, "ROUTE_FOCUS");
   const smoothing = audibleSmoothing(state);
   const baselineSmoothing = audibleSmoothing(setAuditionMode(setActiveVariant(state, "A"), "FULL"));
   assert.equal(smoothing[selected.target], "FAST");
