@@ -197,6 +197,17 @@
       "tagline": "The complete denominator behind Atlas Systems policy evidence."
     },
     {
+      "file": "request-xray",
+      "html": "lab/xray/index.html",
+      "route": "/lab/xray/",
+      "kicker": "Verify / Simulated request path",
+      "title": [
+        "Request X-Ray.",
+        "Break the [route.]"
+      ],
+      "tagline": "Retries, deadlines, cache behaviour, rate limits, and service errors in one browser-only trace."
+    },
+    {
       "file": "telemetry-anomaly-detector",
       "html": "lab/anomaly/index.html",
       "route": "/lab/anomaly/",
