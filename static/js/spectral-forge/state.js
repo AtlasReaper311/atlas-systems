@@ -164,6 +164,16 @@ export function applyPresetToCandidate(state, preset) {
   };
 }
 
+function validUserPreset(preset) {
+  return Boolean(
+    preset
+    && !preset.builtIn
+    && typeof preset.name === "string"
+    && preset.name.trim().length <= USER_PRESET_NAME_MAX
+    && validatePreset(preset).valid
+  );
+}
+
 export function createUserPreset(name, mappings, id = null) {
   const trimmed = String(name ?? "").trim();
   if (!trimmed) throw new TypeError("Preset name is required");
@@ -176,7 +186,7 @@ export function createUserPreset(name, mappings, id = null) {
 
 export function serialisePreferences({ userPresets, presetId, depth, masterLevel }) {
   const safePresets = (Array.isArray(userPresets) ? userPresets : [])
-    .filter((preset) => !preset.builtIn && validatePreset(preset).valid)
+    .filter(validUserPreset)
     .slice(0, USER_PRESET_LIMIT);
   return JSON.stringify({ schema: 3, userPresets: safePresets, presetId: String(presetId || "reference"), depth: ["PLAY", "FORGE", "ANALYSE"].includes(depth) ? depth : "PLAY", masterLevel: Number.isFinite(masterLevel) ? masterLevel : null });
 }
@@ -186,7 +196,7 @@ export function parsePreferences(raw) {
   const parsed = JSON.parse(raw);
   if (!parsed || parsed.schema !== 3) throw new TypeError("Unsupported Spectral Forge preference schema");
   const userPresets = Array.isArray(parsed.userPresets)
-    ? parsed.userPresets.filter((preset) => !preset.builtIn && validatePreset(preset).valid).slice(0, USER_PRESET_LIMIT)
+    ? parsed.userPresets.filter(validUserPreset).slice(0, USER_PRESET_LIMIT)
     : [];
   return {
     userPresets,

@@ -122,4 +122,8 @@ test("user preset persistence is bounded by count and name length", () => {
   ));
   const raw = serialisePreferences({ userPresets: presets, presetId: presets[0].id, depth: "PLAY", masterLevel: 0.56 });
   assert.equal(parsePreferences(raw).userPresets.length, USER_PRESET_LIMIT);
+
+  const oversizedName = { ...presets[0], name: "X".repeat(USER_PRESET_NAME_MAX + 1) };
+  const tampered = JSON.stringify({ schema: 3, userPresets: [oversizedName], presetId: oversizedName.id, depth: "PLAY", masterLevel: 0.56 });
+  assert.deepEqual(parsePreferences(tampered).userPresets, []);
 });
