@@ -31,6 +31,7 @@
 
 /* Reliability: decorative monitoring cadence, never a live status signal. */
 .atlas-composition--pulse-horizon > .atlas-composition-canvas {
+  --atlas-field-reveal-opacity: .42;
   opacity: .42;
   filter: saturate(1.08) brightness(1.02) contrast(1.3);
   transform: scaleX(1.24) scaleY(.62) translateY(7%);
@@ -63,6 +64,7 @@
 
 /* About: warm contour field with generous negative space. */
 .atlas-composition--identity-field > .atlas-composition-canvas {
+  --atlas-field-reveal-opacity: .46;
   opacity: .46;
   filter: sepia(.32) saturate(1.18) brightness(1.03) contrast(1.22);
   transform: rotate(-7deg) scale(1.16) translate(9%, 2%);
@@ -91,6 +93,8 @@
 
 /* Lab: irregular bloom pockets and exploratory signal motion. */
 .atlas-composition--signal-bloom > .atlas-composition-canvas {
+  --atlas-field-reveal-opacity: .24;
+  --atlas-field-reveal-duration: 520ms;
   opacity: .24;
   filter: saturate(.9) brightness(.82) contrast(1.06);
   transform: scale(1.12) translate(5%, 1%);
@@ -115,6 +119,7 @@
 
 /* Observability: stacked sampling planes and vertical telemetry drift. */
 .atlas-composition--telemetry-lattice > .atlas-composition-canvas {
+  --atlas-field-reveal-opacity: .5;
   opacity: .5;
   filter: saturate(1.2) brightness(1.08) contrast(1.32);
   transform: rotate(4deg) scaleX(.92) scaleY(1.18) translate(7%, -3%);
@@ -143,6 +148,7 @@
 
 /* Evidence: branching provenance paths converging on a claim record. */
 .atlas-composition--proof-trace > .atlas-composition-canvas {
+  --atlas-field-reveal-opacity: .48;
   opacity: .48;
   filter: sepia(.16) saturate(1.14) brightness(1.05) contrast(1.3);
   transform: skewX(-7deg) scale(1.08) translate(7%, 1%);

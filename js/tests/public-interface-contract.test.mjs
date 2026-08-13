@@ -241,6 +241,10 @@ const FIELD_ROUTE_STYLESHEETS = Object.freeze([
   ["systems/evidence/index.html", "/static/css/secondary-surface-fields.css"],
   ["systems/observability/index.html", "/static/css/secondary-surface-fields.css"],
   ["systems/reliability/index.html", "/static/css/secondary-surface-fields.css"],
+  ["lab/index.html", "/static/css/atlas-field-consumer.css"],
+  ["lab/index.html", "/static/css/secondary-surface-fields.css"],
+  ["lab/index.html", "/lab/shared/lab-intro-field.css"],
+  ["lab/index.html", "/lab/shared/system-map-card-field.css"],
   ["index.html", "/css/home-v2-base.css"],
 ]);
 
@@ -326,6 +330,11 @@ const FIRST_PAINT_FIELD_HOSTS = Object.freeze([
     "<header",
     ["atlas-composition-host", "atlas-composition--pulse-horizon"],
   ],
+  [
+    "lab/index.html",
+    "<header",
+    ["atlas-field-surface", "atlas-field-surface--ambient", "atlas-composition-host", "atlas-composition--signal-bloom"],
+  ],
 ]);
 
 test("field surfaces are contained before any canvas can mount", () => {
@@ -335,7 +344,21 @@ test("field surfaces are contained before any canvas can mount", () => {
   assert.match(shellCss, /\.atlas-field-surface\s*\{[^}]*overflow:\s*hidden/);
   assert.match(shellCss, /\.atlas-field-surface\s*>\s*\.atlas-field-canvas\s*\{[^}]*position:\s*absolute/);
   assert.match(shellCss, /\.atlas-field-surface\s*>\s*\.atlas-field-canvas\s*\{[^}]*inset:\s*0/);
-  assert.match(shellCss, /\.atlas-field-surface\s*>\s*\.atlas-field-canvas\s*\{[^}]*transition:\s*opacity 340ms ease-out/);
+  assert.match(shellCss, /\.atlas-field-surface\s*>\s*\.atlas-field-canvas\s*\{[^}]*opacity:\s*var\(--atlas-field-reveal-opacity,\s*1\)/);
+  assert.match(shellCss, /\.atlas-field-surface\s*>\s*\.atlas-field-canvas\s*\{[^}]*transition:\s*opacity var\(--atlas-field-reveal-duration,\s*340ms\) ease-out/);
+  assert.match(shellCss, /\.atlas-field-surface\s*>\s*\.atlas-field-canvas\[data-atlas-field-reveal="pending"\]\s*\{[^}]*opacity:\s*0 !important/);
+});
+
+test("page motion is CSS-only and never restores the click-delay curtain", () => {
+  const shellCss = fs.readFileSync("static/css/estate-shell.css", "utf8");
+  const transitions = fs.readFileSync("js/transitions.js", "utf8");
+  const transitionCode = transitions.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
+  assert.match(shellCss, /@keyframes atlas-page-enter/);
+  assert.match(shellCss, /body > main\s*\{[^}]*animation:\s*atlas-page-enter 320ms/s);
+  assert.match(shellCss, /@keyframes atlas-route-scan/);
+  assert.match(shellCss, /@view-transition\s*\{\s*navigation:\s*auto;\s*\}/);
+  assert.doesNotMatch(transitionCode, /preventDefault|location\.assign|page-overlay|setTimeout/);
 });
 
 test("primary pages preload visible local fonts before the font stylesheet", () => {

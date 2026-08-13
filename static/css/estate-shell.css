@@ -128,8 +128,13 @@ html[data-atlas-interface] body { font-size: max(15px, 1rem); }
   display: block;
   width: 100%;
   height: 100%;
+  opacity: var(--atlas-field-reveal-opacity, 1);
   pointer-events: none;
-  transition: opacity 340ms ease-out;
+  transition: opacity var(--atlas-field-reveal-duration, 340ms) ease-out;
+}
+
+.atlas-field-surface > .atlas-field-canvas[data-atlas-field-reveal="pending"] {
+  opacity: 0 !important;
 }
 
 :where(a,button,input,select,textarea,summary,[tabindex]):focus-visible { outline: 2px solid var(--atlas-focus); outline-offset: 3px; }
@@ -140,6 +145,60 @@ html[data-atlas-interface] body { font-size: max(15px, 1rem); }
 .article-body { min-width: 0; max-width: 100%; }
 .lab-tool-footer > span { color: #888894; }
 .dora-panel .dp-error { color: #e85f5e; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html[data-atlas-interface] body > main {
+    animation: atlas-page-enter 320ms cubic-bezier(.16, .84, .22, 1) both;
+    transform-origin: 50% 0;
+  }
+
+  html[data-atlas-interface] body::before {
+    content: "";
+    position: fixed;
+    inset: var(--atlas-header-height, 56px) 0 auto;
+    height: 1px;
+    z-index: calc(var(--atlas-z-sticky, 100) - 1);
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(245,166,35,.64), rgba(74,222,128,.36), transparent);
+    transform: translateX(-100%);
+    opacity: 0;
+    animation: atlas-route-scan 420ms cubic-bezier(.18, .78, .18, 1) both;
+  }
+
+  @keyframes atlas-page-enter {
+    from { transform: translate3d(0, 10px, 0); filter: brightness(.94); }
+    to { transform: translate3d(0, 0, 0); filter: brightness(1); }
+  }
+
+  @keyframes atlas-route-scan {
+    0% { transform: translateX(-100%); opacity: 0; }
+    18% { opacity: .72; }
+    100% { transform: translateX(100%); opacity: 0; }
+  }
+
+  @supports (view-transition-name: root) {
+    @view-transition { navigation: auto; }
+
+    html::view-transition-old(root),
+    html::view-transition-new(root) {
+      animation-duration: 260ms;
+      animation-timing-function: cubic-bezier(.2, .72, .2, 1);
+    }
+
+    html::view-transition-old(root) { animation-name: atlas-view-old; }
+    html::view-transition-new(root) { animation-name: atlas-view-new; }
+
+    @keyframes atlas-view-old {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: .86; transform: translateY(-6px); }
+    }
+
+    @keyframes atlas-view-new {
+      from { opacity: .92; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  }
+}
 
 /* Phase 8 measured accessibility and responsive corrections. */
 .word-chip { color: var(--text-dim, #aaa9a0); opacity: .75 !important; }

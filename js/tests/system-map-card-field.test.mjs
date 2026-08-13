@@ -51,6 +51,9 @@ test("Lab shell mounts fresh field assets only on the Lab directory", () => {
   assert.match(shell, /if \(currentPath\(\) !== LAB_HOME_ROUTE\) return/);
   assert.match(shell, /installLabIntroField\(\)/);
   assert.match(shell, /installSystemMapCardField\(\)/);
+  assert.match(markup, /<link rel="stylesheet" href="\/static\/css\/secondary-surface-fields\.css\?v=20260807-hero-contrast">/);
+  assert.match(markup, /<link rel="stylesheet" href="\/lab\/shared\/lab-intro-field\.css\?v=20260807-signature-position">/);
+  assert.match(markup, /<header class="page-intro[^"]*\batlas-composition--signal-bloom\b/);
 });
 
 test("Lab field bootstrap assets cannot be retained stale", () => {
