@@ -3,6 +3,7 @@
 import { installFlagshipCounterpart } from "/lab/shared/flagship-counterparts.js?v=20260813-atlas-audio-family-v1";
 import "./spectral-field-art.js?v=20260813-field-3";
 import "./app-core.js";
+import "./forge-instrument-enhancements.js?v=20260813-instrument-22";
 
 const counterpartRail = installFlagshipCounterpart();
 const productCopy = document.querySelector(".forge-product-identity p");
