@@ -99,6 +99,17 @@ test("audio implementation names true stereo width and a bounded sample stage", 
   assert.match(html, /−1 dBFS SAMPLE BOUND/);
 });
 
+test("interactive telemetry renders preserve focusable control identity", async () => {
+  const controller = await source(controllerUrl);
+  assert.match(controller, /lastPresetDefinitionSignature/);
+  assert.match(controller, /lastRouteDefinitionSignature/);
+  assert.match(controller, /lastInspectorConfigurationSignature/);
+  assert.match(controller, /signalIndexNodes = new Map\(\)/);
+  assert.match(controller, /audioParameterNodes = new Map\(\)/);
+  assert.match(controller, /audibleSmoothing\(comparison\)/);
+  assert.match(controller, /signature !== lastRouteDefinitionSignature/);
+});
+
 test("interface typography reserves sub-9px text for exceptional micro annotation only", async () => {
   const css = await allCss();
   assert.doesNotMatch(css, /font-size:\s*[67]px\b/);
@@ -106,4 +117,20 @@ test("interface typography reserves sub-9px text for exceptional micro annotatio
   assert.ok(eightPixelRules.length <= 1, `expected at most one 8px micro annotation, found ${eightPixelRules.length}`);
   assert.match(css, /font-size:\s*11px/);
   assert.match(css, /min-height:\s*44px/);
+});
+
+test("visual restoration uses hybrid flagship widths and focus-only skip link", async () => {
+  const css = await allCss();
+  const html = await source(htmlUrl);
+  const bootstrap = await source(bootstrapUrl);
+  assert.match(css, /--forge-content:\s*1100px/);
+  assert.match(css, /--forge-controls:\s*1320px/);
+  assert.match(css, /--forge-wide:\s*1440px/);
+  assert.match(css, /\.forge-skip-link\s*\{[^}]*transform:\s*translateY\(calc\(-100% - 16px\)\)/);
+  assert.match(css, /\.forge-skip-link:focus\s*\{[^}]*transform:\s*translateY\(0\)/);
+  assert.match(css, /\.lab-flagship-counterpart--field\s*\{[^}]*width:\s*100%/);
+  assert.match(bootstrap, /forge-product-identity p/);
+  assert.match(bootstrap, /forge-counterpart-link/);
+  assert.match(bootstrap, /lab-flagship-counterpart--field/);
+  assert.match(html, /spectral-forge\.css\?v=20260813-visual-restoration-v2/);
 });

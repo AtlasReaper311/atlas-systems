@@ -27,9 +27,11 @@ import {
 } from "./audio-engine.js";
 import {
   STORAGE_KEY,
+  USER_PRESET_LIMIT,
   activeMappings,
   applyPresetToCandidate,
   audibleOutputs,
+  audibleSmoothing,
   captureBaseline,
   copyBaselineToCandidate,
   createCandidateRoute,
@@ -186,6 +188,13 @@ let audioError = "";
 let timer = null;
 let storageAvailable = true;
 let lastDialogInvoker = null;
+let firstUseCompleted = false;
+let lastPresetDefinitionSignature = "";
+let lastRouteDefinitionSignature = "";
+let lastInspectorConfigurationSignature = "";
+
+const signalIndexNodes = new Map();
+const audioParameterNodes = new Map();
 
 const playFieldRenderer = new SpectralFieldRenderer(elements.playField);
 const forgeFieldRenderer = new SpectralFieldRenderer(elements.forgeField);
@@ -227,8 +236,7 @@ function scenarioIndex() {
 }
 
 function targetSmoothing() {
-  const mappings = activeMappings(comparison);
-  return Object.fromEntries(mappings.filter((mapping) => mapping.enabled).map((mapping) => [mapping.target, mapping.smoothing]));
+  return audibleSmoothing(comparison);
 }
 
 function activeOutputState() {
@@ -293,6 +301,36 @@ function renderAudioControls() {
   else elements.audioToggle.removeAttribute("title");
 }
 
+function renderFirstUse() {
+  if (!elements.firstUse || firstUseCompleted) {
+    elements.firstUse?.classList.add("is-dismissed");
+    return;
+  }
+  const eyebrow = $("span", elements.firstUse);
+  const heading = $("strong", elements.firstUse);
+  const copy = $("small", elements.firstUse);
+  elements.firstUse.classList.remove("is-dismissed");
+  if (!audioEnabled) {
+    elements.firstUse.dataset.step = playback === "PLAYING" ? "audio-during-run" : "audio";
+    eyebrow.textContent = playback === "PLAYING" ? "RUN ACTIVE / AUDIO OPTIONAL" : "STEP 01 / ENABLE AUDIO";
+    heading.textContent = playback === "PLAYING" ? "The mapping is moving." : "Wake the instrument.";
+    copy.textContent = playback === "PLAYING"
+      ? "Enable audio whenever you want to hear the same deterministic run."
+      : "Choose any scenario, enable audio, then Play. The simulation remains synthetic and deterministic.";
+    return;
+  }
+  if (playback !== "PLAYING") {
+    elements.firstUse.dataset.step = "play";
+    eyebrow.textContent = "STEP 02 / START THE RUN";
+    heading.textContent = "Now press Play.";
+    copy.textContent = "Telemetry will move through the selected mapping without restarting when you enter Forge or Analyse.";
+    return;
+  }
+  firstUseCompleted = true;
+  elements.firstUse.dataset.step = "complete";
+  elements.firstUse.classList.add("is-dismissed");
+}
+
 function renderRibbon() {
   elements.playSignalReadout.replaceChildren(...PLAY_SIGNAL_IDS.map((id) => {
     const definition = SIGNAL_BY_ID[id];
@@ -346,23 +384,36 @@ function renderComparison() {
 function renderPresetControls() {
   const definitions = allPresets().map((preset) => [preset.id, `${preset.builtIn ? "BUILT-IN" : "LOCAL"} / ${preset.name}`]);
   definitions.push(["custom-session", "SESSION / UNSAVED CANDIDATE"]);
-  replaceOptions(elements.presetSelect, definitions, presetId);
+  const signature = definitions.map(([value, label]) => `${value}:${label}`).join("|");
+  if (signature !== lastPresetDefinitionSignature) {
+    replaceOptions(elements.presetSelect, definitions, presetId);
+    lastPresetDefinitionSignature = signature;
+  } else if (document.activeElement !== elements.presetSelect) {
+    elements.presetSelect.value = presetId;
+  }
   const preset = currentPreset();
   elements.deletePreset.hidden = !preset || preset.builtIn;
 }
 
 function renderRouteList() {
   const mappings = activeMappings(comparison);
-  elements.routeList.replaceChildren(...mappings.map((mapping, index) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.dataset.mappingId = mapping.id;
-    button.dataset.enabled = String(mapping.enabled);
-    button.setAttribute("aria-pressed", String(mapping.id === comparison.selectedMappingId));
-    button.setAttribute("aria-label", `Route ${index + 1}: ${SIGNAL_BY_ID[mapping.source].label} to ${TARGET_BY_ID[mapping.target].label}; ${mapping.transform}${mapping.enabled ? "" : "; bypassed"}`);
-    button.innerHTML = `<i aria-hidden="true"></i><strong>${SIGNAL_BY_ID[mapping.source].label}</strong><span aria-hidden="true">→</span><strong>${TARGET_BY_ID[mapping.target].label}</strong>`;
-    return button;
-  }));
+  const signature = comparison.activeVariant === "A" ? comparison.baselineFingerprint : comparison.candidateFingerprint;
+  if (signature !== lastRouteDefinitionSignature) {
+    elements.routeList.replaceChildren(...mappings.map((mapping, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.mappingId = mapping.id;
+      button.dataset.enabled = String(mapping.enabled);
+      button.setAttribute("aria-pressed", "false");
+      button.setAttribute("aria-label", `Route ${index + 1}: ${SIGNAL_BY_ID[mapping.source].label} to ${TARGET_BY_ID[mapping.target].label}; ${mapping.transform}${mapping.enabled ? "" : "; bypassed"}`);
+      button.innerHTML = `<i aria-hidden="true"></i><strong>${SIGNAL_BY_ID[mapping.source].label}</strong><span aria-hidden="true">→</span><strong>${TARGET_BY_ID[mapping.target].label}</strong>`;
+      return button;
+    }));
+    lastRouteDefinitionSignature = signature;
+  }
+  $$('button[data-mapping-id]', elements.routeList).forEach((button) => {
+    button.setAttribute("aria-pressed", String(button.dataset.mappingId === comparison.selectedMappingId));
+  });
 
   const occupied = new Set(comparison.candidate.filter((mapping) => mapping.enabled).map((mapping) => mapping.target));
   [...elements.routeTarget.options].forEach((item) => { item.disabled = occupied.has(item.value); });
@@ -395,6 +446,7 @@ function renderInspector() {
   if (!mapping || !calculation) {
     elements.transformChain.innerHTML = '<span><small>NO ROUTE</small><strong>—</strong></span>';
     elements.mappingExplanation.textContent = "Create or select a route to inspect its transformation.";
+    lastInspectorConfigurationSignature = "none";
     return;
   }
   const source = SIGNAL_BY_ID[mapping.source];
@@ -405,22 +457,70 @@ function renderInspector() {
     <span><small>${mapping.transform}${mapping.polarity === "REVERSED" ? " / REVERSED" : ""}</small><strong>${calculation.transformed.toFixed(3)}</strong></span>
     <span><small>BOUNDED OUTPUT</small><strong>${formatValue(calculation.output, target.decimals)} ${target.unit}</strong></span>`;
   elements.transformCurve.setAttribute("d", curvePath(mapping));
-  elements.mappingTransform.value = mapping.transform;
-  elements.mappingPolarity.value = mapping.polarity;
-  elements.mappingSmoothing.value = mapping.smoothing;
-  elements.mappingInputMin.value = String(mapping.inputMin);
-  elements.mappingInputMax.value = String(mapping.inputMax);
-  elements.mappingOutputMin.value = String(mapping.outputMin);
-  elements.mappingOutputMax.value = String(mapping.outputMax);
-  elements.mappingOutputMin.min = String(target.min);
-  elements.mappingOutputMin.max = String(target.max);
-  elements.mappingOutputMax.min = String(target.min);
-  elements.mappingOutputMax.max = String(target.max);
-  elements.mappingOutputMin.step = target.decimals > 0 ? String(10 ** -target.decimals) : "1";
-  elements.mappingOutputMax.step = elements.mappingOutputMin.step;
-  elements.mappingBypass.textContent = mapping.enabled ? "BYPASS" : "ENABLE ROUTE";
+
+  const configurationSignature = [
+    comparison.activeVariant,
+    mapping.id,
+    mapping.transform,
+    mapping.polarity,
+    mapping.smoothing,
+    mapping.inputMin,
+    mapping.inputMax,
+    mapping.outputMin,
+    mapping.outputMax,
+    mapping.enabled ? 1 : 0,
+  ].join("|");
+  if (configurationSignature !== lastInspectorConfigurationSignature) {
+    elements.mappingTransform.value = mapping.transform;
+    elements.mappingPolarity.value = mapping.polarity;
+    elements.mappingSmoothing.value = mapping.smoothing;
+    elements.mappingInputMin.value = String(mapping.inputMin);
+    elements.mappingInputMax.value = String(mapping.inputMax);
+    elements.mappingOutputMin.value = String(mapping.outputMin);
+    elements.mappingOutputMax.value = String(mapping.outputMax);
+    elements.mappingOutputMin.min = String(target.min);
+    elements.mappingOutputMin.max = String(target.max);
+    elements.mappingOutputMax.min = String(target.min);
+    elements.mappingOutputMax.max = String(target.max);
+    elements.mappingOutputMin.step = target.decimals > 0 ? String(10 ** -target.decimals) : "1";
+    elements.mappingOutputMax.step = elements.mappingOutputMin.step;
+    elements.mappingBypass.textContent = mapping.enabled ? "BYPASS" : "ENABLE ROUTE";
+    lastInspectorConfigurationSignature = configurationSignature;
+  }
   const direction = mapping.transform === "INVERSE" || mapping.polarity === "REVERSED" ? "Higher source values currently tend to reduce the mapped response." : "Higher source values currently tend to increase the mapped response.";
   elements.mappingExplanation.textContent = `${source.label} is normalised, transformed and smoothed into ${target.label}. ${TARGET_EXPLANATIONS[mapping.target]}. ${direction}`;
+}
+
+function ensureSignalIndexNodes() {
+  if (signalIndexNodes.size === SIGNALS.length) return;
+  signalIndexNodes.clear();
+  const buttons = SIGNALS.map((definition) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.signalId = definition.id;
+    const label = document.createElement("small");
+    label.textContent = definition.label;
+    const value = document.createElement("strong");
+    button.append(label, value);
+    signalIndexNodes.set(definition.id, { button, value });
+    return button;
+  });
+  elements.signalIndex.replaceChildren(...buttons);
+}
+
+function ensureAudioParameterNodes() {
+  if (audioParameterNodes.size === TARGETS.length) return;
+  audioParameterNodes.clear();
+  const spans = TARGETS.map((definition) => {
+    const span = document.createElement("span");
+    const label = document.createElement("small");
+    label.textContent = definition.label;
+    const value = document.createElement("strong");
+    span.append(label, value);
+    audioParameterNodes.set(definition.id, { span, value });
+    return span;
+  });
+  elements.audioParameterList.replaceChildren(...spans);
 }
 
 function renderAnalysis() {
@@ -444,21 +544,18 @@ function renderAnalysis() {
     elements.analysisChain.innerHTML = '<span><small>MAPPING</small><strong>No active route from this signal</strong></span>';
   }
 
-  elements.signalIndex.replaceChildren(...SIGNALS.map((definition) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.dataset.signalId = definition.id;
-    button.setAttribute("aria-pressed", String(definition.id === selectedSignalId));
-    button.innerHTML = `<small>${definition.label}</small><strong>${formatValue(frame.values[definition.id], definition.decimals)} ${definition.unit}</strong>`;
-    return button;
-  }));
+  ensureSignalIndexNodes();
+  for (const definition of SIGNALS) {
+    const node = signalIndexNodes.get(definition.id);
+    node.button.setAttribute("aria-pressed", String(definition.id === selectedSignalId));
+    node.value.textContent = `${formatValue(frame.values[definition.id], definition.decimals)} ${definition.unit}`;
+  }
 
   const outputs = activeOutputState();
-  elements.audioParameterList.replaceChildren(...TARGETS.map((definition) => {
-    const span = document.createElement("span");
-    span.innerHTML = `<small>${definition.label}</small><strong>${formatValue(outputs[definition.id], definition.decimals)} ${definition.unit}</strong>`;
-    return span;
-  }));
+  ensureAudioParameterNodes();
+  for (const definition of TARGETS) {
+    audioParameterNodes.get(definition.id).value.textContent = `${formatValue(outputs[definition.id], definition.decimals)} ${definition.unit}`;
+  }
   elements.audioHarmonicState.textContent = HARMONIC_STATES[frame.health];
 }
 
@@ -477,6 +574,7 @@ function renderAll({ updateAudio = true } = {}) {
   renderAnalysisView();
   renderScenario();
   renderAudioControls();
+  renderFirstUse();
   renderComparison();
   renderPresetControls();
   renderRouteList();
@@ -509,10 +607,8 @@ function startTimer() {
 
 function setPlayback(next) {
   playback = next;
-  if (playback === "PLAYING") {
-    elements.firstUse.classList.add("is-dismissed");
-    startTimer();
-  } else stopTimer();
+  if (playback === "PLAYING") startTimer();
+  else stopTimer();
   renderAll();
 }
 
@@ -555,7 +651,6 @@ async function enableAudio() {
     audioEnabled = true;
     audioMuted = false;
     audioError = "";
-    elements.firstUse.classList.add("is-dismissed");
     setNotice("Audio enabled · true stereo-width stage · bounded −1 dBFS sample output · M mutes immediately");
   } catch (error) {
     audioError = error instanceof Error ? error.message : "The audio context could not be created.";
@@ -635,7 +730,7 @@ function createRouteFromControls() {
 function toggleRouteFocus() {
   const mode = comparison.auditionMode === "ROUTE_FOCUS" ? "FULL" : "ROUTE_FOCUS";
   comparison = setAuditionMode(comparison, mode);
-  setNotice(mode === "ROUTE_FOCUS" ? "Route Focus active · baseline context retained; selected target follows the active mapping" : "Full mapping mix restored");
+  setNotice(mode === "ROUTE_FOCUS" ? "Route Focus active · baseline values and smoothing retained; selected target follows the active mapping" : "Full mapping mix restored");
   renderAll();
 }
 
@@ -676,6 +771,7 @@ function loadPreset(id) {
 
 function savePreset(name) {
   try {
+    if (userPresets.length >= USER_PRESET_LIMIT) throw new TypeError(`Local preset limit reached (${USER_PRESET_LIMIT})`);
     const baseId = `user-${Date.now().toString(36)}`;
     const preset = createUserPreset(name, comparison.candidate, baseId);
     userPresets = [...userPresets, preset];
@@ -757,6 +853,8 @@ function populateStaticControls() {
   replaceOptions(elements.mappingTransform, TRANSFORM_TYPES.map((value) => [value, value]));
   replaceOptions(elements.mappingPolarity, POLARITIES.map((value) => [value, value]));
   replaceOptions(elements.mappingSmoothing, SMOOTHING_TYPES.map((value) => [value, value]));
+  ensureSignalIndexNodes();
+  ensureAudioParameterNodes();
 }
 
 function setupEvents() {

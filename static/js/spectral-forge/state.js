@@ -12,6 +12,8 @@ import {
 
 export const STORAGE_KEY = "atlas-spectral-forge:v3";
 export const AUDITION_MODES = Object.freeze(["FULL", "ROUTE_FOCUS"]);
+export const USER_PRESET_LIMIT = 12;
+export const USER_PRESET_NAME_MAX = 48;
 
 export function createComparisonState(mappings = BUILT_IN_PRESETS[0].mappings) {
   const baseline = cloneMappings(mappings);
@@ -119,14 +121,32 @@ export function selectedMapping(state) {
   return mappings.find((mapping) => mapping.id === state.selectedMappingId) ?? mappings[0] ?? null;
 }
 
+function smoothingByTarget(mappings) {
+  return Object.fromEntries(
+    mappings
+      .filter((mapping) => mapping.enabled)
+      .map((mapping) => [mapping.target, mapping.smoothing]),
+  );
+}
+
 export function audibleOutputs(frame, state) {
   const active = activeMappings(state);
   const outputs = mappingOutputs(frame, active);
   if (state.auditionMode !== "ROUTE_FOCUS") return outputs;
   const selected = selectedMapping(state);
-  if (!selected || !selected.enabled) return outputs;
   const reference = { ...mappingOutputs(frame, state.baseline) };
+  if (!selected || !selected.enabled) return Object.freeze(reference);
   reference[selected.target] = outputs[selected.target];
+  return Object.freeze(reference);
+}
+
+export function audibleSmoothing(state) {
+  const active = activeMappings(state);
+  if (state.auditionMode !== "ROUTE_FOCUS") return Object.freeze(smoothingByTarget(active));
+  const selected = selectedMapping(state);
+  const reference = smoothingByTarget(state.baseline);
+  if (!selected || !selected.enabled) return Object.freeze(reference);
+  reference[selected.target] = selected.smoothing;
   return Object.freeze(reference);
 }
 
@@ -144,9 +164,20 @@ export function applyPresetToCandidate(state, preset) {
   };
 }
 
+function validUserPreset(preset) {
+  return Boolean(
+    preset
+    && !preset.builtIn
+    && typeof preset.name === "string"
+    && preset.name.trim().length <= USER_PRESET_NAME_MAX
+    && validatePreset(preset).valid
+  );
+}
+
 export function createUserPreset(name, mappings, id = null) {
   const trimmed = String(name ?? "").trim();
   if (!trimmed) throw new TypeError("Preset name is required");
+  if (trimmed.length > USER_PRESET_NAME_MAX) throw new TypeError(`Preset name must be ${USER_PRESET_NAME_MAX} characters or fewer`);
   const slug = trimmed.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "preset";
   const preset = { id: id ?? `user-${slug}`, name: trimmed.toUpperCase(), builtIn: false, mappings: cloneMappings(mappings) };
   validatePreset(preset, { throwOnError: true });
@@ -154,7 +185,9 @@ export function createUserPreset(name, mappings, id = null) {
 }
 
 export function serialisePreferences({ userPresets, presetId, depth, masterLevel }) {
-  const safePresets = (Array.isArray(userPresets) ? userPresets : []).filter((preset) => !preset.builtIn && validatePreset(preset).valid);
+  const safePresets = (Array.isArray(userPresets) ? userPresets : [])
+    .filter(validUserPreset)
+    .slice(0, USER_PRESET_LIMIT);
   return JSON.stringify({ schema: 3, userPresets: safePresets, presetId: String(presetId || "reference"), depth: ["PLAY", "FORGE", "ANALYSE"].includes(depth) ? depth : "PLAY", masterLevel: Number.isFinite(masterLevel) ? masterLevel : null });
 }
 
@@ -163,7 +196,7 @@ export function parsePreferences(raw) {
   const parsed = JSON.parse(raw);
   if (!parsed || parsed.schema !== 3) throw new TypeError("Unsupported Spectral Forge preference schema");
   const userPresets = Array.isArray(parsed.userPresets)
-    ? parsed.userPresets.filter((preset) => !preset.builtIn && validatePreset(preset).valid)
+    ? parsed.userPresets.filter(validUserPreset).slice(0, USER_PRESET_LIMIT)
     : [];
   return {
     userPresets,

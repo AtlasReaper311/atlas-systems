@@ -3,8 +3,11 @@ import test from "node:test";
 
 import { BUILT_IN_PRESETS, createFrame, fingerprintMappings } from "../../static/js/spectral-forge/domain.js";
 import {
+  USER_PRESET_LIMIT,
+  USER_PRESET_NAME_MAX,
   applyPresetToCandidate,
   audibleOutputs,
+  audibleSmoothing,
   captureBaseline,
   copyBaselineToCandidate,
   createComparisonState,
@@ -66,6 +69,31 @@ test("route focus keeps baseline context and only substitutes selected target", 
   }
 });
 
+test("route focus preserves baseline smoothing outside the selected target", () => {
+  const initial = createComparisonState();
+  const selected = initial.candidate[0];
+  const other = initial.candidate[1];
+  let edited = updateCandidateMapping(initial, selected.id, { smoothing: "FAST" });
+  edited = updateCandidateMapping(edited, other.id, { smoothing: "IMMEDIATE" });
+  const state = setAuditionMode({ ...edited, selectedMappingId: selected.id }, "ROUTE_FOCUS");
+  const smoothing = audibleSmoothing(state);
+  const baselineSmoothing = audibleSmoothing(setAuditionMode(setActiveVariant(state, "A"), "FULL"));
+  assert.equal(smoothing[selected.target], "FAST");
+  assert.equal(smoothing[other.target], baselineSmoothing[other.target]);
+});
+
+test("route focus with a bypassed selected route falls back to baseline values and smoothing", () => {
+  const initial = createComparisonState();
+  const selected = initial.candidate[0];
+  const bypassed = setAuditionMode(updateCandidateMapping(initial, selected.id, { enabled: false, smoothing: "FAST" }), "ROUTE_FOCUS");
+  const frame = createFrame("traffic", 25);
+  const focused = audibleOutputs(frame, bypassed);
+  const focusedSmoothing = audibleSmoothing(bypassed);
+  const baselineState = setAuditionMode(setActiveVariant(bypassed, "A"), "FULL");
+  assert.deepEqual(focused, audibleOutputs(frame, baselineState));
+  assert.deepEqual(focusedSmoothing, audibleSmoothing(baselineState));
+});
+
 test("built-in preset loads into candidate without changing baseline", () => {
   const initial = createComparisonState();
   const next = applyPresetToCandidate(initial, BUILT_IN_PRESETS[1]);
@@ -82,4 +110,20 @@ test("preferences round-trip only validated user presets", () => {
   assert.equal(parsed.presetId, preset.id);
   assert.equal(parsed.depth, "FORGE");
   assert.equal(parsed.masterLevel, 0.56);
+});
+
+test("user preset persistence is bounded by count and name length", () => {
+  assert.throws(
+    () => createUserPreset("x".repeat(USER_PRESET_NAME_MAX + 1), BUILT_IN_PRESETS[0].mappings),
+    new RegExp(`${USER_PRESET_NAME_MAX} characters or fewer`),
+  );
+  const presets = Array.from({ length: USER_PRESET_LIMIT + 4 }, (_, index) => (
+    createUserPreset(`Map ${index + 1}`, BUILT_IN_PRESETS[0].mappings, `user-${index + 1}`)
+  ));
+  const raw = serialisePreferences({ userPresets: presets, presetId: presets[0].id, depth: "PLAY", masterLevel: 0.56 });
+  assert.equal(parsePreferences(raw).userPresets.length, USER_PRESET_LIMIT);
+
+  const oversizedName = { ...presets[0], name: "X".repeat(USER_PRESET_NAME_MAX + 1) };
+  const tampered = JSON.stringify({ schema: 3, userPresets: [oversizedName], presetId: oversizedName.id, depth: "PLAY", masterLevel: 0.56 });
+  assert.deepEqual(parsePreferences(tampered).userPresets, []);
 });
