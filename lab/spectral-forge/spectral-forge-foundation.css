@@ -20,7 +20,7 @@
 
 * { box-sizing: border-box; }
 html { background: var(--forge-bg); color-scheme: dark; }
-body.spectral-forge-page { background: var(--forge-bg); color: var(--forge-text); }
+body.spectral-forge-page { margin: 0; background: var(--forge-bg); color: var(--forge-text); }
 button, input, select, summary { font: inherit; }
 button, select { color: inherit; }
 button { cursor: pointer; }
@@ -30,7 +30,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 }
 button:disabled, input:disabled, select:disabled { cursor: not-allowed; opacity: .48; }
 .sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0,0,0,0) !important; white-space: nowrap !important; border: 0 !important; }
-.forge-skip-link { position: fixed; z-index: 999; top: 8px; left: 8px; transform: translateY(-160%); padding: 10px 14px; background: var(--forge-amber); color: #120e08; text-decoration: none; font: 500 12px "IBM Plex Mono", monospace; }
+.forge-skip-link { position: fixed; z-index: 999; top: calc(var(--lab-shell-stack-height, 112px) + 8px); left: 8px; transform: translateY(-160%); padding: 10px 14px; background: var(--forge-amber); color: #120e08; text-decoration: none; font: 500 12px "IBM Plex Mono", monospace; }
 .forge-skip-link:focus { transform: translateY(0); }
 
 body[data-lab-route="spectral-forge"] main.spectral-forge,
