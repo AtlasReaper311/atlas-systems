@@ -1,7 +1,7 @@
 /**
  * js/transitions.js
  *
- * Route entry behaviour, not route interception.
+ * Route entry behaviour.
  *
  * This file used to preventDefault same-origin clicks, hold the old
  * document for 190ms behind a full-screen overlay, and only then call
@@ -10,10 +10,9 @@
  * All it produced was a delay, a curtain over the page you were
  * leaving, and a fade over the page you had already arrived on.
  *
- * Navigation is now the browser's. Clicks start the next document
- * immediately, and first paint is already the real chrome because the
- * header ships in the HTML. What stays here is the per-route work that
- * genuinely belongs to page entry.
+ * The old full-screen curtain is gone. Route-exit motion now belongs to
+ * the shared estate shell, which is loaded consistently across the main
+ * public pages. This file keeps the route-specific entry work.
  */
 (function () {
   "use strict";
