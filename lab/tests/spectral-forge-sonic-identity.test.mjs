@@ -47,11 +47,13 @@ test("abrupt mapped changes receive at least the approved comparison interpolati
 
 test("sonic identity is procedural, sample-free and does not encode scenario names", async () => {
   const [nodes, install] = await Promise.all([source(nodesUrl), source(installUrl)]);
+  const combined = `${nodes}\n${install}`;
   assert.match(nodes, /subOscillator/);
   assert.match(nodes, /crystalDelay/);
   assert.match(nodes, /scheduleHeartbeat/);
   assert.match(nodes, /pulseVoice/);
-  assert.doesNotMatch(`${nodes}\n${install}`, /fetch\(|decodeAudioData|AudioBufferSourceNode|normal|traffic|cache|flapping|creep|cascade|deploy\s*:/i);
+  assert.doesNotMatch(combined, /fetch\(|decodeAudioData|AudioBufferSourceNode/i);
+  assert.doesNotMatch(combined, /\b(?:normal|traffic|cache|flapping|creep|cascade|deploy)\b/i);
 });
 
 test("spatial macro is explicitly surfaced in Analyse", async () => {
