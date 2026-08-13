@@ -55,6 +55,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://atlas-systems.uk/lab/spectral-forge/</loc>
+    <lastmod>2026-08-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://atlas-systems.uk/lab/system-map/</loc>
     <lastmod>2026-07-29T18:37:07+01:00</lastmod>
     <changefreq>monthly</changefreq>
