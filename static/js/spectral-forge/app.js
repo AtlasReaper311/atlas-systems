@@ -1,24 +1,14 @@
 "use strict";
 
-import { installFlagshipCounterpart } from "/lab/shared/flagship-counterparts.js?v=20260813-spectral-forge";
+import { installFlagshipCounterpart } from "/lab/shared/flagship-counterparts.js?v=20260813-atlas-audio-family-v1";
+import "./spectral-field-art.js?v=20260813-field-3";
+import "./sonic-identity-install.js?v=20260813-sonic-22";
 import "./app-core.js";
+import "./forge-instrument-enhancements.js?v=20260813-instrument-22";
+import "./sonic-identity-surface.js?v=20260813-sonic-22";
 
-function placeForgeCounterpart() {
-  const counterpart = installFlagshipCounterpart();
-  const playField = document.querySelector('[data-depth-panel="PLAY"] .forge-field-stage');
-  if (counterpart && playField) {
-    counterpart.classList.add("lab-flagship-counterpart--field");
-    playField.insertAdjacentElement("afterend", counterpart);
-  }
-
-  const identityCopy = document.querySelector(".forge-product-identity p");
-  if (!identityCopy || identityCopy.querySelector(".forge-counterpart-link")) return;
-  const link = document.createElement("a");
-  link.className = "forge-counterpart-link";
-  link.href = "/lab/system-symphony/";
-  link.setAttribute("aria-label", "Open audio counterpart System SYMPHONY");
-  link.textContent = "AUDIO COUNTERPART · System SYMPHONY →";
-  identityCopy.append(link);
-}
-
-placeForgeCounterpart();
+const counterpartRail = installFlagshipCounterpart();
+const productCopy = document.querySelector(".forge-product-identity p");
+const counterpartLink = productCopy?.parentElement?.querySelector(".atlas-audio-family__counterpart");
+counterpartLink?.classList.add("forge-counterpart-link");
+counterpartRail?.classList.add("lab-flagship-counterpart--field");
