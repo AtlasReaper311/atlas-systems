@@ -99,15 +99,16 @@ export function scheduleHeartbeat(engine) {
   if (engine.nextPulseAt < now) engine.nextPulseAt = now + 1 / engine.pulseRate;
 }
 
-export function triggerSonicEvent(engine, kind, health) {
+export function triggerSonicEvent(engine, health) {
   if (engine.context.state !== "running") return;
   const profile = HARMONIC_PROFILES[health] ?? HARMONIC_PROFILES.STABLE;
-  const ratios = kind === "deploy" ? [1, 1.25, 1.5] : profile.event;
+  const ratios = profile.event;
   const base = SONIC_BASE_FREQUENCY * 4;
+  const peak = health === "FAILED" ? 0.034 : health === "RECOVERING" ? 0.03 : 0.026;
   ratios.forEach((ratio, index) => {
-    const start = engine.context.currentTime + index * (kind === "deploy" ? 0.095 : 0.065);
-    const duration = health === "RECOVERING" ? 0.42 + index * 0.08 : kind === "deploy" ? 0.3 : 0.18;
-    pulseVoice(engine, start, base * ratio, kind === "deploy" ? 0.046 : 0.026, duration, (index - (ratios.length - 1) / 2) * 0.1, index === 0 ? "triangle" : "sine");
+    const start = engine.context.currentTime + index * 0.065;
+    const duration = health === "RECOVERING" ? 0.42 + index * 0.08 : health === "FAILED" ? 0.24 : 0.18;
+    pulseVoice(engine, start, base * ratio, peak, duration, (index - (ratios.length - 1) / 2) * 0.1, index === 0 ? "triangle" : "sine");
   });
 }
 
