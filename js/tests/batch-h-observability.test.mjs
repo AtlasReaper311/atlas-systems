@@ -16,7 +16,8 @@ test("observability is a focused public systems destination", () => {
 });
 
 test("observability uses the governed estate header and stable first-paint fallback", () => {
-  assert.ok(page.includes('<header class="focus-hero">'));
+  assert.match(page, /<header class="[^"]*\bfocus-hero\b[^"]*">/);
+  assert.match(page, /<header class="[^"]*\batlas-composition--telemetry-lattice\b[^"]*">/);
   assert.ok(page.includes('/static/css/estate-search.css'));
   assert.ok(page.includes('/static/css/estate-shell.css?v=20260723-interface-v2'));
   assert.ok(page.includes('/static/js/focused-systems-shell.js?v=20260725-batch-h-fixes'));

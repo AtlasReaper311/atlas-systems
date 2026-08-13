@@ -22,7 +22,8 @@ test("reliability combines objectives, budgets, delivery, and bounded chaos", ()
 });
 
 test("reliability uses the governed estate header and an honest console link", () => {
-  assert.ok(page.includes('<header class="focus-hero">'));
+  assert.match(page, /<header class="[^"]*\bfocus-hero\b[^"]*">/);
+  assert.match(page, /<header class="[^"]*\batlas-composition--pulse-horizon\b[^"]*">/);
   assert.ok(page.includes('/static/css/estate-search.css'));
   assert.ok(page.includes('/static/css/estate-shell.css?v=20260723-interface-v2'));
   assert.ok(page.includes('/static/js/focused-systems-shell.js?v=20260725-batch-h-fixes'));
