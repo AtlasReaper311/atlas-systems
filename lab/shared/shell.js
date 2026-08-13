@@ -1,6 +1,7 @@
 "use strict";
 
 const SYSTEM_SYMPHONY_ROUTE = "/lab/system-symphony/";
+const SPECTRAL_FORGE_ROUTE = "/lab/spectral-forge/";
 const SYSTEM_SYMPHONY_SCOPED_ROUTES = Object.freeze([
   Object.freeze({ label: "APU ROMs", href: "/lab/system-symphony/roms/" }),
   Object.freeze({ label: "Build log", href: "/lab/system-symphony/build-log/" }),
@@ -13,6 +14,7 @@ const LAB_ROUTE_GROUPS = Object.freeze([
     label: "Experience",
     routes: Object.freeze([
       Object.freeze({ label: "System Symphony", href: "/lab/system-symphony/" }),
+      Object.freeze({ label: "Spectral Forge", href: "/lab/spectral-forge/" }),
       Object.freeze({ label: "Signal Garden", href: "/lab/signal/" }),
     ]),
   }),
@@ -136,7 +138,7 @@ function isSystemSymphonyPath(pathname = currentPath()) {
 
 function labLayoutForPath(pathname = currentPath()) {
   if (pathname === LAB_HOME_ROUTE) return "directory";
-  if (isSystemSymphonyPath(pathname)) return "product";
+  if (isSystemSymphonyPath(pathname) || pathname === SPECTRAL_FORGE_ROUTE) return "product";
   if (IMMERSIVE_ROUTES.has(pathname)) return "immersive";
   return "standard";
 }
@@ -825,6 +827,7 @@ void installLabShell();
 export {
   LAB_ROUTE_GROUPS,
   LAB_ROUTES,
+  SPECTRAL_FORGE_ROUTE,
   SYSTEM_SYMPHONY_SCOPED_ROUTES,
   auditInteractionTargets,
   auditLabShell,
