@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en" data-atlas-interface>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>XRAY // ATLAS SYSTEMS</title>
+<meta name="description" content="Request X-Ray is an Atlas Systems browser tool for exploring retries, timeouts, caching, rate limiting, and latency in a simulated seven-layer request path.">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="color-scheme" content="dark">
+<link rel="canonical" href="https://atlas-systems.uk/lab/xray/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+<link rel="manifest" href="/site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:title" content="XRAY // ATLAS SYSTEMS">
+<meta property="og:description" content="Break a simulated request path and watch retries, deadlines, cache behaviour, and rate limits change the trace.">
+<meta property="og:url" content="https://atlas-systems.uk/lab/xray/">
+<meta property="og:site_name" content="Atlas Systems">
+<meta property="og:image" content="https://atlas-systems.uk/og/request-xray.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Request X-Ray simulated request path. // Atlas Systems">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="XRAY // ATLAS SYSTEMS">
+<meta name="twitter:description" content="A compact Atlas Systems simulator for request-path failure mechanics.">
+<meta name="twitter:image" content="https://atlas-systems.uk/og/request-xray.png">
+<meta name="twitter:image:alt" content="Request X-Ray simulated request path. // Atlas Systems">
+<link rel="stylesheet" href="/lab/xray/xray.css?v=20260813-lab-shell-parity">
+</head>
+<body data-atlas-bottom-nav="true">
+
+<main class="xray-main">
+  <header class="xray-hero" aria-labelledby="page-title">
+    <div class="xray-hero__copy">
+      <p class="eyebrow">Lab tool / simulated request path</p>
+      <h1 id="page-title">Request X-Ray</h1>
+      <p class="lede">One request, seven layers, and a handful of switches. Change retries, deadlines, cache behaviour, rate limits, and service errors, then watch the path explain itself.</p>
+    </div>
+    <aside class="xray-proof" aria-label="Request X-Ray facts">
+      <dl>
+        <div><dt>Runtime</dt><dd>Browser only</dd></div>
+        <div><dt>Data mode</dt><dd>Simulated</dd></div>
+        <div><dt>Persistence</dt><dd>URL state</dd></div>
+      </dl>
+    </aside>
+  </header>
+
+  <section class="xray-product" aria-labelledby="simulator-title">
+    <div class="section-head xray-product__head">
+      <div>
+        <p class="eyebrow">01 / Simulator</p>
+        <h2 id="simulator-title">Break the request, then read the route.</h2>
+      </div>
+      <p>The main instrument stays in one working surface: scenario tabs first, live trace in the middle, switches underneath, and the run summary close enough to compare without hunting.</p>
+    </div>
+
+    <div class="scenario-tabs" id="scenarios" aria-labelledby="scenario-title">
+      <h3 id="scenario-title">Scenarios</h3>
+      <div class="preset-row" id="preset-row" role="tablist" aria-label="Request scenario presets"></div>
+    </div>
+
+    <div class="xray-console">
+      <section class="stage-panel" id="stage" aria-labelledby="trace-title">
+        <div class="panel-bar">
+          <div>
+            <p class="panel-kicker">Trace</p>
+            <h3 id="trace-title">Live path</h3>
+          </div>
+          <span class="stage-hint" id="stage-hint" aria-live="polite">Ready.</span>
+        </div>
+
+        <div class="stage-actions">
+          <button type="button" class="btn btn-primary" id="run">Run request</button>
+          <button type="button" class="btn" id="replay">Replay</button>
+          <button type="button" class="btn" id="copy-link">Copy permalink</button>
+        </div>
+
+        <div class="diagram">
+          <svg class="pipeline" viewBox="0 0 1000 120" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
+            <g class="connectors">
+              <line x1="97" y1="60" x2="188" y2="60"></line>
+              <line x1="240" y1="60" x2="331" y2="60"></line>
+              <line x1="383" y1="60" x2="474" y2="60"></line>
+              <line x1="526" y1="60" x2="617" y2="60"></line>
+              <line x1="669" y1="60" x2="760" y2="60"></line>
+              <line x1="812" y1="60" x2="903" y2="60"></line>
+            </g>
+            <g class="node" data-layer="browser" transform="translate(71,60)"><circle class="node-ring" r="26"></circle></g>
+            <g class="node" data-layer="edge" transform="translate(214,60)"><circle class="node-ring" r="26"></circle></g>
+            <g class="node" data-layer="router" transform="translate(357,60)"><circle class="node-ring" r="26"></circle></g>
+            <g class="node" data-layer="api" transform="translate(500,60)"><circle class="node-ring" r="26"></circle></g>
+            <g class="node" data-layer="service" transform="translate(643,60)"><circle class="node-ring" r="26"></circle></g>
+            <g class="node" data-layer="cache" transform="translate(786,60)"><circle class="node-ring" r="26"></circle></g>
+            <g class="node" data-layer="database" transform="translate(929,60)"><circle class="node-ring" r="26"></circle></g>
+            <circle class="packet" id="packet" r="8" transform="translate(71,60)"></circle>
+          </svg>
+          <div class="layer-tabs" id="layer-tabs"></div>
+        </div>
+
+        <div class="budget">
+          <div class="budget-head">
+            <span class="budget-label">Latency budget</span>
+            <span class="budget-figures"><span id="budget-elapsed">0</span>ms of <span id="budget-total">500</span>ms</span>
+          </div>
+          <div class="budget-track"><span class="budget-fill" id="budget-fill"></span></div>
+        </div>
+
+        <dl class="metrics">
+          <div class="metric"><dt>Status</dt><dd id="m-status">idle</dd></div>
+          <div class="metric"><dt>Total latency</dt><dd id="m-latency">0ms</dd></div>
+          <div class="metric"><dt>Downstream calls</dt><dd id="m-downstream">0</dd></div>
+          <div class="metric"><dt>Attempts</dt><dd id="m-attempts">0</dd></div>
+          <div class="metric"><dt>Terminated at</dt><dd id="m-terminal">-</dd></div>
+          <div class="metric"><dt>Pattern</dt><dd id="m-pattern">-</dd></div>
+        </dl>
+
+        <p class="explanation" id="explanation"></p>
+      </section>
+
+      <section class="switch-panel" id="controls" aria-labelledby="switch-title">
+        <div class="panel-bar">
+          <div>
+            <p class="panel-kicker">Switches</p>
+            <h3 id="switch-title">Owned by layer</h3>
+          </div>
+        </div>
+
+        <div class="switch-grid">
+          <div class="switch-group" data-owner="edge">
+            <span class="switch-owner">edge</span>
+            <div class="switch-row">
+              <input type="checkbox" id="sw-jitter">
+              <label for="sw-jitter">Latency variance</label>
+            </div>
+            <p class="switch-help">Seeded extra latency across the path.</p>
+          </div>
+
+          <div class="switch-group" data-owner="router">
+            <span class="switch-owner">router</span>
+            <div class="switch-row">
+              <input type="checkbox" id="sw-ratelimit">
+              <label for="sw-ratelimit">Rate limit</label>
+            </div>
+            <p class="switch-help">Refuse before downstream work.</p>
+          </div>
+
+          <div class="switch-group" data-owner="api">
+            <span class="switch-owner">api</span>
+            <div class="switch-row">
+              <label for="sw-retries">Retries</label>
+              <select id="sw-retries">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+              </select>
+            </div>
+            <div class="switch-row">
+              <label for="sw-timeout">Timeout</label>
+              <select id="sw-timeout">
+                <option value="50">50ms</option>
+                <option value="100">100ms</option>
+                <option value="250">250ms</option>
+                <option value="500">500ms</option>
+              </select>
+            </div>
+            <p class="switch-help">Deadline is per attempt; backoff is visible on the API hop.</p>
+          </div>
+
+          <div class="switch-group" data-owner="service">
+            <span class="switch-owner">service</span>
+            <div class="switch-row">
+              <input type="checkbox" id="sw-serviceerror">
+              <label for="sw-serviceerror">Service error</label>
+            </div>
+            <p class="switch-help">Return 503 before reading anything.</p>
+          </div>
+
+          <div class="switch-group switch-group-cache" data-owner="cache">
+            <span class="switch-owner">cache</span>
+            <div class="switch-row">
+              <input type="checkbox" id="sw-cachehit">
+              <label for="sw-cachehit">Cache hit</label>
+            </div>
+            <div class="switch-row">
+              <input type="checkbox" id="sw-stale">
+              <label for="sw-stale">Stale entry</label>
+            </div>
+            <p class="switch-help">Fast answers can still be wrong answers.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section class="content-band" aria-labelledby="meaning-title">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">02 / What this proves</p>
+        <h2 id="meaning-title">Reliability failures have shape.</h2>
+      </div>
+      <p>A failed request is not a single red light. It is a path through owned layers: where the deadline is spent, where retries multiply load, where cache hides truth, and where a refusal prevents damage.</p>
+    </div>
+    <div class="insight-grid">
+      <article class="insight-card">
+        <span>01</span>
+        <h3>Retries change load.</h3>
+        <p>One browser request can become several downstream calls, even when every call returns nothing useful.</p>
+      </article>
+      <article class="insight-card">
+        <span>02</span>
+        <h3>Timeouts have owners.</h3>
+        <p>A per-attempt deadline can keep individual attempts bounded while the whole request still drifts over budget.</p>
+      </article>
+      <article class="insight-card">
+        <span>03</span>
+        <h3>Fast is not always healthy.</h3>
+        <p>A stale cache hit looks cheap on latency and expensive on truth. That distinction matters.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="detail-stack" aria-label="Request X-Ray details">
+    <details class="detail-panel" id="inspector" open>
+      <summary><span>Layer detail</span><span id="inspector-layer">browser</span></summary>
+      <div class="inspector-grid">
+        <div class="inspector-block">
+          <h3>Configured behaviour</h3>
+          <dl class="kv" id="inspector-config"></dl>
+        </div>
+        <div class="inspector-block">
+          <h3>Last run outcome</h3>
+          <dl class="kv" id="inspector-outcome"></dl>
+        </div>
+      </div>
+    </details>
+
+    <details class="detail-panel" id="hops">
+      <summary><span>Hop table</span><span>Accessible trace</span></summary>
+      <p class="panel-note">The same trace without the animation. This is the accessible equivalent of the diagram and the fastest way to audit a run.</p>
+      <div class="table-actions">
+        <button type="button" class="btn" id="copy-trace">Copy trace as JSON</button>
+        <span class="stage-hint" id="copy-hint" aria-live="polite"></span>
+      </div>
+      <div class="table-scroll" tabindex="0" aria-label="Scrollable hop table">
+        <table class="hop-table">
+          <caption class="visually-hidden">Every hop in the last run, in order</caption>
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Layer</th>
+              <th scope="col">Attempt</th>
+              <th scope="col">Outcome</th>
+              <th scope="col">Latency</th>
+              <th scope="col">Note</th>
+            </tr>
+          </thead>
+          <tbody id="hop-body"></tbody>
+        </table>
+      </div>
+    </details>
+
+    <details class="detail-panel" id="compare">
+      <summary><span>Compare</span><span>Pin a run</span></summary>
+      <p class="panel-note">Pin the current configuration, change the switches, and read the two runs side by side.</p>
+      <div class="table-actions">
+        <button type="button" class="btn" id="pin">Pin current run</button>
+        <button type="button" class="btn" id="unpin">Clear pin</button>
+      </div>
+      <div class="compare-grid" id="compare-grid">
+        <p class="panel-note" id="compare-empty">Nothing pinned yet.</p>
+      </div>
+    </details>
+
+    <details class="detail-panel">
+      <summary><span>Model notes</span><span>Simulation boundary</span></summary>
+      <div class="model-notes">
+        <p>This page does not call a real service. The latency model is deliberate, repeatable, and documented so a permalink reproduces the same experiment instead of rolling new data.</p>
+        <a class="text-action" href="/lab/xray/docs/latency-model.md">Read the latency model</a>
+      </div>
+    </details>
+  </section>
+</main>
+
+<script type="module" src="/lab/shared/shell.js?v=20260813-xray-route"></script>
+<script type="module" src="/lab/xray/src/app.js?v=20260813-lab-shell-parity"></script>
+</body>
+</html>

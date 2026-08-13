@@ -32,6 +32,7 @@ const LAB_ROUTE_GROUPS = Object.freeze([
     routes: Object.freeze([
       Object.freeze({ label: "Proof Chain", href: "/lab/proof-chain/" }),
       Object.freeze({ label: "Estate Conformance", href: "/lab/conformance/" }),
+      Object.freeze({ label: "X-Ray", href: "/lab/xray/" }),
       Object.freeze({ label: "Reliability", href: "/systems/reliability/" }),
       Object.freeze({ label: "Evidence", href: "/systems/evidence/" }),
     ]),
