@@ -5,19 +5,19 @@
   "routes": [
     {
       "route": "/",
-      "html_bytes": 22095,
-      "first_party_request_count": 21,
-      "referenced_asset_bytes": 144187,
-      "total_static_bytes": 166282,
+      "html_bytes": 22512,
+      "first_party_request_count": 24,
+      "referenced_asset_bytes": 198643,
+      "total_static_bytes": 221155,
       "largest_referenced_asset": "lab/index.html",
       "largest_referenced_asset_bytes": 32376
     },
     {
       "route": "/systems/",
-      "html_bytes": 19639,
-      "first_party_request_count": 14,
-      "referenced_asset_bytes": 117702,
-      "total_static_bytes": 137341,
+      "html_bytes": 20426,
+      "first_party_request_count": 19,
+      "referenced_asset_bytes": 180675,
+      "total_static_bytes": 201101,
       "largest_referenced_asset": "static/css/v2-directory-pages.css",
       "largest_referenced_asset_bytes": 28198
     },
@@ -25,8 +25,8 @@
       "route": "/lab/",
       "html_bytes": 32376,
       "first_party_request_count": 19,
-      "referenced_asset_bytes": 210652,
-      "total_static_bytes": 243028,
+      "referenced_asset_bytes": 210768,
+      "total_static_bytes": 243144,
       "largest_referenced_asset": "lab/lab-card.js",
       "largest_referenced_asset_bytes": 43782
     },
@@ -34,8 +34,8 @@
       "route": "/lab/signal/",
       "html_bytes": 28242,
       "first_party_request_count": 15,
-      "referenced_asset_bytes": 90202,
-      "total_static_bytes": 118444,
+      "referenced_asset_bytes": 90318,
+      "total_static_bytes": 118560,
       "largest_referenced_asset": "favicon.ico",
       "largest_referenced_asset_bytes": 15406
     },
@@ -43,8 +43,8 @@
       "route": "/lab/almost/",
       "html_bytes": 12561,
       "first_party_request_count": 16,
-      "referenced_asset_bytes": 109599,
-      "total_static_bytes": 122160,
+      "referenced_asset_bytes": 109715,
+      "total_static_bytes": 122276,
       "largest_referenced_asset": "lab/almost/almost.js",
       "largest_referenced_asset_bytes": 19136
     },
@@ -52,20 +52,20 @@
       "route": "/lab/bearing/",
       "html_bytes": 71588,
       "first_party_request_count": 16,
-      "referenced_asset_bytes": 116906,
-      "total_static_bytes": 188494,
+      "referenced_asset_bytes": 117022,
+      "total_static_bytes": 188610,
       "largest_referenced_asset": "lab/shared/shell.js",
       "largest_referenced_asset_bytes": 34498
     },
     {
       "route": "/writing/",
-      "html_bytes": 29921,
-      "first_party_request_count": 24,
-      "referenced_asset_bytes": 155314,
-      "total_static_bytes": 185235,
-      "largest_referenced_asset": "js/atlas-terminal-card-v3.js",
-      "largest_referenced_asset_bytes": 23671
+      "html_bytes": 30512,
+      "first_party_request_count": 27,
+      "referenced_asset_bytes": 209770,
+      "total_static_bytes": 240282,
+      "largest_referenced_asset": "static/vendor/atlas-interface/v0.2.0/fonts/dm-serif-display-400.woff2",
+      "largest_referenced_asset_bytes": 24744
     }
   ],
-  "sha256": "eb3e0761c929c63d681babbe9066bdec3099e24c1da3bf0af54e59839f831cf9"
+  "sha256": "93312c3c862f52b65c0912f8d17a73caaa5e48b466ff906dc325fe2951ee2210"
 }

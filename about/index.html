@@ -46,6 +46,9 @@
       ]
     }
   </script>
+  <link rel="preload" href="/static/vendor/atlas-interface/v0.2.0/fonts/ibm-plex-mono-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/static/vendor/atlas-interface/v0.2.0/fonts/ibm-plex-mono-500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/static/vendor/atlas-interface/v0.2.0/fonts/dm-serif-display-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/css/atlas-terminal-card-v3.css?v=20260705-close-hidden">
   <style>
@@ -179,7 +182,7 @@
 <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
 <link rel="stylesheet" href="/static/css/secondary-surface-fields.css?v=20260807-hero-contrast">
 </head>
-<body data-atlas-bottom-nav="true">
+<body data-atlas-bottom-nav="true" data-atlas-composition="identity-field">
   <nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
     <div class="atlas-header__inner">
       <div class="atlas-header__brand atlas-global-header__identity">
@@ -200,7 +203,7 @@
   </nav>
 
   <main>
-    <header class="page-header">
+    <header class="page-header atlas-field-surface atlas-field-surface--ambient atlas-composition-host atlas-composition--identity-field">
       <div class="intro-grid">
         <div>
           <div class="section-label">About</div>

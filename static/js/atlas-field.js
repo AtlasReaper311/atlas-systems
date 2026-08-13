@@ -193,6 +193,8 @@ export function createAtlasField(host, options = {}) {
   canvas.setAttribute("aria-hidden", "true");
   canvas.setAttribute("role", "presentation");
   canvas.dataset.atlasFieldPreset = resolved.preset;
+  canvas.dataset.atlasFieldReveal = "pending";
+  canvas.style.opacity = "0";
   host.prepend(canvas);
 
   const context = canvas.getContext("2d", { alpha: true, desynchronized: true });
@@ -223,6 +225,14 @@ export function createAtlasField(host, options = {}) {
   let renderedLight = null;
   let resizeObserver = null;
   let visibilityObserver = null;
+
+  function revealCanvas() {
+    if (canvas.dataset.atlasFieldReveal === "ready") return;
+    canvas.dataset.atlasFieldReveal = "ready";
+    window.requestAnimationFrame(() => {
+      canvas.style.opacity = "";
+    });
+  }
 
   function seedParticle(index) {
     particles[index] = random() * width;
@@ -311,6 +321,7 @@ export function createAtlasField(host, options = {}) {
     });
     context.restore();
     canvas.dataset.mode = "static";
+    revealCanvas();
   }
 
   function resize() {
@@ -475,6 +486,7 @@ export function createAtlasField(host, options = {}) {
     canvas.dataset.mode = "animated";
     canvas.dataset.frame = String(frame);
     canvas.dataset.pointer = pointer.active ? "influenced" : "autonomous";
+    revealCanvas();
     animationFrame = window.requestAnimationFrame(render);
   }
 
