@@ -75,6 +75,7 @@ test("counterpart family styling preserves target size, focus and restrained amb
 test("Lab-only flagship assets own LISTEN and DESIGN card treatment without inflating global routes", async () => {
   const module = await source(audioCardsUrl);
   const css = await source(audioCardsCssUrl);
+  const labHtml = await source(labHtmlUrl);
   const globalJs = await source(cardSignaturesUrl);
   const globalCss = await source(cardSignaturesCssUrl);
   assert.match(module, /family: "LISTEN"/);
@@ -84,7 +85,8 @@ test("Lab-only flagship assets own LISTEN and DESIGN card treatment without infl
   assert.match(css, /\.lab-flagship-card__signature/);
   assert.match(css, /color:var\(--accent\)/);
   assert.match(css, /em\.lab-flagship-card__signature\{font-style:italic\}/);
-  assert.match(globalJs, /audio-flagship-cards\.js/);
+  assert.match(labHtml, /\/lab\/shared\/audio-flagship-cards\.js/);
+  assert.doesNotMatch(globalJs, /audio-flagship-cards\.js/);
   assert.doesNotMatch(globalJs, /const AUDIO_FLAGSHIPS|function enhanceAudioFlagshipCards/);
   assert.doesNotMatch(globalCss, /\.lab-flagship-card__signature/);
 });

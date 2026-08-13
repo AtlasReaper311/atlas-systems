@@ -185,7 +185,3 @@ if (typeof document !== "undefined") {
     void startEnhancement();
   }
 }
-
-if (typeof window !== "undefined" && /^\/lab\/?$/.test(window.location.pathname)) {
-  void import("/lab/shared/audio-flagship-cards.js?v=20260813-audio-family-scope");
-}
