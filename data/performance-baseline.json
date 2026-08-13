@@ -14,10 +14,10 @@
     },
     {
       "route": "/systems/",
-      "html_bytes": 20418,
+      "html_bytes": 20426,
       "first_party_request_count": 19,
       "referenced_asset_bytes": 180675,
-      "total_static_bytes": 201093,
+      "total_static_bytes": 201101,
       "largest_referenced_asset": "static/css/v2-directory-pages.css",
       "largest_referenced_asset_bytes": 28198
     },
@@ -67,5 +67,5 @@
       "largest_referenced_asset_bytes": 24744
     }
   ],
-  "sha256": "fa07a478c0357771d9d8f28a6e34433802c2890e85bb62eab23b7e74bae8a420"
+  "sha256": "93312c3c862f52b65c0912f8d17a73caaa5e48b466ff906dc325fe2951ee2210"
 }
