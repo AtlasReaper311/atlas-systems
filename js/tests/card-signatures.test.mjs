@@ -3,6 +3,9 @@ import fs from "node:fs";
 import test from "node:test";
 import { CARD_SIGNATURES } from "../../static/js/card-signatures.js";
 
+const EXPECTED_LAB_CARD_COUNT = 22;
+const EXPECTED_SYSTEM_CARD_COUNT = 17;
+
 function cardRecords(markup) {
   return [...markup.matchAll(/<a\b[^>]*class="[^"]*\bsystem-card\b[^"]*"[^>]*>/g)].map(([tag]) => ({
     visual: tag.match(/\bdata-visual="([^"]+)"/)?.[1] ?? null,
@@ -16,8 +19,8 @@ test("every current Lab and Systems card resolves to a specialised SVG signature
   const sprite = fs.readFileSync("static/media/card-signatures.svg", "utf8");
   const labCards = cardRecords(lab);
   const systemCards = cardRecords(systems);
-  assert.equal(labCards.length, 22);
-  assert.equal(systemCards.length, 17);
+  assert.equal(labCards.length, EXPECTED_LAB_CARD_COUNT);
+  assert.equal(systemCards.length, EXPECTED_SYSTEM_CARD_COUNT);
   for (const [page, cards] of [["Lab", labCards], ["Systems", systemCards]]) {
     for (const [index, card] of cards.entries()) {
       assert.ok(card.visual, `${page} card ${index + 1} data-visual`);
