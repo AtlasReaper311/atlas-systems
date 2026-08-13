@@ -118,3 +118,13 @@ test("interface typography reserves sub-9px text for exceptional micro annotatio
   assert.match(css, /font-size:\s*11px/);
   assert.match(css, /min-height:\s*44px/);
 });
+
+test("visual restoration keeps the instrument compact and skip link focus-only", async () => {
+  const css = await allCss();
+  const html = await source(htmlUrl);
+  assert.match(css, /--forge-wide:\s*1100px/);
+  assert.match(css, /\.forge-skip-link\s*\{[^}]*transform:\s*translateY\(calc\(-100% - 16px\)\)/);
+  assert.match(css, /\.forge-skip-link:focus\s*\{[^}]*transform:\s*translateY\(0\)/);
+  assert.match(css, /body\[data-lab-route="spectral-forge"\]\s+\.lab-flagship-counterpart\s*\{[^}]*width:\s*min\(var\(--forge-wide\)/);
+  assert.match(html, /spectral-forge\.css\?v=20260813-visual-restoration-v2/);
+});
