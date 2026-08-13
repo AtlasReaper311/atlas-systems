@@ -3,6 +3,18 @@
 import { SCENARIO_BY_ID, SIGNAL_BY_ID, TARGET_BY_ID, clamp } from "./domain.js";
 import { linearToDb } from "./audio-engine.js";
 
+export const HEALTH_VISUAL_PROFILES = Object.freeze({
+  STABLE: Object.freeze({ pressureScale: 0.88, asymmetryBias: 0, coherenceScale: 1.04, widthScale: 1, heightScale: 1, fractureScale: 0.75 }),
+  PRESSURED: Object.freeze({ pressureScale: 1, asymmetryBias: 0.025, coherenceScale: 0.95, widthScale: 0.96, heightScale: 1.02, fractureScale: 0.95 }),
+  DEGRADED: Object.freeze({ pressureScale: 1.08, asymmetryBias: 0.065, coherenceScale: 0.84, widthScale: 0.9, heightScale: 1.05, fractureScale: 1.12 }),
+  FAILED: Object.freeze({ pressureScale: 1.16, asymmetryBias: 0.12, coherenceScale: 0.7, widthScale: 0.82, heightScale: 1.08, fractureScale: 1.32 }),
+  RECOVERING: Object.freeze({ pressureScale: 0.95, asymmetryBias: 0.035, coherenceScale: 0.92, widthScale: 0.94, heightScale: 1.03, fractureScale: 0.9 }),
+});
+
+export function healthVisualProfile(health) {
+  return HEALTH_VISUAL_PROFILES[health] ?? HEALTH_VISUAL_PROFILES.STABLE;
+}
+
 function canvasSize(canvas) {
   const ratio = Math.min(2, window.devicePixelRatio || 1);
   const width = Math.max(1, Math.floor(canvas.clientWidth * ratio));
@@ -85,6 +97,7 @@ export class SpectralFieldRenderer {
     const { frame, outputs, selectedMapping, selectedCalculation, routeFocus, scenarioId } = this.state;
     const values = frame.normalised;
     const scenario = SCENARIO_BY_ID[scenarioId];
+    const visualProfile = healthVisualProfile(frame.health);
     const filter = targetNormalised("filter_cutoff", outputs.filter_cutoff);
     const instability = targetNormalised("instability", outputs.instability);
     const density = targetNormalised("texture_density", outputs.texture_density);
@@ -92,17 +105,18 @@ export class SpectralFieldRenderer {
     const stereo = targetNormalised("stereo_width", outputs.stereo_width);
     const errorTexture = targetNormalised("error_texture", outputs.error_texture);
     const brightness = targetNormalised("harmonic_brightness", outputs.harmonic_brightness);
-    const pressure = clamp(values.anomaly_score * 0.48 + values.error_rate * 0.24 + values.queue_depth * 0.2 + values.cpu_load * 0.08);
+    const pressureBase = values.anomaly_score * 0.48 + values.error_rate * 0.24 + values.queue_depth * 0.2 + values.cpu_load * 0.08;
+    const pressure = clamp(pressureBase * visualProfile.pressureScale);
     const cacheDisruption = clamp(1 - values.cache_hit_rate);
     const latencyStretch = 1 + values.latency_ms * 0.34;
-    const asymmetry = clamp(cacheDisruption * 0.44 + instability * 0.34 + errorTexture * 0.22);
-    const coherence = clamp(1 - pressure * 0.64 - instability * 0.22, 0.16, 1);
+    const asymmetry = clamp(cacheDisruption * 0.44 + instability * 0.34 + errorTexture * 0.22 + visualProfile.asymmetryBias);
+    const coherence = clamp((1 - pressure * 0.64 - instability * 0.22) * visualProfile.coherenceScale, 0.12, 1);
     const seedPhase = scenario.visualSeed * 0.0071;
     const centerX = width * (0.5 + asymmetry * 0.025 * Math.sin(this.visualTime * 0.17 + seedPhase));
     const centerY = height * (0.5 + pressure * 0.025);
     const baseRadius = Math.min(width, height) * 0.31;
-    const radiusX = baseRadius * (0.92 + stereo * 0.34) * (1 - pressure * 0.11);
-    const radiusY = baseRadius * (0.8 + filter * 0.22) * latencyStretch;
+    const radiusX = baseRadius * (0.92 + stereo * 0.34) * (1 - pressure * 0.11) * visualProfile.widthScale;
+    const radiusY = baseRadius * (0.8 + filter * 0.22) * latencyStretch * visualProfile.heightScale;
     const phase = this.visualTime * (0.28 + pulse * 0.72) + seedPhase;
 
     context.clearRect(0, 0, width, height);
@@ -118,7 +132,7 @@ export class SpectralFieldRenderer {
 
     this.drawLattice(context, { centerX, centerY, radiusX, radiusY, pressure, asymmetry, coherence, phase, seedPhase, ratio });
     this.drawTraces(context, { centerX, centerY, radiusX, radiusY, pressure, asymmetry, coherence, instability, density, brightness, phase, ratio, selectedMapping, frame });
-    this.drawFracture(context, { centerX, centerY, radiusX, radiusY, pressure, cacheDisruption, errorTexture, phase, ratio, seedPhase });
+    this.drawFracture(context, { centerX, centerY, radiusX, radiusY, pressure, cacheDisruption, errorTexture, phase, ratio, seedPhase, fractureScale: visualProfile.fractureScale });
     if (selectedMapping && selectedCalculation) this.drawSelectedRoute(context, { width, centerY, radiusY, selectedMapping, selectedCalculation, frame, routeFocus, ratio });
   }
 
@@ -184,8 +198,8 @@ export class SpectralFieldRenderer {
   }
 
   drawFracture(context, state) {
-    const { centerX, centerY, radiusX, radiusY, pressure, cacheDisruption, errorTexture, phase, ratio, seedPhase } = state;
-    const fracture = clamp(pressure * 0.75 + cacheDisruption * 0.35 + errorTexture * 0.2);
+    const { centerX, centerY, radiusX, radiusY, pressure, cacheDisruption, errorTexture, phase, ratio, seedPhase, fractureScale } = state;
+    const fracture = clamp((pressure * 0.75 + cacheDisruption * 0.35 + errorTexture * 0.2) * fractureScale);
     if (fracture < 0.12) return;
     const count = 3 + Math.round(fracture * 9);
     context.save();

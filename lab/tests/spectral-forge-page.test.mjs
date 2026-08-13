@@ -99,6 +99,17 @@ test("audio implementation names true stereo width and a bounded sample stage", 
   assert.match(html, /−1 dBFS SAMPLE BOUND/);
 });
 
+test("interactive telemetry renders preserve focusable control identity", async () => {
+  const controller = await source(controllerUrl);
+  assert.match(controller, /lastPresetDefinitionSignature/);
+  assert.match(controller, /lastRouteDefinitionSignature/);
+  assert.match(controller, /lastInspectorConfigurationSignature/);
+  assert.match(controller, /signalIndexNodes = new Map\(\)/);
+  assert.match(controller, /audioParameterNodes = new Map\(\)/);
+  assert.match(controller, /audibleSmoothing\(comparison\)/);
+  assert.match(controller, /signature !== lastRouteDefinitionSignature/);
+});
+
 test("interface typography reserves sub-9px text for exceptional micro annotation only", async () => {
   const css = await allCss();
   assert.doesNotMatch(css, /font-size:\s*[67]px\b/);
