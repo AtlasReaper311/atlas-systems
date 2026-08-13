@@ -39,6 +39,13 @@
   .forge-signal-index > div { grid-template-columns: repeat(2,1fr); }
 }
 
+@media (max-width: 768px) {
+  .forge-help-button {
+    right: 14px;
+    bottom: calc(64px + env(safe-area-inset-bottom) + 14px);
+  }
+}
+
 @media (max-width: 560px) {
   .forge-product-header, .forge-depth-nav, .forge-transport, .forge-depth-panel, .forge-notice { width: 100%; }
   .forge-product-header { display: grid; gap: 26px; padding: 24px 16px; }
@@ -85,7 +92,6 @@
   .forge-signal-index > div { grid-template-columns: 1fr 1fr; }
   .forge-audio-parameters > div:not(.forge-audio-boundary) { grid-template-columns: 1fr; }
   .forge-shortcuts { grid-template-columns: 1fr; }
-  .forge-help-button { right: 14px; bottom: calc(14px + var(--atlas-bottom-nav-height, 0px)); }
 }
 
 @media (prefers-reduced-motion: reduce) {
