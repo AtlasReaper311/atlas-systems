@@ -18,6 +18,7 @@ const footer = fs.readFileSync("static/js/phase-6-footer.js", "utf8");
 const CANONICAL_LAB_ROUTES = [
   "/lab/",
   "/lab/system-symphony/",
+  "/lab/spectral-forge/",
   "/lab/system-map/",
   "/lab/blackbox/",
   "/lab/proof-chain/",
@@ -69,7 +70,7 @@ test("one shell owns header, search, context, measured layout, targets, and foot
 
 test("route layout modes are explicit without flattening individual instruments", () => {
   assert.match(shell, /pathname === LAB_HOME_ROUTE\) return "directory"/);
-  assert.match(shell, /isSystemSymphonyPath\(pathname\)\) return "product"/);
+  assert.match(shell, /isSystemSymphonyPath\(pathname\) \|\| pathname === SPECTRAL_FORGE_ROUTE\) return "product"/);
   assert.match(shell, /IMMERSIVE_ROUTES\.has\(pathname\)\) return "immersive"/);
   assert.match(shell, /return "standard"/);
   for (const route of ["/lab/almost/", "/lab/bearing/", "/lab/drift/"]) {
@@ -103,6 +104,7 @@ test("standard and experimental route entrypoints all reach the shared shell", (
     "lab/speculum/index.html",
     "lab/bearing/index.html",
     "lab/system-symphony/index.html",
+    "lab/spectral-forge/index.html",
     "lab/system-symphony/roms/index.html",
     "lab/system-symphony/build-log/index.html",
     "lab/system-symphony/radio/index.html",
