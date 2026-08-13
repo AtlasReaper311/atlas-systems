@@ -226,6 +226,66 @@ test("shells adopt a complete header instead of replacing it", () => {
   assert.match(lab, /if \(!complete\) installFallbackHeader\(header\)/);
 });
 
+// Routes that mount an AtlasField, and the stylesheet that gives that field its
+// geometry. Each must be a blocking <head> link: the canvas is created by
+// JavaScript, and when its stylesheet arrived afterwards the canvas laid out in
+// flow and swallowed the viewport until the request finished.
+const FIELD_ROUTE_STYLESHEETS = Object.freeze([
+  ["work/index.html", "/static/css/directory-header-fields.css"],
+  ["work/index.html", "/static/css/atlas-field-consumer.css"],
+  ["writing/index.html", "/static/css/directory-header-fields.css"],
+  ["writing/index.html", "/static/css/atlas-field-consumer.css"],
+  ["about/index.html", "/static/css/secondary-surface-fields.css"],
+  ["systems/evidence/index.html", "/static/css/secondary-surface-fields.css"],
+  ["systems/observability/index.html", "/static/css/secondary-surface-fields.css"],
+  ["systems/reliability/index.html", "/static/css/secondary-surface-fields.css"],
+  ["index.html", "/css/home-v2-base.css"],
+]);
+
+test("field surfaces are contained before any canvas can mount", () => {
+  const shellCss = fs.readFileSync("static/css/estate-shell.css", "utf8");
+  // estate-shell.css is the one stylesheet every governed route links, so the
+  // containment contract lives here rather than in the lazy per-surface sheets.
+  assert.match(shellCss, /\.atlas-field-surface\s*\{[^}]*overflow:\s*hidden/);
+  assert.match(shellCss, /\.atlas-field-surface\s*>\s*\.atlas-field-canvas\s*\{[^}]*position:\s*absolute/);
+  assert.match(shellCss, /\.atlas-field-surface\s*>\s*\.atlas-field-canvas\s*\{[^}]*inset:\s*0/);
+});
+
+test("every field route links its geometry stylesheet in head", () => {
+  for (const [path, stylesheet] of FIELD_ROUTE_STYLESHEETS) {
+    const head = fs.readFileSync(path, "utf8").split("</head>")[0];
+    const links = [...head.matchAll(/<link[^>]+rel="stylesheet"[^>]+href="([^"]+)"/g)]
+      .map(([, href]) => href.replace(/[?#].*$/, ""));
+    assert.ok(links.includes(stylesheet), `${path} must link ${stylesheet} at first paint`);
+    assert.equal(
+      links.filter((href) => href === stylesheet).length,
+      1,
+      `${path} must link ${stylesheet} exactly once`,
+    );
+  }
+});
+
+test("field bootstraps match stylesheets by pathname so a head link counts", () => {
+  const bootstraps = [
+    "static/js/secondary-surface-fields.js",
+    "static/js/directory-header-fields.js",
+    "static/js/live/homepage-truth.js",
+  ];
+  for (const path of bootstraps) {
+    const source = fs.readFileSync(path, "utf8");
+    assert.match(
+      source,
+      /new URL\((?:link|sheet)\.href, window\.location\.origin\)\.pathname === wanted\.pathname/,
+      `${path} must compare stylesheet pathnames`,
+    );
+    assert.doesNotMatch(
+      source,
+      /querySelector\(`link\[href="\$\{[A-Za-z]+\}"\]`\)/,
+      `${path} must not match stylesheets by exact href`,
+    );
+  }
+});
+
 test("the checked-in chrome snippet teaches the header the site actually ships", () => {
   const snippet = fs.readFileSync("site-snippet/estate-search-includes.html", "utf8");
   const header = headerBlock(snippet);
