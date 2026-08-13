@@ -8,7 +8,6 @@ export const CARD_SIGNATURES = Object.freeze([
   "ramone",
   "status",
   "symphony",
-  "forge",
   "lab",
   "map",
   "proof",
@@ -27,7 +26,7 @@ const GOVERNED_CARD_SELECTOR = ".system-card[data-visual][data-motif]";
 const SHAPE_DETECTOR_SELECTOR = 'a.system-card[href="/lab/anomaly/"]';
 const SIGNATURE_SET = new Set(CARD_SIGNATURES);
 const SVG_NS = "http://www.w3.org/2000/svg";
-const SPRITE_PATH = new URL("../media/card-signatures.svg?v=20260813-spectral-forge", import.meta.url).href;
+const SPRITE_PATH = new URL("../media/card-signatures.svg?v=20260811-bearing-lattice", import.meta.url).href;
 const SPRITE_ID = "atlas-card-signature-sprite";
 const SYMPHONY_ROUTE = "/lab/system-symphony/";
 const SYMPHONY_TARGET_STYLESHEET = "/lab/system-symphony/system-symphony-targets.css?v=20260805-target-contract-v1";
