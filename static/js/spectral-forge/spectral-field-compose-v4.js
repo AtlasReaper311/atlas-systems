@@ -2,7 +2,20 @@
 
 import { deriveFieldGeometry } from "./spectral-field-geometry.js";
 import { transitionMix } from "./spectral-field-state.js";
-import { drawAfterimages, drawBackdrop, drawCausalPropagation, drawFracture, drawLattice, drawMicrostructure, drawPulseEmissions, drawSelectedRoute, drawSignalFilaments, drawSpectralBody } from "./spectral-field-layers-v4.js";
+import {
+  drawAfterimages,
+  drawBackdrop,
+  drawCausalPropagation,
+  drawFracture,
+  drawLattice,
+  drawMicrostructure,
+  drawPressureMembranes,
+  drawPulseEmissions,
+  drawSelectedRoute,
+  drawSignalFilaments,
+  drawSignatureMoments,
+  drawSpectralBody,
+} from "./spectral-field-layers-v4.js";
 
 function canvasSize(canvas) {
   const ratio = Math.min(2, window.devicePixelRatio || 1);
@@ -35,27 +48,31 @@ export function draw(timestamp = performance.now()) {
   const mix = transitionMix.call(this, timestamp);
 
   this.context.clearRect(0, 0, width, height);
-  this.context.fillStyle = "#07070c";
+  this.context.fillStyle = "#06060b";
   this.context.fillRect(0, 0, width, height);
-  drawBackdrop.call(this, this.context, { width, height, ...geometry });
+  const shared = { width, height, ratio, ...geometry, frame };
+  drawBackdrop.call(this, this.context, shared);
 
   this.context.save();
-  this.context.globalAlpha = 0.2 + mix * 0.8;
-  const scale = 0.965 + mix * 0.035;
+  this.context.globalAlpha = 0.22 + mix * 0.78;
+  const scale = 0.976 + mix * 0.024;
   this.context.translate(centerX, centerY);
   this.context.scale(scale, scale);
   this.context.translate(-centerX, -centerY);
 
-  const shared = { width, height, ratio, ...geometry, frame };
   drawAfterimages.call(this, this.context, shared);
+  drawPressureMembranes.call(this, this.context, shared);
   drawSpectralBody.call(this, this.context, shared);
   drawLattice.call(this, this.context, shared);
   drawSignalFilaments.call(this, this.context, { ...shared, selectedMapping });
-  drawMicrostructure.call(this, this.context, shared);
   drawCausalPropagation.call(this, this.context, shared);
   drawPulseEmissions.call(this, this.context, shared);
+  drawMicrostructure.call(this, this.context, shared);
   drawFracture.call(this, this.context, { ...shared, fractureScale: health.fractureScale });
-  if (selectedMapping && selectedCalculation) drawSelectedRoute.call(this, this.context, { ...shared, selectedMapping, selectedCalculation, routeFocus, mapped });
+  drawSignatureMoments.call(this, this.context, shared);
+  if (selectedMapping && selectedCalculation) {
+    drawSelectedRoute.call(this, this.context, { ...shared, selectedMapping, selectedCalculation, routeFocus, mapped });
+  }
   this.context.restore();
 
   if (transitionStarted && this.state.playback !== "PLAYING") this.syncLoop();
