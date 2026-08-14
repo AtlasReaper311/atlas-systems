@@ -6,7 +6,7 @@ let webglModulePromise = null;
 
 function loadWebglModule() {
   if (!webglModulePromise) {
-    webglModulePromise = import("./field-proto-flagship-organism-webgl.js");
+    webglModulePromise = import("./field-proto-flagship-organism-webgl-pbr.js");
   }
   return webglModulePromise;
 }
