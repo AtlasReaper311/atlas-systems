@@ -1,6 +1,6 @@
 "use strict";
 
-import { draw as fallbackDraw } from "./spectral-field-compose.js";
+import { draw as fallbackDraw } from "./spectral-field-compose-v4.js?v=20260814-field-4-single-renderer";
 import { transitionActive, transitionMix, updateAccessibleSummary } from "./spectral-field-state.js";
 
 export { fallbackDraw as draw, transitionActive, transitionMix, updateAccessibleSummary };
