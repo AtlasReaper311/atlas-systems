@@ -3,66 +3,99 @@
 import { clamp } from "./domain.js";
 import { deterministicUnit } from "./spectral-field-model.js";
 
-const FILAMENTS = Object.freeze([
-  Object.freeze({ id: "request_rate", colour: [116, 208, 255], lane: -0.34, depth: -0.62, phase: 0.11 }),
-  Object.freeze({ id: "latency_ms", colour: [127, 136, 255], lane: -0.14, depth: -0.28, phase: 0.29 }),
-  Object.freeze({ id: "error_rate", colour: [211, 203, 255], lane: 0.06, depth: 0.04, phase: 0.47 }),
-  Object.freeze({ id: "cache_hit_rate", colour: [159, 221, 255], lane: 0.27, depth: 0.36, phase: 0.63 }),
-  Object.freeze({ id: "anomaly_score", colour: [184, 180, 255], lane: 0.43, depth: 0.68, phase: 0.81 }),
+const SIGNALS = Object.freeze([
+  Object.freeze({ id: "request_rate", colour: [116, 208, 255], lane: -0.34, depth: -0.66, phase: 0.11 }),
+  Object.freeze({ id: "latency_ms", colour: [127, 136, 255], lane: -0.16, depth: -0.3, phase: 0.29 }),
+  Object.freeze({ id: "error_rate", colour: [211, 203, 255], lane: 0.03, depth: 0.02, phase: 0.47 }),
+  Object.freeze({ id: "cache_hit_rate", colour: [159, 221, 255], lane: 0.23, depth: 0.34, phase: 0.63 }),
+  Object.freeze({ id: "anomaly_score", colour: [184, 180, 255], lane: 0.4, depth: 0.66, phase: 0.81 }),
 ]);
 
+const SLICE_DEPTHS = Object.freeze([-1, -0.72, -0.44, -0.16, 0.16, 0.44, 0.72, 1]);
+const BODY_SEGMENTS = 14;
+
+function rgba(colour, alpha) {
+  return `rgba(${colour[0]},${colour[1]},${colour[2]},${alpha})`;
+}
+
 function projectPoint(state, x, y, z, index = 0) {
-  const { centerX, centerY, radiusX, radiusY, depthSpan, tilt, torsion, deformation, asymmetry, phase, art } = state;
-  const zScale = 1 + z * 0.09;
-  const twist = torsion * z + Math.sin(phase * 0.09 + index * 0.41) * deformation * 0.018;
+  const { centerX, centerY, radiusX, radiusY, depthSpan, tilt, torsion, deformation, asymmetry, phase, art, breathing } = state;
+  const breath = 0.965 + breathing * 0.075;
+  const depthScale = 1 + z * 0.105;
+  const twist = torsion * z * 1.8 + Math.sin(phase * 0.11 + index * 0.37) * deformation * 0.045;
   const cos = Math.cos(twist);
   const sin = Math.sin(twist);
-  const localX = x * cos - y * sin;
-  const localY = x * sin + y * cos;
-  const fracture = deformation * Math.sin((x * 2.7 + y * 3.8 + z * 2.1) * Math.PI + phase * 0.17) * 0.035;
-  const pressureLean = art.direction * art.propagation * (1 - Math.abs(x)) * 0.055;
+  const localX = (x * cos - y * sin) * breath;
+  const localY = (x * sin + y * cos) * breath;
+  const fracture = deformation * Math.sin((x * 2.9 + y * 3.6 + z * 2.4) * Math.PI + phase * 0.19) * 0.065;
+  const pressureLean = art.direction * art.propagation * (1 - Math.min(1, Math.abs(x))) * 0.085;
+  const depthDrift = z * depthSpan * (0.5 + asymmetry * 0.11);
   const px = centerX
-    + localX * radiusX * zScale
-    + z * depthSpan * (0.46 + asymmetry * 0.08)
+    + localX * radiusX * depthScale
+    + depthDrift
     + (fracture - pressureLean) * radiusX;
   const py = centerY
-    + localY * radiusY * (1 - z * 0.07)
-    - z * depthSpan * 0.16
-    + x * tilt * radiusY * 0.42
-    + fracture * radiusY * 0.72;
+    + localY * radiusY * (1 - z * 0.08)
+    - z * depthSpan * 0.2
+    + x * tilt * radiusY * 0.56
+    + fracture * radiusY * 0.82;
   return [px, py];
 }
 
-function shellPoint(state, angle, z, scale = 1, index = 0) {
-  const { mapped, art, breathing, deformation } = state;
-  const crystalline = Math.sin(angle * 6 + z * 2.4 + state.phase * 0.12) * (0.018 + mapped.microstructure * 0.024);
-  const asymmetry = Math.cos(angle * 3 - state.phase * 0.08) * deformation * 0.028;
-  const aperture = 0.9 + mapped.aperture * 0.11;
-  const compression = 1 - art.compression * art.disturbance * Math.max(0, Math.cos(angle)) * 0.055;
-  const stretch = 1 + art.stretch * Math.abs(Math.sin(angle)) * 0.08;
-  const pulse = 1 + (breathing - 0.5) * mapped.displacement * 0.018;
-  const x = Math.cos(angle) * scale * aperture * compression * pulse * (1 + crystalline);
-  const y = Math.sin(angle) * scale * stretch * pulse * (1 + asymmetry);
+function bodyPoint(state, angle, z, scale = 1, index = 0) {
+  const { mapped, art, deformation, pressure, phase } = state;
+  const facets = Math.sin(angle * 7 + z * 3.4 + phase * 0.07) * (0.024 + mapped.microstructure * 0.034);
+  const secondary = Math.cos(angle * 3 - z * 2.1 + phase * 0.05) * deformation * 0.04;
+  const aperture = 0.9 + mapped.aperture * 0.13;
+  const compression = 1 - art.compression * art.disturbance * Math.max(0, Math.cos(angle)) * 0.08;
+  const stretch = 1 + art.stretch * Math.abs(Math.sin(angle)) * 0.11;
+  const sidePressure = 1 - pressure * 0.035 * Math.max(0, Math.sin(angle + art.direction));
+  const x = Math.cos(angle) * scale * aperture * compression * sidePressure * (1 + facets);
+  const y = Math.sin(angle) * scale * stretch * (1 + secondary);
   return projectPoint(state, x, y, z, index);
 }
 
-function drawShell(context, state, z, scale, alpha, colour = "190,226,255", lineScale = 0.52) {
-  const points = 72;
-  context.beginPath();
-  for (let index = 0; index <= points; index += 1) {
-    const angle = index / points * Math.PI * 2;
-    const [x, y] = shellPoint(state, angle, z, scale, index);
-    if (index === 0) context.moveTo(x, y);
-    else context.lineTo(x, y);
+function bodySlice(state, z, scale = 1, offset = 0) {
+  const points = [];
+  for (let index = 0; index < BODY_SEGMENTS; index += 1) {
+    const angle = index / BODY_SEGMENTS * Math.PI * 2 + offset;
+    points.push(bodyPoint(state, angle, z, scale, index));
   }
-  context.closePath();
-  context.strokeStyle = `rgba(${colour},${alpha})`;
-  context.lineWidth = Math.max(1, state.ratio * lineScale);
-  context.stroke();
+  return points;
 }
 
-function drawDepthRing(context, state, xPosition, scale, alpha, colour = "116,208,255") {
-  const points = 52;
+function polygonPath(context, points) {
+  if (!points.length) return;
+  context.beginPath();
+  context.moveTo(points[0][0], points[0][1]);
+  for (let index = 1; index < points.length; index += 1) context.lineTo(points[index][0], points[index][1]);
+  context.closePath();
+}
+
+function drawSlice(context, state, z, scale, alpha, colour = [116, 208, 255], lineAlpha = 0.18) {
+  const points = bodySlice(state, z, scale, z * 0.08 + state.phase * 0.006);
+  polygonPath(context, points);
+  const gradient = context.createRadialGradient(
+    state.centerX + z * state.depthSpan * 0.15,
+    state.centerY - z * state.depthSpan * 0.05,
+    0,
+    state.centerX,
+    state.centerY,
+    Math.max(state.radiusX, state.radiusY) * 1.1,
+  );
+  gradient.addColorStop(0, rgba(colour, alpha * 1.8));
+  gradient.addColorStop(0.5, rgba(colour, alpha));
+  gradient.addColorStop(1, rgba(colour, alpha * 0.12));
+  context.fillStyle = gradient;
+  context.fill();
+  context.strokeStyle = rgba(colour, lineAlpha);
+  context.lineWidth = Math.max(1, state.ratio * 0.56);
+  context.stroke();
+  return points;
+}
+
+function drawDepthRing(context, state, xPosition, scale, alpha, colour = [116, 208, 255], width = 0.7) {
+  const points = 64;
   context.beginPath();
   for (let index = 0; index <= points; index += 1) {
     const angle = index / points * Math.PI * 2;
@@ -73,144 +106,207 @@ function drawDepthRing(context, state, xPosition, scale, alpha, colour = "116,20
     else context.lineTo(x, py);
   }
   context.closePath();
-  context.strokeStyle = `rgba(${colour},${alpha})`;
-  context.lineWidth = Math.max(1, state.ratio * 0.55);
+  context.strokeStyle = rgba(colour, alpha);
+  context.lineWidth = Math.max(1, state.ratio * width);
   context.stroke();
+}
+
+function signalPoint(state, definition, value, traceIndex, t, index) {
+  const bodyPull = Math.exp(-Math.pow((t - 0.5) / 0.27, 2));
+  const amplitude = 0.055 + value * 0.095 + state.mapped.phaseDisagreement * 0.075;
+  const x = -1.08 + t * 2.16;
+  const lane = definition.lane * (1 - bodyPull * 0.5);
+  const oscillation = Math.sin(t * Math.PI * (3.6 + traceIndex * 0.54) + state.phase * (0.14 + definition.phase)) * amplitude * (0.32 + bodyPull * 0.68);
+  const distortion = Math.sin(t * Math.PI * 7 + traceIndex * 0.9) * state.deformation * bodyPull * 0.06;
+  const y = lane + oscillation + distortion + state.pressure * Math.sin(t * Math.PI) * 0.045 * (traceIndex % 2 ? 1 : -1);
+  const z = definition.depth
+    + Math.sin(t * Math.PI * 2 + state.phase * 0.095 + traceIndex) * (0.13 + state.mapped.phaseDisagreement * 0.2)
+    + state.art.direction * state.art.propagation * bodyPull * 0.16;
+  return projectPoint(state, x, y, z, index + traceIndex * 180);
+}
+
+function signalPath(state, definition, traceIndex) {
+  const value = clamp(state.frame.normalised[definition.id]);
+  const points = [];
+  const steps = 120;
+  for (let index = 0; index <= steps; index += 1) {
+    points.push(signalPoint(state, definition, value, traceIndex, index / steps, index));
+  }
+  return { points, value };
+}
+
+function strokePath(context, points, colour, alpha, width, blur = 0) {
+  if (!points.length) return;
+  context.beginPath();
+  context.moveTo(points[0][0], points[0][1]);
+  for (let index = 1; index < points.length; index += 1) context.lineTo(points[index][0], points[index][1]);
+  context.strokeStyle = rgba(colour, alpha);
+  context.lineWidth = width;
+  context.lineCap = "round";
+  context.lineJoin = "round";
+  context.shadowBlur = blur;
+  context.shadowColor = rgba(colour, Math.min(0.7, alpha));
+  context.stroke();
+  context.shadowBlur = 0;
 }
 
 export function drawBackdrop(context, state) {
   const { width, height, centerX, centerY, mapped, pressure, coherence, depthSpan } = state;
-  const spectralGlow = context.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.max(width, height) * 0.58);
-  spectralGlow.addColorStop(0, `rgba(232,246,255,${0.035 + mapped.bodyStrength * 0.055})`);
-  spectralGlow.addColorStop(0.2, `rgba(116,208,255,${0.045 + mapped.brilliance * 0.075})`);
-  spectralGlow.addColorStop(0.48, `rgba(127,136,255,${0.02 + mapped.phaseDisagreement * 0.055})`);
-  spectralGlow.addColorStop(0.76, `rgba(211,203,255,${0.009 + mapped.afterimage * 0.025})`);
-  spectralGlow.addColorStop(1, "rgba(7,7,12,0)");
-  context.fillStyle = spectralGlow;
+  const glow = context.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.max(width, height) * 0.68);
+  glow.addColorStop(0, `rgba(224,245,255,${0.055 + mapped.bodyStrength * 0.07})`);
+  glow.addColorStop(0.24, `rgba(116,208,255,${0.06 + mapped.brilliance * 0.08})`);
+  glow.addColorStop(0.52, `rgba(127,136,255,${0.026 + mapped.phaseDisagreement * 0.07})`);
+  glow.addColorStop(0.82, `rgba(211,203,255,${0.012 + mapped.afterimage * 0.035})`);
+  glow.addColorStop(1, "rgba(6,6,11,0)");
+  context.fillStyle = glow;
   context.fillRect(0, 0, width, height);
 
   context.save();
-  const horizon = centerY + depthSpan * 0.54;
   context.lineWidth = 1;
-  for (let column = 0; column <= 18; column += 1) {
-    const p = column / 18;
-    const x = width * (0.04 + p * 0.92);
+  const horizon = centerY + depthSpan * 0.7;
+  for (let ray = 0; ray <= 20; ray += 1) {
+    const p = ray / 20;
+    const x = width * (0.025 + p * 0.95);
     context.beginPath();
     context.moveTo(centerX, centerY - depthSpan * 0.12);
-    context.lineTo(x, height * 0.95);
-    context.strokeStyle = `rgba(116,208,255,${0.009 + (column % 3 === 0 ? 0.01 : 0)})`;
+    context.lineTo(x, height * 0.98);
+    context.strokeStyle = `rgba(116,208,255,${0.008 + (ray % 4 === 0 ? 0.013 : 0)})`;
     context.stroke();
   }
-  for (let row = 0; row <= 8; row += 1) {
-    const p = row / 8;
-    const y = horizon + (height * 0.46) * (p ** 1.65);
-    const spread = width * (0.04 + p * 0.5);
+  for (let row = 0; row <= 9; row += 1) {
+    const p = row / 9;
+    const y = horizon + height * 0.42 * (p ** 1.7);
+    const spread = width * (0.05 + p * 0.51);
     context.beginPath();
     context.moveTo(centerX - spread, y);
     context.lineTo(centerX + spread, y);
-    context.strokeStyle = `rgba(190,226,255,${0.01 + p * 0.016})`;
+    context.strokeStyle = `rgba(190,226,255,${0.009 + p * 0.018})`;
     context.stroke();
   }
   context.restore();
 
-  const vignette = context.createRadialGradient(centerX, centerY, Math.min(width, height) * 0.22, centerX, centerY, Math.max(width, height) * 0.72);
+  const vignette = context.createRadialGradient(centerX, centerY, Math.min(width, height) * 0.24, centerX, centerY, Math.max(width, height) * 0.74);
   vignette.addColorStop(0, "rgba(0,0,0,0)");
-  vignette.addColorStop(1, `rgba(0,0,0,${0.36 + pressure * 0.15 + (1 - coherence) * 0.08})`);
+  vignette.addColorStop(1, `rgba(0,0,0,${0.25 + pressure * 0.16 + (1 - coherence) * 0.08})`);
   context.fillStyle = vignette;
   context.fillRect(0, 0, width, height);
 }
 
 export function drawAfterimages(context, state) {
   const { mapped, phase, art } = state;
-  if (mapped.afterimage < 0.025) return;
-  const count = 2 + Math.round(mapped.afterimage * 4);
+  const strength = clamp(mapped.afterimage * 0.8 + art.recovery * 0.22 + state.deformation * 0.08);
+  if (strength < 0.035) return;
+  const count = 2 + Math.round(strength * 3);
   context.save();
   context.globalCompositeOperation = "screen";
   for (let index = count; index >= 1; index -= 1) {
-    const alpha = mapped.afterimage * (0.022 / index) + art.recovery * 0.004;
-    const z = -0.9 + index * (1.8 / Math.max(1, count));
+    const driftX = Math.cos(phase * 0.11) * index * state.ratio * 4.5;
+    const driftY = Math.sin(phase * 0.09) * index * state.ratio * 2.8;
     context.save();
-    context.translate(-Math.cos(phase * 0.1) * index * state.ratio * 4.2, Math.sin(phase * 0.08) * index * state.ratio * 2.2);
-    drawShell(context, state, z, 0.9 + index * 0.018, alpha, index % 2 ? "127,136,255" : "116,208,255", 0.45);
+    context.translate(-driftX, driftY);
+    drawSlice(context, state, -0.6 + index * 0.34, 0.97 + index * 0.014, strength * 0.014 / index, [127, 136, 255], strength * 0.04 / index);
     context.restore();
   }
   context.restore();
 }
 
 export function drawSpectralBody(context, state) {
-  const { centerX, centerY, mapped, coherence, pressure, ratio, signature, deformation, phase } = state;
+  const { mapped, coherence, pressure, deformation, signature, centerX, centerY, radiusX, radiusY } = state;
+  const slices = SLICE_DEPTHS.map((z, index) => ({
+    z,
+    points: bodySlice(state, z, 0.93 - Math.abs(z) * 0.035, index * 0.017 + state.phase * 0.005),
+  }));
+
   context.save();
   context.globalCompositeOperation = "screen";
 
-  const coreRadius = Math.min(state.radiusY, state.depthSpan) * (0.32 + mapped.bodyStrength * 0.12);
-  const core = context.createRadialGradient(centerX, centerY, 0, centerX, centerY, coreRadius * 2.8);
-  core.addColorStop(0, "rgba(4,7,12,0.12)");
-  core.addColorStop(0.18, `rgba(244,250,255,${0.06 + mapped.bodyStrength * 0.08})`);
-  core.addColorStop(0.44, `rgba(116,208,255,${0.045 + mapped.brilliance * 0.09})`);
-  core.addColorStop(0.72, `rgba(127,136,255,${0.014 + pressure * 0.045})`);
+  for (let sliceIndex = 0; sliceIndex < slices.length - 1; sliceIndex += 1) {
+    const near = slices[sliceIndex];
+    const far = slices[sliceIndex + 1];
+    for (let segment = 0; segment < BODY_SEGMENTS; segment += 1) {
+      const next = (segment + 1) % BODY_SEGMENTS;
+      const face = [near.points[segment], near.points[next], far.points[next], far.points[segment]];
+      polygonPath(context, face);
+      const depthWeight = 1 - Math.abs((near.z + far.z) * 0.5) * 0.36;
+      const activity = 0.035 + mapped.bodyStrength * 0.045 + mapped.brilliance * 0.025 + pressure * 0.018;
+      const colour = segment % 3 === 0 ? [127, 136, 255] : segment % 2 === 0 ? [116, 208, 255] : [211, 203, 255];
+      context.fillStyle = rgba(colour, activity * depthWeight * (segment % 4 === 0 ? 1.4 : 0.72));
+      context.fill();
+      if (segment % 2 === 0) {
+        context.strokeStyle = rgba(colour, 0.04 + coherence * 0.05 + deformation * 0.025);
+        context.lineWidth = Math.max(1, state.ratio * 0.42);
+        context.stroke();
+      }
+    }
+  }
+
+  slices.forEach(({ z }, index) => {
+    const depthWeight = 0.55 + (1 - Math.abs(z)) * 0.45;
+    const colour = index % 2 ? [190, 226, 255] : [116, 208, 255];
+    drawSlice(context, state, z, 0.93 - Math.abs(z) * 0.035, (0.018 + mapped.bodyStrength * 0.022) * depthWeight, colour, 0.055 + coherence * 0.06);
+  });
+
+  const coreRadius = Math.min(radiusX, radiusY) * (0.34 + mapped.bodyStrength * 0.12);
+  const core = context.createRadialGradient(centerX, centerY, 0, centerX, centerY, coreRadius * 2.7);
+  core.addColorStop(0, `rgba(238,250,255,${0.11 + mapped.bodyStrength * 0.09})`);
+  core.addColorStop(0.22, `rgba(116,208,255,${0.09 + mapped.brilliance * 0.08})`);
+  core.addColorStop(0.5, `rgba(127,136,255,${0.035 + deformation * 0.05})`);
   core.addColorStop(1, "rgba(7,7,12,0)");
   context.fillStyle = core;
   context.fillRect(centerX - coreRadius * 3, centerY - coreRadius * 3, coreRadius * 6, coreRadius * 6);
 
-  const apertureScale = 0.23 + mapped.aperture * 0.13 + (signature.apertureOpen ? 0.05 : 0);
-  for (let ring = 5; ring >= 0; ring -= 1) {
-    const alpha = (0.035 + mapped.aperture * 0.055 + coherence * 0.018) * (1 - ring * 0.075);
-    drawDepthRing(context, state, deformation * 0.035 * Math.sin(phase * 0.21 + ring), apertureScale * (0.78 + ring * 0.052), alpha, ring % 2 ? "211,203,255" : "116,208,255");
+  const aperture = 0.42 + mapped.aperture * 0.18 + (signature.apertureOpen ? 0.08 : 0);
+  for (let ring = 7; ring >= 0; ring -= 1) {
+    const progress = ring / 7;
+    const scale = aperture * (0.56 + progress * 0.68);
+    const alpha = (0.04 + mapped.aperture * 0.065 + coherence * 0.025) * (1 - progress * 0.42);
+    drawDepthRing(context, state, (progress - 0.5) * deformation * 0.08, scale, alpha, ring % 2 ? [211, 203, 255] : [116, 208, 255], ring === 0 ? 1.05 : 0.62);
   }
 
-  const blades = 10;
-  for (let blade = 0; blade < blades; blade += 1) {
-    const angle = blade / blades * Math.PI * 2 + phase * 0.018;
-    const z = Math.sin(angle * 2 + phase * 0.06) * 0.44;
-    const inner = projectPoint(state, Math.cos(angle) * apertureScale * 0.12, Math.sin(angle) * apertureScale * 0.52, z, blade);
-    const outer = projectPoint(state, Math.cos(angle + 0.3) * apertureScale * 0.55, Math.sin(angle + 0.3) * apertureScale * 1.65, z * 0.4, blade + 10);
-    context.beginPath();
-    context.moveTo(inner[0], inner[1]);
-    context.quadraticCurveTo(centerX + Math.cos(angle + 0.16) * coreRadius * 1.2, centerY + Math.sin(angle + 0.16) * coreRadius * 1.5, outer[0], outer[1]);
-    context.strokeStyle = `rgba(190,226,255,${0.025 + mapped.aperture * 0.055 + coherence * 0.02})`;
-    context.lineWidth = Math.max(1, ratio * 0.52);
-    context.stroke();
-  }
+  context.globalCompositeOperation = "source-over";
+  const voidGradient = context.createRadialGradient(centerX, centerY, coreRadius * 0.12, centerX, centerY, coreRadius * 0.88);
+  voidGradient.addColorStop(0, "rgba(3,4,8,0.94)");
+  voidGradient.addColorStop(0.7, "rgba(5,6,11,0.64)");
+  voidGradient.addColorStop(1, "rgba(5,6,11,0)");
+  context.fillStyle = voidGradient;
+  context.beginPath();
+  context.ellipse(centerX, centerY, coreRadius * (0.5 + mapped.aperture * 0.15), coreRadius * (0.86 + mapped.aperture * 0.2), state.tilt * 0.7, 0, Math.PI * 2);
+  context.fill();
+
   context.restore();
 }
 
 export function drawLattice(context, state) {
-  const { coherence, mapped, pressure, deformation, ratio, phase } = state;
-  const slices = [-1, -0.66, -0.33, 0, 0.33, 0.66, 1];
+  const { coherence, mapped, deformation, phase, ratio } = state;
   context.save();
+  context.globalCompositeOperation = "screen";
 
-  slices.forEach((z, sliceIndex) => {
-    const depthFade = 0.58 + (1 - Math.abs(z)) * 0.42;
-    const alpha = (0.026 + coherence * 0.055 + mapped.brilliance * 0.012) * depthFade;
-    drawShell(context, state, z, 0.94 - Math.abs(z) * 0.035, alpha, sliceIndex % 2 ? "190,226,255" : "116,208,255", sliceIndex === 3 ? 0.72 : 0.48);
-  });
-
-  const ribs = 18;
-  for (let rib = 0; rib < ribs; rib += 1) {
-    const angle = rib / ribs * Math.PI * 2 + state.seedPhase * 0.07;
+  const slices = SLICE_DEPTHS.map((z, index) => bodySlice(state, z, 0.93 - Math.abs(z) * 0.035, index * 0.017 + phase * 0.005));
+  for (let segment = 0; segment < BODY_SEGMENTS; segment += 1) {
     context.beginPath();
-    slices.forEach((z, sliceIndex) => {
-      const fractureOffset = deformation > 0.45 && rib % 5 === 0
-        ? Math.sin(phase * 0.18 + rib) * deformation * 0.045 * (sliceIndex - 3)
+    for (let sliceIndex = 0; sliceIndex < slices.length; sliceIndex += 1) {
+      const point = slices[sliceIndex][segment];
+      const snap = deformation > 0.44 && segment % 4 === 0
+        ? Math.sin(phase * 0.2 + segment) * deformation * state.ratio * 9 * (sliceIndex - slices.length / 2) / slices.length
         : 0;
-      const [x, y] = shellPoint(state, angle + fractureOffset, z, 0.94 - Math.abs(z) * 0.035, rib + sliceIndex * 20);
-      if (sliceIndex === 0) context.moveTo(x, y);
-      else context.lineTo(x, y);
-    });
-    context.strokeStyle = `rgba(190,226,255,${0.012 + coherence * 0.03 + (rib % 3 === 0 ? 0.012 : 0)})`;
-    context.lineWidth = Math.max(1, ratio * 0.45);
+      if (sliceIndex === 0) context.moveTo(point[0] + snap, point[1] - snap * 0.35);
+      else context.lineTo(point[0] + snap, point[1] - snap * 0.35);
+    }
+    context.strokeStyle = `rgba(190,226,255,${0.035 + coherence * 0.075 + (segment % 3 === 0 ? 0.035 : 0)})`;
+    context.lineWidth = Math.max(1, ratio * (segment % 3 === 0 ? 0.78 : 0.48));
     context.stroke();
   }
 
-  for (let brace = 0; brace < 9; brace += 1) {
-    const angleA = brace / 9 * Math.PI * 2;
-    const angleB = angleA + Math.PI * (0.38 + pressure * 0.05);
-    const a = shellPoint(state, angleA, -0.92, 0.9, brace);
-    const b = shellPoint(state, angleB, 0.92, 0.9, brace + 50);
+  for (let brace = 0; brace < 12; brace += 1) {
+    const angleA = brace / 12 * Math.PI * 2;
+    const angleB = angleA + Math.PI * (0.34 + state.pressure * 0.08);
+    const a = bodyPoint(state, angleA, -0.98, 0.91, brace);
+    const b = bodyPoint(state, angleB, 0.98, 0.91, brace + 40);
     context.beginPath();
     context.moveTo(a[0], a[1]);
     context.lineTo(b[0], b[1]);
-    context.strokeStyle = `rgba(127,136,255,${0.01 + mapped.phaseDisagreement * 0.028 + coherence * 0.012})`;
+    context.strokeStyle = `rgba(127,136,255,${0.018 + mapped.phaseDisagreement * 0.055 + coherence * 0.018})`;
+    context.lineWidth = Math.max(1, ratio * 0.46);
     context.stroke();
   }
 
@@ -218,209 +314,213 @@ export function drawLattice(context, state) {
 }
 
 export function drawPressureMembranes(context, state) {
-  const { pressure, art, mapped, deformation } = state;
-  const membraneStrength = clamp(pressure * 0.56 + art.disturbance * 0.5 + mapped.phaseDisagreement * 0.2);
-  if (membraneStrength < 0.08) return;
-
+  const strength = clamp(state.pressure * 0.58 + state.art.disturbance * 0.48 + state.mapped.phaseDisagreement * 0.24);
+  const planes = strength < 0.08 ? 1 : 2 + Math.round(strength * 3);
   context.save();
   context.globalCompositeOperation = "screen";
-  const planes = 2 + Math.round(membraneStrength * 2);
+
   for (let plane = 0; plane < planes; plane += 1) {
-    const xBias = -0.42 + plane * (0.84 / Math.max(1, planes - 1));
-    const zBias = -0.62 + plane * 0.52;
-    const lean = art.direction * art.propagation * 0.14 + deformation * 0.06 * (plane % 2 ? -1 : 1);
+    const progress = planes === 1 ? 0.5 : plane / (planes - 1);
+    const xBias = -0.5 + progress;
+    const zBias = -0.72 + progress * 1.44;
+    const lean = state.art.direction * state.art.propagation * 0.18 + state.deformation * 0.08 * (plane % 2 ? -1 : 1);
     const points = [
-      projectPoint(state, xBias - 0.22, -0.86, zBias - 0.2, plane),
-      projectPoint(state, xBias + 0.24 + lean, -0.72, zBias + 0.35, plane + 4),
-      projectPoint(state, xBias + 0.18 - lean, 0.82, zBias + 0.28, plane + 8),
-      projectPoint(state, xBias - 0.28, 0.74, zBias - 0.25, plane + 12),
+      projectPoint(state, xBias - 0.3, -0.94, zBias - 0.18, plane),
+      projectPoint(state, xBias + 0.3 + lean, -0.78, zBias + 0.28, plane + 3),
+      projectPoint(state, xBias + 0.2 - lean, 0.88, zBias + 0.32, plane + 7),
+      projectPoint(state, xBias - 0.34, 0.72, zBias - 0.24, plane + 11),
     ];
-    context.beginPath();
-    points.forEach(([x, y], index) => index === 0 ? context.moveTo(x, y) : context.lineTo(x, y));
-    context.closePath();
+    polygonPath(context, points);
     const gradient = context.createLinearGradient(points[0][0], points[0][1], points[2][0], points[2][1]);
+    const baseAlpha = planes === 1 ? 0.018 : 0.025 + strength * 0.055;
     gradient.addColorStop(0, "rgba(116,208,255,0)");
-    gradient.addColorStop(0.45, `rgba(127,136,255,${0.008 + membraneStrength * 0.024})`);
-    gradient.addColorStop(0.7, `rgba(211,203,255,${0.012 + membraneStrength * 0.035})`);
+    gradient.addColorStop(0.38, `rgba(127,136,255,${baseAlpha})`);
+    gradient.addColorStop(0.68, `rgba(211,203,255,${baseAlpha * 1.4})`);
     gradient.addColorStop(1, "rgba(116,208,255,0)");
     context.fillStyle = gradient;
     context.fill();
-    context.strokeStyle = `rgba(211,203,255,${0.018 + membraneStrength * 0.055})`;
-    context.lineWidth = Math.max(1, state.ratio * 0.42);
+    context.strokeStyle = `rgba(211,203,255,${0.025 + strength * 0.08})`;
+    context.lineWidth = Math.max(1, state.ratio * 0.52);
     context.stroke();
   }
+
   context.restore();
 }
 
 export function drawSignalFilaments(context, state) {
-  const { mapped, selectedMapping, frame, pressure, coherence, phase, ratio, art, deformation } = state;
-  const steps = 112;
-  for (let trace = 0; trace < FILAMENTS.length; trace += 1) {
-    const definition = FILAMENTS[trace];
-    const value = clamp(frame.normalised[definition.id]);
+  const { selectedMapping, coherence, mapped, ratio } = state;
+  context.save();
+  context.globalCompositeOperation = "screen";
+
+  SIGNALS.forEach((definition, traceIndex) => {
+    const { points, value } = signalPath(state, definition, traceIndex);
     const selected = selectedMapping?.source === definition.id;
-    const opacity = selectedMapping ? (selected ? 0.94 : 0.065) : 0.2 + coherence * 0.2 + mapped.brilliance * 0.08;
-    const amplitude = 0.06 + value * 0.09 + mapped.phaseDisagreement * 0.06;
-    context.beginPath();
-    for (let index = 0; index <= steps; index += 1) {
-      const t = index / steps;
-      const x = -1.04 + t * 2.08;
-      const bodyPull = Math.exp(-Math.pow((t - 0.5) / 0.3, 2));
-      const lane = definition.lane * (1 - bodyPull * 0.42);
-      const wave = Math.sin(t * Math.PI * (4.2 + trace * 0.46) + phase * (0.16 + definition.phase)) * amplitude * (0.38 + bodyPull * 0.62);
-      const localFracture = Math.sin(t * Math.PI * 7 + trace) * deformation * bodyPull * 0.045;
-      const y = lane + wave + localFracture + pressure * Math.sin(t * Math.PI) * 0.035 * (trace % 2 ? 1 : -1);
-      const z = definition.depth + Math.sin(t * Math.PI * 2 + phase * 0.11 + trace) * (0.14 + mapped.phaseDisagreement * 0.16) + art.direction * art.propagation * bodyPull * 0.12;
-      const [px, py] = projectPoint(state, x, y, z, index + trace * 140);
-      if (index === 0) context.moveTo(px, py);
-      else context.lineTo(px, py);
-    }
-    const [r, g, b] = definition.colour;
-    context.strokeStyle = `rgba(${r},${g},${b},${opacity})`;
-    context.lineWidth = Math.max(1, ratio * (selected ? 1.55 : 0.72));
-    context.shadowBlur = this.reducedMotion ? 0 : ratio * (selected ? 15 : 4 + mapped.brilliance * 6);
-    context.shadowColor = `rgba(${r},${g},${b},${selected ? 0.5 : 0.2})`;
-    context.stroke();
+    const dimmed = Boolean(selectedMapping) && !selected;
+    const baseAlpha = dimmed ? 0.3 : 0.46 + coherence * 0.18;
+    const alpha = selected ? 0.92 : baseAlpha;
+    const haloAlpha = selected ? 0.14 : dimmed ? 0.045 : 0.075 + mapped.brilliance * 0.035;
+    const width = ratio * (2.1 + value * 2.7 + (selected ? 1.7 : 0));
+    const haloWidth = ratio * (10 + value * 10 + (selected ? 7 : 0));
+
+    strokePath(context, points, definition.colour, haloAlpha, haloWidth, this.reducedMotion ? 0 : ratio * 15);
+    strokePath(context, points, definition.colour, alpha, width, this.reducedMotion ? 0 : ratio * (selected ? 12 : 7));
+    strokePath(context, points, [235, 249, 255], selected ? 0.5 : dimmed ? 0.08 : 0.19, Math.max(1, ratio * 0.7));
+
+    const nodeSteps = [0.18, 0.36, 0.54, 0.72, 0.88];
+    nodeSteps.forEach((t, nodeIndex) => {
+      const pointIndex = Math.min(points.length - 1, Math.round(t * (points.length - 1)));
+      const [x, y] = points[pointIndex];
+      const pulse = this.reducedMotion ? 0.5 : 0.5 + Math.sin(state.phase * 0.22 + traceIndex + nodeIndex * 0.7) * 0.5;
+      const radius = ratio * (2.4 + value * 2.2 + pulse * 1.2 + (selected ? 1.4 : 0));
+      const halo = context.createRadialGradient(x, y, 0, x, y, radius * 4.2);
+      halo.addColorStop(0, rgba(definition.colour, selected ? 0.3 : 0.16));
+      halo.addColorStop(1, rgba(definition.colour, 0));
+      context.fillStyle = halo;
+      context.beginPath();
+      context.arc(x, y, radius * 4.2, 0, Math.PI * 2);
+      context.fill();
+      context.fillStyle = rgba([235, 249, 255], selected ? 0.9 : 0.58);
+      context.beginPath();
+      context.arc(x, y, radius, 0, Math.PI * 2);
+      context.fill();
+    });
+  });
+
+  context.restore();
+}
+
+export function drawCausalPropagation(context, state) {
+  const strength = clamp(state.art.propagation * 0.92 + state.art.disturbance * 0.16);
+  if (strength < 0.05) return;
+  const fronts = 2 + Math.round(strength * 3);
+  context.save();
+  context.globalCompositeOperation = "screen";
+
+  for (let front = 0; front < fronts; front += 1) {
+    const lag = front / Math.max(1, fronts - 1) * 0.34;
+    const progress = clamp(strength * 1.18 - lag);
+    if (progress <= 0.02) continue;
+    const x = -0.98 + progress * 1.96;
+    const scale = 0.72 + state.mapped.displacement * 0.16 + state.art.disturbance * 0.1;
+    drawDepthRing(context, state, x, scale, 0.055 + state.art.disturbance * 0.13, front % 2 ? [211, 203, 255] : [116, 208, 255], 0.85);
   }
-  context.shadowBlur = 0;
+
+  context.restore();
+}
+
+export function drawPulseEmissions(context, state) {
+  const cycle = ((state.phase / (Math.PI * 2)) % 1 + 1) % 1;
+  const rings = 2 + Math.round(state.mapped.emissionRate * 4);
+  context.save();
+  context.globalCompositeOperation = "screen";
+  for (let ring = 0; ring < rings; ring += 1) {
+    const progress = (cycle + ring / rings) % 1;
+    const alpha = (1 - progress) * (0.02 + state.mapped.displacement * 0.08);
+    if (alpha < 0.006) continue;
+    drawDepthRing(context, state, 0, 0.24 + progress * 0.76, alpha, [116, 208, 255], 0.56);
+  }
+  context.restore();
 }
 
 export function drawMicrostructure(context, state) {
   const { width, height, mapped, pressure, ratio, art, deformation } = state;
   const seed = state.seedPhase * 10000 + Math.round(mapped.microstructure * 97) + Math.round(pressure * 131);
-  const count = Math.min(180, 34 + Math.round(mapped.microstructure * 92 + mapped.granularFracture * 34 + art.disturbance * 24));
+  const count = Math.min(190, 42 + Math.round(mapped.microstructure * 94 + mapped.granularFracture * 36 + art.disturbance * 28));
   context.save();
   context.globalCompositeOperation = "screen";
+
   for (let index = 0; index < count; index += 1) {
-    const x = deterministicUnit(seed, index * 3) * 1.88 - 0.94;
-    const y = deterministicUnit(seed * 1.7, index * 3 + 1) * 1.58 - 0.79;
-    const z = deterministicUnit(seed * 2.3, index * 3 + 2) * 1.8 - 0.9;
+    const x = deterministicUnit(seed, index * 3) * 1.9 - 0.95;
+    const y = deterministicUnit(seed * 1.7, index * 3 + 1) * 1.62 - 0.81;
+    const z = deterministicUnit(seed * 2.3, index * 3 + 2) * 1.84 - 0.92;
     const [px, py] = projectPoint(state, x, y, z, index);
     if (px < 0 || px > width || py < 0 || py > height) continue;
-    const depthScale = 0.65 + (z + 1) * 0.25;
-    const size = ratio * depthScale * (0.75 + deterministicUnit(seed * 3.1, index + 9) * 1.4 + deformation * 0.65);
-    const alpha = 0.024 + mapped.microstructure * 0.065 + pressure * 0.024;
+    const depthScale = 0.6 + (z + 1) * 0.28;
+    const size = ratio * depthScale * (0.8 + deterministicUnit(seed * 3.1, index + 9) * 1.7 + deformation * 0.8);
+    const alpha = 0.035 + mapped.microstructure * 0.09 + pressure * 0.03;
     context.save();
     context.translate(px, py);
-    context.rotate(Math.PI * 0.25 + z * 0.3 + index * 0.07);
+    context.rotate(Math.PI * 0.25 + z * 0.34 + index * 0.07);
     context.fillStyle = index % 5 === 0 ? `rgba(211,203,255,${alpha})` : `rgba(116,208,255,${alpha})`;
-    context.fillRect(-size * 0.5, -size * 0.5, size, size);
+    context.fillRect(-size * 0.55, -size * 0.55, size, size);
     context.restore();
   }
-  context.restore();
-}
 
-export function drawCausalPropagation(context, state) {
-  const { art, mapped, ratio, phase } = state;
-  if (art.propagation < 0.05) return;
-  const frontCount = 2 + Math.round(art.propagation * 3);
-  context.save();
-  context.globalCompositeOperation = "screen";
-  for (let front = 0; front < frontCount; front += 1) {
-    const shift = front / Math.max(1, frontCount - 1) * 0.42;
-    const progress = clamp(art.propagation * 1.28 - shift);
-    if (progress <= 0.02) continue;
-    const x = -0.92 + progress * 1.84;
-    const scale = 0.68 + mapped.displacement * 0.13 + art.disturbance * 0.08;
-    const alpha = 0.035 + art.disturbance * 0.13 * (1 - front / (frontCount + 1));
-    drawDepthRing(context, state, x, scale, alpha, front % 2 ? "211,203,255" : "116,208,255");
-  }
-  if (!this.reducedMotion) {
-    const pulseX = -0.92 + clamp(art.propagation + Math.sin(phase * 0.18) * 0.035) * 1.84;
-    drawDepthRing(context, state, pulseX, 0.76, 0.04 + art.disturbance * 0.09, "127,136,255");
-  }
-  context.restore();
-  context.shadowBlur = 0;
-  context.lineWidth = Math.max(1, ratio * 0.5);
-}
-
-export function drawPulseEmissions(context, state) {
-  const { mapped, phase } = state;
-  const cycle = ((phase / (Math.PI * 2)) % 1 + 1) % 1;
-  const rings = 2 + Math.round(mapped.emissionRate * 3);
-  context.save();
-  for (let ring = 0; ring < rings; ring += 1) {
-    const progress = (cycle + ring / rings) % 1;
-    const alpha = (1 - progress) * (0.012 + mapped.displacement * 0.07);
-    if (alpha < 0.005) continue;
-    drawDepthRing(context, state, 0, 0.18 + progress * 0.72, alpha, "116,208,255");
-  }
   context.restore();
 }
 
 export function drawFracture(context, state) {
-  const { pressure, cacheDisruption, mapped, phase, ratio, fractureScale, art, signature } = state;
-  const fracture = clamp((pressure * 0.48 + cacheDisruption * 0.24 + mapped.granularFracture * 0.32 + art.fractureBias * 0.62) * fractureScale);
-  if (fracture < 0.1) return;
+  const fracture = clamp((state.pressure * 0.46 + state.cacheDisruption * 0.24 + state.mapped.granularFracture * 0.34 + state.art.fractureBias * 0.64) * state.fractureScale);
+  if (fracture < 0.11) return;
   const count = 2 + Math.round(fracture * 5);
   const seed = state.seedPhase * 23000 + Math.round(fracture * 1000);
+
   context.save();
-  context.globalCompositeOperation = "screen";
   for (let plane = 0; plane < count; plane += 1) {
-    const anchor = deterministicUnit(seed, plane) * 1.4 - 0.7;
-    const depth = deterministicUnit(seed * 1.7, plane + 7) * 1.4 - 0.7;
-    const lean = (deterministicUnit(seed * 2.1, plane + 13) - 0.5) * 0.58 * fracture;
-    const steps = 7;
-    context.beginPath();
-    for (let step = 0; step <= steps; step += 1) {
-      const p = step / steps;
-      const y = -0.94 + p * 1.88;
-      const fork = Math.sin(p * Math.PI * (2 + plane % 3) + phase * 0.08 + plane) * fracture * 0.08;
-      const x = anchor + lean * (p - 0.5) + fork;
-      const z = depth + Math.cos(p * Math.PI * 2 + plane) * fracture * 0.12;
-      const [px, py] = projectPoint(state, x, y, z, step + plane * 20);
-      if (step === 0) context.moveTo(px, py);
-      else context.lineTo(px, py);
-    }
-    context.strokeStyle = `rgba(211,203,255,${0.045 + fracture * 0.2})`;
-    context.lineWidth = Math.max(1, ratio * (signature.fracturePlane ? 0.8 : 0.56));
-    context.shadowBlur = this.reducedMotion ? 0 : ratio * fracture * 5;
-    context.shadowColor = "rgba(127,136,255,0.28)";
+    const anchor = deterministicUnit(seed, plane) * 1.3 - 0.65;
+    const depth = deterministicUnit(seed * 1.7, plane + 7) * 1.45 - 0.72;
+    const lean = (deterministicUnit(seed * 2.1, plane + 13) - 0.5) * 0.62 * fracture;
+    const top = projectPoint(state, anchor - lean * 0.5, -0.94, depth - 0.1, plane);
+    const topEdge = projectPoint(state, anchor - lean * 0.34 + 0.04 + fracture * 0.035, -0.9, depth + 0.1, plane + 2);
+    const bottomEdge = projectPoint(state, anchor + lean * 0.48 - 0.035, 0.92, depth + 0.14, plane + 5);
+    const bottom = projectPoint(state, anchor + lean * 0.5, 0.96, depth - 0.12, plane + 7);
+    const tear = [top, topEdge, bottomEdge, bottom];
+    polygonPath(context, tear);
+    context.fillStyle = `rgba(3,3,8,${0.38 + fracture * 0.4})`;
+    context.fill();
+    context.strokeStyle = `rgba(211,203,255,${0.09 + fracture * 0.28})`;
+    context.lineWidth = Math.max(1, state.ratio * (state.signature.fracturePlane ? 1.1 : 0.7));
+    context.shadowBlur = this.reducedMotion ? 0 : state.ratio * fracture * 9;
+    context.shadowColor = "rgba(127,136,255,0.38)";
     context.stroke();
   }
-  context.restore();
   context.shadowBlur = 0;
+  context.restore();
 }
 
 export function drawSignatureMoments(context, state) {
-  const { signature, mapped, coherence, deformation, phase, ratio, art } = state;
+  const { signature, mapped, coherence, deformation, phase, art } = state;
   context.save();
   context.globalCompositeOperation = "screen";
 
   if (signature.apertureOpen) {
-    const openPulse = this.reducedMotion ? 1 : 0.88 + Math.sin(phase * 0.24) * 0.12;
-    drawDepthRing(context, state, 0, 0.38 + mapped.aperture * 0.16, (0.055 + mapped.brilliance * 0.06) * openPulse, "232,246,255");
+    const pulse = this.reducedMotion ? 1 : 0.88 + Math.sin(phase * 0.24) * 0.12;
+    drawDepthRing(context, state, 0, 0.58 + mapped.aperture * 0.18, (0.08 + mapped.brilliance * 0.08) * pulse, [232, 246, 255], 1.05);
   }
 
   if (signature.latticeSnap) {
-    const snap = Math.sin(phase * 0.31) > 0.55 ? 1 : 0.42;
-    drawShell(context, state, -0.08 - deformation * 0.16, 0.98, 0.035 + deformation * 0.075 * snap, "211,203,255", 0.86);
-    drawShell(context, state, 0.12 + deformation * 0.14, 0.91, 0.025 + deformation * 0.055 * snap, "127,136,255", 0.72);
+    const snap = this.reducedMotion ? 0.72 : Math.sin(phase * 0.31) > 0.52 ? 1 : 0.38;
+    drawSlice(context, state, -0.18 - deformation * 0.18, 1.01, 0.035 + deformation * 0.08 * snap, [211, 203, 255], 0.1 + deformation * 0.12);
+    drawSlice(context, state, 0.18 + deformation * 0.16, 0.94, 0.026 + deformation * 0.06 * snap, [127, 136, 255], 0.08 + deformation * 0.1);
   }
 
   if (signature.phaseSlip) {
-    const slip = projectPoint(state, 0.22, -0.82, 0.74, 4);
-    const slipEnd = projectPoint(state, -0.08, 0.88, -0.68, 8);
-    context.beginPath();
-    context.moveTo(slip[0], slip[1]);
-    context.lineTo(slipEnd[0], slipEnd[1]);
-    context.strokeStyle = `rgba(127,136,255,${0.035 + mapped.phaseDisagreement * 0.11})`;
-    context.lineWidth = Math.max(1, ratio * 0.8);
+    const plane = [
+      projectPoint(state, -0.18, -0.9, 0.82, 1),
+      projectPoint(state, 0.12, -0.82, -0.72, 4),
+      projectPoint(state, 0.22, 0.9, -0.62, 7),
+      projectPoint(state, -0.12, 0.82, 0.74, 10),
+    ];
+    polygonPath(context, plane);
+    context.fillStyle = `rgba(127,136,255,${0.02 + mapped.phaseDisagreement * 0.07})`;
+    context.fill();
+    context.strokeStyle = `rgba(211,203,255,${0.055 + mapped.phaseDisagreement * 0.13})`;
+    context.lineWidth = Math.max(1, state.ratio * 0.75);
     context.stroke();
   }
 
   if (signature.reformation) {
-    const bloom = this.reducedMotion ? 0.72 : ((phase * 0.08) % 1 + 1) % 1;
-    drawDepthRing(context, state, 0, 0.34 + bloom * 0.56, (1 - bloom) * (0.025 + art.recovery * 0.065), "232,246,255");
+    const bloom = this.reducedMotion ? 0.58 : ((phase * 0.08) % 1 + 1) % 1;
+    drawDepthRing(context, state, 0, 0.4 + bloom * 0.66, (1 - bloom) * (0.045 + art.recovery * 0.1), [232, 246, 255], 0.9);
   }
 
   if (signature.propagationWave && art.disturbance > 0.25) {
     const wave = clamp(art.propagation * 1.08);
-    drawDepthRing(context, state, -0.9 + wave * 1.8, 0.78, 0.02 + art.disturbance * 0.065, "211,203,255");
+    drawDepthRing(context, state, -0.94 + wave * 1.88, 0.82, 0.035 + art.disturbance * 0.09, [211, 203, 255], 0.8);
   }
 
   if (coherence < 0.42) {
-    drawShell(context, state, 0.54, 0.82, 0.018 + (1 - coherence) * 0.045, "211,203,255", 0.58);
+    drawSlice(context, state, 0.62, 0.86, 0.028 + (1 - coherence) * 0.07, [211, 203, 255], 0.07 + (1 - coherence) * 0.08);
   }
 
   context.restore();
@@ -430,56 +530,65 @@ export function drawSelectedRoute(context, state) {
   const { selectedMapping, selectedCalculation, frame, routeFocus, ratio, mapped } = state;
   const source = clamp(frame.normalised[selectedMapping.source]);
   const transformed = clamp(selectedCalculation.transformed);
-  const steps = 108;
-  context.save();
-  context.globalCompositeOperation = "screen";
-  context.beginPath();
+  const points = [];
+  const steps = 120;
+
   for (let index = 0; index <= steps; index += 1) {
     const t = index / steps;
-    const x = -1.04 + t * 2.08;
+    const x = -1.08 + t * 2.16;
     const envelope = Math.sin(t * Math.PI);
-    const y = (source - 0.5) * 0.9 * (1 - t) + (transformed - 0.5) * 0.9 * t + Math.sin(t * Math.PI * 3) * mapped.displacement * 0.055 * envelope;
-    const z = -0.62 + t * 1.24 + Math.sin(t * Math.PI * 2) * mapped.phaseDisagreement * 0.16;
-    const [px, py] = projectPoint(state, x, y, z, index + 900);
-    if (index === 0) context.moveTo(px, py);
-    else context.lineTo(px, py);
+    const y = (source - 0.5) * 0.82 * (1 - t)
+      + (transformed - 0.5) * 0.82 * t
+      + Math.sin(t * Math.PI * 3) * mapped.displacement * 0.08 * envelope;
+    const z = -0.72 + t * 1.44 + Math.sin(t * Math.PI * 2) * mapped.phaseDisagreement * 0.2;
+    points.push(projectPoint(state, x, y, z, index + 1000));
   }
-  context.strokeStyle = `rgba(245,166,35,${routeFocus ? 0.96 : 0.72})`;
-  context.lineWidth = Math.max(1, ratio * (routeFocus ? 1.7 : 1.08));
-  context.shadowBlur = this.reducedMotion ? 0 : ratio * (routeFocus ? 17 : 9);
-  context.shadowColor = "rgba(245,166,35,0.56)";
-  context.stroke();
-  context.shadowBlur = 0;
 
-  const focusX = 0.25 + transformed * 0.28;
-  const focusY = (transformed - 0.5) * 0.42;
-  const focusZ = 0.18 + source * 0.44;
-  const [fx, fy] = projectPoint(state, focusX, focusY, focusZ, 1040);
-  const halo = context.createRadialGradient(fx, fy, 0, fx, fy, ratio * (22 + mapped.displacement * 30));
-  halo.addColorStop(0, `rgba(245,166,35,${routeFocus ? 0.15 : 0.08})`);
-  halo.addColorStop(1, "rgba(245,166,35,0)");
-  context.fillStyle = halo;
-  context.beginPath();
-  context.arc(fx, fy, ratio * (22 + mapped.displacement * 30), 0, Math.PI * 2);
+  context.save();
+  context.globalCompositeOperation = "screen";
+  strokePath(context, points, [245, 166, 35], routeFocus ? 0.18 : 0.1, ratio * (routeFocus ? 22 : 14), this.reducedMotion ? 0 : ratio * 18);
+  strokePath(context, points, [245, 166, 35], routeFocus ? 0.98 : 0.78, ratio * (routeFocus ? 4.8 : 3.2), this.reducedMotion ? 0 : ratio * 12);
+  strokePath(context, points, [255, 230, 184], routeFocus ? 0.7 : 0.42, Math.max(1, ratio * 0.9));
+
+  const focusX = 0.18 + transformed * 0.34;
+  const focusY = (transformed - 0.5) * 0.38;
+  const focusZ = 0.12 + source * 0.5;
+  const chamber = [];
+  const chamberScale = 0.2 + mapped.displacement * 0.1;
+  for (let index = 0; index < 12; index += 1) {
+    const angle = index / 12 * Math.PI * 2;
+    chamber.push(projectPoint(
+      state,
+      focusX + Math.cos(angle) * chamberScale,
+      focusY + Math.sin(angle) * chamberScale * 0.72,
+      focusZ + Math.sin(angle * 2) * 0.16,
+      index + 1300,
+    ));
+  }
+  polygonPath(context, chamber);
+  const chamberGradient = context.createRadialGradient(
+    state.centerX + state.radiusX * focusX * 0.55,
+    state.centerY + state.radiusY * focusY * 0.55,
+    0,
+    state.centerX,
+    state.centerY,
+    Math.max(state.radiusX, state.radiusY) * 0.5,
+  );
+  chamberGradient.addColorStop(0, `rgba(245,166,35,${routeFocus ? 0.18 : 0.1})`);
+  chamberGradient.addColorStop(1, "rgba(245,166,35,0.01)");
+  context.fillStyle = chamberGradient;
   context.fill();
+  context.strokeStyle = `rgba(245,166,35,${routeFocus ? 0.58 : 0.32})`;
+  context.lineWidth = Math.max(1, ratio * 0.92);
+  context.stroke();
 
-  const localScale = 0.18 + mapped.displacement * 0.08;
-  for (let ring = 0; ring < 4; ring += 1) {
-    const depth = focusZ - 0.22 + ring * 0.14;
-    const alpha = (routeFocus ? 0.14 : 0.07) * (1 - ring * 0.16);
+  chamber.forEach(([x, y], index) => {
+    if (index % 2) return;
+    context.fillStyle = `rgba(255,230,184,${routeFocus ? 0.88 : 0.52})`;
     context.beginPath();
-    for (let point = 0; point <= 28; point += 1) {
-      const angle = point / 28 * Math.PI * 2;
-      const x = focusX + Math.cos(angle) * localScale * (1 + ring * 0.08);
-      const y = focusY + Math.sin(angle) * localScale * 0.58;
-      const [px, py] = projectPoint(state, x, y, depth, point + ring * 40 + 1100);
-      if (point === 0) context.moveTo(px, py);
-      else context.lineTo(px, py);
-    }
-    context.strokeStyle = `rgba(245,166,35,${alpha})`;
-    context.lineWidth = Math.max(1, ratio * 0.6);
-    context.stroke();
-  }
+    context.arc(x, y, ratio * (routeFocus ? 2.5 : 1.8), 0, Math.PI * 2);
+    context.fill();
+  });
 
   context.restore();
 }
