@@ -1,8 +1,9 @@
 "use strict";
 
 import { installSpectralFieldRuntime } from "./spectral-field-install.js";
-import { draw, syncLoop, tick, transitionActive, transitionMix, updateAccessibleSummary } from "./spectral-field-runtime.js";
-import { drawAfterimages, drawBackdrop, drawCausalPropagation, drawFracture, drawLattice, drawMicrostructure, drawPulseEmissions, drawSelectedRoute, drawSignalFilaments, drawSpectralBody } from "./spectral-field-layers.js";
+import { draw } from "./spectral-field-compose-v4.js";
+import { syncLoop, tick, transitionActive, transitionMix, updateAccessibleSummary } from "./spectral-field-runtime.js";
+import { drawAfterimages, drawBackdrop, drawCausalPropagation, drawFracture, drawLattice, drawMicrostructure, drawPulseEmissions, drawSelectedRoute, drawSignalFilaments, drawSpectralBody } from "./spectral-field-layers-v4.js";
 
 installSpectralFieldRuntime({
   updateAccessibleSummary,
