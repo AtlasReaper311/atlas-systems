@@ -1,7 +1,9 @@
 "use strict";
 
-import { SCENARIO_BY_ID, SIGNAL_BY_ID, TARGET_BY_ID, clamp } from "./domain.js";
+import { SCENARIO_BY_ID, clamp } from "./domain.js";
 import { linearToDb } from "./audio-engine.js";
+import { draw as drawSpectralField } from "./spectral-field-compose-v4.js";
+import { syncLoop, tick, updateAccessibleSummary } from "./spectral-field-runtime.js";
 
 export const HEALTH_VISUAL_PROFILES = Object.freeze({
   STABLE: Object.freeze({ pressureScale: 0.88, asymmetryBias: 0, coherenceScale: 1.04, widthScale: 1, heightScale: 1, fractureScale: 0.75 }),
@@ -26,10 +28,6 @@ function canvasSize(canvas) {
   return { width, height, ratio };
 }
 
-function targetNormalised(id, value) {
-  const definition = TARGET_BY_ID[id];
-  return clamp((value - definition.min) / (definition.max - definition.min));
-}
 
 export class SpectralFieldRenderer {
   constructor(canvas) {
@@ -60,176 +58,19 @@ export class SpectralFieldRenderer {
   }
 
   updateAccessibleSummary() {
-    if (!this.state) return;
-    const { frame, scenarioId, selectedMapping, routeFocus } = this.state;
-    const pressure = Math.round((frame.normalised.anomaly_score * 0.55 + frame.normalised.error_rate * 0.25 + frame.normalised.queue_depth * 0.2) * 100);
-    const route = selectedMapping
-      ? ` Selected route ${SIGNAL_BY_ID[selectedMapping.source].label} to ${TARGET_BY_ID[selectedMapping.target].label}${routeFocus ? ", route focus active" : ""}.`
-      : " Combined mapped state.";
-    this.canvas.setAttribute("aria-label", `Spectral Field for ${SCENARIO_BY_ID[scenarioId].label}; ${frame.health.toLowerCase()} simulated state; structural pressure ${pressure} percent.${route}`);
+    updateAccessibleSummary.call(this);
   }
 
   syncLoop() {
-    const shouldRun = Boolean(this.state && this.state.playback === "PLAYING" && !this.reducedMotion);
-    if (shouldRun && !this.animationFrame) {
-      this.lastTimestamp = performance.now();
-      this.animationFrame = requestAnimationFrame((timestamp) => this.tick(timestamp));
-    } else if (!shouldRun && this.animationFrame) {
-      cancelAnimationFrame(this.animationFrame);
-      this.animationFrame = 0;
-    }
+    syncLoop.call(this);
   }
 
   tick(timestamp) {
-    this.animationFrame = 0;
-    if (!this.state || this.reducedMotion || this.state.playback !== "PLAYING") return;
-    const elapsed = Math.min(0.05, (timestamp - this.lastTimestamp) / 1000);
-    this.lastTimestamp = timestamp;
-    this.visualTime += elapsed;
-    this.draw(timestamp);
-    this.animationFrame = requestAnimationFrame((next) => this.tick(next));
+    tick.call(this, timestamp);
   }
 
-  draw() {
-    if (!this.context || !this.state) return;
-    const { width, height, ratio } = canvasSize(this.canvas);
-    const context = this.context;
-    const { frame, outputs, selectedMapping, selectedCalculation, routeFocus, scenarioId } = this.state;
-    const values = frame.normalised;
-    const scenario = SCENARIO_BY_ID[scenarioId];
-    const visualProfile = healthVisualProfile(frame.health);
-    const filter = targetNormalised("filter_cutoff", outputs.filter_cutoff);
-    const instability = targetNormalised("instability", outputs.instability);
-    const density = targetNormalised("texture_density", outputs.texture_density);
-    const pulse = targetNormalised("pulse_rate", outputs.pulse_rate);
-    const stereo = targetNormalised("stereo_width", outputs.stereo_width);
-    const errorTexture = targetNormalised("error_texture", outputs.error_texture);
-    const brightness = targetNormalised("harmonic_brightness", outputs.harmonic_brightness);
-    const pressureBase = values.anomaly_score * 0.48 + values.error_rate * 0.24 + values.queue_depth * 0.2 + values.cpu_load * 0.08;
-    const pressure = clamp(pressureBase * visualProfile.pressureScale);
-    const cacheDisruption = clamp(1 - values.cache_hit_rate);
-    const latencyStretch = 1 + values.latency_ms * 0.34;
-    const asymmetry = clamp(cacheDisruption * 0.44 + instability * 0.34 + errorTexture * 0.22 + visualProfile.asymmetryBias);
-    const coherence = clamp((1 - pressure * 0.64 - instability * 0.22) * visualProfile.coherenceScale, 0.12, 1);
-    const seedPhase = scenario.visualSeed * 0.0071;
-    const centerX = width * (0.5 + asymmetry * 0.025 * Math.sin(this.visualTime * 0.17 + seedPhase));
-    const centerY = height * (0.5 + pressure * 0.025);
-    const baseRadius = Math.min(width, height) * 0.31;
-    const radiusX = baseRadius * (0.92 + stereo * 0.34) * (1 - pressure * 0.11) * visualProfile.widthScale;
-    const radiusY = baseRadius * (0.8 + filter * 0.22) * latencyStretch * visualProfile.heightScale;
-    const phase = this.visualTime * (0.28 + pulse * 0.72) + seedPhase;
-
-    context.clearRect(0, 0, width, height);
-    context.fillStyle = "#08080d";
-    context.fillRect(0, 0, width, height);
-
-    const glow = context.createRadialGradient(centerX, centerY, 0, centerX, centerY, baseRadius * 1.7);
-    glow.addColorStop(0, `rgba(116,208,255,${0.035 + brightness * 0.055})`);
-    glow.addColorStop(0.48, `rgba(127,136,255,${0.018 + instability * 0.045})`);
-    glow.addColorStop(1, "rgba(8,8,13,0)");
-    context.fillStyle = glow;
-    context.fillRect(0, 0, width, height);
-
-    this.drawLattice(context, { centerX, centerY, radiusX, radiusY, pressure, asymmetry, coherence, phase, seedPhase, ratio });
-    this.drawTraces(context, { centerX, centerY, radiusX, radiusY, pressure, asymmetry, coherence, instability, density, brightness, phase, ratio, selectedMapping, frame });
-    this.drawFracture(context, { centerX, centerY, radiusX, radiusY, pressure, cacheDisruption, errorTexture, phase, ratio, seedPhase, fractureScale: visualProfile.fractureScale });
-    if (selectedMapping && selectedCalculation) this.drawSelectedRoute(context, { width, centerY, radiusY, selectedMapping, selectedCalculation, frame, routeFocus, ratio });
-  }
-
-  drawLattice(context, state) {
-    const { centerX, centerY, radiusX, radiusY, pressure, asymmetry, coherence, phase, seedPhase, ratio } = state;
-    context.save();
-    context.translate(centerX, centerY);
-    context.rotate(asymmetry * 0.11 * Math.sin(phase * 0.37));
-    context.translate(-centerX, -centerY);
-    const spokes = 12;
-    for (let ring = 1; ring <= 4; ring += 1) {
-      context.beginPath();
-      for (let index = 0; index <= spokes; index += 1) {
-        const angle = (index / spokes) * Math.PI * 2;
-        const fracture = 1 + Math.sin(angle * 5 + seedPhase + this.visualTime * 0.08) * pressure * 0.065;
-        const x = centerX + Math.cos(angle) * radiusX * (ring / 4) * fracture;
-        const y = centerY + Math.sin(angle) * radiusY * (ring / 4) * (1 + asymmetry * Math.cos(angle) * 0.09);
-        if (index === 0) context.moveTo(x, y);
-        else context.lineTo(x, y);
-      }
-      context.closePath();
-      context.strokeStyle = `rgba(190,226,255,${0.035 + coherence * 0.065 - ring * 0.004})`;
-      context.lineWidth = Math.max(1, ratio * 0.52);
-      context.stroke();
-    }
-    context.restore();
-  }
-
-  drawTraces(context, state) {
-    const { centerX, centerY, radiusX, radiusY, pressure, asymmetry, coherence, instability, density, brightness, phase, ratio, selectedMapping, frame } = state;
-    const colours = [[116, 208, 255], [127, 136, 255], [211, 203, 255]];
-    const sourceFocus = selectedMapping ? frame.normalised[selectedMapping.source] : 0.5;
-    for (let trace = 0; trace < colours.length; trace += 1) {
-      const points = 420 + Math.round(density * 180);
-      context.beginPath();
-      for (let index = 0; index <= points; index += 1) {
-        const t = (index / points) * Math.PI * 2;
-        const crystal = 1 + Math.cos(t * (6 + trace)) * (0.035 + density * 0.035);
-        const interference = Math.sin(t * (11 + trace * 2) + phase * 0.37) * (instability + pressure * 0.28) * 0.075;
-        const leftPropagation = (1 - Math.cos(t)) * asymmetry * (trace === 1 ? 0.18 : 0.08);
-        const x = centerX
-          + Math.cos(t * 2 + phase * (0.16 + trace * 0.04)) * radiusX * (0.76 + trace * 0.07) * (crystal + interference)
-          + Math.sin(t * 5 + phase) * radiusX * instability * 0.04
-          - leftPropagation * radiusX;
-        const y = centerY
-          + Math.sin(t * (3 + trace * 0.18) + phase * (0.12 + instability * 0.08)) * radiusY * (0.66 + trace * 0.06) * (crystal - interference)
-          + Math.cos(t * 7 - phase * 0.22) * radiusY * instability * 0.07
-          + Math.sin(t) * asymmetry * radiusY * 0.08;
-        if (index === 0) context.moveTo(x, y);
-        else context.lineTo(x, y);
-      }
-      context.closePath();
-      const [r, g, b] = colours[trace];
-      const focusedTrace = Math.floor(sourceFocus * colours.length) % colours.length;
-      const opacity = selectedMapping ? (trace === focusedTrace ? 0.88 : 0.11) : 0.4 + coherence * 0.26;
-      context.strokeStyle = `rgba(${r},${g},${b},${opacity})`;
-      context.lineWidth = Math.max(1, ratio * (trace === 0 ? 1.05 : 0.72));
-      context.shadowBlur = this.reducedMotion ? 0 : 7 * ratio * (brightness + 0.3);
-      context.shadowColor = `rgba(${r},${g},${b},0.28)`;
-      context.stroke();
-    }
-    context.shadowBlur = 0;
-  }
-
-  drawFracture(context, state) {
-    const { centerX, centerY, radiusX, radiusY, pressure, cacheDisruption, errorTexture, phase, ratio, seedPhase, fractureScale } = state;
-    const fracture = clamp((pressure * 0.75 + cacheDisruption * 0.35 + errorTexture * 0.2) * fractureScale);
-    if (fracture < 0.12) return;
-    const count = 3 + Math.round(fracture * 9);
-    context.save();
-    context.lineWidth = Math.max(1, ratio * 0.55);
-    for (let index = 0; index < count; index += 1) {
-      const angle = seedPhase + (index / count) * Math.PI * 2 + Math.sin(phase * 0.13 + index) * 0.12;
-      const inner = 0.42 + ((index * 37) % 17) / 100;
-      const outer = inner + 0.12 + fracture * 0.15;
-      context.beginPath();
-      context.moveTo(centerX + Math.cos(angle) * radiusX * inner, centerY + Math.sin(angle) * radiusY * inner);
-      context.lineTo(centerX + Math.cos(angle + fracture * 0.08) * radiusX * outer, centerY + Math.sin(angle - fracture * 0.06) * radiusY * outer);
-      context.strokeStyle = `rgba(211,203,255,${0.08 + fracture * 0.18})`;
-      context.stroke();
-    }
-    context.restore();
-  }
-
-  drawSelectedRoute(context, state) {
-    const { width, centerY, radiusY, selectedMapping, selectedCalculation, frame, routeFocus, ratio } = state;
-    const source = frame.normalised[selectedMapping.source];
-    const targetY = centerY + (selectedCalculation.transformed - 0.5) * radiusY * 0.38;
-    context.shadowBlur = routeFocus ? 14 * ratio : 7 * ratio;
-    context.shadowColor = "rgba(245,166,35,0.52)";
-    context.strokeStyle = `rgba(245,166,35,${routeFocus ? 0.9 : 0.6})`;
-    context.lineWidth = Math.max(1, ratio * (routeFocus ? 1.45 : 0.9));
-    context.beginPath();
-    context.moveTo(width * 0.035, centerY + (source - 0.5) * radiusY * 0.55);
-    context.bezierCurveTo(width * 0.26, centerY, width * 0.72, targetY, width * 0.965, targetY);
-    context.stroke();
-    context.shadowBlur = 0;
+  draw(timestamp = performance.now()) {
+    drawSpectralField.call(this, timestamp);
   }
 
   destroy() {

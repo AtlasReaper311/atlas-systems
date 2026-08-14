@@ -6,6 +6,18 @@ body[data-lab-route="spectral-forge"] main.spectral-forge {
   --forge-content: 1180px;
   --forge-controls: 1380px;
   --forge-wide: 1460px;
+  /* Measured chrome above the Field inside the first viewport: product header,
+   * depth nav, transport and notice. Kept as one token so the Field stage math
+   * stays honest instead of assuming a value.
+   */
+  --forge-chrome: 520px;
+  /* Spectral Forge is an instrument. The identity starts immediately after the
+   * Lab shell so the Field enters the first viewport. The shared product-layout
+   * shell reserves clamp(24px, 3vw, 40px) here with !important
+   * (lab/shared/lab-shell-layout.css); Forge opts out of that band without
+   * changing the rule for other product-layout Lab routes.
+   */
+  padding-top: 0 !important;
   background:
     radial-gradient(1180px 720px at 50% 4%, rgba(116,208,255,.05), transparent 70%),
     radial-gradient(880px 620px at 76% 34%, rgba(127,136,255,.03), transparent 76%),
@@ -19,8 +31,8 @@ body[data-lab-route="spectral-forge"] .forge-product-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
   align-items: center;
-  gap: clamp(28px, 4vw, 70px);
-  padding: 14px 0 16px;
+  gap: clamp(24px, 3.4vw, 60px);
+  padding: 10px 0 10px;
 }
 
 body[data-lab-route="spectral-forge"] .forge-product-identity {
@@ -42,7 +54,7 @@ body[data-lab-route="spectral-forge"] .forge-product-identity::before {
 body[data-lab-route="spectral-forge"] .forge-product-identity > .forge-eyebrow { display: none; }
 
 body[data-lab-route="spectral-forge"] .forge-product-identity .atlas-audio-family__mark {
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   padding-left: clamp(12px, 1.2vw, 18px);
 }
 
@@ -54,7 +66,7 @@ body[data-lab-route="spectral-forge"] .forge-product-identity > .atlas-audio-fam
 
 body[data-lab-route="spectral-forge"] .forge-product-identity > p {
   max-width: 650px;
-  margin-top: 15px;
+  margin-top: 12px;
   color: #888894;
   font-size: 11px;
   line-height: 1.6;
@@ -63,7 +75,7 @@ body[data-lab-route="spectral-forge"] .forge-product-identity > p {
 body[data-lab-route="spectral-forge"] .forge-product-identity > p strong { color: #aaa9a0; }
 
 body[data-lab-route="spectral-forge"] .forge-product-identity > .atlas-audio-family__counterpart {
-  margin-top: 5px;
+  margin-top: 4px;
 }
 
 body[data-lab-route="spectral-forge"] .forge-evidence-surface {
@@ -125,7 +137,7 @@ body[data-lab-route="spectral-forge"] .forge-depth-panel {
 
 /* PLAY is the visual flagship surface. The Field should own the viewport. */
 body[data-lab-route="spectral-forge"] .forge-play .forge-field-stage {
-  min-height: clamp(700px, calc(100svh - 250px), 900px);
+  min-height: max(460px, min(calc(100svh - var(--forge-chrome)), 760px));
   height: auto;
   border: 1px solid rgba(255,255,255,.075);
   border-radius: 8px;
@@ -308,6 +320,8 @@ body[data-lab-route="spectral-forge"] .forge-analysis-chain {
     width: calc(100% - 28px);
   }
 
+  body[data-lab-route="spectral-forge"] main.spectral-forge { --forge-chrome: 607px; }
+
   body[data-lab-route="spectral-forge"] .forge-transport {
     grid-template-columns: minmax(360px,1fr) auto;
   }
@@ -324,16 +338,39 @@ body[data-lab-route="spectral-forge"] .forge-analysis-chain {
 @media (max-width: 900px) {
   body[data-lab-route="spectral-forge"] .forge-product-header {
     grid-template-columns: 1fr;
-    gap: 16px;
-    padding-top: 16px;
+    gap: 10px;
+    padding-top: 10px;
   }
 
   body[data-lab-route="spectral-forge"] .forge-evidence-surface {
     width: min(100%, 520px);
-    min-height: 58px;
+    min-height: 0;
+    padding: 6px 0 6px 14px;
   }
 
-  body[data-lab-route="spectral-forge"] .forge-play .forge-field-stage { min-height: 660px; }
+  body[data-lab-route="spectral-forge"] .forge-transport { row-gap: 8px; }
+  body[data-lab-route="spectral-forge"] .forge-playback-controls { flex-wrap: nowrap; }
+
+  /* Below 900px the transport can no longer hold a 360px scenario column and a
+   * content-sized control cluster on one row (that combination overflowed the
+   * viewport at 390px). Stack it instead of letting the page scroll sideways.
+   */
+  body[data-lab-route="spectral-forge"] .forge-transport {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body[data-lab-route="spectral-forge"] .forge-scenario-control,
+  body[data-lab-route="spectral-forge"] .forge-playback-controls,
+  body[data-lab-route="spectral-forge"] .forge-audio-controls {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  body[data-lab-route="spectral-forge"] .forge-scenario-control select { min-width: 0; }
+
+  body[data-lab-route="spectral-forge"] .forge-play .forge-field-stage {
+    min-height: max(380px, calc(100svh - 300px));
+  }
 
   body[data-lab-route="spectral-forge"] .forge-first-use {
     left: 24px;
@@ -380,7 +417,7 @@ body[data-lab-route="spectral-forge"] .forge-analysis-chain {
   body[data-lab-route="spectral-forge"] .forge-notice { padding-inline: 12px; }
   body[data-lab-route="spectral-forge"] .forge-depth-panel { padding-top: 6px; }
   body[data-lab-route="spectral-forge"] .forge-play .forge-field-stage {
-    min-height: 620px;
+    min-height: max(360px, calc(100svh - 330px));
     border-radius: 0;
   }
   body[data-lab-route="spectral-forge"] .forge-field-grammar { display: none; }

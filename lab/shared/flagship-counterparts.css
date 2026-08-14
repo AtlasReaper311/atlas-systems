@@ -114,7 +114,7 @@ body[data-lab-route="system-symphony"] .symphony-flagship .atlas-audio-family__c
 
 .atlas-audio-title--design .atlas-audio-title__prefix {
   color: #e8e8e0;
-  font: 600 clamp(1.85rem, 3.1vw, 3.45rem)/.9 "IBM Plex Mono", monospace;
+  font: 600 clamp(1.7rem, 2.8vw, 3.05rem)/.9 "IBM Plex Mono", monospace;
   letter-spacing: .16em;
   text-transform: uppercase;
 }
@@ -123,8 +123,9 @@ body[data-lab-route="system-symphony"] .symphony-flagship .atlas-audio-family__c
   position: relative;
   left: .025em;
   margin-top: .05em;
+  margin-bottom: .2em;
   color: #f5a623;
-  font: italic 400 clamp(4.9rem, 8.2vw, 8.7rem)/.74 "DM Serif Display", Georgia, serif;
+  font: italic 400 clamp(4.4rem, 7.2vw, 7.6rem)/.74 "DM Serif Display", Georgia, serif;
   letter-spacing: -.055em;
   text-shadow:
     0 0 22px rgba(245,166,35,.13),
@@ -308,4 +309,22 @@ body[data-lab-route="spectral-forge"] .lab-flagship-counterpart,
   .atlas-audio-family__counterpart i,
   .lab-flagship-counterpart__link { transition: none; }
   .atlas-audio-family__counterpart:hover i { transform: none; }
+}
+
+/* Production NOW PLAYING hierarchy. The flagship pass redesigns only the
+ * product identity lockup; the live movement title keeps its shipped scale.
+ */
+.symphony-transport__title h2[data-page-movement],
+.symphony-transport__title h2[data-page-now-playing] {
+  max-width: 18ch;
+  font-size: clamp(2rem, 3vw, 2.55rem);
+  line-height: .98;
+  letter-spacing: -.02em;
+}
+
+@media (max-width: 720px) {
+  .symphony-transport__title h2[data-page-movement],
+  .symphony-transport__title h2[data-page-now-playing] {
+    font-size: clamp(1.75rem, 8vw, 2.2rem);
+  }
 }

@@ -9,7 +9,7 @@ const counterpartCssUrl = new URL("../shared/flagship-counterparts.css", import.
 const audioCardsCssUrl = new URL("../shared/audio-flagship-cards.css", import.meta.url);
 const forgeFlagshipCssUrl = new URL("../spectral-forge/spectral-forge-flagship-v2.css", import.meta.url);
 const forgeBootstrapUrl = new URL("../../static/js/spectral-forge/app.js", import.meta.url);
-const fieldArtUrl = new URL("../../static/js/spectral-forge/spectral-field-art.js", import.meta.url);
+const visualsUrl = new URL("../../static/js/spectral-forge/visuals.js", import.meta.url);
 const fieldComposeUrl = new URL("../../static/js/spectral-forge/spectral-field-compose-v4.js", import.meta.url);
 const fieldGeometryUrl = new URL("../../static/js/spectral-forge/spectral-field-geometry.js", import.meta.url);
 const fieldModelUrl = new URL("../../static/js/spectral-forge/spectral-field-model.js", import.meta.url);
@@ -103,7 +103,10 @@ test("Spectral Forge removes the dead hero band and keeps PLAY and FORGE field-f
   assert.match(css, /forge-product-header[\s\S]*min-height:\s*0/);
   assert.match(css, /forge-product-header[\s\S]*align-items:\s*center/);
   assert.match(css, /forge-play \.forge-field-stage/);
-  assert.match(css, /min-height:\s*clamp\(700px, calc\(100svh - 250px\), 900px\)/);
+  // The stage height derives from the measured chrome token, not a guess.
+  assert.match(css, /--forge-chrome:\s*\d+px/);
+  assert.match(css, /min-height:\s*max\(460px, min\(calc\(100svh - var\(--forge-chrome\)\), 760px\)\)/);
+  assert.match(css, /padding-top:\s*0\s*!important/);
   assert.match(css, /forge-route-overlay > span:nth-child\(2\)[\s\S]*visibility:\s*hidden/);
   assert.match(css, /forge-workspace/);
   assert.match(css, /minmax\(650px,1\.78fr\)/);
@@ -114,14 +117,14 @@ test("Spectral Forge removes the dead hero band and keeps PLAY and FORGE field-f
 });
 
 test("active Spectral Field is a state-driven living spatial architecture", async () => {
-  const art = await source(fieldArtUrl);
+  const visuals = await source(visualsUrl);
   const compose = await source(fieldComposeUrl);
   const geometry = await source(fieldGeometryUrl);
   const model = await source(fieldModelUrl);
   const layers = await source(fieldLayersUrl);
   const combinedStatePath = `${geometry}\n${model}\n${layers}`;
-  assert.match(art, /spectral-field-compose-v4\.js/);
-  assert.match(art, /spectral-field-layers-v4\.js/);
+  assert.match(visuals, /spectral-field-compose-v4\.js/);
+  assert.match(compose, /spectral-field-layers-v4\.js/);
   assert.match(model, /function fieldArtState\(frame, mapped\)/);
   assert.match(model, /FIELD_VISUAL_SEED/);
   assert.match(geometry, /signatureState\(art, mapped, health, coherence\)/);

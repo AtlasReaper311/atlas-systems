@@ -29,6 +29,7 @@ on:
       - "scripts/plan_interface_evidence.mjs"
       - "scripts/smoke_system_map_card_field_preview.mjs"
       - "scripts/smoke_directory_header_fields_preview.mjs"
+      - "scripts/smoke_spectral_forge_preview.mjs"
       - "scripts/generate_sitemap.py"
       - "scripts/verify_interface_bundle.py"
       - "sitemap.xml"
@@ -85,6 +86,7 @@ jobs:
           node --check scripts/plan_interface_evidence.mjs
           node --check scripts/smoke_system_map_card_field_preview.mjs
           node --check scripts/smoke_directory_header_fields_preview.mjs
+          node --check scripts/smoke_spectral_forge_preview.mjs
           node --test js/tests/*.test.mjs lab/tests/*.test.mjs static/js/sonify/*.test.js
           python3 scripts/verify_interface_bundle.py
           python3 scripts/generate_sitemap.py --check-only
@@ -238,6 +240,7 @@ jobs:
             scripts/interface-evidence
             scripts/smoke_system_map_card_field_preview.mjs
             scripts/smoke_directory_header_fields_preview.mjs
+            scripts/smoke_spectral_forge_preview.mjs
             sitemap.xml
           sparse-checkout-cone-mode: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
@@ -251,6 +254,7 @@ jobs:
           cp scripts/capture_batch_h_evidence.mjs "${RUNNER_TEMP}/interface-evidence/"
           cp scripts/smoke_system_map_card_field_preview.mjs "${RUNNER_TEMP}/interface-evidence/"
           cp scripts/smoke_directory_header_fields_preview.mjs "${RUNNER_TEMP}/interface-evidence/"
+          cp scripts/smoke_spectral_forge_preview.mjs "${RUNNER_TEMP}/interface-evidence/"
           cp sitemap.xml "${RUNNER_TEMP}/interface-evidence/"
           cp -R scripts/interface-evidence "${RUNNER_TEMP}/interface-evidence/"
           cd "${RUNNER_TEMP}/interface-evidence"
@@ -268,6 +272,11 @@ jobs:
         env:
           DIRECTORY_HEADER_FIELD_OUTPUT_DIR: ${{ runner.temp }}/interface-evidence/directory-header-field-preview-smoke
         run: node smoke_directory_header_fields_preview.mjs
+      - name: Verify Spectral Forge playback, renderer identity and Field motion
+        working-directory: ${{ runner.temp }}/interface-evidence
+        env:
+          SPECTRAL_FORGE_OUTPUT_DIR: ${{ runner.temp }}/interface-evidence/spectral-forge-preview-smoke
+        run: node smoke_spectral_forge_preview.mjs
       - name: Capture route-derived browser and viewport evidence
         id: route-capture
         if: always()

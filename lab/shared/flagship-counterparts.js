@@ -1,9 +1,12 @@
 "use strict";
 
+/* The flagship stylesheets are linked in each page head so the identity paints
+ * without a layout shift. These entries are an idempotent fallback only: the
+ * loop below skips any stylesheet the document already links.
+ */
 const STYLESHEETS = Object.freeze([
-  "/lab/shared/flagship-counterparts.css?v=20260814-atlas-audio-flagship-v4",
-  "/lab/shared/symphony-live-movement.css?v=20260814-symphony-title-only-v1",
-  "/lab/spectral-forge/spectral-forge-flagship-v2.css?v=20260814-atlas-audio-flagship-v4",
+  "/lab/shared/flagship-counterparts.css?v=20260814-flagship-v5",
+  "/lab/spectral-forge/spectral-forge-flagship-v2.css?v=20260814-flagship-v5",
 ]);
 
 const ROUTES = Object.freeze({
@@ -37,7 +40,6 @@ function normalizePath(pathname) {
 function ensureStylesheets(pathname) {
   for (const href of STYLESHEETS) {
     if (href.includes("spectral-forge-flagship-v2") && pathname !== "/lab/spectral-forge/") continue;
-    if (href.includes("symphony-live-movement") && pathname !== "/lab/system-symphony/") continue;
     const base = href.split("?")[0];
     if (document.head.querySelector(`link[href^="${base}"]`)) continue;
     const link = document.createElement("link");
