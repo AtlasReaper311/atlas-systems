@@ -31,7 +31,7 @@ const LABELS = Object.freeze({
   interference: "interference",
   cymatic: "cymatic",
   section: "milled section",
-  "flagship-organism": "flagship hybrid",
+  "flagship-organism": "flagship ferrofluid",
   "living-organism": "living organism",
   "specimen-core": "specimen core",
   "signal-monolith": "signal monolith",
@@ -51,7 +51,24 @@ if (!requested || !Object.prototype.hasOwnProperty.call(PROTOS, requested)) {
   boot(requested);
 }
 
+function cleanupPrototypeSurface() {
+  document.querySelectorAll(".spectral-field-proto-webgl").forEach((canvas) => {
+    try {
+      canvas.__atlasDispose?.();
+    } catch (error) {
+      console.warn("Prototype WebGL cleanup failed.", error);
+    }
+    if (canvas.isConnected) canvas.remove();
+  });
+
+  document.querySelectorAll(".forge-field-stage canvas:not(.spectral-field-proto-webgl)").forEach((canvas) => {
+    canvas.style.opacity = "";
+    delete canvas.dataset.fieldBackend;
+  });
+}
+
 async function apply(id) {
+  cleanupPrototypeSurface();
   const visuals = await import("/static/js/spectral-forge/visuals.js");
   const modulePath = PROTOS[id];
   if (!modulePath) {
@@ -132,7 +149,7 @@ function mountBar(current) {
   });
 
   const back = document.createElement("a");
-  back.href = "/static/js/spectral-forge/prototypes/gallery.html";
+  back.href = "/static/js/spectral-forge/prototypes/gallery.htm";
   back.textContent = "all stills";
   back.style.cssText = "color:#f5a623;padding:6px 8px;text-decoration:none;margin-left:4px;";
   bar.appendChild(back);
