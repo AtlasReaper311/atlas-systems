@@ -1,0 +1,424 @@
+/* Spectral Forge flagship visual pass v2.
+ * Visual/composition only. Audio behaviour is intentionally unchanged here.
+ */
+
+body[data-lab-route="spectral-forge"] main.spectral-forge {
+  --forge-content: 1180px;
+  --forge-controls: 1380px;
+  --forge-wide: 1440px;
+  background:
+    radial-gradient(980px 620px at 48% 8%, rgba(116,208,255,.045), transparent 72%),
+    radial-gradient(780px 560px at 72% 32%, rgba(127,136,255,.025), transparent 76%),
+    #0a0a0f;
+}
+
+body[data-lab-route="spectral-forge"] .forge-product-header {
+  width: min(var(--forge-wide), calc(100% - clamp(32px, 4vw, 64px)));
+  min-height: 182px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  align-items: end;
+  gap: clamp(32px, 5vw, 84px);
+  padding: clamp(28px, 3.2vw, 46px) 0 24px;
+}
+
+body[data-lab-route="spectral-forge"] .forge-product-identity {
+  position: relative;
+  max-width: 900px;
+  padding-left: clamp(0px, 1.2vw, 18px);
+}
+
+body[data-lab-route="spectral-forge"] .forge-product-identity::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 2px;
+  bottom: 4px;
+  width: 1px;
+  background: linear-gradient(to bottom, rgba(245,166,35,.62), rgba(116,208,255,.18) 48%, transparent);
+}
+
+body[data-lab-route="spectral-forge"] .forge-product-identity > .forge-eyebrow {
+  display: none;
+}
+
+body[data-lab-route="spectral-forge"] .forge-product-identity .atlas-audio-family__mark {
+  margin-bottom: 18px;
+  padding-left: clamp(12px, 1.2vw, 18px);
+}
+
+body[data-lab-route="spectral-forge"] .forge-product-identity h1,
+body[data-lab-route="spectral-forge"] .forge-product-identity > p,
+body[data-lab-route="spectral-forge"] .forge-product-identity > .atlas-audio-family__counterpart {
+  margin-left: clamp(12px, 1.2vw, 18px);
+}
+
+body[data-lab-route="spectral-forge"] .forge-product-identity > p {
+  max-width: 650px;
+  margin-top: 22px;
+  color: #888894;
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+body[data-lab-route="spectral-forge"] .forge-product-identity > p strong {
+  color: #aaa9a0;
+}
+
+body[data-lab-route="spectral-forge"] .forge-evidence-surface {
+  align-self: end;
+  flex: none;
+  min-height: 82px;
+  padding: 14px 0 6px 20px;
+  border-left-color: rgba(116,208,255,.2);
+  background: linear-gradient(90deg, rgba(116,208,255,.025), transparent);
+}
+
+body[data-lab-route="spectral-forge"] .forge-evidence-surface small {
+  line-height: 1.45;
+}
+
+body[data-lab-route="spectral-forge"] .forge-depth-nav {
+  width: min(var(--forge-controls), calc(100% - clamp(32px, 4vw, 64px)));
+  margin-top: 2px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-left: 0;
+  border-right: 0;
+  background: rgba(8,8,13,.92);
+  box-shadow: 0 18px 50px rgba(0,0,0,.2);
+}
+
+body[data-lab-route="spectral-forge"] .forge-depth-nav button {
+  min-height: 52px;
+  border-top: 0;
+  border-bottom: 0;
+}
+
+body[data-lab-route="spectral-forge"] .forge-depth-nav button strong {
+  font-size: 13px;
+}
+
+body[data-lab-route="spectral-forge"] .forge-depth-nav button[aria-pressed="true"] {
+  background: linear-gradient(180deg, rgba(245,166,35,.035), rgba(245,166,35,.012));
+}
+
+body[data-lab-route="spectral-forge"] .forge-transport {
+  width: min(var(--forge-controls), calc(100% - clamp(32px, 4vw, 64px)));
+  min-height: 62px;
+  grid-template-columns: minmax(410px, 1fr) auto minmax(320px, 1fr);
+  padding: 8px 14px;
+  border-left: 1px solid rgba(255,255,255,.06);
+  border-right: 1px solid rgba(255,255,255,.06);
+  background: rgba(17,17,24,.64);
+}
+
+body[data-lab-route="spectral-forge"] .forge-notice {
+  width: min(var(--forge-controls), calc(100% - clamp(32px, 4vw, 64px)));
+  min-height: 24px;
+  padding: 4px 14px 5px;
+  border-left: 1px solid rgba(255,255,255,.05);
+  border-right: 1px solid rgba(255,255,255,.05);
+  color: rgba(170,169,160,.64);
+  font-size: 9px;
+}
+
+body[data-lab-route="spectral-forge"] .forge-depth-panel {
+  width: min(var(--forge-wide), calc(100% - clamp(28px, 3.6vw, 56px)));
+  padding-top: 14px;
+}
+
+body[data-lab-route="spectral-forge"] .forge-play .forge-field-stage {
+  min-height: clamp(640px, calc(100svh - 350px), 820px);
+  height: auto;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 8px;
+  background:
+    radial-gradient(ellipse at 50% 48%, rgba(116,208,255,.028), transparent 42%),
+    #07070c;
+  box-shadow: inset 0 0 0 1px rgba(116,208,255,.015), 0 34px 100px rgba(0,0,0,.32);
+}
+
+body[data-lab-route="spectral-forge"] .forge-play .forge-field-stage::before,
+body[data-lab-route="spectral-forge"] .forge-field-stage--compact::before {
+  opacity: .72;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px),
+    linear-gradient(rgba(255,255,255,.016) 1px, transparent 1px);
+  background-size: 84px 84px;
+}
+
+body[data-lab-route="spectral-forge"] .forge-field-label {
+  top: 20px;
+  left: 24px;
+  color: rgba(232,232,224,.46);
+  font-size: 9px;
+  letter-spacing: .2em;
+}
+
+body[data-lab-route="spectral-forge"] .forge-field-grammar {
+  right: 24px;
+  bottom: 20px;
+  gap: 22px;
+  color: rgba(232,232,224,.29);
+  letter-spacing: .11em;
+}
+
+body[data-lab-route="spectral-forge"] .forge-route-overlay {
+  inset: 74px 38px 68px;
+}
+
+body[data-lab-route="spectral-forge"] .forge-route-overlay small {
+  color: rgba(170,169,160,.62);
+  font-size: 9px;
+}
+
+body[data-lab-route="spectral-forge"] .forge-route-overlay strong {
+  font-size: 13px;
+}
+
+body[data-lab-route="spectral-forge"] .forge-route-overlay > span:nth-child(2) strong {
+  font-size: clamp(27px, 2.6vw, 38px);
+  text-shadow: 0 0 24px rgba(245,166,35,.13);
+}
+
+body[data-lab-route="spectral-forge"] .forge-first-use {
+  top: 58%;
+  width: min(500px, calc(100% - 56px));
+  padding: 22px 26px;
+  background: linear-gradient(90deg, rgba(7,7,12,.9), rgba(7,7,12,.46) 72%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+body[data-lab-route="spectral-forge"] .forge-first-use strong {
+  font-size: clamp(30px, 3vw, 42px);
+}
+
+body[data-lab-route="spectral-forge"] .forge-instrument-ribbon {
+  grid-template-columns: 1.2fr 1fr 1fr .88fr;
+  margin-top: 10px;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 6px;
+  overflow: hidden;
+  background: rgba(17,17,24,.72);
+}
+
+body[data-lab-route="spectral-forge"] .forge-instrument-ribbon > section {
+  min-height: 126px;
+  padding: 18px 20px;
+}
+
+body[data-lab-route="spectral-forge"] .forge-causal {
+  margin-top: 10px;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 6px;
+  background: rgba(8,8,13,.76);
+}
+
+body[data-lab-route="spectral-forge"] .forge-mode-heading {
+  min-height: 108px;
+  margin-bottom: 0;
+  padding: 0 4px;
+}
+
+body[data-lab-route="spectral-forge"] .forge-mode-heading h2 {
+  max-width: 720px;
+  font-size: clamp(30px, 3vw, 43px);
+  line-height: .96;
+}
+
+body[data-lab-route="spectral-forge"] .forge-preset-bar {
+  min-height: 62px;
+}
+
+body[data-lab-route="spectral-forge"] .forge-workspace {
+  grid-template-columns: minmax(250px,.64fr) minmax(560px,1.52fr) minmax(340px,.84fr);
+  gap: 12px;
+  padding-top: 12px;
+}
+
+body[data-lab-route="spectral-forge"] .forge-route-rack,
+body[data-lab-route="spectral-forge"] .forge-field-dock,
+body[data-lab-route="spectral-forge"] .forge-route-inspector,
+body[data-lab-route="spectral-forge"] .forge-analysis-primary,
+body[data-lab-route="spectral-forge"] .forge-analysis-phase,
+body[data-lab-route="spectral-forge"] .forge-signal-index,
+body[data-lab-route="spectral-forge"] .forge-audio-scope-panel,
+body[data-lab-route="spectral-forge"] .forge-audio-parameters,
+body[data-lab-route="spectral-forge"] .forge-audio-field {
+  border: 1px solid rgba(255,255,255,.065);
+  background: rgba(17,17,24,.7);
+}
+
+body[data-lab-route="spectral-forge"] .forge-field-dock {
+  position: relative;
+  overflow: hidden;
+  background: #07070c;
+  box-shadow: 0 28px 80px rgba(0,0,0,.26);
+}
+
+body[data-lab-route="spectral-forge"] .forge-field-dock > header {
+  position: relative;
+  z-index: 4;
+  min-height: 72px;
+  padding: 18px 20px 12px;
+  background: linear-gradient(180deg, rgba(17,17,24,.9), rgba(17,17,24,.58));
+}
+
+body[data-lab-route="spectral-forge"] .forge-field-stage--compact {
+  min-height: 610px;
+  background:
+    radial-gradient(ellipse at 50% 48%, rgba(116,208,255,.035), transparent 44%),
+    #07070c;
+}
+
+body[data-lab-route="spectral-forge"] .forge-route-focus {
+  min-height: 58px;
+  background: rgba(10,10,15,.88);
+}
+
+body[data-lab-route="spectral-forge"] .forge-route-focus[aria-pressed="true"] {
+  background: linear-gradient(90deg, rgba(245,166,35,.09), rgba(245,166,35,.025));
+}
+
+body[data-lab-route="spectral-forge"] .forge-route-rack,
+body[data-lab-route="spectral-forge"] .forge-route-inspector {
+  padding: 20px;
+}
+
+body[data-lab-route="spectral-forge"] .forge-route-list button {
+  min-height: 58px;
+}
+
+body[data-lab-route="spectral-forge"] .forge-transform-chain span {
+  min-height: 66px;
+  align-content: center;
+  background: rgba(24,24,33,.88);
+}
+
+body[data-lab-route="spectral-forge"] .forge-transform-chain strong {
+  font-size: 24px;
+}
+
+body[data-lab-route="spectral-forge"] .forge-analysis-view {
+  gap: 12px;
+}
+
+body[data-lab-route="spectral-forge"] .forge-analysis-chain {
+  border: 1px solid rgba(255,255,255,.055);
+  background: rgba(8,8,13,.62);
+}
+
+@media (max-width: 1280px) {
+  body[data-lab-route="spectral-forge"] .forge-product-header,
+  body[data-lab-route="spectral-forge"] .forge-depth-nav,
+  body[data-lab-route="spectral-forge"] .forge-transport,
+  body[data-lab-route="spectral-forge"] .forge-notice,
+  body[data-lab-route="spectral-forge"] .forge-depth-panel {
+    width: calc(100% - 32px);
+  }
+
+  body[data-lab-route="spectral-forge"] .forge-transport {
+    grid-template-columns: minmax(360px,1fr) auto;
+  }
+
+  body[data-lab-route="spectral-forge"] .forge-audio-controls {
+    grid-column: 1 / -1;
+  }
+
+  body[data-lab-route="spectral-forge"] .forge-workspace {
+    grid-template-columns: minmax(230px,.62fr) minmax(500px,1.38fr);
+  }
+
+  body[data-lab-route="spectral-forge"] .forge-route-inspector {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 900px) {
+  body[data-lab-route="spectral-forge"] .forge-product-header {
+    min-height: 0;
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding-top: 30px;
+  }
+
+  body[data-lab-route="spectral-forge"] .forge-evidence-surface {
+    width: min(100%, 520px);
+  }
+
+  body[data-lab-route="spectral-forge"] .forge-play .forge-field-stage {
+    min-height: 620px;
+  }
+
+  body[data-lab-route="spectral-forge"] .forge-workspace {
+    grid-template-columns: 1fr;
+    grid-template-areas: "field" "routes" "inspector";
+  }
+
+  body[data-lab-route="spectral-forge"] .forge-field-dock { grid-area: field; }
+  body[data-lab-route="spectral-forge"] .forge-route-rack { grid-area: routes; }
+  body[data-lab-route="spectral-forge"] .forge-route-inspector { grid-area: inspector; }
+}
+
+@media (max-width: 560px) {
+  body[data-lab-route="spectral-forge"] .forge-product-header,
+  body[data-lab-route="spectral-forge"] .forge-depth-nav,
+  body[data-lab-route="spectral-forge"] .forge-transport,
+  body[data-lab-route="spectral-forge"] .forge-notice,
+  body[data-lab-route="spectral-forge"] .forge-depth-panel {
+    width: 100%;
+  }
+
+  body[data-lab-route="spectral-forge"] .forge-product-header {
+    padding: 26px 16px 22px;
+  }
+
+  body[data-lab-route="spectral-forge"] .forge-product-identity {
+    padding-left: 0;
+  }
+
+  body[data-lab-route="spectral-forge"] .forge-product-identity::before {
+    left: 0;
+  }
+
+  body[data-lab-route="spectral-forge"] .forge-product-identity .atlas-audio-family__mark,
+  body[data-lab-route="spectral-forge"] .forge-product-identity h1,
+  body[data-lab-route="spectral-forge"] .forge-product-identity > p,
+  body[data-lab-route="spectral-forge"] .forge-product-identity > .atlas-audio-family__counterpart {
+    margin-left: 14px;
+  }
+
+  body[data-lab-route="spectral-forge"] .forge-depth-nav button {
+    min-height: 54px;
+  }
+
+  body[data-lab-route="spectral-forge"] .forge-transport {
+    padding: 12px;
+  }
+
+  body[data-lab-route="spectral-forge"] .forge-play .forge-field-stage {
+    min-height: 610px;
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+  }
+
+  body[data-lab-route="spectral-forge"] .forge-route-overlay {
+    inset: 74px 14px 58px;
+  }
+
+  body[data-lab-route="spectral-forge"] .forge-field-stage--compact {
+    min-height: 540px;
+  }
+
+  body[data-lab-route="spectral-forge"] .forge-instrument-ribbon,
+  body[data-lab-route="spectral-forge"] .forge-causal {
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-lab-route="spectral-forge"] .forge-first-use { backdrop-filter: none; }
+}
