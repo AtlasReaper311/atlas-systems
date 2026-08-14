@@ -7,7 +7,12 @@ const labIntroFieldUrl = new URL("../shared/lab-intro-field.js", import.meta.url
 const counterpartUrl = new URL("../shared/flagship-counterparts.js", import.meta.url);
 const counterpartCssUrl = new URL("../shared/flagship-counterparts.css", import.meta.url);
 const audioCardsCssUrl = new URL("../shared/audio-flagship-cards.css", import.meta.url);
+const forgeFlagshipCssUrl = new URL("../spectral-forge/spectral-forge-flagship-v2.css", import.meta.url);
 const forgeBootstrapUrl = new URL("../../static/js/spectral-forge/app.js", import.meta.url);
+const fieldArtUrl = new URL("../../static/js/spectral-forge/spectral-field-art.js", import.meta.url);
+const fieldGeometryUrl = new URL("../../static/js/spectral-forge/spectral-field-geometry.js", import.meta.url);
+const fieldModelUrl = new URL("../../static/js/spectral-forge/spectral-field-model.js", import.meta.url);
+const fieldLayersUrl = new URL("../../static/js/spectral-forge/spectral-field-layers-v4.js", import.meta.url);
 const symphonyNavigationUrl = new URL("../system-symphony/system-symphony-navigation.js", import.meta.url);
 const cardSignaturesUrl = new URL("../../static/js/card-signatures.js", import.meta.url);
 const cardSignaturesCssUrl = new URL("../../static/css/card-signatures.css", import.meta.url);
@@ -39,12 +44,17 @@ test("shared counterpart module gives the two root instruments a LISTEN and DESI
   assert.match(module, /"\/lab\/system-symphony\/"/);
   assert.match(module, /href: "\/lab\/spectral-forge\/"/);
   assert.match(module, /family: "LISTEN"/);
+  assert.match(module, /prefix: "SYSTEM"/);
+  assert.match(module, /signature: "SYMPHONY"/);
   assert.match(module, /counterpartFamily: "DESIGN"/);
   assert.match(module, /"\/lab\/spectral-forge\/"/);
   assert.match(module, /href: "\/lab\/system-symphony\/"/);
   assert.match(module, /family: "DESIGN"/);
+  assert.match(module, /prefix: "SPECTRAL"/);
+  assert.match(module, /signature: "Forge"/);
   assert.match(module, /counterpartFamily: "LISTEN"/);
   assert.match(module, /ATLAS AUDIO \/\/ \$\{family\}/);
+  assert.match(module, /spectral-forge-flagship-v2\.css/);
   assert.match(module, /\.forge-play \.forge-field-stage/);
   assert.match(module, /\.symphony-stage/);
   assert.match(module, /atlas-audio-title__signature/);
@@ -60,16 +70,49 @@ test("both audio flagships install the same counterpart module", async () => {
   assert.match(symphony, /if \(isRootRoute\(\)\) installFlagshipCounterpart\(\)/);
 });
 
-test("counterpart family styling preserves target size, focus and restrained amber signature", async () => {
+test("flagship family styling preserves focus, reduced motion and stronger title hierarchy", async () => {
   const css = await source(counterpartCssUrl);
   assert.match(css, /min-height:\s*44px/);
-  assert.match(css, /@media \(max-width: 720px\)/);
+  assert.match(css, /@media \(max-width: 820px\)/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(css, /outline:\s*2px solid #f5a623/);
-  assert.match(css, /atlas-audio-title__signature/);
+  assert.match(css, /atlas-audio-title--listen \.atlas-audio-title__prefix/);
+  assert.match(css, /atlas-audio-title--listen \.atlas-audio-title__signature/);
+  assert.match(css, /atlas-audio-title--design \.atlas-audio-title__prefix/);
+  assert.match(css, /atlas-audio-title--design \.atlas-audio-title__signature/);
+  assert.match(css, /font-size:\s*clamp\(4\.7rem, 8\.9vw, 9\.25rem\)/);
   assert.match(css, /color:\s*#f5a623/);
   assert.match(css, /text-shadow:/);
   assert.match(css, /symphony-transport__title h2\[data-page-now-playing\]/);
+});
+
+test("Spectral Forge flagship layer makes PLAY and FORGE field-first without weakening mobile bounds", async () => {
+  const css = await source(forgeFlagshipCssUrl);
+  assert.match(css, /forge-play \.forge-field-stage/);
+  assert.match(css, /min-height:\s*clamp\(640px, calc\(100svh - 350px\), 820px\)/);
+  assert.match(css, /forge-workspace/);
+  assert.match(css, /minmax\(560px,1\.52fr\)/);
+  assert.match(css, /forge-field-stage--compact/);
+  assert.match(css, /min-height:\s*610px/);
+  assert.match(css, /@media \(max-width: 560px\)/);
+  assert.match(css, /width:\s*100%/);
+});
+
+test("active Spectral Field visual pipeline is state-driven rather than scenario-art directed", async () => {
+  const art = await source(fieldArtUrl);
+  const geometry = await source(fieldGeometryUrl);
+  const model = await source(fieldModelUrl);
+  const layers = await source(fieldLayersUrl);
+  const combinedStatePath = `${geometry}\n${model}\n${layers}`;
+  assert.match(art, /spectral-field-compose-v4\.js/);
+  assert.match(art, /spectral-field-layers-v4\.js/);
+  assert.match(model, /function fieldArtState\(frame, mapped\)/);
+  assert.match(model, /FIELD_VISUAL_SEED/);
+  assert.doesNotMatch(model, /SCENARIO_ART_PROFILES|scenarioArtState|scenarioId/);
+  assert.doesNotMatch(geometry, /SCENARIO_BY_ID|visualSeed|scenarioId/);
+  assert.doesNotMatch(layers, /scenarioId/);
+  assert.doesNotMatch(combinedStatePath, /\b(?:normal|traffic|flapping|creep|cascade|deploy)\b/i);
+  assert.doesNotMatch(combinedStatePath, /Math\.random/);
 });
 
 test("Lab-home boot owns LISTEN and DESIGN card treatment without adding a standalone script", async () => {
