@@ -1,52 +1,116 @@
 /* Shared visual identity for Atlas Systems' two audio flagships.
- * This file is presentation-only. It must not alter either instrument's audio behaviour.
+ * Presentation only. This file must not alter either instrument's audio behaviour.
  */
 
 .atlas-audio-family__mark {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  margin: 0 0 8px;
+  gap: 10px;
+  margin: 0 0 10px;
   color: #888894;
   font: 600 10px/1.2 "IBM Plex Mono", monospace;
-  letter-spacing: .14em;
+  letter-spacing: .16em;
   text-transform: uppercase;
 }
 
 .atlas-audio-family__glyph {
   position: relative;
-  width: 21px;
+  width: 23px;
   height: 11px;
   display: inline-block;
   flex: 0 0 auto;
   background:
     linear-gradient(90deg, transparent 0 1px, #f5a623 1px 2px, transparent 2px 7px, #f5a623 7px 8px, transparent 8px 13px, #f5a623 13px 14px, transparent 14px 19px, #f5a623 19px 20px, transparent 20px),
-    linear-gradient(180deg, transparent 0 5px, rgba(245,166,35,.32) 5px 6px, transparent 6px);
-  opacity: .86;
+    linear-gradient(180deg, transparent 0 5px, rgba(245,166,35,.34) 5px 6px, transparent 6px);
+  opacity: .9;
 }
 
 .atlas-audio-title {
   display: grid;
   justify-items: start;
-  gap: 2px;
+  align-content: start;
+  gap: 0;
 }
 
-.atlas-audio-title__prefix {
+.atlas-audio-title__prefix,
+.atlas-audio-title__signature {
   display: block;
-  color: #aaa9a0;
-  font: 600 clamp(.68rem, .8vw, .78rem)/1.2 "IBM Plex Mono", monospace;
-  letter-spacing: .22em;
-  text-transform: uppercase;
+  text-wrap: balance;
 }
 
 .atlas-audio-title__signature {
-  display: block;
   color: #f5a623;
   font-family: "DM Serif Display", Georgia, serif;
   font-weight: 400;
   text-shadow:
-    0 0 18px rgba(245,166,35,.13),
-    0 0 44px rgba(245,166,35,.055);
+    0 0 22px rgba(245,166,35,.13),
+    0 0 58px rgba(245,166,35,.05);
+}
+
+/* -------------------------------------------------------------------------
+   LISTEN // SYSTEM SYMPHONY
+   The boot remains the prologue. This surface is the performance stage.
+   ------------------------------------------------------------------------- */
+
+body[data-lab-route="system-symphony"] .symphony-page-main {
+  width: min(calc(100% - clamp(28px, 4vw, 64px)), 1480px);
+  max-width: none;
+}
+
+body[data-lab-route="system-symphony"] .symphony-flagship {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: clamp(30px, 4.2vw, 68px);
+  border-color: rgba(255,255,255,.13);
+  background:
+    radial-gradient(ellipse at 84% 20%, rgba(245,166,35,.075), transparent 30%),
+    radial-gradient(ellipse at 72% 72%, rgba(96,165,250,.055), transparent 36%),
+    linear-gradient(rgba(255,255,255,.023) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.019) 1px, transparent 1px),
+    #09090e;
+  background-size: auto, auto, 38px 38px, 38px 38px, auto;
+  box-shadow: 0 34px 110px rgba(0,0,0,.48);
+}
+
+body[data-lab-route="system-symphony"] .symphony-flagship::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: clamp(18px, 2.2vw, 34px);
+  pointer-events: none;
+  border: 1px solid rgba(245,166,35,.08);
+  border-left-color: rgba(245,166,35,.18);
+  background:
+    linear-gradient(90deg, rgba(245,166,35,.05), transparent 18%),
+    linear-gradient(180deg, transparent 0 70%, rgba(255,255,255,.018) 70% 70.2%, transparent 70.2%);
+  mask-image: linear-gradient(to bottom, black, black 86%, transparent);
+}
+
+body[data-lab-route="system-symphony"] .symphony-flagship::after {
+  content: "APU-01 / PERFORMANCE FRAME";
+  position: absolute;
+  z-index: -1;
+  right: clamp(34px, 4vw, 70px);
+  top: 50%;
+  color: rgba(232,232,224,.13);
+  font: 600 9px/1 "IBM Plex Mono", monospace;
+  letter-spacing: .22em;
+  transform: rotate(90deg) translateX(50%);
+  transform-origin: right center;
+  pointer-events: none;
+}
+
+body[data-lab-route="system-symphony"] .symphony-flagship__top {
+  position: relative;
+  z-index: 2;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: clamp(24px, 4vw, 64px);
+}
+
+body[data-lab-route="system-symphony"] .symphony-flagship__top > div:first-child {
+  max-width: 980px;
 }
 
 .symphony-flagship #symphony-page-title.atlas-audio-title {
@@ -57,37 +121,158 @@
   letter-spacing: 0;
 }
 
-.atlas-audio-title--listen .atlas-audio-title__signature {
-  font-size: clamp(3.5rem, 5.6vw, 4.8rem);
-  font-style: normal;
-  line-height: .9;
-  letter-spacing: -.045em;
+.atlas-audio-title--listen .atlas-audio-title__prefix {
+  color: #e8e8e0;
+  font: 400 clamp(4rem, 7.2vw, 7.4rem)/.76 "DM Serif Display", Georgia, serif;
+  letter-spacing: -.055em;
+  text-transform: uppercase;
 }
 
+.atlas-audio-title--listen .atlas-audio-title__signature {
+  margin-top: .06em;
+  font-size: clamp(4.7rem, 8.9vw, 9.25rem);
+  font-style: normal;
+  line-height: .72;
+  letter-spacing: -.058em;
+}
+
+body[data-lab-route="system-symphony"] .symphony-flagship .atlas-audio-family__mark {
+  margin-bottom: clamp(18px, 2vw, 28px);
+}
+
+body[data-lab-route="system-symphony"] .symphony-flagship .focus-lede {
+  max-width: 690px;
+  margin-top: clamp(24px, 2.4vw, 34px);
+  color: #aaa9a0;
+  font-size: clamp(.92rem, 1.1vw, 1.02rem);
+  line-height: 1.7;
+}
+
+body[data-lab-route="system-symphony"] .symphony-flagship .atlas-audio-family__counterpart {
+  margin-top: 12px;
+}
+
+body[data-lab-route="system-symphony"] .symphony-mode-tabs {
+  align-self: start;
+  margin-top: 2px;
+  background: rgba(10,10,15,.72);
+  backdrop-filter: blur(12px);
+}
+
+body[data-lab-route="system-symphony"] .symphony-stage {
+  position: relative;
+  z-index: 2;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 25vw);
+  align-items: stretch;
+  gap: clamp(22px, 3vw, 42px);
+  margin-top: clamp(48px, 6vw, 92px);
+}
+
+body[data-lab-route="system-symphony"] .symphony-flagship__panels {
+  min-height: 330px;
+  display: grid;
+  align-content: end;
+  padding: clamp(18px, 2.4vw, 34px) 0 6px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+body[data-lab-route="system-symphony"] .symphony-mode-panel {
+  align-content: end;
+}
+
+body[data-lab-route="system-symphony"] .symphony-transport {
+  align-items: flex-end;
+  gap: clamp(18px, 3vw, 42px);
+}
+
+.symphony-transport__title h2[data-page-movement],
+.symphony-transport__title h2[data-page-now-playing] {
+  max-width: 19ch;
+  color: #e8e8e0;
+  font-size: clamp(1.85rem, 2.6vw, 2.8rem);
+  line-height: .95;
+  letter-spacing: -.025em;
+}
+
+body[data-lab-route="system-symphony"] .symphony-panel-kicker {
+  color: rgba(245,166,35,.9);
+  font-size: 9px;
+  letter-spacing: .18em;
+}
+
+body[data-lab-route="system-symphony"] .symphony-panel-copy {
+  max-width: 660px;
+  color: #888894;
+}
+
+body[data-lab-route="system-symphony"] .symphony-transport__meta {
+  color: #888894;
+}
+
+body[data-lab-route="system-symphony"] .symphony-cartridge-cover {
+  min-height: 330px;
+  align-self: stretch;
+  border-color: rgba(245,166,35,.22);
+  background:
+    linear-gradient(90deg, transparent 0 11%, rgba(245,166,35,.45) 11% 12.5%, transparent 12.5% 20%, rgba(96,165,250,.3) 20% 21.5%, transparent 21.5%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.04) 0 1px, transparent 1px 15px),
+    radial-gradient(circle at 72% 28%, rgba(245,166,35,.08), transparent 34%),
+    #07070b;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.018), 0 22px 70px rgba(0,0,0,.32);
+}
+
+body[data-lab-route="system-symphony"] .symphony-cartridge-cover strong {
+  max-width: 11ch;
+  font-size: clamp(2.25rem, 3.2vw, 3.5rem);
+  line-height: .88;
+}
+
+body[data-lab-route="system-symphony"] .symphony-score {
+  position: relative;
+  overflow: hidden;
+  margin-top: 18px;
+  border-color: rgba(255,255,255,.09);
+  background: linear-gradient(90deg, rgba(245,166,35,.022), transparent 28%), rgba(7,7,11,.8);
+}
+
+/* -------------------------------------------------------------------------
+   DESIGN // SPECTRAL Forge
+   The Field owns the page; the title announces the instrument rather than
+   behaving like article furniture.
+   ------------------------------------------------------------------------- */
+
 .forge-product-identity h1.atlas-audio-title {
-  margin: 5px 0 0;
+  margin: 4px 0 0;
   font-size: inherit;
   line-height: 1;
   letter-spacing: 0;
 }
 
+.atlas-audio-title--design .atlas-audio-title__prefix {
+  color: #e8e8e0;
+  font: 600 clamp(1.85rem, 3.1vw, 3.45rem)/.9 "IBM Plex Mono", monospace;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
 .atlas-audio-title--design .atlas-audio-title__signature {
   position: relative;
-  left: .04em;
-  font-size: clamp(3.35rem, 5.2vw, 4.7rem);
+  left: .025em;
+  margin-top: .05em;
+  font-size: clamp(4.9rem, 8.2vw, 8.7rem);
   font-style: italic;
-  line-height: .88;
-  letter-spacing: -.045em;
+  line-height: .74;
+  letter-spacing: -.055em;
 }
 
 .atlas-audio-title--design .atlas-audio-title__signature::after {
   content: "";
   position: absolute;
-  left: .04em;
-  right: -.14em;
-  bottom: -.08em;
+  left: .035em;
+  right: -.12em;
+  bottom: -.07em;
   height: 1px;
-  background: linear-gradient(90deg, rgba(245,166,35,.88), rgba(245,166,35,0));
+  background: linear-gradient(90deg, rgba(245,166,35,.9), rgba(245,166,35,.28) 34%, rgba(245,166,35,0));
 }
 
 .atlas-audio-family__counterpart {
@@ -128,27 +313,7 @@
   outline-offset: 3px;
 }
 
-/* Symphony remains the LISTEN instrument. Only hierarchy and spacing change. */
-.symphony-flagship .atlas-audio-family__mark { margin-bottom: 10px; }
-.symphony-flagship .focus-lede {
-  max-width: 610px;
-  margin-top: 12px;
-  color: #aaa9a0;
-}
-.symphony-transport__title h2[data-page-movement],
-.symphony-transport__title h2[data-page-now-playing] {
-  max-width: 18ch;
-  font-size: clamp(2rem, 3vw, 2.55rem);
-  line-height: .98;
-  letter-spacing: -.02em;
-}
-.symphony-cartridge-cover strong {
-  max-width: 12ch;
-  font-size: clamp(1.75rem, 2.4vw, 2.25rem);
-  line-height: .98;
-}
-
-/* The richer counterpart panel sits after each instrument's primary stage. */
+/* The counterpart rail is deliberately quieter than either flagship hero. */
 .lab-flagship-counterpart {
   width: 100%;
   min-height: 64px;
@@ -160,9 +325,7 @@
   overflow: hidden;
   border: 1px solid rgba(255,255,255,.08);
   border-radius: 6px;
-  background:
-    linear-gradient(90deg, rgba(245,166,35,.045), transparent 34%),
-    rgba(17,17,24,.62);
+  background: linear-gradient(90deg, rgba(245,166,35,.035), transparent 34%), rgba(17,17,24,.58);
   font-family: "IBM Plex Mono", monospace;
 }
 
@@ -187,15 +350,8 @@
   transition: background 140ms ease;
 }
 
-.lab-flagship-counterpart__link:hover {
-  background: rgba(255,255,255,.018);
-}
-
-.lab-flagship-counterpart__link:focus-visible {
-  outline: 2px solid #f5a623;
-  outline-offset: -3px;
-}
-
+.lab-flagship-counterpart__link:hover { background: rgba(255,255,255,.018); }
+.lab-flagship-counterpart__link:focus-visible { outline: 2px solid #f5a623; outline-offset: -3px; }
 .lab-flagship-counterpart__link strong {
   color: #f5a623;
   font-family: "DM Serif Display", Georgia, serif;
@@ -204,7 +360,6 @@
   letter-spacing: -.01em;
   text-shadow: 0 0 18px rgba(245,166,35,.08);
 }
-
 .lab-flagship-counterpart__link > span:not(.lab-flagship-counterpart__route) {
   overflow: hidden;
   color: #aaa9a0;
@@ -212,7 +367,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .lab-flagship-counterpart__route {
   color: #aaa9a0;
   font-size: 9px;
@@ -220,13 +374,24 @@
   white-space: nowrap;
 }
 
-/* Forge already owns the full 1440px instrument width. Do not collapse the rail back to editorial width. */
 body[data-lab-route="spectral-forge"] .lab-flagship-counterpart,
 .spectral-forge-page .lab-flagship-counterpart { width: 100%; }
 
-@media (max-width: 900px) {
-  .atlas-audio-title--listen .atlas-audio-title__signature { font-size: clamp(3.2rem, 8vw, 4.25rem); }
-  .atlas-audio-title--design .atlas-audio-title__signature { font-size: clamp(3.1rem, 8vw, 4.2rem); }
+@media (max-width: 1050px) {
+  body[data-lab-route="system-symphony"] .symphony-flagship__top { grid-template-columns: 1fr; }
+  body[data-lab-route="system-symphony"] .symphony-mode-tabs { justify-self: start; }
+  body[data-lab-route="system-symphony"] .symphony-stage { grid-template-columns: minmax(0,1fr) minmax(260px, 34vw); }
+  .atlas-audio-title--listen .atlas-audio-title__prefix { font-size: clamp(3.7rem, 9vw, 6rem); }
+  .atlas-audio-title--listen .atlas-audio-title__signature { font-size: clamp(4.2rem, 10.8vw, 7.2rem); }
+}
+
+@media (max-width: 820px) {
+  body[data-lab-route="system-symphony"] .symphony-flagship { padding: 28px 22px; }
+  body[data-lab-route="system-symphony"] .symphony-stage { grid-template-columns: 1fr; margin-top: 46px; }
+  body[data-lab-route="system-symphony"] .symphony-cartridge-cover { min-height: 250px; }
+  body[data-lab-route="system-symphony"] .symphony-flagship__panels { min-height: 250px; }
+  .atlas-audio-title--design .atlas-audio-title__prefix { font-size: clamp(1.6rem, 5.4vw, 2.7rem); }
+  .atlas-audio-title--design .atlas-audio-title__signature { font-size: clamp(4.1rem, 13vw, 6.6rem); }
   .lab-flagship-counterpart { grid-template-columns: 1fr; }
   .lab-flagship-counterpart__family {
     min-height: 42px;
@@ -236,13 +401,21 @@ body[data-lab-route="spectral-forge"] .lab-flagship-counterpart,
   }
 }
 
-@media (max-width: 720px) {
-  .atlas-audio-family__mark { font-size: 9px; }
-  .atlas-audio-title--listen .atlas-audio-title__signature,
-  .atlas-audio-title--design .atlas-audio-title__signature { font-size: clamp(2.75rem, 13vw, 3.7rem); }
+@media (max-width: 560px) {
+  body[data-lab-route="system-symphony"] .symphony-page-main { width: calc(100% - 20px); }
+  body[data-lab-route="system-symphony"] .symphony-flagship { padding: 24px 16px 20px; }
+  body[data-lab-route="system-symphony"] .symphony-flagship::before { inset: 10px; }
+  body[data-lab-route="system-symphony"] .symphony-flagship::after { display: none; }
+  .atlas-audio-title--listen .atlas-audio-title__prefix { font-size: clamp(3rem, 17vw, 4.4rem); }
+  .atlas-audio-title--listen .atlas-audio-title__signature { font-size: clamp(3.45rem, 19vw, 5rem); }
+  body[data-lab-route="system-symphony"] .symphony-stage { margin-top: 38px; gap: 18px; }
+  body[data-lab-route="system-symphony"] .symphony-transport { display: grid; }
+  body[data-lab-route="system-symphony"] .symphony-transport .symphony-panel-actions { justify-content: start; }
+  .atlas-audio-title--design .atlas-audio-title__prefix { font-size: clamp(1.35rem, 7vw, 2rem); letter-spacing: .13em; }
+  .atlas-audio-title--design .atlas-audio-title__signature { font-size: clamp(3.7rem, 20vw, 5.6rem); }
   .atlas-audio-family__counterpart { white-space: normal; }
   .symphony-transport__title h2[data-page-movement],
-  .symphony-transport__title h2[data-page-now-playing] { font-size: clamp(1.75rem, 8vw, 2.2rem); }
+  .symphony-transport__title h2[data-page-now-playing] { font-size: clamp(1.65rem, 8vw, 2.1rem); }
   .lab-flagship-counterpart__link {
     min-height: 76px;
     grid-template-columns: 1fr auto;
@@ -255,12 +428,8 @@ body[data-lab-route="spectral-forge"] .lab-flagship-counterpart,
   }
 }
 
-@media (max-width: 480px) {
-  .atlas-audio-family__counterpart {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    width: 100%;
-  }
+@media (max-width: 420px) {
+  .atlas-audio-family__counterpart { display: grid; grid-template-columns: auto 1fr auto; width: 100%; }
   .lab-flagship-counterpart__link strong { font-size: 17px; }
 }
 
