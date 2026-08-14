@@ -14,6 +14,7 @@ const PROTOS = Object.freeze({
   section: "/static/js/spectral-forge/prototypes/field-proto-section.js",
   "flagship-organism": "/static/js/spectral-forge/prototypes/field-proto-flagship-organism.js",
   "flagship-anatomy": "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy.js",
+  "flagship-anatomy-b": "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-b.js",
   "living-organism": "/static/js/spectral-forge/prototypes/field-proto-living-organism.js",
   "specimen-core": "/static/js/spectral-forge/prototypes/field-proto-specimen-core.js",
   "signal-monolith": "/static/js/spectral-forge/prototypes/field-proto-signal-monolith.js",
@@ -34,6 +35,7 @@ const LABELS = Object.freeze({
   section: "milled section",
   "flagship-organism": "flagship baseline",
   "flagship-anatomy": "flagship anatomy A",
+  "flagship-anatomy-b": "flagship anatomy B",
   "living-organism": "living organism",
   "specimen-core": "specimen core",
   "signal-monolith": "signal monolith",
@@ -48,6 +50,7 @@ const LABELS = Object.freeze({
 const PRIMARY_PROTOS = Object.freeze([
   "flagship-organism",
   "flagship-anatomy",
+  "flagship-anatomy-b",
 ]);
 
 const params = new URLSearchParams(location.search);
@@ -143,6 +146,8 @@ function mountBar(current) {
     "z-index:10000",
     "display:flex",
     "align-items:center",
+    "flex-wrap:wrap",
+    "justify-content:flex-end",
     "gap:6px",
     "max-width:calc(100vw - 32px)",
     "padding:8px 10px",
