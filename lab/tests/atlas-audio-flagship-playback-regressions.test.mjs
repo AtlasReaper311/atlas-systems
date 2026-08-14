@@ -4,6 +4,7 @@ import test from "node:test";
 
 const fieldRuntimeUrl = new URL("../../static/js/spectral-forge/spectral-field-runtime.js", import.meta.url);
 const fieldComposeCompatUrl = new URL("../../static/js/spectral-forge/spectral-field-compose.js", import.meta.url);
+const fieldComposeV4Url = new URL("../../static/js/spectral-forge/spectral-field-compose-v4.js", import.meta.url);
 const fieldArtUrl = new URL("../../static/js/spectral-forge/spectral-field-art.js", import.meta.url);
 const forgeAppUrl = new URL("../../static/js/spectral-forge/app.js", import.meta.url);
 const forgePageUrl = new URL("../spectral-forge/index.html", import.meta.url);
@@ -17,6 +18,7 @@ async function source(url) {
 test("Spectral Forge playback has only one active Field renderer and a fresh page entrypoint", async () => {
   const runtime = await source(fieldRuntimeUrl);
   const compat = await source(fieldComposeCompatUrl);
+  const composeV4 = await source(fieldComposeV4Url);
   const art = await source(fieldArtUrl);
   const app = await source(forgeAppUrl);
   const page = await source(forgePageUrl);
@@ -29,6 +31,7 @@ test("Spectral Forge playback has only one active Field renderer and a fresh pag
   assert.match(compat, /export \{ draw \} from "\.\/spectral-field-compose-v4\.js\?v=20260814-field-4-single-renderer"/);
   assert.doesNotMatch(compat, /spectral-field-layers\.js/);
   assert.doesNotMatch(compat, /function canvasSize|drawSignalFilaments\.call|drawSpectralBody\.call/);
+  assert.match(composeV4, /this\.canvas\.dataset\.fieldRenderer = "v4-spatial"/);
 
   assert.match(art, /spectral-field-compose-v4\.js/);
   assert.match(art, /spectral-field-runtime\.js\?v=20260814-field-4-playback/);
