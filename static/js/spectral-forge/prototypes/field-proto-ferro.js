@@ -9,7 +9,7 @@
 
 import { deriveFieldGeometry } from "../spectral-field-geometry.js";
 import { transitionMix } from "../spectral-field-state.js";
-import { PALETTE, canvasSize, clamp, mixColour, rgba, routeBand, unit } from "./proto-core.js";
+import { PALETTE, canvasSize, clamp, rgba, routeBand, unit } from "./proto-core.js";
 
 const SPIKES = 48;
 

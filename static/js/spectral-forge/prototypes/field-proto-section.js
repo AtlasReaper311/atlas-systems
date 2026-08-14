@@ -10,7 +10,7 @@
 
 import { deriveFieldGeometry } from "../spectral-field-geometry.js";
 import { transitionMix } from "../spectral-field-state.js";
-import { PALETTE, canvasSize, clamp, mixColour, rgba, routeBand, unit } from "./proto-core.js";
+import { PALETTE, canvasSize, mixColour, rgba, routeBand, unit } from "./proto-core.js";
 
 const CHAMBERS = Object.freeze([
   { id: "intake", y0: 0.16, y1: 0.34, x0: 0.04, span: 0.22 },

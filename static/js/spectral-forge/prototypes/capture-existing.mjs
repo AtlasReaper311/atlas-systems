@@ -1,8 +1,11 @@
 import { chromium } from "playwright";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 
-const OUT = "/tmp/spectral-field-captures";
+const OUT = process.env.SPECTRAL_FORGE_CAPTURE_DIR
+  ? path.resolve(process.env.SPECTRAL_FORGE_CAPTURE_DIR)
+  : await fs.mkdtemp(path.join(os.tmpdir(), "spectral-field-captures-"));
 const BASE = "http://127.0.0.1:8791/lab/spectral-forge/";
 
 const PROTOS = [
