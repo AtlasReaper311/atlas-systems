@@ -29,6 +29,9 @@ uniform float uAtlasIdentitySeed;
 uniform float uAtlasRouteEnabled;
 uniform float uAtlasRouteCenter;
 uniform float uAtlasRouteWidth;
+uniform vec4 uAtlasLifeA;
+uniform vec3 uAtlasNeckAxis;
+uniform vec4 uAtlasMesoDrive;
 varying float vAtlasStress;
 varying float vAtlasRoute;
 varying float vAtlasMicro;
@@ -90,7 +93,7 @@ vec3 atlasFinalDisplaced(vec3 source, out float stressOut, out float routeOut, o
     float absoluteEnergy = influence * strength;
     float signedEnergy = absoluteEnergy * polarity;
 
-    radial += signedEnergy * 1.14 * uAtlasAudioEnergy;
+    radial += signedEnergy * 1.14 * mix(1.0, uAtlasAudioEnergy, 0.28);
     gradient += ring * strength;
     overlap += influence * influence;
     if (polarity > 0.0) sourceEnergy += absoluteEnergy * polarity;
@@ -99,7 +102,7 @@ vec3 atlasFinalDisplaced(vec3 source, out float stressOut, out float routeOut, o
     if (ring > 0.0005) {
       float tangentSq = max(0.0001, 1.0 - dotValue * dotValue);
       vec3 tangent = (centre - p * dotValue) * inversesqrt(tangentSq);
-      float pull = ring * fieldFlow * polarity * 1.12 * uAtlasAudioEnergy;
+      float pull = ring * fieldFlow * polarity * 1.12 * mix(1.0, uAtlasAudioEnergy, 0.35);
       flow += tangent * pull;
 
       vec3 swirlAxis = cross(p, centre);
@@ -133,69 +136,75 @@ vec3 atlasFinalDisplaced(vec3 source, out float stressOut, out float routeOut, o
     * (0.032 + uAtlasDisplacement * 0.04 + uAtlasActivity * 0.022)
     * uAtlasAudioEnergy;
 
-  float mesoA = sin(dot(p, vec3(9.8, -8.2, 7.6)) + uAtlasPhase * (0.68 + uAtlasActivity * 0.19));
-  float mesoB = cos(dot(p, vec3(-7.1, 11.2, 8.7)) - uAtlasPhase * 0.54 + mesoA * 0.44);
-  float mesoC = sin(dot(p, vec3(14.4, 6.4, -10.8)) + uAtlasPhase * 0.43 + mesoB * 0.55);
-  float mesoD = cos(dot(p, vec3(-12.6, -4.7, 13.2)) + uAtlasPhase * 0.31 + mesoA * mesoC);
+  vec3 mesoAxis = normalize(uAtlasMesoDrive.xyz + vec3(0.0001, 0.0, 0.0));
+  float mesoTravel = uAtlasMesoDrive.w;
+  float mesoA = sin(dot(p, mesoAxis * vec3(9.8, -8.2, 7.6)) + mesoTravel);
+  float mesoB = cos(dot(p, vec3(-7.1, 11.2, 8.7)) - uAtlasPhase * 0.37 + mesoA * 0.44);
+  float mesoC = sin(dot(p, vec3(14.4, 6.4, -10.8)) + uAtlasPhase * 0.53 + mesoB * 0.55);
+  float mesoD = cos(dot(p, vec3(-12.6, -4.7, 13.2)) + uAtlasPhase * 0.23 + mesoA * mesoC);
   float meso = mesoA * mesoB * 0.46 + mesoC * 0.34 + mesoD * 0.20;
-  float fold = sin(meso * 2.65 + dot(p, vec3(5.1, -3.7, 4.8)) + uAtlasPhase * 0.38);
-  float mesoGate = atlasSat(0.18 + gradient * 2.35 + conflict * 0.48 + uAtlasDisplacement * 0.22);
+  float fold = sin(meso * 2.65 + dot(p, vec3(5.1, -3.7, 4.8)) + uAtlasPhase * 0.29 + uAtlasLifeA.z * 1.8);
+  float mesoGate = atlasSat(0.18 + gradient * 2.35 + conflict * 0.48 + uAtlasDisplacement * 0.22 + uAtlasLifeA.z * 0.35);
   radial += meso * mesoGate
-    * (0.012 + uAtlasDisplacement * 0.026 + uAtlasDamage * 0.014 + uAtlasPhaseDisagreement * 0.011);
+    * (0.014 + uAtlasDisplacement * 0.03 + uAtlasDamage * 0.014 + uAtlasPhaseDisagreement * 0.011 + uAtlasLifeA.z * 0.02);
   radial += fold * fold * sign(fold) * mesoGate
-    * (0.006 + uAtlasDisplacement * 0.012 + uAtlasMicrostructure * 0.006);
+    * (0.007 + uAtlasDisplacement * 0.014 + uAtlasMicrostructure * 0.007 + uAtlasLifeA.z * 0.016);
 
   float microAmp = 0.0;
   float microCluster = 0.0;
   float microTip = 0.0;
   float microAudio = mix(1.0, 1.08, atlasSat((uAtlasAudioEnergy - 1.0) * 4.0));
 
+  // continuous-surface magnetic peaks: local bounded wander, no cluster orbit
   for (int j = 0; j < 6; j++) {
     float jf = float(j);
-    float ca = uAtlasPhase * (0.18 + jf * 0.021)
-      + uAtlasIdentitySeed * (0.37 + jf * 0.09)
-      + jf * 1.916;
-    float ce = sin(uAtlasPhase * (0.11 + jf * 0.017) + jf * 2.37 + uAtlasIdentitySeed * 0.41) * 0.58;
-    vec3 centre = normalize(vec3(
-      cos(ca) * cos(ce),
-      sin(ce),
-      abs(sin(ca) * cos(ce)) + 0.18
-    ));
+    float wx = sin(uAtlasPhase * (0.067 + jf * 0.013) + uAtlasIdentitySeed * (0.41 + jf * 0.07) + jf * 1.37)
+      + 0.47 * sin(uAtlasPhase * (0.113 + jf * 0.009) + jf * 2.11);
+    float wy = sin(uAtlasPhase * (0.053 + jf * 0.011) + uAtlasIdentitySeed * 0.62 + jf * 0.93)
+      + 0.39 * cos(uAtlasPhase * (0.097 + jf * 0.007) + jf * 1.71);
+    float wz = cos(uAtlasPhase * (0.079 + jf * 0.012) + uAtlasIdentitySeed * 0.28 + jf * 2.53)
+      + 0.44 * sin(uAtlasPhase * (0.121 + jf * 0.008) + jf * 0.61);
+    vec3 centre = normalize(vec3(wx, wy, wz));
     vec3 patchUp = abs(centre.y) < 0.82 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
     vec3 patchTangent = normalize(cross(patchUp, centre));
     vec3 patchBitangent = normalize(cross(centre, patchTangent));
     vec2 local = vec2(dot(p, patchTangent), dot(p, patchBitangent));
     float angular = clamp(dot(p, centre), -1.0, 1.0);
     float distanceFromCluster = length(local);
-    float patchMask = (1.0 - smoothstep(0.06, 0.44, distanceFromCluster)) * smoothstep(0.84, 0.995, angular);
-    float core = 1.0 - smoothstep(0.025, 0.18, distanceFromCluster);
-    float dissolve = 0.5 + 0.5 * sin(uAtlasPhase * (0.29 + jf * 0.04) + jf * 2.03);
-    float life = smoothstep(0.1, 0.7, dissolve + gradient * 0.26 + conflict * 0.2 + uAtlasMicrostructure * 0.16);
+    float patchMask = (1.0 - smoothstep(0.05, 0.38, distanceFromCluster)) * smoothstep(0.86, 0.995, angular);
+    float core = 1.0 - smoothstep(0.025, 0.16, distanceFromCluster);
+    float dissolve = 0.5 + 0.5 * sin(uAtlasPhase * (0.41 + jf * 0.05) + jf * 2.03);
+    float life = smoothstep(0.28, 0.78, dissolve + gradient * 0.18 + conflict * 0.14 + uAtlasMicrostructure * 0.12 + uAtlasLifeA.y * 0.22);
 
     float shoulders = 0.0;
     float narrow = 0.0;
     float isolate = 0.0;
     for (int k = 0; k < 8; k++) {
       float kf = float(k);
-      float spin = uAtlasPhase * (0.22 + jf * 0.018 + kf * 0.011) + jf * 1.73 + kf * 2.399;
-      float ring = 0.028 + 0.029 * kf + 0.017 * sin(uAtlasPhase * 0.17 + jf + kf);
-      vec2 peakCentre = vec2(cos(spin), sin(spin * 0.87 + jf)) * ring;
+      float homeA = jf * 1.73 + kf * 2.399;
+      float ring = 0.022 + 0.03 * kf + 0.012 * sin(uAtlasPhase * (0.091 + kf * 0.013) + jf);
+      vec2 peakCentre = vec2(cos(homeA), sin(homeA * 0.87 + jf)) * ring;
       peakCentre += vec2(
-        sin(uAtlasPhase * (0.33 + kf * 0.021) + jf * 2.1),
-        cos(uAtlasPhase * (0.28 + jf * 0.017) + kf * 1.4)
-      ) * 0.026;
+        sin(uAtlasPhase * (0.19 + kf * 0.017) + jf * 2.1 + kf),
+        cos(uAtlasPhase * (0.147 + jf * 0.013) + kf * 1.4)
+      ) * (0.016 + 0.01 * sin(uAtlasPhase * (0.073 + jf * 0.01) + kf));
       float d = length(local - peakCentre);
-      float width = 0.024 + 0.005 * mod(kf + jf, 3.0);
+      float width = 0.022 + 0.006 * mod(kf + jf, 3.0);
       float base = 1.0 - smoothstep(0.0, width * 5.0, d);
       float tip = 1.0 - smoothstep(0.0, width * 1.72, d);
       tip = tip * tip * tip;
       float grow = smoothstep(
         0.18,
         0.88,
-        0.5 + 0.5 * sin(uAtlasPhase * (0.48 + kf * 0.027) + jf * 0.93 + kf * 1.61)
+        0.5 + 0.5 * sin(uAtlasPhase * (0.53 + kf * 0.031) + jf * 0.93 + kf * 1.61)
       );
+      float classWave = 0.5 + 0.5 * sin(uAtlasIdentitySeed * (1.3 + jf) + kf * 2.17 + uAtlasPhase * 0.019);
+      float mediumMix = smoothstep(0.46, 0.7, classWave);
+      float largeMix = smoothstep(0.8, 0.94, classWave) * life * (0.4 + uAtlasLifeA.y);
+      float sizeAmp = mix(0.72, 1.18, mediumMix);
+      sizeAmp = mix(sizeAmp, 1.55, largeMix);
       shoulders += base * grow * (0.62 + 0.38 * core);
-      narrow += tip * grow;
+      narrow += tip * grow * sizeAmp;
       isolate = max(isolate, tip * smoothstep(0.12, 0.32, distanceFromCluster));
     }
     float grainA = 0.5 + 0.5 * sin(local.x * (78.0 + jf * 4.0) + sin(local.y * 15.0) + uAtlasPhase * (0.8 + jf * 0.03));
@@ -219,8 +228,15 @@ vec3 atlasFinalDisplaced(vec3 source, out float stressOut, out float routeOut, o
     microTip = max(microTip, amp * narrow);
   }
 
-  microAmp *= 0.5 + mesoGate * 0.26 + conflict * 0.18 + uAtlasPhaseDisagreement * 0.06;
+  microAmp *= 0.5 + mesoGate * 0.26 + conflict * 0.18 + uAtlasPhaseDisagreement * 0.06 + uAtlasLifeA.y * 0.16;
   radial += microAmp;
+
+  vec3 neckAxis = normalize(uAtlasNeckAxis + vec3(0.0001, 0.0, 0.0));
+  float axisDot = dot(p, neckAxis);
+  float waist = 1.0 - axisDot * axisDot;
+  float neck = 1.0 - uAtlasLifeA.x;
+  radial -= neck * waist * waist * (0.17 + uAtlasDisplacement * 0.05);
+  radial += neck * axisDot * axisDot * (0.075 + uAtlasDisplacement * 0.03);
 
   float radius = 1.0 + radial;
   vec3 displaced = vec3(
@@ -301,11 +317,14 @@ export function createFinalUniformState() {
     routeEnabled: { value: 0 },
     routeCenter: { value: 0.5 },
     routeWidth: { value: 0.1 },
+    lifeA: new THREE.Vector4(1, 0, 0, 0),
+    neckAxis: new THREE.Vector3(0, 1, 0),
+    mesoDrive: new THREE.Vector4(0, 1, 0, 0),
   };
 }
 
 export function configureFinalMaterial(material, uniforms, perf) {
-  material.customProgramCacheKey = () => "atlas-spectral-forge-final-form-gpu-v1";
+  material.customProgramCacheKey = () => "atlas-spectral-forge-final-form-gpu-v2";
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uAtlasFields = { value: uniforms.fields };
     shader.uniforms.uAtlasFieldParamsA = { value: uniforms.fieldParamsA };
@@ -329,6 +348,9 @@ export function configureFinalMaterial(material, uniforms, perf) {
     shader.uniforms.uAtlasRouteEnabled = uniforms.routeEnabled;
     shader.uniforms.uAtlasRouteCenter = uniforms.routeCenter;
     shader.uniforms.uAtlasRouteWidth = uniforms.routeWidth;
+    shader.uniforms.uAtlasLifeA = { value: uniforms.lifeA };
+    shader.uniforms.uAtlasNeckAxis = { value: uniforms.neckAxis };
+    shader.uniforms.uAtlasMesoDrive = { value: uniforms.mesoDrive };
 
     shader.vertexShader = replaceRequired(
       shader.vertexShader,

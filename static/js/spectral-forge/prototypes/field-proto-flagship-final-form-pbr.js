@@ -9,6 +9,17 @@ import {
   configureFinalMaterial,
   createFinalUniformState,
 } from "./field-proto-flagship-final-form-shader.js";
+import {
+  attitudeTarget,
+  cameraOffset,
+  createAttitudeState,
+  fieldCentre,
+  fieldLife,
+  livingGesture,
+  mesoDrive,
+  satelliteThreshold,
+  stepAttitude,
+} from "./field-proto-flagship-final-form-life.js";
 
 const RENDERER_ID = "proto-flagship-final-form";
 const WEBGL_CLASS = "spectral-field-proto-webgl";
@@ -161,6 +172,8 @@ function createState(renderer, seedPhase) {
     macroModel: "f2-seven-field",
     microModel: "continuous-shader-surface-peaks",
     normalModel: "vertex-finite-difference-displaced-surface",
+    orientationModel: "bounded-damped-attitude",
+    splitModel: "near-split-cohesion-neck",
     smoothNormals: false,
     vertices: geometry.getAttribute("position").count,
     fields: FINAL_FIELD_COUNT,
@@ -250,6 +263,7 @@ function createState(renderer, seedPhase) {
     frameIndex: 0,
     lastWide: null,
     lastOpacity: "",
+    attitude: createAttitudeState(),
     perf,
   };
 
@@ -295,46 +309,33 @@ function resize(state, sourceCanvas) {
   return true;
 }
 
-function updateFields(state, g, activity, damage) {
+function updateFields(state, g, activity, damage, audioActive, gesture) {
   for (let i = 0; i < FINAL_FIELD_COUNT; i += 1) {
     const seed = state.fieldSeeds[i];
     const field = state.fields[i];
-    const { a, b, c, d, e, index } = seed;
+    const { a, index } = seed;
+    const centre = fieldCentre(g.phase, seed, activity, audioActive);
+    const life = fieldLife(g.phase, seed, g.mapped, damage, audioActive, gesture);
 
-    const azimuth = g.phase * (0.31 + a * 0.24 + activity * 0.08)
-      + a * TAU
-      + Math.sin(g.phase * (0.098 + b * 0.076) + c * TAU) * (0.78 + d * 0.42)
-      + Math.sin(g.phase * (0.051 + d * 0.044) + e * TAU) * 0.48;
-    const elevation = Math.sin(
-      g.phase * (0.17 + c * 0.11 + activity * 0.025) + b * TAU,
-    ) * (0.5 + d * 0.17)
-      + Math.cos(g.phase * (0.061 + a * 0.052) + c * TAU) * 0.19;
-
-    const cosElevation = Math.cos(elevation);
-    const polarityWave = Math.sin(g.phase * (0.21 + d * 0.17) + e * TAU + index * 0.83);
-    const polarity = Math.tanh(polarityWave * 2.2);
-    const lifeWave = Math.sin(g.phase * (0.25 + e * 0.17) + a * TAU);
-    const life = 0.62 + 0.38 * lifeWave * lifeWave;
-    const sigma = 0.31 + c * 0.23;
-
-    field.x = Math.cos(azimuth) * cosElevation;
-    field.y = Math.sin(elevation);
-    field.z = Math.sin(azimuth) * cosElevation;
-    field.polarity = polarity;
+    field.x = centre.x;
+    field.y = centre.y;
+    field.z = centre.z;
+    field.polarity = life.polarity;
     field.strength = (
-      0.116
-      + g.mapped.displacement * 0.126
-      + g.pressure * 0.044
-      + g.mapped.phaseDisagreement * 0.038
+      0.122
+      + g.mapped.displacement * 0.132
+      + g.pressure * 0.046
+      + g.mapped.phaseDisagreement * 0.04
       + damage * 0.06
-    ) * life * (0.82 + b * 0.4);
-    field.invExtent = 1 / (1.8 * sigma * sigma);
-    field.flow = (0.078 + g.mapped.displacement * 0.066 + activity * 0.03) * (0.82 + d * 0.42);
-    field.swirl = (0.034 + g.mapped.phaseDisagreement * 0.062 + damage * 0.03) * (0.8 + e * 0.4);
-    field.crest = 0.11 + g.mapped.microstructure * 0.16 + g.mapped.brilliance * 0.06 + damage * 0.08;
-    field.waveFrequency = 11.4 + index * 1.34;
-    field.wavePhase = -g.phase * (1.52 + index * 0.19) + a * TAU + index * 1.71;
-    field.crestGate = smooth(clamp((polarity - 0.12) / 0.76));
+      + (gesture.fold * 0.028)
+    ) * life.strengthScale;
+    field.invExtent = 1 / (1.8 * life.sigma * life.sigma);
+    field.flow = (0.082 + g.mapped.displacement * 0.07 + activity * 0.032) * life.flowScale * (0.82 + seed.d * 0.42);
+    field.swirl = (0.036 + g.mapped.phaseDisagreement * 0.066 + damage * 0.03) * life.swirlScale * (0.8 + seed.e * 0.4);
+    field.crest = (0.12 + g.mapped.microstructure * 0.17 + g.mapped.brilliance * 0.065 + damage * 0.08) * life.crestScale;
+    field.waveFrequency = (11.4 + index * 1.34) * (audioActive ? 1.16 : 1);
+    field.wavePhase = -g.phase * life.waveRate + a * TAU + index * 1.71;
+    field.crestGate = smooth(clamp((life.polarity - 0.08) / 0.78));
 
     state.uniforms.fields[i].set(field.x, field.y, field.z, field.polarity);
     state.uniforms.fieldParamsA[i].set(field.strength, field.invExtent, field.flow, field.swirl);
@@ -342,7 +343,7 @@ function updateFields(state, g, activity, damage) {
   }
 }
 
-function updateUniforms(state, renderer, g, band, damage, activity) {
+function updateUniforms(state, renderer, g, band, damage, activity, gesture) {
   const audioActive = Boolean(renderer.state.audioEnabled && !renderer.state.muted);
   state.uniforms.phase.value = g.phase;
   state.uniforms.activity.value = activity;
@@ -355,10 +356,14 @@ function updateUniforms(state, renderer, g, band, damage, activity) {
   state.uniforms.stretch.value = g.art.stretch;
   state.uniforms.afterimage.value = g.mapped.afterimage;
   state.uniforms.breathing.value = g.breathing;
-  state.uniforms.microstructure.value = g.mapped.microstructure;
+  state.uniforms.microstructure.value = g.mapped.microstructure + gesture.bloom * 0.18;
   state.uniforms.brilliance.value = g.mapped.brilliance;
-  state.uniforms.emission.value = g.mapped.emissionRate;
-  state.uniforms.audioEnergy.value = audioActive ? 1.12 : 1;
+  state.uniforms.emission.value = g.mapped.emissionRate * (audioActive ? 1.22 : 1);
+  state.uniforms.audioEnergy.value = audioActive ? 1.06 : 1;
+  state.uniforms.lifeA.set(gesture.cohesion, gesture.bloom, gesture.fold, gesture.inversion);
+  state.uniforms.neckAxis.set(gesture.neckAxis.x, gesture.neckAxis.y, gesture.neckAxis.z);
+  const drive = mesoDrive(g.phase, g.seedPhase, audioActive, gesture);
+  state.uniforms.mesoDrive.set(drive.x, drive.y, drive.z, drive.w);
 
   if (band) {
     state.uniforms.routeEnabled.value = 1;
@@ -368,12 +373,12 @@ function updateUniforms(state, renderer, g, band, damage, activity) {
     state.uniforms.routeEnabled.value = 0;
   }
 
-  updateFields(state, g, activity, damage);
+  updateFields(state, g, activity, damage, audioActive, gesture);
 }
 
-function updateSatellites(state, renderer, g, damage, activity) {
+function updateSatellites(state, renderer, g, damage, activity, gesture) {
   const audioActive = Boolean(renderer.state.audioEnabled && !renderer.state.muted);
-  const normalBudget = 2 + Math.floor(activity * 2) + (audioActive ? 1 : 0);
+  const normalBudget = 2 + Math.floor(activity * 2) + (audioActive ? 1 : 0) + (gesture.droplet > 0.2 ? 2 : 0);
   const activeBudget = Math.min(SATELLITE_COUNT, normalBudget + Math.floor(damage * 7));
   const dummy = state.satelliteDummy;
   let visible = 0;
@@ -381,10 +386,10 @@ function updateSatellites(state, renderer, g, damage, activity) {
   for (let i = 0; i < activeBudget; i += 1) {
     const seed = state.satelliteSeeds[i];
     const field = state.fields[i % state.fields.length];
-    const rate = seed.rateBase + damage * 0.04;
+    const rate = seed.rateBase + damage * 0.04 + gesture.droplet * 0.05;
     const cycle = (g.phase * rate + seed.phase37) % 1;
     const event = 0.5 + 0.5 * Math.sin(g.phase * seed.eventRate + seed.phase);
-    const threshold = damage > 0.45 ? 0.38 : 0.68;
+    const threshold = satelliteThreshold(damage, gesture.droplet);
     if (event < threshold) continue;
 
     const arc = Math.sin(Math.PI * cycle);
@@ -422,7 +427,7 @@ function updateSatellites(state, renderer, g, damage, activity) {
   state.satellites.instanceMatrix.needsUpdate = true;
 }
 
-function updateObject(state, g, damage, activity, aspect, mix) {
+function updateObject(state, renderer, g, damage, activity, aspect, mix, gesture) {
   const wide = aspect > 1.55;
   const baseScale = wide ? 1.08 : 0.89;
   let cx = 0;
@@ -443,17 +448,23 @@ function updateObject(state, g, damage, activity, aspect, mix) {
   cy *= invWeight;
   cz *= invWeight;
 
+  const neck = 1 - gesture.cohesion;
+  const target = attitudeTarget(g.phase, { x: cx, y: cy, z: cz }, g.tilt, g.torsion, g.seedPhase);
+  stepAttitude(state.attitude, target, renderer.visualTime);
+  const cam = cameraOffset(g.phase, g.seedPhase);
+  state.camera.position.set(cam.x, cam.y, cam.z);
+
   state.group.scale.set(
-    baseScale * (1.03 + g.mapped.lateralSpread * 0.055 + activity * 0.022),
-    baseScale * (0.99 - g.art.compression * 0.022 + Math.abs(cy) * 0.026),
-    baseScale * (0.985 + damage * 0.018 + Math.abs(cz) * 0.018),
+    baseScale * (1.03 + g.mapped.lateralSpread * 0.055 + activity * 0.022 - neck * 0.035),
+    baseScale * (0.99 - g.art.compression * 0.022 + Math.abs(cy) * 0.026 + neck * 0.04),
+    baseScale * (0.985 + damage * 0.018 + Math.abs(cz) * 0.018 - neck * 0.03),
   );
-  state.group.position.x = wide ? 0.6 + cx * 0.06 : cx * 0.026;
-  state.group.position.y = cy * 0.046 - g.art.compression * 0.018;
+  state.group.position.x = wide ? 0.6 + cx * 0.045 : cx * 0.02;
+  state.group.position.y = cy * 0.034 - g.art.compression * 0.018;
   state.group.position.z = 0;
-  state.group.rotation.x = 0.055 + cy * 0.075 + g.tilt * 0.055;
-  state.group.rotation.y = -0.15 + cx * 0.12 + g.torsion * 0.15;
-  state.group.rotation.z = -0.025 + cz * 0.07;
+  state.group.rotation.x = state.attitude.x;
+  state.group.rotation.y = state.attitude.y;
+  state.group.rotation.z = state.attitude.z;
 
   const opacity = (0.64 + mix * 0.36).toFixed(3);
   if (opacity !== state.lastOpacity) {
@@ -540,17 +551,18 @@ export function drawFlagshipFinalForm(renderer, timestamp = performance.now()) {
   };
   let stageStartedAt = performance.now();
 
+  const gesture = livingGesture(g.phase, g.seedPhase, audioActive, damage);
   const resized = resize(state, renderer.canvas);
-  updateUniforms(state, renderer, g, band, damage, activity);
+  updateUniforms(state, renderer, g, band, damage, activity, gesture);
   stageStartedAt = markStage(stages, "geometryUniformMs", stageStartedAt);
 
   // Microstructure is continuous shader displacement; no CPU cone/base update remains.
   stageStartedAt = markStage(stages, "microstructureCpuMs", stageStartedAt);
 
-  updateSatellites(state, renderer, g, damage, activity);
+  updateSatellites(state, renderer, g, damage, activity, gesture);
   stageStartedAt = markStage(stages, "satellitesMs", stageStartedAt);
 
-  updateObject(state, g, damage, activity, state.cssWidth / Math.max(1, state.cssHeight), mix);
+  updateObject(state, renderer, g, damage, activity, state.cssWidth / Math.max(1, state.cssHeight), mix, gesture);
   stageStartedAt = markStage(stages, "objectTransformMs", stageStartedAt);
 
   state.webgl.render(state.scene, state.camera);

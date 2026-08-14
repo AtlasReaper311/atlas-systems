@@ -12,11 +12,12 @@ const PROTOS = [
   { id: "flagship-final-form", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-final-form.js", backend: "webgl" },
 ];
 const AUDIO_MODES = [false, true];
-const NORMAL_CAPTURES = [1, 3, 5, 10, 20, 30];
+const NORMAL_CAPTURES = [1, 3, 5, 10, 20, 30, 45];
 const ENGINE = process.env.SPECTRAL_FORGE_BROWSER === "firefox" ? "firefox" : "chromium";
+const HEADED = process.env.SPECTRAL_FORGE_HEADED === "1";
 const browserType = ENGINE === "firefox" ? firefox : chromium;
 
-const browser = await browserType.launch({ headless: true });
+const browser = await browserType.launch({ headless: !HEADED });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 });
 page.setDefaultTimeout(45_000);
 let pageErrors = [];
