@@ -6,6 +6,7 @@ const fieldRuntimeUrl = new URL("../../static/js/spectral-forge/spectral-field-r
 const fieldComposeCompatUrl = new URL("../../static/js/spectral-forge/spectral-field-compose.js", import.meta.url);
 const fieldArtUrl = new URL("../../static/js/spectral-forge/spectral-field-art.js", import.meta.url);
 const forgeAppUrl = new URL("../../static/js/spectral-forge/app.js", import.meta.url);
+const forgePageUrl = new URL("../spectral-forge/index.html", import.meta.url);
 const symphonyMovementCssUrl = new URL("../shared/symphony-live-movement.css", import.meta.url);
 const counterpartUrl = new URL("../shared/flagship-counterparts.js", import.meta.url);
 
@@ -13,11 +14,12 @@ async function source(url) {
   return readFile(url, "utf8");
 }
 
-test("Spectral Forge playback has only one active Field renderer", async () => {
+test("Spectral Forge playback has only one active Field renderer and a fresh page entrypoint", async () => {
   const runtime = await source(fieldRuntimeUrl);
   const compat = await source(fieldComposeCompatUrl);
   const art = await source(fieldArtUrl);
   const app = await source(forgeAppUrl);
+  const page = await source(forgePageUrl);
 
   assert.match(runtime, /spectral-field-compose-v4\.js\?v=20260814-field-4-single-renderer/);
   assert.match(runtime, /const render = typeof this\.draw === "function" \? this\.draw : fallbackDraw;/);
@@ -31,6 +33,8 @@ test("Spectral Forge playback has only one active Field renderer", async () => {
   assert.match(art, /spectral-field-compose-v4\.js/);
   assert.match(art, /spectral-field-runtime\.js\?v=20260814-field-4-playback/);
   assert.match(app, /spectral-field-art\.js\?v=20260814-field-4-playback/);
+  assert.match(page, /\/static\/js\/spectral-forge\/app\.js\?v=20260814-field-4-single-renderer/);
+  assert.doesNotMatch(page, /\/static\/js\/spectral-forge\/app\.js\?v=20260812-production-v1/);
 });
 
 test("System Symphony keeps the production NOW PLAYING scale while only the product identity is redesigned", async () => {
