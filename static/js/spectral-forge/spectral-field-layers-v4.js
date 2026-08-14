@@ -154,7 +154,6 @@ export function drawSpectralBody(context, state) {
 
   const apertureScale = 0.23 + mapped.aperture * 0.13 + (signature.apertureOpen ? 0.05 : 0);
   for (let ring = 5; ring >= 0; ring -= 1) {
-    const z = -0.78 + ring * 0.31;
     const alpha = (0.035 + mapped.aperture * 0.055 + coherence * 0.018) * (1 - ring * 0.075);
     drawDepthRing(context, state, deformation * 0.035 * Math.sin(phase * 0.21 + ring), apertureScale * (0.78 + ring * 0.052), alpha, ring % 2 ? "211,203,255" : "116,208,255");
   }
