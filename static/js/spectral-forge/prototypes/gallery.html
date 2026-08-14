@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spectral Field — prototype gallery (dev)</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --line: #2a2a36;
+      --text: #e8e8e0;
+      --muted: #8a8a82;
+      --amber: #f5a623;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); }
+    body {
+      font: 15px/1.45 "IBM Plex Sans", "Segoe UI", sans-serif;
+      padding: 28px 22px 80px;
+    }
+    header { max-width: 1280px; margin: 0 auto 28px; }
+    .kicker {
+      color: var(--amber);
+      letter-spacing: 0.14em;
+      font-size: 11px;
+      text-transform: uppercase;
+      margin: 0 0 8px;
+    }
+    h1 { font-size: 28px; font-weight: 500; margin: 0 0 10px; }
+    p { color: var(--muted); max-width: 62ch; margin: 0 0 10px; }
+    h2 {
+      max-width: 1280px;
+      margin: 36px auto 14px;
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--amber);
+      font-weight: 500;
+    }
+    .grid {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      gap: 22px;
+    }
+    article {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 14px 14px 16px;
+    }
+    article h3 { margin: 0 0 4px; font-size: 18px; font-weight: 500; }
+    article .meta { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+    .pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    figure { margin: 0; }
+    figure img {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: #05060a;
+    }
+    figcaption {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+    .live {
+      display: inline-block;
+      margin-top: 12px;
+      color: var(--bg);
+      background: var(--amber);
+      text-decoration: none;
+      padding: 8px 12px;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+    }
+    .live:hover { filter: brightness(1.08); }
+    @media (max-width: 800px) {
+      .pair { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Development only · not shipped</p>
+    <h1>Spectral Field prototypes</h1>
+    <p>Each pair is the same direction at NORMAL LOAD (~3s) and CASCADING FAILURE (~20s). Open a still to view it full size. “Watch live” loads Spectral Forge with that renderer already swapped — then hit PLAY.</p>
+    <p>You asked for a <strong style="color:#e8e8e0">ferrosphere</strong> like the studio reference — one glossy body, smooth to spikes. Still a prototype. Press PLAY on the live link.</p>
+  </header>
+
+  <h2>The decision object</h2>
+  <div class="grid">
+    <article>
+      <h3>Flagship hybrid</h3>
+      <p class="meta">Current favourite · living-organism material plus specimen-core staging. Liquid, inspectable, art-first.</p>
+      <div class="pair">
+        <figure>
+          <a href="captures/flagship-organism-normal-3s.png"><img src="captures/flagship-organism-normal-3s.png" alt="Flagship hybrid organism, normal load"></a>
+          <figcaption>01 Normal load</figcaption>
+        </figure>
+        <figure>
+          <a href="captures/flagship-organism-cascade-20s.png"><img src="captures/flagship-organism-cascade-20s.png" alt="Flagship hybrid organism, cascading failure"></a>
+          <figcaption>06 Cascading failure</figcaption>
+        </figure>
+      </div>
+      <a class="live" href="/lab/spectral-forge/?proto=flagship-organism">Watch live</a>
+    </article>
+    <article>
+      <h3>Living organism</h3>
+      <p class="meta">Bake-off A · liquid-organic Atlas instrument · pressure swell, route wound, audio-reactive surface, repeated cascade shocks.</p>
+      <div class="pair">
+        <figure>
+          <a href="captures/living-organism-normal-3s.png"><img src="captures/living-organism-normal-3s.png" alt="Living organism, normal load"></a>
+          <figcaption>01 Normal load</figcaption>
+        </figure>
+        <figure>
+          <a href="captures/living-organism-cascade-20s.png"><img src="captures/living-organism-cascade-20s.png" alt="Living organism, cascading failure"></a>
+          <figcaption>06 Cascading failure</figcaption>
+        </figure>
+      </div>
+      <a class="live" href="/lab/spectral-forge/?proto=living-organism">Watch live</a>
+    </article>
+    <article>
+      <h3>Specimen core</h3>
+      <p class="meta">Bake-off B · the same organism as a high-end scientific specimen, calmer surface, stronger read for future side-inspector regions.</p>
+      <div class="pair">
+        <figure>
+          <a href="captures/specimen-core-normal-3s.png"><img src="captures/specimen-core-normal-3s.png" alt="Specimen core, normal load"></a>
+          <figcaption>01 Normal load</figcaption>
+        </figure>
+        <figure>
+          <a href="captures/specimen-core-cascade-20s.png"><img src="captures/specimen-core-cascade-20s.png" alt="Specimen core, cascading failure"></a>
+          <figcaption>06 Cascading failure</figcaption>
+        </figure>
+      </div>
+      <a class="live" href="/lab/spectral-forge/?proto=specimen-core">Watch live</a>
+    </article>
+    <article>
+      <h3>Signal monolith</h3>
+      <p class="meta">Bake-off C · cropped brutalist organism, harder alien pressure ridges, dark Atlas chrome and restrained steel/amber glints.</p>
+      <div class="pair">
+        <figure>
+          <a href="captures/signal-monolith-normal-3s.png"><img src="captures/signal-monolith-normal-3s.png" alt="Signal monolith, normal load"></a>
+          <figcaption>01 Normal load</figcaption>
+        </figure>
+        <figure>
+          <a href="captures/signal-monolith-cascade-20s.png"><img src="captures/signal-monolith-cascade-20s.png" alt="Signal monolith, cascading failure"></a>
+          <figcaption>06 Cascading failure</figcaption>
+        </figure>
+      </div>
+      <a class="live" href="/lab/spectral-forge/?proto=signal-monolith">Watch live</a>
+    </article>
+    <article>
+      <h3>Ferrosphere</h3>
+      <p class="meta">Studio light well. Smooth hemisphere becomes a spike field. Cascade should invade the smooth side and shed droplets.</p>
+      <div class="pair">
+        <figure>
+          <a href="captures/ferrosphere-normal-3s.png"><img src="captures/ferrosphere-normal-3s.png" alt="Ferrosphere, normal load"></a>
+          <figcaption>01 Normal load</figcaption>
+        </figure>
+        <figure>
+          <a href="captures/ferrosphere-cascade-20s.png"><img src="captures/ferrosphere-cascade-20s.png" alt="Ferrosphere, cascading failure"></a>
+          <figcaption>06 Cascading failure</figcaption>
+        </figure>
+      </div>
+      <a class="live" href="/lab/spectral-forge/?proto=ferrosphere">Watch live</a>
+    </article>
+    <article>
+      <h3>Previous liquid trough (rejected as UI)</h3>
+      <p class="meta">Black fluid against metal. Spikes are the field. Cascade breaks the ridge into islands. Prototype, not shipped.</p>
+      <div class="pair">
+        <figure>
+          <a href="captures/liquid-normal-3s.png"><img src="captures/liquid-normal-3s.png" alt="Liquid, normal load"></a>
+          <figcaption>01 Normal load</figcaption>
+        </figure>
+        <figure>
+          <a href="captures/liquid-cascade-20s.png"><img src="captures/liquid-cascade-20s.png" alt="Liquid, cascading failure"></a>
+          <figcaption>06 Cascading failure</figcaption>
+        </figure>
+      </div>
+      <a class="live" href="/lab/spectral-forge/?proto=liquid">Watch live</a>
+    </article>
+  </div>
+
+  <h2>Earlier sketches</h2>
+  <div class="grid">
+    <article>
+      <h3>Interference plate</h3>
+      <p class="meta">Family A · photograph of a phenomenon · strongest still · 29 fps</p>
+      <div class="pair">
+        <figure>
+          <a href="captures/interference-normal-3s.png"><img src="captures/interference-normal-3s.png" alt="Interference, normal load"></a>
+          <figcaption>01 Normal load</figcaption>
+        </figure>
+        <figure>
+          <a href="captures/interference-cascade-20s.png"><img src="captures/interference-cascade-20s.png" alt="Interference, cascading failure"></a>
+          <figcaption>06 Cascading failure</figcaption>
+        </figure>
+      </div>
+      <a class="live" href="/lab/spectral-forge/?proto=interference">Watch live</a>
+    </article>
+
+    <article>
+      <h3>Schlieren test section</h3>
+      <p class="meta">Family A · density field · still currently too soft / grid-like</p>
+      <div class="pair">
+        <figure>
+          <a href="captures/schlieren-normal-3s.png"><img src="captures/schlieren-normal-3s.png" alt="Schlieren, normal load"></a>
+          <figcaption>01 Normal load</figcaption>
+        </figure>
+        <figure>
+          <a href="captures/schlieren-cascade-20s.png"><img src="captures/schlieren-cascade-20s.png" alt="Schlieren, cascading failure"></a>
+          <figcaption>06 Cascading failure</figcaption>
+        </figure>
+      </div>
+      <a class="live" href="/lab/spectral-forge/?proto=schlieren">Watch live</a>
+    </article>
+
+    <article>
+      <h3>Cymatic plate</h3>
+      <p class="meta">Family A · sand on a rectangular plate · still reads as a UI grid</p>
+      <div class="pair">
+        <figure>
+          <a href="captures/cymatic-normal-3s.png"><img src="captures/cymatic-normal-3s.png" alt="Cymatic, normal load"></a>
+          <figcaption>01 Normal load</figcaption>
+        </figure>
+        <figure>
+          <a href="captures/cymatic-cascade-20s.png"><img src="captures/cymatic-cascade-20s.png" alt="Cymatic, cascading failure"></a>
+          <figcaption>06 Cascading failure</figcaption>
+        </figure>
+      </div>
+      <a class="live" href="/lab/spectral-forge/?proto=cymatic">Watch live</a>
+    </article>
+
+    <article>
+      <h3>Milled section</h3>
+      <p class="meta">Family B · designed object · still looks like dashboard tiles</p>
+      <div class="pair">
+        <figure>
+          <a href="captures/section-normal-3s.png"><img src="captures/section-normal-3s.png" alt="Milled section, normal load"></a>
+          <figcaption>01 Normal load</figcaption>
+        </figure>
+        <figure>
+          <a href="captures/section-cascade-20s.png"><img src="captures/section-cascade-20s.png" alt="Milled section, cascading failure"></a>
+          <figcaption>06 Cascading failure</figcaption>
+        </figure>
+      </div>
+      <a class="live" href="/lab/spectral-forge/?proto=section">Watch live</a>
+    </article>
+
+    <article>
+      <h3>Ferrofluid trough</h3>
+      <p class="meta">Family B · opaque body · still too dark, reads as a hill</p>
+      <div class="pair">
+        <figure>
+          <a href="captures/ferro-normal-3s.png"><img src="captures/ferro-normal-3s.png" alt="Ferrofluid, normal load"></a>
+          <figcaption>01 Normal load</figcaption>
+        </figure>
+        <figure>
+          <a href="captures/ferro-cascade-20s.png"><img src="captures/ferro-cascade-20s.png" alt="Ferrofluid, cascading failure"></a>
+          <figcaption>06 Cascading failure</figcaption>
+        </figure>
+      </div>
+      <a class="live" href="/lab/spectral-forge/?proto=ferro">Watch live</a>
+    </article>
+  </div>
+
+  <h2>Already rejected — for comparison</h2>
+  <div class="grid">
+    <article>
+      <h3>Optical bench (closest previous)</h3>
+      <p class="meta">Rejected-as-flagship · 25 fps · cascade gets emptier</p>
+      <div class="pair">
+        <figure>
+          <a href="captures/optical-normal-3s.png"><img src="captures/optical-normal-3s.png" alt="Optical bench, normal load"></a>
+          <figcaption>01 Normal load</figcaption>
+        </figure>
+        <figure>
+          <a href="captures/optical-cascade-20s.png"><img src="captures/optical-cascade-20s.png" alt="Optical bench, cascading failure"></a>
+          <figcaption>06 Cascading failure</figcaption>
+        </figure>
+      </div>
+      <a class="live" href="/lab/spectral-forge/?proto=optical">Watch live</a>
+    </article>
+    <article>
+      <h3>v4 shipped</h3>
+      <p class="meta">9 fps · cyan + amber traces</p>
+      <div class="pair">
+        <figure>
+          <a href="captures/v4-normal-3s.png"><img src="captures/v4-normal-3s.png" alt="v4, normal load"></a>
+          <figcaption>01 Normal load</figcaption>
+        </figure>
+        <figure>
+          <a href="captures/v4-cascade-20s.png"><img src="captures/v4-cascade-20s.png" alt="v4, cascading failure"></a>
+          <figcaption>06 Cascading failure</figcaption>
+        </figure>
+      </div>
+      <a class="live" href="/lab/spectral-forge/?proto=v4">Watch live</a>
+    </article>
+    <article>
+      <h3>A · B · C</h3>
+      <p class="meta">Crystal / membrane / aperture — all rejected</p>
+      <div class="pair">
+        <figure>
+          <a href="captures/a-normal-3s.png"><img src="captures/a-normal-3s.png" alt="Prototype A, normal load"></a>
+          <figcaption>A normal</figcaption>
+        </figure>
+        <figure>
+          <a href="captures/b-normal-3s.png"><img src="captures/b-normal-3s.png" alt="Prototype B, normal load"></a>
+          <figcaption>B normal</figcaption>
+        </figure>
+      </div>
+      <div class="pair" style="margin-top:10px">
+        <figure>
+          <a href="captures/c-normal-3s.png"><img src="captures/c-normal-3s.png" alt="Prototype C, normal load"></a>
+          <figcaption>C normal</figcaption>
+        </figure>
+        <figure>
+          <a href="captures/a-cascade-20s.png"><img src="captures/a-cascade-20s.png" alt="Prototype A, cascading failure"></a>
+          <figcaption>A cascade</figcaption>
+        </figure>
+      </div>
+      <a class="live" href="/lab/spectral-forge/?proto=a">Watch A live</a>
+      <a class="live" href="/lab/spectral-forge/?proto=b">Watch B live</a>
+      <a class="live" href="/lab/spectral-forge/?proto=c">Watch C live</a>
+    </article>
+  </div>
+</body>
+</html>
