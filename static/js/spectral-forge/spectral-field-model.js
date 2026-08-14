@@ -15,68 +15,8 @@ export const VISUAL_TARGET_GRAMMAR = Object.freeze({
   error_texture: Object.freeze({ visual: "granular_fracture", label: "GRANULAR FRACTURE" }),
 });
 
-export const SCENARIO_ART_PROFILES = Object.freeze({
-  normal: Object.freeze({ origin: 0.5, direction: 0, compression: 0, fractureBias: 0, bloomBias: 0.08 }),
-  traffic: Object.freeze({ origin: 0.08, direction: 1, compression: 0.75, fractureBias: 0.08, bloomBias: 0.02 }),
-  cache: Object.freeze({ origin: 0.22, direction: 1, compression: 0.24, fractureBias: 0.28, bloomBias: 0 }),
-  flapping: Object.freeze({ origin: 0.5, direction: 0, compression: 0.18, fractureBias: 0.22, bloomBias: 0 }),
-  creep: Object.freeze({ origin: 0.5, direction: 0.18, compression: 0.08, fractureBias: 0.12, bloomBias: 0 }),
-  cascade: Object.freeze({ origin: 0.12, direction: 1, compression: 0.48, fractureBias: 0.42, bloomBias: 0 }),
-  deploy: Object.freeze({ origin: 0.5, direction: 0, compression: 0.2, fractureBias: 0.18, bloomBias: 0.36 }),
-});
-
 export const SCENARIO_TRANSITION_MS = 460;
-
-function smoothStep(edge0, edge1, value) {
-  if (edge0 === edge1) return value >= edge1 ? 1 : 0;
-  const x = clamp((value - edge0) / (edge1 - edge0));
-  return x * x * (3 - 2 * x);
-}
-
-function windowShape(riseStart, riseEnd, fallStart, fallEnd, value) {
-  return smoothStep(riseStart, riseEnd, value) * (1 - smoothStep(fallStart, fallEnd, value));
-}
-
-export function scenarioArtState(scenarioId, time) {
-  const profile = SCENARIO_ART_PROFILES[scenarioId] ?? SCENARIO_ART_PROFILES.normal;
-  const t = clamp(Number(time), 0, 60);
-  let propagation = 0;
-  let coherencePulse = 0;
-  let stretch = 0;
-  let disturbance = 0;
-  let recovery = 0;
-
-  if (scenarioId === "traffic") {
-    propagation = smoothStep(10, 34, t) * (1 - smoothStep(46, 58, t));
-    disturbance = windowShape(10, 20, 38, 52, t);
-  } else if (scenarioId === "cache") {
-    propagation = smoothStep(12, 38, t) * (1 - smoothStep(48, 60, t));
-    disturbance = windowShape(12, 18, 42, 54, t);
-    recovery = smoothStep(48, 60, t);
-  } else if (scenarioId === "flapping") {
-    const active = t >= 8 && t < 52;
-    coherencePulse = active ? (Math.sin((t - 8) * Math.PI / 2.6) + 1) * 0.5 : 0;
-    propagation = active ? 0.45 + coherencePulse * 0.22 : 0;
-    disturbance = active ? coherencePulse : 0;
-    recovery = smoothStep(52, 60, t);
-  } else if (scenarioId === "creep") {
-    stretch = smoothStep(8, 52, t);
-    propagation = smoothStep(22, 56, t) * 0.72;
-    disturbance = smoothStep(26, 58, t) * 0.7;
-  } else if (scenarioId === "cascade") {
-    propagation = smoothStep(10, 52, t);
-    disturbance = smoothStep(16, 48, t);
-    stretch = smoothStep(21, 40, t) * 0.55;
-  } else if (scenarioId === "deploy") {
-    disturbance = windowShape(12, 20, 34, 50, t);
-    propagation = windowShape(12, 22, 38, 52, t) * 0.72;
-    recovery = smoothStep(34, 60, t);
-  } else {
-    coherencePulse = 0.08 + Math.sin(t * 0.18) * 0.04;
-  }
-
-  return Object.freeze({ ...profile, propagation, coherencePulse, stretch, disturbance, recovery });
-}
+export const FIELD_VISUAL_SEED = 0.731;
 
 function targetNormalised(id, value) {
   const definition = TARGET_BY_ID[id];
@@ -96,6 +36,34 @@ export function visualTargetState(outputs) {
     bodyStrength: targetNormalised("tonal_level", outputs.tonal_level),
     granularFracture: targetNormalised("error_texture", outputs.error_texture),
   });
+}
+
+export function fieldArtState(frame, mapped) {
+  const values = frame.normalised;
+  const demand = clamp(values.request_rate);
+  const latency = clamp(values.latency_ms);
+  const errors = clamp(values.error_rate);
+  const queue = clamp(values.queue_depth);
+  const cacheLoss = clamp(1 - values.cache_hit_rate);
+  const cpu = clamp(values.cpu_load);
+  const anomaly = clamp(values.anomaly_score);
+
+  const upstreamPressure = clamp(cacheLoss * 0.62 + demand * 0.28 + cpu * 0.1);
+  const downstreamPressure = clamp(latency * 0.31 + queue * 0.28 + errors * 0.29 + cpu * 0.12);
+  const disturbance = clamp(anomaly * 0.37 + errors * 0.22 + queue * 0.14 + latency * 0.11 + mapped.phaseDisagreement * 0.09 + mapped.granularFracture * 0.07);
+  const lag = Math.max(0, downstreamPressure - upstreamPressure);
+  const propagation = clamp(upstreamPressure * 0.34 + downstreamPressure * 0.5 + lag * 0.36);
+  const compression = clamp(demand * 0.5 + queue * 0.28 + cpu * 0.22);
+  const stretch = clamp(latency * 0.78 + queue * 0.18 + mapped.afterimage * 0.04);
+  const fractureBias = clamp(cacheLoss * 0.34 + errors * 0.39 + anomaly * 0.2 + mapped.granularFracture * 0.18);
+  const coherencePulse = clamp(mapped.phaseDisagreement * 0.56 + errors * 0.2 + anomaly * 0.18 + queue * 0.06);
+  const origin = clamp(0.08 + (1 - cacheLoss) * 0.16 + demand * 0.08, 0.06, 0.34);
+  const direction = Math.max(-1, Math.min(1, (downstreamPressure - upstreamPressure) * 1.8 + 0.22));
+  const reopening = clamp(mapped.lateralSpread * 0.35 + mapped.aperture * 0.25 + mapped.afterimage * 0.25 + mapped.bodyStrength * 0.15);
+  const recovery = clamp((1 - disturbance) * reopening * (1 - errors * 0.5));
+  const bloomBias = clamp(mapped.brilliance * 0.22 + mapped.afterimage * 0.28 + recovery * 0.42);
+
+  return Object.freeze({ origin, direction, compression, fractureBias, bloomBias, propagation, coherencePulse, stretch, disturbance, recovery, upstreamPressure, downstreamPressure });
 }
 
 export function deterministicUnit(seed, index) {
