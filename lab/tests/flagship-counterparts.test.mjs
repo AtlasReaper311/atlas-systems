@@ -62,20 +62,17 @@ test("shared counterpart module gives the two root instruments a LISTEN and DESI
   assert.doesNotMatch(module, /fetch\(|localStorage|AudioContext|Math\.random/);
 });
 
-test("System Symphony flagship stage renders a deterministic score architecture without touching audio", async () => {
+test("System Symphony keeps its original instrument composition and receives title treatment only", async () => {
   const module = await source(counterpartUrl);
   const css = await source(counterpartCssUrl);
-  assert.match(module, /function installSymphonyArchitecture\(pathname\)/);
-  assert.match(module, /data-symphony-score-architecture/);
-  assert.match(module, /window\.__ATLAS_APU_CARTRIDGE__/);
-  assert.match(module, /SYMPHONY_ROLES/);
-  assert.match(module, /scoreDensity\(cartridge, role\)/);
-  assert.match(module, /requestAnimationFrame\(paint\)/);
-  assert.doesNotMatch(module, /createOscillator|createGain|AudioContext|audioEngine/);
-  assert.match(css, /\.symphony-score-architecture/);
-  assert.match(css, /grid-template-columns:\s*minmax\(500px, \.92fr\) minmax\(520px, 1\.08fr\)/);
-  assert.match(css, /APU-01 \/ LIVE SCORE ARCHITECTURE/);
-  assert.match(css, /mask-image:\s*linear-gradient\(90deg/);
+  assert.doesNotMatch(module, /installSymphonyArchitecture|data-symphony-score-architecture|__ATLAS_APU_CARTRIDGE__/);
+  assert.doesNotMatch(css, /symphony-score-architecture|LIVE SCORE ARCHITECTURE/);
+  assert.match(css, /atlas-audio-title--listen \.atlas-audio-title__prefix/);
+  assert.match(css, /letter-spacing:\s*\.28em/);
+  assert.match(css, /atlas-audio-title--listen \.atlas-audio-title__signature/);
+  assert.match(css, /clamp\(3\.2rem, 5\.6vw, 5\.9rem\)/);
+  assert.match(css, /atlas-audio-title--listen \.atlas-audio-title__signature::before/);
+  assert.match(css, /atlas-audio-title--listen \.atlas-audio-title__signature::after/);
 });
 
 test("both audio flagships install the same counterpart module", async () => {
@@ -87,7 +84,7 @@ test("both audio flagships install the same counterpart module", async () => {
   assert.match(symphony, /if \(isRootRoute\(\)\) installFlagshipCounterpart\(\)/);
 });
 
-test("flagship family styling preserves focus, reduced motion and stronger title hierarchy", async () => {
+test("flagship family styling preserves focus, reduced motion and asymmetric title identities", async () => {
   const css = await source(counterpartCssUrl);
   assert.match(css, /min-height:\s*44px/);
   assert.match(css, /@media \(max-width: 820px\)/);
@@ -99,7 +96,6 @@ test("flagship family styling preserves focus, reduced motion and stronger title
   assert.match(css, /atlas-audio-title--design \.atlas-audio-title__signature/);
   assert.match(css, /color:\s*#f5a623/);
   assert.match(css, /text-shadow:/);
-  assert.match(css, /symphony-transport__title h2\[data-page-now-playing\]/);
 });
 
 test("Spectral Forge removes the dead hero band and keeps PLAY and FORGE field-first", async () => {
@@ -117,7 +113,7 @@ test("Spectral Forge removes the dead hero band and keeps PLAY and FORGE field-f
   assert.match(css, /width:\s*100%/);
 });
 
-test("active Spectral Field visual pipeline is state-driven rather than scenario-art directed", async () => {
+test("active Spectral Field is a state-driven living spatial architecture", async () => {
   const art = await source(fieldArtUrl);
   const compose = await source(fieldComposeUrl);
   const geometry = await source(fieldGeometryUrl);
@@ -130,14 +126,24 @@ test("active Spectral Field visual pipeline is state-driven rather than scenario
   assert.match(model, /FIELD_VISUAL_SEED/);
   assert.match(geometry, /signatureState\(art, mapped, health, coherence\)/);
   assert.match(geometry, /radiusX = width \* \(0\.395/);
+  assert.match(geometry, /breathing/);
   assert.match(geometry, /depthSpan/);
-  assert.match(geometry, /latticeSnap/);
+  assert.match(layers, /const SLICE_DEPTHS/);
+  assert.match(layers, /const BODY_SEGMENTS = 14/);
   assert.match(layers, /function projectPoint\(state, x, y, z/);
+  assert.match(layers, /function bodySlice\(/);
+  assert.match(layers, /function signalPath\(/);
+  assert.match(layers, /drawSpectralBody/);
   assert.match(layers, /drawPressureMembranes/);
+  assert.match(layers, /drawSignalFilaments/);
+  assert.match(layers, /drawFracture/);
   assert.match(layers, /drawSignatureMoments/);
   assert.match(layers, /drawSelectedRoute/);
-  assert.match(layers, /localScale/);
+  assert.match(layers, /chamberGradient/);
+  assert.match(layers, /dimmed \? 0\.3/);
+  assert.match(compose, /drawSpectralBody\.call/);
   assert.match(compose, /drawPressureMembranes\.call/);
+  assert.match(compose, /drawSignalFilaments\.call/);
   assert.match(compose, /drawSignatureMoments\.call/);
   assert.doesNotMatch(model, /SCENARIO_ART_PROFILES|scenarioArtState|scenarioId/);
   assert.doesNotMatch(geometry, /SCENARIO_BY_ID|visualSeed|scenarioId/);
