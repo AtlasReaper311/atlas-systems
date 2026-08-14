@@ -13,15 +13,11 @@ import {
 const RENDERER_ID = "proto-flagship-final-form";
 const WEBGL_CLASS = "spectral-field-proto-webgl";
 const SATELLITE_COUNT = 14;
-const SPIKE_CLUSTER_COUNT = 6;
-const SPIKES_PER_CLUSTER = 13;
-const MICRO_SPIKE_COUNT = SPIKE_CLUSTER_COUNT * SPIKES_PER_CLUSTER;
-const WIDTH_SEGMENTS = 144;
-const HEIGHT_SEGMENTS = 96;
-const WEBGL_DPR_CAP = 1.55;
+const WIDTH_SEGMENTS = 288;
+const HEIGHT_SEGMENTS = 176;
+const WEBGL_DPR_CAP = 1.22;
 const PLATE_STRIDE = 4;
 const TAU = Math.PI * 2;
-const UNIT_Y = new THREE.Vector3(0, 1, 0);
 
 function smooth(value) {
   const t = clamp(value);
@@ -116,38 +112,6 @@ function createSatelliteSeeds(seedPhase) {
   });
 }
 
-function createSpikeSeeds(seedPhase) {
-  return Array.from({ length: MICRO_SPIKE_COUNT }, (_, index) => {
-    const cluster = index % SPIKE_CLUSTER_COUNT;
-    const slot = Math.floor(index / SPIKE_CLUSTER_COUNT);
-    const seed = unit(seedPhase, 1701 + index * 17);
-    return {
-      cluster,
-      slot,
-      seed,
-      angle: slot * (TAU / SPIKES_PER_CLUSTER) + seed * 0.82,
-      radius: 0.035 + unit(seedPhase, 1702 + index * 17) * 0.18,
-      height: 0.62 + unit(seedPhase, 1703 + index * 17) * 0.92,
-      width: 0.55 + unit(seedPhase, 1704 + index * 17) * 0.62,
-      emergePhase: unit(seedPhase, 1705 + index * 17) * TAU,
-      emergeRate: 0.42 + unit(seedPhase, 1706 + index * 17) * 0.42,
-      lean: 0.12 + unit(seedPhase, 1707 + index * 17) * 0.23,
-      jitter: unit(seedPhase, 1708 + index * 17) * TAU,
-    };
-  });
-}
-
-function createClusterSeeds(seedPhase) {
-  return Array.from({ length: SPIKE_CLUSTER_COUNT }, (_, index) => ({
-    a: unit(seedPhase, 1601 + index * 19),
-    b: unit(seedPhase, 1602 + index * 19),
-    c: unit(seedPhase, 1603 + index * 19),
-    d: unit(seedPhase, 1604 + index * 19),
-    e: unit(seedPhase, 1605 + index * 19),
-    index,
-  }));
-}
-
 function createState(renderer, seedPhase) {
   const host = renderer.canvas.parentElement;
   if (!host) throw new Error("Spectral Field host is unavailable.");
@@ -195,30 +159,38 @@ function createState(renderer, seedPhase) {
     architecture: "gpu-final-form",
     gpuDeformation: true,
     macroModel: "f2-seven-field",
-    microModel: "shader-folds-plus-instanced-magnetic-peaks",
+    microModel: "continuous-shader-surface-peaks",
+    normalModel: "vertex-finite-difference-displaced-surface",
     smoothNormals: false,
     vertices: geometry.getAttribute("position").count,
     fields: FINAL_FIELD_COUNT,
-    microSpikes: MICRO_SPIKE_COUNT,
-    activeSpikes: 0,
-    activeClusters: 0,
+    continuousMicroPeaks: true,
     dprCap: WEBGL_DPR_CAP,
     shaderCompiled: false,
     lastCpuMs: 0,
     emaCpuMs: 0,
     maxCpuMs: 0,
+    stageTimings: {
+      geometryUniformMs: 0,
+      microstructureCpuMs: 0,
+      satellitesMs: 0,
+      objectTransformMs: 0,
+      studioPlateMs: 0,
+      webglRenderMs: 0,
+      otherCpuMs: 0,
+    },
     samples: 0,
   };
 
   const material = new THREE.MeshPhysicalMaterial({
-    color: 0x1a1a22,
-    metalness: 0.56,
-    roughness: 0.235,
-    clearcoat: 1,
-    clearcoatRoughness: 0.072,
-    reflectivity: 0.9,
-    sheen: 0.018,
-    sheenColor: new THREE.Color(0x29253c),
+    color: 0x2a2a33,
+    metalness: 0.46,
+    roughness: 0.39,
+    clearcoat: 0.54,
+    clearcoatRoughness: 0.31,
+    reflectivity: 0.38,
+    sheen: 0.035,
+    sheenColor: new THREE.Color(0x292a3f),
     side: THREE.DoubleSide,
   });
   configureFinalMaterial(material, uniforms, perf);
@@ -227,17 +199,17 @@ function createState(renderer, seedPhase) {
   body.frustumCulled = false;
   group.add(body);
 
-  scene.add(new THREE.HemisphereLight(0xf0f0f4, 0x020203, 1.48));
-  const key = new THREE.DirectionalLight(0xffffff, 3.2);
+  scene.add(new THREE.HemisphereLight(0xf2f2f6, 0x070708, 2.35));
+  const key = new THREE.DirectionalLight(0xf8f8ff, 1.05);
   key.position.set(-4.4, 5.7, 5.6);
   scene.add(key);
-  const rim = new THREE.DirectionalLight(0x777198, 1.15);
+  const rim = new THREE.DirectionalLight(0x76728f, 0.76);
   rim.position.set(5.2, 2.0, 2.8);
   scene.add(rim);
-  const low = new THREE.DirectionalLight(0x5b5962, 2.65);
+  const low = new THREE.DirectionalLight(0x73717a, 4.1);
   low.position.set(-2.2, -3.4, 3.2);
   scene.add(low);
-  const edge = new THREE.PointLight(0xffffff, 0.62, 8, 2);
+  const edge = new THREE.PointLight(0xf3f2ff, 0.08, 8, 2);
   edge.position.set(1.5, 2.55, 3.4);
   scene.add(edge);
 
@@ -253,27 +225,6 @@ function createState(renderer, seedPhase) {
   satellites.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   satellites.frustumCulled = false;
   group.add(satellites);
-
-  const spikeGeometry = new THREE.ConeGeometry(0.16, 1, 18, 7, false);
-  spikeGeometry.computeVertexNormals();
-  const spikeMaterial = new THREE.MeshPhysicalMaterial({
-    color: 0x09090d,
-    metalness: 0.62,
-    roughness: 0.165,
-    clearcoat: 1,
-    clearcoatRoughness: 0.044,
-    reflectivity: 0.96,
-  });
-  const spikes = new THREE.InstancedMesh(spikeGeometry, spikeMaterial, MICRO_SPIKE_COUNT);
-  spikes.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-  spikes.frustumCulled = false;
-  group.add(spikes);
-
-  const spikeBaseGeometry = new THREE.SphereGeometry(1, 18, 10);
-  const spikeBases = new THREE.InstancedMesh(spikeBaseGeometry, spikeMaterial, MICRO_SPIKE_COUNT);
-  spikeBases.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-  spikeBases.frustumCulled = false;
-  group.add(spikeBases);
 
   const state = {
     canvas,
@@ -293,29 +244,6 @@ function createState(renderer, seedPhase) {
     satelliteDummy: new THREE.Object3D(),
     satelliteZeroMatrix: new THREE.Matrix4().makeScale(0, 0, 0),
     satelliteSeeds: createSatelliteSeeds(seedPhase),
-    spikes,
-    spikeBases,
-    spikeGeometry,
-    spikeBaseGeometry,
-    spikeMaterial,
-    spikeDummy: new THREE.Object3D(),
-    normalVector: new THREE.Vector3(),
-    directionVector: new THREE.Vector3(),
-    spikeSeeds: createSpikeSeeds(seedPhase),
-    clusterSeeds: createClusterSeeds(seedPhase),
-    clusters: Array.from({ length: SPIKE_CLUSTER_COUNT }, () => ({
-      x: 0,
-      y: 1,
-      z: 0,
-      tx: 1,
-      ty: 0,
-      tz: 0,
-      bx: 0,
-      by: 0,
-      bz: 1,
-      life: 0,
-      strength: 0,
-    })),
     cssWidth: 0,
     cssHeight: 0,
     disposed: false,
@@ -338,9 +266,6 @@ function disposeState(renderer, state) {
   state.material.dispose();
   state.satelliteGeometry.dispose();
   state.satelliteMaterial.dispose();
-  state.spikeGeometry.dispose();
-  state.spikeBaseGeometry.dispose();
-  state.spikeMaterial.dispose();
   state.webgl.dispose();
   if (state.canvas.isConnected) state.canvas.remove();
   if (renderer._flagshipFinalFormWebgl === state) renderer._flagshipFinalFormWebgl = null;
@@ -433,7 +358,7 @@ function updateUniforms(state, renderer, g, band, damage, activity) {
   state.uniforms.microstructure.value = g.mapped.microstructure;
   state.uniforms.brilliance.value = g.mapped.brilliance;
   state.uniforms.emission.value = g.mapped.emissionRate;
-  state.uniforms.audioEnergy.value = audioActive ? 1.34 : 1;
+  state.uniforms.audioEnergy.value = audioActive ? 1.12 : 1;
 
   if (band) {
     state.uniforms.routeEnabled.value = 1;
@@ -444,151 +369,6 @@ function updateUniforms(state, renderer, g, band, damage, activity) {
   }
 
   updateFields(state, g, activity, damage);
-}
-
-function normaliseVector(target) {
-  const length = Math.hypot(target.x, target.y, target.z) || 1;
-  target.x /= length;
-  target.y /= length;
-  target.z /= length;
-  return target;
-}
-
-function updateSpikeClusters(state, g, activity, damage, audioActive) {
-  let activeClusters = 0;
-  for (let i = 0; i < SPIKE_CLUSTER_COUNT; i += 1) {
-    const seed = state.clusterSeeds[i];
-    const field = state.fields[(i * 2 + Math.floor(seed.a * FINAL_FIELD_COUNT)) % state.fields.length];
-    const azimuth = g.phase * (0.17 + seed.a * 0.19 + activity * 0.035)
-      + seed.b * TAU
-      + Math.sin(g.phase * (0.067 + seed.c * 0.046) + seed.d * TAU) * 1.1;
-    const elevation = Math.sin(g.phase * (0.12 + seed.d * 0.08) + seed.e * TAU) * 0.62;
-    const cosElevation = Math.cos(elevation);
-    const wander = {
-      x: Math.cos(azimuth) * cosElevation,
-      y: Math.sin(elevation),
-      z: Math.sin(azimuth) * cosElevation,
-    };
-    const fieldWeight = 0.58 + Math.abs(field.polarity) * 0.16;
-    const normal = normaliseVector({
-      x: field.x * fieldWeight + wander.x * (1 - fieldWeight),
-      y: field.y * fieldWeight + wander.y * (1 - fieldWeight),
-      z: Math.abs(field.z * fieldWeight + wander.z * (1 - fieldWeight)) + 0.18,
-    });
-
-    let tx = -normal.z + normal.y * 0.22;
-    let ty = normal.x * 0.34 - normal.z * 0.08;
-    let tz = normal.x + normal.y * 0.18;
-    const invTangent = 1 / (Math.hypot(tx, ty, tz) || 1);
-    tx *= invTangent;
-    ty *= invTangent;
-    tz *= invTangent;
-    let bx = normal.y * tz - normal.z * ty;
-    let by = normal.z * tx - normal.x * tz;
-    let bz = normal.x * ty - normal.y * tx;
-    const invBitangent = 1 / (Math.hypot(bx, by, bz) || 1);
-    bx *= invBitangent;
-    by *= invBitangent;
-    bz *= invBitangent;
-
-    const recruitment = 0.5 + 0.5 * Math.sin(
-      g.phase * (0.34 + seed.c * 0.23 + g.mapped.emissionRate * 0.07) + seed.a * TAU,
-    );
-    const dissolve = 0.5 + 0.5 * Math.cos(g.phase * (0.19 + seed.e * 0.18) + seed.b * TAU);
-    const fieldEnergy = clamp(Math.abs(field.polarity) * 0.5 + field.strength * 1.4 + activity * 0.22);
-    const threshold = 0.6 - g.mapped.microstructure * 0.15 - damage * 0.06 - (audioActive ? 0.065 : 0);
-    const life = smooth(clamp((recruitment * 0.66 + dissolve * 0.18 + fieldEnergy * 0.32 - threshold) / 0.42));
-    if (life > 0.08) activeClusters += 1;
-
-    const cluster = state.clusters[i];
-    cluster.x = normal.x;
-    cluster.y = normal.y;
-    cluster.z = normal.z;
-    cluster.tx = tx;
-    cluster.ty = ty;
-    cluster.tz = tz;
-    cluster.bx = bx;
-    cluster.by = by;
-    cluster.bz = bz;
-    cluster.life = life;
-    cluster.strength = fieldEnergy;
-  }
-  state.perf.activeClusters = activeClusters;
-}
-
-function updateMicroSpikes(state, renderer, g, damage, activity) {
-  const audioActive = Boolean(renderer.state.audioEnabled && !renderer.state.muted);
-  const audioLift = audioActive ? 1.28 : 1;
-  const dummy = state.spikeDummy;
-  const normalVector = state.normalVector;
-  const directionVector = state.directionVector;
-  let visible = 0;
-
-  updateSpikeClusters(state, g, activity, damage, audioActive);
-
-  for (let i = 0; i < MICRO_SPIKE_COUNT; i += 1) {
-    const seed = state.spikeSeeds[i];
-    const cluster = state.clusters[seed.cluster];
-    const wave = 0.5 + 0.5 * Math.sin(g.phase * seed.emergeRate + seed.emergePhase);
-    const localLife = smooth(clamp((wave + cluster.life * (audioActive ? 1.08 : 0.92) - 0.82) / 0.42));
-    const rankGate = seed.slot < 5 ? 1 : seed.slot < 10 ? 0.7 : 0.38;
-    const life = localLife * cluster.life * rankGate;
-    if (life < 0.065) continue;
-
-    const clusterSpin = g.phase * (0.18 + cluster.strength * 0.08) + seed.jitter;
-    const ca = Math.cos(seed.angle + clusterSpin * 0.22);
-    const sa = Math.sin(seed.angle + clusterSpin * 0.22);
-    const ring = seed.radius * (0.42 + seed.slot / SPIKES_PER_CLUSTER);
-    let nx = cluster.x + (cluster.tx * ca + cluster.bx * sa) * ring;
-    let ny = cluster.y + (cluster.ty * ca + cluster.by * sa) * ring;
-    let nz = cluster.z + (cluster.tz * ca + cluster.bz * sa) * ring;
-    const normal = normaliseVector({ x: nx, y: ny, z: nz });
-
-    const leanWave = Math.sin(g.phase * (0.52 + seed.seed * 0.25) + seed.jitter);
-    let dx = normal.x + (cluster.tx * ca + cluster.bx * sa) * seed.lean * leanWave * life;
-    let dy = normal.y + (cluster.ty * ca + cluster.by * sa) * seed.lean * leanWave * life;
-    let dz = normal.z + (cluster.tz * ca + cluster.bz * sa) * seed.lean * leanWave * life;
-    const direction = normaliseVector({ x: dx, y: dy, z: dz });
-
-    const height = (0.082 + seed.height * 0.058 + g.mapped.microstructure * 0.046 + damage * 0.026)
-      * life
-      * audioLift;
-    const radius = (0.007 + seed.width * 0.005 + life * 0.003) * (0.86 + damage * 0.18);
-    const surface = 1.006 + cluster.strength * 0.035 + life * 0.012;
-
-    dummy.position.set(
-      normal.x * (surface + height * 0.42),
-      normal.y * (surface + height * 0.42),
-      normal.z * (surface + height * 0.42),
-    );
-    directionVector.set(direction.x, direction.y, direction.z);
-    dummy.quaternion.setFromUnitVectors(UNIT_Y, directionVector);
-    dummy.scale.set(radius * 3.9, height, radius * 3.9);
-    dummy.updateMatrix();
-    state.spikes.setMatrixAt(visible, dummy.matrix);
-
-    dummy.position.set(
-      normal.x * (surface - 0.006),
-      normal.y * (surface - 0.006),
-      normal.z * (surface - 0.006),
-    );
-    normalVector.set(normal.x, normal.y, normal.z);
-    dummy.quaternion.setFromUnitVectors(UNIT_Y, normalVector);
-    dummy.scale.set(radius * 1.35, 0.003 + life * 0.004, radius * 1.1);
-    dummy.updateMatrix();
-    state.spikeBases.setMatrixAt(visible, dummy.matrix);
-    visible += 1;
-  }
-
-  for (let i = visible; i < MICRO_SPIKE_COUNT; i += 1) {
-    state.spikes.setMatrixAt(i, state.satelliteZeroMatrix);
-    state.spikeBases.setMatrixAt(i, state.satelliteZeroMatrix);
-  }
-  state.spikes.count = MICRO_SPIKE_COUNT;
-  state.spikeBases.count = MICRO_SPIKE_COUNT;
-  state.spikes.instanceMatrix.needsUpdate = true;
-  state.spikeBases.instanceMatrix.needsUpdate = true;
-  state.perf.activeSpikes = visible;
 }
 
 function updateSatellites(state, renderer, g, damage, activity) {
@@ -689,12 +469,31 @@ function updateObject(state, g, damage, activity, aspect, mix) {
   }
 }
 
-function recordCpuPerf(state, startedAt) {
+function markStage(stages, name, startedAt) {
+  const now = performance.now();
+  stages[name] = now - startedAt;
+  return now;
+}
+
+function recordCpuPerf(state, stages, startedAt) {
   const elapsed = performance.now() - startedAt;
   const perf = state.perf;
   perf.lastCpuMs = Number(elapsed.toFixed(3));
   perf.emaCpuMs = perf.samples === 0 ? elapsed : perf.emaCpuMs * 0.92 + elapsed * 0.08;
   perf.maxCpuMs = Math.max(perf.maxCpuMs, elapsed);
+  perf.stageTimings = Object.fromEntries(
+    Object.entries(stages).map(([key, value]) => [key, Number(value.toFixed(3))]),
+  );
+  perf.stageTimings.otherCpuMs = Number(Math.max(
+    0,
+    elapsed
+      - stages.geometryUniformMs
+      - stages.microstructureCpuMs
+      - stages.satellitesMs
+      - stages.objectTransformMs
+      - stages.studioPlateMs
+      - stages.webglRenderMs,
+  ).toFixed(3));
   perf.samples += 1;
 }
 
@@ -730,12 +529,32 @@ export function drawFlagshipFinalForm(renderer, timestamp = performance.now()) {
     throw error;
   }
 
+  const stages = {
+    geometryUniformMs: 0,
+    microstructureCpuMs: 0,
+    satellitesMs: 0,
+    objectTransformMs: 0,
+    studioPlateMs: 0,
+    webglRenderMs: 0,
+    otherCpuMs: 0,
+  };
+  let stageStartedAt = performance.now();
+
   const resized = resize(state, renderer.canvas);
   updateUniforms(state, renderer, g, band, damage, activity);
+  stageStartedAt = markStage(stages, "geometryUniformMs", stageStartedAt);
+
+  // Microstructure is continuous shader displacement; no CPU cone/base update remains.
+  stageStartedAt = markStage(stages, "microstructureCpuMs", stageStartedAt);
+
   updateSatellites(state, renderer, g, damage, activity);
-  updateMicroSpikes(state, renderer, g, damage, activity);
+  stageStartedAt = markStage(stages, "satellitesMs", stageStartedAt);
+
   updateObject(state, g, damage, activity, state.cssWidth / Math.max(1, state.cssHeight), mix);
+  stageStartedAt = markStage(stages, "objectTransformMs", stageStartedAt);
+
   state.webgl.render(state.scene, state.camera);
+  stageStartedAt = markStage(stages, "webglRenderMs", stageStartedAt);
 
   if (state.webgl.info.render.triangles <= 0) {
     throw new Error("Flagship final-form WebGL mesh produced no rendered triangles.");
@@ -744,6 +563,7 @@ export function drawFlagshipFinalForm(renderer, timestamp = performance.now()) {
   if (resized || state.frameIndex % PLATE_STRIDE === 0 || state.frameIndex < 2) {
     studioPlate(renderer.context, g, width, height, band, damage, activity);
   }
+  markStage(stages, "studioPlateMs", stageStartedAt);
   state.frameIndex += 1;
-  recordCpuPerf(state, startedAt);
+  recordCpuPerf(state, stages, startedAt);
 }

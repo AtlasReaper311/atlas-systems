@@ -145,35 +145,81 @@ vec3 atlasFinalDisplaced(vec3 source, out float stressOut, out float routeOut, o
   radial += fold * fold * sign(fold) * mesoGate
     * (0.006 + uAtlasDisplacement * 0.012 + uAtlasMicrostructure * 0.006);
 
-  float clusterA = 0.5 + 0.5 * sin(dot(p, vec3(4.7, -5.6, 4.2)) + uAtlasPhase * 0.39);
-  float clusterB = 0.5 + 0.5 * cos(dot(p, vec3(-5.2, 4.1, 6.4)) - uAtlasPhase * 0.31 + clusterA * 1.25);
-  float clusterC = 0.5 + 0.5 * sin(dot(p, vec3(3.3, 6.2, -5.1)) + uAtlasPhase * 0.23 + clusterB);
-  float cluster = smoothstep(
-    0.56,
-    0.82,
-    clusterA * 0.42 + clusterB * 0.34 + clusterC * 0.24 + conflict * 0.2 + gradient * 0.28
-  );
+  float microAmp = 0.0;
+  float microCluster = 0.0;
+  float microTip = 0.0;
+  float microAudio = mix(1.0, 1.08, atlasSat((uAtlasAudioEnergy - 1.0) * 4.0));
 
-  float s1 = 0.5 + 0.5 * sin(dot(p, vec3(28.7, 34.3, -30.1)) + uAtlasPhase * (1.19 + uAtlasEmission * 0.42));
-  float s2 = 0.5 + 0.5 * sin(dot(p, vec3(-37.9, 25.6, 32.4)) - uAtlasPhase * 1.03 + meso * 0.62);
-  float s3 = 0.5 + 0.5 * cos(dot(p, vec3(31.2, -42.7, 21.5)) + uAtlasPhase * 0.79);
-  float cell = s1 * s2 * s3;
-  float spike = smoothstep(0.35, 0.72, cell + uAtlasMicrostructure * 0.045 + conflict * 0.045);
-  spike = spike * spike;
-  spike *= spike;
+  for (int j = 0; j < 6; j++) {
+    float jf = float(j);
+    float ca = uAtlasPhase * (0.18 + jf * 0.021)
+      + uAtlasIdentitySeed * (0.37 + jf * 0.09)
+      + jf * 1.916;
+    float ce = sin(uAtlasPhase * (0.11 + jf * 0.017) + jf * 2.37 + uAtlasIdentitySeed * 0.41) * 0.58;
+    vec3 centre = normalize(vec3(
+      cos(ca) * cos(ce),
+      sin(ce),
+      abs(sin(ca) * cos(ce)) + 0.18
+    ));
+    vec3 patchUp = abs(centre.y) < 0.82 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+    vec3 patchTangent = normalize(cross(patchUp, centre));
+    vec3 patchBitangent = normalize(cross(centre, patchTangent));
+    vec2 local = vec2(dot(p, patchTangent), dot(p, patchBitangent));
+    float angular = clamp(dot(p, centre), -1.0, 1.0);
+    float distanceFromCluster = length(local);
+    float patchMask = (1.0 - smoothstep(0.06, 0.44, distanceFromCluster)) * smoothstep(0.84, 0.995, angular);
+    float core = 1.0 - smoothstep(0.025, 0.18, distanceFromCluster);
+    float dissolve = 0.5 + 0.5 * sin(uAtlasPhase * (0.29 + jf * 0.04) + jf * 2.03);
+    float life = smoothstep(0.1, 0.7, dissolve + gradient * 0.26 + conflict * 0.2 + uAtlasMicrostructure * 0.16);
 
-  float f1 = 0.5 + 0.5 * sin(dot(p, vec3(47.0, -53.0, 39.0)) + uAtlasPhase * 1.51);
-  float f2 = 0.5 + 0.5 * cos(dot(p, vec3(-59.0, 38.0, 46.0)) - uAtlasPhase * 1.28);
-  float fineCell = f1 * f2;
-  float fineSpike = smoothstep(0.58, 0.88, fineCell + uAtlasMicrostructure * 0.028 + gradient * 0.045);
-  fineSpike = fineSpike * fineSpike * fineSpike;
+    float shoulders = 0.0;
+    float narrow = 0.0;
+    float isolate = 0.0;
+    for (int k = 0; k < 8; k++) {
+      float kf = float(k);
+      float spin = uAtlasPhase * (0.22 + jf * 0.018 + kf * 0.011) + jf * 1.73 + kf * 2.399;
+      float ring = 0.028 + 0.029 * kf + 0.017 * sin(uAtlasPhase * 0.17 + jf + kf);
+      vec2 peakCentre = vec2(cos(spin), sin(spin * 0.87 + jf)) * ring;
+      peakCentre += vec2(
+        sin(uAtlasPhase * (0.33 + kf * 0.021) + jf * 2.1),
+        cos(uAtlasPhase * (0.28 + jf * 0.017) + kf * 1.4)
+      ) * 0.026;
+      float d = length(local - peakCentre);
+      float width = 0.024 + 0.005 * mod(kf + jf, 3.0);
+      float base = 1.0 - smoothstep(0.0, width * 5.0, d);
+      float tip = 1.0 - smoothstep(0.0, width * 1.72, d);
+      tip = tip * tip * tip;
+      float grow = smoothstep(
+        0.18,
+        0.88,
+        0.5 + 0.5 * sin(uAtlasPhase * (0.48 + kf * 0.027) + jf * 0.93 + kf * 1.61)
+      );
+      shoulders += base * grow * (0.62 + 0.38 * core);
+      narrow += tip * grow;
+      isolate = max(isolate, tip * smoothstep(0.12, 0.32, distanceFromCluster));
+    }
+    float grainA = 0.5 + 0.5 * sin(local.x * (78.0 + jf * 4.0) + sin(local.y * 15.0) + uAtlasPhase * (0.8 + jf * 0.03));
+    float grainB = 0.5 + 0.5 * cos(local.y * (82.0 - jf * 3.0) + cos(local.x * 13.0) - uAtlasPhase * (0.72 + jf * 0.04));
+    float grainC = 0.5 + 0.5 * sin((local.x - local.y) * (64.0 + jf * 2.0) + uAtlasPhase * 0.57 + jf);
+    float grain = grainA * grainB * grainC;
+    float grainPeak = smoothstep(0.48, 0.78, grain + core * 0.04 + uAtlasMicrostructure * 0.022);
+    grainPeak = grainPeak * grainPeak * grainPeak;
+    shoulders += grainPeak * 0.32;
+    narrow += grainPeak * 0.42;
+    shoulders = atlasSat(shoulders * 0.22);
+    narrow = atlasSat(narrow * 0.95);
 
-  float microAudio = mix(1.0, 1.18, atlasSat((uAtlasAudioEnergy - 1.0) * 3.0));
-  float microGate = cluster * (0.34 + mesoGate * 0.36 + conflict * 0.3);
-  float microAmp = (
-      spike * (0.012 + uAtlasMicrostructure * 0.04 + uAtlasDamage * 0.022 + uAtlasPhaseDisagreement * 0.014)
-      + fineSpike * (0.004 + uAtlasMicrostructure * 0.014 + uAtlasDamage * 0.009)
-    ) * microGate * microAudio;
+    float amp = life * patchMask * microAudio;
+    microAmp += amp * (
+      shoulders * (0.007 + uAtlasMicrostructure * 0.007)
+      + narrow * (0.07 + uAtlasMicrostructure * 0.058 + uAtlasDamage * 0.012)
+      + isolate * (0.014 + uAtlasMicrostructure * 0.014)
+    );
+    microCluster = max(microCluster, amp * patchMask);
+    microTip = max(microTip, amp * narrow);
+  }
+
+  microAmp *= 0.5 + mesoGate * 0.26 + conflict * 0.18 + uAtlasPhaseDisagreement * 0.06;
   radial += microAmp;
 
   float radius = 1.0 + radial;
@@ -203,8 +249,23 @@ vec3 atlasFinalDisplaced(vec3 source, out float stressOut, out float routeOut, o
   }
 
   stressOut = atlasSat(gradient * 2.4 + conflict * 0.52 + abs(gather) * 0.18);
-  microOut = atlasSat(microAmp * 9.0 + spike * microGate * 0.52);
+  microOut = atlasSat(microAmp * 8.0 + microCluster * 0.24 + microTip * 0.62);
   return displaced;
+}
+
+vec3 atlasFinalDisplacedNormal(vec3 source) {
+  vec3 p = normalize(source);
+  vec3 up = abs(p.y) < 0.82 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+  vec3 tangentA = normalize(cross(up, p));
+  vec3 tangentB = normalize(cross(p, tangentA));
+  float ignoredStress = 0.0;
+  float ignoredRoute = 0.0;
+  float ignoredMicro = 0.0;
+  float eps = 0.009;
+  vec3 centre = atlasFinalDisplaced(p, ignoredStress, ignoredRoute, ignoredMicro);
+  vec3 pa = atlasFinalDisplaced(normalize(p + tangentA * eps), ignoredStress, ignoredRoute, ignoredMicro);
+  vec3 pb = atlasFinalDisplaced(normalize(p + tangentB * eps), ignoredStress, ignoredRoute, ignoredMicro);
+  return normalize(cross(pa - centre, pb - centre));
 }
 `;
 }
@@ -276,6 +337,11 @@ export function configureFinalMaterial(material, uniforms, perf) {
     );
     shader.vertexShader = replaceRequired(
       shader.vertexShader,
+      "#include <beginnormal_vertex>",
+      `vec3 objectNormal = atlasFinalDisplacedNormal(position);`,
+    );
+    shader.vertexShader = replaceRequired(
+      shader.vertexShader,
       "#include <begin_vertex>",
       `float atlasStressValue = 0.0;\nfloat atlasRouteValueOut = 0.0;\nfloat atlasMicroValue = 0.0;\nvec3 transformed = atlasFinalDisplaced(position, atlasStressValue, atlasRouteValueOut, atlasMicroValue);\nvAtlasStress = atlasStressValue;\nvAtlasRoute = atlasRouteValueOut;\nvAtlasMicro = atlasMicroValue;`,
     );
@@ -288,7 +354,7 @@ export function configureFinalMaterial(material, uniforms, perf) {
     shader.fragmentShader = replaceRequired(
       shader.fragmentShader,
       "#include <color_fragment>",
-      `#include <color_fragment>\nvec3 atlasCool = vec3(0.009, 0.010, 0.019) * vAtlasStress + vec3(0.013, 0.014, 0.027) * vAtlasMicro;\ndiffuseColor.rgb += atlasCool;\nfloat atlasWound = clamp(vAtlasRoute, 0.0, 1.0);\ndiffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.26, 0.092, 0.010), atlasWound * 0.38);`,
+      `#include <color_fragment>\nvec3 atlasCool = vec3(0.014, 0.015, 0.026) * vAtlasStress + vec3(0.018, 0.018, 0.034) * vAtlasMicro;\ndiffuseColor.rgb += atlasCool;\nfloat atlasWound = clamp(vAtlasRoute, 0.0, 1.0);\ndiffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.22, 0.074, 0.008), atlasWound * 0.3);`,
     );
 
     perf.shaderCompiled = true;

@@ -149,11 +149,12 @@ function assertMetrics(proto, sample, label) {
     assert.equal(sample.rendererPerf.architecture, "gpu-final-form", `${label}: final-form renderer changed architecture`);
     assert.equal(sample.rendererPerf.gpuDeformation, true, `${label}: final-form GPU deformation flag missing`);
     assert.equal(sample.rendererPerf.macroModel, "f2-seven-field", `${label}: final-form macro model drifted from F2`);
-    assert.equal(sample.rendererPerf.microModel, "shader-folds-plus-instanced-magnetic-peaks", `${label}: final-form micro model missing`);
+    assert.equal(sample.rendererPerf.microModel, "continuous-shader-surface-peaks", `${label}: final-form micro model missing`);
+    assert.equal(sample.rendererPerf.normalModel, "vertex-finite-difference-displaced-surface", `${label}: final-form displaced-normal model missing`);
     assert.equal(sample.rendererPerf.fields, 7, `${label}: final-form field topology changed unexpectedly`);
     assert.equal(sample.rendererPerf.shaderCompiled, true, `${label}: final-form shader did not compile`);
     assert.equal(sample.rendererPerf.smoothNormals, true, `${label}: final-form smooth-normal path not active`);
-    assert.ok(sample.rendererPerf.microSpikes >= 48, `${label}: final-form micro-spike system not active`);
+    assert.equal(sample.rendererPerf.continuousMicroPeaks, true, `${label}: final-form continuous micro-peak system not active`);
   }
 }
 
