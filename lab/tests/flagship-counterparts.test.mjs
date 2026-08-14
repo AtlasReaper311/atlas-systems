@@ -10,6 +10,7 @@ const audioCardsCssUrl = new URL("../shared/audio-flagship-cards.css", import.me
 const forgeFlagshipCssUrl = new URL("../spectral-forge/spectral-forge-flagship-v2.css", import.meta.url);
 const forgeBootstrapUrl = new URL("../../static/js/spectral-forge/app.js", import.meta.url);
 const fieldArtUrl = new URL("../../static/js/spectral-forge/spectral-field-art.js", import.meta.url);
+const fieldComposeUrl = new URL("../../static/js/spectral-forge/spectral-field-compose-v4.js", import.meta.url);
 const fieldGeometryUrl = new URL("../../static/js/spectral-forge/spectral-field-geometry.js", import.meta.url);
 const fieldModelUrl = new URL("../../static/js/spectral-forge/spectral-field-model.js", import.meta.url);
 const fieldLayersUrl = new URL("../../static/js/spectral-forge/spectral-field-layers-v4.js", import.meta.url);
@@ -61,6 +62,22 @@ test("shared counterpart module gives the two root instruments a LISTEN and DESI
   assert.doesNotMatch(module, /fetch\(|localStorage|AudioContext|Math\.random/);
 });
 
+test("System Symphony flagship stage renders a deterministic score architecture without touching audio", async () => {
+  const module = await source(counterpartUrl);
+  const css = await source(counterpartCssUrl);
+  assert.match(module, /function installSymphonyArchitecture\(pathname\)/);
+  assert.match(module, /data-symphony-score-architecture/);
+  assert.match(module, /window\.__ATLAS_APU_CARTRIDGE__/);
+  assert.match(module, /SYMPHONY_ROLES/);
+  assert.match(module, /scoreDensity\(cartridge, role\)/);
+  assert.match(module, /requestAnimationFrame\(paint\)/);
+  assert.doesNotMatch(module, /createOscillator|createGain|AudioContext|audioEngine/);
+  assert.match(css, /\.symphony-score-architecture/);
+  assert.match(css, /grid-template-columns:\s*minmax\(500px, \.92fr\) minmax\(520px, 1\.08fr\)/);
+  assert.match(css, /APU-01 \/ LIVE SCORE ARCHITECTURE/);
+  assert.match(css, /mask-image:\s*linear-gradient\(90deg/);
+});
+
 test("both audio flagships install the same counterpart module", async () => {
   const forge = await source(forgeBootstrapUrl);
   const symphony = await source(symphonyNavigationUrl);
@@ -80,26 +97,29 @@ test("flagship family styling preserves focus, reduced motion and stronger title
   assert.match(css, /atlas-audio-title--listen \.atlas-audio-title__signature/);
   assert.match(css, /atlas-audio-title--design \.atlas-audio-title__prefix/);
   assert.match(css, /atlas-audio-title--design \.atlas-audio-title__signature/);
-  assert.match(css, /font-size:\s*clamp\(4\.7rem, 8\.9vw, 9\.25rem\)/);
   assert.match(css, /color:\s*#f5a623/);
   assert.match(css, /text-shadow:/);
   assert.match(css, /symphony-transport__title h2\[data-page-now-playing\]/);
 });
 
-test("Spectral Forge flagship layer makes PLAY and FORGE field-first without weakening mobile bounds", async () => {
+test("Spectral Forge removes the dead hero band and keeps PLAY and FORGE field-first", async () => {
   const css = await source(forgeFlagshipCssUrl);
+  assert.match(css, /forge-product-header[\s\S]*min-height:\s*0/);
+  assert.match(css, /forge-product-header[\s\S]*align-items:\s*center/);
   assert.match(css, /forge-play \.forge-field-stage/);
-  assert.match(css, /min-height:\s*clamp\(640px, calc\(100svh - 350px\), 820px\)/);
+  assert.match(css, /min-height:\s*clamp\(700px, calc\(100svh - 250px\), 900px\)/);
+  assert.match(css, /forge-route-overlay > span:nth-child\(2\)[\s\S]*visibility:\s*hidden/);
   assert.match(css, /forge-workspace/);
-  assert.match(css, /minmax\(560px,1\.52fr\)/);
+  assert.match(css, /minmax\(650px,1\.78fr\)/);
   assert.match(css, /forge-field-stage--compact/);
-  assert.match(css, /min-height:\s*610px/);
+  assert.match(css, /min-height:\s*720px/);
   assert.match(css, /@media \(max-width: 560px\)/);
   assert.match(css, /width:\s*100%/);
 });
 
 test("active Spectral Field visual pipeline is state-driven rather than scenario-art directed", async () => {
   const art = await source(fieldArtUrl);
+  const compose = await source(fieldComposeUrl);
   const geometry = await source(fieldGeometryUrl);
   const model = await source(fieldModelUrl);
   const layers = await source(fieldLayersUrl);
@@ -108,6 +128,17 @@ test("active Spectral Field visual pipeline is state-driven rather than scenario
   assert.match(art, /spectral-field-layers-v4\.js/);
   assert.match(model, /function fieldArtState\(frame, mapped\)/);
   assert.match(model, /FIELD_VISUAL_SEED/);
+  assert.match(geometry, /signatureState\(art, mapped, health, coherence\)/);
+  assert.match(geometry, /radiusX = width \* \(0\.395/);
+  assert.match(geometry, /depthSpan/);
+  assert.match(geometry, /latticeSnap/);
+  assert.match(layers, /function projectPoint\(state, x, y, z/);
+  assert.match(layers, /drawPressureMembranes/);
+  assert.match(layers, /drawSignatureMoments/);
+  assert.match(layers, /drawSelectedRoute/);
+  assert.match(layers, /localScale/);
+  assert.match(compose, /drawPressureMembranes\.call/);
+  assert.match(compose, /drawSignatureMoments\.call/);
   assert.doesNotMatch(model, /SCENARIO_ART_PROFILES|scenarioArtState|scenarioId/);
   assert.doesNotMatch(geometry, /SCENARIO_BY_ID|visualSeed|scenarioId/);
   assert.doesNotMatch(layers, /scenarioId/);
