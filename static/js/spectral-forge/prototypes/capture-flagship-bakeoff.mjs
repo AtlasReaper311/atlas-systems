@@ -9,8 +9,9 @@ const OUT = process.env.SPECTRAL_FORGE_CAPTURE_DIR
 const BASE = process.env.SPECTRAL_FORGE_URL || "http://127.0.0.1:8791/lab/spectral-forge/";
 const PROTOS = [
   { id: "flagship-anatomy-c", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-c.js", backend: "webgl" },
-  { id: "flagship-anatomy-e", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-e.js", backend: "webgl" },
+  { id: "flagship-anatomy-f", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-f.js", backend: "webgl" },
 ];
+const NORMAL_CAPTURES = [1, 5, 10, 20];
 
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 });
@@ -62,20 +63,8 @@ async function metrics() {
     });
     const c = document.querySelector(".forge-play .forge-field-stage canvas:not(.spectral-field-proto-webgl)");
     if (!c) return null;
-    const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
-    let lit = 0;
-    let total = 0;
-    let maxL = 0;
-    for (let i = 0; i < d.length; i += 4 * 53) {
-      total += 1;
-      const l = d[i] + d[i + 1] + d[i + 2];
-      if (l > 70) lit += 1;
-      if (l > maxL) maxL = l;
-    }
     return {
       raf,
-      litPct: Math.round((lit / total) * 100),
-      maxL,
       renderer: c.dataset.fieldRenderer ?? null,
       backend: c.dataset.fieldBackend ?? null,
       webglCanvases: document.querySelectorAll(".forge-play .forge-field-stage .spectral-field-proto-webgl").length,
@@ -92,8 +81,6 @@ function assertMetrics(proto, sample, label) {
   if (proto.backend === "webgl") {
     assert.equal(sample.backend, "webgl", `${label}: flagship did not activate WebGL`);
     assert.equal(sample.webglCanvases, 1, `${label}: expected exactly one WebGL overlay`);
-  } else {
-    assert.equal(sample.webglCanvases, 0, `${label}: stale WebGL overlay contaminated comparison prototype`);
   }
 }
 
@@ -102,23 +89,17 @@ for (const proto of PROTOS) {
   await page.locator(".forge-scenario-control select").first().selectOption({ index: 0 });
   await page.getByRole("button", { name: /^PLAY$/i }).first().click();
 
-  await page.waitForTimeout(3000);
-  const normal3 = await metrics();
-  assertMetrics(proto, normal3, `${proto.id} NORMAL 3s`);
-  await page.locator(".forge-play .forge-field-stage").screenshot({ path: path.join(OUT, `${proto.id}-normal-3s.png`) });
-  console.log(proto.id, "NORMAL 3s", normal3);
-
-  await page.waitForTimeout(7000);
-  const normal10 = await metrics();
-  assertMetrics(proto, normal10, `${proto.id} NORMAL 10s`);
-  await page.locator(".forge-play .forge-field-stage").screenshot({ path: path.join(OUT, `${proto.id}-normal-10s.png`) });
-  console.log(proto.id, "NORMAL 10s", normal10);
-
-  await page.waitForTimeout(10000);
-  const normal20 = await metrics();
-  assertMetrics(proto, normal20, `${proto.id} NORMAL 20s`);
-  await page.locator(".forge-play .forge-field-stage").screenshot({ path: path.join(OUT, `${proto.id}-normal-20s.png`) });
-  console.log(proto.id, "NORMAL 20s", normal20);
+  let elapsed = 0;
+  for (const seconds of NORMAL_CAPTURES) {
+    await page.waitForTimeout((seconds - elapsed) * 1000);
+    elapsed = seconds;
+    const sample = await metrics();
+    assertMetrics(proto, sample, `${proto.id} NORMAL ${seconds}s`);
+    await page.locator(".forge-play .forge-field-stage").screenshot({
+      path: path.join(OUT, `${proto.id}-normal-${seconds}s.png`),
+    });
+    console.log(proto.id, `NORMAL ${seconds}s`, sample);
+  }
 
   const pause = page.getByRole("button", { name: /^(PAUSE|STOP)$/i }).first();
   if (await pause.count()) await pause.click().catch(() => {});
@@ -126,9 +107,11 @@ for (const proto of PROTOS) {
   await page.getByRole("button", { name: /^PLAY$/i }).first().click();
   await page.waitForTimeout(20000);
   const cascade = await metrics();
-  assertMetrics(proto, cascade, `${proto.id} CASCADE`);
-  await page.locator(".forge-play .forge-field-stage").screenshot({ path: path.join(OUT, `${proto.id}-cascade-20s.png`) });
-  console.log(proto.id, "CASCADE", cascade);
+  assertMetrics(proto, cascade, `${proto.id} CASCADE 20s`);
+  await page.locator(".forge-play .forge-field-stage").screenshot({
+    path: path.join(OUT, `${proto.id}-cascade-20s.png`),
+  });
+  console.log(proto.id, "CASCADE 20s", cascade);
   if (await pause.count()) await pause.click().catch(() => {});
 }
 
