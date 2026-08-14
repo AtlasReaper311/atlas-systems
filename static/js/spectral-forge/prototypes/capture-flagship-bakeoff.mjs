@@ -9,7 +9,7 @@ const OUT = process.env.SPECTRAL_FORGE_CAPTURE_DIR
 const BASE = process.env.SPECTRAL_FORGE_URL || "http://127.0.0.1:8791/lab/spectral-forge/";
 const PROTOS = [
   { id: "flagship-anatomy-c", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-c.js", backend: "webgl" },
-  { id: "flagship-anatomy-d", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-d.js", backend: "webgl" },
+  { id: "flagship-anatomy-e", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-e.js", backend: "webgl" },
 ];
 
 const browser = await chromium.launch({ headless: true });
@@ -101,11 +101,24 @@ for (const proto of PROTOS) {
   await swap(proto.module);
   await page.locator(".forge-scenario-control select").first().selectOption({ index: 0 });
   await page.getByRole("button", { name: /^PLAY$/i }).first().click();
+
   await page.waitForTimeout(3000);
-  const normal = await metrics();
-  assertMetrics(proto, normal, `${proto.id} NORMAL`);
+  const normal3 = await metrics();
+  assertMetrics(proto, normal3, `${proto.id} NORMAL 3s`);
   await page.locator(".forge-play .forge-field-stage").screenshot({ path: path.join(OUT, `${proto.id}-normal-3s.png`) });
-  console.log(proto.id, "NORMAL", normal);
+  console.log(proto.id, "NORMAL 3s", normal3);
+
+  await page.waitForTimeout(7000);
+  const normal10 = await metrics();
+  assertMetrics(proto, normal10, `${proto.id} NORMAL 10s`);
+  await page.locator(".forge-play .forge-field-stage").screenshot({ path: path.join(OUT, `${proto.id}-normal-10s.png`) });
+  console.log(proto.id, "NORMAL 10s", normal10);
+
+  await page.waitForTimeout(10000);
+  const normal20 = await metrics();
+  assertMetrics(proto, normal20, `${proto.id} NORMAL 20s`);
+  await page.locator(".forge-play .forge-field-stage").screenshot({ path: path.join(OUT, `${proto.id}-normal-20s.png`) });
+  console.log(proto.id, "NORMAL 20s", normal20);
 
   const pause = page.getByRole("button", { name: /^(PAUSE|STOP)$/i }).first();
   if (await pause.count()) await pause.click().catch(() => {});
