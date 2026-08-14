@@ -152,10 +152,6 @@ html[data-atlas-interface] body { font-size: max(15px, 1rem); }
     transform-origin: 50% 0;
   }
 
-  html[data-atlas-interface][data-atlas-route-transition="leaving"] body > main {
-    animation: atlas-page-exit 180ms cubic-bezier(.28, .76, .24, 1) both;
-  }
-
   html[data-atlas-interface] body::before {
     content: "";
     position: fixed;
@@ -169,55 +165,15 @@ html[data-atlas-interface] body { font-size: max(15px, 1rem); }
     animation: atlas-route-scan 420ms cubic-bezier(.18, .78, .18, 1) both;
   }
 
-  html[data-atlas-interface][data-atlas-route-transition="leaving"] body::before {
-    height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(245,166,35,.88), rgba(74,222,128,.58), rgba(56,189,248,.42), transparent);
-    animation: atlas-route-exit-scan 180ms cubic-bezier(.2, .72, .2, 1) both;
-    box-shadow: 0 0 18px rgba(245,166,35,.34);
-  }
-
-  html[data-atlas-interface][data-atlas-route-transition="leaving"] body::after {
-    content: "";
-    position: fixed;
-    inset: var(--atlas-header-height, 56px) 0 0;
-    z-index: calc(var(--atlas-z-sticky, 100) + 3);
-    pointer-events: none;
-    background:
-      linear-gradient(90deg, transparent 0%, rgba(245,166,35,.08) 22%, rgba(245,166,35,.42) 43%, rgba(74,222,128,.34) 50%, rgba(56,189,248,.18) 58%, transparent 76%),
-      repeating-linear-gradient(180deg, rgba(245,166,35,.16) 0 1px, transparent 1px 6px);
-    mix-blend-mode: screen;
-    opacity: 0;
-    transform: translate3d(-120%, 0, 0);
-    animation: atlas-terminal-wipe 180ms cubic-bezier(.2, .72, .2, 1) both;
-  }
-
   @keyframes atlas-page-enter {
     from { transform: translate3d(0, 18px, 0); filter: brightness(.88) saturate(.96); }
     to { transform: translate3d(0, 0, 0); filter: brightness(1); }
-  }
-
-  @keyframes atlas-page-exit {
-    from { transform: translate3d(0, 0, 0); filter: brightness(1); }
-    to { transform: translate3d(0, -10px, 0); filter: brightness(.9) saturate(1.04); }
   }
 
   @keyframes atlas-route-scan {
     0% { transform: translateX(-100%); opacity: 0; }
     18% { opacity: .72; }
     100% { transform: translateX(100%); opacity: 0; }
-  }
-
-  @keyframes atlas-route-exit-scan {
-    0% { transform: translateX(-100%); opacity: 0; }
-    22% { opacity: 1; }
-    100% { transform: translateX(0); opacity: .88; }
-  }
-
-  @keyframes atlas-terminal-wipe {
-    0% { transform: translate3d(-120%, 0, 0); opacity: 0; }
-    18% { opacity: .86; }
-    72% { opacity: .68; }
-    100% { transform: translate3d(118%, 0, 0); opacity: 0; }
   }
 
   @supports (view-transition-name: root) {

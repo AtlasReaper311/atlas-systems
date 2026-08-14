@@ -182,24 +182,29 @@ test("Lab routes ship the context strip beneath the header", () => {
 });
 
 test("route transition motion is bounded and never restores the dark overlay", () => {
-  const shell = fs.readFileSync("static/js/estate-shell.js", "utf8");
   const transitions = fs.readFileSync("js/transitions.js", "utf8");
   // Comments may name what was removed; the code may not do it.
-  const code = `${shell}\n${transitions}`.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  const code = transitions.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
   assert.doesNotMatch(code, /location\.assign/);
   assert.doesNotMatch(code, /page-overlay/);
   assert.doesNotMatch(code, /route-ready|route-closing/);
-  assert.match(shell, /const ROUTE_EXIT_MS = 180/);
+  assert.match(transitions, /var ROUTE_EXIT_MS = 180/);
   assert.match(code, /addEventListener\("click"/);
   assert.match(code, /preventDefault\(\)/);
   assert.match(code, /atlasRouteTransition = "leaving"/);
   assert.match(code, /window\.setTimeout/);
   assert.match(code, /window\.location\.href = destination/);
+  assert.match(code, /document\.createElement\("div"\)/);
+  assert.match(code, /repeating-linear-gradient/);
+  assert.match(code, /\.animate\(/);
   assert.match(code, /prefers-reduced-motion: reduce/);
 
   // The two behaviours that genuinely belong to page entry stay.
   assert.match(transitions, /window\.location\.pathname === "\/about\/"/);
   assert.match(transitions, /data-ramone-reduced-musing/);
+  for (const path of ["index.html", "systems/index.html"]) {
+    assert.match(fs.readFileSync(path, "utf8"), /\/js\/transitions\.js\?v=20260814-terminal-swipe/, `${path} must load route motion`);
+  }
 
   for (const path of governedRoutes()) {
     const source = fs.readFileSync(path, "utf8");
@@ -356,20 +361,16 @@ test("field surfaces are contained before any canvas can mount", () => {
 
 test("page motion restores a bounded terminal swipe without a dark curtain", () => {
   const shellCss = fs.readFileSync("static/css/estate-shell.css", "utf8");
-  const shell = fs.readFileSync("static/js/estate-shell.js", "utf8");
   const transitions = fs.readFileSync("js/transitions.js", "utf8");
-  const transitionCode = `${shell}\n${transitions}`.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  const transitionCode = transitions.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
   assert.match(shellCss, /@keyframes atlas-page-enter/);
   assert.match(shellCss, /body > main\s*\{[^}]*animation:\s*atlas-page-enter 420ms/s);
-  assert.match(shellCss, /data-atlas-route-transition="leaving"/);
-  assert.match(shellCss, /@keyframes atlas-page-exit/);
-  assert.match(shellCss, /@keyframes atlas-route-exit-scan/);
-  assert.match(shellCss, /@keyframes atlas-terminal-wipe/);
-  assert.match(shellCss, /body::after\s*\{[^}]*repeating-linear-gradient/s);
-  assert.match(shellCss, /body::after\s*\{[^}]*animation:\s*atlas-terminal-wipe 180ms/s);
   assert.match(shellCss, /@keyframes atlas-route-scan/);
   assert.match(shellCss, /@view-transition\s*\{\s*navigation:\s*auto;\s*\}/);
+  assert.match(transitions, /ROUTE_EXIT_MS = 180/);
+  assert.match(transitions, /repeating-linear-gradient/);
+  assert.match(transitions, /translate3d\(118%,0,0\)/);
   assert.doesNotMatch(transitionCode, /location\.assign|page-overlay/);
 });
 

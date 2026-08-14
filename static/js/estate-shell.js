@@ -9,7 +9,6 @@ import {
 import { installSharedFoundationSemantics } from "./shared-foundation-semantics.js";
 
 const STATUS_TIMEOUT_MS = 6_000;
-const ROUTE_EXIT_MS = 180;
 const KIT_STYLESHEET = "/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css";
 const SHELL_STYLESHEET = "/static/css/estate-shell.css?v=20260723-interface-v2";
 
@@ -128,61 +127,6 @@ function normalizeLinks(root) {
   if (typeof Element === "undefined" || typeof Document === "undefined") return;
   if (!(root instanceof Element || root instanceof Document)) return;
   root.querySelectorAll("a[href]").forEach(normalizeLink);
-}
-
-function prefersReducedMotion() {
-  return Boolean(
-    window.matchMedia &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  );
-}
-
-function routeDestination(anchor, event) {
-  if (!anchor || event.defaultPrevented || event.button !== 0) return null;
-  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return null;
-  if (anchor.target && anchor.target !== "_self") return null;
-  if (anchor.hasAttribute("download")) return null;
-
-  let url;
-  try {
-    url = new URL(anchor.href, window.location.href);
-  } catch {
-    return null;
-  }
-
-  if (url.origin !== window.location.origin) return null;
-  if (
-    url.pathname === window.location.pathname
-    && url.search === window.location.search
-    && url.hash
-  ) return null;
-  return url.href;
-}
-
-function installRouteTransition() {
-  const root = document.documentElement;
-  if (root.dataset.atlasRouteTransitionReady === "true" || prefersReducedMotion()) return;
-  root.dataset.atlasRouteTransitionReady = "true";
-
-  let leaving = false;
-  document.addEventListener("click", (event) => {
-    const anchor = event.target?.closest ? event.target.closest("a[href]") : null;
-    const destination = routeDestination(anchor, event);
-    if (!destination) return;
-
-    event.preventDefault();
-    if (leaving) return;
-    leaving = true;
-    root.dataset.atlasRouteTransition = "leaving";
-    window.setTimeout(() => {
-      window.location.href = destination;
-    }, ROUTE_EXIT_MS);
-  }, { capture: true });
-
-  window.addEventListener("pageshow", () => {
-    leaving = false;
-    delete root.dataset.atlasRouteTransition;
-  });
 }
 
 function replaceHeading(element, tagName) {
@@ -497,7 +441,6 @@ function install() {
   ensureIcons();
   installHeader();
   installMobileNavigation();
-  installRouteTransition();
   normalizeLinks(document);
   normalizeLegacySemantics(document);
   installSharedFoundationSemantics();
@@ -512,7 +455,6 @@ if (typeof document !== "undefined") {
 export {
   ATLAS_OWNED_HOSTS,
   GLOBAL_ROUTES,
-  installRouteTransition,
   normalizeAtlasTitle,
   normalizeLegacySemantics,
   normalizeLink,
