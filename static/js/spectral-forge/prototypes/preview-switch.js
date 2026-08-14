@@ -22,6 +22,7 @@ const PROTOS = Object.freeze({
   "flagship-anatomy-f2": "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-f2.js",
   "flagship-anatomy-f3": "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-f3.js",
   "flagship-anatomy-f31": "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-f31.js",
+  "flagship-final-form": "/static/js/spectral-forge/prototypes/field-proto-flagship-final-form.js",
   "living-organism": "/static/js/spectral-forge/prototypes/field-proto-living-organism.js",
   "specimen-core": "/static/js/spectral-forge/prototypes/field-proto-specimen-core.js",
   "signal-monolith": "/static/js/spectral-forge/prototypes/field-proto-signal-monolith.js",
@@ -50,6 +51,7 @@ const LABELS = Object.freeze({
   "flagship-anatomy-f2": "flagship anatomy F2",
   "flagship-anatomy-f3": "flagship anatomy F3",
   "flagship-anatomy-f31": "flagship anatomy F3.1",
+  "flagship-final-form": "flagship final form",
   "living-organism": "living organism",
   "specimen-core": "specimen core",
   "signal-monolith": "signal monolith",
@@ -63,7 +65,7 @@ const LABELS = Object.freeze({
 
 const PRIMARY_PROTOS = Object.freeze([
   "flagship-anatomy-f2",
-  "flagship-anatomy-f31",
+  "flagship-final-form",
 ]);
 
 const params = new URLSearchParams(location.search);

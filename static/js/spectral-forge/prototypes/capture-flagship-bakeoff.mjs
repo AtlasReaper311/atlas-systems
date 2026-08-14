@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
-import { chromium } from "playwright";
+import { chromium, firefox } from "playwright";
 
 const OUT = process.env.SPECTRAL_FORGE_CAPTURE_DIR
   ? path.resolve(process.env.SPECTRAL_FORGE_CAPTURE_DIR)
@@ -9,12 +9,14 @@ const OUT = process.env.SPECTRAL_FORGE_CAPTURE_DIR
 const BASE = process.env.SPECTRAL_FORGE_URL || "http://127.0.0.1:8791/lab/spectral-forge/";
 const PROTOS = [
   { id: "flagship-anatomy-f2", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-f2.js", backend: "webgl" },
-  { id: "flagship-anatomy-f31", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-f31.js", backend: "webgl" },
+  { id: "flagship-final-form", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-final-form.js", backend: "webgl" },
 ];
 const AUDIO_MODES = [false, true];
-const NORMAL_CAPTURES = [1, 5, 10, 20];
+const NORMAL_CAPTURES = [1, 3, 5, 10, 20, 30];
+const ENGINE = process.env.SPECTRAL_FORGE_BROWSER === "firefox" ? "firefox" : "chromium";
+const browserType = ENGINE === "firefox" ? firefox : chromium;
 
-const browser = await chromium.launch({ headless: true });
+const browser = await browserType.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 });
 page.setDefaultTimeout(45_000);
 let pageErrors = [];
@@ -141,6 +143,17 @@ function assertMetrics(proto, sample, label) {
     assert.equal(sample.rendererPerf.fields, 7, `${label}: F3.1 field topology changed unexpectedly`);
     assert.equal(sample.rendererPerf.shaderCompiled, true, `${label}: F3.1 shader did not compile`);
     assert.equal(sample.rendererPerf.smoothNormals, true, `${label}: F3.1 smooth-normal path not active`);
+  }
+  if (proto.id === "flagship-final-form") {
+    assert.ok(sample.rendererPerf, `${label}: final-form performance telemetry missing`);
+    assert.equal(sample.rendererPerf.architecture, "gpu-final-form", `${label}: final-form renderer changed architecture`);
+    assert.equal(sample.rendererPerf.gpuDeformation, true, `${label}: final-form GPU deformation flag missing`);
+    assert.equal(sample.rendererPerf.macroModel, "f2-seven-field", `${label}: final-form macro model drifted from F2`);
+    assert.equal(sample.rendererPerf.microModel, "shader-folds-plus-instanced-magnetic-peaks", `${label}: final-form micro model missing`);
+    assert.equal(sample.rendererPerf.fields, 7, `${label}: final-form field topology changed unexpectedly`);
+    assert.equal(sample.rendererPerf.shaderCompiled, true, `${label}: final-form shader did not compile`);
+    assert.equal(sample.rendererPerf.smoothNormals, true, `${label}: final-form smooth-normal path not active`);
+    assert.ok(sample.rendererPerf.microSpikes >= 48, `${label}: final-form micro-spike system not active`);
   }
 }
 
