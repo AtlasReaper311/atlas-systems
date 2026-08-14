@@ -113,22 +113,27 @@ async function runEngine(engineName, engine) {
       await page.screenshot({ path: path.join(outputDir, `${engineName}-03-${mode.toLowerCase()}.png`) });
     }
 
-    // Scenario change keeps the same renderer.
+    // Scenario changes retarget telemetry on the same living specimen. Playback
+    // must remain active, the same renderer must keep animating, and the new
+    // scenario-local clock must restart near zero without requiring another PLAY.
     const scenario = page.locator(".forge-scenario-control select").first();
     if (await scenario.count()) {
       await scenario.selectOption({ index: 5 });
       await page.waitForTimeout(800);
-      const after = await page.evaluate(visibleFieldCanvas);
-      assert.equal(after.renderer, EXPECTED_RENDERER, `${engineName}: renderer changed after scenario change`);
-      evidence.steps.push({ step: "scenario-change", ...after });
+      const scenarioFrames = await sampleField(page, 3);
+      const distinct = assertLiveField(scenarioFrames, `${engineName}: scenario change`);
+      assert.ok(await page.evaluate(isPlaying), `${engineName}: playback stopped when switching scenario`);
+      const tAfterScenario = await page.evaluate(simTime);
+      assert.match(tAfterScenario ?? "", /^00:0[01]\.\d$/, `${engineName}: scenario-local time did not restart near zero -> ${tAfterScenario}`);
+      evidence.steps.push({
+        step: "scenario-change",
+        canvas: scenarioFrames[0].id,
+        distinctFrames: distinct,
+        renderer: scenarioFrames[0].renderer,
+        scenarioTime: tAfterScenario,
+      });
       await page.screenshot({ path: path.join(outputDir, `${engineName}-04-scenario.png`) });
     }
-
-    // Resume after a scenario change must animate the same renderer again.
-    await page.getByRole("button", { name: /^PLAY$/i }).first().click();
-    await page.waitForTimeout(600);
-    const resumed = await sampleField(page, 3);
-    evidence.steps.push({ step: "resume", distinctFrames: assertLiveField(resumed, `${engineName}: resume`) });
 
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
     assert.equal(overflow, false, `${engineName}: horizontal overflow at ${VIEWPORT.width}px`);
