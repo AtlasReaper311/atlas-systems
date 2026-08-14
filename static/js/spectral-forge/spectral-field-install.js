@@ -7,7 +7,7 @@ export function installSpectralFieldRuntime(methods) {
   Object.defineProperty(SpectralFieldRenderer.prototype, "spectralFieldVersion", {
     configurable: false,
     enumerable: false,
-    value: "3.0",
+    value: "4.0",
     writable: false,
   });
 }
