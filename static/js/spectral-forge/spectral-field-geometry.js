@@ -2,6 +2,7 @@
 
 import { clamp } from "./domain.js";
 import { FIELD_VISUAL_SEED, fieldArtState, visualTargetState } from "./spectral-field-model.js";
+import { resolveScenarioFrame } from "./spectral-field-scenario-clock.js";
 
 function numericHealthProfile(pressure, disturbance, mapped) {
   const severity = clamp(pressure * 0.58 + disturbance * 0.27 + mapped.phaseDisagreement * 0.09 + mapped.granularFracture * 0.06);
@@ -26,8 +27,9 @@ function signatureState(art, mapped, health, coherence) {
   });
 }
 
-export function deriveFieldGeometry(state, visualTime, width, height) {
-  const { frame, outputs } = state;
+export function deriveFieldGeometry(state, visualTime, width, height, timestamp = performance.now()) {
+  const { outputs } = state;
+  const frame = resolveScenarioFrame(state.frame, state.scenarioHandoff, timestamp);
   const values = frame.normalised;
   const mapped = visualTargetState(outputs);
   const art = fieldArtState(frame, mapped);

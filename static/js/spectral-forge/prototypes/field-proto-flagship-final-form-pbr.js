@@ -10,23 +10,36 @@ import {
   createFinalUniformState,
 } from "./field-proto-flagship-final-form-shader.js";
 import {
+  activityFocus,
   attitudeTarget,
+  audioLife,
   cameraOffset,
   createAttitudeState,
+  createSafeFramingState,
+  estimateOrganismExtent,
+  anticipateExtent,
   fieldCentre,
   fieldLife,
+  focusWeight,
   livingGesture,
+  MAX_FISSION_DAUGHTERS,
   mesoDrive,
+  readDebugGesture,
   satelliteThreshold,
   stepAttitude,
+  stepSafeFraming,
 } from "./field-proto-flagship-final-form-life.js";
 
 const RENDERER_ID = "proto-flagship-final-form";
 const WEBGL_CLASS = "spectral-field-proto-webgl";
 const SATELLITE_COUNT = 14;
+const FISSION_CHILD_WIDTH = 96;
+const FISSION_CHILD_HEIGHT = 64;
 const WIDTH_SEGMENTS = 288;
 const HEIGHT_SEGMENTS = 176;
 const WEBGL_DPR_CAP = 1.22;
+const MESH_FALLBACK_WIDTH = 240;
+const MESH_FALLBACK_HEIGHT = 144;
 const PLATE_STRIDE = 4;
 const TAU = Math.PI * 2;
 
@@ -156,7 +169,7 @@ function createState(renderer, seedPhase) {
   webgl.toneMappingExposure = 0.9;
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(28.5, 1, 0.1, 20);
+  const camera = new THREE.PerspectiveCamera(28.5, 1, 0.1, 40);
   camera.position.set(0, 0.02, 4.42);
 
   const group = new THREE.Group();
@@ -173,7 +186,8 @@ function createState(renderer, seedPhase) {
     microModel: "continuous-shader-surface-peaks",
     normalModel: "vertex-finite-difference-displaced-surface",
     orientationModel: "bounded-damped-attitude",
-    splitModel: "near-split-cohesion-neck",
+    splitModel: "visual-fission-coherent-daughters",
+    meshFallback: `${MESH_FALLBACK_WIDTH}x${MESH_FALLBACK_HEIGHT}`,
     smoothNormals: false,
     vertices: geometry.getAttribute("position").count,
     fields: FINAL_FIELD_COUNT,
@@ -183,6 +197,7 @@ function createState(renderer, seedPhase) {
     lastCpuMs: 0,
     emaCpuMs: 0,
     maxCpuMs: 0,
+    maxExtent: 0,
     stageTimings: {
       geometryUniformMs: 0,
       microstructureCpuMs: 0,
@@ -219,9 +234,12 @@ function createState(renderer, seedPhase) {
   const rim = new THREE.DirectionalLight(0x76728f, 0.76);
   rim.position.set(5.2, 2.0, 2.8);
   scene.add(rim);
-  const low = new THREE.DirectionalLight(0x73717a, 4.1);
+  const low = new THREE.DirectionalLight(0x73717a, 3.55);
   low.position.set(-2.2, -3.4, 3.2);
   scene.add(low);
+  const fill = new THREE.DirectionalLight(0xeeedf4, 0.38);
+  fill.position.set(3.8, 4.4, 5.1);
+  scene.add(fill);
   const edge = new THREE.PointLight(0xf3f2ff, 0.08, 8, 2);
   edge.position.set(1.5, 2.55, 3.4);
   scene.add(edge);
@@ -238,6 +256,23 @@ function createState(renderer, seedPhase) {
   satellites.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   satellites.frustumCulled = false;
   group.add(satellites);
+
+  const childUniforms = createFinalUniformState();
+  childUniforms.identitySeed.value = uniforms.identitySeed.value + 0.37;
+  childUniforms.fissionRole.value = 1;
+  const childMaterial = material.clone();
+  childMaterial.polygonOffset = true;
+  childMaterial.polygonOffsetFactor = 1;
+  childMaterial.polygonOffsetUnits = 1;
+  configureFinalMaterial(childMaterial, childUniforms, perf);
+  const childGeometry = new THREE.SphereGeometry(1, FISSION_CHILD_WIDTH, FISSION_CHILD_HEIGHT);
+  const fissionChildren = Array.from({ length: MAX_FISSION_DAUGHTERS }, () => {
+    const mesh = new THREE.Mesh(childGeometry, childMaterial);
+    mesh.frustumCulled = false;
+    mesh.visible = false;
+    group.add(mesh);
+    return mesh;
+  });
 
   const state = {
     canvas,
@@ -257,6 +292,10 @@ function createState(renderer, seedPhase) {
     satelliteDummy: new THREE.Object3D(),
     satelliteZeroMatrix: new THREE.Matrix4().makeScale(0, 0, 0),
     satelliteSeeds: createSatelliteSeeds(seedPhase),
+    childUniforms,
+    childMaterial,
+    childGeometry,
+    fissionChildren,
     cssWidth: 0,
     cssHeight: 0,
     disposed: false,
@@ -264,6 +303,8 @@ function createState(renderer, seedPhase) {
     lastWide: null,
     lastOpacity: "",
     attitude: createAttitudeState(),
+    audioExpression: 0,
+    audioExpressionTime: null,
     perf,
   };
 
@@ -280,6 +321,8 @@ function disposeState(renderer, state) {
   state.material.dispose();
   state.satelliteGeometry.dispose();
   state.satelliteMaterial.dispose();
+  state.childGeometry.dispose();
+  state.childMaterial.dispose();
   state.webgl.dispose();
   if (state.canvas.isConnected) state.canvas.remove();
   if (renderer._flagshipFinalFormWebgl === state) renderer._flagshipFinalFormWebgl = null;
@@ -309,13 +352,38 @@ function resize(state, sourceCanvas) {
   return true;
 }
 
-function updateFields(state, g, activity, damage, audioActive, gesture) {
+function sharedLifeHost(renderer, state) {
+  const life = renderer.state?.organismLife;
+  if (!life) return state;
+  if (typeof life.audioExpression !== "number") life.audioExpression = state.audioExpression ?? 0;
+  if (!life.attitude) life.attitude = state.attitude ?? createAttitudeState();
+  if (!life.framing) life.framing = createSafeFramingState();
+  state.attitude = life.attitude;
+  return life;
+}
+
+function stepAudioExpression(host, audioActive, visualTime) {
+  const target = audioActive ? 1 : 0;
+  const previous = host.audioExpressionTime;
+  if (previous != null && visualTime + 0.0001 < previous) {
+    host.audioExpressionTime = visualTime;
+    return host.audioExpression;
+  }
+  const dt = previous == null ? 0.016 : clamp(visualTime - previous, 0.001, 0.05);
+  host.audioExpressionTime = visualTime;
+  const delta = target - host.audioExpression;
+  host.audioExpression += Math.sign(delta) * Math.min(Math.abs(delta), 2.4 * dt);
+  return host.audioExpression;
+}
+
+function updateFields(state, g, activity, damage, audioMixValue, gesture, focus) {
   for (let i = 0; i < FINAL_FIELD_COUNT; i += 1) {
     const seed = state.fieldSeeds[i];
     const field = state.fields[i];
     const { a, index } = seed;
-    const centre = fieldCentre(g.phase, seed, activity, audioActive);
-    const life = fieldLife(g.phase, seed, g.mapped, damage, audioActive, gesture);
+    const centre = fieldCentre(g.phase, seed, activity, audioMixValue, gesture);
+    const life = fieldLife(g.phase, seed, g.mapped, damage, audioMixValue, gesture);
+    const weight = focusWeight(centre, focus);
 
     field.x = centre.x;
     field.y = centre.y;
@@ -328,14 +396,14 @@ function updateFields(state, g, activity, damage, audioActive, gesture) {
       + g.mapped.phaseDisagreement * 0.04
       + damage * 0.06
       + (gesture.fold * 0.028)
-    ) * life.strengthScale;
+    ) * life.strengthScale * weight;
     field.invExtent = 1 / (1.8 * life.sigma * life.sigma);
     field.flow = (0.082 + g.mapped.displacement * 0.07 + activity * 0.032) * life.flowScale * (0.82 + seed.d * 0.42);
     field.swirl = (0.036 + g.mapped.phaseDisagreement * 0.066 + damage * 0.03) * life.swirlScale * (0.8 + seed.e * 0.4);
     field.crest = (0.12 + g.mapped.microstructure * 0.17 + g.mapped.brilliance * 0.065 + damage * 0.08) * life.crestScale;
-    field.waveFrequency = (11.4 + index * 1.34) * (audioActive ? 1.16 : 1);
+    field.waveFrequency = 11.4 + index * 1.34;
     field.wavePhase = -g.phase * life.waveRate + a * TAU + index * 1.71;
-    field.crestGate = smooth(clamp((life.polarity - 0.08) / 0.78));
+    field.crestGate = smooth(clamp((life.polarity - (0.08 - audioMixValue * 0.12)) / 0.78));
 
     state.uniforms.fields[i].set(field.x, field.y, field.z, field.polarity);
     state.uniforms.fieldParamsA[i].set(field.strength, field.invExtent, field.flow, field.swirl);
@@ -343,8 +411,7 @@ function updateFields(state, g, activity, damage, audioActive, gesture) {
   }
 }
 
-function updateUniforms(state, renderer, g, band, damage, activity, gesture) {
-  const audioActive = Boolean(renderer.state.audioEnabled && !renderer.state.muted);
+function updateUniforms(state, renderer, g, band, damage, activity, gesture, audioMixValue) {
   state.uniforms.phase.value = g.phase;
   state.uniforms.activity.value = activity;
   state.uniforms.damage.value = damage;
@@ -358,11 +425,23 @@ function updateUniforms(state, renderer, g, band, damage, activity, gesture) {
   state.uniforms.breathing.value = g.breathing;
   state.uniforms.microstructure.value = g.mapped.microstructure + gesture.bloom * 0.18;
   state.uniforms.brilliance.value = g.mapped.brilliance;
-  state.uniforms.emission.value = g.mapped.emissionRate * (audioActive ? 1.22 : 1);
-  state.uniforms.audioEnergy.value = audioActive ? 1.06 : 1;
+  const audio = audioLife(audioMixValue);
+  const focus = activityFocus(renderer.visualTime, g.seedPhase);
+  state.uniforms.emission.value = g.mapped.emissionRate * (1 + audioMixValue * 0.08);
+  state.uniforms.audioEnergy.value = 1;
   state.uniforms.lifeA.set(gesture.cohesion, gesture.bloom, gesture.fold, gesture.inversion);
+  state.uniforms.lifeB.set(audio.recruit, audio.ridge, gesture.droplet, audio.pulse);
   state.uniforms.neckAxis.set(gesture.neckAxis.x, gesture.neckAxis.y, gesture.neckAxis.z);
-  const drive = mesoDrive(g.phase, g.seedPhase, audioActive, gesture);
+  const fission = gesture.fission;
+  state.uniforms.fission.set(
+    fission?.gather ?? 0,
+    fission?.pinch ?? 0,
+    fission?.lobe ?? 0,
+    fission?.scar ?? 0,
+  );
+  state.uniforms.fissionRole.value = 0;
+  state.uniforms.fissionGap.value = fission?.gap ?? 0;
+  const drive = mesoDrive(g.phase, g.seedPhase, audioMixValue, gesture, focus);
   state.uniforms.mesoDrive.set(drive.x, drive.y, drive.z, drive.w);
 
   if (band) {
@@ -373,7 +452,7 @@ function updateUniforms(state, renderer, g, band, damage, activity, gesture) {
     state.uniforms.routeEnabled.value = 0;
   }
 
-  updateFields(state, g, activity, damage, audioActive, gesture);
+  updateFields(state, g, activity, damage, audioMixValue, gesture, focus);
 }
 
 function updateSatellites(state, renderer, g, damage, activity, gesture) {
@@ -427,7 +506,67 @@ function updateSatellites(state, renderer, g, damage, activity, gesture) {
   state.satellites.instanceMatrix.needsUpdate = true;
 }
 
-function updateObject(state, renderer, g, damage, activity, aspect, mix, gesture) {
+function copyUniformState(source, target) {
+  for (let i = 0; i < FINAL_FIELD_COUNT; i += 1) {
+    target.fields[i].copy(source.fields[i]);
+    target.fieldParamsA[i].copy(source.fieldParamsA[i]);
+    target.fieldParamsB[i].copy(source.fieldParamsB[i]);
+  }
+  target.phase.value = source.phase.value;
+  target.activity.value = source.activity.value;
+  target.damage.value = source.damage.value;
+  target.displacement.value = source.displacement.value;
+  target.phaseDisagreement.value = source.phaseDisagreement.value;
+  target.coherenceLoss.value = source.coherenceLoss.value;
+  target.lateralSpread.value = source.lateralSpread.value;
+  target.compression.value = source.compression.value;
+  target.stretch.value = source.stretch.value;
+  target.afterimage.value = source.afterimage.value;
+  target.breathing.value = source.breathing.value;
+  target.microstructure.value = source.microstructure.value;
+  target.brilliance.value = source.brilliance.value;
+  target.emission.value = source.emission.value;
+  target.audioEnergy.value = source.audioEnergy.value;
+  target.routeEnabled.value = source.routeEnabled.value;
+  target.routeCenter.value = source.routeCenter.value;
+  target.routeWidth.value = source.routeWidth.value;
+  target.lifeA.copy(source.lifeA);
+  target.lifeB.copy(source.lifeB);
+  target.neckAxis.copy(source.neckAxis);
+  target.mesoDrive.copy(source.mesoDrive);
+  target.fission.copy(source.fission);
+  target.fissionRole.value = 1;
+  target.fissionGap.value = 0;
+}
+
+function updateFissionChildren(state, fission) {
+  copyUniformState(state.uniforms, state.childUniforms);
+  const daughters = fission?.daughters ?? [];
+  for (let i = 0; i < MAX_FISSION_DAUGHTERS; i += 1) {
+    const mesh = state.fissionChildren[i];
+    const daughter = daughters[i];
+    if (!daughter || !daughter.visible) {
+      if (state.frameIndex < 2) {
+        mesh.visible = true;
+        mesh.position.set(0, 0, 0);
+        mesh.scale.setScalar(0.001);
+      } else {
+        mesh.visible = false;
+      }
+      continue;
+    }
+    mesh.visible = true;
+    mesh.position.set(daughter.x, daughter.y, daughter.z);
+    mesh.scale.setScalar(daughter.scale);
+  }
+  state.canvas.__atlasFission = {
+    visible: state.fissionChildren.map((mesh) => mesh.visible),
+    positions: state.fissionChildren.map((mesh) => mesh.position.toArray()),
+    scales: state.fissionChildren.map((mesh) => mesh.scale.x),
+  };
+}
+
+function updateObject(state, renderer, g, damage, activity, aspect, mix, gesture, framing) {
   const wide = aspect > 1.55;
   const baseScale = wide ? 1.08 : 0.89;
   let cx = 0;
@@ -452,12 +591,14 @@ function updateObject(state, renderer, g, damage, activity, aspect, mix, gesture
   const target = attitudeTarget(g.phase, { x: cx, y: cy, z: cz }, g.tilt, g.torsion, g.seedPhase);
   stepAttitude(state.attitude, target, renderer.visualTime);
   const cam = cameraOffset(g.phase, g.seedPhase);
-  state.camera.position.set(cam.x, cam.y, cam.z);
+  const distance = framing?.distance ?? cam.z;
+  const present = framing?.scale ?? 1;
+  state.camera.position.set(cam.x, cam.y, distance + (cam.z - 4.42));
 
   state.group.scale.set(
-    baseScale * (1.03 + g.mapped.lateralSpread * 0.055 + activity * 0.022 - neck * 0.035),
-    baseScale * (0.99 - g.art.compression * 0.022 + Math.abs(cy) * 0.026 + neck * 0.04),
-    baseScale * (0.985 + damage * 0.018 + Math.abs(cz) * 0.018 - neck * 0.03),
+    baseScale * present * (1.03 + g.mapped.lateralSpread * 0.055 + activity * 0.022 - neck * 0.08),
+    baseScale * present * (0.99 - g.art.compression * 0.022 + Math.abs(cy) * 0.026 + neck * 0.09),
+    baseScale * present * (0.985 + damage * 0.018 + Math.abs(cz) * 0.018 - neck * 0.06),
   );
   state.group.position.x = wide ? 0.6 + cx * 0.045 : cx * 0.02;
   state.group.position.y = cy * 0.034 - g.art.compression * 0.018;
@@ -515,22 +656,13 @@ export function drawFlagshipFinalForm(renderer, timestamp = performance.now()) {
 
   const startedAt = performance.now();
   const { width, height } = canvasSize(renderer.canvas);
-  const g = deriveFieldGeometry(renderer.state, renderer.visualTime, width, height);
+  const g = deriveFieldGeometry(renderer.state, renderer.visualTime, width, height, timestamp);
   const mix = transitionMix.call(renderer, timestamp);
   const band = routeBand(renderer.state.selectedMapping);
   const damage = clamp(
     g.health.severity * 0.66 + g.deformation * 0.32 + g.art.fractureBias * 0.18,
   );
   const audioActive = Boolean(renderer.state.audioEnabled && !renderer.state.muted);
-  const activity = clamp(
-    0.38
-    + g.mapped.displacement * 0.28
-    + g.mapped.phaseDisagreement * 0.18
-    + g.mapped.brilliance * 0.1
-    + g.mapped.emissionRate * 0.06
-    + damage * 0.2
-    + (audioActive ? 0.12 : 0),
-  );
 
   let state;
   try {
@@ -539,6 +671,18 @@ export function drawFlagshipFinalForm(renderer, timestamp = performance.now()) {
     renderer._flagshipFinalFormWebglFailure = error;
     throw error;
   }
+
+  const lifeHost = sharedLifeHost(renderer, state);
+  const audioMixValue = stepAudioExpression(lifeHost, audioActive, renderer.visualTime);
+  const activity = clamp(
+    0.38
+    + g.mapped.displacement * 0.28
+    + g.mapped.phaseDisagreement * 0.18
+    + g.mapped.brilliance * 0.1
+    + g.mapped.emissionRate * 0.06
+    + damage * 0.2
+    + audioMixValue * 0.12,
+  );
 
   const stages = {
     geometryUniformMs: 0,
@@ -551,18 +695,33 @@ export function drawFlagshipFinalForm(renderer, timestamp = performance.now()) {
   };
   let stageStartedAt = performance.now();
 
-  const gesture = livingGesture(g.phase, g.seedPhase, audioActive, damage);
+  const gesture = livingGesture(
+    g.phase,
+    g.seedPhase,
+    audioMixValue,
+    damage,
+    renderer.visualTime,
+    renderer.state.scenarioId,
+    renderer.state.debugGesture || readDebugGesture(),
+  );
+  const fission = gesture.fission;
+  lifeHost.fission = fission;
   const resized = resize(state, renderer.canvas);
-  updateUniforms(state, renderer, g, band, damage, activity, gesture);
+  const extent = estimateOrganismExtent(gesture, fission, activity);
+  const lookahead = anticipateExtent(gesture, fission, activity);
+  const aspect = state.cssWidth / Math.max(1, state.cssHeight);
+  stepSafeFraming(lifeHost.framing, extent, renderer.visualTime, lookahead, aspect);
+  updateUniforms(state, renderer, g, band, damage, activity, gesture, audioMixValue);
   stageStartedAt = markStage(stages, "geometryUniformMs", stageStartedAt);
 
   // Microstructure is continuous shader displacement; no CPU cone/base update remains.
   stageStartedAt = markStage(stages, "microstructureCpuMs", stageStartedAt);
 
   updateSatellites(state, renderer, g, damage, activity, gesture);
+  updateFissionChildren(state, fission);
   stageStartedAt = markStage(stages, "satellitesMs", stageStartedAt);
 
-  updateObject(state, renderer, g, damage, activity, state.cssWidth / Math.max(1, state.cssHeight), mix, gesture);
+  updateObject(state, renderer, g, damage, activity, state.cssWidth / Math.max(1, state.cssHeight), mix, gesture, lifeHost.framing);
   stageStartedAt = markStage(stages, "objectTransformMs", stageStartedAt);
 
   state.webgl.render(state.scene, state.camera);
@@ -578,4 +737,13 @@ export function drawFlagshipFinalForm(renderer, timestamp = performance.now()) {
   markStage(stages, "studioPlateMs", stageStartedAt);
   state.frameIndex += 1;
   recordCpuPerf(state, stages, startedAt);
+  renderer.canvas.dataset.fissionPhase = fission?.phase ?? "idle";
+  renderer.canvas.dataset.fissionProgress = String(fission?.progress ?? 0);
+  renderer.canvas.dataset.fissionCount = String(fission?.count ?? 0);
+  renderer.canvas.dataset.organismExtent = String(extent);
+  renderer.canvas.dataset.framingDistance = String(lifeHost.framing?.distance ?? 4.42);
+  renderer.canvas.dataset.framingScale = String(lifeHost.framing?.scale ?? 1);
+  state.perf.maxExtent = Math.max(state.perf.maxExtent ?? 0, extent);
+  state.perf.framingDistance = lifeHost.framing?.distance ?? 4.42;
+  state.perf.framingScale = lifeHost.framing?.scale ?? 1;
 }
