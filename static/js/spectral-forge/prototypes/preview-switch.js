@@ -45,6 +45,11 @@ const LABELS = Object.freeze({
   c: "C aperture",
 });
 
+const PRIMARY_PROTOS = Object.freeze([
+  "flagship-organism",
+  "flagship-anatomy",
+]);
+
 const params = new URLSearchParams(location.search);
 const requested = params.get("proto");
 if (!requested || !Object.prototype.hasOwnProperty.call(PROTOS, requested)) {
@@ -108,54 +113,99 @@ function waitForCanvas() {
   });
 }
 
+function makeButton(id, current, bar) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.textContent = LABELS[id];
+  btn.dataset.proto = id;
+  styleButton(btn, id === current);
+  btn.addEventListener("click", async () => {
+    await apply(id);
+    setProtoInUrl(id);
+    bar.querySelectorAll("button[data-proto]").forEach((node) => {
+      styleButton(node, node.dataset.proto === id);
+    });
+  });
+  return btn;
+}
+
 function mountBar(current) {
   if (document.getElementById("field-proto-bar")) return;
+
   const bar = document.createElement("div");
   bar.id = "field-proto-bar";
   bar.setAttribute("role", "navigation");
   bar.setAttribute("aria-label", "Field prototype switcher");
   bar.style.cssText = [
     "position:fixed",
-    "top:12px",
-    "left:50%",
-    "transform:translateX(-50%)",
-    "z-index:80",
+    "top:96px",
+    "right:16px",
+    "z-index:10000",
     "display:flex",
-    "flex-wrap:wrap",
+    "align-items:center",
     "gap:6px",
-    "max-width:min(96vw,1100px)",
+    "max-width:calc(100vw - 32px)",
     "padding:8px 10px",
-    "background:#111118",
+    "background:rgba(17,17,24,0.97)",
     "border:1px solid #2a2a36",
+    "box-shadow:0 10px 30px rgba(0,0,0,0.35)",
     "font:11px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace",
     "color:#e8e8e0",
   ].join(";");
 
   const note = document.createElement("span");
-  note.textContent = "PROTO";
-  note.style.cssText = "color:#f5a623;letter-spacing:0.12em;padding:6px 8px 6px 4px;";
+  note.textContent = "COMPARE";
+  note.style.cssText = "color:#f5a623;letter-spacing:0.12em;padding:6px 8px 6px 4px;white-space:nowrap;";
   bar.appendChild(note);
 
-  Object.keys(PROTOS).forEach((id) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.textContent = LABELS[id];
-    btn.dataset.proto = id;
-    styleButton(btn, id === current);
-    btn.addEventListener("click", async () => {
-      await apply(id);
-      setProtoInUrl(id);
-      bar.querySelectorAll("button").forEach((node) => styleButton(node, node.dataset.proto === id));
-    });
-    bar.appendChild(btn);
+  PRIMARY_PROTOS.forEach((id) => {
+    bar.appendChild(makeButton(id, current, bar));
   });
+
+  const more = document.createElement("details");
+  more.style.cssText = "position:relative;";
+
+  const summary = document.createElement("summary");
+  summary.textContent = "other prototypes";
+  summary.style.cssText = [
+    "list-style:none",
+    "cursor:pointer",
+    "border:1px solid #2a2a36",
+    "padding:6px 8px",
+    "white-space:nowrap",
+    "color:#aaa9a0",
+  ].join(";");
+  more.appendChild(summary);
+
+  const menu = document.createElement("div");
+  menu.style.cssText = [
+    "position:absolute",
+    "top:calc(100% + 8px)",
+    "right:0",
+    "display:grid",
+    "grid-template-columns:repeat(2,minmax(120px,1fr))",
+    "gap:6px",
+    "width:min(420px,calc(100vw - 32px))",
+    "max-height:55vh",
+    "overflow:auto",
+    "padding:8px",
+    "background:#111118",
+    "border:1px solid #2a2a36",
+    "box-shadow:0 12px 34px rgba(0,0,0,0.45)",
+  ].join(";");
+
+  Object.keys(PROTOS)
+    .filter((id) => !PRIMARY_PROTOS.includes(id))
+    .forEach((id) => menu.appendChild(makeButton(id, current, bar)));
 
   const back = document.createElement("a");
   back.href = "/static/js/spectral-forge/prototypes/gallery.htm";
   back.textContent = "all stills";
-  back.style.cssText = "color:#f5a623;padding:6px 8px;text-decoration:none;margin-left:4px;";
-  bar.appendChild(back);
+  back.style.cssText = "color:#f5a623;padding:6px 8px;text-decoration:none;border:1px solid #2a2a36;";
+  menu.appendChild(back);
 
+  more.appendChild(menu);
+  bar.appendChild(more);
   document.body.appendChild(bar);
 }
 
@@ -168,5 +218,6 @@ function styleButton(btn, on) {
     "padding:6px 8px",
     "cursor:pointer",
     "font:inherit",
+    "white-space:nowrap",
   ].join(";");
 }
