@@ -8,13 +8,8 @@ const OUT = process.env.SPECTRAL_FORGE_CAPTURE_DIR
   : path.resolve(process.cwd(), "static/js/spectral-forge/prototypes/captures");
 const BASE = process.env.SPECTRAL_FORGE_URL || "http://127.0.0.1:8791/lab/spectral-forge/";
 const PROTOS = [
-  { id: "flagship-organism", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-organism.js", backend: "webgl" },
-  { id: "flagship-anatomy", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy.js", backend: "webgl" },
-  { id: "flagship-anatomy-b", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-b.js", backend: "webgl" },
   { id: "flagship-anatomy-c", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-c.js", backend: "webgl" },
-  { id: "living-organism", module: "/static/js/spectral-forge/prototypes/field-proto-living-organism.js", backend: null },
-  { id: "specimen-core", module: "/static/js/spectral-forge/prototypes/field-proto-specimen-core.js", backend: null },
-  { id: "signal-monolith", module: "/static/js/spectral-forge/prototypes/field-proto-signal-monolith.js", backend: null },
+  { id: "flagship-anatomy-d", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-d.js", backend: "webgl" },
 ];
 
 const browser = await chromium.launch({ headless: true });
