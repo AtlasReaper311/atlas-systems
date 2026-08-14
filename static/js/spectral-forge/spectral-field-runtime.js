@@ -1,9 +1,9 @@
 "use strict";
 
-import { draw } from "./spectral-field-compose.js";
+import { draw as fallbackDraw } from "./spectral-field-compose.js";
 import { transitionActive, transitionMix, updateAccessibleSummary } from "./spectral-field-state.js";
 
-export { draw, transitionActive, transitionMix, updateAccessibleSummary };
+export { fallbackDraw as draw, transitionActive, transitionMix, updateAccessibleSummary };
 
 export function syncLoop() {
   const shouldRun = Boolean(this.state && !this.reducedMotion && (this.state.playback === "PLAYING" || transitionActive.call(this)));
@@ -22,7 +22,8 @@ export function tick(timestamp) {
   const elapsed = Math.min(0.05, (timestamp - this.lastTimestamp) / 1000);
   this.lastTimestamp = timestamp;
   if (this.state.playback === "PLAYING") this.visualTime += elapsed;
-  draw.call(this, timestamp);
+  const render = typeof this.draw === "function" ? this.draw : fallbackDraw;
+  render.call(this, timestamp);
   if (this.state.playback === "PLAYING" || transitionActive.call(this, timestamp)) {
     this.animationFrame = requestAnimationFrame((next) => tick.call(this, next));
   }
