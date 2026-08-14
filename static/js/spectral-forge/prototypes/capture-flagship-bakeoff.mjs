@@ -8,8 +8,8 @@ const OUT = process.env.SPECTRAL_FORGE_CAPTURE_DIR
   : path.resolve(process.cwd(), "static/js/spectral-forge/prototypes/captures");
 const BASE = process.env.SPECTRAL_FORGE_URL || "http://127.0.0.1:8791/lab/spectral-forge/";
 const PROTOS = [
-  { id: "flagship-anatomy-c", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-c.js", backend: "webgl" },
   { id: "flagship-anatomy-f", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-f.js", backend: "webgl" },
+  { id: "flagship-anatomy-f2", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-f2.js", backend: "webgl" },
 ];
 const NORMAL_CAPTURES = [1, 5, 10, 20];
 
@@ -62,15 +62,47 @@ async function metrics() {
       requestAnimationFrame(loop);
     });
     const c = document.querySelector(".forge-play .forge-field-stage canvas:not(.spectral-field-proto-webgl)");
+    const webgl = document.querySelector(".forge-play .forge-field-stage .spectral-field-proto-webgl");
     if (!c) return null;
     return {
       raf,
       renderer: c.dataset.fieldRenderer ?? null,
       backend: c.dataset.fieldBackend ?? null,
       webglCanvases: document.querySelectorAll(".forge-play .forge-field-stage .spectral-field-proto-webgl").length,
+      rendererPerf: webgl?.__atlasPerf ? { ...webgl.__atlasPerf } : null,
       vis: document.visibilityState,
     };
   });
+}
+
+async function frameTiming(durationMs = 2500) {
+  return page.evaluate((duration) => new Promise((resolve) => {
+    const deltas = [];
+    let previous = 0;
+    const started = performance.now();
+    const loop = (timestamp) => {
+      if (previous) deltas.push(timestamp - previous);
+      previous = timestamp;
+      if (timestamp - started < duration) {
+        requestAnimationFrame(loop);
+        return;
+      }
+      const sorted = [...deltas].sort((a, b) => a - b);
+      const total = deltas.reduce((sum, value) => sum + value, 0);
+      const average = total / Math.max(1, deltas.length);
+      const percentile = (p) => sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))] ?? 0;
+      resolve({
+        samples: deltas.length,
+        averageMs: Number(average.toFixed(2)),
+        p95Ms: Number(percentile(0.95).toFixed(2)),
+        worstMs: Number((sorted.at(-1) ?? 0).toFixed(2)),
+        over33ms: deltas.filter((value) => value > 33.4).length,
+        over50ms: deltas.filter((value) => value > 50).length,
+        approximateFps: Number((1000 / Math.max(0.001, average)).toFixed(1)),
+      });
+    };
+    requestAnimationFrame(loop);
+  }), durationMs);
 }
 
 function assertMetrics(proto, sample, label) {
@@ -81,6 +113,10 @@ function assertMetrics(proto, sample, label) {
   if (proto.backend === "webgl") {
     assert.equal(sample.backend, "webgl", `${label}: flagship did not activate WebGL`);
     assert.equal(sample.webglCanvases, 1, `${label}: expected exactly one WebGL overlay`);
+  }
+  if (proto.id === "flagship-anatomy-f2" && sample.rendererPerf) {
+    assert.ok(sample.rendererPerf.vertices < 7000, `${label}: F2 vertex budget regressed`);
+    assert.equal(sample.rendererPerf.fields, 7, `${label}: F2 field topology changed unexpectedly`);
   }
 }
 
@@ -101,6 +137,10 @@ for (const proto of PROTOS) {
     console.log(proto.id, `NORMAL ${seconds}s`, sample);
   }
 
+  const normalTiming = await frameTiming();
+  assert.ok(normalTiming.samples > 20, `${proto.id}: insufficient NORMAL frame timing samples`);
+  console.log(proto.id, "NORMAL FRAME TIMING", normalTiming);
+
   const pause = page.getByRole("button", { name: /^(PAUSE|STOP)$/i }).first();
   if (await pause.count()) await pause.click().catch(() => {});
   await page.locator(".forge-scenario-control select").first().selectOption({ index: 5 });
@@ -111,7 +151,10 @@ for (const proto of PROTOS) {
   await page.locator(".forge-play .forge-field-stage").screenshot({
     path: path.join(OUT, `${proto.id}-cascade-20s.png`),
   });
+  const cascadeTiming = await frameTiming();
+  assert.ok(cascadeTiming.samples > 20, `${proto.id}: insufficient CASCADE frame timing samples`);
   console.log(proto.id, "CASCADE 20s", cascade);
+  console.log(proto.id, "CASCADE FRAME TIMING", cascadeTiming);
   if (await pause.count()) await pause.click().catch(() => {});
 }
 
