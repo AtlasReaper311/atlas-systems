@@ -235,7 +235,60 @@
       </div>
     </section>
   </main>
-  <script src="/js/transitions.js?v=20260814-terminal-swipe" defer></script>
+  <script>
+    (() => {
+      "use strict";
+      const SYSTEMS_ROUTE_EXIT_MS = 180;
+      if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+      let leaving = false;
+
+      function routeDestination(anchor, event) {
+        if (!anchor || event.defaultPrevented || event.button !== 0) return null;
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return null;
+        if (anchor.target && anchor.target !== "_self") return null;
+        if (anchor.hasAttribute("download")) return null;
+        const url = new URL(anchor.href, window.location.href);
+        if (url.origin !== window.location.origin) return null;
+        if (url.pathname === window.location.pathname && url.search === window.location.search && url.hash) return null;
+        return url.href;
+      }
+
+      function showTerminalWipe() {
+        document.documentElement.dataset.atlasRouteTransition = "leaving";
+        const wipe = document.createElement("div");
+        wipe.setAttribute("aria-hidden", "true");
+        wipe.style.cssText = "position:fixed;inset:var(--atlas-header-height,56px) 0 0;z-index:2147483000;pointer-events:none;mix-blend-mode:screen;background:linear-gradient(90deg,transparent 0%,rgba(245,166,35,.08) 22%,rgba(245,166,35,.42) 43%,rgba(74,222,128,.34) 50%,rgba(56,189,248,.18) 58%,transparent 76%),repeating-linear-gradient(180deg,rgba(245,166,35,.16) 0 1px,transparent 1px 6px);opacity:0;transform:translate3d(-120%,0,0)";
+        document.body.append(wipe);
+        wipe.animate?.([
+          { transform: "translate3d(-120%,0,0)", opacity: 0 },
+          { transform: "translate3d(-72%,0,0)", opacity: .86 },
+          { transform: "translate3d(44%,0,0)", opacity: .68 },
+          { transform: "translate3d(118%,0,0)", opacity: 0 },
+        ], { duration: SYSTEMS_ROUTE_EXIT_MS, easing: "cubic-bezier(.2,.72,.2,1)", fill: "forwards" });
+        document.querySelector("body > main")?.animate?.([
+          { transform: "translate3d(0,0,0)", filter: "brightness(1)" },
+          { transform: "translate3d(0,-10px,0)", filter: "brightness(.9) saturate(1.04)" },
+        ], { duration: SYSTEMS_ROUTE_EXIT_MS, easing: "cubic-bezier(.28,.76,.24,1)", fill: "forwards" });
+      }
+
+      document.addEventListener("click", (event) => {
+        const destination = routeDestination(event.target?.closest?.("a[href]"), event);
+        if (!destination) return;
+        event.preventDefault();
+        if (leaving) return;
+        leaving = true;
+        showTerminalWipe();
+        window.setTimeout(() => {
+          window.location.href = destination;
+        }, SYSTEMS_ROUTE_EXIT_MS);
+      }, { capture: true });
+
+      window.addEventListener("pageshow", () => {
+        leaving = false;
+        delete document.documentElement.dataset.atlasRouteTransition;
+      });
+    })();
+  </script>
   <script type="module" src="/static/js/estate-search/global-search.js"></script>
   <script type="module" src="/static/js/card-signatures.js?v=20260811-bearing-lattice"></script>
   <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">

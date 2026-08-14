@@ -202,9 +202,14 @@ test("route transition motion is bounded and never restores the dark overlay", (
   // The two behaviours that genuinely belong to page entry stay.
   assert.match(transitions, /window\.location\.pathname === "\/about\/"/);
   assert.match(transitions, /data-ramone-reduced-musing/);
-  for (const path of ["index.html", "systems/index.html"]) {
-    assert.match(fs.readFileSync(path, "utf8"), /\/js\/transitions\.js\?v=20260814-terminal-swipe/, `${path} must load route motion`);
-  }
+  assert.match(fs.readFileSync("index.html", "utf8"), /\/js\/transitions\.js\?v=20260814-terminal-swipe/, "home must load route motion");
+
+  const systems = fs.readFileSync("systems/index.html", "utf8");
+  assert.doesNotMatch(systems, /\/js\/transitions\.js\?v=20260814-terminal-swipe/, "systems must keep route motion inside its existing module budget");
+  assert.match(systems, /SYSTEMS_ROUTE_EXIT_MS = 180/);
+  assert.match(systems, /atlasRouteTransition = "leaving"/);
+  assert.match(systems, /repeating-linear-gradient/);
+  assert.match(systems, /window\.location\.href = destination/);
 
   for (const path of governedRoutes()) {
     const source = fs.readFileSync(path, "utf8");
