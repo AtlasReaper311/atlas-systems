@@ -2,6 +2,7 @@
 
 import { deriveFieldGeometry } from "./spectral-field-geometry.js";
 import { transitionMix } from "./spectral-field-state.js";
+import { rendererShouldAnimate } from "./spectral-field-life-clock.js";
 import {
   drawAfterimages,
   drawBackdrop,
@@ -44,7 +45,7 @@ export function draw(timestamp = performance.now()) {
   const { width, height, ratio } = canvasSize(this.canvas);
   const { frame, selectedMapping, selectedCalculation, routeFocus, scenarioId } = this.state;
   const transitionStarted = beginScenarioTransition(this, scenarioId, timestamp);
-  const geometry = deriveFieldGeometry(this.state, this.visualTime, width, height);
+  const geometry = deriveFieldGeometry(this.state, this.visualTime, width, height, timestamp);
   const { centerX, centerY, mapped, health } = geometry;
   const mix = transitionMix.call(this, timestamp);
 
@@ -76,5 +77,5 @@ export function draw(timestamp = performance.now()) {
   }
   this.context.restore();
 
-  if (transitionStarted && this.state.playback !== "PLAYING") this.syncLoop();
+  if (transitionStarted && !rendererShouldAnimate(this.state, this.reducedMotion)) this.syncLoop();
 }

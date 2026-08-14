@@ -46,6 +46,12 @@ import {
   updateCandidateMapping,
 } from "./state.js";
 import { AudioAnalyserRenderer, SpectralFieldRenderer, TimelineRenderer } from "./visuals.js";
+import { createOrganismLifeClock, resetOrganismLifeClock } from "./spectral-field-life-clock.js";
+import {
+  applyScenarioSelection,
+  beginScenarioHandoff,
+  resolveScenarioFrame,
+} from "./spectral-field-scenario-clock.js";
 
 const HARMONIC_STATES = Object.freeze({
   STABLE: "CRYSTALLINE / OPEN FIFTH",
@@ -202,6 +208,8 @@ const analysisFieldRenderer = new SpectralFieldRenderer(elements.analysisField);
 const playTimelineRenderer = new TimelineRenderer(elements.playTimeline);
 const analysisTimelineRenderer = new TimelineRenderer(elements.analysisTimeline);
 const audioRenderer = new AudioAnalyserRenderer(elements.audioScope, meterTargets.play);
+const organismLife = createOrganismLifeClock();
+let scenarioHandoff = null;
 
 function option(value, label) {
   const item = document.createElement("option");
@@ -239,20 +247,27 @@ function targetSmoothing() {
   return audibleSmoothing(comparison);
 }
 
-function activeOutputState() {
-  return audibleOutputs(frame, comparison);
-}
-
 function currentSelectedMapping() {
   return selectedMapping(comparison);
 }
 
-function currentCalculation() {
-  const mapping = currentSelectedMapping();
-  return mapping ? calculateMapping(mapping, frame.normalised[mapping.source]) : null;
+function mappedFrame() {
+  const resolved = resolveScenarioFrame(frame, scenarioHandoff, performance.now());
+  if (resolved === frame) scenarioHandoff = null;
+  return resolved;
 }
 
-function fieldState() {
+function activeOutputState() {
+  return audibleOutputs(mappedFrame(), comparison);
+}
+
+function currentCalculation() {
+  const mapping = currentSelectedMapping();
+  const sourceFrame = mappedFrame();
+  return mapping ? calculateMapping(mapping, sourceFrame.normalised[mapping.source]) : null;
+}
+
+function fieldState(fieldVisible) {
   return {
     frame,
     outputs: activeOutputState(),
@@ -264,6 +279,9 @@ function fieldState() {
     selectedCalculation: currentCalculation(),
     routeFocus: comparison.auditionMode === "ROUTE_FOCUS",
     variant: comparison.activeVariant,
+    organismLife,
+    fieldVisible,
+    scenarioHandoff,
   };
 }
 
@@ -560,10 +578,10 @@ function renderAnalysis() {
 }
 
 function renderVisuals() {
-  const state = fieldState();
-  playFieldRenderer.setState(state);
-  forgeFieldRenderer.setState(state);
-  analysisFieldRenderer.setState(state);
+  const shared = fieldState(true);
+  playFieldRenderer.setState({ ...shared, fieldVisible: depth === "PLAY" });
+  forgeFieldRenderer.setState({ ...shared, fieldVisible: depth === "FORGE" });
+  analysisFieldRenderer.setState({ ...shared, fieldVisible: depth === "ANALYSE" });
   playTimelineRenderer.setState({ history, frame, scenarioId, signalId: "anomaly_score" });
   analysisTimelineRenderer.setState({ history, frame, scenarioId, signalId: selectedSignalId });
   audioRenderer.setState({ analyser: audioEngine?.analyser ?? null, active: audioEnabled, muted: audioMuted });
@@ -628,14 +646,27 @@ function resetScenario(nextScenario = scenarioId) {
   frame = createFrame(scenarioId, 0);
   history = [frame];
   playback = "STOPPED";
+  scenarioHandoff = null;
+  resetOrganismLifeClock(organismLife);
   audioEngine?.safeReset();
   setNotice(`${SCENARIO_BY_ID[scenarioId].label} · deterministic run reset to 00:00.0`);
   renderAll();
 }
 
 function selectScenario(nextScenario) {
-  if (!SCENARIO_BY_ID[nextScenario]) return;
-  resetScenario(nextScenario);
+  const decision = applyScenarioSelection({ scenarioId, playback, scenarioTime: time }, nextScenario);
+  if (!decision.changed) return;
+  const previousFrame = frame;
+  scenarioId = decision.scenarioId;
+  time = decision.scenarioTime;
+  frame = createFrame(scenarioId, time);
+  history = [frame];
+  playback = decision.playback;
+  scenarioHandoff = decision.handoff ? beginScenarioHandoff(previousFrame, performance.now()) : null;
+  if (decision.startTimer) startTimer();
+  else if (decision.stopTimer) stopTimer();
+  setNotice(decision.notice);
+  renderAll();
 }
 
 function stepScenario(direction) {

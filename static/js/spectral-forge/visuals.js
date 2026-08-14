@@ -4,6 +4,7 @@ import { SCENARIO_BY_ID, clamp } from "./domain.js";
 import { linearToDb } from "./audio-engine.js";
 import { draw as drawSpectralField } from "./spectral-field-compose-v4.js";
 import { syncLoop, tick, updateAccessibleSummary } from "./spectral-field-runtime.js";
+import { rendererShouldAnimate } from "./spectral-field-life-clock.js";
 
 export const HEALTH_VISUAL_PROFILES = Object.freeze({
   STABLE: Object.freeze({ pressureScale: 0.88, asymmetryBias: 0, coherenceScale: 1.04, widthScale: 1, heightScale: 1, fractureScale: 0.75 }),
@@ -51,10 +52,15 @@ export class SpectralFieldRenderer {
 
   setState(state) {
     this.state = state;
-    this.visualTime = state.frame.time;
+    if (state?.organismLife) this.visualTime = state.organismLife.time;
+    if (this.canvas) {
+      this.canvas.dataset.organismLifeTime = String(this.visualTime);
+      if (state?.playback) this.canvas.dataset.fieldPlayback = state.playback;
+    }
     this.updateAccessibleSummary();
     this.syncLoop();
-    if (this.reducedMotion || state.playback !== "PLAYING") this.draw(performance.now());
+    const animating = rendererShouldAnimate(state, this.reducedMotion);
+    if (!animating && state?.fieldVisible !== false) this.draw(performance.now());
   }
 
   updateAccessibleSummary() {
