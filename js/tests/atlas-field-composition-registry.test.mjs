@@ -55,6 +55,8 @@ test("compositions have materially different motion and silhouettes", () => {
 test("evidence compositions are visible, distinct, and exact-route mounted", () => {
   assert.match(css, /telemetry-lattice > \.atlas-composition-canvas\s*\{[^}]*opacity:\s*\.5/s);
   assert.match(css, /proof-trace > \.atlas-composition-canvas\s*\{[^}]*opacity:\s*\.48/s);
+  assert.match(css, /signal-bloom > \.atlas-composition-canvas\s*\{[^}]*--atlas-field-reveal-opacity:\s*\.24/s);
+  assert.match(css, /signal-bloom > \.atlas-composition-canvas\s*\{[^}]*--atlas-field-reveal-duration:\s*520ms/s);
   assert.match(css, /Reliability: decorative monitoring cadence, never a live status signal/);
   assert.match(transitions, /window\.location\.pathname === "\/about\/"/);
   for (const route of ["/systems/reliability/", "/systems/observability/", "/systems/evidence/"]) {

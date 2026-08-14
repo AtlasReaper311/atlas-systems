@@ -181,20 +181,35 @@ test("Lab routes ship the context strip beneath the header", () => {
   }
 });
 
-test("navigation belongs to the browser: no click intercept, no route overlay", () => {
+test("route transition motion is bounded and never restores the dark overlay", () => {
   const transitions = fs.readFileSync("js/transitions.js", "utf8");
   // Comments may name what was removed; the code may not do it.
   const code = transitions.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
-  assert.doesNotMatch(code, /preventDefault/);
   assert.doesNotMatch(code, /location\.assign/);
   assert.doesNotMatch(code, /page-overlay/);
   assert.doesNotMatch(code, /route-ready|route-closing/);
-  assert.doesNotMatch(code, /addEventListener\("click"/);
-  assert.doesNotMatch(code, /setTimeout/);
+  assert.match(transitions, /var ROUTE_EXIT_MS = 180/);
+  assert.match(code, /addEventListener\("click"/);
+  assert.match(code, /preventDefault\(\)/);
+  assert.match(code, /atlasRouteTransition = "leaving"/);
+  assert.match(code, /window\.setTimeout/);
+  assert.match(code, /window\.location\.href = destination/);
+  assert.match(code, /document\.createElement\("div"\)/);
+  assert.match(code, /repeating-linear-gradient/);
+  assert.match(code, /\.animate\(/);
+  assert.match(code, /prefers-reduced-motion: reduce/);
 
   // The two behaviours that genuinely belong to page entry stay.
   assert.match(transitions, /window\.location\.pathname === "\/about\/"/);
   assert.match(transitions, /data-ramone-reduced-musing/);
+  assert.match(fs.readFileSync("index.html", "utf8"), /\/js\/transitions\.js\?v=20260814-terminal-swipe/, "home must load route motion");
+
+  const systems = fs.readFileSync("systems/index.html", "utf8");
+  assert.doesNotMatch(systems, /\/js\/transitions\.js\?v=20260814-terminal-swipe/, "systems must keep route motion inside its existing module budget");
+  assert.match(systems, /SYSTEMS_ROUTE_EXIT_MS = 180/);
+  assert.match(systems, /atlasRouteTransition = "leaving"/);
+  assert.match(systems, /repeating-linear-gradient/);
+  assert.match(systems, /window\.location\.href = destination/);
 
   for (const path of governedRoutes()) {
     const source = fs.readFileSync(path, "utf8");
@@ -241,6 +256,10 @@ const FIELD_ROUTE_STYLESHEETS = Object.freeze([
   ["systems/evidence/index.html", "/static/css/secondary-surface-fields.css"],
   ["systems/observability/index.html", "/static/css/secondary-surface-fields.css"],
   ["systems/reliability/index.html", "/static/css/secondary-surface-fields.css"],
+  ["lab/index.html", "/static/css/atlas-field-consumer.css"],
+  ["lab/index.html", "/static/css/secondary-surface-fields.css"],
+  ["lab/index.html", "/lab/shared/lab-intro-field.css"],
+  ["lab/index.html", "/lab/shared/system-map-card-field.css"],
   ["index.html", "/css/home-v2-base.css"],
 ]);
 
@@ -326,6 +345,11 @@ const FIRST_PAINT_FIELD_HOSTS = Object.freeze([
     "<header",
     ["atlas-composition-host", "atlas-composition--pulse-horizon"],
   ],
+  [
+    "lab/index.html",
+    "<header",
+    ["atlas-field-surface", "atlas-field-surface--ambient", "atlas-composition-host", "atlas-composition--signal-bloom"],
+  ],
 ]);
 
 test("field surfaces are contained before any canvas can mount", () => {
@@ -335,7 +359,24 @@ test("field surfaces are contained before any canvas can mount", () => {
   assert.match(shellCss, /\.atlas-field-surface\s*\{[^}]*overflow:\s*hidden/);
   assert.match(shellCss, /\.atlas-field-surface\s*>\s*\.atlas-field-canvas\s*\{[^}]*position:\s*absolute/);
   assert.match(shellCss, /\.atlas-field-surface\s*>\s*\.atlas-field-canvas\s*\{[^}]*inset:\s*0/);
-  assert.match(shellCss, /\.atlas-field-surface\s*>\s*\.atlas-field-canvas\s*\{[^}]*transition:\s*opacity 340ms ease-out/);
+  assert.match(shellCss, /\.atlas-field-surface\s*>\s*\.atlas-field-canvas\s*\{[^}]*opacity:\s*var\(--atlas-field-reveal-opacity,\s*1\)/);
+  assert.match(shellCss, /\.atlas-field-surface\s*>\s*\.atlas-field-canvas\s*\{[^}]*transition:\s*opacity var\(--atlas-field-reveal-duration,\s*340ms\) ease-out/);
+  assert.match(shellCss, /\.atlas-field-surface\s*>\s*\.atlas-field-canvas\[data-atlas-field-reveal="pending"\]\s*\{[^}]*opacity:\s*0 !important/);
+});
+
+test("page motion restores a bounded terminal swipe without a dark curtain", () => {
+  const shellCss = fs.readFileSync("static/css/estate-shell.css", "utf8");
+  const transitions = fs.readFileSync("js/transitions.js", "utf8");
+  const transitionCode = transitions.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
+  assert.match(shellCss, /@keyframes atlas-page-enter/);
+  assert.match(shellCss, /body > main\s*\{[^}]*animation:\s*atlas-page-enter 420ms/s);
+  assert.match(shellCss, /@keyframes atlas-route-scan/);
+  assert.match(shellCss, /@view-transition\s*\{\s*navigation:\s*auto;\s*\}/);
+  assert.match(transitions, /ROUTE_EXIT_MS = 180/);
+  assert.match(transitions, /repeating-linear-gradient/);
+  assert.match(transitions, /translate3d\(118%,0,0\)/);
+  assert.doesNotMatch(transitionCode, /location\.assign|page-overlay/);
 });
 
 test("primary pages preload visible local fonts before the font stylesheet", () => {

@@ -37,7 +37,7 @@ test("Lab card remains local while the intro uses the named composition registry
   assert.match(introModule, /ATLAS_FIELD_COMPOSITIONS\["signal-bloom"\]/);
   assert.match(introModule, /mountSecondarySurfaceField/);
   assert.match(registryModule, /"signal-bloom": composition/);
-  assert.match(cardCss, /atlas-field-consumer\.css\?v=20260807-hero-contrast/);
+  assert.match(markup, /<link rel="stylesheet" href="\/static\/css\/atlas-field-consumer\.css\?v=20260807-hero-contrast">/);
   assert.match(cardCss, /\.system-map-card-atlas-field > \.card-signature\s*\{[^}]*position:\s*absolute/s);
   assert.match(compositionCss, /atlas-composition--signal-bloom/);
   assert.match(sharedCss, /\.atlas-field-surface > \.atlas-field-canvas/);
@@ -51,6 +51,9 @@ test("Lab shell mounts fresh field assets only on the Lab directory", () => {
   assert.match(shell, /if \(currentPath\(\) !== LAB_HOME_ROUTE\) return/);
   assert.match(shell, /installLabIntroField\(\)/);
   assert.match(shell, /installSystemMapCardField\(\)/);
+  assert.match(markup, /<link rel="stylesheet" href="\/static\/css\/secondary-surface-fields\.css\?v=20260807-hero-contrast">/);
+  assert.match(markup, /<link rel="stylesheet" href="\/lab\/shared\/lab-intro-field\.css\?v=20260807-signature-position">/);
+  assert.match(markup, /<header class="page-intro[^"]*\batlas-composition--signal-bloom\b/);
 });
 
 test("Lab field bootstrap assets cannot be retained stale", () => {
@@ -71,7 +74,10 @@ test("Lab field bootstrap assets cannot be retained stale", () => {
 
 test("surface-specific composition remains local", () => {
   assert.match(cardCss, /\.system-map-card-atlas-field::before\s*\{[^}]*linear-gradient/s);
+  assert.match(cardCss, /--atlas-field-reveal-opacity:\s*\.64/);
   assert.match(cardCss, /opacity:\s*\.64/);
+  assert.match(cardCss, /--atlas-field-reveal-opacity:\s*\.56/);
+  assert.match(cardCss, /--atlas-field-reveal-opacity:\s*\.58/);
   assert.match(cardCss, /backdrop-filter:\s*blur\(4px\)/s);
   assert.match(compositionCss, /atlas-composition--signal-bloom::before/);
   assert.match(compositionCss, /opacity:\s*\.24/);

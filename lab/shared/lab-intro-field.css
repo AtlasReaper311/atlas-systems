@@ -1,5 +1,3 @@
-@import url("/static/css/atlas-field-consumer.css?v=20260807-hero-contrast");
-
 .page-intro.lab-intro-atlas-field::after {
   content: "";
   position: absolute;
