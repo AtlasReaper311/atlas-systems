@@ -9,7 +9,7 @@ const OUT = process.env.SPECTRAL_FORGE_CAPTURE_DIR
 const BASE = process.env.SPECTRAL_FORGE_URL || "http://127.0.0.1:8791/lab/spectral-forge/";
 const PROTOS = [
   { id: "flagship-anatomy-f2", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-f2.js", backend: "webgl" },
-  { id: "flagship-anatomy-f3", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-f3.js", backend: "webgl" },
+  { id: "flagship-anatomy-f31", module: "/static/js/spectral-forge/prototypes/field-proto-flagship-organism-anatomy-f31.js", backend: "webgl" },
 ];
 const AUDIO_MODES = [false, true];
 const NORMAL_CAPTURES = [1, 5, 10, 20];
@@ -132,12 +132,15 @@ function assertMetrics(proto, sample, label) {
     assert.equal(sample.backend, "webgl", `${label}: flagship did not activate WebGL`);
     assert.equal(sample.webglCanvases, 1, `${label}: expected exactly one WebGL overlay`);
   }
-  if (proto.id === "flagship-anatomy-f3") {
-    assert.ok(sample.rendererPerf, `${label}: F3 performance telemetry missing`);
-    assert.equal(sample.rendererPerf.architecture, "gpu-field", `${label}: F3 is not using the GPU field renderer`);
-    assert.equal(sample.rendererPerf.gpuDeformation, true, `${label}: F3 GPU deformation flag missing`);
-    assert.equal(sample.rendererPerf.fields, 6, `${label}: F3 field topology changed unexpectedly`);
-    assert.equal(sample.rendererPerf.shaderCompiled, true, `${label}: F3 shader did not compile`);
+  if (proto.id === "flagship-anatomy-f31") {
+    assert.ok(sample.rendererPerf, `${label}: F3.1 performance telemetry missing`);
+    assert.equal(sample.rendererPerf.architecture, "gpu-f2-port", `${label}: F3.1 is not using the GPU F2 port`);
+    assert.equal(sample.rendererPerf.gpuDeformation, true, `${label}: F3.1 GPU deformation flag missing`);
+    assert.equal(sample.rendererPerf.macroModel, "f2-seven-field", `${label}: F3.1 macro model drifted from F2`);
+    assert.equal(sample.rendererPerf.microModel, "clustered-ferrofluid", `${label}: F3.1 micro model missing`);
+    assert.equal(sample.rendererPerf.fields, 7, `${label}: F3.1 field topology changed unexpectedly`);
+    assert.equal(sample.rendererPerf.shaderCompiled, true, `${label}: F3.1 shader did not compile`);
+    assert.equal(sample.rendererPerf.smoothNormals, true, `${label}: F3.1 smooth-normal path not active`);
   }
 }
 
