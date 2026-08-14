@@ -40,6 +40,7 @@ function beginScenarioTransition(renderer, scenarioId, timestamp) {
 
 export function draw(timestamp = performance.now()) {
   if (!this.context || !this.state) return;
+  this.canvas.dataset.fieldRenderer = "v4-spatial";
   const { width, height, ratio } = canvasSize(this.canvas);
   const { frame, selectedMapping, selectedCalculation, routeFocus, scenarioId } = this.state;
   const transitionStarted = beginScenarioTransition(this, scenarioId, timestamp);
