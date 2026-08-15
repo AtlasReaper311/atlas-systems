@@ -41,6 +41,7 @@ const WEBGL_DPR_CAP = 1.22;
 const MESH_FALLBACK_WIDTH = 240;
 const MESH_FALLBACK_HEIGHT = 144;
 const PLATE_STRIDE = 4;
+const PLATE_MAX_INTERVAL_MS = 180;
 const TAU = Math.PI * 2;
 
 function smooth(value) {
@@ -300,6 +301,7 @@ function createState(renderer, seedPhase) {
     cssHeight: 0,
     disposed: false,
     frameIndex: 0,
+    lastPlateAt: 0,
     lastWide: null,
     lastOpacity: "",
     attitude: createAttitudeState(),
@@ -738,8 +740,18 @@ export function drawFlagshipFinalForm(renderer, timestamp = performance.now()) {
     throw new Error("Flagship final-form WebGL mesh produced no rendered triangles.");
   }
 
-  if (resized || state.frameIndex % PLATE_STRIDE === 0 || state.frameIndex < 2) {
+  /* The studio plate refreshed every fourth rendered frame. That is a wall-time
+   * cadence only while frames are quick: on a slow renderer the backdrop froze
+   * for seconds at a time while the organism kept moving, which reads as the
+   * composition stalling. The stride still governs fast machines; the elapsed
+   * bound stops the backdrop falling behind real time on slow ones. */
+  const plateNow = performance.now();
+  if (resized
+    || state.frameIndex % PLATE_STRIDE === 0
+    || state.frameIndex < 2
+    || plateNow - state.lastPlateAt >= PLATE_MAX_INTERVAL_MS) {
     studioPlate(renderer.context, g, width, height, band, damage, activity);
+    state.lastPlateAt = plateNow;
   }
   markStage(stages, "studioPlateMs", stageStartedAt);
   state.frameIndex += 1;
