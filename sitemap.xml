@@ -61,12 +61,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://atlas-systems.uk/lab/cascade/</loc>
-    <lastmod>2026-08-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://atlas-systems.uk/lab/system-map/</loc>
     <lastmod>2026-08-11T02:04:01+01:00</lastmod>
     <changefreq>monthly</changefreq>
