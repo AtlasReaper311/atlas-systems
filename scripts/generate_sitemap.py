@@ -25,6 +25,7 @@ STATIC_ROUTES: list[tuple[str, str, str]] = [
     ("/systems/evidence/", "monthly", "0.7"),
     ("/lab/system-symphony/", "monthly", "0.7"),
     ("/lab/spectral-forge/", "monthly", "0.7"),
+    ("/lab/cascade/", "monthly", "0.5"),
     ("/lab/system-map/", "monthly", "0.6"),
     ("/lab/blackbox/", "monthly", "0.6"),
     ("/lab/proof-chain/", "monthly", "0.6"),
