@@ -1,12 +1,15 @@
 "use strict";
 
-import { draw } from "./spectral-field-compose.js";
 import { transitionActive, transitionMix, updateAccessibleSummary } from "./spectral-field-state.js";
+import {
+  rendererShouldAnimate,
+  stepOrganismLifeClock,
+} from "./spectral-field-life-clock.js";
 
-export { draw, transitionActive, transitionMix, updateAccessibleSummary };
+export { transitionActive, transitionMix, updateAccessibleSummary };
 
 export function syncLoop() {
-  const shouldRun = Boolean(this.state && !this.reducedMotion && (this.state.playback === "PLAYING" || transitionActive.call(this)));
+  const shouldRun = rendererShouldAnimate(this.state, this.reducedMotion) || Boolean(this.state && transitionActive.call(this));
   if (shouldRun && !this.animationFrame) {
     this.lastTimestamp = performance.now();
     this.animationFrame = requestAnimationFrame((timestamp) => tick.call(this, timestamp));
@@ -21,9 +24,20 @@ export function tick(timestamp) {
   if (!this.state || this.reducedMotion) return;
   const elapsed = Math.min(0.05, (timestamp - this.lastTimestamp) / 1000);
   this.lastTimestamp = timestamp;
-  if (this.state.playback === "PLAYING") this.visualTime += elapsed;
-  draw.call(this, timestamp);
-  if (this.state.playback === "PLAYING" || transitionActive.call(this, timestamp)) {
+  if (this.state.organismLife) {
+    if (this.state.fieldVisible !== false) {
+      stepOrganismLifeClock(this.state.organismLife, timestamp, this.state.playback);
+    }
+    this.visualTime = this.state.organismLife.time;
+  } else if (rendererShouldAnimate(this.state, false)) {
+    this.visualTime += elapsed;
+  }
+  if (this.canvas) {
+    this.canvas.dataset.organismLifeTime = String(this.visualTime);
+    if (this.state.playback) this.canvas.dataset.fieldPlayback = this.state.playback;
+  }
+  this.draw(timestamp);
+  if (rendererShouldAnimate(this.state, this.reducedMotion) || transitionActive.call(this, timestamp)) {
     this.animationFrame = requestAnimationFrame((next) => tick.call(this, next));
   }
 }

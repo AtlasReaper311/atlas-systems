@@ -1,93 +1,145 @@
 /* Shared visual identity for Atlas Systems' two audio flagships.
- * This file is presentation-only. It must not alter either instrument's audio behaviour.
+ * Presentation only. This file must not alter either instrument's audio behaviour.
  */
 
 .atlas-audio-family__mark {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  margin: 0 0 8px;
+  gap: 10px;
+  margin: 0 0 10px;
   color: #888894;
   font: 600 10px/1.2 "IBM Plex Mono", monospace;
-  letter-spacing: .14em;
+  letter-spacing: .16em;
   text-transform: uppercase;
 }
 
 .atlas-audio-family__glyph {
   position: relative;
-  width: 21px;
+  width: 23px;
   height: 11px;
   display: inline-block;
   flex: 0 0 auto;
   background:
     linear-gradient(90deg, transparent 0 1px, #f5a623 1px 2px, transparent 2px 7px, #f5a623 7px 8px, transparent 8px 13px, #f5a623 13px 14px, transparent 14px 19px, #f5a623 19px 20px, transparent 20px),
-    linear-gradient(180deg, transparent 0 5px, rgba(245,166,35,.32) 5px 6px, transparent 6px);
-  opacity: .86;
+    linear-gradient(180deg, transparent 0 5px, rgba(245,166,35,.34) 5px 6px, transparent 6px);
+  opacity: .9;
 }
 
 .atlas-audio-title {
   display: grid;
   justify-items: start;
-  gap: 2px;
+  align-content: start;
+  gap: 0;
 }
 
-.atlas-audio-title__prefix {
+.atlas-audio-title__prefix,
+.atlas-audio-title__signature {
   display: block;
+  text-wrap: balance;
+}
+
+/* LISTEN // SYSTEM SYMPHONY
+ * Keep the original instrument composition. The flagship treatment is the
+ * identity lockup only; the existing cartridge/APU boot and page surfaces own
+ * the rest of the experience.
+ */
+.symphony-flagship #symphony-page-title.atlas-audio-title {
+  position: relative;
+  width: fit-content;
+  max-width: min(100%, 760px);
+  margin: 0;
+  padding: 0 0 14px;
+  font-size: inherit;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.atlas-audio-title--listen .atlas-audio-title__prefix {
   color: #aaa9a0;
-  font: 600 clamp(.68rem, .8vw, .78rem)/1.2 "IBM Plex Mono", monospace;
-  letter-spacing: .22em;
+  font: 650 clamp(1rem, 1.45vw, 1.35rem)/1 "IBM Plex Mono", monospace;
+  letter-spacing: .28em;
   text-transform: uppercase;
 }
 
-.atlas-audio-title__signature {
-  display: block;
-  color: #f5a623;
-  font-family: "DM Serif Display", Georgia, serif;
-  font-weight: 400;
-  text-shadow:
-    0 0 18px rgba(245,166,35,.13),
-    0 0 44px rgba(245,166,35,.055);
-}
-
-.symphony-flagship #symphony-page-title.atlas-audio-title {
-  max-width: none;
-  margin: 0;
-  font-size: inherit;
-  line-height: 1;
-  letter-spacing: 0;
-}
-
 .atlas-audio-title--listen .atlas-audio-title__signature {
-  font-size: clamp(3.5rem, 5.6vw, 4.8rem);
-  font-style: normal;
-  line-height: .9;
-  letter-spacing: -.045em;
+  position: relative;
+  margin-top: .22em;
+  color: #e8e8e0;
+  font: 400 clamp(3.2rem, 5.6vw, 5.9rem)/.78 "DM Serif Display", Georgia, serif;
+  letter-spacing: -.055em;
+  text-transform: uppercase;
 }
 
+.atlas-audio-title--listen .atlas-audio-title__signature::before {
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: -18%;
+  bottom: -.13em;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(245,166,35,.92), rgba(245,166,35,.28) 54%, rgba(245,166,35,0));
+}
+
+.atlas-audio-title--listen .atlas-audio-title__signature::after {
+  content: "";
+  position: absolute;
+  right: -18%;
+  bottom: calc(-.13em - 2px);
+  width: 5px;
+  height: 5px;
+  border: 1px solid rgba(245,166,35,.76);
+  background: #0a0a0f;
+  transform: rotate(45deg);
+}
+
+body[data-lab-route="system-symphony"] .symphony-flagship .atlas-audio-family__mark {
+  margin-bottom: 14px;
+}
+
+body[data-lab-route="system-symphony"] .symphony-flagship .focus-lede {
+  margin-top: 22px;
+}
+
+body[data-lab-route="system-symphony"] .symphony-flagship .atlas-audio-family__counterpart {
+  margin-top: 8px;
+}
+
+/* DESIGN // SPECTRAL Forge */
 .forge-product-identity h1.atlas-audio-title {
-  margin: 5px 0 0;
+  margin: 4px 0 0;
   font-size: inherit;
   line-height: 1;
   letter-spacing: 0;
+}
+
+.atlas-audio-title--design .atlas-audio-title__prefix {
+  color: #e8e8e0;
+  font: 600 clamp(1.7rem, 2.8vw, 3.05rem)/.9 "IBM Plex Mono", monospace;
+  letter-spacing: .16em;
+  text-transform: uppercase;
 }
 
 .atlas-audio-title--design .atlas-audio-title__signature {
   position: relative;
-  left: .04em;
-  font-size: clamp(3.35rem, 5.2vw, 4.7rem);
-  font-style: italic;
-  line-height: .88;
-  letter-spacing: -.045em;
+  left: .025em;
+  margin-top: .05em;
+  margin-bottom: .2em;
+  color: #f5a623;
+  font: italic 400 clamp(4.4rem, 7.2vw, 7.6rem)/.74 "DM Serif Display", Georgia, serif;
+  letter-spacing: -.055em;
+  text-shadow:
+    0 0 22px rgba(245,166,35,.13),
+    0 0 58px rgba(245,166,35,.05);
 }
 
 .atlas-audio-title--design .atlas-audio-title__signature::after {
   content: "";
   position: absolute;
-  left: .04em;
-  right: -.14em;
-  bottom: -.08em;
+  left: .035em;
+  right: -.12em;
+  bottom: -.07em;
   height: 1px;
-  background: linear-gradient(90deg, rgba(245,166,35,.88), rgba(245,166,35,0));
+  background: linear-gradient(90deg, rgba(245,166,35,.9), rgba(245,166,35,.28) 34%, rgba(245,166,35,0));
 }
 
 .atlas-audio-family__counterpart {
@@ -128,27 +180,6 @@
   outline-offset: 3px;
 }
 
-/* Symphony remains the LISTEN instrument. Only hierarchy and spacing change. */
-.symphony-flagship .atlas-audio-family__mark { margin-bottom: 10px; }
-.symphony-flagship .focus-lede {
-  max-width: 610px;
-  margin-top: 12px;
-  color: #aaa9a0;
-}
-.symphony-transport__title h2[data-page-movement],
-.symphony-transport__title h2[data-page-now-playing] {
-  max-width: 18ch;
-  font-size: clamp(2rem, 3vw, 2.55rem);
-  line-height: .98;
-  letter-spacing: -.02em;
-}
-.symphony-cartridge-cover strong {
-  max-width: 12ch;
-  font-size: clamp(1.75rem, 2.4vw, 2.25rem);
-  line-height: .98;
-}
-
-/* The richer counterpart panel sits after each instrument's primary stage. */
 .lab-flagship-counterpart {
   width: 100%;
   min-height: 64px;
@@ -160,9 +191,7 @@
   overflow: hidden;
   border: 1px solid rgba(255,255,255,.08);
   border-radius: 6px;
-  background:
-    linear-gradient(90deg, rgba(245,166,35,.045), transparent 34%),
-    rgba(17,17,24,.62);
+  background: linear-gradient(90deg, rgba(245,166,35,.035), transparent 34%), rgba(17,17,24,.58);
   font-family: "IBM Plex Mono", monospace;
 }
 
@@ -187,15 +216,8 @@
   transition: background 140ms ease;
 }
 
-.lab-flagship-counterpart__link:hover {
-  background: rgba(255,255,255,.018);
-}
-
-.lab-flagship-counterpart__link:focus-visible {
-  outline: 2px solid #f5a623;
-  outline-offset: -3px;
-}
-
+.lab-flagship-counterpart__link:hover { background: rgba(255,255,255,.018); }
+.lab-flagship-counterpart__link:focus-visible { outline: 2px solid #f5a623; outline-offset: -3px; }
 .lab-flagship-counterpart__link strong {
   color: #f5a623;
   font-family: "DM Serif Display", Georgia, serif;
@@ -204,7 +226,6 @@
   letter-spacing: -.01em;
   text-shadow: 0 0 18px rgba(245,166,35,.08);
 }
-
 .lab-flagship-counterpart__link > span:not(.lab-flagship-counterpart__route) {
   overflow: hidden;
   color: #aaa9a0;
@@ -212,7 +233,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .lab-flagship-counterpart__route {
   color: #aaa9a0;
   font-size: 9px;
@@ -220,13 +240,19 @@
   white-space: nowrap;
 }
 
-/* Forge already owns the full 1440px instrument width. Do not collapse the rail back to editorial width. */
 body[data-lab-route="spectral-forge"] .lab-flagship-counterpart,
 .spectral-forge-page .lab-flagship-counterpart { width: 100%; }
 
-@media (max-width: 900px) {
-  .atlas-audio-title--listen .atlas-audio-title__signature { font-size: clamp(3.2rem, 8vw, 4.25rem); }
-  .atlas-audio-title--design .atlas-audio-title__signature { font-size: clamp(3.1rem, 8vw, 4.2rem); }
+@media (max-width: 820px) {
+  .atlas-audio-title--listen .atlas-audio-title__signature {
+    font-size: clamp(3rem, 12vw, 4.9rem);
+  }
+  .atlas-audio-title--design .atlas-audio-title__prefix {
+    font-size: clamp(1.6rem, 5.4vw, 2.7rem);
+  }
+  .atlas-audio-title--design .atlas-audio-title__signature {
+    font-size: clamp(4.1rem, 13vw, 6.6rem);
+  }
   .lab-flagship-counterpart { grid-template-columns: 1fr; }
   .lab-flagship-counterpart__family {
     min-height: 42px;
@@ -236,13 +262,28 @@ body[data-lab-route="spectral-forge"] .lab-flagship-counterpart,
   }
 }
 
-@media (max-width: 720px) {
-  .atlas-audio-family__mark { font-size: 9px; }
-  .atlas-audio-title--listen .atlas-audio-title__signature,
-  .atlas-audio-title--design .atlas-audio-title__signature { font-size: clamp(2.75rem, 13vw, 3.7rem); }
+@media (max-width: 560px) {
+  .atlas-audio-title--listen .atlas-audio-title__prefix {
+    font-size: .9rem;
+    letter-spacing: .22em;
+  }
+  .atlas-audio-title--listen .atlas-audio-title__signature {
+    font-size: clamp(2.8rem, 15vw, 4.1rem);
+  }
+  .atlas-audio-title--listen .atlas-audio-title__signature::before {
+    right: -6%;
+  }
+  .atlas-audio-title--listen .atlas-audio-title__signature::after {
+    right: -6%;
+  }
+  .atlas-audio-title--design .atlas-audio-title__prefix {
+    font-size: clamp(1.35rem, 7vw, 2rem);
+    letter-spacing: .13em;
+  }
+  .atlas-audio-title--design .atlas-audio-title__signature {
+    font-size: clamp(3.7rem, 20vw, 5.6rem);
+  }
   .atlas-audio-family__counterpart { white-space: normal; }
-  .symphony-transport__title h2[data-page-movement],
-  .symphony-transport__title h2[data-page-now-playing] { font-size: clamp(1.75rem, 8vw, 2.2rem); }
   .lab-flagship-counterpart__link {
     min-height: 76px;
     grid-template-columns: 1fr auto;
@@ -255,7 +296,7 @@ body[data-lab-route="spectral-forge"] .lab-flagship-counterpart,
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 420px) {
   .atlas-audio-family__counterpart {
     display: grid;
     grid-template-columns: auto 1fr auto;
@@ -268,4 +309,22 @@ body[data-lab-route="spectral-forge"] .lab-flagship-counterpart,
   .atlas-audio-family__counterpart i,
   .lab-flagship-counterpart__link { transition: none; }
   .atlas-audio-family__counterpart:hover i { transform: none; }
+}
+
+/* Production NOW PLAYING hierarchy. The flagship pass redesigns only the
+ * product identity lockup; the live movement title keeps its shipped scale.
+ */
+.symphony-transport__title h2[data-page-movement],
+.symphony-transport__title h2[data-page-now-playing] {
+  max-width: 18ch;
+  font-size: clamp(2rem, 3vw, 2.55rem);
+  line-height: .98;
+  letter-spacing: -.02em;
+}
+
+@media (max-width: 720px) {
+  .symphony-transport__title h2[data-page-movement],
+  .symphony-transport__title h2[data-page-now-playing] {
+    font-size: clamp(1.75rem, 8vw, 2.2rem);
+  }
 }

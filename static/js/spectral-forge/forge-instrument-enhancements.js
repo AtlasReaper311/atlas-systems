@@ -7,9 +7,9 @@ async function loadForgeWorkbench() {
   if (forgeLoaded) return;
   forgeLoaded = true;
   const [{ installPatchBay }, { installDeltaSurface }, { installPresetTransfer }] = await Promise.all([
-    import("./forge-patch-bay.js?v=20260813-instrument-22"),
-    import("./forge-delta.js?v=20260813-instrument-22"),
-    import("./forge-preset-transfer.js?v=20260813-instrument-22"),
+    import("./forge-patch-bay.js"),
+    import("./forge-delta.js"),
+    import("./forge-preset-transfer.js"),
   ]);
   installPatchBay();
   installDeltaSurface();
@@ -19,7 +19,7 @@ async function loadForgeWorkbench() {
 async function loadAnalyseTools() {
   if (analyseLoaded) return;
   analyseLoaded = true;
-  const { installAnalysisSnapshot } = await import("./forge-analysis-snapshot.js?v=20260813-instrument-22");
+  const { installAnalysisSnapshot } = await import("./forge-analysis-snapshot.js");
   installAnalysisSnapshot();
 }
 

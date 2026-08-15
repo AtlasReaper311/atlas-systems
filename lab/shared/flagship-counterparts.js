@@ -1,6 +1,14 @@
 "use strict";
 
-const STYLESHEET = "/lab/shared/flagship-counterparts.css?v=20260813-atlas-audio-family-v1";
+/* The flagship stylesheets are linked in each page head so the identity paints
+ * without a layout shift. These entries are an idempotent fallback only: the
+ * loop below skips any stylesheet the document already links.
+ */
+const STYLESHEETS = Object.freeze([
+  "/lab/shared/flagship-counterparts.css?v=20260814-flagship-v5",
+  "/lab/spectral-forge/spectral-forge-flagship-v2.css?v=20260814-flagship-v5",
+]);
+
 const ROUTES = Object.freeze({
   "/lab/system-symphony/": Object.freeze({
     href: "/lab/spectral-forge/",
@@ -10,7 +18,7 @@ const ROUTES = Object.freeze({
     signature: "SYMPHONY",
     title: "Spectral Forge",
     thesis: "Design how a system becomes sound.",
-    source: "System SYMPHONY",
+    source: "SYSTEM SYMPHONY",
   }),
   "/lab/spectral-forge/": Object.freeze({
     href: "/lab/system-symphony/",
@@ -18,9 +26,9 @@ const ROUTES = Object.freeze({
     counterpartFamily: "LISTEN",
     prefix: "SPECTRAL",
     signature: "Forge",
-    title: "System SYMPHONY",
+    title: "SYSTEM SYMPHONY",
     thesis: "Listen to a system.",
-    source: "Spectral Forge",
+    source: "SPECTRAL Forge",
   }),
 });
 
@@ -29,12 +37,16 @@ function normalizePath(pathname) {
   return pathname.endsWith("/") ? pathname : `${pathname}/`;
 }
 
-function ensureStylesheet() {
-  if (document.head.querySelector(`link[href^="${STYLESHEET.split("?")[0]}"]`)) return;
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = STYLESHEET;
-  document.head.appendChild(link);
+function ensureStylesheets(pathname) {
+  for (const href of STYLESHEETS) {
+    if (href.includes("spectral-forge-flagship-v2") && pathname !== "/lab/spectral-forge/") continue;
+    const base = href.split("?")[0];
+    if (document.head.querySelector(`link[href^="${base}"]`)) continue;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = href;
+    document.head.appendChild(link);
+  }
 }
 
 function identitySurface(pathname) {
@@ -109,7 +121,7 @@ export function installFlagshipCounterpart() {
   const counterpart = ROUTES[pathname];
   if (!counterpart) return null;
 
-  ensureStylesheet();
+  ensureStylesheets(pathname);
   decorateIdentity(pathname, counterpart);
 
   const existing = document.querySelector("[data-flagship-counterpart]");
