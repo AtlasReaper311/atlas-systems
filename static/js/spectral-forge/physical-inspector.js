@@ -49,7 +49,7 @@ function buildPanel() {
     small.textContent = text;
     const strong = document.createElement("strong");
     strong.dataset.physicalEvidence = key;
-    strong.textContent = key === "fissionPhase" || key === "dominantEvent" ? "none" : "0.000";
+    strong.textContent = key === "fissionPhase" ? "idle" : key === "dominantEvent" ? "none" : "0.000";
     cell.append(small, strong);
     return cell;
   });
