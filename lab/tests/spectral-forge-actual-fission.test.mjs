@@ -9,6 +9,7 @@ import {
 } from "../../static/js/spectral-forge/spectral-field-physical-state.js";
 import {
   createPhysicalFissionState,
+  readFissionEvidence,
   stepPhysicalFission,
 } from "../../static/js/spectral-forge/prototypes/field-proto-flagship-final-form-physics.js";
 
@@ -31,12 +32,13 @@ function stepScenario(id, seconds, { physicalModel, fissionModel, lifeStart = 0 
       scenarioSeed: seed,
       audioExpression: 0,
     });
-    const split = stepPhysicalFission(fission, {
+    // stepPhysicalFission reuses its result between frames, so a retained
+    // sample must copy it rather than hold the live reference.
+    const split = readFissionEvidence(stepPhysicalFission(fission, {
       physical: state,
       lifeTime: lifeStart + offset,
       seedPhase: 2.4,
-      scheduledFission: null,
-    });
+    }));
     samples.push({ scenarioTime, state, split });
   }
 
@@ -48,6 +50,7 @@ test("actual Cascading Failure telemetry crosses the generic stress-fission enve
   const firstStress = run.samples.find((sample) => sample.split.active && sample.split.stressDriven);
   assert.ok(firstStress, "real cascade telemetry must trigger stress-driven fission without a scenario-name check");
   assert.ok(firstStress.scenarioTime >= 40, "stress fission should emerge from accumulated failure rather than start as a preset clip");
+  assert.equal(firstStress.split.count, 2, "an ordinary severe cascade separates into two principal masses");
   assert.ok(firstStress.split.count >= 2 && firstStress.split.count <= 3, "severe cascade should recruit two or three meaningful masses");
   assert.ok(run.samples.some((sample) => sample.split.independent), "cascade fission should reach an independent daughter phase");
 });

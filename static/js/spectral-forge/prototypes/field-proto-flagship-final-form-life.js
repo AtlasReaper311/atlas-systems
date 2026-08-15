@@ -169,20 +169,30 @@ export function iterateLifeEvents(kind, seedPhase, scenarioId, untilTime, limit 
   return events;
 }
 
-function activeStreamEvent(kind, lifeTime, seedPhase, scenarioId) {
-  const events = iterateLifeEvents(kind, seedPhase, scenarioId, lifeTime + 8, 48);
-  for (const event of events) {
-    if (lifeTime >= event.start && lifeTime < event.end) {
-      return { ...event, progress: (lifeTime - event.start) / Math.max(0.001, event.duration) };
+/* Walks the deterministic event stream without materialising it. The previous
+ * form rebuilt an array of up to 48 specs - each of which hashes a safe axis
+ * over six candidates - on every call, three times per frame, per visible view. */
+function activeStreamEvent(kind, lifeTime, seedPhase, scenarioId, limit = 48) {
+  let time = firstEventTime(kind, seedPhase, scenarioId);
+  if (lifeTime < time) return null;
+  for (let index = 0; index < limit; index += 1) {
+    const spec = eventSpec(kind, index, seedPhase, scenarioId);
+    const end = time + spec.duration;
+    if (lifeTime < time) return null;
+    if (lifeTime < end) {
+      return { ...spec, index, start: time, end, progress: (lifeTime - time) / Math.max(0.001, spec.duration) };
     }
+    time += Math.max(spec.gap, spec.duration + 3);
   }
   return null;
 }
 
+/* Macroscopic separation is no longer scheduled by organism lifetime. A healthy
+ * body stays one body however long it lives; fission has to be earned by
+ * accumulated structural conditions in the material layer. */
 export function scheduledLifeEvent(lifeTime, seedPhase, scenarioId = "") {
   const time = Number(lifeTime) || 0;
-  return activeStreamEvent("fission", time, seedPhase, scenarioId)
-    ?? activeStreamEvent("rare", time, seedPhase, scenarioId)
+  return activeStreamEvent("rare", time, seedPhase, scenarioId)
     ?? activeStreamEvent("occasional", time, seedPhase, scenarioId);
 }
 
@@ -296,10 +306,15 @@ function daughterFromEvent(event, progress, delay, size, jitter) {
   };
 }
 
+/* The scheduled fission stream is retained as a prototype/debug capability but
+ * is no longer part of the shipped behaviour contract: only the explicit
+ * `?debug-gesture=fission` path can raise it. Stress-driven separation is owned
+ * by the material layer instead. */
 export function evaluateFission(lifeTime, seedPhase, scenarioId = "", debugGesture = "") {
   const time = Number(lifeTime) || 0;
   const debug = String(debugGesture || "") === "fission";
-  let event = activeStreamEvent("fission", time, seedPhase, scenarioId);
+  if (!debug) return idleFissionState();
+  let event = null;
   if (debug) {
     const spec = eventSpec("fission", 0, seedPhase, scenarioId);
     event = {

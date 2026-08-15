@@ -14,16 +14,35 @@ const PHYSICAL_KEYS = Object.freeze([
   ["memory", "MEMORY"],
 ]);
 
+/* Spatial evidence from the material layer. Every row is a value the model
+ * genuinely holds and acts on; nothing here exists to make the panel look busy. */
+const MATERIAL_KEYS = Object.freeze([
+  ["regime", "MATERIAL REGIME"],
+  ["supportStrength", "SUPPORT LOSS"],
+  ["frontPosition", "PROPAGATION FRONT"],
+  ["pressureStrength", "DIRECTIONAL PRESSURE"],
+  ["domainDisagreement", "DOMAIN DISAGREEMENT"],
+  ["stretchMagnitude", "PERSISTENT STRETCH"],
+  ["fractureCharge", "FRACTURE CHARGE"],
+  ["damage", "RETAINED DAMAGE"],
+  ["returnPull", "RETURN PULL"],
+]);
+
 const DEVELOPMENT_KEYS = Object.freeze([
   ["fractureDrive", "FRACTURE DRIVE"],
-  ["dominantEvent", "DOMINANT EVENT"],
-  ["activeEventCount", "ACTIVE EVENTS"],
   ["scarInfluence", "SCAR INFLUENCE"],
+  ["activeSiteCount", "ACTIVE SITES"],
   ["organismLifeTime", "ORGANISM LIFE"],
   ["scenarioTime", "SCENARIO TIME"],
   ["fissionPhase", "FISSION PHASE"],
   ["fissionCount", "FISSION COUNT"],
 ]);
+
+function initialText(key) {
+  if (key === "fissionPhase") return "idle";
+  if (key === "regime") return "coherent";
+  return "0.000";
+}
 
 function numberText(value) {
   return Number.isFinite(value) ? Number(value).toFixed(3) : "0.000";
@@ -43,13 +62,13 @@ function buildPanel() {
   panel.setAttribute("role", "group");
   panel.setAttribute("aria-labelledby", label.id);
 
-  const rows = [...PHYSICAL_KEYS, ...DEVELOPMENT_KEYS].map(([key, text]) => {
+  const rows = [...PHYSICAL_KEYS, ...MATERIAL_KEYS, ...DEVELOPMENT_KEYS].map(([key, text]) => {
     const cell = document.createElement("span");
     const small = document.createElement("small");
     small.textContent = text;
     const strong = document.createElement("strong");
     strong.dataset.physicalEvidence = key;
-    strong.textContent = key === "fissionPhase" ? "idle" : key === "dominantEvent" ? "none" : "0.000";
+    strong.textContent = initialText(key);
     cell.append(small, strong);
     return cell;
   });
@@ -67,10 +86,18 @@ function updatePanel(evidence) {
     if (node) node.textContent = numberText(physical[key]);
   }
   const values = {
+    regime: String(evidence.regime ?? "coherent"),
+    supportStrength: numberText(evidence.supportStrength),
+    frontPosition: numberText(evidence.frontPosition),
+    pressureStrength: numberText(evidence.pressureStrength),
+    domainDisagreement: numberText(evidence.domainDisagreement),
+    stretchMagnitude: numberText(evidence.stretchMagnitude),
+    fractureCharge: numberText(evidence.fractureCharge),
+    damage: numberText(evidence.damage),
+    returnPull: numberText(evidence.returnPull),
     fractureDrive: numberText(evidence.fractureDrive),
-    dominantEvent: String(evidence.dominantEvent?.kind ?? "none"),
-    activeEventCount: String(evidence.activeEventCount ?? 0),
     scarInfluence: numberText(evidence.scarInfluence),
+    activeSiteCount: String(evidence.activeSiteCount ?? 0),
     organismLifeTime: `${Number(evidence.organismLifeTime ?? 0).toFixed(1)} s`,
     scenarioTime: `${Number(evidence.scenarioTime ?? 0).toFixed(1)} s`,
     fissionPhase: String(evidence.fissionPhase ?? "idle"),

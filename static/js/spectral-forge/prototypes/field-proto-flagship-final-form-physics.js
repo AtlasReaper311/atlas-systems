@@ -2,10 +2,9 @@
 
 import { deterministicUnit } from "../spectral-field-model.js";
 import { physicalStateSnapshot } from "../spectral-field-physical-state.js";
+import { MATERIAL_SITE_COUNT, materialFissionReady, recordMaterialScar } from "../spectral-field-material.js";
 
 const TAU = Math.PI * 2;
-const START_THRESHOLD = 0.52;
-const REARM_THRESHOLD = 0.38;
 const COOLDOWN_SECONDS = 7;
 const MAX_DAUGHTERS = 3;
 
@@ -18,24 +17,30 @@ function smooth(value) {
   return t * t * (3 - 2 * t);
 }
 
-function normalise3(x, y, z) {
+function normaliseInto(target, x, y, z) {
   const length = Math.hypot(x, y, z) || 1;
-  return Object.freeze({ x: x / length, y: y / length, z: z / length });
+  target.x = x / length;
+  target.y = y / length;
+  target.z = z / length;
+  return target;
 }
 
-function tangentOf(axis) {
-  const up = Math.abs(axis.y) < 0.82 ? { x: 0, y: 1, z: 0 } : { x: 1, y: 0, z: 0 };
-  return normalise3(
-    up.y * axis.z - up.z * axis.y,
-    up.z * axis.x - up.x * axis.z,
-    up.x * axis.y - up.y * axis.x,
+function tangentInto(target, axis) {
+  const upY = Math.abs(axis.y) < 0.82 ? 1 : 0;
+  const upX = upY ? 0 : 1;
+  return normaliseInto(
+    target,
+    upY * axis.z - 0 * axis.y,
+    0 * axis.x - upX * axis.z,
+    upX * axis.y - upY * axis.x,
   );
 }
 
-function stableAxis(seedPhase, sequence) {
+function stableAxisInto(target, seedPhase, sequence) {
   const yaw = (deterministicUnit(seedPhase, 9400 + sequence * 13) - 0.5) * 1.55;
   const pitch = (deterministicUnit(seedPhase, 9401 + sequence * 13) - 0.46) * 1.18;
-  return normalise3(
+  return normaliseInto(
+    target,
     Math.sin(yaw) * Math.cos(pitch),
     Math.sin(pitch) * 0.88,
     0.26 + Math.abs(Math.cos(yaw)) * 0.22,
@@ -44,71 +49,94 @@ function stableAxis(seedPhase, sequence) {
 
 export function physicalFissionEnvelope(physical) {
   const p = physical ?? {};
+  /* Fracture drive is already zero unless the regime permits fracture, so this
+   * envelope cannot be reached by an ordinary loaded or stretched body. */
   return clamp(
-    clamp(p.fractureDrive) * 0.52
-      + (1 - clamp(p.cohesion, 0, 1)) * 0.12
-      + clamp(p.propagation) * 0.14
-      + clamp(p.pressure) * 0.08
-      + clamp(p.memory) * 0.1
-      + clamp(p.instability) * 0.04,
+    clamp(p.fractureDrive) * 0.62
+      + (1 - clamp(p.cohesion, 0, 1)) * 0.14
+      + clamp(p.propagation) * 0.12
+      + clamp(p.memory) * 0.12,
   );
 }
 
 function recoveryDrive(physical) {
   const p = physical ?? {};
+  const pull = clamp(p.material?.returnPull ?? 0);
   return clamp(
-    clamp(p.recovery) * 0.5
-      + clamp(p.cohesion) * 0.25
-      + clamp(p.surfaceTension) * 0.2
-      + (1 - clamp(p.pressure)) * 0.05,
+    clamp(p.recovery) * 0.4
+      + clamp(p.cohesion) * 0.22
+      + clamp(p.surfaceTension) * 0.18
+      + pull * 0.2,
   );
 }
 
 export function createPhysicalFissionState() {
   return {
     active: false,
-    armed: true,
     sequence: 0,
     progress: 0,
     lastLifeTime: null,
     cooldownUntil: 0,
     startDrive: 0,
-    axis: Object.freeze({ x: 0, y: 1, z: 0 }),
+    axis: { x: 0, y: 1, z: 0 },
     count: 0,
     primaryScale: 0,
     secondaryScale: 0,
     tertiaryScale: 0,
     peakDistance: 0,
+    scarRecorded: false,
+    /* Preallocated so an active fission allocates nothing per frame. */
+    daughters: [
+      { x: 0, y: 0, z: 0, scale: 0, distance: 0, visible: false, independent: false },
+      { x: 0, y: 0, z: 0, scale: 0, distance: 0, visible: false, independent: false },
+      { x: 0, y: 0, z: 0, scale: 0, distance: 0, visible: false, independent: false },
+    ],
+    result: {
+      active: false, stressDriven: false, progress: 0, phase: "idle", count: 0,
+      gather: 0, pinch: 0, lobe: 0, gap: 0, scar: 0, reach: 0,
+      axis: null, daughters: null, extent: 1.14, independent: false,
+    },
+    scratchTangent: { x: 1, y: 0, z: 0 },
   };
 }
 
+const IDLE_FISSION = Object.freeze({
+  active: false, stressDriven: false, count: 0,
+  daughters: Object.freeze([]), extent: 1.14, phase: "idle",
+});
+
 function resetForBackwardTime(state, lifeTime) {
   state.active = false;
-  state.armed = true;
   state.progress = 0;
   state.lastLifeTime = lifeTime;
   state.cooldownUntil = lifeTime;
   state.startDrive = 0;
   state.count = 0;
+  state.scarRecorded = false;
 }
 
-function chooseAxis(physical, seedPhase, sequence) {
-  const event = physical?.dominantEvent;
-  if (event?.axis && event.influence > 0.18) {
-    return normalise3(event.axis.x, event.axis.y, event.axis.z);
+function chooseAxis(state, physical, seedPhase) {
+  const material = physical?.material;
+  if (material?.fractureCharge > 0.4) {
+    return normaliseInto(state.axis, material.fractureAxis.x, material.fractureAxis.y, material.fractureAxis.z);
   }
-  return stableAxis(seedPhase, sequence);
+  return stableAxisInto(state.axis, seedPhase, state.sequence);
 }
 
 function startStressEvent(state, physical, lifeTime, seedPhase, drive) {
   state.active = true;
-  state.armed = false;
   state.progress = 0;
   state.lastLifeTime = lifeTime;
   state.startDrive = drive;
-  state.axis = chooseAxis(physical, seedPhase, state.sequence);
-  const rareNearDisintegration = drive > 0.78 && clamp(physical?.memory) > 0.78 && clamp(physical?.propagation) > 0.62;
-  state.count = rareNearDisintegration ? 3 : drive >= START_THRESHOLD ? 2 : 1;
+  state.scarRecorded = false;
+  chooseAxis(state, physical, seedPhase);
+  const material = physical?.material;
+  /* A third mass is exceptional: it needs charge well past the fission
+   * threshold together with retained damage from earlier failure. */
+  const nearDisintegration = (material?.fractureCharge ?? 0) > 2.7
+    && clamp(material?.damage ?? 0) > 0.85
+    && clamp(physical?.propagation) > 0.55;
+  state.count = nearDisintegration ? 3 : 2;
   state.primaryScale = 0.33 + drive * 0.11;
   state.secondaryScale = 0.14 + drive * 0.09;
   state.tertiaryScale = 0.1 + drive * 0.045;
@@ -154,85 +182,66 @@ function daughterScale(localProgress, size) {
   return 0;
 }
 
-function daughter(state, progress, delay, size, jitter, drive, recovery) {
+function writeDaughter(state, slot, progress, delay, size, jitter, drive, recovery) {
+  const target = state.daughters[slot];
   const local = clamp((progress - delay) / Math.max(0.001, 1 - delay));
   const distance = daughterDistance(local, state.peakDistance * (0.94 + jitter * 0.08), drive, recovery);
   const scale = daughterScale(local, size);
-  const tangent = tangentOf(state.axis);
+  const tangent = tangentInto(state.scratchTangent, state.axis);
   const drift = Math.sin(local * Math.PI) * (0.055 + jitter * 0.055) * (0.4 + drive * 0.6);
-  return Object.freeze({
-    x: state.axis.x * distance + tangent.x * drift,
-    y: state.axis.y * distance + tangent.y * drift,
-    z: state.axis.z * distance + tangent.z * drift,
-    scale,
-    distance,
-    visible: scale > 0.004 && local < 0.985,
-    independent: local >= 0.45 && local < 0.88 && scale > 0.08 && distance > 1.27,
-  });
+  target.x = state.axis.x * distance + tangent.x * drift;
+  target.y = state.axis.y * distance + tangent.y * drift;
+  target.z = state.axis.z * distance + tangent.z * drift;
+  target.scale = scale;
+  target.distance = distance;
+  target.visible = scale > 0.004 && local < 0.985;
+  target.independent = local >= 0.45 && local < 0.88 && scale > 0.08 && distance > 1.27;
+  return target;
 }
 
 function buildStressFission(state, physical, drive) {
   const progress = clamp(state.progress);
   const recovery = recoveryDrive(physical);
-  const daughters = [daughter(state, progress, 0, state.primaryScale, 0.37, drive, recovery)];
-  if (state.count >= 2) daughters.push(daughter(state, progress, 0.07, state.secondaryScale, 0.76, drive, recovery));
-  if (state.count >= 3) daughters.push(daughter(state, progress, 0.13, state.tertiaryScale, 0.19, drive, recovery));
+  writeDaughter(state, 0, progress, 0, state.primaryScale, 0.37, drive, recovery);
+  if (state.count >= 2) writeDaughter(state, 1, progress, 0.07, state.secondaryScale, 0.76, drive, recovery);
+  if (state.count >= 3) writeDaughter(state, 2, progress, 0.13, state.tertiaryScale, 0.19, drive, recovery);
+
   let extent = 1.14;
-  for (const item of daughters) {
-    if (item.visible) extent = Math.max(extent, item.distance + item.scale * 1.1);
+  let independent = false;
+  for (let i = 0; i < state.count; i += 1) {
+    const item = state.daughters[i];
+    if (!item.visible) continue;
+    extent = Math.max(extent, item.distance + item.scale * 1.1);
+    if (item.independent) independent = true;
   }
-  return Object.freeze({
-    active: true,
-    stressDriven: true,
-    progress,
-    phase: phaseName(progress),
-    count: state.count,
-    gather: windowGain(progress, 0, 0.11, 0.3) + windowGain(progress, 0.7, 0.84, 0.94) * 0.45,
-    pinch: windowGain(progress, 0.13, 0.35, 0.56),
-    lobe: Math.max(windowGain(progress, 0.07, 0.23, 0.48), windowGain(progress, 0.68, 0.83, 0.95) * 0.75),
-    gap: windowGain(progress, 0.42, 0.6, 0.86),
-    scar: Math.max(windowGain(progress, 0.84, 0.95, 1.001), clamp(physical?.scarInfluence) * 0.24),
-    reach: windowGain(progress, 0.64, 0.82, 0.95),
-    axis: state.axis,
-    daughters: Object.freeze(daughters),
-    extent,
-    independent: daughters.some((item) => item.independent),
-  });
+
+  const result = state.result;
+  result.active = true;
+  result.stressDriven = true;
+  result.progress = progress;
+  result.phase = phaseName(progress);
+  result.count = state.count;
+  result.gather = windowGain(progress, 0, 0.11, 0.3) + windowGain(progress, 0.7, 0.84, 0.94) * 0.45;
+  result.pinch = windowGain(progress, 0.13, 0.35, 0.56);
+  result.lobe = Math.max(windowGain(progress, 0.07, 0.23, 0.48), windowGain(progress, 0.68, 0.83, 0.95) * 0.75);
+  result.gap = windowGain(progress, 0.42, 0.6, 0.86);
+  result.scar = Math.max(windowGain(progress, 0.84, 0.95, 1.001), clamp(physical?.scarInfluence) * 0.24);
+  result.reach = windowGain(progress, 0.64, 0.82, 0.95);
+  result.axis = state.axis;
+  result.daughters = state.daughters;
+  result.extent = extent;
+  result.independent = independent;
+  return result;
 }
 
-function modulateScheduledFission(scheduled, physical, drive) {
-  const recovery = recoveryDrive(physical);
-  const stress = clamp((drive - 0.4) / 0.6);
-  const daughters = (scheduled.daughters ?? []).map((item, index) => {
-    const outward = 1 + stress * (index === 0 ? 0.1 : 0.065) - recovery * 0.055;
-    return Object.freeze({
-      ...item,
-      x: item.x * outward,
-      y: item.y * outward,
-      z: item.z * outward,
-      distance: item.distance * outward,
-    });
-  });
-  let extent = scheduled.extent ?? 1.14;
-  for (const item of daughters) {
-    if (item.visible) extent = Math.max(extent, item.distance + item.scale * 1.1);
-  }
-  return Object.freeze({
-    ...scheduled,
-    stressDriven: false,
-    pinch: clamp((scheduled.pinch ?? 0) + stress * 0.16),
-    gap: clamp((scheduled.gap ?? 0) + stress * 0.12 - recovery * 0.08),
-    scar: clamp((scheduled.scar ?? 0) + clamp(physical?.scarInfluence) * 0.18),
-    daughters: Object.freeze(daughters),
-    extent,
-  });
-}
-
+/* IMPORTANT: the returned object is frame-scoped. It is reused between frames so
+ * an active separation allocates nothing inside the render loop, which is where
+ * this runs. Consumers that need to retain a value across frames must copy it
+ * with `readFissionEvidence` rather than holding the reference. */
 export function stepPhysicalFission(state, {
   physical,
   lifeTime,
   seedPhase,
-  scheduledFission,
 } = {}) {
   const model = state ?? createPhysicalFissionState();
   const now = Math.max(0, Number.isFinite(lifeTime) ? lifeTime : 0);
@@ -242,17 +251,14 @@ export function stepPhysicalFission(state, {
   const dt = model.lastLifeTime == null ? 0.016 : clamp(now - model.lastLifeTime, 0, 0.05);
   model.lastLifeTime = now;
 
-  if (!model.armed && !model.active && drive < REARM_THRESHOLD && now >= model.cooldownUntil) model.armed = true;
-
-  if (scheduledFission?.active && !model.active) {
-    return modulateScheduledFission(scheduledFission, physical, drive);
-  }
-
-  if (!model.active && model.armed && now >= model.cooldownUntil && drive >= START_THRESHOLD) {
+  /* Macroscopic separation requires the material layer to have charged a
+   * fracture past its threshold under a regime that permits fission. Ordinary
+   * life, however long it runs, cannot reach this. */
+  if (!model.active && now >= model.cooldownUntil && materialFissionReady(physical?.material)) {
     startStressEvent(model, physical, now, seedPhase, drive);
   }
 
-  if (!model.active) return scheduledFission ?? Object.freeze({ active: false, stressDriven: false, count: 0, daughters: Object.freeze([]), extent: 1.14 });
+  if (!model.active) return IDLE_FISSION;
 
   const recovery = recoveryDrive(physical);
   let rate = 0.045 + drive * 0.035;
@@ -261,6 +267,13 @@ export function stepPhysicalFission(state, {
   model.progress = clamp(model.progress + dt * rate);
 
   const result = buildStressFission(model, physical, drive);
+
+  /* Separation leaves retained evidence on the parent, recorded once. */
+  if (!model.scarRecorded && model.progress >= 0.5) {
+    recordMaterialScar(physical?.material, model.axis, clamp(0.5 + drive * 0.5), now, 16);
+    model.scarRecorded = true;
+  }
+
   if (model.progress >= 0.999) {
     model.active = false;
     model.progress = 0;
@@ -269,24 +282,43 @@ export function stepPhysicalFission(state, {
   return result;
 }
 
-function strongestScar(model) {
-  let best = null;
-  let strength = 0;
-  for (const scar of model?.scars ?? []) {
-    const current = clamp(scar.current ?? scar.strength ?? 0);
-    if (current > strength) {
-      strength = current;
-      best = scar;
-    }
+/* Detached copy for anything that outlives the frame - evidence capture, tests,
+ * inspectors - because `stepPhysicalFission` deliberately reuses its result. */
+export function readFissionEvidence(fission) {
+  if (!fission) return null;
+  const count = fission.count ?? 0;
+  const daughters = [];
+  for (let i = 0; i < count; i += 1) {
+    const item = fission.daughters?.[i];
+    if (!item) continue;
+    daughters.push({
+      x: item.x, y: item.y, z: item.z,
+      scale: item.scale, distance: item.distance,
+      visible: item.visible, independent: item.independent,
+    });
   }
-  return best ? Object.freeze({ axis: best.axis, influence: strength }) : null;
+  return {
+    active: Boolean(fission.active),
+    stressDriven: Boolean(fission.stressDriven),
+    progress: fission.progress ?? 0,
+    phase: fission.phase ?? "idle",
+    count,
+    pinch: fission.pinch ?? 0,
+    gap: fission.gap ?? 0,
+    scar: fission.scar ?? 0,
+    extent: fission.extent ?? 1.14,
+    independent: Boolean(fission.independent),
+    daughters,
+  };
 }
 
 function setFissionChildren(webglState, fission) {
-  const daughters = fission?.daughters ?? [];
-  for (let index = 0; index < Math.min(MAX_DAUGHTERS, webglState.fissionChildren?.length ?? 0); index += 1) {
-    const mesh = webglState.fissionChildren[index];
-    const item = daughters[index];
+  const daughters = fission?.daughters;
+  const children = webglState.fissionChildren;
+  if (!children) return;
+  for (let index = 0; index < Math.min(MAX_DAUGHTERS, children.length); index += 1) {
+    const mesh = children[index];
+    const item = index < (fission?.count ?? 0) ? daughters?.[index] : null;
     if (!item?.visible) {
       mesh.visible = false;
       continue;
@@ -297,28 +329,89 @@ function setFissionChildren(webglState, fission) {
   }
 }
 
+/* Per-site field parameters. These are what make a regime legible: a support
+ * collapse is a sink with no peaks, a loaded region is a dense positive crest
+ * field, an elongation is one broad axial flow, a fracture is a narrow deep
+ * sink. The same seven shader slots therefore express different physics rather
+ * than the same blob motion at different amplitudes. */
+const SITE_STYLE = Object.freeze({
+  "support-loss": Object.freeze({ strength: 0.34, flow: -0.16, swirl: 0.02, crest: 0.0, crestGate: 0 }),
+  "propagation-front": Object.freeze({ strength: 0.2, flow: 0.19, swirl: 0.05, crest: 0.06, crestGate: 0.24 }),
+  "pressure-front": Object.freeze({ strength: 0.19, flow: 0.05, swirl: 0.02, crest: 0.26, crestGate: 0.82 }),
+  domain: Object.freeze({ strength: 0.24, flow: 0.13, swirl: 0.19, crest: 0.09, crestGate: 0.3 }),
+  elongation: Object.freeze({ strength: 0.2, flow: 0.2, swirl: 0.01, crest: 0.03, crestGate: 0.12 }),
+  fracture: Object.freeze({ strength: 0.42, flow: -0.1, swirl: 0.04, crest: 0.0, crestGate: 0 }),
+  scar: Object.freeze({ strength: 0.08, flow: 0.02, swirl: 0.03, crest: 0.14, crestGate: 0.4 }),
+});
+
+/* Material sites claim shader field slots from the end, so ordinary life keeps
+ * the leading slots and a calm body is unchanged. */
+function applyMaterialSites(webglState, material, phase) {
+  const uniforms = webglState.uniforms;
+  if (!uniforms?.fields || !material) return 0;
+  const slots = uniforms.fields.length;
+  const count = Math.min(material.activeSiteCount, MATERIAL_SITE_COUNT, slots);
+  for (let i = 0; i < count; i += 1) {
+    const site = material.sites[i];
+    const style = SITE_STYLE[site.kind];
+    if (!style || site.strength <= 0.004) continue;
+    const slot = slots - 1 - i;
+    const sigma = Math.max(0.3, site.extent);
+    uniforms.fields[slot].set(site.x, site.y, site.z, site.polarity);
+    uniforms.fieldParamsA[slot].set(
+      style.strength * site.strength,
+      1 / (1.8 * sigma * sigma),
+      style.flow * site.strength,
+      style.swirl * site.strength,
+    );
+    uniforms.fieldParamsB[slot].set(
+      style.crest * site.strength,
+      10.6 + i * 1.27,
+      -phase * (0.34 + i * 0.09),
+      style.crestGate,
+    );
+  }
+  return count;
+}
+
 function applyPhysicalUniforms(renderer, webglState, physical, fission) {
   const uniforms = webglState.uniforms;
   if (!uniforms) return;
+  const material = physical.material;
+
   uniforms.compression.value = clamp(Math.max(uniforms.compression.value, physical.compression * 0.86));
   uniforms.stretch.value = clamp(Math.max(uniforms.stretch.value, physical.stretch * 0.9));
   uniforms.coherenceLoss.value = clamp(Math.max(uniforms.coherenceLoss.value, (1 - physical.cohesion) * 0.92));
   uniforms.microstructure.value = clamp(uniforms.microstructure.value + physical.peakRecruitment * 0.13 + physical.instability * 0.035);
   uniforms.activity.value = clamp(Math.max(uniforms.activity.value, 0.24 + physical.peakRecruitment * 0.44 + physical.pressure * 0.2));
+  uniforms.damage.value = clamp(Math.max(uniforms.damage.value, clamp(material?.damage ?? 0) * 0.8));
 
-  const event = physical.dominantEvent;
-  const scar = strongestScar(renderer.state?.organismLife?.physical);
-  const local = fission?.active ? { axis: fission.axis, influence: 1 } : event?.axis ? { axis: event.axis, influence: event.influence } : scar;
-  if (local?.axis) {
-    const influence = clamp(local.influence ?? 0);
+  const siteCount = applyMaterialSites(webglState, material, uniforms.phase.value);
+
+  /* The dominant permitted mechanism steers the meso axis and the neck axis, so
+   * the direction a viewer reads matches the mechanism actually in play. */
+  let axis = null;
+  let influence = 0;
+  if (fission?.active) {
+    axis = fission.axis;
+    influence = 1;
+  } else if (material) {
+    if (material.supportStrength > 0.12) { axis = material.supportOrigin; influence = material.supportStrength; }
+    else if (material.fractureCharge > 0.4) { axis = material.fractureAxis; influence = clamp(material.fractureCharge / 2); }
+    else if (material.stretchMagnitude > 0.12) { axis = material.stretchAxis; influence = material.stretchMagnitude; }
+    else if (material.domainDisagreement > 0.12) { axis = material.domainA; influence = material.domainDisagreement; }
+    else if (material.pressureStrength > 0.12) { axis = material.pressureAxis; influence = material.pressureStrength; }
+  }
+  if (axis) {
+    const weight = clamp(influence);
     const current = uniforms.mesoDrive;
-    const x = current.x * (1 - influence) + local.axis.x * influence;
-    const y = current.y * (1 - influence) + local.axis.y * influence;
-    const z = current.z * (1 - influence) + local.axis.z * influence;
+    const x = current.x * (1 - weight) + axis.x * weight;
+    const y = current.y * (1 - weight) + axis.y * weight;
+    const z = current.z * (1 - weight) + axis.z * weight;
     const length = Math.hypot(x, y, z) || 1;
-    const travel = current.w + (event?.progress ?? 0) * TAU * 1.8 * influence;
+    const travel = current.w + clamp(material?.frontPosition ?? 0) * TAU * 1.4 * weight;
     current.set(x / length, y / length, z / length, travel);
-    uniforms.neckAxis.set(local.axis.x, local.axis.y, local.axis.z);
+    uniforms.neckAxis.set(axis.x, axis.y, axis.z);
   }
 
   const scarInfluence = clamp(physical.scarInfluence);
@@ -327,13 +420,23 @@ function applyPhysicalUniforms(renderer, webglState, physical, fission) {
     uniforms.fissionGap.value = fission.gap ?? 0;
     uniforms.lifeA.x = clamp(Math.min(uniforms.lifeA.x, 1 - (fission.pinch ?? 0) * 0.82), 0.12, 1);
     setFissionChildren(webglState, fission);
-  } else if (scarInfluence > 0.025) {
-    uniforms.fission.w = Math.max(uniforms.fission.w, scarInfluence * 0.22);
+  } else {
+    setFissionChildren(webglState, null);
+    if (scarInfluence > 0.025) uniforms.fission.w = Math.max(uniforms.fission.w, scarInfluence * 0.22);
+  }
+
+  /* Recovery is a reverse material process, not a reset: attraction rises and
+   * surface tension reclaims the form while damage still reads on the surface. */
+  const pull = clamp(material?.returnPull ?? 0);
+  if (pull > 0.02) {
+    uniforms.lifeA.x = clamp(uniforms.lifeA.x + pull * 0.16, 0.12, 1);
+    uniforms.coherenceLoss.value = clamp(uniforms.coherenceLoss.value * (1 - pull * 0.3));
   }
 
   if (uniforms.routeEnabled.value > 0.5) {
     uniforms.routeWidth.value = clamp(uniforms.routeWidth.value * (0.92 + physical.pressure * 0.12), 0.045, 0.24);
   }
+  return siteCount;
 }
 
 function applyFramingSafety(webglState, fission) {
@@ -348,12 +451,10 @@ function beforeRender(renderer, webglState) {
   if (!life?.physical) return;
   const physical = physicalStateSnapshot(life.physical);
   if (!life.physicalFission) life.physicalFission = createPhysicalFissionState();
-  const scheduled = life.fission;
   const resolved = stepPhysicalFission(life.physicalFission, {
     physical,
     lifeTime: renderer.visualTime,
     seedPhase: Number(webglState.uniforms?.identitySeed?.value) || 0,
-    scheduledFission: scheduled,
   });
   life.fission = resolved;
   applyPhysicalUniforms(renderer, webglState, physical, resolved);
@@ -373,28 +474,59 @@ export function installPhysicalBehaviourHook(renderer) {
   return true;
 }
 
+function strongestScar(material) {
+  let best = null;
+  let strength = 0;
+  for (const scar of material?.scars ?? []) {
+    if (!scar.active) continue;
+    const current = clamp(scar.strength);
+    if (current > strength) {
+      strength = current;
+      best = scar;
+    }
+  }
+  return best ? { axis: { x: best.x, y: best.y, z: best.z }, influence: strength } : null;
+}
+
 function evidenceFor(renderer) {
   const life = renderer.state?.organismLife;
-  const physical = life?.physical ? physicalStateSnapshot(life.physical) : physicalStateSnapshot(null);
+  const physical = physicalStateSnapshot(life?.physical ?? null);
+  const material = physical.material;
   const fission = life?.fission ?? null;
-  const scar = strongestScar(life?.physical);
-  return Object.freeze({
+  return {
     physical,
+    regime: physical.regime,
     fractureDrive: physical.fractureDrive,
-    dominantEvent: physical.dominantEvent,
-    activeEventCount: physical.activeEventCount,
+    fractureCharge: Number(material?.fractureCharge ?? 0),
+    damage: Number(material?.damage ?? 0),
+    supportStrength: Number(material?.supportStrength ?? 0),
+    frontPosition: Number(material?.frontPosition ?? 0),
+    domainDisagreement: Number(material?.domainDisagreement ?? 0),
+    stretchMagnitude: Number(material?.stretchMagnitude ?? 0),
+    pressureStrength: Number(material?.pressureStrength ?? 0),
+    returnPull: Number(material?.returnPull ?? 0),
+    activeSiteCount: Number(material?.activeSiteCount ?? 0),
     scarInfluence: physical.scarInfluence,
-    dominantScar: scar,
+    dominantScar: strongestScar(material),
     organismLifeTime: Number(life?.time ?? 0),
     scenarioTime: Number(renderer.state?.frame?.time ?? 0),
     fissionPhase: fission?.phase ?? "idle",
     fissionCount: fission?.count ?? 0,
     fissionStressDriven: Boolean(fission?.stressDriven),
-  });
+  };
 }
+
+/* Evidence publication touches the DOM, so it is throttled rather than run on
+ * every frame: writing a dozen dataset attributes per frame per view was itself
+ * a source of stalling under heavy deformation. */
+const EVIDENCE_INTERVAL_MS = 180;
 
 export function publishPhysicalBehaviourEvidence(renderer, timestamp = performance.now()) {
   if (!renderer?.canvas || !renderer.state?.organismLife) return null;
+  const previous = renderer.canvas.__atlasPhysicalEvidencePublishedAt ?? -Infinity;
+  if (timestamp - previous < EVIDENCE_INTERVAL_MS) return renderer.canvas.__atlasPhysicalEvidence ?? null;
+  renderer.canvas.__atlasPhysicalEvidencePublishedAt = timestamp;
+
   const evidence = evidenceFor(renderer);
   renderer.canvas.__atlasPhysicalEvidence = evidence;
   const dataset = renderer.canvas.dataset;
@@ -402,16 +534,15 @@ export function publishPhysicalBehaviourEvidence(renderer, timestamp = performan
     if (typeof value === "number") dataset[`physical${key[0].toUpperCase()}${key.slice(1)}`] = value.toFixed(4);
   }
   dataset.fractureDrive = Number(evidence.fractureDrive).toFixed(4);
+  dataset.materialRegime = String(evidence.regime);
+  dataset.materialDamage = Number(evidence.damage).toFixed(4);
+  dataset.fractureCharge = Number(evidence.fractureCharge).toFixed(4);
   dataset.fissionPhase = evidence.fissionPhase;
   dataset.fissionCount = String(evidence.fissionCount);
   dataset.fissionStressDriven = String(evidence.fissionStressDriven);
 
   if (renderer.canvas.id === "analysis-field") {
-    const previous = renderer.canvas.__atlasPhysicalEvidencePublishedAt ?? -Infinity;
-    if (timestamp - previous >= 180) {
-      renderer.canvas.__atlasPhysicalEvidencePublishedAt = timestamp;
-      document.dispatchEvent(new CustomEvent("atlas-forge-physical-state", { detail: evidence }));
-    }
+    document.dispatchEvent(new CustomEvent("atlas-forge-physical-state", { detail: evidence }));
   }
   return evidence;
 }

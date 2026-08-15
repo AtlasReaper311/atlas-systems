@@ -1,6 +1,12 @@
 "use strict";
 
 import { TARGET_BY_ID, clamp } from "./domain.js";
+import {
+  createMaterialState,
+  materialEvidence,
+  resetMaterialState,
+  stepMaterialState,
+} from "./spectral-field-material.js";
 
 /*
  * Shared physical-state layer for the Spectral Forge organism.
@@ -9,6 +15,15 @@ import { TARGET_BY_ID, clamp } from "./domain.js";
  * state, mapped outputs, their motion through time, a stable spatial seed, and
  * the existing organism lifetime. The result is therefore a physical response
  * to evidence rather than a scenario-name animation table.
+ *
+ * The eleven canonical values answer "how much". The material layer this module
+ * owns answers "where, which way, and by which permitted mechanism". Both are
+ * updated from the same evidence in the same step, so there is one source of
+ * physical truth.
+ *
+ * Hot-path discipline: the model is preallocated and mutated in place, and the
+ * published snapshot is a stable object rather than a fresh frozen copy per
+ * frame. This runs inside the render loop on every visible Field view.
  */
 
 export const PHYSICAL_STATE_KEYS = Object.freeze([
@@ -34,16 +49,6 @@ const SIGNAL_KEYS = Object.freeze([
   "cpu_load",
   "anomaly_score",
 ]);
-
-const MAX_EVENTS = 4;
-const MAX_SCARS = 4;
-const EVENT_COOLDOWN = Object.freeze({
-  "support-loss": 5.2,
-  "pressure-front": 4.4,
-  "instability-pulse": 3.2,
-  "fracture-front": 7.5,
-  "recovery-wave": 5.5,
-});
 
 const RESPONSE = Object.freeze({
   pressure: Object.freeze({ attack: 0.62, release: 2.6 }),
@@ -84,157 +89,35 @@ function targetNormalised(id, outputs) {
   return clamp((value - definition.min) / Math.max(0.001, definition.max - definition.min));
 }
 
-function copySignals(frame) {
-  return Object.fromEntries(SIGNAL_KEYS.map((id) => [id, clamp(frame?.normalised?.[id] ?? 0)]));
-}
-
-function seededUnit(seed, lane) {
-  const value = Math.sin((finite(seed) * 0.017 + lane * 91.173) * 12.9898) * 43758.5453;
-  return value - Math.floor(value);
-}
-
-function normalise3(x, y, z) {
-  const length = Math.hypot(x, y, z) || 1;
-  return Object.freeze({ x: x / length, y: y / length, z: z / length });
-}
-
-function eventAxis(seed, sequence) {
-  const a = seededUnit(seed, 5100 + sequence * 7) * Math.PI * 2;
-  const y = seededUnit(seed, 5101 + sequence * 7) * 1.36 - 0.68;
-  const radius = Math.sqrt(Math.max(0.08, 1 - y * y));
-  return normalise3(
-    Math.cos(a) * radius,
-    y,
-    0.2 + Math.sin(a) * radius * 0.62,
-  );
-}
-
-function eventDuration(kind, strength) {
-  if (kind === "fracture-front") return 10.5 + strength * 4.5;
-  if (kind === "recovery-wave") return 6.5 + strength * 3.5;
-  if (kind === "support-loss") return 6 + strength * 3;
-  if (kind === "instability-pulse") return 3 + strength * 2.4;
-  return 4.8 + strength * 2.8;
-}
-
-function eventEnvelope(progress) {
-  const t = clamp(progress);
-  const rise = clamp(t / 0.24);
-  const fall = clamp((1 - t) / 0.32);
-  const edge = Math.min(rise, fall);
-  return edge * edge * (3 - 2 * edge);
-}
-
 function responseStep(current, target, dt, attack, release) {
   const tau = target > current ? attack : release;
   const alpha = 1 - Math.exp(-Math.max(0, dt) / Math.max(0.04, tau));
   return clamp(current + (target - current) * alpha);
 }
 
-function createEvent(kind, strength, lifeTime, model, scenarioSeed) {
-  const sequence = model.sequence;
-  model.sequence += 1;
-  const axis = eventAxis(scenarioSeed, sequence);
-  return {
-    kind,
-    strength: clamp(strength),
-    start: lifeTime,
-    duration: eventDuration(kind, strength),
-    progress: 0,
-    envelope: 0,
-    axis,
-    sequence,
-  };
+function createSnapshot() {
+  const snapshot = {};
+  for (const key of PHYSICAL_STATE_KEYS) snapshot[key] = DEFAULT_VALUES[key];
+  snapshot.fractureDrive = 0;
+  snapshot.regime = "coherent";
+  snapshot.material = null;
+  snapshot.scarInfluence = 0;
+  return snapshot;
 }
 
-function addScar(model, event, lifeTime) {
-  if (!event || event.kind === "pressure-front" || event.kind === "instability-pulse" || event.kind === "recovery-wave") return;
-  const severity = clamp(event.strength * (event.kind === "fracture-front" ? 1 : 0.72));
-  if (severity < 0.34) return;
-  model.scars.push({
-    axis: event.axis,
-    strength: severity,
-    createdAt: lifeTime,
-    halfLife: event.kind === "fracture-front" ? 18 + severity * 12 : 9 + severity * 8,
-  });
-  if (model.scars.length > MAX_SCARS) model.scars.splice(0, model.scars.length - MAX_SCARS);
-}
-
-function advanceEvents(model, lifeTime) {
-  const active = [];
-  for (const event of model.events) {
-    const progress = (lifeTime - event.start) / Math.max(0.001, event.duration);
-    if (progress >= 1) {
-      addScar(model, event, lifeTime);
-      continue;
-    }
-    if (progress < 0) continue;
-    event.progress = clamp(progress);
-    event.envelope = eventEnvelope(event.progress);
-    active.push(event);
-  }
-  model.events = active.slice(-MAX_EVENTS);
-
-  model.scars = model.scars
-    .map((scar) => {
-      const age = Math.max(0, lifeTime - scar.createdAt);
-      return { ...scar, current: scar.strength * (2 ** (-age / Math.max(1, scar.halfLife))) };
-    })
-    .filter((scar) => scar.current > 0.035)
-    .slice(-MAX_SCARS);
-}
-
-function eventInfluence(event) {
-  return event ? clamp(event.strength * event.envelope) : 0;
-}
-
-function dominantEvent(model) {
-  let best = null;
-  let score = 0;
-  for (const event of model.events) {
-    const influence = eventInfluence(event);
-    if (influence > score) {
-      score = influence;
-      best = event;
-    }
-  }
-  if (!best) return null;
-  return Object.freeze({
-    kind: best.kind,
-    strength: best.strength,
-    progress: best.progress,
-    envelope: best.envelope,
-    influence: score,
-    axis: best.axis,
-    sequence: best.sequence,
-  });
-}
-
-function maybeEvent(model, kind, strength, threshold, lifeTime, scenarioSeed) {
-  if (strength < threshold) return;
-  const last = model.lastTrigger[kind] ?? -Infinity;
-  const cooldown = EVENT_COOLDOWN[kind] ?? 4;
-  if (lifeTime - last < cooldown) return;
-  model.lastTrigger[kind] = lifeTime;
-  model.events.push(createEvent(kind, strength, lifeTime, model, scenarioSeed));
-  if (model.events.length > MAX_EVENTS) model.events.splice(0, model.events.length - MAX_EVENTS);
-}
-
-export function createPhysicalStateModel() {
+export function createPhysicalStateModel(seed = 0.731) {
   return {
     values: { ...DEFAULT_VALUES },
     target: { ...DEFAULT_VALUES },
     trends: Object.fromEntries(SIGNAL_KEYS.map((id) => [id, 0])),
-    previousSignals: null,
+    signals: Object.fromEntries(SIGNAL_KEYS.map((id) => [id, 0])),
+    previousSignals: Object.fromEntries(SIGNAL_KEYS.map((id) => [id, 0])),
+    hasPrevious: false,
     lastLifeTime: null,
     lastStress: 0,
     fractureDrive: 0,
-    events: [],
-    scars: [],
-    lastTrigger: Object.create(null),
-    sequence: 0,
-    dominantEvent: null,
-    scarInfluence: 0,
+    material: createMaterialState(seed),
+    snapshot: createSnapshot(),
   };
 }
 
@@ -242,17 +125,16 @@ export function resetPhysicalStateModel(model) {
   if (!model) return model;
   Object.assign(model.values, DEFAULT_VALUES);
   Object.assign(model.target, DEFAULT_VALUES);
-  for (const id of SIGNAL_KEYS) model.trends[id] = 0;
-  model.previousSignals = null;
+  for (const id of SIGNAL_KEYS) {
+    model.trends[id] = 0;
+    model.signals[id] = 0;
+    model.previousSignals[id] = 0;
+  }
+  model.hasPrevious = false;
   model.lastLifeTime = null;
   model.lastStress = 0;
   model.fractureDrive = 0;
-  model.events = [];
-  model.scars = [];
-  model.lastTrigger = Object.create(null);
-  model.sequence = 0;
-  model.dominantEvent = null;
-  model.scarInfluence = 0;
+  resetMaterialState(model.material);
   return model;
 }
 
@@ -263,22 +145,24 @@ export function stepPhysicalState(model, {
   scenarioSeed = 0,
   audioExpression = 0,
 } = {}) {
-  if (!model) model = createPhysicalStateModel();
+  if (!model) model = createPhysicalStateModel(scenarioSeed || 0.731);
   const now = Math.max(0, finite(lifeTime));
-  const signals = copySignals(frame);
-  const first = model.lastLifeTime == null || !model.previousSignals;
+  const first = model.lastLifeTime == null || !model.hasPrevious;
   const rawDt = first ? 0.016 : now - model.lastLifeTime;
   const dt = clamp(rawDt, 0.001, 0.05);
 
   if (!first && rawDt < -0.001) resetPhysicalStateModel(model);
 
-  const previous = model.previousSignals ?? signals;
+  const signals = model.signals;
+  const previous = model.previousSignals;
   for (const id of SIGNAL_KEYS) {
+    previous[id] = model.hasPrevious ? signals[id] : clamp(frame?.normalised?.[id] ?? 0);
+    signals[id] = clamp(frame?.normalised?.[id] ?? 0);
     const rawVelocity = clamp((signals[id] - previous[id]) / Math.max(dt, 0.016), -3, 3);
     const alpha = 1 - Math.exp(-dt / 0.38);
     model.trends[id] += (rawVelocity - model.trends[id]) * alpha;
   }
-  model.previousSignals = signals;
+  model.hasPrevious = true;
   model.lastLifeTime = now;
 
   const demand = signals.request_rate;
@@ -447,36 +331,59 @@ export function stepPhysicalState(model, {
     }
   }
 
-  model.fractureDrive = clamp(
-    (1 - model.values.cohesion) * 0.34
-    + model.values.instability * 0.2
-    + model.values.propagation * 0.18
-    + model.values.pressure * 0.13
-    + model.values.memory * 0.15,
-  );
   model.lastStress = stressNow;
 
-  advanceEvents(model, now);
-  maybeEvent(model, "support-loss", clamp(cacheLossRise * 0.62 + cacheLoss * 0.38), 0.34, now, scenarioSeed);
-  maybeEvent(model, "pressure-front", clamp(requestRise * 0.34 + queueRise * 0.24 + pressureTarget * 0.42), 0.58, now, scenarioSeed);
-  maybeEvent(model, "instability-pulse", clamp(motionEnergy * 0.58 + instabilityTarget * 0.42), 0.6, now, scenarioSeed);
-  maybeEvent(model, "fracture-front", model.fractureDrive, 0.68, now, scenarioSeed);
-  maybeEvent(model, "recovery-wave", clamp(recoveryTarget * 0.78 + stressFall * 0.22), 0.52, now, scenarioSeed);
-  advanceEvents(model, now);
+  /* Spatial regime last: it consumes the settled scalar state, and its
+   * permissions then decide which mechanisms may express at all. */
+  stepMaterialState(model.material, {
+    signals,
+    trends: model.trends,
+    physical: model.values,
+    lifeTime: now,
+    dt,
+  });
 
-  model.dominantEvent = dominantEvent(model);
-  model.scarInfluence = clamp(model.scars.reduce((sum, scar) => sum + (scar.current ?? scar.strength ?? 0) * 0.45, 0));
+  /* Fracture drive is gated by the regime rather than merely scaled by it, so a
+   * condition whose regime forbids fracture cannot reach the threshold however
+   * long it runs. */
+  model.fractureDrive = model.material.permits.fracture
+    ? clamp(
+      (1 - model.values.cohesion) * 0.3
+      + model.values.instability * 0.16
+      + model.values.propagation * 0.14
+      + model.values.memory * 0.12
+      + clamp(model.material.fractureCharge / 2) * 0.28,
+    )
+    : 0;
 
-  return physicalStateSnapshot(model);
+  return publishSnapshot(model);
+}
+
+function publishSnapshot(model) {
+  const snapshot = model.snapshot;
+  for (const key of PHYSICAL_STATE_KEYS) snapshot[key] = clamp(model.values[key]);
+  snapshot.fractureDrive = clamp(model.fractureDrive);
+  snapshot.regime = model.material.regime;
+  snapshot.material = model.material;
+  snapshot.scarInfluence = clamp(model.material.scarInfluence);
+  return snapshot;
 }
 
 export function physicalStateSnapshot(model) {
-  const values = Object.freeze(Object.fromEntries(PHYSICAL_STATE_KEYS.map((key) => [key, clamp(model?.values?.[key] ?? DEFAULT_VALUES[key])])));
-  return Object.freeze({
+  if (!model) {
+    const empty = createSnapshot();
+    return empty;
+  }
+  return model.snapshot ?? publishSnapshot(model);
+}
+
+export function physicalStateEvidence(model) {
+  if (!model) return null;
+  const values = {};
+  for (const key of PHYSICAL_STATE_KEYS) values[key] = clamp(model.values[key]);
+  return {
     ...values,
-    fractureDrive: clamp(model?.fractureDrive ?? 0),
-    dominantEvent: model?.dominantEvent ?? null,
-    activeEventCount: model?.events?.length ?? 0,
-    scarInfluence: clamp(model?.scarInfluence ?? 0),
-  });
+    fractureDrive: clamp(model.fractureDrive),
+    material: materialEvidence(model.material),
+  };
 }

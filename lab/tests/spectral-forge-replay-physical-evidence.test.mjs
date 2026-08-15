@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-import { applyScenarioSelection, beginScenarioHandoff } from "../../static/js/spectral-forge/spectral-field-scenario-clock.js";
+import { SIGNALS, createFrame } from "../../static/js/spectral-forge/domain.js";
+import {
+  applyScenarioSelection,
+  beginScenarioHandoff,
+  scenarioFrameAt,
+} from "../../static/js/spectral-forge/spectral-field-scenario-clock.js";
 import { createOrganismLifeClock, resetOrganismLifeClock } from "../../static/js/spectral-forge/spectral-field-life-clock.js";
 
 const APP_CORE = new URL("../../static/js/spectral-forge/app-core.js", import.meta.url);
@@ -44,15 +49,26 @@ test("REPLAY decision restarts only scenario-local telemetry and preserves organ
 test("REPLAY creates a deterministic short handoff while RESET RUN remains destructive", async () => {
   const decision = applyScenarioSelection(completeState(), "cache");
   assert.equal(decision.handoff, true);
-  const finalFrame = { marker: "final" };
-  const handoff = beginScenarioHandoff(finalFrame, 1000);
-  assert.equal(handoff.fromFrame, finalFrame);
+  // REPLAY carries the held final telemetry into the restarted run, so the
+  // specimen does not snap back to the scenario's baseline.
+  const finalFrame = createFrame("cache", 60);
+  const handoff = beginScenarioHandoff(finalFrame, "cache");
+  assert.ok(handoff, "replay produced no telemetry handoff");
   assert.ok(handoff.duration > 0);
+  const restarted = scenarioFrameAt("cache", 0, handoff);
+  assert.equal(restarted.time, 0, "replay must restart scenario-local telemetry time");
+  for (const signal of SIGNALS) {
+    assert.equal(
+      restarted.values[signal.id],
+      finalFrame.values[signal.id],
+      `replay reset ${signal.id} instead of continuing from the held state`,
+    );
+  }
 
   const app = await readFile(APP_CORE, "utf8");
   const replay = app.slice(app.indexOf("function replayScenario"), app.indexOf("function resetScenario"));
   assert.match(replay, /applyScenarioSelection\(\{ scenarioId, playback, scenarioTime: time \}, scenarioId\)/);
-  assert.match(replay, /beginScenarioHandoff\(previousFrame, performance\.now\(\)\)/);
+  assert.match(replay, /beginScenarioHandoff\(previousFrame, scenarioId\)/);
   assert.doesNotMatch(replay, /safeReset|resetOrganismLifeClock/);
   assert.match(replay, /playback = decision\.playback/);
 
@@ -105,9 +121,18 @@ test("ANALYSE physical inspector exposes all canonical values and development ev
   ]) {
     assert.match(inspector, new RegExp(`\\[\\"${key}\\",`));
   }
-  for (const key of ["fractureDrive", "dominantEvent", "activeEventCount", "scarInfluence", "organismLifeTime", "scenarioTime", "fissionPhase", "fissionCount"]) {
+  // Spatial evidence from the material layer must be inspectable too, so an
+  // owner can confirm which mechanism is actually in play.
+  for (const key of [
+    "regime", "supportStrength", "frontPosition", "pressureStrength", "domainDisagreement",
+    "stretchMagnitude", "fractureCharge", "damage", "returnPull",
+    "fractureDrive", "scarInfluence", "activeSiteCount",
+    "organismLifeTime", "scenarioTime", "fissionPhase", "fissionCount",
+  ]) {
     assert.match(inspector, new RegExp(key));
   }
+  // Removed evidence must not linger as dead rows.
+  assert.doesNotMatch(inspector, /dominantEvent|activeEventCount/);
 });
 
 test("selected-route amber remains local while physical integration contains no scenario-name choreography", async () => {

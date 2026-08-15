@@ -50,7 +50,7 @@ import { createOrganismLifeClock, resetOrganismLifeClock } from "./spectral-fiel
 import {
   applyScenarioSelection,
   beginScenarioHandoff,
-  resolveScenarioFrame,
+  scenarioFrameAt,
 } from "./spectral-field-scenario-clock.js";
 
 const HARMONIC_STATES = Object.freeze({
@@ -251,20 +251,13 @@ function currentSelectedMapping() {
   return selectedMapping(comparison);
 }
 
-function mappedFrame() {
-  const resolved = resolveScenarioFrame(frame, scenarioHandoff, performance.now());
-  if (resolved === frame) scenarioHandoff = null;
-  return resolved;
-}
-
 function activeOutputState() {
-  return audibleOutputs(mappedFrame(), comparison);
+  return audibleOutputs(frame, comparison);
 }
 
 function currentCalculation() {
   const mapping = currentSelectedMapping();
-  const sourceFrame = mappedFrame();
-  return mapping ? calculateMapping(mapping, sourceFrame.normalised[mapping.source]) : null;
+  return mapping ? calculateMapping(mapping, frame.normalised[mapping.source]) : null;
 }
 
 function fieldState(fieldVisible) {
@@ -613,7 +606,7 @@ function startTimer() {
   stopTimer();
   timer = setInterval(() => {
     time = Math.min(RUN_DURATION_SECONDS, Number((time + 0.1).toFixed(1)));
-    frame = createFrame(scenarioId, time);
+    frame = scenarioFrameAt(scenarioId, time, scenarioHandoff);
     history = [...history, frame].slice(-601);
     if (time >= RUN_DURATION_SECONDS) {
       playback = "COMPLETE";
@@ -637,10 +630,10 @@ function replayScenario() {
   const previousFrame = frame;
   scenarioId = decision.scenarioId;
   time = decision.scenarioTime;
-  frame = createFrame(scenarioId, time);
-  history = [frame];
+  scenarioHandoff = decision.handoff ? beginScenarioHandoff(previousFrame, scenarioId) : null;
+  frame = scenarioFrameAt(scenarioId, time, scenarioHandoff);
+  history = [...history, frame].slice(-601);
   playback = decision.playback;
-  scenarioHandoff = decision.handoff ? beginScenarioHandoff(previousFrame, performance.now()) : null;
   if (decision.startTimer) startTimer();
   else if (decision.stopTimer) stopTimer();
   setNotice(decision.notice);
@@ -676,10 +669,10 @@ function selectScenario(nextScenario) {
   const previousFrame = frame;
   scenarioId = decision.scenarioId;
   time = decision.scenarioTime;
-  frame = createFrame(scenarioId, time);
-  history = [frame];
+  scenarioHandoff = decision.handoff ? beginScenarioHandoff(previousFrame, scenarioId) : null;
+  frame = scenarioFrameAt(scenarioId, time, scenarioHandoff);
+  history = [...history, frame].slice(-601);
   playback = decision.playback;
-  scenarioHandoff = decision.handoff ? beginScenarioHandoff(previousFrame, performance.now()) : null;
   if (decision.startTimer) startTimer();
   else if (decision.stopTimer) stopTimer();
   setNotice(decision.notice);

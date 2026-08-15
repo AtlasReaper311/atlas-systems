@@ -656,7 +656,7 @@ export function drawFlagshipFinalForm(renderer, timestamp = performance.now()) {
 
   const startedAt = performance.now();
   const { width, height } = canvasSize(renderer.canvas);
-  const g = deriveFieldGeometry(renderer.state, renderer.visualTime, width, height, timestamp);
+  const g = deriveFieldGeometry(renderer.state, renderer.visualTime, width, height);
   const mix = transitionMix.call(renderer, timestamp);
   const band = routeBand(renderer.state.selectedMapping);
   const damage = clamp(

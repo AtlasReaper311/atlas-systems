@@ -6,7 +6,6 @@ import {
   createPhysicalStateModel,
   stepPhysicalState,
 } from "./spectral-field-physical-state.js";
-import { resolveScenarioFrame } from "./spectral-field-scenario-clock.js";
 
 function numericHealthProfile(pressure, disturbance, mapped, physical) {
   const severity = clamp(
@@ -52,12 +51,38 @@ function physicalStateFor(state, frame, outputs, visualTime) {
   });
 }
 
+/* Folds the spatial regime into the shared art state. The dominant local axis
+ * is whichever mechanism the current regime actually permits, so the direction
+ * a viewer reads is the direction the material is genuinely being worked in. */
+function dominantLocal(material) {
+  if (!material) return { axis: null, influence: 0, kind: "none" };
+  if (material.supportStrength > 0.12) {
+    return { axis: material.supportOrigin, influence: material.supportStrength, kind: "support-loss" };
+  }
+  if (material.fractureCharge > 0.4) {
+    return { axis: material.fractureAxis, influence: clamp(material.fractureCharge / 2), kind: "fracture" };
+  }
+  if (material.stretchMagnitude > 0.12) {
+    return { axis: material.stretchAxis, influence: material.stretchMagnitude, kind: "elongation" };
+  }
+  if (material.domainDisagreement > 0.12) {
+    return { axis: material.domainA, influence: material.domainDisagreement, kind: "domain" };
+  }
+  if (material.pressureStrength > 0.12) {
+    return { axis: material.pressureAxis, influence: material.pressureStrength, kind: "pressure" };
+  }
+  return { axis: null, influence: 0, kind: "none" };
+}
+
+const NEUTRAL_AXIS = Object.freeze({ x: 0, y: 0, z: 1 });
+
 function mergeArtState(base, physical) {
-  const event = physical.dominantEvent;
-  const eventInfluence = event?.influence ?? 0;
-  const eventAxis = event?.axis ?? Object.freeze({ x: 0, y: 0, z: 1 });
-  const localFailure = event?.kind === "support-loss" || event?.kind === "fracture-front";
-  const restorative = event?.kind === "recovery-wave";
+  const material = physical.material;
+  const local = dominantLocal(material);
+  const eventInfluence = clamp(local.influence);
+  const eventAxis = local.axis ?? NEUTRAL_AXIS;
+  const localFailure = local.kind === "support-loss" || local.kind === "fracture";
+  const returnPull = clamp(material?.returnPull ?? 0);
   return Object.freeze({
     ...base,
     physical,
@@ -65,8 +90,8 @@ function mergeArtState(base, physical) {
     direction: clamp(base.direction * 0.42 + eventAxis.x * eventInfluence * 0.58, -1, 1),
     compression: clamp(base.compression * 0.25 + physical.compression * 0.75),
     stretch: clamp(base.stretch * 0.22 + physical.stretch * 0.78),
-    propagation: clamp(base.propagation * 0.28 + physical.propagation * 0.62 + eventInfluence * 0.1),
-    coherencePulse: clamp(base.coherencePulse * 0.22 + physical.instability * 0.68 + eventInfluence * 0.1),
+    propagation: clamp(base.propagation * 0.28 + physical.propagation * 0.62 + clamp(material?.frontStrength ?? 0) * 0.24),
+    coherencePulse: clamp(base.coherencePulse * 0.22 + physical.instability * 0.68 + clamp(material?.domainDisagreement ?? 0) * 0.22),
     fractureBias: clamp(
       base.fractureBias * 0.18
       + physical.fractureDrive * 0.54
@@ -77,20 +102,23 @@ function mergeArtState(base, physical) {
       base.disturbance * 0.2
       + physical.pressure * 0.31
       + physical.instability * 0.27
-      + physical.memory * 0.14
+      + clamp(material?.damage ?? 0) * 0.18
       + eventInfluence * 0.08,
     ),
-    recovery: clamp(base.recovery * 0.22 + physical.recovery * 0.64 + (restorative ? eventInfluence * 0.14 : 0)),
+    recovery: clamp(base.recovery * 0.22 + physical.recovery * 0.64 + returnPull * 0.2),
     bloomBias: clamp(base.bloomBias * 0.45 + physical.surfaceTension * physical.recovery * 0.42 + physical.peakRecruitment * 0.13),
     eventAxis,
     eventInfluence,
-    eventKind: event?.kind ?? "none",
+    eventKind: local.kind,
+    regime: physical.regime,
   });
 }
 
-export function deriveFieldGeometry(state, visualTime, width, height, timestamp = performance.now()) {
+export function deriveFieldGeometry(state, visualTime, width, height) {
   const { outputs } = state;
-  const frame = resolveScenarioFrame(state.frame, state.scenarioHandoff, timestamp);
+  /* The scenario clock already produced one continuous telemetry frame; the
+   * renderer must not resolve a second, differently-timed version of it. */
+  const frame = state.frame;
   const mapped = visualTargetState(outputs);
   const physical = physicalStateFor(state, frame, outputs, visualTime);
   const baseArt = fieldArtState(frame, mapped);
@@ -99,8 +127,8 @@ export function deriveFieldGeometry(state, visualTime, width, height, timestamp 
   const pressure = physical.pressure;
   const health = numericHealthProfile(pressure, art.disturbance, mapped, physical);
   const cacheDisruption = clamp(1 - values.cache_hit_rate);
-  const eventInfluence = physical.dominantEvent?.influence ?? 0;
-  const eventAxis = physical.dominantEvent?.axis ?? { x: 0, y: 0, z: 0 };
+  const eventInfluence = art.eventInfluence;
+  const eventAxis = art.eventAxis;
   const asymmetry = clamp(
     cacheDisruption * 0.08
     + mapped.phaseDisagreement * 0.12

@@ -2,293 +2,395 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-import { SCENARIO_BY_ID, createFrame } from "../../static/js/spectral-forge/domain.js";
-import { audibleOutputs, createComparisonState } from "../../static/js/spectral-forge/state.js";
+import {
+  BUILT_IN_PRESETS,
+  SCENARIOS,
+  createFrame,
+  mappingOutputs,
+} from "../../static/js/spectral-forge/domain.js";
 import {
   PHYSICAL_STATE_KEYS,
   createPhysicalStateModel,
+  physicalStateEvidence,
   resetPhysicalStateModel,
   stepPhysicalState,
 } from "../../static/js/spectral-forge/spectral-field-physical-state.js";
 import {
-  createPhysicalFissionState,
-  physicalFissionEnvelope,
-  stepPhysicalFission,
-} from "../../static/js/spectral-forge/prototypes/field-proto-flagship-final-form-physics.js";
+  MATERIAL_REGIMES,
+  createMaterialState,
+} from "../../static/js/spectral-forge/spectral-field-material.js";
+import {
+  beginScenarioHandoff,
+  scenarioFrameAt,
+} from "../../static/js/spectral-forge/spectral-field-scenario-clock.js";
 
-const EXPECTED_KEYS = [
-  "pressure",
-  "compression",
-  "stretch",
-  "viscosity",
-  "cohesion",
-  "instability",
-  "propagation",
-  "peakRecruitment",
-  "surfaceTension",
-  "recovery",
-  "memory",
-];
+const REFERENCE = BUILT_IN_PRESETS[0];
+const DT = 1 / 30;
 
-const comparison = createComparisonState();
+/*
+ * These tests assert regime EXCLUSIVITY, not amplitude. Threshold-only checks
+ * ("cascade has more fracture drive than normal") can stay green while every
+ * scenario still performs the same catalogue of deformations at different
+ * sizes, which is exactly the failure this suite exists to prevent.
+ */
 
-function simulateScenario(id, seconds = 60, { model = createPhysicalStateModel(), lifeStart = 0 } = {}) {
+function simulate(scenarioId, {
+  seconds = 60,
+  model = createPhysicalStateModel(),
+  startLife = 0,
+  handoff = null,
+} = {}) {
   const samples = [];
-  const eventStarts = [];
-  const seenSequences = new Set();
-  const stepSeconds = 0.1;
-  const seed = SCENARIO_BY_ID[id]?.visualSeed ?? 0;
-  for (let t = 0; t <= seconds + 1e-9; t += stepSeconds) {
-    const scenarioTime = Math.min(60, Number(t.toFixed(1)));
-    const frame = createFrame(id, scenarioTime);
-    const outputs = audibleOutputs(frame, comparison);
-    const physical = stepPhysicalState(model, {
+  let life = startLife;
+  let frame = null;
+  for (let t = 0; t <= seconds + 1e-9; t += DT) {
+    frame = scenarioFrameAt(scenarioId, t, handoff);
+    const outputs = mappingOutputs(frame, REFERENCE.mappings);
+    life += DT;
+    const snapshot = stepPhysicalState(model, {
       frame,
       outputs,
-      lifeTime: lifeStart + t,
-      scenarioSeed: seed,
-      audioExpression: 0,
+      lifeTime: life,
+      scenarioSeed: 0.731,
     });
-    for (const event of model.events) {
-      if (!seenSequences.has(event.sequence)) {
-        seenSequences.add(event.sequence);
-        eventStarts.push({ kind: event.kind, lifeTime: lifeStart + t, scenarioTime, strength: event.strength });
-      }
-    }
-    samples.push({ scenarioTime, physical, target: { ...model.target } });
+    samples.push({
+      t,
+      life,
+      regime: snapshot.regime,
+      fractureDrive: snapshot.fractureDrive,
+      fractureCharge: model.material.fractureCharge,
+      damage: model.material.damage,
+      supportStrength: model.material.supportStrength,
+      stretchMagnitude: model.material.stretchMagnitude,
+      domainDisagreement: model.material.domainDisagreement,
+      pressureStrength: model.material.pressureStrength,
+      frontPosition: model.material.frontPosition,
+      returnPull: model.material.returnPull,
+      permits: model.material.permits,
+      values: { ...model.values },
+    });
   }
-  return { model, samples, eventStarts, lifeEnd: lifeStart + seconds };
+  return { samples, model, frame, life };
 }
 
-function average(samples, key, from = 0) {
-  const chosen = samples.filter((sample) => sample.scenarioTime >= from);
-  return chosen.reduce((sum, sample) => sum + sample.physical[key], 0) / Math.max(1, chosen.length);
+function occupancy(samples, regime, from = 0) {
+  const window = samples.filter((s) => s.t >= from);
+  return window.filter((s) => s.regime === regime).length / window.length;
 }
 
-function maxValue(samples, key) {
-  return Math.max(...samples.map((sample) => sample.physical[key]));
-}
-
-function minValue(samples, key) {
-  return Math.min(...samples.map((sample) => sample.physical[key]));
+function peak(samples, key) {
+  return samples.reduce((best, s) => Math.max(best, s[key]), 0);
 }
 
 test("canonical physical contract is exact, finite, bounded and deterministic", () => {
-  assert.deepEqual(PHYSICAL_STATE_KEYS, EXPECTED_KEYS);
-  const first = simulateScenario("cascade", 45);
-  const second = simulateScenario("cascade", 45);
-  assert.equal(first.samples.length, second.samples.length);
-  for (let index = 0; index < first.samples.length; index += 1) {
-    const a = first.samples[index].physical;
-    const b = second.samples[index].physical;
-    for (const key of EXPECTED_KEYS) {
-      assert.ok(Number.isFinite(a[key]), `${key} must be finite`);
-      assert.ok(a[key] >= 0 && a[key] <= 1, `${key} must remain bounded`);
-      assert.equal(a[key], b[key], `${key} diverged at sample ${index}`);
+  assert.deepEqual([...PHYSICAL_STATE_KEYS], [
+    "pressure", "compression", "stretch", "viscosity", "cohesion", "instability",
+    "propagation", "peakRecruitment", "surfaceTension", "recovery", "memory",
+  ]);
+
+  for (const scenario of SCENARIOS) {
+    const { samples } = simulate(scenario.id);
+    for (const sample of samples) {
+      for (const key of PHYSICAL_STATE_KEYS) {
+        const value = sample.values[key];
+        assert.ok(Number.isFinite(value), `${scenario.id}.${key} is not finite`);
+        assert.ok(value >= 0 && value <= 1, `${scenario.id}.${key} left 0..1 (${value})`);
+      }
+      assert.ok(MATERIAL_REGIMES.includes(sample.regime), `unknown regime ${sample.regime}`);
     }
-    assert.equal(a.fractureDrive, b.fractureDrive);
+  }
+
+  const first = simulate("cascade").samples.at(-1);
+  const second = simulate("cascade").samples.at(-1);
+  assert.deepEqual(first.values, second.values, "identical input must replay identically");
+  assert.equal(first.regime, second.regime);
+  assert.equal(first.fractureCharge, second.fractureCharge);
+});
+
+test("each scenario settles into its own material regime", () => {
+  const expected = {
+    normal: "coherent",
+    traffic: "compressed",
+    cache: "support-loss",
+    flapping: "oscillating",
+    creep: "viscous",
+    cascade: "structural-failure",
+  };
+  for (const [scenarioId, regime] of Object.entries(expected)) {
+    const { samples } = simulate(scenarioId);
+    const share = occupancy(samples, regime, 15);
+    assert.ok(share > 0.25, `${scenarioId} only reached ${regime} for ${(share * 100).toFixed(0)}% after 15s`);
+  }
+
+  /* Deployment is a bounded disturbance: it must show a recovery regime rather
+   * than a failure one. */
+  const deploy = simulate("deploy").samples;
+  assert.ok(occupancy(deploy, "reassembly", 15) > 0.1, "deployment never reads as reassembly");
+  assert.equal(occupancy(deploy, "structural-failure"), 0, "a bounded deployment must not read as structural failure");
+});
+
+test("Normal Load stays one coherent organism for a long lifetime", () => {
+  const { samples } = simulate("normal", { seconds: 60 });
+  assert.equal(occupancy(samples, "coherent"), 1, "healthy telemetry left the coherent regime");
+  assert.equal(peak(samples, "fractureCharge"), 0, "healthy life charged a fracture");
+  assert.equal(peak(samples, "fractureDrive"), 0, "healthy life produced fracture drive");
+  assert.ok(peak(samples, "damage") < 0.05, "healthy life accumulated damage");
+
+  for (const sample of samples) {
+    assert.equal(sample.permits.fracture, false);
+    assert.equal(sample.permits.fission, false);
+  }
+
+  /* Bounded micro-life must remain: coherent is not frozen. */
+  const recruitment = samples.map((s) => s.values.peakRecruitment);
+  assert.ok(Math.max(...recruitment) > 0.1, "healthy organism has no surface life");
+
+  /* Four consecutive 60s runs on one organism: still no macroscopic fission. */
+  const model = createPhysicalStateModel();
+  let life = 0;
+  for (let run = 0; run < 4; run += 1) {
+    const result = simulate("normal", { model, startLife: life });
+    life = result.life;
+    assert.equal(peak(result.samples, "fractureCharge"), 0, `run ${run} charged a fracture in healthy life`);
+  }
+  assert.ok(life > 240, "organism lifetime did not accumulate across runs");
+});
+
+test("Traffic Spike is a compression regime and never becomes support failure or fracture", () => {
+  const { samples } = simulate("traffic");
+  assert.ok(occupancy(samples, "compressed", 15) > 0.4);
+  assert.equal(occupancy(samples, "support-loss"), 0, "traffic acquired a support-loss regime");
+  assert.equal(occupancy(samples, "structural-failure"), 0, "traffic acquired a structural-failure regime");
+  assert.equal(peak(samples, "fractureCharge"), 0, "traffic charged a fracture");
+  assert.equal(peak(samples, "supportStrength"), 0, "traffic developed a support-loss origin");
+
+  const loaded = samples.filter((s) => s.regime === "compressed");
+  assert.ok(loaded.length > 0);
+  const compression = Math.max(...loaded.map((s) => s.values.compression));
+  const stretch = Math.max(...loaded.map((s) => s.values.stretch));
+  assert.ok(compression > stretch, `compression (${compression}) must dominate stretch (${stretch})`);
+  assert.ok(Math.min(...loaded.map((s) => s.values.cohesion)) > 0.4, "traffic must stay well clear of failure cohesion");
+  assert.ok(peak(samples, "pressureStrength") > 0.4, "traffic never developed a directional pressure region");
+});
+
+test("Cache Collapse loses local support first, then propagates downstream", () => {
+  const { samples } = simulate("cache");
+  const firstSupport = samples.find((s) => s.supportStrength > 0.3);
+  const firstDownstream = samples.find((s) => s.values.pressure > 0.45);
+  assert.ok(firstSupport, "cache never lost local support");
+  assert.ok(firstDownstream, "cache never produced downstream pressure");
+  assert.ok(
+    firstSupport.t < firstDownstream.t,
+    `support loss (t=${firstSupport.t.toFixed(1)}) must precede downstream pressure (t=${firstDownstream.t.toFixed(1)})`,
+  );
+
+  /* The origin must hold still long enough to be perceptible, and the front
+   * must travel away from it. */
+  const held = samples.filter((s) => s.supportStrength > 0.3);
+  assert.ok(held.at(-1).t - held[0].t > 8, "support-loss origin was not held long enough to read");
+  assert.ok(held.at(-1).frontPosition > held[0].frontPosition + 0.2, "propagation front did not travel");
+
+  assert.equal(peak(samples, "fractureCharge"), 0, "an ordinary cache collapse fractured");
+  assert.ok(occupancy(samples, "structural-failure") < 0.05, "ordinary cache collapse became structural failure");
+});
+
+test("Service Flapping competes and reseals without persistent elongation or fission", () => {
+  const { samples } = simulate("flapping");
+  assert.ok(occupancy(samples, "oscillating", 15) > 0.5);
+  assert.ok(peak(samples, "domainDisagreement") > 0.4, "flapping never produced competing domains");
+  assert.equal(peak(samples, "fractureCharge"), 0, "flapping charged a fracture");
+  assert.equal(occupancy(samples, "viscous"), 0, "flapping acquired the viscous elongation regime");
+  assert.ok(peak(samples, "stretchMagnitude") < 0.1, "flapping developed persistent elongation");
+
+  /* Coherence must repeatedly fall and recover rather than decline once. */
+  const active = samples.filter((s) => s.t >= 10 && s.t <= 50).map((s) => s.values.cohesion);
+  let reversals = 0;
+  let direction = 0;
+  for (let i = 1; i < active.length; i += 1) {
+    const delta = active[i] - active[i - 1];
+    if (Math.abs(delta) < 1e-4) continue;
+    const sign = Math.sign(delta);
+    if (direction !== 0 && sign !== direction) reversals += 1;
+    direction = sign;
+  }
+  assert.ok(reversals >= 4, `flapping cohesion only reversed ${reversals} times`);
+});
+
+test("Latency Creep elongates on one persistent axis without instability or fission", () => {
+  const { samples, model } = simulate("creep");
+  assert.ok(occupancy(samples, "viscous", 15) > 0.4);
+  assert.equal(peak(samples, "fractureCharge"), 0, "creep charged a fracture");
+  assert.equal(occupancy(samples, "oscillating"), 0, "creep acquired the oscillating regime");
+  assert.equal(occupancy(samples, "structural-failure"), 0, "creep became structural failure");
+
+  /* Stretch must rise progressively rather than pulse. */
+  const marks = [20, 35, 50].map((t) => samples.find((s) => s.t >= t).stretchMagnitude);
+  assert.ok(marks[1] > marks[0], "creep stretch did not grow through the middle of the run");
+  assert.ok(marks[2] > marks[1], "creep stretch did not keep growing late");
+
+  /* The elongation axis must be persistent, not re-chosen every few frames. */
+  const axis = model.material.stretchAxis;
+  assert.ok(Number.isFinite(axis.x + axis.y + axis.z));
+  const late = simulate("creep", { seconds: 60 });
+  assert.ok(late.model.material.stretchMagnitude > 0.3, "late creep is not materially elongated");
+
+  const viscous = samples.filter((s) => s.regime === "viscous");
+  const instability = Math.max(...viscous.map((s) => s.values.instability));
+  const flapping = simulate("flapping").samples.filter((s) => s.regime === "oscillating");
+  const flappingInstability = Math.max(...flapping.map((s) => s.values.instability));
+  assert.ok(instability < flappingInstability, "creep instability must stay below flapping");
+});
+
+test("Cascading Failure earns its fracture and produces bounded masses", () => {
+  const { samples } = simulate("cascade");
+  assert.ok(occupancy(samples, "structural-failure", 15) > 0.2);
+
+  const charged = samples.find((s) => s.fractureCharge >= 1);
+  assert.ok(charged, "cascade never charged a fracture");
+  assert.ok(charged.t > 25, `fracture charged too early (t=${charged.t.toFixed(1)}) to be earned`);
+
+  /* Fracture is reached only after the body has failed to absorb stress, and
+   * only from within the failure regime. */
+  for (const sample of samples) {
+    if (sample.fractureCharge > 0) assert.equal(sample.permits.fracture, true);
+  }
+
+  assert.ok(peak(samples, "damage") > 0.8, "cascade did not accumulate severe damage");
+  assert.ok(peak(samples, "fractureDrive") > 0.35, "cascade fracture drive stayed low");
+
+  /* No other scenario may reach the fission envelope, whatever its amplitude. */
+  for (const scenario of SCENARIOS) {
+    if (scenario.id === "cascade") continue;
+    const other = simulate(scenario.id).samples;
+    assert.equal(peak(other, "fractureCharge"), 0, `${scenario.id} charged a fracture`);
   }
 });
 
-test("physical response bands preserve fast micro expression and slow retained state", () => {
+test("Deployment recovery raises return pull and heals residual damage slowly", () => {
+  /* Damage the organism with a full cascade, then apply recovery telemetry to
+   * the same specimen. */
   const model = createPhysicalStateModel();
-  let life = 0;
-  for (let t = 0; t <= 4; t += 0.1) {
-    const frame = createFrame("normal", t);
-    stepPhysicalState(model, { frame, outputs: audibleOutputs(frame, comparison), lifeTime: life, scenarioSeed: 1, audioExpression: 0 });
-    life += 0.1;
-  }
-  const before = { ...model.values };
-  const stressed = createFrame("cascade", 42);
-  const firstStress = stepPhysicalState(model, {
-    frame: stressed,
-    outputs: audibleOutputs(stressed, comparison),
-    lifeTime: life,
-    scenarioSeed: 1,
-    audioExpression: 0,
+  const cascade = simulate("cascade", { model });
+  assert.ok(cascade.samples.at(-1).damage > 0.8, "cascade did not leave the organism damaged");
+
+  const handoff = beginScenarioHandoff(cascade.frame, "deploy");
+  const recovery = simulate("deploy", { model, startLife: cascade.life, handoff });
+
+  assert.ok(peak(recovery.samples, "returnPull") > 0.2, "recovery never raised a return force");
+  const damageAtStart = recovery.samples[0].damage;
+  const damageAtEnd = recovery.samples.at(-1).damage;
+  assert.ok(damageAtEnd < damageAtStart * 0.5, "residual damage did not decay through recovery");
+});
+
+test("severe damage persists for roughly 20-30 seconds after conditions clear", () => {
+  const model = createPhysicalStateModel();
+  const cascade = simulate("cascade", { model });
+  const handoff = beginScenarioHandoff(cascade.frame, "normal");
+  const after = simulate("normal", { model, startLife: cascade.life, handoff });
+
+  const at = (seconds) => after.samples.find((s) => s.t >= seconds).damage;
+  assert.ok(at(5) > 0.4, `damage vanished too quickly (5s: ${at(5).toFixed(2)})`);
+  assert.ok(at(15) > 0.15, `damage vanished too quickly (15s: ${at(15).toFixed(2)})`);
+  assert.ok(at(20) > 0.08, `damage vanished before 20s (20s: ${at(20).toFixed(2)})`);
+  assert.ok(at(35) < 0.1, `damage still present well past 30s (35s: ${at(35).toFixed(2)})`);
+
+  /* The specimen must pass through a recovery regime rather than snapping back. */
+  const regimes = after.samples.map((s) => s.regime);
+  assert.ok(regimes.includes("reassembly"), "damaged organism never entered reassembly");
+  assert.ok(regimes.at(-1) === "coherent", "organism never returned to a coherent state");
+  const firstCoherent = after.samples.find((s) => s.regime === "coherent");
+  assert.ok(firstCoherent.t > 3, "organism snapped straight back to healthy");
+});
+
+test("history changes how the same telemetry is experienced", () => {
+  const fresh = simulate("cache");
+  const damagedModel = createPhysicalStateModel();
+  const cascade = simulate("cascade", { model: damagedModel });
+  const carried = simulate("cache", {
+    model: damagedModel,
+    startLife: cascade.life,
+    handoff: beginScenarioHandoff(cascade.frame, "cache"),
   });
+
   assert.ok(
-    Math.abs(firstStress.peakRecruitment - before.peakRecruitment) > Math.abs(firstStress.stretch - before.stretch),
-    "micro peak recruitment should move faster than macro stretch",
+    peak(carried.samples, "damage") > peak(fresh.samples, "damage"),
+    "an already-damaged organism did not experience the next condition differently",
   );
-  assert.ok(
-    Math.abs(firstStress.instability - before.instability) >= Math.abs(firstStress.viscosity - before.viscosity),
-    "instability should attack at least as quickly as viscosity",
-  );
-
-  for (let t = 42; t <= 55; t += 0.1) {
-    const frame = createFrame("cascade", t);
-    stepPhysicalState(model, { frame, outputs: audibleOutputs(frame, comparison), lifeTime: life, scenarioSeed: 1, audioExpression: 0 });
-    life += 0.1;
-  }
-  const stressedMemory = model.values.memory;
-  const stressedCohesion = model.values.cohesion;
-  for (let t = 0; t <= 2; t += 0.1) {
-    const frame = createFrame("normal", t);
-    stepPhysicalState(model, { frame, outputs: audibleOutputs(frame, comparison), lifeTime: life, scenarioSeed: 1, audioExpression: 0 });
-    life += 0.1;
-  }
-  assert.ok(model.values.memory > stressedMemory * 0.55, "memory should release slowly after severe stress");
-  assert.ok(model.values.cohesion > stressedCohesion, "cohesion should recover rather than reset instantly");
-  assert.ok(model.values.cohesion < 0.98, "cohesion recovery should retain macro history after two seconds");
+  assert.ok(carried.samples[0].damage > 0.5, "damage did not carry across the scenario change");
 });
 
-test("all seven real telemetry scenarios produce distinct physical tendencies", () => {
-  const normal = simulateScenario("normal", 60);
-  const traffic = simulateScenario("traffic", 60);
-  const cache = simulateScenario("cache", 60);
-  const flapping = simulateScenario("flapping", 60);
-  const creep = simulateScenario("creep", 60);
-  const cascade = simulateScenario("cascade", 60);
-  const deploy = simulateScenario("deploy", 60);
+test("physical and material layers contain no runtime randomness and reset cleanly", async () => {
+  const sources = await Promise.all([
+    readFile(new URL("../../static/js/spectral-forge/spectral-field-physical-state.js", import.meta.url), "utf8"),
+    readFile(new URL("../../static/js/spectral-forge/spectral-field-material.js", import.meta.url), "utf8"),
+    readFile(new URL("../../static/js/spectral-forge/prototypes/field-proto-flagship-final-form-physics.js", import.meta.url), "utf8"),
+  ]);
+  /* Comments are stripped first so the scan reports real code paths rather than
+   * prose that happens to name the thing it forbids. */
+  const code = sources.map((source) => source
+    .replace(/\/\*[\s\S]*?\*\//g, " ")
+    .replace(/^\s*\/\/.*$/gm, " "));
 
-  assert.ok(average(normal.samples, "cohesion", 10) > 0.7);
-  assert.ok(average(normal.samples, "instability", 10) < 0.42);
-  assert.ok(average(normal.samples, "memory", 10) < 0.36);
-
-  assert.ok(maxValue(traffic.samples, "compression") > maxValue(normal.samples, "compression") + 0.04);
-  assert.ok(maxValue(traffic.samples, "pressure") > maxValue(normal.samples, "pressure") + 0.03);
-
-  const supportLoss = cache.eventStarts.find((event) => event.kind === "support-loss");
-  assert.ok(supportLoss, "Cache telemetry should produce a generic support-loss event");
-  const laterCachePressure = cache.samples.find((sample) => sample.scenarioTime >= supportLoss.scenarioTime + 1.5 && sample.physical.pressure > 0.35);
-  assert.ok(laterCachePressure, "support loss should precede later downstream pressure");
-
-  assert.ok(average(flapping.samples, "instability", 8) > average(normal.samples, "instability", 8) + 0.04);
-
-  const creepEarly = creep.samples.filter((sample) => sample.scenarioTime >= 5 && sample.scenarioTime <= 15);
-  const creepLate = creep.samples.filter((sample) => sample.scenarioTime >= 45);
-  assert.ok(average(creepLate, "stretch") > average(creepEarly, "stretch") + 0.08);
-  assert.ok(average(creepLate, "viscosity") > average(creepEarly, "viscosity") + 0.06);
-
-  assert.ok(maxValue(cascade.samples, "fractureDrive") > maxValue(traffic.samples, "fractureDrive") + 0.05);
-  assert.ok(maxValue(cascade.samples, "propagation") > maxValue(normal.samples, "propagation") + 0.08);
-  assert.ok(minValue(cascade.samples, "cohesion") < minValue(normal.samples, "cohesion") - 0.08);
-
-  const disturbanceRecovery = average(
-    deploy.samples.filter((sample) => sample.scenarioTime >= 12 && sample.scenarioTime < 34),
-    "recovery",
-  );
-  const recoveryPhase = average(
-    deploy.samples.filter((sample) => sample.scenarioTime >= 34),
-    "recovery",
-  );
-  assert.ok(
-    recoveryPhase > disturbanceRecovery + 0.005,
-    "Deployment / Recovery should increase recovery after the disturbance phase",
-  );
-  const midCohesion = Math.min(...deploy.samples.filter((sample) => sample.scenarioTime >= 15 && sample.scenarioTime <= 40).map((sample) => sample.physical.cohesion));
-  const lateCohesion = average(deploy.samples, "cohesion", 52);
-  assert.ok(lateCohesion > midCohesion + 0.05, "Deployment / Recovery should restore cohesion after disturbance");
-});
-
-test("physical history changes otherwise equivalent current telemetry", () => {
-  const historyModel = createPhysicalStateModel();
-  let life = 0;
-  const cache = simulateScenario("cache", 34, { model: historyModel, lifeStart: life });
-  life = cache.lifeEnd + 0.1;
-  const cascade = simulateScenario("cascade", 32, { model: historyModel, lifeStart: life });
-  life = cascade.lifeEnd + 0.1;
-  const scarredNormal = simulateScenario("normal", 8, { model: historyModel, lifeStart: life });
-  const cleanNormal = simulateScenario("normal", 8);
-  const scarred = scarredNormal.samples.at(-1).physical;
-  const clean = cleanNormal.samples.at(-1).physical;
-  assert.ok(scarred.memory > clean.memory + 0.05);
-  assert.ok(scarred.scarInfluence >= clean.scarInfluence);
-  assert.notEqual(scarred.cohesion, clean.cohesion);
-});
-
-test("causal event and scar storage stays bounded and heals", () => {
-  const run = simulateScenario("cascade", 60);
-  assert.ok(run.model.events.length <= 4);
-  assert.ok(run.model.scars.length <= 4);
-  const before = run.model.scars.reduce((sum, scar) => sum + (scar.current ?? scar.strength ?? 0), 0);
-  let life = run.lifeEnd + 0.1;
-  for (let t = 0; t <= 40; t += 0.1) {
-    const frame = createFrame("normal", Math.min(60, t));
-    stepPhysicalState(run.model, { frame, outputs: audibleOutputs(frame, comparison), lifeTime: life, scenarioSeed: 1, audioExpression: 0 });
-    life += 0.1;
+  for (const source of code) {
+    assert.equal(/Math\s*\.\s*random/.test(source), false, "runtime randomness entered the physical layer");
   }
-  const after = run.model.scars.reduce((sum, scar) => sum + (scar.current ?? scar.strength ?? 0), 0);
-  assert.ok(after < before || run.model.scars.length === 0, "scar influence should decay under sustained recovery");
-});
 
-test("stress-driven fission uses physical state, stays bounded, persists through changing conditions and recovery accelerates return", () => {
-  const severe = {
-    fractureDrive: 0.96,
-    cohesion: 0.14,
-    instability: 0.82,
-    propagation: 0.92,
-    pressure: 0.88,
-    memory: 0.84,
-    surfaceTension: 0.18,
-    recovery: 0.03,
-    scarInfluence: 0.45,
-    dominantEvent: { axis: { x: 0.45, y: -0.2, z: 0.87 }, influence: 0.9, progress: 0.4 },
-  };
-  const flappingLike = {
-    fractureDrive: 0.48,
-    cohesion: 0.62,
-    instability: 0.92,
-    propagation: 0.2,
-    pressure: 0.28,
-    memory: 0.12,
-    surfaceTension: 0.62,
-    recovery: 0.08,
-  };
-  assert.ok(physicalFissionEnvelope(severe) > 0.64);
-  assert.ok(physicalFissionEnvelope(flappingLike) < 0.64, "instability alone must not routinely cause major fission");
-
-  const state = createPhysicalFissionState();
-  let current = null;
-  let life = 10;
-  for (let index = 0; index < 220; index += 1) {
-    current = stepPhysicalFission(state, { physical: severe, lifeTime: life, seedPhase: 2.4, scheduledFission: null });
-    life += 0.05;
+  /* Scenario identity must not be branched on in the physical or material
+   * layers: identity has to emerge from telemetry. */
+  for (const source of code) {
+    assert.equal(
+      /scenarioId\s*===\s*["'`]/.test(source),
+      false,
+      "scenario-name choreography entered the physical layer",
+    );
+    for (const scenario of SCENARIOS) {
+      assert.equal(
+        new RegExp(`===\\s*["'\`]${scenario.id}["'\`]`).test(source),
+        false,
+        `scenario-name choreography (${scenario.id}) entered the physical layer`,
+      );
+    }
   }
-  assert.equal(current.active, true);
-  assert.ok(current.count >= 1 && current.count <= 3);
-  const progressBeforeSwitch = current.progress;
 
-  const changedCondition = { ...severe, pressure: 0.58, propagation: 0.55, memory: 0.8 };
-  current = stepPhysicalFission(state, { physical: changedCondition, lifeTime: life, seedPhase: 2.4, scheduledFission: null });
-  assert.equal(current.active, true);
-  assert.ok(current.progress >= progressBeforeSwitch, "new telemetry must modify rather than despawn the active fission event");
-
-  while (state.progress < 0.72) {
-    stepPhysicalFission(state, { physical: severe, lifeTime: life, seedPhase: 2.4, scheduledFission: null });
-    life += 0.05;
-  }
-  const stressedClone = structuredClone(state);
-  const recoveryClone = structuredClone(state);
-  const recovery = {
-    ...severe,
-    fractureDrive: 0.18,
-    cohesion: 0.9,
-    instability: 0.1,
-    propagation: 0.12,
-    pressure: 0.16,
-    memory: 0.42,
-    surfaceTension: 0.92,
-    recovery: 0.94,
-  };
-  const stressedNext = stepPhysicalFission(stressedClone, { physical: severe, lifeTime: life + 0.05, seedPhase: 2.4, scheduledFission: null });
-  const recoveringNext = stepPhysicalFission(recoveryClone, { physical: recovery, lifeTime: life + 0.05, seedPhase: 2.4, scheduledFission: null });
-  assert.ok(recoveringNext.progress > stressedNext.progress, "recovery should accelerate deterministic return/rejoin progress");
-});
-
-test("physical modules have no runtime Math.random dependency and hard reset clears models", async () => {
-  const paths = [
-    new URL("../../static/js/spectral-forge/spectral-field-physical-state.js", import.meta.url),
-    new URL("../../static/js/spectral-forge/prototypes/field-proto-flagship-final-form-physics.js", import.meta.url),
-  ];
-  for (const path of paths) {
-    assert.doesNotMatch(await readFile(path, "utf8"), /Math\.random\s*\(/);
-  }
   const model = createPhysicalStateModel();
-  simulateScenario("cascade", 20, { model });
+  simulate("cascade", { model });
+  assert.ok(model.material.damage > 0.5);
   resetPhysicalStateModel(model);
+  assert.equal(model.material.damage, 0);
+  assert.equal(model.material.regime, "coherent");
+  assert.equal(model.material.fractureCharge, 0);
   assert.equal(model.values.memory, 0);
-  assert.equal(model.events.length, 0);
-  assert.equal(model.scars.length, 0);
+});
+
+test("material state exposes truthful inspectable evidence", () => {
+  const model = createPhysicalStateModel();
+  simulate("cascade", { model });
+  const evidence = physicalStateEvidence(model);
+  assert.ok(evidence);
+  for (const key of PHYSICAL_STATE_KEYS) {
+    assert.ok(Number.isFinite(evidence[key]), `${key} missing from evidence`);
+  }
+  assert.ok(MATERIAL_REGIMES.includes(evidence.material.regime));
+  assert.ok(Number.isFinite(evidence.material.damage));
+  assert.ok(Number.isFinite(evidence.material.fractureCharge));
+  assert.equal(physicalStateEvidence(null), null);
+});
+
+test("the material model allocates a bounded, preallocated site and scar set", () => {
+  const material = createMaterialState(0.731);
+  assert.equal(material.sites.length, 7);
+  assert.equal(material.scars.length, 4);
+
+  const model = createPhysicalStateModel();
+  simulate("cascade", { model });
+  assert.ok(model.material.activeSiteCount <= 7);
+  assert.ok(model.material.scars.filter((scar) => scar.active).length <= 4);
+
+  /* The published snapshot must be a stable object rather than a fresh
+   * allocation per frame: this runs inside the render loop. */
+  const frame = createFrame("normal", 1);
+  const outputs = mappingOutputs(frame, REFERENCE.mappings);
+  const a = stepPhysicalState(model, { frame, outputs, lifeTime: 500 });
+  const b = stepPhysicalState(model, { frame, outputs, lifeTime: 500.033 });
+  assert.equal(a, b, "physical snapshot allocates a new object per frame");
 });

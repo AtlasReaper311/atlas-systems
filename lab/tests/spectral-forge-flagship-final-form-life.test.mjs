@@ -24,6 +24,7 @@ import {
   presentationTarget,
   projectedContainment,
   scheduledLifeEvent,
+  DEBUG_FISSION_START,
   stepAttitude,
   stepSafeFraming,
   evaluateFission,
@@ -308,13 +309,16 @@ test("macro fission is a substantial scheduled event, not a satellite", () => {
 
 test("fission child state persists through separation and rejoin", () => {
   const seedPhase = FIELD_VISUAL_SEED * Math.PI * 2;
-  const event = iterateLifeEvents("fission", seedPhase, "normal", 120)[0];
+  // Scheduled fission is no longer part of healthy life, so the retained
+  // prototype path is what still exercises the separation/rejoin geometry.
+  const spec = iterateLifeEvents("fission", seedPhase, "normal", 120)[0];
+  const event = { start: DEBUG_FISSION_START, duration: spec.duration, end: DEBUG_FISSION_START + spec.duration };
   const phases = [];
   let sawIndependent = false;
   let sawContained = false;
   let previousProgress = -1;
   for (let time = event.start; time <= event.end; time += 0.25) {
-    const fission = evaluateFission(time, seedPhase, "normal");
+    const fission = evaluateFission(time, seedPhase, "normal", "fission");
     assert.equal(fission.active, true);
     assert.ok(fission.progress >= previousProgress);
     previousProgress = fission.progress;
@@ -330,24 +334,24 @@ test("fission child state persists through separation and rejoin", () => {
   assert.ok(phases.includes("return") || phases.includes("contact") || phases.includes("pour"));
   assert.ok(sawIndependent, "daughter never became independent");
   assert.ok(sawContained, "daughter never rejoined");
-  const before = evaluateFission(event.start - 1, seedPhase, "normal");
-  const after = evaluateFission(event.end + 1, seedPhase, "normal");
+  const before = evaluateFission(event.start - 1, seedPhase, "normal", "fission");
+  const after = evaluateFission(event.end + 1, seedPhase, "normal", "fission");
   assert.equal(before.active, false);
   assert.equal(after.active, false);
 });
 
 test("audio and mode-style inputs do not reset a living fission event", () => {
   const seedPhase = FIELD_VISUAL_SEED * Math.PI * 2;
-  const event = iterateLifeEvents("fission", seedPhase, "normal", 120)[0];
-  const mid = event.start + event.duration * 0.5;
-  const off = livingGesture(mid * 0.35, seedPhase, 0, 0.08, mid, "normal");
-  const on = livingGesture(mid * 0.35, seedPhase, 1, 0.08, mid, "normal");
+  const spec = iterateLifeEvents("fission", seedPhase, "normal", 120)[0];
+  const mid = DEBUG_FISSION_START + spec.duration * 0.5;
+  const off = livingGesture(mid * 0.35, seedPhase, 0, 0.08, mid, "normal", "fission");
+  const on = livingGesture(mid * 0.35, seedPhase, 1, 0.08, mid, "normal", "fission");
   assert.equal(off.fission.start, on.fission.start);
   assert.equal(off.fission.count, on.fission.count);
   assert.equal(off.fission.axis.x, on.fission.axis.x);
   assert.equal(off.fission.daughters[0].distance, on.fission.daughters[0].distance);
-  const forgeView = evaluateFission(mid, seedPhase, "normal");
-  const analyseView = evaluateFission(mid, seedPhase, "normal");
+  const forgeView = evaluateFission(mid, seedPhase, "normal", "fission");
+  const analyseView = evaluateFission(mid, seedPhase, "normal", "fission");
   assert.deepEqual(forgeView.daughters, analyseView.daughters);
   assert.equal(readDebugGesture("?proto=flagship-final-form&debug-gesture=fission"), "fission");
   const debug = evaluateFission(8, seedPhase, "normal", "fission");
@@ -378,12 +382,13 @@ test("safe-framing target stays bounded and only eases outward when extent grows
 
 test("fission and peak projected extent stay inside the presentation envelope", () => {
   const seedPhase = FIELD_VISUAL_SEED * Math.PI * 2;
-  const event = iterateLifeEvents("fission", seedPhase, "normal", 120)[0];
+  const spec = iterateLifeEvents("fission", seedPhase, "normal", 120)[0];
+  const event = { start: DEBUG_FISSION_START, duration: spec.duration, end: DEBUG_FISSION_START + spec.duration };
   const gatherTime = event.start + 0.4;
-  const gather = evaluateFission(gatherTime, seedPhase, "cascade");
+  const gather = evaluateFission(gatherTime, seedPhase, "cascade", "fission");
   assert.equal(gather.active, true);
   assert.ok(gather.lookahead > gather.extent, "framing must look ahead of the current daughter");
-  const gatherGesture = livingGesture(gatherTime * 0.35, seedPhase, 0, 0.12, gatherTime, "cache");
+  const gatherGesture = livingGesture(gatherTime * 0.35, seedPhase, 0, 0.12, gatherTime, "cache", "fission");
   assert.equal(gatherGesture.fission.start, gather.start);
   const anticipated = anticipateExtent(gatherGesture, gatherGesture.fission, 0.7);
   assert.ok(anticipated >= estimateOrganismExtent(gatherGesture, gatherGesture.fission, 0.7));
@@ -392,8 +397,8 @@ test("fission and peak projected extent stay inside the presentation envelope", 
   stepSafeFraming(framing, 1.1, 0);
   const expandTimes = [];
   for (let time = event.start; time <= event.start + event.duration * 0.7; time += 0.05) {
-    const fission = evaluateFission(time, seedPhase, "traffic");
-    const gesture = livingGesture(time * 0.35, seedPhase, 0, 0.2, time, "traffic");
+    const fission = evaluateFission(time, seedPhase, "traffic", "fission");
+    const gesture = livingGesture(time * 0.35, seedPhase, 0, 0.2, time, "traffic", "fission");
     const extent = estimateOrganismExtent(gesture, fission, 0.8);
     const lookahead = anticipateExtent(gesture, fission, 0.8);
     stepSafeFraming(framing, extent, time, lookahead, 1.7);
