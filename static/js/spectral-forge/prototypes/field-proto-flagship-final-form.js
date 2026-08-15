@@ -1,6 +1,10 @@
 "use strict";
 
 import { drawOrganism } from "./field-proto-organism-core.js";
+import {
+  installPhysicalBehaviourHook,
+  publishPhysicalBehaviourEvidence,
+} from "./field-proto-flagship-final-form-physics.js";
 
 let webglModulePromise = null;
 
@@ -14,7 +18,10 @@ function loadWebglModule() {
 export function draw(timestamp = performance.now()) {
   if (this._flagshipFinalFormModule) {
     try {
+      installPhysicalBehaviourHook(this);
       this._flagshipFinalFormModule.drawFlagshipFinalForm(this, timestamp);
+      installPhysicalBehaviourHook(this);
+      publishPhysicalBehaviourEvidence(this, timestamp);
       return;
     } catch (error) {
       this._flagshipFinalFormModule.disposeFlagshipFinalForm?.(this);
