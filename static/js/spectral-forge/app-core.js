@@ -580,21 +580,30 @@ function renderVisuals() {
   audioRenderer.setState({ analyser: audioEngine?.analyser ?? null, active: audioEnabled, muted: audioMuted });
 }
 
-function renderAll({ updateAudio = true } = {}) {
-  renderDepth();
-  renderAnalysisView();
+/* Only the surfaces telemetry actually changes. The ten-per-second transport
+ * tick used to re-run every render function, including preset, route and
+ * comparison controls that can only change on interaction. That is main-thread
+ * DOM work competing with the render loop for no benefit, and on a slow machine
+ * it is what makes the transport itself fall behind. */
+function renderTelemetry({ updateAudio = true } = {}) {
   renderScenario();
-  renderAudioControls();
-  renderFirstUse();
-  renderComparison();
-  renderPresetControls();
-  renderRouteList();
   renderInspector();
   renderFieldOverlays();
   renderRibbon();
   renderAnalysis();
   renderVisuals();
   if (updateAudio && audioEngine && audioEnabled) audioEngine.update(activeOutputState(), targetSmoothing(), frame.health, frame.deployEvent);
+}
+
+function renderAll({ updateAudio = true } = {}) {
+  renderDepth();
+  renderAnalysisView();
+  renderAudioControls();
+  renderFirstUse();
+  renderComparison();
+  renderPresetControls();
+  renderRouteList();
+  renderTelemetry({ updateAudio });
 }
 
 function stopTimer() {
@@ -609,7 +618,16 @@ function stopTimer() {
  * same deterministic 0.1s grid, so frame values and history contents are
  * unchanged. Bounded so a long stall cannot spiral into a burst. */
 const TIMER_INTERVAL_MS = 100;
-const MAX_CATCHUP_STEPS = 5;
+
+/* Elapsed wall time is authoritative for the scenario clock; history sampling is
+ * best-effort. A slow renderer may delay the tick arbitrarily, but a 60-second
+ * condition must still take 60 seconds. Time therefore advances by everything
+ * that elapsed, while only a bounded number of history samples are materialised
+ * per tick so one slow frame cannot become a long loop. Skipped samples only
+ * coarsen the graph briefly; they do not change the deterministic 0.1s grid the
+ * frames are computed on, and the organism's physics reads the current frame
+ * rather than the history buffer. */
+const MAX_HISTORY_STEPS_PER_TICK = 12;
 
 function startTimer() {
   stopTimer();
@@ -619,25 +637,35 @@ function startTimer() {
     const now = performance.now();
     owed += now - previous;
     previous = now;
-    let steps = Math.floor(owed / TIMER_INTERVAL_MS);
+    const steps = Math.floor(owed / TIMER_INTERVAL_MS);
     if (steps <= 0) return;
-    if (steps > MAX_CATCHUP_STEPS) steps = MAX_CATCHUP_STEPS;
-    owed = Math.min(owed - steps * TIMER_INTERVAL_MS, TIMER_INTERVAL_MS * MAX_CATCHUP_STEPS);
-    if (owed < 0) owed = 0;
+    owed -= steps * TIMER_INTERVAL_MS;
+
+    const sampled = Math.min(steps, MAX_HISTORY_STEPS_PER_TICK);
+    const skipped = steps - sampled;
+    if (skipped > 0) {
+      time = Math.min(RUN_DURATION_SECONDS, Number((time + skipped * 0.1).toFixed(1)));
+    }
 
     const appended = [];
-    while (steps > 0 && time < RUN_DURATION_SECONDS) {
+    for (let step = 0; step < sampled && time < RUN_DURATION_SECONDS; step += 1) {
       time = Math.min(RUN_DURATION_SECONDS, Number((time + 0.1).toFixed(1)));
       frame = scenarioFrameAt(scenarioId, time, scenarioHandoff);
       appended.push(frame);
-      steps -= 1;
     }
-    if (appended.length) history = [...history, ...appended].slice(-601);
+    if (!appended.length) {
+      frame = scenarioFrameAt(scenarioId, time, scenarioHandoff);
+      appended.push(frame);
+    }
+    history = [...history, ...appended].slice(-601);
+
     if (time >= RUN_DURATION_SECONDS) {
       playback = "COMPLETE";
       stopTimer();
+      renderAll();
+      return;
     }
-    renderAll();
+    renderTelemetry();
   }, TIMER_INTERVAL_MS);
 }
 
