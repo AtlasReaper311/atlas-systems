@@ -7,6 +7,7 @@ import { MATERIAL_SITE_COUNT, materialFissionReady, recordMaterialScar } from ".
 const TAU = Math.PI * 2;
 const COOLDOWN_SECONDS = 7;
 const MAX_DAUGHTERS = 3;
+const MAX_FISSION_STEP_SECONDS = 2;
 
 function clamp(value, min = 0, max = 1) {
   return Math.min(max, Math.max(min, Number.isFinite(value) ? value : min));
@@ -250,7 +251,9 @@ export function stepPhysicalFission(state, {
   if (model.lastLifeTime != null && now + 0.0001 < model.lastLifeTime) resetForBackwardTime(model, now);
   /* Separation progress advances by elapsed time, not a clamped frame budget: a
    * slow renderer must not make the split itself run in slow motion. */
-  const dt = model.lastLifeTime == null ? 0.016 : clamp(now - model.lastLifeTime, 0, 0.3);
+  const dt = model.lastLifeTime == null
+    ? 0.016
+    : clamp(now - model.lastLifeTime, 0, MAX_FISSION_STEP_SECONDS);
   model.lastLifeTime = now;
 
   /* Macroscopic separation requires the material layer to have charged a

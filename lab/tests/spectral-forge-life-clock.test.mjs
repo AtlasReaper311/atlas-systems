@@ -44,6 +44,18 @@ test("shared life clock continues past a 60s telemetry hold and does not reset o
   assert.ok(clock.time > paused);
 });
 
+test("shared life clock keeps wall time through a one-frame-per-second renderer", () => {
+  const clock = createOrganismLifeClock();
+  stepOrganismLifeClock(clock, 0, "PLAYING");
+  for (let second = 1; second <= 45; second += 1) {
+    stepOrganismLifeClock(clock, second * 1_000, "PLAYING");
+  }
+  assert.equal(clock.time, 45, "slow rendering must not make organism life run behind telemetry");
+
+  stepOrganismLifeClock(clock, 55_000, "PLAYING");
+  assert.equal(clock.time, 47, "a genuine multi-second suspension must remain bounded");
+});
+
 test("audio and mode-style state updates must not be able to assign frame.time onto visualTime", async () => {
   const visuals = await readFile(VISUALS_URL, "utf8");
   const runtime = await readFile(RUNTIME_URL, "utf8");

@@ -85,7 +85,11 @@ const DEFAULT_VALUES = Object.freeze({
  * telemetry had earned. Sub-stepping keeps each step small enough to stay
  * stable while advancing by the time that actually elapsed. */
 const MAX_SUB_STEP_SECONDS = 0.05;
-const MAX_SUB_STEPS = 6;
+/* Match the organism clock's active-step ceiling. The material integration is
+ * inexpensive compared with a software-rendered WebGL frame, and keeping the
+ * complete elapsed interval is what makes fracture timing independent of a
+ * 60fps, 4fps, 2fps or 1fps render cadence. */
+const MAX_SUB_STEPS = 40;
 const MAX_ELAPSED_SECONDS = MAX_SUB_STEP_SECONDS * MAX_SUB_STEPS;
 
 function finite(value, fallback = 0) {

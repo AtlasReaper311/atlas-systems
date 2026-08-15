@@ -31,14 +31,19 @@ export function createOrganismLifeClock() {
   };
 }
 
-/* The cap exists to absorb genuine stalls - a backgrounded tab, a blocked main
- * thread - not ordinary slow frames. At 0.05s it tripped on anything under
- * 20fps, so the organism aged at half real speed on a slow renderer: damage,
- * fracture charge and healing all ran in slow motion, and a severe condition
- * never reached the state its telemetry had earned. 0.25s only trips below 4fps,
- * which is a stall rather than a slow frame. The physical model sub-steps this
- * interval, so a large step stays stable. */
-export function stepOrganismLifeClock(clock, timestamp, playback, dtCap = 0.25) {
+/* The cap absorbs genuine suspension rather than ordinary slow rendering. CI's
+ * software WebGL path can legitimately fall below 4fps, so a 0.25s cap made
+ * organism life, damage and fracture charge lag behind the wall-time telemetry
+ * clock. The physical model sub-steps this same bound to keep the larger update
+ * stable; only a multi-second pause is treated as a suspended renderer. */
+export const MAX_ACTIVE_LIFE_STEP_SECONDS = 2;
+
+export function stepOrganismLifeClock(
+  clock,
+  timestamp,
+  playback,
+  dtCap = MAX_ACTIVE_LIFE_STEP_SECONDS,
+) {
   if (!clock) return 0;
   if (!organismLifeActive(playback)) {
     clock.lastTimestamp = null;
