@@ -38,6 +38,23 @@ const FISSION_CHILD_HEIGHT = 64;
 const WIDTH_SEGMENTS = 288;
 const HEIGHT_SEGMENTS = 176;
 const WEBGL_DPR_CAP = 1.22;
+
+/* Smoothness before complexity. The displacement shader runs per vertex over a
+ * 288x176 sphere, which a capable GPU absorbs and a software rasteriser does
+ * not. Rather than let the whole composition crawl, the mesh and pixel ratio
+ * step down when sustained frame intervals say the machine cannot hold the
+ * detail, and step back up when it comfortably can. Tiers are ordered and
+ * bounded, transitions need sustained evidence in both directions so a brief
+ * spike cannot thrash geometry, and the physics is untouched: only how finely
+ * the same material is drawn changes. */
+const QUALITY_TIERS = Object.freeze([
+  Object.freeze({ name: "full", width: WIDTH_SEGMENTS, height: HEIGHT_SEGMENTS, dpr: WEBGL_DPR_CAP }),
+  Object.freeze({ name: "reduced", width: 192, height: 120, dpr: 1 }),
+  Object.freeze({ name: "minimal", width: 128, height: 80, dpr: 0.85 }),
+]);
+const QUALITY_DOWN_MS = 34;
+const QUALITY_UP_MS = 20;
+const QUALITY_DWELL_MS = 2200;
 const MESH_FALLBACK_WIDTH = 240;
 const MESH_FALLBACK_HEIGHT = 144;
 const PLATE_STRIDE = 4;
@@ -194,6 +211,7 @@ function createState(renderer, seedPhase) {
     fields: FINAL_FIELD_COUNT,
     continuousMicroPeaks: true,
     dprCap: WEBGL_DPR_CAP,
+    qualityTier: QUALITY_TIERS[0].name,
     shaderCompiled: false,
     lastCpuMs: 0,
     emaCpuMs: 0,
@@ -302,6 +320,10 @@ function createState(renderer, seedPhase) {
     disposed: false,
     frameIndex: 0,
     lastPlateAt: 0,
+    qualityTier: 0,
+    qualityEmaMs: 0,
+    qualityHeldSince: 0,
+    lastFrameAt: 0,
     lastWide: null,
     lastOpacity: "",
     attitude: createAttitudeState(),
@@ -629,6 +651,43 @@ function markStage(stages, name, startedAt) {
   return now;
 }
 
+/* Swaps the body mesh to the tier's tessellation. Called only on a tier change,
+ * which sustained-evidence hysteresis keeps rare. */
+function applyQualityTier(state, index) {
+  const tier = QUALITY_TIERS[index];
+  if (!tier || state.qualityTier === index) return;
+  const previous = state.geometry;
+  state.geometry = new THREE.SphereGeometry(1, tier.width, tier.height);
+  state.body.geometry = state.geometry;
+  previous?.dispose?.();
+  state.webgl.setPixelRatio(Math.min(tier.dpr, window.devicePixelRatio || 1));
+  state.qualityTier = index;
+  state.perf.vertices = state.geometry.getAttribute("position").count;
+  state.perf.qualityTier = tier.name;
+  state.perf.dprCap = tier.dpr;
+  state.cssWidth = 0;
+  state.cssHeight = 0;
+}
+
+function stepAdaptiveQuality(state, now) {
+  if (state.lastFrameAt) {
+    const interval = now - state.lastFrameAt;
+    if (interval > 0 && interval < 2000) {
+      state.qualityEmaMs = state.qualityEmaMs === 0 ? interval : state.qualityEmaMs * 0.9 + interval * 0.1;
+    }
+  }
+  state.lastFrameAt = now;
+  if (!state.qualityHeldSince) state.qualityHeldSince = now;
+  if (state.qualityEmaMs === 0 || now - state.qualityHeldSince < QUALITY_DWELL_MS) return;
+
+  const slow = state.qualityEmaMs > QUALITY_DOWN_MS && state.qualityTier < QUALITY_TIERS.length - 1;
+  const fast = state.qualityEmaMs < QUALITY_UP_MS && state.qualityTier > 0;
+  if (!slow && !fast) return;
+  applyQualityTier(state, state.qualityTier + (slow ? 1 : -1));
+  state.qualityHeldSince = now;
+  state.qualityEmaMs = 0;
+}
+
 function recordCpuPerf(state, stages, startedAt) {
   const elapsed = performance.now() - startedAt;
   const perf = state.perf;
@@ -756,6 +815,7 @@ export function drawFlagshipFinalForm(renderer, timestamp = performance.now()) {
   markStage(stages, "studioPlateMs", stageStartedAt);
   state.frameIndex += 1;
   recordCpuPerf(state, stages, startedAt);
+  stepAdaptiveQuality(state, plateNow);
   /* Publish the separation the physical layer actually resolved during render,
    * never the scheduled value captured before it. Reading the stale local here
    * reported an idle organism on every frame while a cascade was visibly
