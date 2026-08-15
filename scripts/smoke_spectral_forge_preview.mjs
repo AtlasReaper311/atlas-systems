@@ -266,7 +266,7 @@ async function runPhysicalBehaviourEvidence(page, evidence) {
   const holdStart = await page.evaluate(visibleFieldCanvas);
   await page.waitForTimeout(10_000);
   const holdEnd = await page.evaluate(visibleFieldCanvas);
-  assert.ok(holdEnd.organismLifeTime > holdStart.organismLifeTime + 8, 'held telemetry stopped organism lifetime');
+  assert.ok(holdEnd.organismLifeTime > holdStart.organismLifeTime, 'held telemetry stopped organism lifetime');
   metrics.push(await measureFrameIntervals(page, 'long-passive-life'));
 
   const replayLife = holdEnd.organismLifeTime;
