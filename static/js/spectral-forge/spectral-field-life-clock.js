@@ -27,6 +27,7 @@ export function createOrganismLifeClock() {
     audioExpressionTime: null,
     attitude: null,
     physical: null,
+    physicalFission: null,
   };
 }
 
@@ -56,6 +57,7 @@ export function resetOrganismLifeClock(clock) {
   clock.framing = null;
   clock.fission = null;
   clock.physical = null;
+  clock.physicalFission = null;
   return clock;
 }
 
