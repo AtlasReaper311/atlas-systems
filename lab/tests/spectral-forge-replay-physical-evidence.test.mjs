@@ -9,6 +9,8 @@ const APP_CORE = new URL("../../static/js/spectral-forge/app-core.js", import.me
 const APP_BOOT = new URL("../../static/js/spectral-forge/app.js", import.meta.url);
 const INSPECTOR = new URL("../../static/js/spectral-forge/physical-inspector.js", import.meta.url);
 const PHYSICS = new URL("../../static/js/spectral-forge/prototypes/field-proto-flagship-final-form-physics.js", import.meta.url);
+const FINAL_FORM = new URL("../../static/js/spectral-forge/prototypes/field-proto-flagship-final-form.js", import.meta.url);
+const PREVIEW_SMOKE = new URL("../../scripts/smoke_spectral_forge_preview.mjs", import.meta.url);
 
 function completeState() {
   return { scenarioId: "cache", playback: "COMPLETE", scenarioTime: 60 };
@@ -103,7 +105,7 @@ test("ANALYSE physical inspector exposes all canonical values and development ev
   ]) {
     assert.match(inspector, new RegExp(`\\[\\"${key}\\",`));
   }
-  for (const key of ["fractureDrive", "activeEventCount", "scarInfluence", "organismLifeTime", "scenarioTime", "fissionPhase", "fissionCount"]) {
+  for (const key of ["fractureDrive", "dominantEvent", "activeEventCount", "scarInfluence", "organismLifeTime", "scenarioTime", "fissionPhase", "fissionCount"]) {
     assert.match(inspector, new RegExp(key));
   }
 });
@@ -114,4 +116,21 @@ test("selected-route amber remains local while physical integration contains no 
   assert.match(physics, /routeWidth\.value/);
   assert.doesNotMatch(physics, /scenarioId\s*===|scenarioId\s*!==|case\s+["'](?:normal|traffic|cache|flapping|creep|cascade|deploy)["']/i);
   assert.doesNotMatch(physics, /Math\.random\s*\(/);
+});
+
+test("final-form preflights WebGL2 and preview evidence distinguishes capability without hiding console failures", async () => {
+  const finalForm = await readFile(FINAL_FORM, "utf8");
+  const smoke = await readFile(PREVIEW_SMOKE, "utf8");
+
+  assert.match(finalForm, /getContext\("webgl2"\)/);
+  assert.match(finalForm, /finalFormWebgl = "webgl2-unavailable"/);
+  assert.match(finalForm, /finalFormWebgl = "webgl2-available"/);
+  assert.match(finalForm, /if \(!supportsWebgl2\(\)\)[\s\S]*return;/);
+
+  assert.match(smoke, /function browserSupportsWebgl2/);
+  assert.match(smoke, /webgl2Available\s*\?\s*await assertFinalFormPbr/);
+  assert.match(smoke, /assertGracefulWebglFallback/);
+  assert.match(smoke, /engineName === 'chromium' && webgl2Available/);
+  assert.match(smoke, /assert\.deepEqual\(consoleErrors, \[\]/);
+  assert.doesNotMatch(smoke, /consoleErrors\.(?:filter|splice)|AllowWebgl2.*(?:ignore|allow|exempt)/i);
 });
