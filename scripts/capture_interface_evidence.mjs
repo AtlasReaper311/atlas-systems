@@ -174,7 +174,10 @@ async function inspectFocus(page) {
       const headerBottom = header && ["fixed", "sticky"].includes(getComputedStyle(header).position)
         ? header.getBoundingClientRect().bottom
         : 0;
-      const mobileTop = mobile && getComputedStyle(mobile).display !== "none"
+      const mobileStyle = mobile ? getComputedStyle(mobile) : null;
+      const mobileTop = mobile
+        && mobileStyle.display !== "none"
+        && ["fixed", "sticky"].includes(mobileStyle.position)
         ? mobile.getBoundingClientRect().top
         : innerHeight;
       const insideFixedNavigation = Boolean(element?.closest?.(".atlas-header, .atlas-mobile-nav"));
