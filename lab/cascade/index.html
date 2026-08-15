@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" data-atlas-interface>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CASCADE // Atlas Systems. A deterministic synthetic micro lab for failure propagation, containment, and graceful degradation.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>CASCADE // Atlas Systems</title>
+  <link rel="canonical" href="https://atlas-systems.uk/lab/cascade/">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="CASCADE // Atlas Systems">
+  <meta property="og:description" content="A deterministic synthetic micro lab for failure propagation, containment, and graceful degradation.">
+  <meta property="og:url" content="https://atlas-systems.uk/lab/cascade/">
+  <meta property="og:site_name" content="Atlas Systems">
+  <meta property="og:image" content="https://atlas-systems.uk/og/lab.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="CASCADE failure propagation micro lab // Atlas Systems">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="CASCADE // Atlas Systems">
+  <meta name="twitter:description" content="A deterministic synthetic micro lab for failure propagation and containment.">
+  <meta name="twitter:image" content="https://atlas-systems.uk/og/lab.png">
+  <meta name="twitter:image:alt" content="CASCADE failure propagation micro lab // Atlas Systems">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/lab/shared/lab-context-navigation.css?v=20260806-lab-consistency-v2">
+  <link rel="stylesheet" href="/lab/shared/lab-shell-layout.css?v=20260806-lab-consistency-v2">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
+  <link rel="stylesheet" href="/static/css/estate-search.css">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260724-source-hardening">
+  <link rel="stylesheet" href="/lab/cascade/cascade.css?v=20260815-cascade-v1">
+</head>
+<body class="cascade-page" data-atlas-bottom-nav="true" data-lab-shell="" data-lab-layout="standard" data-lab-route="cascade">
+  <nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
+    <div class="atlas-header__inner">
+      <div class="atlas-header__brand atlas-global-header__identity">
+        <a class="nav-wordmark atlas-wordmark" href="/" data-atlas-wordmark>Atlas<span class="atlas-wordmark__cursor">_</span>Systems</a>
+        <a class="nav-status atlas-status atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" data-atlas-status aria-label="Atlas Systems status: Checking" aria-live="off"><span class="status-dot atlas-status__dot" aria-hidden="true"></span><span class="atlas-estate-status-label" data-atlas-status-label>Checking</span></a>
+      </div>
+      <div class="atlas-header__nav atlas-global-header__nav" role="group" aria-label="Atlas Systems sections">
+        <a class="atlas-global-header__link" href="/work/">Work</a>
+        <a class="atlas-global-header__link" href="/writing/">Writing</a>
+        <a class="atlas-global-header__link" href="/lab/" aria-current="page">Lab</a>
+        <a class="atlas-global-header__link" href="/systems/">Systems</a>
+        <a class="atlas-global-header__link" href="/about/">About</a>
+      </div>
+      <div class="atlas-header__actions atlas-global-header__actions">
+        <button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button>
+      </div>
+    </div>
+  </nav>
+
+  <nav class="lab-context-nav lab-context-nav--compact" aria-label="Lab navigation" data-lab-context-mode="compact" data-current-lab-route="CASCADE">
+    <div class="lab-context-compact">
+      <div class="lab-context-compact__crumbs" role="group" aria-label="Current Lab location">
+        <a href="/lab/">Lab</a>
+        <span class="lab-context-compact__separator" aria-hidden="true">/</span>
+        <span class="lab-context-compact__current" aria-current="page">CASCADE</span>
+      </div>
+      <details class="lab-context-tools">
+        <summary>All Lab tools</summary>
+        <div class="lab-context-tools__menu" role="group" aria-label="All Lab tools">
+          <div class="lab-context-tools__group" data-lab-context-group="experience" role="group" aria-labelledby="cascade-lab-group-0">
+            <span class="lab-context-tools__group-label" id="cascade-lab-group-0">Experience</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/system-symphony/">System Symphony</a>
+              <a href="/lab/spectral-forge/">Spectral Forge</a>
+              <a href="/lab/signal/">Signal Garden</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="observe" role="group" aria-labelledby="cascade-lab-group-1">
+            <span class="lab-context-tools__group-label" id="cascade-lab-group-1">Observe</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/system-map/">System Map</a>
+              <a href="/lab/blackbox/">Blackbox</a>
+              <a href="/systems/observability/">Observability</a>
+              <a href="/lab/console/">Operations</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="verify" role="group" aria-labelledby="cascade-lab-group-2">
+            <span class="lab-context-tools__group-label" id="cascade-lab-group-2">Verify</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/proof-chain/">Proof Chain</a>
+              <a href="/lab/conformance/">Estate Conformance</a>
+              <a href="/lab/xray/">X-Ray</a>
+              <a href="/systems/reliability/">Reliability</a>
+              <a href="/systems/evidence/">Evidence</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="explore" role="group" aria-labelledby="cascade-lab-group-3">
+            <span class="lab-context-tools__group-label" id="cascade-lab-group-3">Explore</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/speculum/">Speculum</a>
+              <a href="/lab/almost/">Almost</a>
+              <a href="/lab/drift/">Drift</a>
+              <a href="/lab/bearing/">The Bearing</a>
+              <a href="/lab/anomaly/">Shape Detector</a>
+            </div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </nav>
+
+  <main>
+    <section aria-labelledby="cascade-title">
+      <header class="cascade-hero">
+        <div>
+          <p class="cascade-kicker">ATLAS / CASCADE</p>
+          <h1 id="cascade-title">Failure moves<span>.</span></h1>
+          <p class="cascade-subtitle">Introduce one synthetic dependency fault, watch its consequence propagate, then change one resilience property and replay the same failure.</p>
+        </div>
+        <div class="cascade-evidence" data-evidence-mode="simulated">
+          <strong>SIMULATED LAB</strong>
+          Deterministic synthetic model. No production Atlas Systems data connected.
+        </div>
+      </header>
+
+      <div class="cascade-instrument">
+        <div class="cascade-instruction-row">
+          <p class="cascade-instruction" id="cascade-instruction">Introduce a fault.</p>
+          <div class="cascade-root"><span>Root fault</span><strong id="cascade-root-readout">NONE</strong></div>
+        </div>
+
+        <div class="cascade-topology" id="cascade-topology" data-phase="baseline" data-menu-open="false" aria-describedby="cascade-state-summary">
+          <svg class="cascade-connections" id="cascade-connections" aria-hidden="true" focusable="false">
+            <path class="cascade-connection" data-connection="edge-api" data-state="healthy"></path>
+            <path class="cascade-connection" data-connection="api-core" data-state="healthy"></path>
+            <path class="cascade-connection" data-connection="core-cache" data-state="healthy"></path>
+            <path class="cascade-connection" data-connection="core-database" data-state="healthy"></path>
+            <path class="cascade-connection" data-connection="core-queue" data-state="healthy"></path>
+            <path class="cascade-connection" data-connection="queue-worker" data-state="healthy"></path>
+          </svg>
+
+          <div class="cascade-node cascade-node--edge" data-node="edge" data-label="Edge" data-state="healthy" role="img" aria-label="Edge. HEALTHY.">
+            <span class="cascade-node__activity" data-node-activity data-state="healthy" aria-hidden="true"></span>
+            <span class="cascade-node__name">EDGE</span>
+            <span class="cascade-node__state" data-node-state>HEALTHY</span>
+            <span class="cascade-node__role">user-facing entry</span>
+          </div>
+
+          <div class="cascade-node cascade-node--api" data-node="api" data-label="API" data-state="healthy" role="img" aria-label="API. HEALTHY.">
+            <span class="cascade-node__activity" data-node-activity data-state="healthy" aria-hidden="true"></span>
+            <span class="cascade-node__name">API</span>
+            <span class="cascade-node__state" data-node-state>HEALTHY</span>
+            <span class="cascade-node__role">request boundary</span>
+          </div>
+
+          <div class="cascade-node cascade-node--core" data-node="core" data-label="Core service" data-state="healthy" role="img" aria-label="Core service. HEALTHY.">
+            <span class="cascade-node__activity" data-node-activity data-state="healthy" aria-hidden="true"></span>
+            <span class="cascade-node__name">CORE SERVICE</span>
+            <span class="cascade-node__state" data-node-state>HEALTHY</span>
+            <span class="cascade-node__role">synchronous coordinator</span>
+          </div>
+
+          <button type="button" class="cascade-node cascade-node--cache cascade-node--faultable" data-node="cache" data-label="Cache" data-state="healthy" aria-haspopup="menu" aria-label="Cache. HEALTHY. Select to introduce a fault.">
+            <span class="cascade-node__activity" data-node-activity data-state="healthy" aria-hidden="true"></span>
+            <span class="cascade-node__name">CACHE</span>
+            <span class="cascade-node__state" data-node-state>HEALTHY</span>
+            <span class="cascade-node__role">optional acceleration</span>
+          </button>
+
+          <button type="button" class="cascade-node cascade-node--database cascade-node--faultable" data-node="database" data-label="Database" data-state="healthy" aria-haspopup="menu" aria-label="Database. HEALTHY. Select to introduce a fault.">
+            <span class="cascade-node__activity" data-node-activity data-state="healthy" aria-hidden="true"></span>
+            <span class="cascade-node__name">DATABASE</span>
+            <span class="cascade-node__state" data-node-state>HEALTHY</span>
+            <span class="cascade-node__role">persistent state</span>
+          </button>
+
+          <div class="cascade-node cascade-node--queue" data-node="queue" data-label="Queue" data-state="healthy" role="img" aria-label="Queue. HEALTHY.">
+            <span class="cascade-node__activity" data-node-activity data-state="healthy" aria-hidden="true"></span>
+            <span class="cascade-node__name">QUEUE</span>
+            <span class="cascade-node__state" data-node-state>HEALTHY</span>
+            <span class="cascade-node__role">asynchronous buffer</span>
+          </div>
+
+          <div class="cascade-node cascade-node--worker" data-node="worker" data-label="Worker" data-state="healthy" role="img" aria-label="Worker. HEALTHY.">
+            <span class="cascade-node__activity" data-node-activity data-state="healthy" aria-hidden="true"></span>
+            <span class="cascade-node__name">WORKER</span>
+            <span class="cascade-node__state" data-node-state>HEALTHY</span>
+            <span class="cascade-node__role">background work</span>
+          </div>
+
+          <div class="cascade-fault-menu" id="cascade-fault-menu" role="menu" aria-labelledby="cascade-fault-menu-label" hidden>
+            <div class="cascade-menu-head">
+              <span class="cascade-menu__label" id="cascade-fault-menu-label">Dependency fault</span>
+              <button class="cascade-menu-close" type="button" data-close-menu aria-label="Close fault actions">×</button>
+            </div>
+            <div class="cascade-fault-actions">
+              <button class="cascade-fault-action" type="button" role="menuitem" data-fault-type="fail">FAIL</button>
+              <button class="cascade-fault-action" type="button" role="menuitem" data-fault-type="degrade">DEGRADE</button>
+              <button class="cascade-fault-action" type="button" role="menuitem" data-fault-type="latency">ADD LATENCY</button>
+            </div>
+          </div>
+
+          <p class="visually-hidden" id="cascade-state-summary" role="status" aria-live="polite">Phase baseline. Root fault: none. edge: healthy; api: healthy; core: healthy; cache: healthy; database: healthy; queue: healthy; worker: healthy. Active containment: none. All components healthy.</p>
+        </div>
+
+        <div class="cascade-controls" aria-label="Resilience controls and experiment actions">
+          <button class="cascade-toggle" type="button" aria-pressed="false" data-resilience="cacheFallback" data-label="Cache fallback">
+            <span class="cascade-control__label">CACHE FALLBACK</span><span data-toggle-state>OFF</span>
+          </button>
+          <button class="cascade-toggle" type="button" aria-pressed="false" data-resilience="asyncBuffer" data-label="Async buffer">
+            <span class="cascade-control__label">ASYNC BUFFER</span><span data-toggle-state>OFF</span>
+          </button>
+          <button class="cascade-toggle" type="button" aria-pressed="false" data-resilience="gracefulMode" data-label="Graceful mode">
+            <span class="cascade-control__label">GRACEFUL MODE</span><span data-toggle-state>OFF</span>
+          </button>
+          <button class="cascade-action cascade-action--replay" id="cascade-replay" type="button" disabled>REPLAY FAULT</button>
+          <button class="cascade-action cascade-action--reset" id="cascade-reset" type="button" disabled>RESET</button>
+        </div>
+
+        <div class="cascade-consequence" aria-labelledby="cascade-consequence-title">
+          <div>
+            <h2 id="cascade-consequence-title">Current consequence</h2>
+            <p id="cascade-consequence">All components healthy.</p>
+            <p id="cascade-explanation">Synthetic work is flowing through the dependency graph.</p>
+          </div>
+          <div class="cascade-readouts" aria-label="Outcome comparison">
+            <div class="cascade-readout"><span>Edge outcome</span><strong id="cascade-outcome-readout">HEALTHY</strong></div>
+            <div class="cascade-readout"><span>Phase</span><strong>DETERMINISTIC</strong></div>
+            <div class="cascade-readout cascade-previous" id="cascade-previous-outcome" hidden><span>Previous edge outcome</span><strong>HEALTHY</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cascade-note">
+        <p><strong>Failures do not remain where they begin.</strong> Architecture determines whether a fault is contained, delayed, transformed, or amplified.</p>
+        <p><code>Tab</code> moves through controls. <code>Enter</code> or <code>Space</code> activates them. <code>Escape</code> closes fault actions. <code>R</code> resets the exact baseline.</p>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/lab/cascade/cascade.js?v=20260815-cascade-v1"></script>
+
+  <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-inner atlas-mobile-nav__inner">
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/writing/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="16" y2="13"></line></svg><span>Writing</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item active" href="/lab/" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V9"></path><path d="M14 3h7v7"></path></svg><span>Lab</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg><span>Systems</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M20 21a8 8 0 10-16 0"></path></svg><span>About</span></a>
+    </div>
+  </nav>
+</body>
+</html>
