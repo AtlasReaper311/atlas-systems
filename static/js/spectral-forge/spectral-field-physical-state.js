@@ -148,7 +148,7 @@ function createEvent(kind, strength, lifeTime, model, scenarioSeed) {
 }
 
 function addScar(model, event, lifeTime) {
-  if (!event || event.kind === "pressure-front" || event.kind === "instability-pulse") return;
+  if (!event || event.kind === "pressure-front" || event.kind === "instability-pulse" || event.kind === "recovery-wave") return;
   const severity = clamp(event.strength * (event.kind === "fracture-front" ? 1 : 0.72));
   if (severity < 0.34) return;
   model.scars.push({
@@ -457,7 +457,7 @@ export function stepPhysicalState(model, {
   model.lastStress = stressNow;
 
   advanceEvents(model, now);
-  maybeEvent(model, "support-loss", clamp(cacheLossRise * 0.62 + cacheLoss * 0.38), 0.46, now, scenarioSeed);
+  maybeEvent(model, "support-loss", clamp(cacheLossRise * 0.62 + cacheLoss * 0.38), 0.34, now, scenarioSeed);
   maybeEvent(model, "pressure-front", clamp(requestRise * 0.34 + queueRise * 0.24 + pressureTarget * 0.42), 0.58, now, scenarioSeed);
   maybeEvent(model, "instability-pulse", clamp(motionEnergy * 0.58 + instabilityTarget * 0.42), 0.6, now, scenarioSeed);
   maybeEvent(model, "fracture-front", model.fractureDrive, 0.68, now, scenarioSeed);
