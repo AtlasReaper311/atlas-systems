@@ -200,7 +200,7 @@
           <p class="visually-hidden" id="cascade-state-summary" role="status" aria-live="polite">Phase baseline. Root fault: none. edge: healthy; api: healthy; core: healthy; cache: healthy; database: healthy; queue: healthy; worker: healthy. Active containment: none. All components healthy.</p>
         </div>
 
-        <div class="cascade-controls" aria-label="Resilience controls and experiment actions">
+        <div class="cascade-controls" role="group" aria-label="Resilience controls and experiment actions">
           <button class="cascade-toggle" type="button" aria-pressed="false" data-resilience="cacheFallback" data-label="Cache fallback">
             <span class="cascade-control__label">CACHE FALLBACK</span><span data-toggle-state>OFF</span>
           </button>
@@ -220,7 +220,7 @@
             <p id="cascade-consequence">All components healthy.</p>
             <p id="cascade-explanation">Synthetic work is flowing through the dependency graph.</p>
           </div>
-          <div class="cascade-readouts" aria-label="Outcome comparison">
+          <div class="cascade-readouts" role="group" aria-label="Outcome comparison">
             <div class="cascade-readout"><span>Edge outcome</span><strong id="cascade-outcome-readout">HEALTHY</strong></div>
             <div class="cascade-readout"><span>Phase</span><strong>DETERMINISTIC</strong></div>
             <div class="cascade-readout cascade-previous" id="cascade-previous-outcome" hidden><span>Previous edge outcome</span><strong>HEALTHY</strong></div>
