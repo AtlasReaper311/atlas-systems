@@ -3,7 +3,8 @@
 /* Scenario-local telemetry clock, distinct from organism life time.
  *
  * Selecting a scenario changes the forces on the same living specimen.
- * Only explicit RESET / REPLAY restarts organism life.
+ * RESET restarts organism life; REPLAY restarts only the selected scenario's
+ * finite telemetry clock on the same specimen.
  */
 
 import { SCENARIO_BY_ID, SIGNALS, clamp, createFrame } from "./domain.js";
@@ -12,35 +13,39 @@ import { organismLifeActive } from "./spectral-field-life-clock.js";
 export const SCENARIO_HANDOFF_MS = 620;
 export const SCENARIO_HANDOFF_SECONDS = SCENARIO_HANDOFF_MS / 1000;
 
+function unchangedSelection(state, scenarioId, playback) {
+  return {
+    changed: false,
+    scenarioId,
+    playback,
+    scenarioTime: state?.scenarioTime ?? 0,
+    resetOrganism: false,
+    keepTimer: playback === "PLAYING",
+    startTimer: false,
+    stopTimer: false,
+    handoff: false,
+    notice: "",
+  };
+}
+
 export function applyScenarioSelection(state, nextScenarioId) {
   const scenarioId = state?.scenarioId;
   const playback = state?.playback ?? "STOPPED";
-  if (!SCENARIO_BY_ID[nextScenarioId]) {
-    return {
-      changed: false,
-      scenarioId,
-      playback,
-      scenarioTime: state?.scenarioTime ?? 0,
-      resetOrganism: false,
-      keepTimer: playback === "PLAYING",
-      startTimer: false,
-      stopTimer: false,
-      handoff: false,
-      notice: "",
-    };
-  }
+  if (!SCENARIO_BY_ID[nextScenarioId]) return unchangedSelection(state, scenarioId, playback);
+
   if (nextScenarioId === scenarioId) {
+    if (playback !== "COMPLETE") return unchangedSelection(state, scenarioId, playback);
     return {
-      changed: false,
+      changed: true,
       scenarioId,
-      playback,
-      scenarioTime: state?.scenarioTime ?? 0,
+      playback: "PLAYING",
+      scenarioTime: 0,
       resetOrganism: false,
-      keepTimer: playback === "PLAYING",
-      startTimer: false,
+      keepTimer: false,
+      startTimer: true,
       stopTimer: false,
-      handoff: false,
-      notice: "",
+      handoff: true,
+      notice: `${SCENARIO_BY_ID[scenarioId].label} · scenario replayed · organism continues`,
     };
   }
 
