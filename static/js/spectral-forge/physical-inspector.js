@@ -16,6 +16,7 @@ const PHYSICAL_KEYS = Object.freeze([
 
 const DEVELOPMENT_KEYS = Object.freeze([
   ["fractureDrive", "FRACTURE DRIVE"],
+  ["dominantEvent", "DOMINANT EVENT"],
   ["activeEventCount", "ACTIVE EVENTS"],
   ["scarInfluence", "SCAR INFLUENCE"],
   ["organismLifeTime", "ORGANISM LIFE"],
@@ -48,7 +49,7 @@ function buildPanel() {
     small.textContent = text;
     const strong = document.createElement("strong");
     strong.dataset.physicalEvidence = key;
-    strong.textContent = key === "fissionPhase" ? "idle" : "0.000";
+    strong.textContent = key === "fissionPhase" || key === "dominantEvent" ? "none" : "0.000";
     cell.append(small, strong);
     return cell;
   });
@@ -67,6 +68,7 @@ function updatePanel(evidence) {
   }
   const values = {
     fractureDrive: numberText(evidence.fractureDrive),
+    dominantEvent: String(evidence.dominantEvent?.kind ?? "none"),
     activeEventCount: String(evidence.activeEventCount ?? 0),
     scarInfluence: numberText(evidence.scarInfluence),
     organismLifeTime: `${Number(evidence.organismLifeTime ?? 0).toFixed(1)} s`,
