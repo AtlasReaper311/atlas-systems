@@ -82,7 +82,7 @@
       </header>
 
       <div class="consensus-instrument" data-mode="quorum" data-network="clean" data-agreement="full" data-write="idle">
-        <div class="consensus-toolbar" aria-label="Consensus controls">
+        <div class="consensus-toolbar" role="group" aria-label="Consensus controls">
           <div class="consensus-control-group">
             <span class="consensus-control-label">COMMIT POLICY</span>
             <div class="consensus-segment" role="group" aria-label="Commit policy">
@@ -140,7 +140,7 @@
             </div>
           </article>
 
-          <div class="consensus-commit" id="consensus-commit" data-phase="full" aria-label="Committed state">
+          <div class="consensus-commit" id="consensus-commit" data-phase="full" role="group" aria-label="Committed state">
             <div class="consensus-orbit consensus-orbit--outer" aria-hidden="true"><span></span></div>
             <div class="consensus-orbit consensus-orbit--mid" aria-hidden="true"><span></span></div>
             <div class="consensus-orbit consensus-orbit--inner" aria-hidden="true"><span></span></div>
@@ -169,7 +169,7 @@
           <div><span>POLICY</span><strong id="consensus-policy">QUORUM 2 / 3</strong></div>
         </div>
 
-        <div class="consensus-try" aria-label="Suggested experiment">
+        <div class="consensus-try" role="group" aria-label="Suggested experiment">
           <span>TRY THIS</span>
           <p id="consensus-prompt">Isolate C, then write. Quorum still commits through A + B, while C remains visibly stale until you heal the link.</p>
         </div>
