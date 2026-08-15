@@ -54,3 +54,21 @@ test("surface convergence bootstrap is single-flight across concurrent module id
     for (const [name, [value, existed]] of saved) restoreGlobal(name, value, existed);
   }
 });
+
+test("surface convergence bootstrap returns null for routes outside its contract", () => {
+  const saved = new Map([
+    ["location", [globalThis.location, Object.hasOwn(globalThis, "location")]],
+    ["document", [globalThis.document, Object.hasOwn(globalThis, "document")]],
+  ]);
+
+  globalThis.location = { pathname: "/work/", origin: "https://example.test" };
+  globalThis.document = {
+    getElementById() { throw new Error("non-surface routes must not inspect convergence styles"); },
+  };
+
+  try {
+    assert.equal(installSurfaceConvergence(), null);
+  } finally {
+    for (const [name, [value, existed]] of saved) restoreGlobal(name, value, existed);
+  }
+});
