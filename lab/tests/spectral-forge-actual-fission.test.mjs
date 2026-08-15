@@ -13,6 +13,7 @@ import {
 } from "../../static/js/spectral-forge/prototypes/field-proto-flagship-final-form-physics.js";
 
 const comparison = createComparisonState();
+const STEP_SECONDS = 0.05;
 
 function stepScenario(id, seconds, { physicalModel, fissionModel, lifeStart = 0 } = {}) {
   const physical = physicalModel ?? createPhysicalStateModel();
@@ -20,8 +21,8 @@ function stepScenario(id, seconds, { physicalModel, fissionModel, lifeStart = 0 
   const seed = SCENARIO_BY_ID[id].visualSeed;
   const samples = [];
 
-  for (let offset = 0; offset <= seconds + 1e-9; offset += 0.1) {
-    const scenarioTime = Math.min(60, Number(offset.toFixed(1)));
+  for (let offset = 0; offset <= seconds + 1e-9; offset += STEP_SECONDS) {
+    const scenarioTime = Math.min(60, Number(offset.toFixed(2)));
     const frame = createFrame(id, scenarioTime);
     const state = stepPhysicalState(physical, {
       frame,
@@ -70,7 +71,7 @@ test("scenario change during actual stress fission preserves the same active eve
   const recovery = stepScenario("deploy", 1.5, {
     physicalModel: cascade.physicalModel,
     fissionModel: cascade.fissionModel,
-    lifeStart: cascade.lifeEnd + 0.1,
+    lifeStart: cascade.lifeEnd + STEP_SECONDS,
   });
   const first = recovery.samples[0].split;
   const latest = recovery.samples.at(-1).split;
