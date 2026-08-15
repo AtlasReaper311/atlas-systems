@@ -125,7 +125,7 @@
       <div class="nr-objective" aria-live="polite">
         <div class="nr-objective__index"><span>OBJECTIVE</span><strong id="nr-patch-name">01 / PRIME</strong></div>
         <p id="nr-brief">Wake the beacon with one clean feed. Leave every other load dark.</p>
-        <div class="nr-target" id="nr-target" aria-label="Target output pattern">
+        <div class="nr-target" id="nr-target" role="group" aria-label="Target output pattern">
           <span data-target-output="beacon">BEACON <b>1</b></span>
           <span data-target-output="archive">ARCHIVE <b>0</b></span>
           <span data-target-output="actuator">ACTUATOR <b>0</b></span>
@@ -144,7 +144,7 @@
             <defs>
               <filter id="nr-glow" x="-40%" y="-40%" width="180%" height="180%">
                 <feGaussianBlur stdDeviation="3.5" result="blur"></feGaussianBlur>
-                <feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+              <feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
               </filter>
               <linearGradient id="nr-board-sheen" x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0" stop-color="#ffffff" stop-opacity="0.025"></stop>
@@ -161,120 +161,13 @@
             <g class="nr-trace-group" data-trace="r1-r3"><path class="nr-trace nr-trace--bed" d="M340 182 C410 182 435 280 485 280"></path><path class="nr-trace nr-trace--flow" d="M340 182 C410 182 435 280 485 280"></path></g>
             <g class="nr-trace-group" data-trace="r2-archive"><path class="nr-trace nr-trace--bed" d="M340 378 C520 378 650 280 833 280"></path><path class="nr-trace nr-trace--flow" d="M340 378 C520 378 650 280 833 280"></path></g>
             <g class="nr-trace-group" data-trace="r2-r3"><path class="nr-trace nr-trace--bed" d="M340 378 C410 378 435 280 485 280"></path><path class="nr-trace nr-trace--flow" d="M340 378 C410 378 435 280 485 280"></path></g>
-            <g class="nr-trace-group" data-trace="r3-actuator"><path class="nr-trace nr-trace--bed" d="M565 280 C650 280 710 440 833 440"></path><path class="nr-trace nr-trace--flow" d="M565 280 C650 280 710 440 833 440"></path></g>
-            <g class="nr-trace-group" data-trace="r3-r4"><path class="nr-trace nr-trace--bed" d="M565 280 L690 280"></path><path class="nr-trace nr-trace--flow" d="M565 280 L690 280"></path></g>
-            <g class="nr-trace-group" data-trace="r4-beacon"><path class="nr-trace nr-trace--bed" d="M770 280 C805 235 800 160 833 120"></path><path class="nr-trace nr-trace--flow" d="M770 280 C805 235 800 160 833 120"></path></g>
-            <g class="nr-trace-group" data-trace="r4-dump"><path class="nr-trace nr-trace--bed" d="M730 320 C730 390 700 438 700 496"></path><path class="nr-trace nr-trace--flow" d="M730 320 C730 390 700 438 700 496"></path></g>
-
-            <g class="nr-source" data-source-state="off" transform="translate(92 280)">
-              <circle class="nr-source__halo" r="42"></circle>
-              <circle class="nr-source__core" r="24"></circle>
-              <path d="M-9 0H9M0-9V9" class="nr-source__mark"></path>
-              <text x="0" y="66" text-anchor="middle">SOURCE</text>
-              <text class="nr-source__voltage" x="0" y="84" text-anchor="middle">0.0 V</text>
-            </g>
-
-            <g class="nr-output" data-output="beacon" data-state="off" transform="translate(878 120)">
-              <circle class="nr-output__halo" r="42"></circle><circle class="nr-output__ring" r="25"></circle><circle class="nr-output__core" r="8"></circle>
-              <text x="0" y="58" text-anchor="middle">BEACON</text>
-              <text class="nr-output__count" x="0" y="76" text-anchor="middle">0 FEED</text>
-            </g>
-            <g class="nr-output" data-output="archive" data-state="off" transform="translate(878 280)">
-              <circle class="nr-output__halo" r="42"></circle><circle class="nr-output__ring" r="25"></circle><rect class="nr-output__archive" x="-7" y="-7" width="14" height="14" rx="2"></rect>
-              <text x="0" y="58" text-anchor="middle">ARCHIVE</text>
-              <text class="nr-output__count" x="0" y="76" text-anchor="middle">0 FEED</text>
-            </g>
-            <g class="nr-output" data-output="actuator" data-state="off" transform="translate(878 440)">
-              <circle class="nr-output__halo" r="42"></circle><circle class="nr-output__ring" r="25"></circle><path class="nr-output__actuator" d="M-8 9V-9L9 0Z"></path>
-              <text x="0" y="58" text-anchor="middle">ACTUATOR</text>
-              <text class="nr-output__count" x="0" y="76" text-anchor="middle">0 FEED</text>
-            </g>
-
-            <g class="nr-ground" transform="translate(700 510)">
-              <path d="M0-14V0M-18 0H18M-12 7H12M-6 14H6"></path>
-              <text x="0" y="36" text-anchor="middle">DUMP / GND</text>
-            </g>
-
-            <g class="nr-component nr-component--cap" transform="translate(440 125)"><path d="M-16 0H-4M4 0H16M-4-14V14M4-14V14"></path><text x="0" y="32" text-anchor="middle">C7</text></g>
-            <g class="nr-component nr-component--coil" transform="translate(600 390)"><path d="M-22 0c4-14 8-14 12 0s8 14 12 0 8-14 12 0 8 14 12 0"></path><text x="0" y="28" text-anchor="middle">L2</text></g>
-            <g class="nr-component nr-component--resistor" transform="translate(585 230)"><path d="M-24 0h8l4-8 8 16 8-16 8 16 4-8h8"></path><text x="0" y="26" text-anchor="middle">R9</text></g>
-            <path class="nr-fault-arc" id="nr-fault-arc" d="M690 352 l18 12 -14 14 20 13 -16 15"></path>
-          </svg>
-
-          <button class="nr-relay nr-relay--r1" type="button" data-relay="r1" data-position="open" aria-label="Relay R1. Open. Select to cycle route.">
-            <span class="nr-relay__id">R1</span><span class="nr-relay__route" data-relay-route>OPEN</span><span class="nr-relay__lever" aria-hidden="true"><i></i></span>
-          </button>
-          <button class="nr-relay nr-relay--r2" type="button" data-relay="r2" data-position="open" aria-label="Relay R2. Open. Select to cycle route.">
-            <span class="nr-relay__id">R2</span><span class="nr-relay__route" data-relay-route>OPEN</span><span class="nr-relay__lever" aria-hidden="true"><i></i></span>
-          </button>
-          <button class="nr-relay nr-relay--r3" type="button" data-relay="r3" data-position="open" aria-label="Relay R3. Open. Select to cycle route.">
-            <span class="nr-relay__id">R3</span><span class="nr-relay__route" data-relay-route>OPEN</span><span class="nr-relay__lever" aria-hidden="true"><i></i></span>
-          </button>
-          <button class="nr-relay nr-relay--r4" type="button" data-relay="r4" data-position="open" aria-label="Relay R4. Open. Select to cycle route.">
-            <span class="nr-relay__id">R4</span><span class="nr-relay__route" data-relay-route>OPEN</span><span class="nr-relay__lever" aria-hidden="true"><i></i></span>
-          </button>
-
-          <div class="nr-hud" aria-label="Circuit measurements">
-            <div><span>PHASE</span><strong id="nr-phase">COLD</strong></div>
-            <div><span>BUS</span><strong id="nr-voltage">0.0 V</strong></div>
-            <div><span>DRAW</span><strong id="nr-draw">0 / 2</strong></div>
-            <div><span>STABILITY</span><strong id="nr-stability">100%</strong></div>
-          </div>
-
-          <div class="nr-scope" aria-label="Synthetic bus waveform">
-            <div class="nr-scope__head"><span>BUS SCOPE</span><b id="nr-scope-state">COLD</b></div>
-            <canvas id="nr-scope" width="360" height="104" aria-hidden="true"></canvas>
-          </div>
-
-          <div class="nr-trip" id="nr-trip" role="status" aria-live="assertive" hidden>
-            <span class="nr-trip__eyebrow">PROTECTION EVENT</span>
-            <strong id="nr-trip-title">FUSE OPEN</strong>
-            <span id="nr-trip-reason">SHORT TO GROUND</span>
-          </div>
-
-          <p class="visually-hidden" id="nr-state-summary" role="status" aria-live="polite">Patch 01 Prime. Phase cold. R1 OPEN, R2 OPEN, R3 OPEN, R4 OPEN. Outputs: beacon 0, archive 0, actuator 0. Circuit cold.</p>
-        </div>
-
-        <div class="nr-console">
-          <div class="nr-console__message">
-            <span id="nr-message-state">CIRCUIT COLD</span>
-            <p id="nr-message">Circuit cold. Set the relays, then energise the board.</p>
-          </div>
-          <div class="nr-console__actions" role="group" aria-label="Circuit power and recovery">
-            <button class="nr-action nr-action--power" id="nr-power" type="button">ENERGISE</button>
-            <button class="nr-action" id="nr-fuse-reset" type="button" disabled>RESET FUSE</button>
-            <button class="nr-action nr-action--quiet" id="nr-reset" type="button">CLEAR PATCH</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="nr-notes">
-        <div>
-          <span>RELAY LEGEND</span>
-          <p><b>OPEN</b> isolates a feed. <b>A</b> takes the direct branch. <b>B</b> diverts downstream. Click a relay to cycle; <kbd>Shift</kbd> + click cycles backwards.</p>
-        </div>
-        <div>
-          <span>PROTECTION</span>
-          <p>Each shared trace accepts one feed. Two feeds converging on R3 or R4 trip overcurrent protection. R4 / B is a deliberate short-to-ground path.</p>
-        </div>
-        <div>
-          <span>RECOVERY</span>
-          <p>A fuse trip cuts power but preserves relay positions. Reset the fuse, change the route, and re-energise. Press <kbd>R</kbd> to restore the patch exactly.</p>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <script type="module" src="/lab/neon-relay/neon-relay.js?v=20260815-neon-relay-v1"></script>
-
-  <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
-    <div class="mobile-nav-inner atlas-mobile-nav__inner">
-      <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>
-      <a class="mobile-nav-item atlas-mobile-nav__item" href="/writing/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="16" y2="13"></line></svg><span>Writing</span></a>
-      <a class="mobile-nav-item atlas-mobile-nav__item active" href="/lab/" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V9"></path><path d="M14 3h7v7"></path></svg><span>Lab</span></a>
-      <a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg><span>Systems</span></a>
-      <a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M20 21a8 8 0 10-16 0"></path></svg><span>About</span></a>
-    </div>
-  </nav>
-</body>
-</html>
+            <g class="nr-trace-group" data-trace="r3-actuator"><path class="nr-trace nr-trace--bed" d="M655 280 C650 280 710 440 833 440"></path><path class="nr-trace nr-trace--flow" d="M565 280 C650 280 710 440 833 440"></path></g>
+            <g class="nr-trace-group" data-trace="r3-r4"><path class="nr-trace nr-trace--bed" d="M565 280 L690 280"></path><path class="nr-trace nr-trace--flow" d="MMMMHŽŽLŽÜ]ÙÏ‚ˆÈÛ\ÜÏH›œ‹]˜XÙKYÜ›Ý\ˆ]K]˜XÙOHœX™XXÛÛˆ]Û\ÜÏH›œ‹]˜XÙHœ‹]˜XÙKKX™YˆH“MÍÌŽÎHŒÍHMŒÌÈLŒÜ]]Û\ÜÏH›œ‹]˜XÙHœ‹]˜XÙKKY›ÝÈˆH“MÍÌŽÎHŒÍHMŒÌÈLŒÜ]ÙÏ‚ˆÈÛ\ÜÏH›œ‹]˜XÙKYÜ›Ý\ˆ]K]˜XÙOHœY[\]Û\ÜÏH›œ‹]˜XÙHœ‹]˜XÙKKX™YˆH“MÌÌÌŒÍÌÌÎLÌÎÌMˆÜ]]Û\ÜÏH›œ‹]˜XÙHœ‹]˜XÙKKY›ÝÈˆH“MÌÌÌŒÍÌÌÎLÌÎÌMˆÜ]ÙÏ‚‚ˆÈÛ\ÜÏH›œ‹\ÛÝ\˜ÙHˆ]K\ÛÝ\˜ÙK\Ý]OH›Ù™ˆˆ˜[œÙ›Ü›OH˜[œÛ]JLˆŽ
+H‚ˆÚ\˜ÛHÛ\ÜÏH›œ‹\ÛÝ\˜ÙW×Ú[ÈˆHˆØÚ\˜ÛO‚ˆÚ\˜ÛHÛ\ÜÏH›œ‹\ÛÝ\˜ÙW×ØÛÜ™HˆHŒØÚ\˜ÛO‚ˆ]H“KNHSLNUŽHˆÛ\ÜÏH›œ‹\ÛÝ\˜ÙW×ÛX\šÈÜ]‚ˆ^HŒˆOHˆˆ^X[˜ÚÜH›ZYH”ÓÕTÑOÝ^‚ˆ^Û\ÜÏH›œ‹\ÛÝ\˜ÙW×Ý›ÛYÙHˆHŒˆOHŽˆ^X[˜ÚÜH›ZYHŒŒÝ^‚ˆÙÏ‚‚ˆÈÛ\ÜÏH›œ‹[Ý]]ˆ]K[Ý]]H˜™XXÛÛˆˆ]K\Ý]OH›Ù™ˆˆ˜[œÙ›Ü›OH˜[œÛ]JÎLŒ
+H‚ˆÚ\˜ÛHÛ\ÜÏH›œ‹[Ý]]×Ú[ÈˆHˆØÚ\˜ÛOÚ\˜ÛHÛ\ÜÏH›œ‹[Ý]]×Üš[™ÈˆHŒHØÚ\˜ÛOÚ\˜ÛHÛ\ÜÏH›œ‹[Ý]]×ØÛÜ™HˆHŽØÚ\˜ÛO‚ˆ^HŒˆOHNˆ^X[˜ÚÜH›ZYH‘PPÓÓÝ^‚ˆ^Û\ÜÏH›œ‹[Ý]]×ØÛÝ[ˆHŒˆOHÍˆˆ^X[˜ÚÜH›ZYHŒ‘QQÝ^‚ˆÙÏ‚ˆÈÛ\ÜÏH›œ‹[Ý]]ˆ]K[Ý]]H˜\˜Ú]™Hˆ]K\Ý]OH›Ù™ˆˆ˜[œÙ›Ü›OH˜[œÛ]JÎŽ
+H‚ˆÚ\˜ÛHÛ\ÜÏH›œ‹[Ý]]×Ú[ÈˆHˆØÚ\˜ÛOÚ\˜ÛHÛ\ÜÏH›œ‹[Ý]]×Üš[™ÈˆHŒHØÚ\˜ÛO™XÝÛ\ÜÏH›œ‹[Ý]]×Ø\˜Ú]™HˆH‹MÈˆOH‹MÈˆÚYHŒMˆZYÚHŒMˆžHŒˆÜ™XÝ‚ˆ^HŒˆOHNˆ^X[˜ÚÜH›ZYHTÒU‘OÝ^‚ˆ^Û\ÜÏH›œ‹[Ý]]×ØÛÝ[ˆHŒˆOHÍˆˆ^X[˜ÚÜH›ZYHŒ‘QQÝ^‚ˆÙÏ‚ˆÈÛ\ÜÏH›œ‹[Ý]]ˆ]K[Ý]]H˜XÝX]Üˆˆ]K\Ý]OH›Ù™ˆˆ˜[œÙ›Ü›OH˜[œÛ]JÎ
+H‚ˆÚ\˜ÛHÛ\ÜÏH›œ‹[Ý]]×Ú[ÈˆHˆØÚ\˜ÛOÚ\˜ÛHÛ\ÜÏH›œ‹[Ý]]×Üš[™ÈˆHŒHØÚ\˜ÛO]Û\ÜÏH›œ‹[Ý]]×ØXÝX]ÜˆˆH“KNU‹NSHˆÜ]‚ˆ^HŒˆOHNˆ^X[˜ÚÜH›ZYHPÕPUÔÝ^‚ˆ^Û\ÜÏH›œ‹[Ý]]×ØÛÝ[ˆHŒˆOHÍˆˆ^X[˜ÚÜH›ZYHŒ‘QQÝ^‚ˆÙÏ‚‚ˆÈÛ\ÜÏH›œ‹YÜ›Ý[™ˆ˜[œÙ›Ü›OH˜[œÛ]JÌLL
+H‚ˆ]H“LLMŒKLNNKLLˆÒL“KMˆMˆÜ]‚ˆ^HŒˆOHŒÍˆˆ^X[˜ÚÜH›ZYH‘STÈÓ‘Ý^‚ˆÙÏ‚‚ˆÈÛ\ÜÏH›œ‹XÛÛ\Û™[œ‹XÛÛ\Û™[KXØ\ˆ˜[œÙ›Ü›OH˜[œÛ]JLJH]H“KLMˆMMM“KMLMŒMMLMŒMÜ]^HŒˆOHŒÌˆˆ^X[˜ÚÜH›ZYHÍÏÝ^ÙÏ‚ˆÈÛ\ÜÏH›œ‹XÛÛ\Û™[œ‹XÛÛ\Û™[KXÛÚ[ˆ˜[œÙ›Ü›OH˜[œÛ]JŒÎL
+H]H“KLŒˆÍLMLMLˆÎMLˆLMLˆMLˆÜ]^HŒˆOHŒŽˆ^X[˜ÚÜH›ZYH“Ý^ÙÏ‚ˆÈÛ\ÜÏH›œ‹XÛÛ\Û™[œ‹XÛÛ\Û™[K\™\Ú\ÝÜˆˆ˜[œÙ›Ü›OH˜[œÛ]JNHŒÌ
+H]H“KLNMˆLMˆMˆNÜ]^HŒˆOHŒˆˆ^X[˜ÚÜH›ZYH”ŽOÝ^ÙÏ‚ˆ]Û\ÜÏH›œ‹Y˜][X\˜ÈˆYH›œ‹Y˜][X\˜ÈˆH“MŽLÍLˆNLˆLMMŒLÈLMˆMHÜ]‚ˆÜÝ™Ï‚‚ˆ]ÛˆÛ\ÜÏH›œ‹\™[^Hœ‹\™[^KK\ŒHˆ\OH˜]Ûˆˆ]K\™[^OHœŒHˆ]K\ÜÚ][ÛH›Ü[ˆˆ\šXK[X™[H”™[^HŒKˆÜ[‹ˆÙ[XÝÈÞXÛH›Ý]Kˆ‚ˆÜ[ˆÛ\ÜÏH›œ‹\™[^W×ÚY”ŒOÜÜ[Ü[ˆÛ\ÜÏH›œ‹\™[^W×Ü›Ý]Hˆ]K\™[^K\›Ý]O“ÔSÜÜ[Ü[ˆÛ\ÜÏH›œ‹\™[^W×Û]™\ˆˆ\šXKZY[HYHOÚOÜÜ[‚ˆØ]Û‚ˆ]ÛˆÛ\ÜÏH›œ‹\™[^Hœ‹\™[^KK\Œˆˆ\OH˜]Ûˆˆ]K\™[^OHœŒˆˆ]K\ÜÚ][ÛH›Ü[ˆˆ\šXK[X™[H”™[^HŒ‹ˆÜ[‹ˆÙ[XÝÈÞXÛH›Ý]Kˆ‚ˆÜ[ˆÛ\ÜÏH›œ‹\™[^W×ÚY”ŒÜÜ[Ü[ˆÛ\ÜÏH›œ‹\™[^W×Ü›Ý]Hˆ]K\™[^K\›Ý]O“ÔSÜÜ[Ü[ˆÛ\ÜÏH›œ‹\™[^W×Û]™\ˆˆ\šXKZY[HYHOÚOÜÜ[‚ˆØ]Û‚ˆ]ÛˆÛ\ÜÏH›œ‹\™[^Hœ‹\™[^KK\ŒÈˆ\OH˜]Ûˆˆ]K\™[^OHœŒÈˆ]K\ÜÚ][ÛH›Ü[ˆˆ\šXK[X™[H”™[^HŒËˆÜ[‹ˆÙ[XÝÈÞXÛH›Ý]Kˆ‚ˆÜ[ˆÛ\ÜÏH›œ‹\™[^W×ÚY”ŒÏÜÜ[Ü[ˆÛ\ÜÏH›œ‹\™[^W×Ü›Ý]Hˆ]K\™[^K\›Ý]O“ÔSÜÜ[Ü[ˆÛ\ÜÏH›œ‹\™[^W×Û]™\ˆˆ\šXKZY[HYHOÚOÜÜ[‚ˆØ]Û‚ˆ]ÛˆÛ\ÜÏH›œ‹\™[^Hœ‹\™[^KK\ˆ\OH˜]Ûˆˆ]K\™[^OHœˆ]K\ÜÚ][ÛH›Ü[ˆˆ\šXK[X™[H”™[^HˆÜ[‹ˆÙ[XÝÈÞXÛH›Ý]Kˆ‚ˆÜ[ˆÛ\ÜÏH›œ‹\™[^W×ÚY”ÜÜ[Ü[ˆÛ\ÜÏH›œ‹\™[^W×Ü›Ý]Hˆ]K\™[^K\›Ý]O“ÔSÜÜ[Ü[ˆÛ\ÜÏH›œ‹\™[^W×Û]™\ˆˆ\šXKZY[HYHOÚOÜÜ[‚ˆØ]Û‚‚ˆ]ˆÛ\ÜÏH›œ‹ZYˆ›ÛOH™Ü›Ý\ˆ\šXK[X™[HÚ\˜ÝZ]YX\Ý\™[Y[È‚ˆ]Ü[”TÑOÜÜ[Ý›Û™ÈYH›œ‹\\ÙHÓÓÜÝ›Û™ÏÙ]‚ˆ]Ü[•TÏÜÜ[Ý›Û™ÈYH›œ‹]›ÛYÙHŒŒÜÝ›Û™ÏÙ]‚ˆ]Ü[‘UÏÜÜ[Ý›Û™ÈYH›œ‹Y˜]ÈŒÈÜÝ›Û™ÏÙ]‚ˆ]Ü[”ÕP’SUOÜÜ[Ý›Û™ÈYH›œ‹\ÝXš[]HŒL	OÜÝ›Û™ÏÙ]‚ˆÙ]‚‚ˆ]ˆÛ\ÜÏH›œ‹\ØÛÜHˆ›ÛOH™Ü›Ý\ˆ\šXK[X™[H”Þ[]XÈ\ÈØ]™Y›Ü›H‚ˆ]ˆÛ\ÜÏH›œ‹\ØÛÜW×ÚXYÜ[•TÈÐÓÔOÜÜ[ˆYH›œ‹\ØÛÜK\Ý]HÓÓØÙ]‚ˆØ[˜\ÈYH›œ‹\ØÛÜHˆÚYHŒÍŒˆZYÚHŒLˆ\šXKZY[HYHØØ[˜\Ï‚ˆÙ]‚‚ˆ]ˆÛ\ÜÏH›œ‹]š\ˆYH›œ‹]š\ˆ›ÛOHœÝ]\Èˆ\šXK[]™OH˜\ÜÙ\]™HˆY[‚ˆÜ[ˆÛ\ÜÏH›œ‹]š\×Ù^YXœ›ÝÈ”“ÕPÕSÓˆU‘S•ÜÜ[‚ˆÝ›Û™ÈYH›œ‹]š\]]H‘•TÑHÔSÜÝ›Û™Ï‚ˆÜ[ˆYH›œ‹]š\\™X\ÛÛˆ”ÒÔ•ÈÔ“ÕS‘ÜÜ[‚ˆÙ]‚‚ˆÛ\ÜÏHš\ÝX[KZY[ˆˆYH›œ‹\Ý]K\Ý[[X\žHˆ›ÛOHœÝ]\Èˆ\šXK[]™OHœÛ]H”]ÚHš[YKˆ\ÙHÛÛˆŒHÔS‹ŒˆÔS‹ŒÈÔS‹ÔS‹ˆÝ]]Îˆ™XXÛÛˆ\˜Ú]™HXÝX]ÜˆˆÚ\˜ÝZ]ÛÛÜ‚ˆÙ]‚‚ˆ]ˆÛ\ÜÏH›œ‹XÛÛœÛÛH‚ˆ]ˆÛ\ÜÏH›œ‹XÛÛœÛÛW×ÛY\ÜØYÙH‚ˆÜ[ˆYH›œ‹[Y\ÜØYÙK\Ý]HÒTÕRUÓÓÜÜ[‚ˆYH›œ‹[Y\ÜØYÙHÚ\˜ÝZ]ÛÛˆÙ]H™[^\Ë[ˆ[™\™Ú\ÙHH›Ø\™Ü‚ˆÙ]‚ˆ]ˆÛ\ÜÏH›œ‹XÛÛœÛÛW×ØXÝ[ÛœÈˆ›ÛOH™Ü›Ý\ˆ\šXK[X™[HÚ\˜ÝZ]ÝÙ\ˆ[™™XÛÝ™\žH‚ˆ]ÛˆÛ\ÜÏH›œ‹XXÝ[Ûˆœ‹XXÝ[Û‹K\ÝÙ\ˆˆYH›œ‹\ÝÙ\ˆˆ\OH˜]Ûˆ‘S‘T‘ÒTÑOØ]Û‚ˆ]ÛˆÛ\ÜÏH›œ‹XXÝ[ÛˆˆYH›œ‹Y\ÙK\™\Ù]ˆ\OH˜]Ûˆˆ\ØX›Y”‘TÑU•TÑOØ]Û‚ˆ]ÛˆÛ\ÜÏH›œ‹XXÝ[Ûˆœ‹XXÝ[Û‹K\]ZY]ˆYH›œ‹\™\Ù]ˆ\OH˜]ÛˆÓPTˆUÒØ]Û‚ˆÙ]‚ˆÙ]‚ˆÙ]‚‚ˆ]ˆÛ\ÜÏH›œ‹[›Ý\È‚ˆ]‚ˆÜ[”‘SVHQÑS‘ÜÜ[‚ˆ“ÔSØˆ\ÛÛ]\ÈH™YYˆOØˆZÙ\ÈH\™XÝœ˜[˜ÚˆØˆ]™\ÈÝÛœÝ™X[KˆÛXÚÈH™[^HÈÞXÛNÈØ™”ÚYÚØ™ˆ
+ÈÛXÚÈÞXÛ\È˜XÚÝØ\™ËÜ‚ˆÙ]‚ˆ]‚ˆÜ[”“ÕPÕSÓÜÜ[‚ˆ‘XXÚÚ\™Y˜XÙHXØÙ\ÈÛ™H™YYˆÛÈ™YYÈÛÛ™\™Ú[™ÈÛˆŒÈÜˆš\Ý™\˜Ý\œ™[›ÝXÝ[Û‹ˆÈˆ\ÈH[X™\˜]HÚÜ]ËYÜ›Ý[™]Ü‚ˆÙ]‚ˆ]‚ˆÜ[”‘PÓÕ‘T–OÜÜ[‚ˆH\ÙHš\Ý]ÈÝÙ\ˆ]™\Ù\™\È™[^HÜÚ][ÛœËˆ™\Ù]H\ÙKÚ[™ÙHH›Ý]K[™™KY[™\™Ú\ÙKˆ™\ÜÈØ™”ÚØ™ˆÈ™\ÝÜ™HH]Ú^XÝKÜ‚ˆÙ]‚ˆÙ]‚ˆÜÙXÝ[Û‚ˆÛXZ[‚‚ˆØÜš\\OH›[Ù[HˆÜ˜ÏH‹ÛX‹Û™[Û‹\™[^KÛ™[Û‹\™[^KšœÏÝLŒŒMK[™[Û‹\™[^K]ŒHÜØÜš\‚‚ˆ˜]ˆÛ\ÜÏH›[Øš[K[˜]ˆ]\Ë[[Øš[K[˜]ˆ]\ËX›ÝÛK[˜]ˆˆ\šXK[X™[H“[Øš[H˜]šYØ][Ûˆ‚ˆ]ˆÛ\ÜÏH›[Øš[K[˜]‹Z[›™\ˆ]\Ë[[Øš[K[˜]—×Ú[›™\ˆ‚ˆHÛ\ÜÏH›[Øš[K[˜]‹Z][H]\Ë[[Øš[K[˜]—×Ú][Hˆ™YH‹ÝÛÜšËÈÝ™ÈšY]Ð›ÞHŒˆ\šXKZY[HYHÛ[[™HÚ[ÏHŒMˆNŒˆLˆMˆˆÜÛ[[™OÛ[[™HÚ[ÏHŽˆˆLˆNÜÛ[[™OÜÝ™ÏÜ[•ÛÜšÏÜÜ[ØO‚ˆHÛ\ÜÏH›[Øš[K[˜]‹Z][H]\Ë[[Øš[K[˜]—×Ú][Hˆ™YH‹ÝÜš][™ËÈÝ™ÈšY]Ð›ÞHŒˆ\šXKZY[HYH]H“MMŒM’ˆÜ][™HOHŽˆLOHŽHˆHŒMˆˆLHŽHÛ[™O[™HOHŽˆLOHŒLÈˆHŒMˆˆLHŒLÈÛ[™OÜÝ™ÏÜ[•Üš][™ÏÜÜ[ØO‚ˆHÛ\ÜÏH›[Øš[K[˜]‹Z][H]\Ë[[Øš[K[˜]—×Ú][HXÝ]™Hˆ™YH‹ÛX‹Èˆ\šXKXÝ\œ™[HœYÙHÝ™ÈšY]Ð›ÞHŒˆ\šXKZY[HYH]H“NHÒXLˆˆLˆŒMLˆˆˆšMLˆˆ‹L•ŽHÜ]]H“LMÚÝÈÜ]ÜÝ™ÏÜ[“XÜÜ[ØO‚ˆHÛ\ÜÏH›[Øš[K[˜]‹Z][H]\Ë[[Øš[K[˜]—×Ú][Hˆ™YH‹ÜÞ\Ý[\ËÈÝ™ÈšY]Ð›ÞHŒˆ\šXKZY[HYH™XÝHŒÈˆOHŒÈˆÚYHÈˆZYÚHÈÜ™XÝ™XÝHŒMˆOHŒÈˆÚYHÈˆZYÚHÈÜ™XÝ™XÝHŒÈˆOHŒMˆÚYHÈˆZYÚHÈÜ™XÝ™XÝHŒMˆOHŒMˆÚYHÈˆZYÚHÈÜ™XÝÜÝ™ÏÜ[”Þ\Ý[\ÏÜÜ[ØO‚ˆHÛ\ÜÏH›[Øš[K[˜]‹Z][H]\Ë[[Øš[K[˜]—×Ú][Hˆ™YH‹ØX›Ý]ÈÝ™ÈšY]Ð›ÞHŒˆ\šXKZY[HYHÚ\˜ÛHÞHŒLˆˆÞOHŽˆHØÚ\˜ÛO]H“LŒŒXNLLMˆÜ]ÜÝ™ÏÜ[X›Ý]ÜÜ[ØO‚ˆÙ]‚ˆÛ˜]‚Ø›ÙO‚Ú[‚
