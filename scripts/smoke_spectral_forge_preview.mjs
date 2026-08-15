@@ -8,8 +8,8 @@ import { chromium, firefox } from "playwright";
  * The Field renders once on load and then animates from requestAnimationFrame,
  * so a still capture looks identical whether playback is running, frozen, or
  * has silently fallen back to a different renderer. This smoke therefore
- * asserts frame-to-frame canvas change and renderer identity across the real
- * PLAY / FORGE / ANALYSE interaction path.
+ * asserts frame-to-frame canvas change, final-form WebGL presence and renderer
+ * continuity across the real PLAY / FORGE / ANALYSE interaction path.
  */
 
 const baseUrl = (process.env.PREVIEW_URL || "").replace(/\/$/, "");
@@ -17,6 +17,7 @@ const expectedSha = process.env.HEAD_SHA || "";
 const outputDir = process.env.SPECTRAL_FORGE_OUTPUT_DIR || "spectral-forge-preview-smoke";
 const ROUTE = "/lab/spectral-forge/";
 const EXPECTED_RENDERER = "v4-spatial";
+const EXPECTED_PBR_ARCHITECTURE = "gpu-final-form";
 const VIEWPORT = { width: 1440, height: 900 };
 
 assert.ok(baseUrl, "PREVIEW_URL is required");
@@ -35,6 +36,18 @@ const visibleFieldCanvas = `(() => {
     if (d[i] + d[i + 1] + d[i + 2] > 60) lit += 1;
   }
   return { id: c.id, hash, lit, renderer: c.dataset.fieldRenderer ?? null };
+})()`;
+
+const finalFormPbrState = `(() => {
+  const c = document.querySelector('.forge-play .forge-field-stage canvas.spectral-field-proto-webgl');
+  const perf = c?.__atlasPerf ?? null;
+  if (!c || !perf) return null;
+  return {
+    architecture: perf.architecture ?? null,
+    samples: Number(perf.samples || 0),
+    triangles: Number(c.__atlasRendererInfo?.triangles || 0),
+    connected: c.isConnected,
+  };
 })()`;
 
 const simTime = `document.body.innerText.match(/\\d\\d:\\d\\d\\.\\d/)?.[0] ?? null`;
@@ -59,6 +72,19 @@ function assertLiveField(frames, label) {
   return distinct;
 }
 
+async function assertFinalFormPbr(page, label) {
+  await page.waitForFunction(() => {
+    const canvas = document.querySelector('.forge-play .forge-field-stage canvas.spectral-field-proto-webgl');
+    return Boolean(canvas?.isConnected && canvas.__atlasPerf?.architecture === "gpu-final-form" && canvas.__atlasPerf?.samples > 0);
+  }, null, { timeout: 20_000, polling: 100 });
+  const state = await page.evaluate(finalFormPbrState);
+  assert.ok(state, `${label}: final-form WebGL canvas did not initialise`);
+  assert.equal(state.architecture, EXPECTED_PBR_ARCHITECTURE, `${label}: wrong PBR architecture -> ${state.architecture}`);
+  assert.ok(state.samples > 0, `${label}: final-form WebGL renderer produced no samples`);
+  assert.equal(state.connected, true, `${label}: final-form WebGL canvas was detached`);
+  return state;
+}
+
 async function runEngine(engineName, engine) {
   const evidence = { engine: engineName, route: ROUTE, expectedSha, steps: [] };
   const pageErrors = [];
@@ -73,6 +99,11 @@ async function runEngine(engineName, engine) {
     assert.ok(response?.ok(), `${engineName}: HTTP ${response?.status() ?? "no response"} for ${ROUTE}`);
     await page.waitForSelector(".forge-play .forge-field-stage canvas", { timeout: 20_000 });
     await page.waitForTimeout(900);
+
+    // The bare route must now initialise the approved living final-form PBR
+    // organism. A green Canvas2D fallback is not sufficient evidence.
+    const pbr = await assertFinalFormPbr(page, `${engineName}: load`);
+    evidence.pbr = pbr;
 
     // requestAnimationFrame must actually run, otherwise every later assertion
     // about motion would be vacuous.
@@ -90,7 +121,7 @@ async function runEngine(engineName, engine) {
     assert.ok(stopped, `${engineName}: no Field canvas before playback`);
     assert.equal(stopped.renderer, EXPECTED_RENDERER, `${engineName}: unexpected renderer on load -> ${stopped.renderer}`);
     await page.screenshot({ path: path.join(outputDir, `${engineName}-01-stopped.png`) });
-    evidence.steps.push({ step: "loaded", ...stopped });
+    evidence.steps.push({ step: "loaded", ...stopped, pbr });
 
     // PLAY must animate the same renderer.
     await page.getByRole("button", { name: /^PLAY$/i }).first().click();
