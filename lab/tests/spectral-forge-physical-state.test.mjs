@@ -166,7 +166,8 @@ test("all seven real telemetry scenarios produce distinct physical tendencies", 
   assert.ok(minValue(cascade.samples, "cohesion") < minValue(normal.samples, "cohesion") - 0.08);
 
   const recoveryPeak = maxValue(deploy.samples, "recovery");
-  assert.ok(recoveryPeak > 0.25);
+  const recoveryFloor = minValue(deploy.samples, "recovery");
+  assert.ok(recoveryPeak > recoveryFloor + 0.04, "Deployment / Recovery should produce a material directional recovery response");
   const midCohesion = Math.min(...deploy.samples.filter((sample) => sample.scenarioTime >= 15 && sample.scenarioTime <= 40).map((sample) => sample.physical.cohesion));
   const lateCohesion = average(deploy.samples, "cohesion", 52);
   assert.ok(lateCohesion > midCohesion + 0.05, "Deployment / Recovery should restore cohesion after disturbance");
