@@ -630,10 +630,27 @@ function setPlayback(next) {
   renderAll();
 }
 
+function replayScenario() {
+  if (playback !== "COMPLETE") return false;
+  const decision = applyScenarioSelection({ scenarioId, playback, scenarioTime: time }, scenarioId);
+  if (!decision.changed) return false;
+  const previousFrame = frame;
+  scenarioId = decision.scenarioId;
+  time = decision.scenarioTime;
+  frame = createFrame(scenarioId, time);
+  history = [frame];
+  playback = decision.playback;
+  scenarioHandoff = decision.handoff ? beginScenarioHandoff(previousFrame, performance.now()) : null;
+  if (decision.startTimer) startTimer();
+  else if (decision.stopTimer) stopTimer();
+  setNotice(decision.notice);
+  renderAll();
+  return true;
+}
+
 function togglePlayback() {
   if (playback === "COMPLETE") {
-    resetScenario();
-    setPlayback("PLAYING");
+    replayScenario();
     return;
   }
   setPlayback(playback === "PLAYING" ? "PAUSED" : "PLAYING");
