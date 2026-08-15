@@ -6,7 +6,7 @@ import { applyScenarioSelection, beginScenarioHandoff } from "../../static/js/sp
 import { createOrganismLifeClock, resetOrganismLifeClock } from "../../static/js/spectral-forge/spectral-field-life-clock.js";
 
 const APP_CORE = new URL("../../static/js/spectral-forge/app-core.js", import.meta.url);
-const REPLAY_CONTRACT = new URL("../../static/js/spectral-forge/replay-contract.js", import.meta.url);
+const APP_BOOT = new URL("../../static/js/spectral-forge/app.js", import.meta.url);
 const INSPECTOR = new URL("../../static/js/spectral-forge/physical-inspector.js", import.meta.url);
 const PHYSICS = new URL("../../static/js/spectral-forge/prototypes/field-proto-flagship-final-form-physics.js", import.meta.url);
 
@@ -39,7 +39,7 @@ test("REPLAY decision restarts only scenario-local telemetry and preserves organ
   assert.equal(life.audioExpression, 0.77);
 });
 
-test("REPLAY creates a deterministic short handoff from final frame while RESET RUN remains destructive", async () => {
+test("REPLAY creates a deterministic short handoff while RESET RUN remains destructive", async () => {
   const decision = applyScenarioSelection(completeState(), "cache");
   assert.equal(decision.handoff, true);
   const finalFrame = { marker: "final" };
@@ -48,6 +48,12 @@ test("REPLAY creates a deterministic short handoff from final frame while RESET 
   assert.ok(handoff.duration > 0);
 
   const app = await readFile(APP_CORE, "utf8");
+  const replay = app.slice(app.indexOf("function replayScenario"), app.indexOf("function resetScenario"));
+  assert.match(replay, /applyScenarioSelection\(\{ scenarioId, playback, scenarioTime: time \}, scenarioId\)/);
+  assert.match(replay, /beginScenarioHandoff\(previousFrame, performance\.now\(\)\)/);
+  assert.doesNotMatch(replay, /safeReset|resetOrganismLifeClock/);
+  assert.match(replay, /playback = decision\.playback/);
+
   const reset = app.slice(app.indexOf("function resetScenario"), app.indexOf("function selectScenario"));
   assert.match(reset, /resetOrganismLifeClock\(organismLife\)/);
   assert.match(reset, /audioEngine\?\.safeReset\(\)/);
@@ -66,16 +72,17 @@ test("REPLAY creates a deterministic short handoff from final frame while RESET 
   assert.equal(life.audioExpression, 0);
 });
 
-test("current REPLAY interception has one semantic implementation for click and Space and never safe-resets audio", async () => {
-  const replay = await readFile(REPLAY_CONTRACT, "utf8");
-  const calls = replay.match(/replayCurrentScenario\(root\)/g) ?? [];
-  assert.equal(calls.length, 2, "click and Space should converge on the same replayCurrentScenario action");
-  assert.match(replay, /select\.dispatchEvent\(new Event\("change"/);
-  assert.doesNotMatch(replay, /safeReset|resetOrganismLifeClock|audioEngine/);
-  assert.match(replay, /event\.key !== " "/);
+test("click and Space converge on native togglePlayback and the interception workaround is removed", async () => {
+  const app = await readFile(APP_CORE, "utf8");
+  const boot = await readFile(APP_BOOT, "utf8");
+  assert.match(app, /elements\.playToggle\.addEventListener\("click", togglePlayback\)/);
+  assert.match(app, /event\.key === " "[\s\S]*togglePlayback\(\)/);
+  assert.match(app, /function togglePlayback\(\)[\s\S]*playback === "COMPLETE"[\s\S]*replayScenario\(\)/);
+  assert.doesNotMatch(boot, /replay-contract\.js/);
+  assert.doesNotMatch(app, /stopImmediatePropagation/);
 });
 
-test("REPLAY path does not mutate mode, mapping, preset, comparison, mute or audio activation state", () => {
+test("REPLAY semantic decision does not mutate mode, mapping, preset, comparison, mute or audio activation state", () => {
   const productState = {
     depth: "ANALYSE",
     presetId: "reference",
