@@ -1,11 +1,10 @@
 "use strict";
 
-/* DEVELOPMENT-ONLY prototype support for the Spectral Field art decision.
- * Not imported by app.js and not part of the shipped module graph.
- *
- * Every prototype consumes deriveFieldGeometry() unchanged, so all three
- * directions are driven by identical deterministic telemetry -> mapping ->
- * field state. Only the rendering grammar differs.
+/* Shared deterministic renderer support retained from the Spectral Field art
+ * bake-off. The approved living final-form renderer now imports this module in
+ * the shipped/default graph, while historical prototypes may continue to use
+ * the same helpers for comparison. Keep this module deterministic and free of
+ * renderer-specific scenario choreography.
  */
 
 import { clamp } from "../domain.js";
@@ -78,84 +77,24 @@ export function makeCamera(g, width, height) {
     const ry = y * cp - rz * sp;
     const dz = ry * 0 + (rz * cp + y * sp);
     const depth = focal + dz;
-    const k = focal / Math.max(0.35, depth);
-    return { x: originX + rx * scaleX * k, y: originY + ry * scaleY * k, k, depth: dz };
+    const perspective = focal / Math.max(0.7, depth);
+    return {
+      x: originX + rx * scaleX * perspective,
+      y: originY - ry * scaleY * perspective,
+      depth: dz,
+      perspective,
+    };
   };
 }
 
-/* Painter's algorithm. Faces are collected then sorted back-to-front so
- * translucent volumes occlude correctly instead of stacking additively.
- */
-export function paintFaces(context, faces) {
-  faces.sort((a, b) => a.depth - b.depth);
-  for (const face of faces) {
-    const pts = face.points;
-    if (!pts || pts.length < 3) continue;
-    context.beginPath();
-    context.moveTo(pts[0].x, pts[0].y);
-    for (let i = 1; i < pts.length; i += 1) context.lineTo(pts[i].x, pts[i].y);
-    context.closePath();
-    if (face.fill) {
-      context.fillStyle = face.fill;
-      context.fill();
-    }
-    if (face.stroke) {
-      context.strokeStyle = face.stroke;
-      context.lineWidth = face.lineWidth ?? 1;
-      context.stroke();
-    }
-  }
+export function unit(seedPhase, salt) {
+  return deterministicUnit(seedPhase, salt);
 }
 
-export function backdrop(context, g, width, height) {
-  context.clearRect(0, 0, width, height);
-  context.fillStyle = "#05060c";
-  context.fillRect(0, 0, width, height);
-  const glow = context.createRadialGradient(width * 0.5, height * 0.5, 0, width * 0.5, height * 0.5, Math.max(width, height) * 0.62);
-  const core = mixColour(PALETTE.blue, PALETTE.violet, g.art.disturbance);
-  glow.addColorStop(0, rgba(core, 0.05 + g.mapped.bodyStrength * 0.05));
-  glow.addColorStop(0.55, rgba(PALETTE.deep, 0.16));
-  glow.addColorStop(1, "rgba(5,6,12,0)");
-  context.fillStyle = glow;
-  context.fillRect(0, 0, width, height);
-}
-
-/* Signal amplitude at a normalised position along its path. Deterministic:
- * driven by the frame's own normalised telemetry plus the shared phase.
- */
-export function signalAmplitude(g, frame, channel, t) {
-  const value = clamp(frame.normalised[channel.id] ?? 0.5);
-  const travel = Math.sin((t * 3.1 - g.phase * (0.5 + g.mapped.emissionRate * 0.9) + channel.phase * 6.28));
-  return {
-    value,
-    pulse: 0.5 + travel * 0.5,
-    offset: travel * (0.05 + value * 0.11 + g.mapped.displacement * 0.06),
-  };
-}
-
-export function unit(seed, index) {
-  return deterministicUnit(seed, index);
-}
-
-/* Selected route is a region of the instrument, not a coloured trace. */
 export function routeBand(selectedMapping) {
-  const source = selectedMapping?.source;
-  if (!source) return null;
-  if (source === "request_rate") return { x0: 0.06, x1: 0.28 };
-  if (source === "cache_hit_rate") return { x0: 0.14, x1: 0.38 };
-  if (source === "error_rate") return { x0: 0.36, x1: 0.62 };
-  if (source === "anomaly_score") return { x0: 0.48, x1: 0.78 };
-  if (source === "latency_ms") return { x0: 0.64, x1: 0.92 };
-  return { x0: 0.3, x1: 0.7 };
+  if (!selectedMapping?.source) return null;
+  const index = SIGNAL_CHANNELS.findIndex((channel) => channel.id === selectedMapping.source);
+  if (index < 0) return null;
+  const start = 0.12 + index * 0.145;
+  return { x0: start, x1: Math.min(0.9, start + 0.16), index };
 }
-
-export function fieldBuffer(renderer, context, gw, gh) {
-  const key = "_fieldProtoBuffer";
-  const existing = renderer[key];
-  if (!existing || existing.width !== gw || existing.height !== gh) {
-    renderer[key] = context.createImageData(gw, gh);
-  }
-  return renderer[key];
-}
-
-export { clamp };
