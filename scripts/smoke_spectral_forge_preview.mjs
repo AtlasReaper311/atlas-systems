@@ -42,6 +42,12 @@ const visibleFieldCanvas = `(() => {
     renderer: c.dataset.fieldRenderer ?? null,
     organismLifeTime: Number(c.dataset.organismLifeTime || 0),
     playback: c.dataset.fieldPlayback ?? null,
+    fissionPhase: c.dataset.fissionPhase ?? 'idle',
+    fissionCount: Number(c.dataset.fissionCount || 0),
+    fissionStressDriven: c.dataset.fissionStressDriven === 'true',
+    fractureDrive: Number(c.dataset.fractureDrive || 0),
+    memory: Number(c.dataset.physicalMemory || 0),
+    scarInfluence: Number(c.dataset.physicalScarInfluence || 0),
   };
 })()`;
 
@@ -54,11 +60,15 @@ const finalFormPbrState = `(() => {
     samples: Number(perf.samples || 0),
     triangles: Number(c.__atlasRendererInfo?.triangles || 0),
     connected: c.isConnected,
+    emaCpuMs: Number(perf.emaCpuMs || 0),
+    maxCpuMs: Number(perf.maxCpuMs || 0),
+    lastCpuMs: Number(perf.lastCpuMs || 0),
+    dprCap: Number(perf.dprCap || 0),
   };
 })()`;
 
-const simTime = `document.body.innerText.match(/\\d\\d:\\d\\d\\.\\d/)?.[0] ?? null`;
-const isPlaying = `(document.querySelector('.forge-playback-controls')?.innerText ?? '').includes('PLAYING')`;
+const simTime = `document.querySelector('#simulation-time')?.textContent?.trim() ?? null`;
+const isPlaying = `document.querySelector('#playback-state')?.textContent?.trim() === 'PLAYING'`;
 
 async function sampleField(page, samples = 4, gapMs = 260) {
   const frames = [];
@@ -139,6 +149,146 @@ async function assertFinalFormPbr(page, label) {
   return state;
 }
 
+async function waitForScenarioTime(page, targetSeconds, timeoutMs = Math.max(12_000, (targetSeconds + 8) * 1_000)) {
+  await page.waitForFunction((target) => {
+    const text = document.querySelector('#simulation-time')?.textContent?.trim() ?? '';
+    const match = text.match(/^(\d+):(\d+(?:\.\d+)?)$/);
+    if (!match) return false;
+    return Number(match[1]) * 60 + Number(match[2]) >= target;
+  }, targetSeconds, { timeout: timeoutMs, polling: 100 });
+}
+
+async function selectScenario(page, id, targetSeconds) {
+  await page.locator('#scenario-select').selectOption(id);
+  assert.ok(await page.evaluate(isPlaying), `${id}: scenario change did not preserve PLAYING transport`);
+  await waitForScenarioTime(page, targetSeconds);
+}
+
+async function measureFrameIntervals(page, label, durationMs = 1_800) {
+  const result = await page.evaluate(async ({ durationMs: duration }) => new Promise((resolve) => {
+    const intervals = [];
+    let previous = null;
+    let started = null;
+    const frame = (now) => {
+      if (started == null) started = now;
+      if (previous != null) intervals.push(now - previous);
+      previous = now;
+      if (now - started >= duration && intervals.length >= 2) {
+        const sorted = [...intervals].sort((a, b) => a - b);
+        const percentile = (p) => sorted[Math.min(sorted.length - 1, Math.max(0, Math.ceil(sorted.length * p) - 1))];
+        resolve({
+          samples: intervals.length,
+          averageMs: intervals.reduce((sum, value) => sum + value, 0) / intervals.length,
+          p95Ms: percentile(0.95),
+          worstMs: sorted.at(-1),
+          over33Ms: intervals.filter((value) => value > 33).length,
+          over50Ms: intervals.filter((value) => value > 50).length,
+          over100Ms: intervals.filter((value) => value > 100).length,
+        });
+        return;
+      }
+      requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  }), { durationMs });
+  return Object.fromEntries([
+    ["label", label],
+    ...Object.entries(result).map(([key, value]) => [key, typeof value === "number" ? Number(value.toFixed(3)) : value]),
+  ]);
+}
+
+async function runFirefoxBehaviourEvidence(page, evidence) {
+  const metrics = [];
+  const scenario = page.locator('#scenario-select');
+
+  await scenario.selectOption('normal');
+  await waitForScenarioTime(page, 20);
+  metrics.push(await measureFrameIntervals(page, 'normal-20s'));
+
+  await selectScenario(page, 'traffic', 13);
+  metrics.push(await measureFrameIntervals(page, 'traffic-transition'));
+
+  await selectScenario(page, 'cache', 24);
+  metrics.push(await measureFrameIntervals(page, 'cache-propagation'));
+
+  await selectScenario(page, 'flapping', 12);
+  metrics.push(await measureFrameIntervals(page, 'flapping'));
+
+  await selectScenario(page, 'creep', 48);
+  metrics.push(await measureFrameIntervals(page, 'late-creep'));
+
+  await selectScenario(page, 'cascade', 55);
+  const cascade = await page.evaluate(visibleFieldCanvas);
+  assert.ok(cascade?.fissionStressDriven, `firefox: Cascade did not enter stress-driven fission by 55s (${JSON.stringify(cascade)})`);
+  assert.ok(cascade.fissionCount >= 2 && cascade.fissionCount <= 3, `firefox: Cascade daughter count outside contract -> ${cascade.fissionCount}`);
+  metrics.push(await measureFrameIntervals(page, 'cascade-fission'));
+
+  const beforeSwitch = await page.evaluate(visibleFieldCanvas);
+  await selectScenario(page, 'deploy', 2);
+  const afterSwitch = await page.evaluate(visibleFieldCanvas);
+  assert.equal(afterSwitch.fissionStressDriven, true, 'firefox: scenario switch despawned stress fission');
+  assert.equal(afterSwitch.fissionCount, beforeSwitch.fissionCount, 'firefox: scenario switch changed active daughter count');
+  assert.ok(afterSwitch.organismLifeTime > beforeSwitch.organismLifeTime, 'firefox: organism life did not continue across active fission handoff');
+  metrics.push(await measureFrameIntervals(page, 'scenario-switch-active-event'));
+
+  await waitForScenarioTime(page, 40);
+  metrics.push(await measureFrameIntervals(page, 'recovery'));
+
+  const audioButton = page.locator('#audio-toggle');
+  if ((await audioButton.textContent())?.includes('ENABLE AUDIO')) {
+    await audioButton.click();
+    await page.waitForTimeout(600);
+  }
+  const audioLabel = (await audioButton.textContent())?.trim() ?? '';
+  assert.ok(!audioLabel.includes('ENABLE AUDIO'), `firefox: audio activation did not remain enabled -> ${audioLabel}`);
+  metrics.push(await measureFrameIntervals(page, 'audio-enabled'));
+
+  const memoryBeforeNormal = (await page.evaluate(visibleFieldCanvas))?.memory ?? 0;
+  await selectScenario(page, 'normal', 20);
+  const normalAfterRecovery = await page.evaluate(visibleFieldCanvas);
+  assert.ok(normalAfterRecovery.memory <= memoryBeforeNormal + 0.02, 'firefox: residual memory increased unexpectedly during Normal recovery');
+  metrics.push(await measureFrameIntervals(page, 'normal-after-recovery'));
+
+  await waitForScenarioTime(page, 60, 55_000);
+  await page.waitForFunction(() => document.querySelector('#playback-state')?.textContent?.trim() === 'COMPLETE', null, { timeout: 5_000 });
+  metrics.push(await measureFrameIntervals(page, '60s-hold'));
+  const holdStart = await page.evaluate(visibleFieldCanvas);
+  await page.waitForTimeout(10_000);
+  const holdEnd = await page.evaluate(visibleFieldCanvas);
+  assert.ok(holdEnd.organismLifeTime > holdStart.organismLifeTime + 8, 'firefox: held telemetry stopped organism lifetime');
+  metrics.push(await measureFrameIntervals(page, 'long-passive-life'));
+
+  const replayLife = holdEnd.organismLifeTime;
+  const replayMode = await page.evaluate(() => document.body.dataset.forgeDepth);
+  const replayAudio = (await audioButton.textContent())?.trim() ?? '';
+  await page.locator('#play-toggle').click();
+  await waitForScenarioTime(page, 1.2, 8_000);
+  const replay = await page.evaluate(visibleFieldCanvas);
+  assert.ok(await page.evaluate(isPlaying), 'firefox: REPLAY did not enter PLAYING');
+  assert.ok(replay.organismLifeTime > replayLife, 'firefox: REPLAY restarted organism lifetime');
+  assert.equal(await page.evaluate(() => document.body.dataset.forgeDepth), replayMode, 'firefox: REPLAY changed PLAY/FORGE/ANALYSE mode');
+  assert.equal((await audioButton.textContent())?.trim() ?? '', replayAudio, 'firefox: REPLAY changed audio activation/mute state');
+  metrics.push(await measureFrameIntervals(page, 'replay-from-hold'));
+
+  await page.locator('#reset-run').click();
+  await page.waitForTimeout(350);
+  assert.equal(await page.evaluate(simTime), '00:00.0', 'firefox: RESET RUN did not return scenario time to zero');
+  assert.equal(await page.locator('#playback-state').textContent(), 'STOPPED', 'firefox: RESET RUN did not stop playback');
+  const reset = await page.evaluate(visibleFieldCanvas);
+  assert.ok(reset.organismLifeTime < 0.2, `firefox: RESET RUN did not restart organism lifetime -> ${reset.organismLifeTime}`);
+
+  evidence.behaviourEvidence = {
+    cascade,
+    activeFissionSwitch: { before: beforeSwitch, after: afterSwitch },
+    recoveryNormal: normalAfterRecovery,
+    hold: { start: holdStart, end: holdEnd },
+    replay,
+    reset,
+    metrics,
+  };
+  console.log(`ATLAS_FORGE_FIREFOX_EVIDENCE ${JSON.stringify(evidence.behaviourEvidence)}`);
+}
+
 async function runEngine(engineName, engine) {
   const evidence = { engine: engineName, route: ROUTE, expectedSha, steps: [] };
   const pageErrors = [];
@@ -154,13 +304,9 @@ async function runEngine(engineName, engine) {
     await page.waitForSelector(".forge-play .forge-field-stage canvas", { timeout: 20_000 });
     await page.waitForTimeout(900);
 
-    // The bare route must now initialise the approved living final-form PBR
-    // organism. A green Canvas2D fallback is not sufficient evidence.
     const pbr = await assertFinalFormPbr(page, `${engineName}: load`);
     evidence.pbr = pbr;
 
-    // requestAnimationFrame must actually run, otherwise every later assertion
-    // about motion would be vacuous.
     const rafPerSecond = await page.evaluate(async () => {
       let n = 0;
       const loop = () => { n += 1; requestAnimationFrame(loop); };
@@ -177,7 +323,6 @@ async function runEngine(engineName, engine) {
     await page.screenshot({ path: path.join(outputDir, `${engineName}-01-stopped.png`) });
     evidence.steps.push({ step: "loaded", ...stopped, pbr });
 
-    // PLAY must animate the same renderer.
     await page.getByRole("button", { name: /^PLAY$/i }).first().click();
     await page.waitForTimeout(500);
     const playMotion = await waitForLiveField(page, `${engineName}: PLAY`);
@@ -187,7 +332,6 @@ async function runEngine(engineName, engine) {
     assert.notEqual(tAfterPlay, "00:00.0", `${engineName}: simulation time did not advance`);
     await page.screenshot({ path: path.join(outputDir, `${engineName}-02-play.png`) });
 
-    // Depth switches must not restart playback nor swap renderer.
     for (const mode of ["FORGE", "ANALYSE", "PLAY"]) {
       await page.locator(".forge-depth-nav button", { hasText: new RegExp(mode, "i") }).first().click();
       await page.waitForTimeout(650);
@@ -197,11 +341,6 @@ async function runEngine(engineName, engine) {
       await page.screenshot({ path: path.join(outputDir, `${engineName}-03-${mode.toLowerCase()}.png`) });
     }
 
-    // Scenario changes retarget telemetry on the same living specimen. Playback
-    // must remain active, renderer identity must stay stable, the shared life
-    // clock must advance, and the new scenario-local clock must restart near
-    // zero without requiring another PLAY. The handoff can be visually subtle
-    // enough that a short coarse canvas hash sample is not reliable in CI.
     const scenario = page.locator(".forge-scenario-control select").first();
     if (await scenario.count()) {
       await scenario.selectOption({ index: 5 });
@@ -220,6 +359,8 @@ async function runEngine(engineName, engine) {
       });
       await page.screenshot({ path: path.join(outputDir, `${engineName}-04-scenario.png`) });
     }
+
+    if (engineName === "firefox") await runFirefoxBehaviourEvidence(page, evidence);
 
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
     assert.equal(overflow, false, `${engineName}: horizontal overflow at ${VIEWPORT.width}px`);
