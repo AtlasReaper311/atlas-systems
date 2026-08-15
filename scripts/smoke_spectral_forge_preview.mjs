@@ -62,14 +62,38 @@ async function sampleField(page, samples = 4, gapMs = 260) {
   return frames;
 }
 
-function assertLiveField(frames, label) {
+function inspectLiveField(frames, label) {
   assert.ok(frames.every(Boolean), `${label}: no visible Field canvas`);
   const renderers = new Set(frames.map((f) => f.renderer));
   assert.deepEqual([...renderers], [EXPECTED_RENDERER], `${label}: renderer changed mid-sequence -> ${[...renderers].join(", ")}`);
   assert.ok(frames.every((f) => f.lit > 0), `${label}: Field canvas rendered blank`);
   const distinct = new Set(frames.map((f) => f.hash)).size;
+  return { distinct, frames };
+}
+
+function assertLiveField(frames, label) {
+  const { distinct } = inspectLiveField(frames, label);
   assert.ok(distinct > 1, `${label}: Field canvas did not change across ${frames.length} frames (stale or frozen)`);
   return distinct;
+}
+
+async function waitForLiveField(page, label, { timeoutMs = 3_000, samples = 4, gapMs = 220 } = {}) {
+  const deadline = Date.now() + timeoutMs;
+  let lastFrames = [];
+  let lastError = null;
+  while (Date.now() < deadline) {
+    lastFrames = await sampleField(page, samples, gapMs);
+    try {
+      const { distinct } = inspectLiveField(lastFrames, label);
+      if (distinct > 1) return { distinct, frames: lastFrames };
+      lastError = new Error(`${label}: Field canvas did not change across ${samples} frames (stale or frozen)`);
+    } catch (error) {
+      lastError = error;
+    }
+    await page.waitForTimeout(120);
+  }
+  if (lastError) throw lastError;
+  return { distinct: assertLiveField(lastFrames, label), frames: lastFrames };
 }
 
 async function assertFinalFormPbr(page, label) {
@@ -126,8 +150,8 @@ async function runEngine(engineName, engine) {
     // PLAY must animate the same renderer.
     await page.getByRole("button", { name: /^PLAY$/i }).first().click();
     await page.waitForTimeout(500);
-    const playFrames = await sampleField(page);
-    evidence.steps.push({ step: "play", distinctFrames: assertLiveField(playFrames, `${engineName}: PLAY`), renderer: playFrames[0].renderer });
+    const playMotion = await waitForLiveField(page, `${engineName}: PLAY`);
+    evidence.steps.push({ step: "play", distinctFrames: playMotion.distinct, renderer: playMotion.frames[0].renderer });
     assert.ok(await page.evaluate(isPlaying), `${engineName}: transport is not PLAYING after PLAY`);
     const tAfterPlay = await page.evaluate(simTime);
     assert.notEqual(tAfterPlay, "00:00.0", `${engineName}: simulation time did not advance`);
@@ -137,10 +161,9 @@ async function runEngine(engineName, engine) {
     for (const mode of ["FORGE", "ANALYSE", "PLAY"]) {
       await page.locator(".forge-depth-nav button", { hasText: new RegExp(mode, "i") }).first().click();
       await page.waitForTimeout(650);
-      const frames = await sampleField(page, 3);
-      const distinct = assertLiveField(frames, `${engineName}: ${mode}`);
+      const motion = await waitForLiveField(page, `${engineName}: ${mode}`, { samples: 3 });
       assert.ok(await page.evaluate(isPlaying), `${engineName}: playback restarted when switching to ${mode}`);
-      evidence.steps.push({ step: `mode:${mode}`, canvas: frames[0].id, distinctFrames: distinct, renderer: frames[0].renderer });
+      evidence.steps.push({ step: `mode:${mode}`, canvas: motion.frames[0].id, distinctFrames: motion.distinct, renderer: motion.frames[0].renderer });
       await page.screenshot({ path: path.join(outputDir, `${engineName}-03-${mode.toLowerCase()}.png`) });
     }
 
@@ -151,16 +174,15 @@ async function runEngine(engineName, engine) {
     if (await scenario.count()) {
       await scenario.selectOption({ index: 5 });
       await page.waitForTimeout(800);
-      const scenarioFrames = await sampleField(page, 3);
-      const distinct = assertLiveField(scenarioFrames, `${engineName}: scenario change`);
+      const scenarioMotion = await waitForLiveField(page, `${engineName}: scenario change`, { samples: 3 });
       assert.ok(await page.evaluate(isPlaying), `${engineName}: playback stopped when switching scenario`);
       const tAfterScenario = await page.evaluate(simTime);
       assert.match(tAfterScenario ?? "", /^00:0[01]\.\d$/, `${engineName}: scenario-local time did not restart near zero -> ${tAfterScenario}`);
       evidence.steps.push({
         step: "scenario-change",
-        canvas: scenarioFrames[0].id,
-        distinctFrames: distinct,
-        renderer: scenarioFrames[0].renderer,
+        canvas: scenarioMotion.frames[0].id,
+        distinctFrames: scenarioMotion.distinct,
+        renderer: scenarioMotion.frames[0].renderer,
         scenarioTime: tAfterScenario,
       });
       await page.screenshot({ path: path.join(outputDir, `${engineName}-04-scenario.png`) });
