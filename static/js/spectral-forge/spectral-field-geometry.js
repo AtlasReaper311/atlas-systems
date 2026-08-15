@@ -1,6 +1,6 @@
 "use strict";
 
-import { SCENARIO_BY_ID, clamp } from "./domain.js";
+import { clamp } from "./domain.js";
 import { FIELD_VISUAL_SEED, fieldArtState, visualTargetState } from "./spectral-field-model.js";
 import {
   createPhysicalStateModel,
@@ -27,7 +27,8 @@ function numericHealthProfile(pressure, disturbance, mapped, physical) {
   });
 }
 
-function signatureState(art, mapped, health, coherence, physical) {
+function signatureState(art, mapped, health, coherence) {
+  const physical = art.physical;
   return Object.freeze({
     apertureOpen: mapped.aperture > 0.58 && coherence > 0.48,
     propagationWave: physical.propagation > 0.32,
@@ -42,12 +43,11 @@ function physicalStateFor(state, frame, outputs, visualTime) {
   const host = state.organismLife;
   const model = host?.physical ?? createPhysicalStateModel();
   if (host && !host.physical) host.physical = model;
-  const scenarioSeed = SCENARIO_BY_ID[state.scenarioId]?.visualSeed ?? FIELD_VISUAL_SEED;
   return stepPhysicalState(model, {
     frame,
     outputs,
     lifeTime: visualTime,
-    scenarioSeed,
+    scenarioSeed: FIELD_VISUAL_SEED,
     audioExpression: host?.audioExpression ?? 0,
   });
 }
@@ -60,6 +60,7 @@ function mergeArtState(base, physical) {
   const restorative = event?.kind === "recovery-wave";
   return Object.freeze({
     ...base,
+    physical,
     origin: localFailure ? clamp(0.5 + eventAxis.x * 0.34, 0.08, 0.92) : base.origin,
     direction: clamp(base.direction * 0.42 + eventAxis.x * eventInfluence * 0.58, -1, 1),
     compression: clamp(base.compression * 0.25 + physical.compression * 0.75),
@@ -154,7 +155,7 @@ export function deriveFieldGeometry(state, visualTime, width, height, timestamp 
     + physical.memory * 0.1
     + physical.scarInfluence * 0.06,
   );
-  const signature = signatureState(art, mapped, health, coherence, physical);
+  const signature = signatureState(art, mapped, health, coherence);
 
   return Object.freeze({
     health,
