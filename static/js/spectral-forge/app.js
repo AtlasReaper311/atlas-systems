@@ -2,7 +2,6 @@
 
 import { installFlagshipCounterpart } from "/lab/shared/flagship-counterparts.js";
 import "./sonic-identity-install.js";
-import "./replay-contract.js";
 import "./app-core.js";
 import "./physical-inspector.js";
 import "./forge-instrument-enhancements.js";
