@@ -3,7 +3,7 @@ export const RELAY_POSITIONS = Object.freeze(["open", "a", "b"]);
 export const OUTPUT_IDS = Object.freeze(["beacon", "archive", "actuator"]);
 
 const OUTPUT_TEMPLATE = Object.freeze({ beacon: 0, archive: 0, actuator: 0 });
-const EDGE_CAPACITY = 1;
+const DEFAULT_EDGE_CAPACITY = 1;
 
 export const TRACE_IDS = Object.freeze([
   "source-r1",
@@ -22,48 +22,70 @@ export const PRESETS = Object.freeze([
   Object.freeze({
     id: "prime",
     index: "01",
-    name: "Prime",
-    brief: "Wake the beacon with one clean feed. Leave every other load dark.",
+    name: "Ignition",
+    brief: "Wake the beacon from the upper source bus. The lower feeder is physically isolated.",
+    rule: "ONE FEED / DIRECT ROUTE",
+    hazard: "NONE",
+    topology: "R1 ONLY",
     target: Object.freeze({ beacon: 1, archive: 0, actuator: 0 }),
+    sourceFeeders: Object.freeze(["r1"]),
+    lockedRelays: Object.freeze({ r2: "open" }),
     blockedEdges: Object.freeze([]),
+    forbiddenOutputs: Object.freeze([]),
     initialRelays: Object.freeze({ r1: "open", r2: "open", r3: "open", r4: "open" }),
-    hint: "R1 can reach the beacon directly. The second source leg is optional.",
+    hint: "R1 / A is the clean direct branch to the beacon.",
   }),
   Object.freeze({
     id: "split",
     index: "02",
-    name: "Split phase",
-    brief: "Feed beacon and archive at the same time without converging the two source legs.",
+    name: "Dual bus",
+    brief: "Power beacon and archive together. Keep the two feeds separate or the shared R3 trace will trip overcurrent protection.",
+    rule: "TWO FEEDS / NO CONVERGENCE",
+    hazard: "R3 OVERCURRENT",
+    topology: "DUAL SOURCE",
     target: Object.freeze({ beacon: 1, archive: 1, actuator: 0 }),
+    sourceFeeders: Object.freeze(["r1", "r2"]),
+    lockedRelays: Object.freeze({}),
     blockedEdges: Object.freeze([]),
+    forbiddenOutputs: Object.freeze([]),
     initialRelays: Object.freeze({ r1: "b", r2: "b", r3: "a", r4: "open" }),
-    hint: "Two feeds are safe while they remain separate. A shared downstream trace only accepts one.",
+    hint: "The direct A branches never share a downstream trace.",
   }),
   Object.freeze({
     id: "failsafe",
     index: "03",
-    name: "Failsafe",
-    brief: "The direct beacon trace is isolated. Deliver exactly one feed to the actuator through the relay chain.",
-    target: Object.freeze({ beacon: 0, archive: 0, actuator: 1 }),
+    name: "Bypass",
+    brief: "The primary beacon trace is isolated. Restore the beacon through the full R1 → R3 → R4 bypass chain.",
+    rule: "BROKEN PRIMARY / REROUTE",
+    hazard: "R4 / B → GROUND",
+    topology: "LONG BYPASS",
+    target: Object.freeze({ beacon: 1, archive: 0, actuator: 0 }),
+    sourceFeeders: Object.freeze(["r1"]),
+    lockedRelays: Object.freeze({ r2: "open" }),
     blockedEdges: Object.freeze(["r1-beacon"]),
+    forbiddenOutputs: Object.freeze([]),
     initialRelays: Object.freeze({ r1: "a", r2: "open", r3: "open", r4: "open" }),
-    hint: "The blocked branch is safe but useless. Divert one source leg into R3 instead.",
+    hint: "Divert at R1, continue through R3, then take R4 / A back to the beacon.",
   }),
   Object.freeze({
     id: "balance",
     index: "04",
-    name: "Balance",
-    brief: "Hold beacon and actuator together. Keep archive dark and avoid a two-feed collision at R3.",
+    name: "Interlock",
+    brief: "Hold beacon and actuator together. Archive is protected: energising it opens the fuse immediately.",
+    rule: "TWO OUTPUTS / PROTECTED LOAD",
+    hazard: "ARCHIVE INTERLOCK",
+    topology: "SPLIT + SHARED BUS",
     target: Object.freeze({ beacon: 1, archive: 0, actuator: 1 }),
+    sourceFeeders: Object.freeze(["r1", "r2"]),
+    lockedRelays: Object.freeze({}),
     blockedEdges: Object.freeze([]),
-    initialRelays: Object.freeze({ r1: "b", r2: "b", r3: "a", r4: "open" }),
-    hint: "One source can take the direct beacon path while the other continues through R3.",
+    forbiddenOutputs: Object.freeze(["archive"]),
+    initialRelays: Object.freeze({ r1: "open", r2: "open", r3: "open", r4: "open" }),
+    hint: "Keep R1 on its direct beacon path and send only R2 through R3 to the actuator.",
   }),
 ]);
 
-export const PRESET_BY_ID = Object.freeze(
-  Object.fromEntries(PRESETS.map((preset) => [preset.id, preset])),
-);
+export const PRESET_BY_ID = Object.freeze(Object.fromEntries(PRESETS.map((preset) => [preset.id, preset])));
 
 function cloneRelays(relays) {
   return Object.fromEntries(RELAY_IDS.map((id) => [id, relays[id] || "open"]));
@@ -85,63 +107,63 @@ function routeFeed({ feeder, relays, preset, traceLoads }) {
   const outputs = { ...OUTPUT_TEMPLATE };
   let short = false;
 
+  if (!preset.sourceFeeders.includes(feeder)) return { feeder, path, blocked, outputs, short, isolated: true };
+
   const sourceTrace = feeder === "r1" ? "source-r1" : "source-r2";
   const feederPosition = relays[feeder];
-  if (feederPosition === "open") {
-    return { feeder, path, blocked, outputs, short };
-  }
+  if (feederPosition === "open") return { feeder, path, blocked, outputs, short, isolated: false };
 
   if (pushTrace(path, traceLoads, sourceTrace, preset)) {
     blocked.push(sourceTrace);
-    return { feeder, path, blocked, outputs, short };
+    return { feeder, path, blocked, outputs, short, isolated: false };
   }
 
   if (feeder === "r1") {
     if (feederPosition === "a") {
       if (pushTrace(path, traceLoads, "r1-beacon", preset)) blocked.push("r1-beacon");
       else outputs.beacon += 1;
-      return { feeder, path, blocked, outputs, short };
+      return { feeder, path, blocked, outputs, short, isolated: false };
     }
     if (pushTrace(path, traceLoads, "r1-r3", preset)) {
       blocked.push("r1-r3");
-      return { feeder, path, blocked, outputs, short };
+      return { feeder, path, blocked, outputs, short, isolated: false };
     }
   } else {
     if (feederPosition === "a") {
       if (pushTrace(path, traceLoads, "r2-archive", preset)) blocked.push("r2-archive");
       else outputs.archive += 1;
-      return { feeder, path, blocked, outputs, short };
+      return { feeder, path, blocked, outputs, short, isolated: false };
     }
     if (pushTrace(path, traceLoads, "r2-r3", preset)) {
       blocked.push("r2-r3");
-      return { feeder, path, blocked, outputs, short };
+      return { feeder, path, blocked, outputs, short, isolated: false };
     }
   }
 
   const r3Position = relays.r3;
-  if (r3Position === "open") return { feeder, path, blocked, outputs, short };
+  if (r3Position === "open") return { feeder, path, blocked, outputs, short, isolated: false };
   if (r3Position === "a") {
     if (pushTrace(path, traceLoads, "r3-actuator", preset)) blocked.push("r3-actuator");
     else outputs.actuator += 1;
-    return { feeder, path, blocked, outputs, short };
+    return { feeder, path, blocked, outputs, short, isolated: false };
   }
 
   if (pushTrace(path, traceLoads, "r3-r4", preset)) {
     blocked.push("r3-r4");
-    return { feeder, path, blocked, outputs, short };
+    return { feeder, path, blocked, outputs, short, isolated: false };
   }
 
   const r4Position = relays.r4;
-  if (r4Position === "open") return { feeder, path, blocked, outputs, short };
+  if (r4Position === "open") return { feeder, path, blocked, outputs, short, isolated: false };
   if (r4Position === "a") {
     if (pushTrace(path, traceLoads, "r4-beacon", preset)) blocked.push("r4-beacon");
     else outputs.beacon += 1;
-    return { feeder, path, blocked, outputs, short };
+    return { feeder, path, blocked, outputs, short, isolated: false };
   }
 
   if (pushTrace(path, traceLoads, "r4-dump", preset)) blocked.push("r4-dump");
   else short = true;
-  return { feeder, path, blocked, outputs, short };
+  return { feeder, path, blocked, outputs, short, isolated: false };
 }
 
 function targetMatches(outputs, target) {
@@ -149,16 +171,19 @@ function targetMatches(outputs, target) {
 }
 
 function outputSummary(outputs) {
-  return OUTPUT_IDS
-    .filter((id) => outputs[id] > 0)
-    .map((id) => `${id.toUpperCase()}×${outputs[id]}`)
-    .join(" + ") || "NO LOAD";
+  return OUTPUT_IDS.filter((id) => outputs[id] > 0).map((id) => `${id.toUpperCase()}×${outputs[id]}`).join(" + ") || "NO LOAD";
+}
+
+function edgeCapacity(preset, traceId) {
+  return preset.edgeCapacities?.[traceId] ?? DEFAULT_EDGE_CAPACITY;
 }
 
 export function evaluateCircuit(presetId, relayInput) {
   const preset = PRESET_BY_ID[presetId];
-  if (!preset) throw new Error(`Unknown Neon Relay preset: ${presetId}`);
+  if (!preset) throw new Error(`Unknown Neon Relay challenge: ${presetId}`);
   const relays = cloneRelays(relayInput);
+  for (const [relayId, position] of Object.entries(preset.lockedRelays)) relays[relayId] = position;
+
   const traceLoads = emptyTraceLoads();
   const routes = ["r1", "r2"].map((feeder) => routeFeed({ feeder, relays, preset, traceLoads }));
   const outputs = { ...OUTPUT_TEMPLATE };
@@ -171,20 +196,23 @@ export function evaluateCircuit(presetId, relayInput) {
     short ||= route.short;
   }
 
-  const overloadedTraces = TRACE_IDS.filter((traceId) => traceLoads[traceId] > EDGE_CAPACITY);
+  const overloadedTraces = TRACE_IDS.filter((traceId) => traceLoads[traceId] > edgeCapacity(preset, traceId));
   const overload = overloadedTraces.length > 0;
-  const tripped = short || overload;
+  const interlockedOutputs = preset.forbiddenOutputs.filter((outputId) => outputs[outputId] > 0);
+  const interlock = interlockedOutputs.length > 0;
+  const tripped = short || overload || interlock;
   const solved = !tripped && targetMatches(outputs, preset.target);
-  const sourceDraw = traceLoads["source-r1"] + traceLoads["source-r2"];
+  const sourceDraw = preset.sourceFeeders.reduce((sum, feeder) => sum + traceLoads[`source-${feeder}`], 0);
   const activeTraceIds = TRACE_IDS.filter((traceId) => traceLoads[traceId] > 0);
   const blockedTraceIds = [...blocked];
   const peakLoad = Math.max(0, ...Object.values(traceLoads));
   const voltage = tripped ? 0 : sourceDraw === 0 ? 0 : Math.max(9.6, 12 - Math.max(0, sourceDraw - 1) * 0.35);
-  const stability = tripped ? 0 : solved ? 100 : sourceDraw === 0 ? 100 : 76;
+  const stability = tripped ? 0 : solved ? 100 : sourceDraw === 0 ? 100 : 78;
 
   let fault = null;
   if (short) fault = "SHORT TO GROUND";
   else if (overload) fault = `OVERCURRENT / ${overloadedTraces[0].toUpperCase()}`;
+  else if (interlock) fault = `OUTPUT INTERLOCK / ${interlockedOutputs[0].toUpperCase()}`;
 
   return Object.freeze({
     presetId,
@@ -193,19 +221,16 @@ export function evaluateCircuit(presetId, relayInput) {
     activeTraceIds: Object.freeze(activeTraceIds),
     blockedTraceIds: Object.freeze(blockedTraceIds),
     overloadedTraceIds: Object.freeze(overloadedTraces),
+    interlockedOutputs: Object.freeze(interlockedOutputs),
     outputs: Object.freeze(outputs),
-    routes: Object.freeze(routes.map((route) => Object.freeze({
-      ...route,
-      path: Object.freeze([...route.path]),
-      blocked: Object.freeze([...route.blocked]),
-      outputs: Object.freeze({ ...route.outputs }),
-    }))),
+    routes: Object.freeze(routes.map((route) => Object.freeze({ ...route, path: Object.freeze([...route.path]), blocked: Object.freeze([...route.blocked]), outputs: Object.freeze({ ...route.outputs }) }))),
     sourceDraw,
     peakLoad,
     voltage,
     stability,
     short,
     overload,
+    interlock,
     tripped,
     solved,
     fault,
@@ -221,42 +246,36 @@ function phaseFromEvaluation(powered, evaluation) {
 }
 
 function messageFor(phase, evaluation, preset) {
-  if (phase === "cold") return "Circuit cold. Set the relays, then energise the board.";
+  if (phase === "cold") return "Circuit cold. Configure the relay route, then energise when you are ready to test it.";
   if (phase === "tripped") {
-    if (evaluation.short) return "Fuse opened on a short-to-ground path. Cut power, reroute, and reset the fuse.";
-    return "Fuse opened before a shared trace exceeded its one-feed capacity.";
+    if (evaluation.short) return "Protection opened on a short-to-ground path. Reroute before resetting the fuse.";
+    if (evaluation.interlock) return `${evaluation.interlockedOutputs[0].toUpperCase()} is protected in this challenge. Its interlock opened the fuse.`;
+    return "Protection opened before a shared trace exceeded its one-feed capacity.";
   }
-  if (phase === "locked") return `Pattern locked. ${evaluation.outputSummary} matches ${preset.name.toUpperCase()}.`;
-  if (evaluation.sourceDraw === 0) return "Power is on, but both source relays are open.";
-  if (evaluation.blockedTraceIds.length > 0) return "Current reached an isolated trace and stopped safely. The target is still dark.";
-  return `${evaluation.outputSummary} is stable, but it does not match the target pattern yet.`;
+  if (phase === "locked") return `Challenge solved. ${evaluation.outputSummary} matches ${preset.name.toUpperCase()}.`;
+  if (evaluation.sourceDraw === 0) return "Power is on, but no armed source feed has a closed route.";
+  if (evaluation.blockedTraceIds.length > 0) return "Current reached an isolated trace and stopped safely. Find the alternate route.";
+  return `${evaluation.outputSummary} is electrically stable, but the requested pattern is not complete.`;
 }
 
 export function createCircuitState(presetId = PRESETS[0].id) {
   const preset = PRESET_BY_ID[presetId];
-  if (!preset) throw new Error(`Unknown Neon Relay preset: ${presetId}`);
+  if (!preset) throw new Error(`Unknown Neon Relay challenge: ${presetId}`);
   const relays = cloneRelays(preset.initialRelays);
+  for (const [relayId, position] of Object.entries(preset.lockedRelays)) relays[relayId] = position;
   const evaluation = evaluateCircuit(presetId, relays);
-  return Object.freeze({
-    presetId,
-    relays: Object.freeze(relays),
-    powered: false,
-    fuseOpen: false,
-    phase: "cold",
-    evaluation,
-    message: messageFor("cold", evaluation, preset),
-    revision: 0,
-  });
+  return Object.freeze({ presetId, relays: Object.freeze(relays), powered: false, fuseOpen: false, phase: "cold", evaluation, message: messageFor("cold", evaluation, preset), revision: 0 });
 }
 
 function withEvaluation(state, changes) {
+  const preset = PRESET_BY_ID[state.presetId];
   const nextRelays = cloneRelays(changes.relays || state.relays);
+  for (const [relayId, position] of Object.entries(preset.lockedRelays)) nextRelays[relayId] = position;
   const powered = changes.powered ?? state.powered;
   const evaluation = evaluateCircuit(state.presetId, nextRelays);
   const fuseOpen = powered && evaluation.tripped ? true : (changes.fuseOpen ?? state.fuseOpen);
   const effectivePowered = fuseOpen ? false : powered;
   const phase = fuseOpen ? "tripped" : phaseFromEvaluation(effectivePowered, evaluation);
-  const preset = PRESET_BY_ID[state.presetId];
   return Object.freeze({
     ...state,
     relays: Object.freeze(nextRelays),
@@ -264,9 +283,7 @@ function withEvaluation(state, changes) {
     fuseOpen,
     phase,
     evaluation,
-    message: fuseOpen && !evaluation.tripped
-      ? "Fuse remains open. The route has changed; reset the fuse before re-energising."
-      : messageFor(phase, evaluation, preset),
+    message: fuseOpen && !evaluation.tripped ? "Fuse remains open. The route changed, but protection must be reset before another test." : messageFor(phase, evaluation, preset),
     revision: state.revision + 1,
   });
 }
@@ -274,6 +291,8 @@ function withEvaluation(state, changes) {
 export function setRelay(state, relayId, position) {
   if (!RELAY_IDS.includes(relayId)) throw new Error(`Unknown Neon Relay relay: ${relayId}`);
   if (!RELAY_POSITIONS.includes(position)) throw new Error(`Unknown Neon Relay position: ${position}`);
+  const preset = PRESET_BY_ID[state.presetId];
+  if (Object.hasOwn(preset.lockedRelays, relayId)) return state;
   const relays = cloneRelays(state.relays);
   relays[relayId] = position;
   return withEvaluation(state, { relays });
@@ -281,6 +300,8 @@ export function setRelay(state, relayId, position) {
 
 export function cycleRelay(state, relayId, direction = 1) {
   if (!RELAY_IDS.includes(relayId)) throw new Error(`Unknown Neon Relay relay: ${relayId}`);
+  const preset = PRESET_BY_ID[state.presetId];
+  if (Object.hasOwn(preset.lockedRelays, relayId)) return state;
   const index = RELAY_POSITIONS.indexOf(state.relays[relayId]);
   const step = direction < 0 ? -1 : 1;
   const position = RELAY_POSITIONS[(index + step + RELAY_POSITIONS.length) % RELAY_POSITIONS.length];
@@ -294,29 +315,12 @@ export function energizeCircuit(state) {
 
 export function cutPower(state) {
   const evaluation = evaluateCircuit(state.presetId, state.relays);
-  return Object.freeze({
-    ...state,
-    powered: false,
-    phase: state.fuseOpen ? "tripped" : "cold",
-    evaluation,
-    message: state.fuseOpen
-      ? "Fuse open. Reset it before energising the board again."
-      : messageFor("cold", evaluation, PRESET_BY_ID[state.presetId]),
-    revision: state.revision + 1,
-  });
+  return Object.freeze({ ...state, powered: false, phase: state.fuseOpen ? "tripped" : "cold", evaluation, message: state.fuseOpen ? "Fuse open. Reset protection before energising the board again." : messageFor("cold", evaluation, PRESET_BY_ID[state.presetId]), revision: state.revision + 1 });
 }
 
 export function resetFuse(state) {
   const evaluation = evaluateCircuit(state.presetId, state.relays);
-  return Object.freeze({
-    ...state,
-    powered: false,
-    fuseOpen: false,
-    phase: "cold",
-    evaluation,
-    message: "Fuse reset. Relay positions retained; inspect the route before re-energising.",
-    revision: state.revision + 1,
-  });
+  return Object.freeze({ ...state, powered: false, fuseOpen: false, phase: "cold", evaluation, message: "Fuse reset. Relay positions retained; inspect the route before re-energising.", revision: state.revision + 1 });
 }
 
 export function resetPatch(state) {
@@ -333,9 +337,7 @@ export function stateSummary(state) {
   const preset = PRESET_BY_ID[state.presetId];
   const relaySummary = RELAY_IDS.map((id) => `${id.toUpperCase()} ${state.relays[id].toUpperCase()}`).join(", ");
   const outputSummary = OUTPUT_IDS.map((id) => `${id} ${state.evaluation.outputs[id]}`).join(", ");
-  const blocked = state.evaluation.blockedTraceIds.length
-    ? ` Blocked traces: ${state.evaluation.blockedTraceIds.join(", ")}.`
-    : "";
+  const blocked = state.evaluation.blockedTraceIds.length ? ` Blocked traces: ${state.evaluation.blockedTraceIds.join(", ")}.` : "";
   const fault = state.evaluation.fault ? ` Fault: ${state.evaluation.fault}.` : "";
-  return `Patch ${preset.index} ${preset.name}. Phase ${state.phase}. ${relaySummary}. Outputs: ${outputSummary}.${blocked}${fault} ${state.message}`;
+  return `Challenge ${preset.index} ${preset.name}. Phase ${state.phase}. ${relaySummary}. Outputs: ${outputSummary}.${blocked}${fault} ${state.message}`;
 }

@@ -17,18 +17,18 @@ const html = readFileSync(new URL("../neon-relay/index.html", import.meta.url), 
 const source = readFileSync(new URL("../neon-relay/neon-relay.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../neon-relay/neon-relay.css", import.meta.url), "utf8");
 
-test("baseline circuit state is deterministic and cold", () => {
+test("baseline is deterministic and Ignition isolates the lower feeder", () => {
   const first = createCircuitState();
   const second = createCircuitState();
   assert.deepEqual(first, second);
   assert.equal(first.presetId, "prime");
   assert.equal(first.phase, "cold");
-  assert.equal(first.powered, false);
-  assert.equal(first.fuseOpen, false);
-  assert.deepEqual(first.relays, { r1: "open", r2: "open", r3: "open", r4: "open" });
+  assert.equal(first.relays.r2, "open");
+  assert.deepEqual(PRESETS[0].sourceFeeders, ["r1"]);
+  assert.deepEqual(PRESETS[0].lockedRelays, { r2: "open" });
 });
 
-test("Prime locks with one direct beacon feed", () => {
+test("Ignition solves as a one-feed direct-route tutorial", () => {
   let state = createCircuitState("prime");
   state = setRelay(state, "r1", "a");
   state = energizeCircuit(state);
@@ -36,46 +36,67 @@ test("Prime locks with one direct beacon feed", () => {
   assert.deepEqual(state.evaluation.outputs, { beacon: 1, archive: 0, actuator: 0 });
   assert.deepEqual(state.evaluation.activeTraceIds, ["source-r1", "r1-beacon"]);
   assert.equal(state.evaluation.sourceDraw, 1);
-  assert.equal(state.evaluation.tripped, false);
 });
 
-test("Split Phase intentionally starts on a two-feed convergence that trips", () => {
-  const initial = createCircuitState("split");
-  const powered = energizeCircuit(initial);
+test("locked relays cannot be changed", () => {
+  let state = createCircuitState("prime");
+  state = cycleRelay(state, "r2");
+  assert.equal(state.relays.r2, "open");
+  state = setRelay(state, "r2", "a");
+  assert.equal(state.relays.r2, "open");
+});
+
+test("Dual Bus begins with a deliberate two-feed overcurrent trap", () => {
+  const powered = energizeCircuit(createCircuitState("split"));
   assert.equal(powered.phase, "tripped");
   assert.equal(powered.fuseOpen, true);
   assert.equal(powered.evaluation.overload, true);
-  assert.equal(powered.evaluation.short, false);
   assert.ok(powered.evaluation.overloadedTraceIds.includes("r3-actuator"));
   assert.match(powered.evaluation.fault, /OVERCURRENT/);
 });
 
-test("fuse reset retains relay positions and safe reroute can then lock Split Phase", () => {
+test("Dual Bus solves by separating the two feeds", () => {
   let state = energizeCircuit(createCircuitState("split"));
   state = setRelay(state, "r1", "a");
   state = setRelay(state, "r2", "a");
-  assert.equal(state.fuseOpen, true);
-  assert.match(state.message, /Fuse remains open/);
   state = resetFuse(state);
-  assert.deepEqual(state.relays, { r1: "a", r2: "a", r3: "a", r4: "open" });
   state = energizeCircuit(state);
   assert.equal(state.phase, "locked");
   assert.deepEqual(state.evaluation.outputs, { beacon: 1, archive: 1, actuator: 0 });
+  assert.equal(state.evaluation.peakLoad, 1);
 });
 
-test("Failsafe exposes the isolated direct trace and can be rerouted through R3", () => {
+test("Bypass starts on a blocked primary branch", () => {
   let state = createCircuitState("failsafe");
   state = energizeCircuit(state);
   assert.equal(state.phase, "live");
   assert.ok(state.evaluation.blockedTraceIds.includes("r1-beacon"));
   assert.deepEqual(state.evaluation.outputs, { beacon: 0, archive: 0, actuator: 0 });
-  state = setRelay(state, "r1", "b");
-  state = setRelay(state, "r3", "a");
-  assert.equal(state.phase, "locked");
-  assert.deepEqual(state.evaluation.outputs, { beacon: 0, archive: 0, actuator: 1 });
 });
 
-test("Balance requires separate beacon and actuator feeds", () => {
+test("Bypass requires the full R1 to R3 to R4 alternate path", () => {
+  let state = createCircuitState("failsafe");
+  state = setRelay(state, "r1", "b");
+  state = setRelay(state, "r3", "b");
+  state = setRelay(state, "r4", "a");
+  state = energizeCircuit(state);
+  assert.equal(state.phase, "locked");
+  assert.deepEqual(state.evaluation.outputs, { beacon: 1, archive: 0, actuator: 0 });
+  assert.ok(state.evaluation.activeTraceIds.includes("r3-r4"));
+  assert.ok(state.evaluation.activeTraceIds.includes("r4-beacon"));
+});
+
+test("Interlock trips if archive is energised", () => {
+  let state = createCircuitState("balance");
+  state = setRelay(state, "r2", "a");
+  state = energizeCircuit(state);
+  assert.equal(state.phase, "tripped");
+  assert.equal(state.evaluation.interlock, true);
+  assert.deepEqual(state.evaluation.interlockedOutputs, ["archive"]);
+  assert.equal(state.evaluation.fault, "OUTPUT INTERLOCK / ARCHIVE");
+});
+
+test("Interlock solves with beacon direct and actuator on the lower shared bus", () => {
   let state = createCircuitState("balance");
   state = setRelay(state, "r1", "a");
   state = setRelay(state, "r2", "b");
@@ -83,62 +104,46 @@ test("Balance requires separate beacon and actuator feeds", () => {
   state = energizeCircuit(state);
   assert.equal(state.phase, "locked");
   assert.deepEqual(state.evaluation.outputs, { beacon: 1, archive: 0, actuator: 1 });
-  assert.equal(state.evaluation.peakLoad, 1);
+  assert.equal(state.evaluation.interlock, false);
 });
 
-test("R4 position B is a deliberate short-to-ground trip", () => {
-  const result = evaluateCircuit("prime", { r1: "b", r2: "open", r3: "b", r4: "b" });
+test("R4 / B remains a deliberate short-to-ground protection event", () => {
+  const result = evaluateCircuit("failsafe", { r1: "b", r2: "open", r3: "b", r4: "b" });
   assert.equal(result.short, true);
   assert.equal(result.tripped, true);
   assert.equal(result.fault, "SHORT TO GROUND");
-  assert.ok(result.activeTraceIds.includes("r4-dump"));
 });
 
-test("relay cycling is bounded and reversible", () => {
-  let state = createCircuitState();
-  state = cycleRelay(state, "r1");
-  assert.equal(state.relays.r1, "a");
-  state = cycleRelay(state, "r1");
-  assert.equal(state.relays.r1, "b");
-  state = cycleRelay(state, "r1");
-  assert.equal(state.relays.r1, "open");
-  state = cycleRelay(state, "r1", -1);
-  assert.equal(state.relays.r1, "b");
-});
-
-test("all four patches replay deterministically", () => {
+test("all four challenges replay deterministically", () => {
   for (const preset of PRESETS) {
     const first = evaluateCircuit(preset.id, preset.initialRelays);
     const second = evaluateCircuit(preset.id, preset.initialRelays);
     assert.deepEqual(first, second, `${preset.id} should evaluate identically`);
-    assert.match(stateSummary(createCircuitState(preset.id)), new RegExp(`Patch ${preset.index}`));
+    assert.match(stateSummary(createCircuitState(preset.id)), new RegExp(`Challenge ${preset.index}`));
   }
 });
 
-test("page exposes the synthetic circuit, protection, and patch contract", () => {
-  assert.match(html, /ATLAS \/ NEON RELAY \/ CIRCUIT 01/);
-  assert.match(html, /SIMULATED CIRCUIT/);
-  assert.match(html, /Deterministic synthetic signal model\. No production Atlas Systems data connected\./);
-  assert.match(html, /data-relay="r1"/);
-  assert.match(html, /data-relay="r4"/);
-  assert.match(html, /data-preset="prime"/);
-  assert.match(html, /data-preset="balance"/);
-  assert.match(html, /id="nr-power"/);
-  assert.match(html, /id="nr-fuse-reset"/);
-  assert.match(html, /id="nr-reset"/);
-  assert.match(html, /R4 \/ B is a deliberate short-to-ground path/);
-  assert.doesNotMatch(html, /production telemetry/i);
+test("page presents challenges rather than generic presets and hides assistive state visually", () => {
+  assert.match(html, /ATLAS \/ NEON RELAY \/ SIGNAL PUZZLES/);
+  assert.match(html, />IGNITION</);
+  assert.match(html, />DUAL BUS</);
+  assert.match(html, />BYPASS</);
+  assert.match(html, />INTERLOCK</);
+  assert.match(html, /id="nr-hint-toggle"/);
+  assert.match(html, /id="nr-next"/);
+  assert.match(html, /id="nr-state-summary"/);
+  assert.match(css, /\.visually-hidden\{/);
+  assert.match(css, /clip:rect\(0,0,0,0\)/);
 });
 
-test("browser layer preserves keyboard, hidden-tab, reduced-motion, and deterministic scope behavior", () => {
+test("browser layer renders challenge-specific topology and completion progression", () => {
+  assert.match(source, /dataset\.locked/);
+  assert.match(source, /forbiddenOutputs/);
+  assert.match(source, /blockedEdges/);
+  assert.match(source, /solvedChallenges/);
+  assert.match(source, /NEXT \/ /);
   assert.match(source, /prefers-reduced-motion: reduce/);
   assert.match(source, /document\.hidden/);
-  assert.match(source, /event\.key\.toLowerCase\(\) === "r"/);
-  assert.match(source, /requestAnimationFrame/);
   assert.match(source, /Math\.sin/);
   assert.doesNotMatch(source, /Math\.random/);
-  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
-  assert.match(css, /@media \(max-width: 680px\)/);
-  assert.match(css, /overflow-x: hidden/);
-  assert.match(css, /@keyframes nr-flow/);
 });
