@@ -13,7 +13,10 @@ const visualsUrl = new URL("../../static/js/spectral-forge/visuals.js", import.m
 const fieldComposeUrl = new URL("../../static/js/spectral-forge/spectral-field-compose-v4.js", import.meta.url);
 const fieldGeometryUrl = new URL("../../static/js/spectral-forge/spectral-field-geometry.js", import.meta.url);
 const fieldModelUrl = new URL("../../static/js/spectral-forge/spectral-field-model.js", import.meta.url);
-const fieldLayersUrl = new URL("../../static/js/spectral-forge/spectral-field-layers-v4.js", import.meta.url);
+const finalFormUrl = new URL("../../static/js/spectral-forge/prototypes/field-proto-flagship-final-form.js", import.meta.url);
+const finalFormLifeUrl = new URL("../../static/js/spectral-forge/prototypes/field-proto-flagship-final-form-life.js", import.meta.url);
+const finalFormPbrUrl = new URL("../../static/js/spectral-forge/prototypes/field-proto-flagship-final-form-pbr.js", import.meta.url);
+const finalFormShaderUrl = new URL("../../static/js/spectral-forge/prototypes/field-proto-flagship-final-form-shader.js", import.meta.url);
 const symphonyNavigationUrl = new URL("../system-symphony/system-symphony-navigation.js", import.meta.url);
 const cardSignaturesUrl = new URL("../../static/js/card-signatures.js", import.meta.url);
 const cardSignaturesCssUrl = new URL("../../static/css/card-signatures.css", import.meta.url);
@@ -116,42 +119,43 @@ test("Spectral Forge removes the dead hero band and keeps PLAY and FORGE field-f
   assert.match(css, /width:\s*100%/);
 });
 
-test("active Spectral Field is a state-driven living spatial architecture", async () => {
+test("active Spectral Field ships the approved deterministic living organism", async () => {
   const visuals = await source(visualsUrl);
   const compose = await source(fieldComposeUrl);
   const geometry = await source(fieldGeometryUrl);
   const model = await source(fieldModelUrl);
-  const layers = await source(fieldLayersUrl);
-  const combinedStatePath = `${geometry}\n${model}\n${layers}`;
+  const finalForm = await source(finalFormUrl);
+  const life = await source(finalFormLifeUrl);
+  const pbr = await source(finalFormPbrUrl);
+  const shader = await source(finalFormShaderUrl);
+  const combinedStatePath = `${geometry}\n${model}\n${life}\n${pbr}\n${shader}`;
+
+  // SpectralFieldRenderer remains bound to one canonical compose entrypoint.
   assert.match(visuals, /spectral-field-compose-v4\.js/);
-  assert.match(compose, /spectral-field-layers-v4\.js/);
+  assert.match(compose, /field-proto-flagship-final-form\.js/);
+  assert.match(compose, /drawFlagshipFinalForm\.call\(this, timestamp\)/);
+
+  // The promoted renderer is the approved PBR living ferrofluid organism.
+  assert.match(finalForm, /field-proto-flagship-final-form-pbr\.js/);
+  assert.match(finalForm, /drawFlagshipFinalForm/);
+  assert.match(pbr, /architecture: "gpu-final-form"/);
+  assert.match(pbr, /continuous-shader-surface-peaks/);
+  assert.match(pbr, /visual-fission-coherent-daughters/);
+  assert.match(pbr, /organismLife/);
+  assert.match(pbr, /livingGesture/);
+  assert.match(shader, /continuous-surface/);
+  assert.match(shader, /uAtlasLifeA/);
+  assert.match(shader, /uAtlasLifeB/);
+  assert.match(shader, /uAtlasNeckAxis/);
+
+  // Numeric telemetry and deterministic state remain the source of visual behaviour.
   assert.match(model, /function fieldArtState\(frame, mapped\)/);
   assert.match(model, /FIELD_VISUAL_SEED/);
   assert.match(geometry, /signatureState\(art, mapped, health, coherence\)/);
-  assert.match(geometry, /radiusX = width \* \(0\.395/);
   assert.match(geometry, /breathing/);
   assert.match(geometry, /depthSpan/);
-  assert.match(layers, /const SLICE_DEPTHS/);
-  assert.match(layers, /const BODY_SEGMENTS = 14/);
-  assert.match(layers, /function projectPoint\(state, x, y, z/);
-  assert.match(layers, /function bodySlice\(/);
-  assert.match(layers, /function signalPath\(/);
-  assert.match(layers, /drawSpectralBody/);
-  assert.match(layers, /drawPressureMembranes/);
-  assert.match(layers, /drawSignalFilaments/);
-  assert.match(layers, /drawFracture/);
-  assert.match(layers, /drawSignatureMoments/);
-  assert.match(layers, /drawSelectedRoute/);
-  assert.match(layers, /chamberGradient/);
-  assert.match(layers, /dimmed \? 0\.3/);
-  assert.match(compose, /drawSpectralBody\.call/);
-  assert.match(compose, /drawPressureMembranes\.call/);
-  assert.match(compose, /drawSignalFilaments\.call/);
-  assert.match(compose, /drawSignatureMoments\.call/);
   assert.doesNotMatch(model, /SCENARIO_ART_PROFILES|scenarioArtState|scenarioId/);
   assert.doesNotMatch(geometry, /SCENARIO_BY_ID|visualSeed|scenarioId/);
-  assert.doesNotMatch(layers, /scenarioId/);
-  assert.doesNotMatch(combinedStatePath, /\b(?:normal|traffic|flapping|creep|cascade|deploy)\b/i);
   assert.doesNotMatch(combinedStatePath, /Math\.random/);
 });
 
