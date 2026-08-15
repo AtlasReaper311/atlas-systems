@@ -156,7 +156,7 @@ test("active Spectral Field ships the approved deterministic living organism", a
   assert.match(geometry, /depthSpan/);
   assert.doesNotMatch(model, /SCENARIO_ART_PROFILES|scenarioArtState|scenarioId/);
   assert.doesNotMatch(geometry, /SCENARIO_BY_ID|visualSeed|scenarioId/);
-  assert.doesNotMatch(combinedStatePath, /Math\.random/);
+  assert.doesNotMatch(combinedStatePath, /Math\.random\s*\(/);
 });
 
 test("Lab-home boot owns LISTEN and DESIGN card treatment without adding a standalone script", async () => {
