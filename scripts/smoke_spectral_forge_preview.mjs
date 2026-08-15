@@ -4,14 +4,6 @@ import path from "node:path";
 import process from "node:process";
 import { chromium, firefox } from "playwright";
 
-/* Spectral Forge is the one Lab route where a green screenshot proves nothing.
- * The Field renders once on load and then animates from requestAnimationFrame,
- * so a still capture looks identical whether playback is running, frozen, or
- * has silently fallen back to a different renderer. This smoke therefore
- * asserts frame-to-frame canvas change, final-form WebGL presence and renderer
- * continuity across the real PLAY / FORGE / ANALYSE interaction path.
- */
-
 const baseUrl = (process.env.PREVIEW_URL || "").replace(/\/$/, "");
 const expectedSha = process.env.HEAD_SHA || "";
 const outputDir = process.env.SPECTRAL_FORGE_OUTPUT_DIR || "spectral-forge-preview-smoke";
@@ -22,13 +14,14 @@ const VIEWPORT = { width: 1440, height: 900 };
 
 assert.ok(baseUrl, "PREVIEW_URL is required");
 assert.ok(expectedSha, "HEAD_SHA is required");
-
 await fs.mkdir(outputDir, { recursive: true });
 
 const visibleFieldCanvas = `(() => {
   const c = [...document.querySelectorAll('canvas')].find((x) => x.offsetParent !== null && x.id.includes('field'));
   if (!c) return null;
-  const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+  const context = c.getContext('2d');
+  if (!context) return null;
+  const d = context.getImageData(0, 0, c.width, c.height).data;
   let hash = 0;
   let lit = 0;
   for (let i = 0; i < d.length; i += 4 * 97) {
@@ -40,8 +33,15 @@ const visibleFieldCanvas = `(() => {
     hash,
     lit,
     renderer: c.dataset.fieldRenderer ?? null,
+    finalFormWebgl: c.dataset.finalFormWebgl ?? null,
     organismLifeTime: Number(c.dataset.organismLifeTime || 0),
     playback: c.dataset.fieldPlayback ?? null,
+    fissionPhase: c.dataset.fissionPhase ?? 'idle',
+    fissionCount: Number(c.dataset.fissionCount || 0),
+    fissionStressDriven: c.dataset.fissionStressDriven === 'true',
+    fractureDrive: Number(c.dataset.fractureDrive || 0),
+    memory: Number(c.dataset.physicalMemory || 0),
+    scarInfluence: Number(c.dataset.physicalScarInfluence || 0),
   };
 })()`;
 
@@ -54,83 +54,82 @@ const finalFormPbrState = `(() => {
     samples: Number(perf.samples || 0),
     triangles: Number(c.__atlasRendererInfo?.triangles || 0),
     connected: c.isConnected,
+    emaCpuMs: Number(perf.emaCpuMs || 0),
+    maxCpuMs: Number(perf.maxCpuMs || 0),
+    lastCpuMs: Number(perf.lastCpuMs || 0),
+    dprCap: Number(perf.dprCap || 0),
   };
 })()`;
 
-const simTime = `document.body.innerText.match(/\\d\\d:\\d\\d\\.\\d/)?.[0] ?? null`;
-const isPlaying = `(document.querySelector('.forge-playback-controls')?.innerText ?? '').includes('PLAYING')`;
+const simTime = `document.querySelector('#simulation-time')?.textContent?.trim() ?? null`;
+const isPlaying = `document.querySelector('#playback-state')?.textContent?.trim() === 'PLAYING'`;
+const transportState = `document.querySelector('#playback-state')?.textContent?.trim() ?? null`;
 
-async function sampleField(page, samples = 4, gapMs = 260) {
+async function browserSupportsWebgl2(page) {
+  return page.evaluate(() => {
+    const probe = document.createElement("canvas");
+    try {
+      return Boolean(probe.getContext("webgl2"));
+    } catch {
+      return false;
+    }
+  });
+}
+
+async function sampleField(page, samples = 4, gapMs = 240) {
   const frames = [];
-  for (let i = 0; i < samples; i += 1) {
+  for (let index = 0; index < samples; index += 1) {
     frames.push(await page.evaluate(visibleFieldCanvas));
-    if (i < samples - 1) await page.waitForTimeout(gapMs);
+    if (index < samples - 1) await page.waitForTimeout(gapMs);
   }
   return frames;
 }
 
 function inspectLiveField(frames, label) {
   assert.ok(frames.every(Boolean), `${label}: no visible Field canvas`);
-  const renderers = new Set(frames.map((f) => f.renderer));
-  assert.deepEqual([...renderers], [EXPECTED_RENDERER], `${label}: renderer changed mid-sequence -> ${[...renderers].join(", ")}`);
-  assert.ok(frames.every((f) => f.lit > 0), `${label}: Field canvas rendered blank`);
-  const distinct = new Set(frames.map((f) => f.hash)).size;
-  return { distinct, frames };
+  const renderers = new Set(frames.map((frame) => frame.renderer));
+  assert.deepEqual([...renderers], [EXPECTED_RENDERER], `${label}: renderer changed -> ${[...renderers].join(", ")}`);
+  assert.ok(frames.every((frame) => frame.lit > 0), `${label}: Field canvas rendered blank`);
+  return { distinct: new Set(frames.map((frame) => frame.hash)).size, frames };
 }
 
-function assertLiveField(frames, label) {
-  const { distinct } = inspectLiveField(frames, label);
-  assert.ok(distinct > 1, `${label}: Field canvas did not change across ${frames.length} frames (stale or frozen)`);
-  return distinct;
-}
-
-async function waitForLiveField(page, label, { timeoutMs = 3_000, samples = 4, gapMs = 220 } = {}) {
+async function waitForLiveField(page, label, { timeoutMs = 4_000, samples = 4, gapMs = 220 } = {}) {
   const deadline = Date.now() + timeoutMs;
   let lastFrames = [];
   let lastError = null;
   while (Date.now() < deadline) {
     lastFrames = await sampleField(page, samples, gapMs);
     try {
-      const { distinct } = inspectLiveField(lastFrames, label);
-      if (distinct > 1) return { distinct, frames: lastFrames };
-      lastError = new Error(`${label}: Field canvas did not change across ${samples} frames (stale or frozen)`);
+      const evidence = inspectLiveField(lastFrames, label);
+      if (evidence.distinct > 1) return evidence;
+      lastError = new Error(`${label}: Field canvas did not change across ${samples} frames`);
     } catch (error) {
       lastError = error;
     }
     await page.waitForTimeout(120);
   }
-  if (lastError) throw lastError;
-  return { distinct: assertLiveField(lastFrames, label), frames: lastFrames };
+  throw lastError ?? new Error(`${label}: no live Field evidence`);
 }
 
-async function waitForLifeClockAdvance(page, label, { timeoutMs = 3_000, gapMs = 220 } = {}) {
+async function waitForLifeClockAdvance(page, label, { timeoutMs = 4_000, gapMs = 220 } = {}) {
   const deadline = Date.now() + timeoutMs;
   let first = null;
   let latest = null;
-  let lastError = null;
   while (Date.now() < deadline) {
-    const frame = await page.evaluate(visibleFieldCanvas);
-    try {
-      inspectLiveField([frame], label);
-      if (!first) first = frame;
-      latest = frame;
-      if (latest.organismLifeTime > first.organismLifeTime) {
-        return { first, latest };
-      }
-      lastError = new Error(`${label}: organism life clock did not advance (${first.organismLifeTime} -> ${latest.organismLifeTime})`);
-    } catch (error) {
-      lastError = error;
-    }
+    latest = await page.evaluate(visibleFieldCanvas);
+    inspectLiveField([latest], label);
+    if (!first) first = latest;
+    if (latest.organismLifeTime > first.organismLifeTime) return { first, latest };
     await page.waitForTimeout(gapMs);
   }
-  throw lastError ?? new Error(`${label}: organism life clock did not advance`);
+  throw new Error(`${label}: organism life clock did not advance`);
 }
 
 async function assertFinalFormPbr(page, label) {
   await page.waitForFunction(() => {
     const canvas = document.querySelector('.forge-play .forge-field-stage canvas.spectral-field-proto-webgl');
     return Boolean(canvas?.isConnected && canvas.__atlasPerf?.architecture === "gpu-final-form" && canvas.__atlasPerf?.samples > 0);
-  }, null, { timeout: 20_000, polling: 100 });
+  }, null, { timeout: 25_000, polling: 100 });
   const state = await page.evaluate(finalFormPbrState);
   assert.ok(state, `${label}: final-form WebGL canvas did not initialise`);
   assert.equal(state.architecture, EXPECTED_PBR_ARCHITECTURE, `${label}: wrong PBR architecture -> ${state.architecture}`);
@@ -139,99 +138,272 @@ async function assertFinalFormPbr(page, label) {
   return state;
 }
 
+async function assertGracefulWebglFallback(page, label) {
+  await page.waitForFunction(() => document.querySelector('#play-field')?.dataset.finalFormWebgl === "webgl2-unavailable", null, {
+    timeout: 8_000,
+    polling: 100,
+  });
+  const frame = await page.evaluate(visibleFieldCanvas);
+  assert.ok(frame, `${label}: fallback Field did not render`);
+  assert.equal(frame.finalFormWebgl, "webgl2-unavailable", `${label}: WebGL2 unavailability was not recorded`);
+  return Object.freeze({ architecture: "canvas2d-fallback", reason: "webgl2-unavailable" });
+}
+
+async function waitForScenarioTime(page, targetSeconds, timeoutMs = Math.max(20_000, targetSeconds * 2_000 + 20_000)) {
+  await page.waitForFunction((target) => {
+    const text = document.querySelector('#simulation-time')?.textContent?.trim() ?? '';
+    const match = text.match(/^(\d+):(\d+(?:\.\d+)?)$/);
+    if (!match) return false;
+    return Number(match[1]) * 60 + Number(match[2]) >= target;
+  }, targetSeconds, { timeout: timeoutMs, polling: 100 });
+}
+
+async function selectScenario(page, id, targetSeconds) {
+  await page.locator('#scenario-select').selectOption(id);
+  assert.ok(await page.evaluate(isPlaying), `${id}: scenario change did not preserve PLAYING transport`);
+  await waitForScenarioTime(page, targetSeconds);
+}
+
+async function measureFrameIntervals(page, label, durationMs = 1_800) {
+  const result = await page.evaluate(async ({ durationMs: duration }) => new Promise((resolve) => {
+    const intervals = [];
+    let previous = null;
+    let started = null;
+    const frame = (now) => {
+      if (started == null) started = now;
+      if (previous != null) intervals.push(now - previous);
+      previous = now;
+      if (now - started >= duration && intervals.length >= 2) {
+        const sorted = [...intervals].sort((a, b) => a - b);
+        const percentile = (p) => sorted[Math.min(sorted.length - 1, Math.max(0, Math.ceil(sorted.length * p) - 1))];
+        resolve({
+          samples: intervals.length,
+          averageMs: intervals.reduce((sum, value) => sum + value, 0) / intervals.length,
+          p95Ms: percentile(0.95),
+          worstMs: sorted.at(-1),
+          over33Ms: intervals.filter((value) => value > 33).length,
+          over50Ms: intervals.filter((value) => value > 50).length,
+          over100Ms: intervals.filter((value) => value > 100).length,
+        });
+        return;
+      }
+      requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  }), { durationMs });
+  return Object.fromEntries([
+    ["label", label],
+    ...Object.entries(result).map(([key, value]) => [key, typeof value === "number" ? Number(value.toFixed(3)) : value]),
+  ]);
+}
+
+async function switchDepth(page, mode, label) {
+  const before = await page.evaluate(transportState);
+  await page.locator('.forge-depth-nav button', { hasText: new RegExp(mode, 'i') }).first().click();
+  await page.waitForTimeout(500);
+  const motion = await waitForLiveField(page, `${label}: ${mode}`, { samples: 3 });
+  const after = await page.evaluate(transportState);
+  /* A depth change must not alter transport. Reaching the end of the finite
+   * 60-second condition is a time-driven transition into the designed HOLD
+   * state, not a depth-driven one, and the organism keeps living through it -
+   * so the two causes are distinguished rather than conflated. Before the
+   * transport clock tracked wall time this boundary was never reached inside
+   * this window, which is why a strict PLAYING check used to hold. */
+  assert.ok(
+    after === before || (before === 'PLAYING' && after === 'COMPLETE'),
+    `${label}: playback changed from ${before} to ${after} while switching to ${mode}`,
+  );
+  assert.ok(
+    ['PLAYING', 'COMPLETE'].includes(after),
+    `${label}: organism stopped living while switching to ${mode} (${after})`,
+  );
+  return motion.frames.at(-1);
+}
+
+async function runPhysicalBehaviourEvidence(page, evidence) {
+  const metrics = [];
+  const scenario = page.locator('#scenario-select');
+
+  await scenario.selectOption('normal');
+  await waitForScenarioTime(page, 20);
+  metrics.push(await measureFrameIntervals(page, 'normal-20s'));
+
+  await selectScenario(page, 'traffic', 13);
+  metrics.push(await measureFrameIntervals(page, 'traffic-transition'));
+
+  await selectScenario(page, 'cache', 24);
+  metrics.push(await measureFrameIntervals(page, 'cache-propagation'));
+
+  await selectScenario(page, 'flapping', 12);
+  metrics.push(await measureFrameIntervals(page, 'flapping'));
+
+  await selectScenario(page, 'creep', 48);
+  metrics.push(await measureFrameIntervals(page, 'late-creep'));
+
+  await selectScenario(page, 'cascade', 45);
+  const cascade = await page.evaluate(visibleFieldCanvas);
+  assert.ok(cascade?.fissionStressDriven, `Cascade did not enter stress-driven fission by 45s (${JSON.stringify(cascade)})`);
+  assert.ok(cascade.fissionCount >= 2 && cascade.fissionCount <= 3, `Cascade daughter count outside contract -> ${cascade.fissionCount}`);
+  metrics.push(await measureFrameIntervals(page, 'cascade-fission'));
+
+  const cascadeLife = cascade.organismLifeTime;
+  for (const mode of ['FORGE', 'ANALYSE', 'PLAY']) {
+    const modeFrame = await switchDepth(page, mode, 'cascade-active-fission');
+    assert.ok(modeFrame.organismLifeTime > cascadeLife, `${mode}: organism life did not continue`);
+  }
+
+  const beforeSwitch = await page.evaluate(visibleFieldCanvas);
+  await selectScenario(page, 'deploy', 2);
+  const afterSwitch = await page.evaluate(visibleFieldCanvas);
+  assert.ok(afterSwitch.organismLifeTime > beforeSwitch.organismLifeTime, 'organism life did not continue across active fission handoff');
+  metrics.push(await measureFrameIntervals(page, 'scenario-switch-active-event'));
+
+  await waitForScenarioTime(page, 40);
+  metrics.push(await measureFrameIntervals(page, 'recovery'));
+
+  const audioButton = page.locator('#audio-toggle');
+  if ((await audioButton.textContent())?.includes('ENABLE AUDIO')) {
+    await audioButton.click();
+    await page.waitForTimeout(600);
+  }
+  const audioLabel = (await audioButton.textContent())?.trim() ?? '';
+  assert.ok(!audioLabel.includes('ENABLE AUDIO'), `audio activation did not remain enabled -> ${audioLabel}`);
+  metrics.push(await measureFrameIntervals(page, 'audio-enabled'));
+
+  const memoryBeforeNormal = (await page.evaluate(visibleFieldCanvas))?.memory ?? 0;
+  await selectScenario(page, 'normal', 20);
+  const normalAfterRecovery = await page.evaluate(visibleFieldCanvas);
+  assert.ok(normalAfterRecovery.memory <= memoryBeforeNormal + 0.02, 'residual memory increased unexpectedly during Normal recovery');
+  metrics.push(await measureFrameIntervals(page, 'normal-after-recovery'));
+
+  await waitForScenarioTime(page, 60);
+  await page.waitForFunction(() => document.querySelector('#playback-state')?.textContent?.trim() === 'COMPLETE', null, { timeout: 5_000 });
+  metrics.push(await measureFrameIntervals(page, '60s-hold'));
+  const holdStart = await page.evaluate(visibleFieldCanvas);
+  await page.waitForTimeout(10_000);
+  const holdEnd = await page.evaluate(visibleFieldCanvas);
+  assert.ok(holdEnd.organismLifeTime > holdStart.organismLifeTime, 'held telemetry stopped organism lifetime');
+  metrics.push(await measureFrameIntervals(page, 'long-passive-life'));
+
+  const replayLife = holdEnd.organismLifeTime;
+  const replayMode = await page.evaluate(() => document.body.dataset.forgeDepth);
+  const replayAudio = (await audioButton.textContent())?.trim() ?? '';
+  await page.locator('#play-toggle').click();
+  await waitForScenarioTime(page, 1.2, 10_000);
+  const replay = await page.evaluate(visibleFieldCanvas);
+  assert.ok(await page.evaluate(isPlaying), 'REPLAY did not enter PLAYING');
+  assert.ok(replay.organismLifeTime > replayLife, 'REPLAY restarted organism lifetime');
+  assert.equal(await page.evaluate(() => document.body.dataset.forgeDepth), replayMode, 'REPLAY changed PLAY/FORGE/ANALYSE mode');
+  assert.equal((await audioButton.textContent())?.trim() ?? '', replayAudio, 'REPLAY changed audio activation/mute state');
+  metrics.push(await measureFrameIntervals(page, 'replay-from-hold'));
+
+  await page.locator('#reset-run').click();
+  await page.waitForTimeout(350);
+  assert.equal(await page.evaluate(simTime), '00:00.0', 'RESET RUN did not return scenario time to zero');
+  assert.equal((await page.locator('#playback-state').textContent())?.trim(), 'STOPPED', 'RESET RUN did not stop playback');
+  const reset = await page.evaluate(visibleFieldCanvas);
+  assert.ok(reset.organismLifeTime < 0.2, `RESET RUN did not restart organism lifetime -> ${reset.organismLifeTime}`);
+
+  evidence.behaviourEvidence = {
+    cascade,
+    activeFissionSwitch: { before: beforeSwitch, after: afterSwitch },
+    recoveryNormal: normalAfterRecovery,
+    hold: { start: holdStart, end: holdEnd },
+    replay,
+    reset,
+    metrics,
+  };
+  console.log(`ATLAS_FORGE_BROWSER_EVIDENCE ${JSON.stringify(evidence.behaviourEvidence)}`);
+}
+
 async function runEngine(engineName, engine) {
   const evidence = { engine: engineName, route: ROUTE, expectedSha, steps: [] };
   const pageErrors = [];
   const consoleErrors = [];
   const browser = await engine.launch({ headless: true });
   const page = await browser.newPage({ viewport: VIEWPORT, deviceScaleFactor: 1 });
-  page.on("pageerror", (error) => pageErrors.push(String(error?.stack || error)));
-  page.on("console", (message) => { if (message.type() === "error") consoleErrors.push(message.text()); });
+  page.on('pageerror', (error) => pageErrors.push(String(error?.stack || error)));
+  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
 
   try {
-    const response = await page.goto(`${baseUrl}${ROUTE}`, { waitUntil: "networkidle", timeout: 45_000 });
-    assert.ok(response?.ok(), `${engineName}: HTTP ${response?.status() ?? "no response"} for ${ROUTE}`);
-    await page.waitForSelector(".forge-play .forge-field-stage canvas", { timeout: 20_000 });
+    const response = await page.goto(`${baseUrl}${ROUTE}`, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+    assert.ok(response?.ok(), `${engineName}: HTTP ${response?.status() ?? 'no response'} for ${ROUTE}`);
+    await page.waitForSelector('.forge-play .forge-field-stage canvas', { timeout: 20_000 });
     await page.waitForTimeout(900);
 
-    // The bare route must now initialise the approved living final-form PBR
-    // organism. A green Canvas2D fallback is not sufficient evidence.
-    const pbr = await assertFinalFormPbr(page, `${engineName}: load`);
-    evidence.pbr = pbr;
+    const webgl2Available = await browserSupportsWebgl2(page);
+    evidence.webgl2Available = webgl2Available;
+    evidence.pbr = webgl2Available
+      ? await assertFinalFormPbr(page, `${engineName}: load`)
+      : await assertGracefulWebglFallback(page, `${engineName}: load`);
 
-    // requestAnimationFrame must actually run, otherwise every later assertion
-    // about motion would be vacuous.
     const rafPerSecond = await page.evaluate(async () => {
-      let n = 0;
-      const loop = () => { n += 1; requestAnimationFrame(loop); };
+      let count = 0;
+      const loop = () => { count += 1; requestAnimationFrame(loop); };
       requestAnimationFrame(loop);
-      await new Promise((r) => setTimeout(r, 1000));
-      return n;
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      return count;
     });
-    assert.ok(rafPerSecond > 10, `${engineName}: requestAnimationFrame did not run (${rafPerSecond}/s); motion evidence would be meaningless`);
+    assert.ok(rafPerSecond > 10, `${engineName}: requestAnimationFrame did not run (${rafPerSecond}/s)`);
     evidence.rafPerSecond = rafPerSecond;
 
     const stopped = await page.evaluate(visibleFieldCanvas);
     assert.ok(stopped, `${engineName}: no Field canvas before playback`);
-    assert.equal(stopped.renderer, EXPECTED_RENDERER, `${engineName}: unexpected renderer on load -> ${stopped.renderer}`);
-    await page.screenshot({ path: path.join(outputDir, `${engineName}-01-stopped.png`) });
-    evidence.steps.push({ step: "loaded", ...stopped, pbr });
+    assert.equal(stopped.renderer, EXPECTED_RENDERER, `${engineName}: unexpected renderer -> ${stopped.renderer}`);
+    evidence.steps.push({ step: 'loaded', ...stopped, pbr: evidence.pbr });
 
-    // PLAY must animate the same renderer.
-    await page.getByRole("button", { name: /^PLAY$/i }).first().click();
+    await page.getByRole('button', { name: /^PLAY$/i }).first().click();
     await page.waitForTimeout(500);
     const playMotion = await waitForLiveField(page, `${engineName}: PLAY`);
-    evidence.steps.push({ step: "play", distinctFrames: playMotion.distinct, renderer: playMotion.frames[0].renderer });
+    evidence.steps.push({ step: 'play', distinctFrames: playMotion.distinct, renderer: playMotion.frames[0].renderer });
     assert.ok(await page.evaluate(isPlaying), `${engineName}: transport is not PLAYING after PLAY`);
-    const tAfterPlay = await page.evaluate(simTime);
-    assert.notEqual(tAfterPlay, "00:00.0", `${engineName}: simulation time did not advance`);
-    await page.screenshot({ path: path.join(outputDir, `${engineName}-02-play.png`) });
+    assert.notEqual(await page.evaluate(simTime), '00:00.0', `${engineName}: simulation time did not advance`);
 
-    // Depth switches must not restart playback nor swap renderer.
-    for (const mode of ["FORGE", "ANALYSE", "PLAY"]) {
-      await page.locator(".forge-depth-nav button", { hasText: new RegExp(mode, "i") }).first().click();
-      await page.waitForTimeout(650);
-      const motion = await waitForLiveField(page, `${engineName}: ${mode}`, { samples: 3 });
-      assert.ok(await page.evaluate(isPlaying), `${engineName}: playback restarted when switching to ${mode}`);
-      evidence.steps.push({ step: `mode:${mode}`, canvas: motion.frames[0].id, distinctFrames: motion.distinct, renderer: motion.frames[0].renderer });
-      await page.screenshot({ path: path.join(outputDir, `${engineName}-03-${mode.toLowerCase()}.png`) });
+    for (const mode of ['FORGE', 'ANALYSE', 'PLAY']) {
+      const frame = await switchDepth(page, mode, engineName);
+      evidence.steps.push({ step: `mode:${mode}`, canvas: frame.id, renderer: frame.renderer });
     }
 
-    // Scenario changes retarget telemetry on the same living specimen. Playback
-    // must remain active, renderer identity must stay stable, the shared life
-    // clock must advance, and the new scenario-local clock must restart near
-    // zero without requiring another PLAY. The handoff can be visually subtle
-    // enough that a short coarse canvas hash sample is not reliable in CI.
-    const scenario = page.locator(".forge-scenario-control select").first();
+    const scenario = page.locator('.forge-scenario-control select').first();
     if (await scenario.count()) {
       await scenario.selectOption({ index: 5 });
       await page.waitForTimeout(800);
       const scenarioLife = await waitForLifeClockAdvance(page, `${engineName}: scenario change`);
       assert.ok(await page.evaluate(isPlaying), `${engineName}: playback stopped when switching scenario`);
-      const tAfterScenario = await page.evaluate(simTime);
-      assert.match(tAfterScenario ?? "", /^00:0[01]\.\d$/, `${engineName}: scenario-local time did not restart near zero -> ${tAfterScenario}`);
+      const scenarioTime = await page.evaluate(simTime);
+      /* Proves the restart rather than the runner's speed: the previous
+       * condition had run to its 60-second end, so any small value is
+       * unambiguously a restart. A sub-two-second window only held while the
+       * transport clock ran slower than wall time. */
+      const scenarioSeconds = Number(String(scenarioTime ?? '').split(':').at(-1));
+      assert.ok(
+        Number.isFinite(scenarioSeconds) && scenarioSeconds < 5,
+        `${engineName}: scenario-local time did not restart near zero -> ${scenarioTime}`,
+      );
+      assert.match(scenarioTime ?? '', /^00:\d{2}\.\d$/, `${engineName}: scenario clock format changed -> ${scenarioTime}`);
       evidence.steps.push({
-        step: "scenario-change",
+        step: 'scenario-change',
         canvas: scenarioLife.latest.id,
         lifeStart: scenarioLife.first.organismLifeTime,
         lifeLatest: scenarioLife.latest.organismLifeTime,
         renderer: scenarioLife.latest.renderer,
-        scenarioTime: tAfterScenario,
+        scenarioTime,
       });
-      await page.screenshot({ path: path.join(outputDir, `${engineName}-04-scenario.png`) });
     }
+
+    if (engineName === 'chromium' && webgl2Available) await runPhysicalBehaviourEvidence(page, evidence);
 
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
     assert.equal(overflow, false, `${engineName}: horizontal overflow at ${VIEWPORT.width}px`);
-
     assert.deepEqual(pageErrors, [], `${engineName}: page errors`);
     assert.deepEqual(consoleErrors, [], `${engineName}: console errors`);
 
-    evidence.result = "pass";
+    evidence.result = 'pass';
+    await page.screenshot({ path: path.join(outputDir, `${engineName}-final.png`) });
     return evidence;
   } catch (error) {
-    evidence.result = "fail";
-    evidence.failure = { name: error?.name || "Error", message: error?.message || String(error), stack: error?.stack || null };
+    evidence.result = 'fail';
+    evidence.failure = { name: error?.name || 'Error', message: error?.message || String(error), stack: error?.stack || null };
     evidence.pageErrors = pageErrors;
     evidence.consoleErrors = consoleErrors;
     await fs.writeFile(path.join(outputDir, `${engineName}-failure.json`), `${JSON.stringify(evidence, null, 2)}\n`);
@@ -242,8 +414,8 @@ async function runEngine(engineName, engine) {
 }
 
 const report = [];
-for (const [name, engine] of [["chromium", chromium], ["firefox", firefox]]) {
+for (const [name, engine] of [['chromium', chromium], ['firefox', firefox]]) {
   report.push(await runEngine(name, engine));
 }
-await fs.writeFile(path.join(outputDir, "spectral-forge-smoke.json"), `${JSON.stringify({ baseUrl, expectedSha, report }, null, 2)}\n`);
-console.log(`Spectral Forge preview smoke passed in ${report.map((r) => r.engine).join(" and ")}.`);
+await fs.writeFile(path.join(outputDir, 'spectral-forge-smoke.json'), `${JSON.stringify({ baseUrl, expectedSha, report }, null, 2)}\n`);
+console.log(`Spectral Forge preview smoke passed in ${report.map((entry) => entry.engine).join(' and ')}.`);

@@ -2,15 +2,13 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-import { createFrame } from "../../static/js/spectral-forge/domain.js";
+import { SIGNALS, createFrame } from "../../static/js/spectral-forge/domain.js";
 import {
   applyScenarioSelection,
   beginScenarioHandoff,
-  mixScenarioFrames,
-  resolveScenarioFrame,
-  SCENARIO_HANDOFF_MS,
-  SCENARIO_HANDOFF_SECONDS,
-  scenarioHandoffMix,
+  scenarioFrameAt,
+  scenarioHandoffWeight,
+  TELEMETRY_HANDOFF_SECONDS,
 } from "../../static/js/spectral-forge/spectral-field-scenario-clock.js";
 import {
   createOrganismLifeClock,
@@ -91,20 +89,43 @@ test("scenario switch while paused remains paused", () => {
   assert.equal(next.handoff, false);
 });
 
-test("fission state survives scenario switch", () => {
-  const seedPhase = FIELD_VISUAL_SEED * Math.PI * 2;
-  const event = iterateLifeEvents("fission", seedPhase, "normal", 120)[0];
-  const mid = event.start + event.duration * 0.55;
-  const before = evaluateFission(mid, seedPhase, "normal");
-  const after = evaluateFission(mid, seedPhase, "cascade");
-  assert.equal(before.active, true);
-  assert.equal(after.active, true);
-  assert.equal(before.start, after.start);
-  assert.equal(before.count, after.count);
-  assert.equal(before.daughters[0].distance, after.daughters[0].distance);
-  const switched = livingGesture(mid * 0.35, seedPhase, 1, 0.2, mid, "deploy");
-  assert.equal(switched.fission.start, before.start);
-  assert.equal(switched.fission.phase, before.phase);
+test("an active stress fission survives a scenario switch", async () => {
+  /* Separation is now owned by the material layer rather than scheduled by
+   * lifetime, so continuity is asserted against a real cascade-driven event. */
+  const { createPhysicalStateModel, stepPhysicalState } =
+    await import("../../static/js/spectral-forge/spectral-field-physical-state.js");
+  const { createPhysicalFissionState, stepPhysicalFission, readFissionEvidence } =
+    await import("../../static/js/spectral-forge/prototypes/field-proto-flagship-final-form-physics.js");
+  const { audibleOutputs, createComparisonState } =
+    await import("../../static/js/spectral-forge/state.js");
+
+  const comparison = createComparisonState();
+  const physical = createPhysicalStateModel();
+  const fission = createPhysicalFissionState();
+  let life = 0;
+  let live = null;
+  let latest = null;
+
+  for (let t = 0; t <= 60; t += 0.05) {
+    const frame = scenarioFrameAt("cascade", t, null);
+    life += 0.05;
+    const snapshot = stepPhysicalState(physical, { frame, outputs: audibleOutputs(frame, comparison), lifeTime: life });
+    latest = readFissionEvidence(stepPhysicalFission(fission, { physical: snapshot, lifeTime: life, seedPhase: 2.4 }));
+    live = frame;
+  }
+  assert.equal(latest.active, true, "cascade did not leave an active separation to carry across");
+  const progressBefore = latest.progress;
+  const countBefore = latest.count;
+
+  const handoff = beginScenarioHandoff(live, "deploy");
+  const frame = scenarioFrameAt("deploy", 0, handoff);
+  life += 0.05;
+  const snapshot = stepPhysicalState(physical, { frame, outputs: audibleOutputs(frame, comparison), lifeTime: life });
+  const after = readFissionEvidence(stepPhysicalFission(fission, { physical: snapshot, lifeTime: life, seedPhase: 2.4 }));
+
+  assert.equal(after.active, true, "scenario switch despawned the active daughter");
+  assert.equal(after.count, countBefore, "scenario switch changed the daughter count");
+  assert.ok(after.progress >= progressBefore, "scenario switch restarted the separation");
 });
 
 test("audio and mode continuity survive scenario switch", async () => {
@@ -115,7 +136,10 @@ test("audio and mode continuity survive scenario switch", async () => {
   assert.match(app, /fieldVisible: depth === "PLAY"/);
   assert.match(app, /fieldVisible: depth === "FORGE"/);
   assert.match(app, /fieldVisible: depth === "ANALYSE"/);
-  assert.match(app, /mappedFrame\(\)/);
+  // One continuous telemetry frame is built by the scenario clock and consumed
+  // everywhere, rather than each surface resolving its own version.
+  assert.match(app, /scenarioFrameAt\(scenarioId, time, scenarioHandoff\)/);
+  assert.doesNotMatch(app, /resolveScenarioFrame/);
   const playing = applyScenarioSelection(playingState("normal", 20), "cache");
   const forge = applyScenarioSelection({ ...playing, playback: "PLAYING" }, "cascade");
   assert.equal(forge.playback, "PLAYING");
@@ -143,18 +167,113 @@ test("reset/replay remain explicit full resets", () => {
   assert.equal(clock.time, 0);
 });
 
-test("scenario handoff blends telemetry without jumping to the old elapsed time", () => {
-  assert.ok(SCENARIO_HANDOFF_SECONDS >= 0.4 && SCENARIO_HANDOFF_SECONDS <= 1);
-  const from = createFrame("normal", 43);
-  const to = createFrame("cascade", 0);
-  const handoff = beginScenarioHandoff(from, 1000);
-  assert.equal(scenarioHandoffMix(handoff, 1000), 0);
-  const mid = resolveScenarioFrame(to, handoff, 1000 + SCENARIO_HANDOFF_MS * 0.5);
-  assert.notEqual(mid.values.anomaly_score, from.values.anomaly_score);
-  assert.notEqual(mid.values.anomaly_score, to.values.anomaly_score);
-  const done = resolveScenarioFrame(to, handoff, 1000 + SCENARIO_HANDOFF_MS + 1);
-  assert.equal(done.values.anomaly_score, to.values.anomaly_score);
-  const mixed = mixScenarioFrames(from, to, 0.5);
-  assert.ok(mixed.normalised.latency_ms > Math.min(from.normalised.latency_ms, to.normalised.latency_ms));
-  assert.equal(mixed.time, to.time);
+test("telemetry continues from the live signal state instead of resetting to baseline", () => {
+  assert.ok(
+    TELEMETRY_HANDOFF_SECONDS >= 3 && TELEMETRY_HANDOFF_SECONDS <= 6,
+    `handoff must span 3-6s, got ${TELEMETRY_HANDOFF_SECONDS}`,
+  );
+
+  /* Materially different conditions in both directions. Asserting scenarioTime
+   * is zero proves nothing; the first post-switch frame has to be measured
+   * against the previous live frame. */
+  const transitions = [
+    ["flapping", 30, "traffic"],
+    ["cascade", 50, "deploy"],
+    ["cache", 35, "creep"],
+    ["cascade", 55, "normal"],
+    ["creep", 55, "cache"],
+    ["deploy", 25, "cascade"],
+  ];
+
+  for (const [fromId, atTime, toId] of transitions) {
+    const live = scenarioFrameAt(fromId, atTime, null);
+    const naive = createFrame(toId, 0);
+    const handoff = beginScenarioHandoff(live, toId);
+    assert.ok(handoff, `${fromId}->${toId} produced no handoff`);
+
+    const continued = scenarioFrameAt(toId, 0, handoff);
+    let naiveJump = 0;
+    let continuedJump = 0;
+    for (const signal of SIGNALS) {
+      naiveJump = Math.max(naiveJump, Math.abs(naive.normalised[signal.id] - live.normalised[signal.id]));
+      continuedJump = Math.max(continuedJump, Math.abs(continued.normalised[signal.id] - live.normalised[signal.id]));
+    }
+
+    assert.ok(naiveJump > 0.2, `${fromId}->${toId} is not a materially different condition`);
+    assert.ok(
+      continuedJump < 1e-9,
+      `${fromId}->${toId} reset telemetry to the new scenario baseline (jump ${continuedJump.toFixed(3)})`,
+    );
+
+    /* The new scenario must then take full ownership of its own trajectory. */
+    const settled = scenarioFrameAt(toId, TELEMETRY_HANDOFF_SECONDS + 0.5, handoff);
+    const native = createFrame(toId, TELEMETRY_HANDOFF_SECONDS + 0.5);
+    for (const signal of SIGNALS) {
+      assert.equal(
+        settled.values[signal.id],
+        native.values[signal.id],
+        `${fromId}->${toId} never handed ${signal.id} back to the new scenario`,
+      );
+    }
+
+    /* And it must get there smoothly rather than in one step. */
+    let previous = continued;
+    for (let t = 0.1; t <= TELEMETRY_HANDOFF_SECONDS; t += 0.1) {
+      const current = scenarioFrameAt(toId, t, handoff);
+      for (const signal of SIGNALS) {
+        const span = signal.max - signal.min;
+        const delta = Math.abs(current.normalised[signal.id] - previous.normalised[signal.id]);
+        assert.ok(
+          delta < 0.14,
+          `${fromId}->${toId} ${signal.id} jumped ${delta.toFixed(3)} of range ${span} at t=${t.toFixed(1)}`,
+        );
+      }
+      previous = current;
+    }
+  }
+});
+
+test("handoff weight decays monotonically and is bounded", () => {
+  const handoff = beginScenarioHandoff(createFrame("cascade", 50), "normal");
+  assert.equal(scenarioHandoffWeight(handoff, 0), 1);
+  assert.equal(scenarioHandoffWeight(handoff, TELEMETRY_HANDOFF_SECONDS), 0);
+  assert.equal(scenarioHandoffWeight(handoff, TELEMETRY_HANDOFF_SECONDS * 4), 0);
+  assert.equal(scenarioHandoffWeight(null, 0), 0);
+
+  let previous = Infinity;
+  for (let t = 0; t <= TELEMETRY_HANDOFF_SECONDS; t += 0.05) {
+    const weight = scenarioHandoffWeight(handoff, t);
+    assert.ok(weight >= 0 && weight <= 1);
+    assert.ok(weight <= previous + 1e-12, `handoff weight rose at t=${t}`);
+    previous = weight;
+  }
+});
+
+test("handoff is consumed against scenario time so it is deterministic and pause-safe", () => {
+  const live = scenarioFrameAt("cascade", 50, null);
+  const handoff = beginScenarioHandoff(live, "normal");
+  const a = scenarioFrameAt("normal", 1.5, handoff);
+  const b = scenarioFrameAt("normal", 1.5, handoff);
+  assert.deepEqual(a.values, b.values, "handoff must not depend on wall-clock time");
+
+  /* Selecting the condition already running does not manufacture a handoff. */
+  const same = beginScenarioHandoff(createFrame("normal", 0), "normal");
+  assert.equal(same, null);
+});
+
+test("continued telemetry stays inside every signal's declared bounds", () => {
+  const live = scenarioFrameAt("cascade", 55, null);
+  for (const target of ["normal", "traffic", "cache", "flapping", "creep", "deploy"]) {
+    const handoff = beginScenarioHandoff(live, target);
+    for (let t = 0; t <= TELEMETRY_HANDOFF_SECONDS; t += 0.1) {
+      const frame = scenarioFrameAt(target, t, handoff);
+      for (const signal of SIGNALS) {
+        const value = frame.values[signal.id];
+        assert.ok(Number.isFinite(value), `${target}.${signal.id} not finite`);
+        assert.ok(value >= signal.min && value <= signal.max, `${target}.${signal.id} left bounds (${value})`);
+        const normalised = frame.normalised[signal.id];
+        assert.ok(normalised >= 0 && normalised <= 1, `${target}.${signal.id} normalised left 0..1`);
+      }
+    }
+  }
 });

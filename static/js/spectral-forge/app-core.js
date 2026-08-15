@@ -50,7 +50,7 @@ import { createOrganismLifeClock, resetOrganismLifeClock } from "./spectral-fiel
 import {
   applyScenarioSelection,
   beginScenarioHandoff,
-  resolveScenarioFrame,
+  scenarioFrameAt,
 } from "./spectral-field-scenario-clock.js";
 
 const HARMONIC_STATES = Object.freeze({
@@ -251,20 +251,13 @@ function currentSelectedMapping() {
   return selectedMapping(comparison);
 }
 
-function mappedFrame() {
-  const resolved = resolveScenarioFrame(frame, scenarioHandoff, performance.now());
-  if (resolved === frame) scenarioHandoff = null;
-  return resolved;
-}
-
 function activeOutputState() {
-  return audibleOutputs(mappedFrame(), comparison);
+  return audibleOutputs(frame, comparison);
 }
 
 function currentCalculation() {
   const mapping = currentSelectedMapping();
-  const sourceFrame = mappedFrame();
-  return mapping ? calculateMapping(mapping, sourceFrame.normalised[mapping.source]) : null;
+  return mapping ? calculateMapping(mapping, frame.normalised[mapping.source]) : null;
 }
 
 function fieldState(fieldVisible) {
@@ -587,15 +580,13 @@ function renderVisuals() {
   audioRenderer.setState({ analyser: audioEngine?.analyser ?? null, active: audioEnabled, muted: audioMuted });
 }
 
-function renderAll({ updateAudio = true } = {}) {
-  renderDepth();
-  renderAnalysisView();
+/* Only the surfaces telemetry actually changes. The ten-per-second transport
+ * tick used to re-run every render function, including preset, route and
+ * comparison controls that can only change on interaction. That is main-thread
+ * DOM work competing with the render loop for no benefit, and on a slow machine
+ * it is what makes the transport itself fall behind. */
+function renderTelemetry({ updateAudio = true } = {}) {
   renderScenario();
-  renderAudioControls();
-  renderFirstUse();
-  renderComparison();
-  renderPresetControls();
-  renderRouteList();
   renderInspector();
   renderFieldOverlays();
   renderRibbon();
@@ -604,23 +595,78 @@ function renderAll({ updateAudio = true } = {}) {
   if (updateAudio && audioEngine && audioEnabled) audioEngine.update(activeOutputState(), targetSmoothing(), frame.health, frame.deployEvent);
 }
 
+function renderAll({ updateAudio = true } = {}) {
+  renderDepth();
+  renderAnalysisView();
+  renderAudioControls();
+  renderFirstUse();
+  renderComparison();
+  renderPresetControls();
+  renderRouteList();
+  renderTelemetry({ updateAudio });
+}
+
 function stopTimer() {
   if (timer) clearInterval(timer);
   timer = null;
 }
 
+/* A tick delayed by render load must not stretch the condition. Advancing a
+ * fixed 0.1s per callback made a 60-second scenario take as long as the browser
+ * happened to be slow - on a software rasteriser, nearly twice as long. Elapsed
+ * wall time decides how many steps are owed; the steps themselves stay on the
+ * same deterministic 0.1s grid, so frame values and history contents are
+ * unchanged. Bounded so a long stall cannot spiral into a burst. */
+const TIMER_INTERVAL_MS = 100;
+
+/* Elapsed wall time is authoritative for the scenario clock; history sampling is
+ * best-effort. A slow renderer may delay the tick arbitrarily, but a 60-second
+ * condition must still take 60 seconds. Time therefore advances by everything
+ * that elapsed, while only a bounded number of history samples are materialised
+ * per tick so one slow frame cannot become a long loop. Skipped samples only
+ * coarsen the graph briefly; they do not change the deterministic 0.1s grid the
+ * frames are computed on, and the organism's physics reads the current frame
+ * rather than the history buffer. */
+const MAX_HISTORY_STEPS_PER_TICK = 12;
+
 function startTimer() {
   stopTimer();
+  let previous = performance.now();
+  let owed = 0;
   timer = setInterval(() => {
-    time = Math.min(RUN_DURATION_SECONDS, Number((time + 0.1).toFixed(1)));
-    frame = createFrame(scenarioId, time);
-    history = [...history, frame].slice(-601);
+    const now = performance.now();
+    owed += now - previous;
+    previous = now;
+    const steps = Math.floor(owed / TIMER_INTERVAL_MS);
+    if (steps <= 0) return;
+    owed -= steps * TIMER_INTERVAL_MS;
+
+    const sampled = Math.min(steps, MAX_HISTORY_STEPS_PER_TICK);
+    const skipped = steps - sampled;
+    if (skipped > 0) {
+      time = Math.min(RUN_DURATION_SECONDS, Number((time + skipped * 0.1).toFixed(1)));
+    }
+
+    const appended = [];
+    for (let step = 0; step < sampled && time < RUN_DURATION_SECONDS; step += 1) {
+      time = Math.min(RUN_DURATION_SECONDS, Number((time + 0.1).toFixed(1)));
+      frame = scenarioFrameAt(scenarioId, time, scenarioHandoff);
+      appended.push(frame);
+    }
+    if (!appended.length) {
+      frame = scenarioFrameAt(scenarioId, time, scenarioHandoff);
+      appended.push(frame);
+    }
+    history = [...history, ...appended].slice(-601);
+
     if (time >= RUN_DURATION_SECONDS) {
       playback = "COMPLETE";
       stopTimer();
+      renderAll();
+      return;
     }
-    renderAll();
-  }, 100);
+    renderTelemetry();
+  }, TIMER_INTERVAL_MS);
 }
 
 function setPlayback(next) {
@@ -630,10 +676,27 @@ function setPlayback(next) {
   renderAll();
 }
 
+function replayScenario() {
+  if (playback !== "COMPLETE") return false;
+  const decision = applyScenarioSelection({ scenarioId, playback, scenarioTime: time }, scenarioId);
+  if (!decision.changed) return false;
+  const previousFrame = frame;
+  scenarioId = decision.scenarioId;
+  time = decision.scenarioTime;
+  scenarioHandoff = decision.handoff ? beginScenarioHandoff(previousFrame, scenarioId) : null;
+  frame = scenarioFrameAt(scenarioId, time, scenarioHandoff);
+  history = [...history, frame].slice(-601);
+  playback = decision.playback;
+  if (decision.startTimer) startTimer();
+  else if (decision.stopTimer) stopTimer();
+  setNotice(decision.notice);
+  renderAll();
+  return true;
+}
+
 function togglePlayback() {
   if (playback === "COMPLETE") {
-    resetScenario();
-    setPlayback("PLAYING");
+    replayScenario();
     return;
   }
   setPlayback(playback === "PLAYING" ? "PAUSED" : "PLAYING");
@@ -659,10 +722,10 @@ function selectScenario(nextScenario) {
   const previousFrame = frame;
   scenarioId = decision.scenarioId;
   time = decision.scenarioTime;
-  frame = createFrame(scenarioId, time);
-  history = [frame];
+  scenarioHandoff = decision.handoff ? beginScenarioHandoff(previousFrame, scenarioId) : null;
+  frame = scenarioFrameAt(scenarioId, time, scenarioHandoff);
+  history = [...history, frame].slice(-601);
   playback = decision.playback;
-  scenarioHandoff = decision.handoff ? beginScenarioHandoff(previousFrame, performance.now()) : null;
   if (decision.startTimer) startTimer();
   else if (decision.stopTimer) stopTimer();
   setNotice(decision.notice);

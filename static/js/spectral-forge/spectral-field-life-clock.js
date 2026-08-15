@@ -4,7 +4,9 @@
  *
  * Telemetry `frame.time` remains a finite deterministic scenario clock.
  * Organism life time is a separate monotonic clock consumed by every Field
- * view so PLAY / FORGE / ANALYSE observe one specimen.
+ * view so PLAY / FORGE / ANALYSE observe one specimen. Persistent physical
+ * behaviour state belongs to the same organism lifetime and is reset only by
+ * the deliberate hard-reset path.
  */
 
 export function organismLifeActive(playback) {
@@ -24,10 +26,24 @@ export function createOrganismLifeClock() {
     audioExpression: 0,
     audioExpressionTime: null,
     attitude: null,
+    physical: null,
+    physicalFission: null,
   };
 }
 
-export function stepOrganismLifeClock(clock, timestamp, playback, dtCap = 0.05) {
+/* The cap absorbs genuine suspension rather than ordinary slow rendering. CI's
+ * software WebGL path can legitimately fall below 4fps, so a 0.25s cap made
+ * organism life, damage and fracture charge lag behind the wall-time telemetry
+ * clock. The physical model sub-steps this same bound to keep the larger update
+ * stable; only a multi-second pause is treated as a suspended renderer. */
+export const MAX_ACTIVE_LIFE_STEP_SECONDS = 2;
+
+export function stepOrganismLifeClock(
+  clock,
+  timestamp,
+  playback,
+  dtCap = MAX_ACTIVE_LIFE_STEP_SECONDS,
+) {
   if (!clock) return 0;
   if (!organismLifeActive(playback)) {
     clock.lastTimestamp = null;
@@ -52,6 +68,8 @@ export function resetOrganismLifeClock(clock) {
   clock.attitude = null;
   clock.framing = null;
   clock.fission = null;
+  clock.physical = null;
+  clock.physicalFission = null;
   return clock;
 }
 

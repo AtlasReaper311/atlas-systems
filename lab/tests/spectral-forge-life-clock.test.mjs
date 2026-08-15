@@ -44,6 +44,18 @@ test("shared life clock continues past a 60s telemetry hold and does not reset o
   assert.ok(clock.time > paused);
 });
 
+test("shared life clock keeps wall time through a one-frame-per-second renderer", () => {
+  const clock = createOrganismLifeClock();
+  stepOrganismLifeClock(clock, 0, "PLAYING");
+  for (let second = 1; second <= 45; second += 1) {
+    stepOrganismLifeClock(clock, second * 1_000, "PLAYING");
+  }
+  assert.equal(clock.time, 45, "slow rendering must not make organism life run behind telemetry");
+
+  stepOrganismLifeClock(clock, 55_000, "PLAYING");
+  assert.equal(clock.time, 47, "a genuine multi-second suspension must remain bounded");
+});
+
 test("audio and mode-style state updates must not be able to assign frame.time onto visualTime", async () => {
   const visuals = await readFile(VISUALS_URL, "utf8");
   const runtime = await readFile(RUNTIME_URL, "utf8");
@@ -60,11 +72,28 @@ test("audio and mode-style state updates must not be able to assign frame.time o
   assert.doesNotMatch(app, /time = 0;\s*\n\s*playback = "COMPLETE"/);
 });
 
-test("replay/reset is the explicit organism restart path", async () => {
+test("REPLAY preserves organism life while RESET RUN is the explicit organism restart path", async () => {
   const app = await readFile(APP_CORE_URL, "utf8");
+  assert.match(app, /function replayScenario/);
+  const replayStart = app.indexOf("function replayScenario");
+  const replayEnd = app.indexOf("function togglePlayback");
+  const replay = app.slice(replayStart, replayEnd);
+  assert.match(replay, /applyScenarioSelection/);
+  assert.match(replay, /beginScenarioHandoff/);
+  assert.doesNotMatch(replay, /resetScenario\(/);
+  assert.doesNotMatch(replay, /resetOrganismLifeClock/);
+  assert.doesNotMatch(replay, /safeReset/);
+  const toggle = app.slice(replayEnd, app.indexOf("function resetScenario"));
+  assert.match(toggle, /playback === "COMPLETE"[\s\S]*replayScenario\(\)/);
+
   assert.match(app, /function resetScenario/);
-  assert.match(app, /resetOrganismLifeClock\(organismLife\)/);
-  assert.match(app, /if \(playback === "COMPLETE"\) \{\s*resetScenario\(\);\s*setPlayback\("PLAYING"\)/s);
+  const resetStart = app.indexOf("function resetScenario");
+  const resetEnd = app.indexOf("function selectScenario");
+  const reset = app.slice(resetStart, resetEnd);
+  assert.match(reset, /resetOrganismLifeClock\(organismLife\)/);
+  assert.match(reset, /audioEngine\?\.safeReset\(\)/);
+  assert.match(reset, /playback = "STOPPED"/);
+
   const selectStart = app.indexOf("function selectScenario");
   const selectEnd = app.indexOf("function stepScenario");
   const select = app.slice(selectStart, selectEnd);
@@ -97,6 +126,7 @@ test("explicit reset returns the shared clock to the deterministic origin", () =
   clock.attitude = { x: 0.1, y: -0.04, z: 0.02 };
   clock.framing = { distance: 5 };
   clock.fission = { active: true };
+  clock.physicalFission = { active: true };
   assert.ok(clock.time > 0);
   resetOrganismLifeClock(clock);
   assert.equal(clock.time, 0);
@@ -106,6 +136,7 @@ test("explicit reset returns the shared clock to the deterministic origin", () =
   assert.equal(clock.attitude, null);
   assert.equal(clock.framing, null);
   assert.equal(clock.fission, null);
+  assert.equal(clock.physicalFission, null);
 });
 
 test("audio enable and mute-style ramps must not own a second life clock", async () => {
