@@ -78,6 +78,16 @@ const DEFAULT_VALUES = Object.freeze({
   memory: 0,
 });
 
+/* Integration is sub-stepped rather than clamped. A single hard clamp made the
+ * organism's physics frame-rate dependent: below 20fps the real interval
+ * exceeded the clamp, so accumulation - damage, fracture charge, memory - ran at
+ * up to half speed and a severe condition never reached the states its
+ * telemetry had earned. Sub-stepping keeps each step small enough to stay
+ * stable while advancing by the time that actually elapsed. */
+const MAX_SUB_STEP_SECONDS = 0.05;
+const MAX_SUB_STEPS = 6;
+const MAX_ELAPSED_SECONDS = MAX_SUB_STEP_SECONDS * MAX_SUB_STEPS;
+
 function finite(value, fallback = 0) {
   return Number.isFinite(value) ? value : fallback;
 }
@@ -149,7 +159,9 @@ export function stepPhysicalState(model, {
   const now = Math.max(0, finite(lifeTime));
   const first = model.lastLifeTime == null || !model.hasPrevious;
   const rawDt = first ? 0.016 : now - model.lastLifeTime;
-  const dt = clamp(rawDt, 0.001, 0.05);
+  const elapsed = clamp(rawDt, 0.001, MAX_ELAPSED_SECONDS);
+  const subSteps = Math.min(MAX_SUB_STEPS, Math.max(1, Math.ceil(elapsed / MAX_SUB_STEP_SECONDS)));
+  const dt = elapsed / subSteps;
 
   if (!first && rawDt < -0.001) resetPhysicalStateModel(model);
 
@@ -158,8 +170,8 @@ export function stepPhysicalState(model, {
   for (const id of SIGNAL_KEYS) {
     previous[id] = model.hasPrevious ? signals[id] : clamp(frame?.normalised?.[id] ?? 0);
     signals[id] = clamp(frame?.normalised?.[id] ?? 0);
-    const rawVelocity = clamp((signals[id] - previous[id]) / Math.max(dt, 0.016), -3, 3);
-    const alpha = 1 - Math.exp(-dt / 0.38);
+    const rawVelocity = clamp((signals[id] - previous[id]) / Math.max(elapsed, 0.016), -3, 3);
+    const alpha = 1 - Math.exp(-elapsed / 0.38);
     model.trends[id] += (rawVelocity - model.trends[id]) * alpha;
   }
   model.hasPrevious = true;
@@ -322,26 +334,31 @@ export function stepPhysicalState(model, {
       if (key === "memory") continue;
       model.values[key] = model.target[key];
     }
-  } else {
-    for (const key of PHYSICAL_STATE_KEYS) {
-      const response = RESPONSE[key];
-      let release = response.release;
-      if (key === "memory") release = 10 + model.values.memory * 20;
-      model.values[key] = responseStep(model.values[key], model.target[key], dt, response.attack, release);
+  }
+
+  /* Targets are constant across the frame; only the integration is sub-stepped,
+   * so a slow frame costs a few extra arithmetic passes rather than a stalled
+   * organism. The spatial regime advances with it, because its permissions and
+   * accumulated charge are what decide which mechanisms may express at all. */
+  for (let step = 0; step < subSteps; step += 1) {
+    if (!first) {
+      for (const key of PHYSICAL_STATE_KEYS) {
+        const response = RESPONSE[key];
+        let release = response.release;
+        if (key === "memory") release = 10 + model.values.memory * 20;
+        model.values[key] = responseStep(model.values[key], model.target[key], dt, response.attack, release);
+      }
     }
+    stepMaterialState(model.material, {
+      signals,
+      trends: model.trends,
+      physical: model.values,
+      lifeTime: now - dt * (subSteps - 1 - step),
+      dt,
+    });
   }
 
   model.lastStress = stressNow;
-
-  /* Spatial regime last: it consumes the settled scalar state, and its
-   * permissions then decide which mechanisms may express at all. */
-  stepMaterialState(model.material, {
-    signals,
-    trends: model.trends,
-    physical: model.values,
-    lifeTime: now,
-    dt,
-  });
 
   /* Fracture drive is gated by the regime rather than merely scaled by it, so a
    * condition whose regime forbids fracture cannot reach the threshold however

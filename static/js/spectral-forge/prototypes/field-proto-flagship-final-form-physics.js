@@ -248,7 +248,9 @@ export function stepPhysicalFission(state, {
   const drive = physicalFissionEnvelope(physical);
 
   if (model.lastLifeTime != null && now + 0.0001 < model.lastLifeTime) resetForBackwardTime(model, now);
-  const dt = model.lastLifeTime == null ? 0.016 : clamp(now - model.lastLifeTime, 0, 0.05);
+  /* Separation progress advances by elapsed time, not a clamped frame budget: a
+   * slow renderer must not make the split itself run in slow motion. */
+  const dt = model.lastLifeTime == null ? 0.016 : clamp(now - model.lastLifeTime, 0, 0.3);
   model.lastLifeTime = now;
 
   /* Macroscopic separation requires the material layer to have charged a

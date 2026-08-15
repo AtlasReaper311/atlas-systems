@@ -363,7 +363,9 @@ function updateSpatial(model, e, dt, lifeTime) {
    * stress the body could not absorb. */
   if (permits.fracture) {
     if (model.fractureCharge < 0.02) seededAxis(model.fractureAxis, seed, 7100 + Math.floor(lifeTime / 67) * 2);
-    model.fractureCharge = Math.min(3, model.fractureCharge + dt * clamp(e.unabsorbed) * 1.15);
+    /* Error escalation is what turns absorbed load into propagating structural
+     * damage, so it accelerates the charge rather than merely permitting it. */
+    model.fractureCharge = Math.min(3, model.fractureCharge + dt * clamp(e.unabsorbed) * (1.15 + e.errors * 1.1));
   } else {
     model.fractureCharge = Math.max(0, model.fractureCharge - dt * 0.5);
   }

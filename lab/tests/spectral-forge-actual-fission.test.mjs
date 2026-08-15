@@ -65,7 +65,9 @@ test("actual Service Flapping telemetry does not routinely cross the major-fissi
 });
 
 test("scenario change during actual stress fission preserves the same active event", () => {
-  const cascade = stepScenario("cascade", 60);
+  // Sample mid-separation. Running to 60s lets the separation legitimately
+  // finish, and a completed event is not a restarted one.
+  const cascade = stepScenario("cascade", 50);
   const active = [...cascade.samples].reverse().find((sample) => sample.split.active && sample.split.stressDriven);
   assert.ok(active, "cascade should have an active stress-fission event before handoff");
   const progressBefore = active.split.progress;
@@ -80,5 +82,7 @@ test("scenario change during actual stress fission preserves the same active eve
   const latest = recovery.samples.at(-1).split;
   assert.equal(first.active, true, "scenario handoff must not despawn the active daughter event");
   assert.equal(first.count, countBefore);
+  assert.equal(latest.active, true, "the separation must still be running through the handoff");
   assert.ok(latest.progress >= progressBefore, "new telemetry must act on the current event rather than restart it");
+  assert.equal(latest.count, countBefore, "the daughter count must survive the handoff");
 });

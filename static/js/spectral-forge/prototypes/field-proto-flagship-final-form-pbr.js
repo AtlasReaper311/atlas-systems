@@ -704,11 +704,18 @@ export function drawFlagshipFinalForm(renderer, timestamp = performance.now()) {
     renderer.state.scenarioId,
     renderer.state.debugGesture || readDebugGesture(),
   );
-  const fission = gesture.fission;
-  lifeHost.fission = fission;
+  /* The scheduled gesture no longer owns macroscopic separation: the physical
+   * layer resolves that during `webgl.render` below. Frame the organism against
+   * the value it installed on the previous frame - one frame of lag is
+   * imperceptible, and it keeps daughters inside the viewport from the moment
+   * they appear rather than a frame later. */
+  const scheduledFission = gesture.fission;
+  const previousResolved = lifeHost.fission;
+  const framingFission = previousResolved?.active ? previousResolved : scheduledFission;
+  lifeHost.fission = scheduledFission;
   const resized = resize(state, renderer.canvas);
-  const extent = estimateOrganismExtent(gesture, fission, activity);
-  const lookahead = anticipateExtent(gesture, fission, activity);
+  const extent = estimateOrganismExtent(gesture, framingFission, activity);
+  const lookahead = anticipateExtent(gesture, framingFission, activity);
   const aspect = state.cssWidth / Math.max(1, state.cssHeight);
   stepSafeFraming(lifeHost.framing, extent, renderer.visualTime, lookahead, aspect);
   updateUniforms(state, renderer, g, band, damage, activity, gesture, audioMixValue);
@@ -718,7 +725,7 @@ export function drawFlagshipFinalForm(renderer, timestamp = performance.now()) {
   stageStartedAt = markStage(stages, "microstructureCpuMs", stageStartedAt);
 
   updateSatellites(state, renderer, g, damage, activity, gesture);
-  updateFissionChildren(state, fission);
+  updateFissionChildren(state, scheduledFission);
   stageStartedAt = markStage(stages, "satellitesMs", stageStartedAt);
 
   updateObject(state, renderer, g, damage, activity, state.cssWidth / Math.max(1, state.cssHeight), mix, gesture, lifeHost.framing);
@@ -737,10 +744,15 @@ export function drawFlagshipFinalForm(renderer, timestamp = performance.now()) {
   markStage(stages, "studioPlateMs", stageStartedAt);
   state.frameIndex += 1;
   recordCpuPerf(state, stages, startedAt);
-  renderer.canvas.dataset.fissionPhase = fission?.phase ?? "idle";
-  renderer.canvas.dataset.fissionProgress = String(fission?.progress ?? 0);
-  renderer.canvas.dataset.fissionCount = String(fission?.count ?? 0);
-  renderer.canvas.dataset.organismExtent = String(extent);
+  /* Publish the separation the physical layer actually resolved during render,
+   * never the scheduled value captured before it. Reading the stale local here
+   * reported an idle organism on every frame while a cascade was visibly
+   * splitting. */
+  const resolvedFission = lifeHost.fission ?? scheduledFission;
+  renderer.canvas.dataset.fissionPhase = resolvedFission?.phase ?? "idle";
+  renderer.canvas.dataset.fissionProgress = String(resolvedFission?.progress ?? 0);
+  renderer.canvas.dataset.fissionCount = String(resolvedFission?.count ?? 0);
+  renderer.canvas.dataset.organismExtent = String(Math.max(extent, resolvedFission?.extent ?? 0));
   renderer.canvas.dataset.framingDistance = String(lifeHost.framing?.distance ?? 4.42);
   renderer.canvas.dataset.framingScale = String(lifeHost.framing?.scale ?? 1);
   state.perf.maxExtent = Math.max(state.perf.maxExtent ?? 0, extent);

@@ -602,18 +602,43 @@ function stopTimer() {
   timer = null;
 }
 
+/* A tick delayed by render load must not stretch the condition. Advancing a
+ * fixed 0.1s per callback made a 60-second scenario take as long as the browser
+ * happened to be slow - on a software rasteriser, nearly twice as long. Elapsed
+ * wall time decides how many steps are owed; the steps themselves stay on the
+ * same deterministic 0.1s grid, so frame values and history contents are
+ * unchanged. Bounded so a long stall cannot spiral into a burst. */
+const TIMER_INTERVAL_MS = 100;
+const MAX_CATCHUP_STEPS = 5;
+
 function startTimer() {
   stopTimer();
+  let previous = performance.now();
+  let owed = 0;
   timer = setInterval(() => {
-    time = Math.min(RUN_DURATION_SECONDS, Number((time + 0.1).toFixed(1)));
-    frame = scenarioFrameAt(scenarioId, time, scenarioHandoff);
-    history = [...history, frame].slice(-601);
+    const now = performance.now();
+    owed += now - previous;
+    previous = now;
+    let steps = Math.floor(owed / TIMER_INTERVAL_MS);
+    if (steps <= 0) return;
+    if (steps > MAX_CATCHUP_STEPS) steps = MAX_CATCHUP_STEPS;
+    owed = Math.min(owed - steps * TIMER_INTERVAL_MS, TIMER_INTERVAL_MS * MAX_CATCHUP_STEPS);
+    if (owed < 0) owed = 0;
+
+    const appended = [];
+    while (steps > 0 && time < RUN_DURATION_SECONDS) {
+      time = Math.min(RUN_DURATION_SECONDS, Number((time + 0.1).toFixed(1)));
+      frame = scenarioFrameAt(scenarioId, time, scenarioHandoff);
+      appended.push(frame);
+      steps -= 1;
+    }
+    if (appended.length) history = [...history, ...appended].slice(-601);
     if (time >= RUN_DURATION_SECONDS) {
       playback = "COMPLETE";
       stopTimer();
     }
     renderAll();
-  }, 100);
+  }, TIMER_INTERVAL_MS);
 }
 
 function setPlayback(next) {
