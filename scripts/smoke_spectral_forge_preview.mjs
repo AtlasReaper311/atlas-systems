@@ -63,6 +63,7 @@ const finalFormPbrState = `(() => {
 
 const simTime = `document.querySelector('#simulation-time')?.textContent?.trim() ?? null`;
 const isPlaying = `document.querySelector('#playback-state')?.textContent?.trim() === 'PLAYING'`;
+const transportState = `document.querySelector('#playback-state')?.textContent?.trim() ?? null`;
 
 async function browserSupportsWebgl2(page) {
   return page.evaluate(() => {
@@ -197,10 +198,25 @@ async function measureFrameIntervals(page, label, durationMs = 1_800) {
 }
 
 async function switchDepth(page, mode, label) {
+  const before = await page.evaluate(transportState);
   await page.locator('.forge-depth-nav button', { hasText: new RegExp(mode, 'i') }).first().click();
   await page.waitForTimeout(500);
   const motion = await waitForLiveField(page, `${label}: ${mode}`, { samples: 3 });
-  assert.ok(await page.evaluate(isPlaying), `${label}: playback changed while switching to ${mode}`);
+  const after = await page.evaluate(transportState);
+  /* A depth change must not alter transport. Reaching the end of the finite
+   * 60-second condition is a time-driven transition into the designed HOLD
+   * state, not a depth-driven one, and the organism keeps living through it -
+   * so the two causes are distinguished rather than conflated. Before the
+   * transport clock tracked wall time this boundary was never reached inside
+   * this window, which is why a strict PLAYING check used to hold. */
+  assert.ok(
+    after === before || (before === 'PLAYING' && after === 'COMPLETE'),
+    `${label}: playback changed from ${before} to ${after} while switching to ${mode}`,
+  );
+  assert.ok(
+    ['PLAYING', 'COMPLETE'].includes(after),
+    `${label}: organism stopped living while switching to ${mode} (${after})`,
+  );
   return motion.frames.at(-1);
 }
 
@@ -355,7 +371,16 @@ async function runEngine(engineName, engine) {
       const scenarioLife = await waitForLifeClockAdvance(page, `${engineName}: scenario change`);
       assert.ok(await page.evaluate(isPlaying), `${engineName}: playback stopped when switching scenario`);
       const scenarioTime = await page.evaluate(simTime);
-      assert.match(scenarioTime ?? '', /^00:0[01]\.\d$/, `${engineName}: scenario-local time did not restart near zero -> ${scenarioTime}`);
+      /* Proves the restart rather than the runner's speed: the previous
+       * condition had run to its 60-second end, so any small value is
+       * unambiguously a restart. A sub-two-second window only held while the
+       * transport clock ran slower than wall time. */
+      const scenarioSeconds = Number(String(scenarioTime ?? '').split(':').at(-1));
+      assert.ok(
+        Number.isFinite(scenarioSeconds) && scenarioSeconds < 5,
+        `${engineName}: scenario-local time did not restart near zero -> ${scenarioTime}`,
+      );
+      assert.match(scenarioTime ?? '', /^00:\d{2}\.\d$/, `${engineName}: scenario clock format changed -> ${scenarioTime}`);
       evidence.steps.push({
         step: 'scenario-change',
         canvas: scenarioLife.latest.id,
