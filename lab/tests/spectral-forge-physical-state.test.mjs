@@ -256,7 +256,7 @@ test("stress-driven fission uses physical state, stays bounded, persists through
   assert.ok(current.progress >= progressBeforeSwitch, "new telemetry must modify rather than despawn the active fission event");
 
   while (state.progress < 0.72) {
-    current = stepPhysicalFission(state, { physical: severe, lifeTime: life, seedPhase: 2.4, scheduledFission: null });
+    stepPhysicalFission(state, { physical: severe, lifeTime: life, seedPhase: 2.4, scheduledFission: null });
     life += 0.05;
   }
   const stressedClone = structuredClone(state);
