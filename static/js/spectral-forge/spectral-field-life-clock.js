@@ -4,7 +4,9 @@
  *
  * Telemetry `frame.time` remains a finite deterministic scenario clock.
  * Organism life time is a separate monotonic clock consumed by every Field
- * view so PLAY / FORGE / ANALYSE observe one specimen.
+ * view so PLAY / FORGE / ANALYSE observe one specimen. Persistent physical
+ * behaviour state belongs to the same organism lifetime and is reset only by
+ * the deliberate hard-reset path.
  */
 
 export function organismLifeActive(playback) {
@@ -24,6 +26,7 @@ export function createOrganismLifeClock() {
     audioExpression: 0,
     audioExpressionTime: null,
     attitude: null,
+    physical: null,
   };
 }
 
@@ -52,6 +55,7 @@ export function resetOrganismLifeClock(clock) {
   clock.attitude = null;
   clock.framing = null;
   clock.fission = null;
+  clock.physical = null;
   return clock;
 }
 
