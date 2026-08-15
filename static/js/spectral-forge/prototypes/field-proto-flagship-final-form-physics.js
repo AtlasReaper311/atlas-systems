@@ -4,8 +4,8 @@ import { deterministicUnit } from "../spectral-field-model.js";
 import { physicalStateSnapshot } from "../spectral-field-physical-state.js";
 
 const TAU = Math.PI * 2;
-const START_THRESHOLD = 0.64;
-const REARM_THRESHOLD = 0.48;
+const START_THRESHOLD = 0.52;
+const REARM_THRESHOLD = 0.38;
 const COOLDOWN_SECONDS = 7;
 const MAX_DAUGHTERS = 3;
 
@@ -107,8 +107,8 @@ function startStressEvent(state, physical, lifeTime, seedPhase, drive) {
   state.lastLifeTime = lifeTime;
   state.startDrive = drive;
   state.axis = chooseAxis(physical, seedPhase, state.sequence);
-  const rareNearDisintegration = drive > 0.91 && clamp(physical?.memory) > 0.72 && clamp(physical?.propagation) > 0.72;
-  state.count = rareNearDisintegration ? 3 : drive > 0.79 ? 2 : 1;
+  const rareNearDisintegration = drive > 0.78 && clamp(physical?.memory) > 0.78 && clamp(physical?.propagation) > 0.62;
+  state.count = rareNearDisintegration ? 3 : drive >= START_THRESHOLD ? 2 : 1;
   state.primaryScale = 0.33 + drive * 0.11;
   state.secondaryScale = 0.14 + drive * 0.09;
   state.tertiaryScale = 0.1 + drive * 0.045;
