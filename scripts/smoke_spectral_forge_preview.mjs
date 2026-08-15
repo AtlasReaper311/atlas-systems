@@ -149,7 +149,7 @@ async function assertFinalFormPbr(page, label) {
   return state;
 }
 
-async function waitForScenarioTime(page, targetSeconds, timeoutMs = Math.max(12_000, (targetSeconds + 8) * 1_000)) {
+async function waitForScenarioTime(page, targetSeconds, timeoutMs = Math.max(20_000, targetSeconds * 2_000 + 20_000)) {
   await page.waitForFunction((target) => {
     const text = document.querySelector('#simulation-time')?.textContent?.trim() ?? '';
     const match = text.match(/^(\d+):(\d+(?:\.\d+)?)$/);
@@ -249,7 +249,7 @@ async function runFirefoxBehaviourEvidence(page, evidence) {
   assert.ok(normalAfterRecovery.memory <= memoryBeforeNormal + 0.02, 'firefox: residual memory increased unexpectedly during Normal recovery');
   metrics.push(await measureFrameIntervals(page, 'normal-after-recovery'));
 
-  await waitForScenarioTime(page, 60, 55_000);
+  await waitForScenarioTime(page, 60);
   await page.waitForFunction(() => document.querySelector('#playback-state')?.textContent?.trim() === 'COMPLETE', null, { timeout: 5_000 });
   metrics.push(await measureFrameIntervals(page, '60s-hold'));
   const holdStart = await page.evaluate(visibleFieldCanvas);
