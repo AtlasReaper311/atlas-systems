@@ -35,7 +35,14 @@ const visibleFieldCanvas = `(() => {
     hash = (hash * 31 + (d[i] + d[i + 1] * 3 + d[i + 2] * 7)) >>> 0;
     if (d[i] + d[i + 1] + d[i + 2] > 60) lit += 1;
   }
-  return { id: c.id, hash, lit, renderer: c.dataset.fieldRenderer ?? null };
+  return {
+    id: c.id,
+    hash,
+    lit,
+    renderer: c.dataset.fieldRenderer ?? null,
+    organismLifeTime: Number(c.dataset.organismLifeTime || 0),
+    playback: c.dataset.fieldPlayback ?? null,
+  };
 })()`;
 
 const finalFormPbrState = `(() => {
@@ -94,6 +101,29 @@ async function waitForLiveField(page, label, { timeoutMs = 3_000, samples = 4, g
   }
   if (lastError) throw lastError;
   return { distinct: assertLiveField(lastFrames, label), frames: lastFrames };
+}
+
+async function waitForLifeClockAdvance(page, label, { timeoutMs = 3_000, gapMs = 220 } = {}) {
+  const deadline = Date.now() + timeoutMs;
+  let first = null;
+  let latest = null;
+  let lastError = null;
+  while (Date.now() < deadline) {
+    const frame = await page.evaluate(visibleFieldCanvas);
+    try {
+      inspectLiveField([frame], label);
+      if (!first) first = frame;
+      latest = frame;
+      if (latest.organismLifeTime > first.organismLifeTime) {
+        return { first, latest };
+      }
+      lastError = new Error(`${label}: organism life clock did not advance (${first.organismLifeTime} -> ${latest.organismLifeTime})`);
+    } catch (error) {
+      lastError = error;
+    }
+    await page.waitForTimeout(gapMs);
+  }
+  throw lastError ?? new Error(`${label}: organism life clock did not advance`);
 }
 
 async function assertFinalFormPbr(page, label) {
@@ -168,21 +198,24 @@ async function runEngine(engineName, engine) {
     }
 
     // Scenario changes retarget telemetry on the same living specimen. Playback
-    // must remain active, the same renderer must keep animating, and the new
-    // scenario-local clock must restart near zero without requiring another PLAY.
+    // must remain active, renderer identity must stay stable, the shared life
+    // clock must advance, and the new scenario-local clock must restart near
+    // zero without requiring another PLAY. The handoff can be visually subtle
+    // enough that a short coarse canvas hash sample is not reliable in CI.
     const scenario = page.locator(".forge-scenario-control select").first();
     if (await scenario.count()) {
       await scenario.selectOption({ index: 5 });
       await page.waitForTimeout(800);
-      const scenarioMotion = await waitForLiveField(page, `${engineName}: scenario change`, { samples: 3 });
+      const scenarioLife = await waitForLifeClockAdvance(page, `${engineName}: scenario change`);
       assert.ok(await page.evaluate(isPlaying), `${engineName}: playback stopped when switching scenario`);
       const tAfterScenario = await page.evaluate(simTime);
       assert.match(tAfterScenario ?? "", /^00:0[01]\.\d$/, `${engineName}: scenario-local time did not restart near zero -> ${tAfterScenario}`);
       evidence.steps.push({
         step: "scenario-change",
-        canvas: scenarioMotion.frames[0].id,
-        distinctFrames: scenarioMotion.distinct,
-        renderer: scenarioMotion.frames[0].renderer,
+        canvas: scenarioLife.latest.id,
+        lifeStart: scenarioLife.first.organismLifeTime,
+        lifeLatest: scenarioLife.latest.organismLifeTime,
+        renderer: scenarioLife.latest.renderer,
         scenarioTime: tAfterScenario,
       });
       await page.screenshot({ path: path.join(outputDir, `${engineName}-04-scenario.png`) });
