@@ -15,6 +15,7 @@ import {
   attitudeTarget,
   audioLife,
   cameraOffset,
+  wideness,
   createAttitudeState,
   createSafeFramingState,
   estimateOrganismExtent,
@@ -338,6 +339,11 @@ function createState(renderer, seedPhase) {
     perf,
   };
 
+  /* Handed to the physical layer so daughters can be re-synced to the parent
+   * material after the material sites have been written, without that module
+   * importing three.js. */
+  state.syncDaughterMaterial = () => copyUniformState(state.uniforms, state.childUniforms);
+
   canvas.__atlasPerf = perf;
   canvas.__atlasDispose = () => disposeState(renderer, state);
   renderer._flagshipFinalFormWebgl = state;
@@ -599,8 +605,20 @@ function updateFissionChildren(state, fission) {
 }
 
 function updateObject(state, renderer, g, damage, activity, aspect, mix, gesture, framing) {
-  const wide = aspect > 1.55;
-  const baseScale = wide ? 1.08 : 0.89;
+  /* Wideness is eased rather than read straight off the aspect so a viewport
+   * change that alters the stage proportions carries the organism across
+   * instead of cutting it. Each renderer eases its own value: the three views
+   * have deliberately different compositions, and a shared one would have them
+   * fighting over a single number. */
+  const targetWide = wideness(aspect);
+  if (state.wideMix == null) state.wideMix = targetWide;
+  else {
+    const step = Math.min(1, Math.max(0, renderer.visualTime - (state.wideMixTime ?? renderer.visualTime)) * 3.4);
+    state.wideMix += (targetWide - state.wideMix) * step;
+  }
+  state.wideMixTime = renderer.visualTime;
+  const wide = state.wideMix;
+  const baseScale = 0.89 + wide * 0.19;
   let cx = 0;
   let cy = 0;
   let cz = 0;
@@ -632,7 +650,7 @@ function updateObject(state, renderer, g, damage, activity, aspect, mix, gesture
     baseScale * present * (0.99 - g.art.compression * 0.022 + Math.abs(cy) * 0.026 + neck * 0.09),
     baseScale * present * (0.985 + damage * 0.018 + Math.abs(cz) * 0.018 - neck * 0.06),
   );
-  state.group.position.x = wide ? 0.6 + cx * 0.045 : cx * 0.02;
+  state.group.position.x = wide * 0.6 + cx * (0.02 + wide * 0.025);
   state.group.position.y = cy * 0.034 - g.art.compression * 0.018;
   state.group.position.z = 0;
   state.group.rotation.x = state.attitude.x;
@@ -644,12 +662,20 @@ function updateObject(state, renderer, g, damage, activity, aspect, mix, gesture
     state.canvas.style.opacity = opacity;
     state.lastOpacity = opacity;
   }
-  if (wide !== state.lastWide) {
-    state.canvas.style.webkitMaskImage = wide
-      ? "linear-gradient(90deg, transparent 0%, rgba(0,0,0,.12) 9%, #000 23%, #000 100%)"
-      : "none";
-    state.canvas.style.maskImage = state.canvas.style.webkitMaskImage;
-    state.lastWide = wide;
+  /* The left fade only exists to keep a wide stage from butting the body against
+   * the route overlay, so it fades in with wideness rather than switching on.
+   * Quantised because this writes two CSS strings and nothing about a 1% change
+   * in the gradient is visible. */
+  const maskStep = Math.round(wide * 20) / 20;
+  if (maskStep !== state.lastWide) {
+    const mask = maskStep <= 0.001
+      ? "none"
+      : `linear-gradient(90deg, rgba(0,0,0,${(1 - maskStep).toFixed(3)}) 0%,`
+        + ` rgba(0,0,0,${(1 - maskStep * 0.88).toFixed(3)}) ${(maskStep * 9).toFixed(2)}%,`
+        + ` #000 ${(maskStep * 23).toFixed(2)}%, #000 100%)`;
+    state.canvas.style.webkitMaskImage = mask;
+    state.canvas.style.maskImage = mask;
+    state.lastWide = maskStep;
   }
 }
 

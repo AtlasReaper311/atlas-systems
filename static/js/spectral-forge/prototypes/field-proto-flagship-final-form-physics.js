@@ -95,7 +95,7 @@ export function createPhysicalFissionState() {
     result: {
       active: false, stressDriven: false, progress: 0, phase: "idle", count: 0,
       gather: 0, pinch: 0, lobe: 0, gap: 0, scar: 0, reach: 0,
-      axis: null, daughters: null, extent: 1.14, independent: false,
+      axis: null, daughters: null, extent: 1.14, lookahead: 1.14, independent: false,
     },
     scratchTangent: { x: 1, y: 0, z: 0 },
   };
@@ -206,6 +206,19 @@ function buildStressFission(state, physical, drive) {
     if (item.independent) independent = true;
   }
 
+  /* Where the separation is going, not only where it is. Without this the
+   * framing reacted after material had already travelled, so a daughter could
+   * reach the edge of the stage before the camera acknowledged it. The peak of
+   * the excursion is known from the event's own parameters, so anticipating it
+   * costs nothing and needs no prediction. */
+  let lookahead = extent;
+  for (let i = 0; i < state.count; i += 1) {
+    const item = state.daughters[i];
+    if (item.scale <= 0.004 && progress > 0.5) continue;
+    const size = Math.max(item.scale, i === 0 ? state.primaryScale : state.secondaryScale);
+    lookahead = Math.max(lookahead, state.peakDistance + size * 1.1);
+  }
+
   const result = state.result;
   result.active = true;
   result.stressDriven = true;
@@ -221,6 +234,7 @@ function buildStressFission(state, physical, drive) {
   result.axis = state.axis;
   result.daughters = state.daughters;
   result.extent = extent;
+  result.lookahead = lookahead;
   result.independent = independent;
   return result;
 }
@@ -314,10 +328,20 @@ export function readFissionEvidence(fission) {
   };
 }
 
+/* Daughters are the same material as the parent, so they must be given the
+ * parent's uniform state as it stands *after* the physical layer has written its
+ * material sites. The copy used to be taken during the draw, before those sites
+ * existed, which left a body torn out of a fracturing organism rendering as a
+ * clean sphere with none of the damage it was made from.
+ *
+ * The renderer owns the copy itself and hands it over on the state object; this
+ * module cannot import it directly without eagerly pulling in three.js and
+ * breaking the Canvas2D fallback for browsers with no WebGL2. */
 function setFissionChildren(webglState, fission) {
   const daughters = fission?.daughters;
   const children = webglState.fissionChildren;
   if (!children) return;
+  webglState.syncDaughterMaterial?.();
   for (let index = 0; index < Math.min(MAX_DAUGHTERS, children.length); index += 1) {
     const mesh = children[index];
     const item = index < (fission?.count ?? 0) ? daughters?.[index] : null;
