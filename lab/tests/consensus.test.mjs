@@ -8,173 +8,142 @@ import {
   NETWORK_CLEAN,
   NETWORK_ISOLATE_C,
   NETWORK_SLOW_B,
-  acknowledgementCount,
   advanceConsensus,
   beginWrite,
+  canBeginWrite,
   createConsensusState,
-  localReplicaView,
-  logWindow,
-  messageProgress,
-  nodePhase,
-  setMode,
+  quorumCount,
+  replicaLag,
   setNetwork,
+  stateSummary,
 } from "../consensus/consensus-core.js";
 
 const html = readFileSync(new URL("../consensus/index.html", import.meta.url), "utf8");
-const source = readFileSync(new URL("../consensus/consensus.js", import.meta.url), "utf8");
+const js = readFileSync(new URL("../consensus/consensus.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../consensus/consensus.css", import.meta.url), "utf8");
 
-test("baseline is deterministic and fully converged", () => {
-  const first = createConsensusState();
-  const second = createConsensusState();
-  assert.deepEqual(first, second);
-  assert.equal(first.committedValue, "0x2A");
-  assert.equal(first.convergedValue, "0x2A");
-  assert.equal(first.nodes.A.version, 0);
-  assert.equal(first.nodes.B.version, 0);
-  assert.equal(first.nodes.C.version, 0);
+test("baseline starts fully converged", () => {
+  const state = createConsensusState();
+  assert.equal(state.committedVersion, 0);
+  assert.equal(state.convergedVersion, 0);
+  assert.equal(quorumCount(state), 3);
+  assert.equal(state.transactions.length, 0);
 });
 
-test("quorum write starts with leader proposal and one acknowledgement", () => {
-  const state = beginWrite(createConsensusState());
-  assert.equal(state.write.status, "proposing");
-  assert.deepEqual(state.write.acks, ["A"]);
+test("quorum write emits write and outbound proposals before commit", () => {
+  const state = beginWrite(createConsensusState({ mode: MODE_QUORUM }));
+  assert.equal(state.transactions[0].status, "proposing");
+  assert.equal(state.transactions[0].acks.length, 1);
   assert.equal(state.committedVersion, 0);
-  assert.equal(state.nodes.A.version, 1);
-  assert.equal(state.inflight.filter((message) => message.kind === "proposal").length, 2);
-  assert.equal(nodePhase(state, "A"), "proposal");
+  assert.deepEqual(state.events.map((event) => event.type).slice(0, 4), ["write", "append", "proposal-send", "proposal-send"]);
 });
 
-test("quorum does not commit until an acknowledgement returns", () => {
-  let state = beginWrite(createConsensusState());
-  state = advanceConsensus(state, 700);
-  assert.equal(state.nodes.B.version, 1);
-  assert.equal(state.committedVersion, 0);
-  assert.equal(acknowledgementCount(state), 1);
-  state = advanceConsensus(state, 280);
+test("quorum commits after first follower ack returns", () => {
+  let state = beginWrite(createConsensusState({ mode: MODE_QUORUM }));
+  state = advanceConsensus(state, 900);
   assert.equal(state.committedVersion, 1);
-  assert.ok(acknowledgementCount(state) >= 2);
+  assert.ok(state.transactions[0].acks.length >= 2);
+  assert.ok(state.events.some((event) => event.type === "commit"));
 });
 
-test("eventual exposes accepted truth before full convergence", () => {
-  let state = setMode(createConsensusState(), MODE_EVENTUAL);
-  state = beginWrite(state);
+test("quorum does not report convergence before every replica applies the commit", () => {
+  let state = beginWrite(createConsensusState({ mode: MODE_QUORUM, network: NETWORK_CLEAN }));
+  state = advanceConsensus(state, 900);
+  assert.equal(state.committedVersion, 1);
+  assert.equal(state.convergedVersion, 0);
+  state = advanceConsensus(state, 700);
+  assert.equal(state.convergedVersion, 1);
+});
+
+test("clean network eventually converges all three replicas", () => {
+  let state = beginWrite(createConsensusState({ mode: MODE_QUORUM, network: NETWORK_CLEAN }));
+  state = advanceConsensus(state, 2400);
+  assert.equal(state.convergedVersion, 1);
+  assert.equal(state.nodes.B.version, 1);
+  assert.equal(state.nodes.C.version, 1);
+  assert.ok(state.events.some((event) => event.type === "converged"));
+});
+
+test("slow B allows quorum while B remains visibly behind", () => {
+  let state = beginWrite(createConsensusState({ mode: MODE_QUORUM, network: NETWORK_SLOW_B }));
+  state = advanceConsensus(state, 1100);
+  assert.equal(state.committedVersion, 1);
+  assert.equal(state.nodes.C.version, 1);
+  assert.equal(state.nodes.B.version, 0);
+  assert.equal(replicaLag(state, "B"), 1);
+});
+
+test("isolated C does not block 2 of 3 quorum", () => {
+  let state = beginWrite(createConsensusState({ mode: MODE_QUORUM, network: NETWORK_ISOLATE_C }));
+  state = advanceConsensus(state, 1300);
+  assert.equal(state.committedVersion, 1);
+  assert.equal(state.nodes.C.version, 0);
+  assert.ok(state.events.some((event) => event.type === "partition-drop" && event.node === "C"));
+});
+
+test("healing isolated C schedules explicit catch-up and convergence", () => {
+  let state = beginWrite(createConsensusState({ mode: MODE_QUORUM, network: NETWORK_ISOLATE_C }));
+  state = advanceConsensus(state, 1400);
+  state = setNetwork(state, NETWORK_CLEAN);
+  assert.ok(state.events.some((event) => event.type === "catchup-send"));
+  state = advanceConsensus(state, 1600);
+  assert.equal(state.nodes.C.version, 1);
+  assert.equal(state.convergedVersion, 1);
+  assert.ok(state.events.some((event) => event.type === "catchup-arrive"));
+});
+
+test("eventual mode separates accepted from converged state", () => {
+  let state = beginWrite(createConsensusState({ mode: MODE_EVENTUAL, network: NETWORK_SLOW_B }));
   assert.equal(state.acceptedVersion, 1);
   assert.equal(state.committedVersion, 1);
   assert.equal(state.convergedVersion, 0);
-  assert.equal(state.write.status, "accepted");
-  state = advanceConsensus(state, 2200);
-  state = advanceConsensus(state, 500);
-  assert.equal(state.convergedVersion, 1);
-  assert.equal(state.write.status, "settled");
-});
-
-test("slow B allows C to satisfy quorum while B remains stale", () => {
-  let state = setNetwork(createConsensusState(), NETWORK_SLOW_B);
-  state = beginWrite(state);
   state = advanceConsensus(state, 1200);
-  state = advanceConsensus(state, 320);
   assert.equal(state.nodes.C.version, 1);
   assert.equal(state.nodes.B.version, 0);
-  assert.equal(state.committedVersion, 1);
-  assert.equal(nodePhase(state, "B"), "delayed");
   assert.equal(state.convergedVersion, 0);
 });
 
-test("isolated C remains stale while A and B form quorum", () => {
-  let state = setNetwork(createConsensusState(), NETWORK_ISOLATE_C);
-  state = beginWrite(state);
-  state = advanceConsensus(state, 1200);
-  state = advanceConsensus(state, 300);
-  assert.equal(state.committedVersion, 1);
-  assert.equal(state.nodes.B.version, 1);
-  assert.equal(state.nodes.C.version, 0);
-  assert.equal(nodePhase(state, "C"), "isolated");
-  assert.equal(state.convergedVersion, 0);
-});
-
-test("healing an isolated replica schedules reconciliation and restores convergence", () => {
-  let state = setNetwork(createConsensusState(), NETWORK_ISOLATE_C);
-  state = beginWrite(state);
-  state = advanceConsensus(state, 1300);
-  state = setNetwork(state, NETWORK_CLEAN);
-  assert.ok(state.inflight.some((message) => message.kind === "reconcile" && message.to === "C"));
-  state = advanceConsensus(state, 1800);
-  state = advanceConsensus(state, 500);
-  assert.equal(state.nodes.C.version, 1);
-  assert.equal(state.convergedVersion, 1);
-  assert.equal(state.write.status, "settled");
-});
-
-test("acknowledgement packets travel back toward the leader", () => {
+test("history retains multiple transaction traces", () => {
   let state = beginWrite(createConsensusState());
-  state = advanceConsensus(state, 700);
-  const ack = state.inflight.find((message) => message.kind === "ack" && message.from === "B");
-  assert.ok(ack);
-  assert.equal(ack.to, "A");
-  assert.ok(messageProgress(state, ack) >= 0 && messageProgress(state, ack) <= 1);
-});
-
-test("replica log window exposes missing versions during partition", () => {
-  let state = setNetwork(createConsensusState(), NETWORK_ISOLATE_C);
+  state = advanceConsensus(state, 2400);
+  assert.equal(canBeginWrite(state), true);
   state = beginWrite(state);
-  state = advanceConsensus(state, 1300);
-  const cLog = logWindow(state, "C");
-  assert.equal(cLog.at(-1).version, 1);
-  assert.equal(cLog.at(-1).status, "missing");
+  state = advanceConsensus(state, 2400);
+  assert.equal(state.transactions.length, 2);
+  assert.equal(state.transactions[0].version, 2);
+  assert.equal(state.transactions[1].version, 1);
 });
 
-test("local replica view distinguishes local truth from committed truth", () => {
-  let state = setNetwork(createConsensusState(), NETWORK_ISOLATE_C);
-  state = beginWrite(state);
-  state = advanceConsensus(state, 1600);
-  state = advanceConsensus(state, 300);
-  const view = localReplicaView(state, "C");
-  assert.equal(view.localVersion, 0);
-  assert.equal(view.committedVersion, 1);
-  assert.equal(view.lag, 1);
-  assert.equal(view.phase, "isolated");
+test("state summary names accepted committed and converged truth", () => {
+  const summary = stateSummary(beginWrite(createConsensusState()));
+  assert.match(summary, /Accepted v1/);
+  assert.match(summary, /Committed v0/);
+  assert.match(summary, /Converged v0/);
 });
 
-test("mode changes are blocked while a write is active", () => {
-  const state = beginWrite(createConsensusState());
-  const changed = setMode(state, MODE_EVENTUAL);
-  assert.equal(changed.mode, MODE_QUORUM);
+test("page describes flow rather than an agreement plane", () => {
+  assert.match(html, /PROTOCOL TRACE/);
+  assert.match(html, /TIME ↓/);
+  assert.match(html, /PROPOSE → ACK → COMMIT → APPLY → CONVERGE/);
+  assert.match(html, /data-lane="A"/);
+  assert.match(html, /data-lane="B"/);
+  assert.match(html, /data-lane="C"/);
+  assert.match(html, /id="consensus-stream"/);
+  assert.doesNotMatch(html, /AGREEMENT PLANE/);
 });
 
-test("deterministic replay produces identical state", () => {
-  const run = () => {
-    let state = setNetwork(createConsensusState(), NETWORK_SLOW_B);
-    state = beginWrite(state);
-    state = advanceConsensus(state, 1200);
-    state = advanceConsensus(state, 2400);
-    return state;
-  };
-  assert.deepEqual(run(), run());
+test("browser renderer creates protocol event classes", () => {
+  for (const token of ["proposal-send", "ack-arrive", "commit", "catchup-send", "partition-drop"]) assert.match(js, new RegExp(token));
+  assert.match(js, /requestAnimationFrame/);
+  assert.match(js, /document\.hidden/);
+  assert.doesNotMatch(js, /Math\.random/);
 });
 
-test("page teaches the protocol and exposes local replica inspection", () => {
-  assert.match(html, /WRITE STATE\. BREAK A LINK\. WATCH THE CLUSTER DECIDE WHAT COUNTS AS TRUE\./);
-  assert.match(html, /PROPOSE/);
-  assert.match(html, /ACK/);
-  assert.match(html, /COMMIT/);
-  assert.match(html, /CONVERGE/);
-  assert.match(html, /LATEST ACCEPTED/);
-  assert.match(html, /FULLY CONVERGED/);
-  assert.match(html, /data-local-view="C"/);
-  assert.doesNotMatch(html, /consensus-proposal/);
-  assert.doesNotMatch(html, /\/lab\/xray\//);
-});
-
-test("browser layer animates proposal, acknowledgement, reconciliation, and phase coherence", () => {
-  assert.match(source, /message\.kind === "ack"/);
-  assert.match(source, /message\.kind === "reconcile"/);
-  assert.match(source, /drawPacket/);
-  assert.match(source, /drawWave/);
-  assert.match(source, /prefers-reduced-motion: reduce/);
-  assert.match(source, /document\.hidden/);
-  assert.match(css, /consensus-node-orbit/);
-  assert.match(css, /data-network="slow-b"/);
-  assert.match(css, /data-phase="isolated"/);
-  assert.match(css, /consensus-quorum-ring/);
+test("visual system contains timeline, packets, partition and responsive rules", () => {
+  assert.match(css, /consensus-stream/);
+  assert.match(css, /consensus-packet/);
+  assert.match(css, /consensus-commit-front/);
+  assert.match(css, /consensus-partition/);
+  assert.match(css, /@media\(max-width:680px\)/);
+  assert.match(css, /@media\(prefers-reduced-motion:reduce\)/);
 });
