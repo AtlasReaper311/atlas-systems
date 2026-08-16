@@ -2,8 +2,24 @@
 
 import { SpectralForgeAudioEngine, PULSE_LOOKAHEAD_SECONDS, PULSE_MAX_CATCHUP_SECONDS } from "./audio-engine.js";
 import { COMPARE_INTERPOLATION_SECONDS, mappedParameterDelta } from "./sonic-profile.js";
-import { disposeSonicNodes, ensureSonicNodes, scheduleHeartbeat, setHarmonicProfile, triggerSonicEvent, updateSonicNodes } from "./sonic-nodes.js";
+import { disposeSonicNodes, ensureSonicNodes, scheduleHeartbeat, scheduleMicroImpacts, setHarmonicProfile, triggerSonicEvent, updateSonicNodes } from "./sonic-nodes.js";
 import { materialVoice, materialPulseInterval } from "./sonic-material.js";
+
+/* Audition switch. The owner needs to compare the replaced synthesis against
+ * what shipped in this PR using the same deterministic telemetry, and the
+ * cheapest honest way to do that is to leave the previous behaviour reachable
+ * rather than rebuild it later from git. ?audio=legacy restores the oscillator
+ * identity; no query string gets the material resonator. It follows the existing
+ * ?proto= convention exactly - a development affordance that no-ops on the
+ * shipped URL and ships no UI. */
+const AUDIO_MODE = (() => {
+  try {
+    return new URLSearchParams(globalThis.location?.search ?? "").get("audio") || "";
+  } catch {
+    return "";
+  }
+})();
+export const LEGACY_AUDIO = AUDIO_MODE === "legacy";
 
 const prototype = SpectralForgeAudioEngine.prototype;
 const originalActivate = prototype.activate;
@@ -62,6 +78,10 @@ prototype.schedulePulse = function sonicSchedule() {
     this.nextPulseAt += materialPulseInterval(this.pulseRate, this.sonicVoice);
     placed += 1;
   }
+
+  /* Micro impacts share the same lookahead window, so the material's fine grain
+   * is placed on the audio clock alongside its structural pulse. */
+  if (!LEGACY_AUDIO) scheduleMicroImpacts(this, horizon);
 };
 
 prototype.triggerEvent = function sonicEvent(kind, health) {
@@ -77,6 +97,6 @@ prototype.dispose = async function sonicDispose() {
 Object.defineProperty(prototype, "sonicIdentityVersion", {
   configurable: false,
   enumerable: false,
-  value: "3.0",
+  value: "4.0-resonator",
   writable: false,
 });

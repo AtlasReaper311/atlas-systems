@@ -184,6 +184,30 @@ export function materialVoice(physical, fission) {
 
     combShift: voice.combShift,
 
+    /* Damping and coupling are what a resonator actually needs from the physics.
+     * Damping is how quickly the material stops ringing: a damaged, loaded or
+     * viscous body holds a note badly. Coupling is how much the modes agree with
+     * each other: a cohesive body rings as one object, a disagreeing or
+     * fracturing one drifts into separate voices. Neither is a frequency, which
+     * is deliberate - "metric up, pitch up" was the sonification language this
+     * replaces. */
+    damping: clamp(
+      0.26
+      + damage * 0.34
+      + Number(p.viscosity ?? 0) * 0.3
+      + (1 - cohesion) * 0.28
+      + voice.drag * 0.18
+      - surfaceTension * 0.18,
+    ),
+    coupling: clamp(
+      cohesion
+      * (1 - domainDisagreement * 0.55)
+      * (1 - charge * 0.35)
+      * (1 - split.separation * 0.6)
+      * (1 - instability * 0.25)
+      + Math.max(recovery, returnPull) * 0.2,
+    ),
+
     /* Retained history. A body that has fractured keeps a trace after it heals. */
     scar: clamp(scar * 0.7 + damage * 0.3),
 
