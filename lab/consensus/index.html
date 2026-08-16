@@ -14,7 +14,7 @@
   <link rel="manifest" href="/site.webmanifest">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Consensus // Atlas Systems">
-  <meta property="og:description" content="One value. Three replicas. Change the network and watch agreement become a process.">
+  <meta property="og:description" content="Write state, break a link, and watch three replicas negotiate what counts as true.">
   <meta property="og:url" content="https://atlas-systems.uk/lab/consensus/">
   <meta property="og:site_name" content="Atlas Systems">
   <meta name="twitter:card" content="summary_large_image">
@@ -26,7 +26,7 @@
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
   <link rel="stylesheet" href="/static/css/estate-search.css">
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260724-source-hardening">
-  <link rel="stylesheet" href="/lab/consensus/consensus.css?v=20260816-consensus-v1">
+  <link rel="stylesheet" href="/lab/consensus/consensus.css?v=20260816-consensus-v2">
 </head>
 <body class="consensus-page" data-atlas-bottom-nav="true" data-lab-shell="" data-lab-layout="standard" data-lab-route="consensus">
   <nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
@@ -36,34 +36,21 @@
         <a class="nav-status atlas-status atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" data-atlas-status aria-label="Atlas Systems status: Checking" aria-live="off"><span class="status-dot atlas-status__dot" aria-hidden="true"></span><span class="atlas-estate-status-label" data-atlas-status-label>Checking</span></a>
       </div>
       <div class="atlas-header__nav atlas-global-header__nav" role="group" aria-label="Atlas Systems sections">
-        <a class="atlas-global-header__link" href="/work/">Work</a>
-        <a class="atlas-global-header__link" href="/writing/">Writing</a>
-        <a class="atlas-global-header__link" href="/lab/" aria-current="page">Lab</a>
-        <a class="atlas-global-header__link" href="/systems/">Systems</a>
-        <a class="atlas-global-header__link" href="/about/">About</a>
+        <a class="atlas-global-header__link" href="/work/">Work</a><a class="atlas-global-header__link" href="/writing/">Writing</a><a class="atlas-global-header__link" href="/lab/" aria-current="page">Lab</a><a class="atlas-global-header__link" href="/systems/">Systems</a><a class="atlas-global-header__link" href="/about/">About</a>
       </div>
-      <div class="atlas-header__actions atlas-global-header__actions">
-        <button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button>
-      </div>
+      <div class="atlas-header__actions atlas-global-header__actions"><button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button></div>
     </div>
   </nav>
 
   <nav class="lab-context-nav lab-context-nav--compact" aria-label="Lab navigation" data-lab-context-mode="compact" data-current-lab-route="Consensus">
     <div class="lab-context-compact">
-      <div class="lab-context-compact__crumbs" role="group" aria-label="Current Lab location">
-        <a href="/lab/">Lab</a>
-        <span class="lab-context-compact__separator" aria-hidden="true">/</span>
-        <span class="lab-context-compact__current" aria-current="page">Consensus</span>
-      </div>
-      <details class="lab-context-tools">
-        <summary>All Lab tools</summary>
-        <div class="lab-context-tools__menu" role="group" aria-label="All Lab tools">
-          <div class="lab-context-tools__group" data-lab-context-group="experience" role="group" aria-labelledby="consensus-lab-group-0"><span class="lab-context-tools__group-label" id="consensus-lab-group-0">Experience</span><div class="lab-context-tools__links"><a href="/lab/system-symphony/">System Symphony</a><a href="/lab/spectral-forge/">Spectral Forge</a><a href="/lab/signal/">Signal Garden</a></div></div>
-          <div class="lab-context-tools__group" data-lab-context-group="observe" role="group" aria-labelledby="consensus-lab-group-1"><span class="lab-context-tools__group-label" id="consensus-lab-group-1">Observe</span><div class="lab-context-tools__links"><a href="/lab/system-map/">System Map</a><a href="/lab/blackbox/">Blackbox</a><a href="/systems/observability/">Observability</a><a href="/lab/console/">Operations</a></div></div>
-          <div class="lab-context-tools__group" data-lab-context-group="verify" role="group" aria-labelledby="consensus-lab-group-2"><span class="lab-context-tools__group-label" id="consensus-lab-group-2">Verify</span><div class="lab-context-tools__links"><a href="/lab/proof-chain/">Proof Chain</a><a href="/lab/conformance/">Estate Conformance</a><a href="/lab/xray/">X-Ray</a><a href="/systems/reliability/">Reliability</a><a href="/systems/evidence/">Evidence</a></div></div>
-          <div class="lab-context-tools__group" data-lab-context-group="explore" role="group" aria-labelledby="consensus-lab-group-3"><span class="lab-context-tools__group-label" id="consensus-lab-group-3">Explore</span><div class="lab-context-tools__links"><a href="/lab/speculum/">Speculum</a><a href="/lab/almost/">Almost</a><a href="/lab/drift/">Drift</a><a href="/lab/bearing/">The Bearing</a><a href="/lab/anomaly/">Shape Detector</a></div></div>
-        </div>
-      </details>
+      <div class="lab-context-compact__crumbs" role="group" aria-label="Current Lab location"><a href="/lab/">Lab</a><span class="lab-context-compact__separator" aria-hidden="true">/</span><span class="lab-context-compact__current" aria-current="page">Consensus</span></div>
+      <details class="lab-context-tools"><summary>All Lab tools</summary><div class="lab-context-tools__menu" role="group" aria-label="All Lab tools">
+        <div class="lab-context-tools__group" data-lab-context-group="experience" role="group" aria-labelledby="consensus-lab-group-0"><span class="lab-context-tools__group-label" id="consensus-lab-group-0">Experience</span><div class="lab-context-tools__links"><a href="/lab/system-symphony/">System Symphony</a><a href="/lab/spectral-forge/">Spectral Forge</a><a href="/lab/signal/">Signal Garden</a></div></div>
+        <div class="lab-context-tools__group" data-lab-context-group="observe" role="group" aria-labelledby="consensus-lab-group-1"><span class="lab-context-tools__group-label" id="consensus-lab-group-1">Observe</span><div class="lab-context-tools__links"><a href="/lab/system-map/">System Map</a><a href="/lab/blackbox/">Blackbox</a><a href="/systems/observability/">Observability</a><a href="/lab/console/">Operations</a></div></div>
+        <div class="lab-context-tools__group" data-lab-context-group="verify" role="group" aria-labelledby="consensus-lab-group-2"><span class="lab-context-tools__group-label" id="consensus-lab-group-2">Verify</span><div class="lab-context-tools__links"><a href="/lab/proof-chain/">Proof Chain</a><a href="/lab/conformance/">Estate Conformance</a><a href="/systems/reliability/">Reliability</a><a href="/systems/evidence/">Evidence</a></div></div>
+        <div class="lab-context-tools__group" data-lab-context-group="explore" role="group" aria-labelledby="consensus-lab-group-3"><span class="lab-context-tools__group-label" id="consensus-lab-group-3">Explore</span><div class="lab-context-tools__links"><a href="/lab/speculum/">Speculum</a><a href="/lab/almost/">Almost</a><a href="/lab/drift/">Drift</a><a href="/lab/bearing/">The Bearing</a><a href="/lab/anomaly/">Shape Detector</a></div></div>
+      </div></details>
     </div>
   </nav>
 
@@ -72,39 +59,22 @@
       <header class="consensus-hero">
         <div class="consensus-identity">
           <p class="consensus-kicker">ATLAS / CONSENSUS / REPLICATED STATE</p>
-          <h1 id="consensus-title">Agreement has latency<span>.</span></h1>
-          <p class="consensus-subtitle">One value. Three replicas. Change the network, write a new state, and watch the distance between <em>accepted</em>, <em>committed</em>, and <em>converged</em> become visible.</p>
+          <h1 id="consensus-title">Truth needs witnesses<span>.</span></h1>
+          <p class="consensus-subtitle">A fixed leader proposes one value to two replicas. Change the network, then watch proposal, acknowledgement, commit, and convergence become separate events.</p>
         </div>
-        <div class="consensus-boundary" data-evidence-mode="simulated">
-          <strong>SIMULATED LAB</strong>
-          Fixed-leader deterministic model. No production Atlas Systems data connected.
-        </div>
+        <div class="consensus-boundary" data-evidence-mode="simulated"><strong>SIMULATED LAB</strong>Fixed-leader deterministic model. No production Atlas Systems data connected.</div>
       </header>
 
       <div class="consensus-instrument" data-mode="quorum" data-network="clean" data-agreement="full" data-write="idle">
+        <div class="consensus-primer">
+          <strong>WRITE STATE. BREAK A LINK. WATCH THE CLUSTER DECIDE WHAT COUNTS AS TRUE.</strong>
+          <div class="consensus-protocol" role="group" aria-label="Protocol sequence"><span>PROPOSE</span><i>→</i><span>ACK</span><i>→</i><span>COMMIT</span><i>→</i><span>CONVERGE</span></div>
+        </div>
+
         <div class="consensus-toolbar" role="group" aria-label="Consensus controls">
-          <div class="consensus-control-group">
-            <span class="consensus-control-label">COMMIT POLICY</span>
-            <div class="consensus-segment" role="group" aria-label="Commit policy">
-              <button type="button" data-mode="quorum" aria-pressed="true">QUORUM 2/3</button>
-              <button type="button" data-mode="eventual" aria-pressed="false">EVENTUAL</button>
-            </div>
-          </div>
-
-          <button class="consensus-write" id="consensus-write" type="button">
-            <span>WRITE NEXT</span>
-            <strong id="consensus-next-value">0x7C</strong>
-          </button>
-
-          <div class="consensus-control-group consensus-control-group--network">
-            <span class="consensus-control-label">NETWORK PROFILE</span>
-            <div class="consensus-segment consensus-segment--network" role="group" aria-label="Network profile">
-              <button type="button" data-network="clean" aria-pressed="true">CLEAN</button>
-              <button type="button" data-network="slow-b" aria-pressed="false">SLOW B</button>
-              <button type="button" data-network="isolate-c" aria-pressed="false">ISOLATE C</button>
-            </div>
-          </div>
-
+          <div class="consensus-control-group"><span class="consensus-control-label">COMMIT POLICY</span><div class="consensus-segment" role="group" aria-label="Commit policy"><button type="button" data-mode="quorum" aria-pressed="true">QUORUM 2/3</button><button type="button" data-mode="eventual" aria-pressed="false">EVENTUAL</button></div></div>
+          <button class="consensus-write" id="consensus-write" type="button"><span>WRITE NEXT</span><strong id="consensus-next-value">0x7C</strong></button>
+          <div class="consensus-control-group consensus-control-group--network"><span class="consensus-control-label">NETWORK PROFILE</span><div class="consensus-segment consensus-segment--network" role="group" aria-label="Network profile"><button type="button" data-network="clean" aria-pressed="true">CLEAN</button><button type="button" data-network="slow-b" aria-pressed="false">SLOW B</button><button type="button" data-network="isolate-c" aria-pressed="false">ISOLATE C</button></div></div>
           <button class="consensus-reset" id="consensus-reset" type="button">RESET</button>
         </div>
 
@@ -113,84 +83,53 @@
           <div class="consensus-field-label consensus-field-label--left" aria-hidden="true">AGREEMENT PLANE / 03 NODES</div>
           <div class="consensus-field-label consensus-field-label--right" aria-hidden="true">DETERMINISTIC LINK CLOCK</div>
 
-          <article class="consensus-replica consensus-replica--a" data-replica="A" data-phase="synced" aria-labelledby="consensus-node-a-title">
-            <div class="consensus-replica-ring" aria-hidden="true"><span></span><span></span><span></span></div>
-            <div class="consensus-replica-core">
-              <div class="consensus-replica-meta"><span id="consensus-node-a-title">REPLICA A</span><b>LEADER</b></div>
-              <strong class="consensus-replica-value" data-node-value="A">0x2A</strong>
-              <div class="consensus-replica-foot"><span data-node-version="A">v0</span><b data-node-phase="A">SYNCED</b></div>
-            </div>
-          </article>
+          <button class="consensus-replica consensus-replica--a" type="button" data-replica="A" data-phase="synced" aria-label="Replica A, leader. Select for local state.">
+            <span class="consensus-replica-ring" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="consensus-replica-core"><span class="consensus-replica-meta"><span>REPLICA A</span><b>LEADER</b></span><strong class="consensus-replica-value" data-node-value="A">0x2A</strong><span class="consensus-replica-foot"><span data-node-version="A">v0</span><b data-node-phase="A">SYNCED</b></span><span class="consensus-log" data-node-log="A" aria-hidden="true"></span></span>
+            <span class="consensus-local-view" data-local-view="A" hidden><span>LOCAL <b data-local-value>0x2A</b></span><span>COMMITTED <b data-local-committed>0x2A</b></span><span>LAG <b data-local-lag>0</b></span><span>LINK <b data-local-link>SYNCED</b></span></span>
+          </button>
 
-          <article class="consensus-replica consensus-replica--b" data-replica="B" data-phase="synced" aria-labelledby="consensus-node-b-title">
-            <div class="consensus-replica-ring" aria-hidden="true"><span></span><span></span><span></span></div>
-            <div class="consensus-replica-core">
-              <div class="consensus-replica-meta"><span id="consensus-node-b-title">REPLICA B</span><b>FOLLOWER</b></div>
-              <strong class="consensus-replica-value" data-node-value="B">0x2A</strong>
-              <div class="consensus-replica-foot"><span data-node-version="B">v0</span><b data-node-phase="B">SYNCED</b></div>
-            </div>
-          </article>
+          <button class="consensus-replica consensus-replica--b" type="button" data-replica="B" data-phase="synced" aria-label="Replica B, follower. Select for local state.">
+            <span class="consensus-replica-ring" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="consensus-replica-core"><span class="consensus-replica-meta"><span>REPLICA B</span><b>FOLLOWER</b></span><strong class="consensus-replica-value" data-node-value="B">0x2A</strong><span class="consensus-replica-foot"><span data-node-version="B">v0</span><b data-node-phase="B">SYNCED</b></span><span class="consensus-log" data-node-log="B" aria-hidden="true"></span></span>
+            <span class="consensus-local-view" data-local-view="B" hidden><span>LOCAL <b data-local-value>0x2A</b></span><span>COMMITTED <b data-local-committed>0x2A</b></span><span>LAG <b data-local-lag>0</b></span><span>LINK <b data-local-link>SYNCED</b></span></span>
+          </button>
 
-          <article class="consensus-replica consensus-replica--c" data-replica="C" data-phase="synced" aria-labelledby="consensus-node-c-title">
-            <div class="consensus-replica-ring" aria-hidden="true"><span></span><span></span><span></span></div>
-            <div class="consensus-replica-core">
-              <div class="consensus-replica-meta"><span id="consensus-node-c-title">REPLICA C</span><b>FOLLOWER</b></div>
-              <strong class="consensus-replica-value" data-node-value="C">0x2A</strong>
-              <div class="consensus-replica-foot"><span data-node-version="C">v0</span><b data-node-phase="C">SYNCED</b></div>
-            </div>
-          </article>
+          <button class="consensus-replica consensus-replica--c" type="button" data-replica="C" data-phase="synced" aria-label="Replica C, follower. Select for local state.">
+            <span class="consensus-replica-ring" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="consensus-replica-core"><span class="consensus-replica-meta"><span>REPLICA C</span><b>FOLLOWER</b></span><strong class="consensus-replica-value" data-node-value="C">0x2A</strong><span class="consensus-replica-foot"><span data-node-version="C">v0</span><b data-node-phase="C">SYNCED</b></span><span class="consensus-log" data-node-log="C" aria-hidden="true"></span></span>
+            <span class="consensus-local-view" data-local-view="C" hidden><span>LOCAL <b data-local-value>0x2A</b></span><span>COMMITTED <b data-local-committed>0x2A</b></span><span>LAG <b data-local-lag>0</b></span><span>LINK <b data-local-link>SYNCED</b></span></span>
+          </button>
 
-          <div class="consensus-commit" id="consensus-commit" data-phase="full" role="group" aria-label="Committed state">
-            <div class="consensus-orbit consensus-orbit--outer" aria-hidden="true"><span></span></div>
-            <div class="consensus-orbit consensus-orbit--mid" aria-hidden="true"><span></span></div>
-            <div class="consensus-orbit consensus-orbit--inner" aria-hidden="true"><span></span></div>
-            <div class="consensus-commit-core">
-              <span class="consensus-commit-label">COMMITTED STATE</span>
-              <strong id="consensus-commit-value">0x2A</strong>
-              <span id="consensus-commit-version">VERSION 0</span>
-              <b id="consensus-agreement-count">3 / 3 AGREE</b>
+          <div class="consensus-truth" id="consensus-truth" data-phase="full" role="group" aria-label="Shared truth">
+            <div class="consensus-quorum-ring" id="consensus-quorum-ring" aria-hidden="true"><span></span></div>
+            <div class="consensus-orbit consensus-orbit--outer" aria-hidden="true"><span></span></div><div class="consensus-orbit consensus-orbit--inner" aria-hidden="true"><span></span></div>
+            <div class="consensus-truth-quorum">
+              <span class="consensus-truth-label">COMMITTED TRUTH</span><strong id="consensus-commit-value">0x2A</strong><span id="consensus-commit-version">VERSION 0</span><b id="consensus-agreement-count">3 / 3 AGREE</b><small id="consensus-quorum-state">READY FOR PROPOSAL</small>
             </div>
-            <div class="consensus-proposal" id="consensus-proposal" hidden>
-              <span>PROPOSAL</span>
-              <strong id="consensus-proposal-value">0x7C</strong>
-              <b id="consensus-proposal-acks">1 / 3</b>
+            <div class="consensus-truth-eventual" aria-hidden="true">
+              <span class="consensus-truth-label">LATEST ACCEPTED</span><strong id="consensus-accepted-value">0x2A</strong><span id="consensus-accepted-version">VERSION 0</span><i></i><span class="consensus-truth-label">FULLY CONVERGED</span><strong id="consensus-converged-value">0x2A</strong><span id="consensus-converged-version">VERSION 0</span>
             </div>
           </div>
 
-          <div class="consensus-link-tag consensus-link-tag--b" aria-hidden="true"><span>A → B</span><b id="consensus-link-b">760 ms</b></div>
-          <div class="consensus-link-tag consensus-link-tag--c" aria-hidden="true"><span>A → C</span><b id="consensus-link-c">1.08 s</b></div>
+          <div class="consensus-link-tag consensus-link-tag--b" aria-hidden="true"><span>A ↔ B</span><b id="consensus-link-b">680 ms</b></div>
+          <div class="consensus-link-tag consensus-link-tag--c" aria-hidden="true"><span>A ↔ C</span><b id="consensus-link-c">940 ms</b></div>
         </div>
 
         <div class="consensus-readout" role="group" aria-label="Consensus state">
-          <div><span>WRITE</span><strong id="consensus-write-status">READY</strong></div>
-          <div><span>ACKS / LATEST</span><strong id="consensus-acks">3 / 3</strong></div>
-          <div><span>AGREEMENT</span><strong id="consensus-agreement">FULL</strong></div>
-          <div><span>NETWORK</span><strong id="consensus-network">CLEAN LINKS</strong></div>
-          <div><span>POLICY</span><strong id="consensus-policy">QUORUM 2 / 3</strong></div>
+          <div><span>PROTOCOL</span><strong id="consensus-write-status">READY</strong></div><div><span>ACKS</span><strong id="consensus-acks">3 / 3</strong></div><div><span>AGREEMENT</span><strong id="consensus-agreement">FULL</strong></div><div><span>NETWORK</span><strong id="consensus-network">CLEAN LINKS</strong></div><div><span>POLICY</span><strong id="consensus-policy">QUORUM 2 / 3</strong></div>
         </div>
 
-        <div class="consensus-try" role="group" aria-label="Suggested experiment">
-          <span>TRY THIS</span>
-          <p id="consensus-prompt">Isolate C, then write. Quorum still commits through A + B, while C remains visibly stale until you heal the link.</p>
-        </div>
+        <div class="consensus-try" role="group" aria-label="Suggested experiment"><span>TRY THIS</span><p id="consensus-prompt">Isolate C, then write. A and B can still commit through quorum while C keeps an older local truth. Heal the link and watch C catch up before phase coherence returns.</p></div>
       </div>
 
-      <p class="consensus-scope-note">This is intentionally smaller than Raft or Paxos. The leader is fixed and link timings are deterministic so the interaction isolates quorum, propagation, partitions, and convergence without pretending to simulate leader election.</p>
-      <p id="consensus-help" class="consensus-visually-hidden">Choose a commit policy and network profile, then press Write Next. Quorum waits for two replicas to hold the proposal. Eventual accepts at the leader immediately and lets the followers converge later. Reset returns all replicas to version zero.</p>
+      <p class="consensus-scope-note">This is a deliberately bounded teaching model, not Raft or Paxos. The leader stays fixed and link timings are deterministic so the interaction isolates proposal flow, quorum, stale replicas, partitions, and convergence.</p>
+      <p id="consensus-help" class="consensus-visually-hidden">Choose a commit policy and network profile, then press Write Next. Proposal packets leave replica A. Follower acknowledgements return to A. Quorum commits after two acknowledgements. Eventual exposes accepted state before every replica converges. Select a replica to inspect its local view.</p>
       <p id="consensus-state-summary" class="consensus-visually-hidden" role="status" aria-live="polite"></p>
     </section>
   </main>
 
-  <script type="module" src="/lab/consensus/consensus.js?v=20260816-consensus-v1"></script>
-
-  <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
-    <div class="mobile-nav-inner atlas-mobile-nav__inner">
-      <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>
-      <a class="mobile-nav-item atlas-mobile-nav__item" href="/writing/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="16" y2="13"></line></svg><span>Writing</span></a>
-      <a class="mobile-nav-item atlas-mobile-nav__item active" href="/lab/" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V9"></path><path d="M14 3h7v7"></path></svg><span>Lab</span></a>
-      <a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg><span>Systems</span></a>
-      <a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M20 21a8 8 0 10-16 0"></path></svg><span>About</span></a>
-    </div>
-  </nav>
+  <script type="module" src="/lab/consensus/consensus.js?v=20260816-consensus-v2"></script>
+  <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation"><div class="mobile-nav-inner atlas-mobile-nav__inner"><a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a><a class="mobile-nav-item atlas-mobile-nav__item" href="/writing/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="16" y2="13"></line></svg><span>Writing</span></a><a class="mobile-nav-item atlas-mobile-nav__item active" href="/lab/" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V9"></path><path d="M14 3h7v7"></path></svg><span>Lab</span></a><a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg><span>Systems</span></a><a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M20 21a8 8 0 10-16 0"></path></svg><span>About</span></a></div></nav>
 </body>
 </html>
