@@ -188,3 +188,42 @@ test("every voice value stays bounded whatever the physics does", () => {
 test("material audio declares its version", () => {
   assert.equal(typeof MATERIAL_AUDIO_VERSION, "string");
 });
+
+test("the three structural arcs are distinct states, not one ramp", () => {
+  /* Loading, release, return. Measured on the previous build, the arcs arrived
+   * within 0.3% of each other on every spectral axis, which is not a signature
+   * moment - the distinction lived only in tuning and image, where a summed
+   * spectrum cannot see it and a listener barely can. */
+  const build = fissionSplit({ active: true, phase: "neck", progress: 0.3, pinch: 0.9, gather: 0.2, gap: 0, axis: { x: 0.6 } });
+  const apart = fissionSplit({ active: true, phase: "independent", progress: 0.62, pinch: 0.1, gap: 0.95, independent: true, count: 2, axis: { x: 0.6 } });
+  const back = fissionSplit({ active: true, phase: "contact", progress: 0.88, pinch: 0, gap: 0.08, scar: 0.6, axis: { x: 0.6 } });
+
+  assert.ok(build.strain > 0.6, `build must read as strain (${build.strain})`);
+  assert.ok(build.separation < 0.15, "nothing has parted during the build");
+  assert.ok(build.spread < 0.2, "the image must not open before the material does");
+
+  assert.ok(apart.separation > 0.8, `separation must read as separated (${apart.separation})`);
+  assert.ok(apart.strain < build.strain * 0.5, "strain releases when the material parts");
+  assert.ok(apart.spread > build.spread * 3, "the image opens as the body parts");
+  assert.ok(apart.voices > 1, "separated material must sound as more than one voice");
+
+  assert.ok(back.attraction > 0.4, `reassembly must read as attraction (${back.attraction})`);
+  assert.ok(back.separation < apart.separation * 0.3, "the gap closes");
+  assert.ok(back.spread < apart.spread, "the image closes with it");
+  assert.equal(back.voices, 1, "reunited material is one voice again");
+});
+
+test("each arc moves the spectrum, not only tuning and image", () => {
+  const at = (split) => materialVoice(
+    physical("structural-failure", { cohesion: 0.3, material: { damage: 0.6, fractureCharge: 3 } }),
+    split,
+  );
+  const build = at({ active: true, phase: "neck", pinch: 0.9, gather: 0.2, gap: 0, axis: { x: 0.6 } });
+  const apart = at({ active: true, phase: "independent", progress: 0.62, pinch: 0.1, gap: 0.95, independent: true, count: 2, axis: { x: 0.6 } });
+  const back = at({ active: true, phase: "contact", progress: 0.88, pinch: 0, gap: 0.08, scar: 0.6, axis: { x: 0.6 } });
+
+  assert.ok(apart.crystal > build.crystal, "separation must open the upper structure relative to the build");
+  assert.ok(apart.air > build.air * 1.5, "separation must expose more surface than the narrowing build");
+  assert.ok(back.converge > apart.converge, "reassembly must reconverge more than separation");
+  assert.ok(build.tension > apart.tension, "tension is released by the break, not sustained through it");
+});

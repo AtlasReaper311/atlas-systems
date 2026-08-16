@@ -67,7 +67,7 @@ export const REGIME_VOICE = Object.freeze({
     density: 0.26, tension: 0.3, domains: 0, floorDrop: 0, converge: 0, combShift: 0.86,
   }),
   "structural-failure": Object.freeze({
-    crystal: 0.82, inharmonic: 0.6, air: 0.24, spread: 0.88, drag: 0.24,
+    crystal: 0.82, inharmonic: 0.6, air: 0.4, spread: 0.88, drag: 0.24,
     density: 0.52, tension: 0.9, domains: 0.4, floorDrop: 0.3, converge: 0, combShift: 0.76,
   }),
   reassembly: Object.freeze({
@@ -123,13 +123,30 @@ export function materialVoice(physical, fission) {
      * quieter rather than beautiful and uneasy. Coherence now costs a little
      * presence and buys a lot of instability, and accumulating charge lifts the
      * bank so loading is audible before anything breaks. */
-    crystal: clamp(voice.crystal * (0.82 + cohesion * 0.18) * (1 - damage * 0.12) + charge * 0.25),
+    crystal: clamp(
+      voice.crystal * (0.82 + cohesion * 0.18) * (1 - damage * 0.12)
+      + charge * 0.25
+      /* The three arcs must be audible in the spectrum, not only in tuning and
+       * image - detune and panning barely move a summed spectrum, and measured,
+       * the arcs were arriving within 0.3% of each other on every spectral axis.
+       * Strain covers the material as the connection narrows; separation
+       * releases it as the body parts; reconvergence clarifies it as the
+       * daughters return. Loading, release, return. */
+      - split.strain * 0.16
+      + split.separation * 0.2
+      + split.attraction * 0.1,
+    ),
 
     /* Detuning of the upper bank. Charge loads it well before anything visibly
      * breaks, which is the "something is coming" the split needs. */
     inharmonic: clamp(voice.inharmonic + charge * 0.42 + instability * 0.22 + split.detune),
 
-    air: clamp(voice.air * (0.5 + surfaceTension * 0.5) * (1 - damage * 0.35)),
+    /* Damaged surface, not absent surface. The arcs move it too: a narrowing
+     * connection closes the surface down, an opening gap exposes it. */
+    air: clamp(
+      voice.air * (0.5 + surfaceTension * 0.5) * (1 - damage * 0.15)
+      * (1 - split.strain * 0.45) * (1 + split.separation * 0.7),
+    ),
 
     /* Width narrows under pressure and opens as material separates. */
     spread: clamp(voice.spread * (1 - compression * 0.3) + split.spread * 0.55 + domainDisagreement * 0.2),
@@ -140,8 +157,18 @@ export function materialVoice(physical, fission) {
     /* Rhythmic pressure without level: closer spacing, tighter envelopes. */
     density: clamp(voice.density * (0.55 + pressure * 0.45) + compression * 0.2),
 
-    /* Harmonic loading that does not resolve. */
-    tension: clamp(voice.tension * (0.4 + charge * 0.6) + charge * 0.35 + propagation * 0.12),
+    /* Harmonic loading that does not resolve. Strain adds to it while the
+     * connection is still narrowing, and drops away once the material has
+     * actually parted - the tension is released by the break, not by the
+     * separation continuing. */
+    tension: clamp(
+      voice.tension * (0.4 + charge * 0.6) + charge * 0.35 + propagation * 0.12
+      + split.strain * 0.3
+      /* The break relieves the load. Without this the tension saturated and
+       * stayed saturated straight through the separation, so the one moment
+       * that should feel like release sounded identical to the build. */
+      - split.separation * 0.45,
+    ),
 
     /* Competing domains: two voices that keep pulling apart and agreeing again. */
     domains: clamp(voice.domains * (0.35 + domainDisagreement * 0.65) + split.domains),
@@ -149,8 +176,11 @@ export function materialVoice(physical, fission) {
     /* Support removed from beneath the tone rather than filtered off the top. */
     floorDrop: clamp(voice.floorDrop * (0.3 + supportStrength * 0.7) + propagation * 0.15),
 
-    /* Reconvergence: pitch, phase and image pulled back together. */
-    converge: clamp(voice.converge * (0.3 + Math.max(recovery, returnPull) * 0.7)),
+    /* Reconvergence: pitch, phase and image pulled back together. Attraction
+     * during a closing gap counts as reconvergence even mid-event, which is what
+     * makes the return audible as the material being drawn back rather than as
+     * the separation simply ending. */
+    converge: clamp(voice.converge * (0.3 + Math.max(recovery, returnPull) * 0.7) + split.attraction * 0.55),
 
     combShift: voice.combShift,
 
@@ -171,28 +201,53 @@ export function materialVoice(physical, fission) {
  * relationship apart, detach separates, independent holds them apart, return and
  * contact bring them back, settle leaves a trace. */
 export function fissionSplit(fission) {
-  const idle = { active: false, phase: "idle", progress: 0, separation: 0, detune: 0, spread: 0, domains: 0, daughterPan: 0 };
+  const idle = {
+    active: false, phase: "idle", progress: 0,
+    strain: 0, separation: 0, attraction: 0,
+    detune: 0, spread: 0, domains: 0, daughterPan: 0, voices: 1,
+  };
   if (!fission?.active) return idle;
 
   const phase = fission.phase ?? "idle";
   const progress = clamp(fission.progress ?? 0);
   const pinch = clamp(fission.pinch ?? 0);
   const gap = clamp(fission.gap ?? 0);
+  const gather = clamp(fission.gather ?? 0);
+  const scar = clamp(fission.scar ?? 0);
+  const count = Math.max(1, Number(fission.count ?? 1));
 
-  /* Separation is how far apart the two voices are, and it follows the material
-   * gap rather than the raw progress so the sound reconverges exactly as the
-   * daughters are drawn back in. */
-  const separation = clamp(gap * 0.82 + pinch * 0.3);
+  /* Three arcs, each read from the quantity that physically defines it, so the
+   * progression is a continuous function of the material rather than ten cued
+   * sound effects. The phases are not branched on: pinch is the narrowing
+   * connection, gap is the opening distance, and the scar is what remains once
+   * the gap has closed again.
+   *
+   *   strain      the connection narrowing while nothing has yet parted
+   *   separation  actual distance between two independent masses
+   *   attraction  the gap closing under return pull
+   */
+  const strain = clamp(pinch * 0.86 + gather * 0.3) * (1 - gap * 0.72);
+  const separation = clamp(gap * 0.92 + (fission.independent ? 0.08 : 0));
+  const attraction = clamp(scar * 0.5 + Math.max(0, 0.62 - gap) * (progress > 0.62 ? 1.3 : 0));
 
   return {
     active: true,
     phase,
     progress,
+    strain,
     separation,
-    /* The relationship destabilises before it breaks. */
-    detune: clamp(pinch * 0.34 + separation * 0.42),
-    spread: separation,
-    domains: clamp(separation * 0.85),
+    attraction,
+
+    /* Strain tightens the relationship without opening the image; separation is
+     * what actually pulls the voices apart. Keeping those separate is what makes
+     * the build read as loading rather than as an early split. */
+    detune: clamp(strain * 0.46 + separation * 0.54),
+    spread: clamp(separation * (1 - attraction * 0.55)),
+    domains: clamp(separation * 0.85 + strain * 0.25),
+
+    /* How many related material voices are sounding. */
+    voices: separation > 0.18 ? count : 1,
+
     /* Which side the daughter takes. Deterministic from the fission axis so the
      * sound separates the same way the picture does. */
     daughterPan: clamp((fission.axis?.x ?? 0) * 0.5 + 0.5, 0, 1) * 2 - 1,

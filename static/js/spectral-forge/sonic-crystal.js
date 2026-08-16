@@ -139,23 +139,48 @@ export function updateCrystalLayer(layer, voice, baseFrequency, brightness, now,
   const tension = clamp(voice.tension);
   const domains = clamp(voice.domains);
 
+  const damage = clamp(voice.damage ?? 0);
+  const strain = clamp(voice.split?.strain ?? 0);
+  const separation = clamp(voice.split?.separation ?? 0);
+  const converge = clamp(voice.converge ?? 0);
+  const top = layer.bank.length - 1;
+
   for (let i = 0; i < layer.bank.length; i += 1) {
     const partial = layer.bank[i];
     /* Brightness shades the bank rather than gating it: a dark mapping should
      * make the material sound covered, not absent. */
     const presence = crystal * partial.weight * (0.58 + brightness * 0.42);
-    ramp(partial.gain.gain, 0.052 * presence, now, seconds);
+
+    /* Damage redistributes the bank rather than removing it. The lower partials
+     * - the ones carrying the body of the ring - thin out, while the upper ones
+     * hold and slightly rise: fractured crystalline remnants, not a different
+     * instrument. Measured, tying the whole upper structure to damage had left
+     * the air component at 0.05% of output during severe failure, which crossed
+     * from damaging the identity into replacing it. */
+    const height = top > 0 ? i / top : 0;
+    const shard = 1 - damage * 0.42 + height * damage * 1.15;
+
+    ramp(partial.gain.gain, 0.052 * presence * clamp(shard, 0.35, 1.9), now, seconds);
 
     /* Inharmonic push and tension both bend the bank off true, in opposite
      * senses per partial so the material beats against itself. Domains add a
-     * slower competing offset on alternate partials. */
+     * slower competing offset on alternate partials.
+     *
+     * The three structural arcs are separated here: strain tightens the bank
+     * into faster beating while the connection is still narrowing, separation
+     * pulls the partials into two groups once the body has parted, and
+     * reconvergence pulls all of it back toward true. */
     const domainSide = i % 2 === 0 ? 1 : -1;
-    const cents = partial.bias * (inharmonic * 46 + tension * 28) + domainSide * domains * 19;
+    const arc = strain * 34 - converge * 26;
+    const cents = (partial.bias * (inharmonic * 46 + tension * 28) + domainSide * domains * 19 + partial.bias * arc)
+      * (1 - converge * 0.45);
     ramp(partial.oscillator.detune, cents, now, seconds);
     ramp(partial.oscillator.frequency, baseFrequency * partial.ratio, now, Math.max(seconds, 0.35));
 
-    /* Separation widens the bank across the image as the body comes apart. */
-    const pan = CRYSTAL_PAN[i] * (1 + voice.spread * 0.5);
+    /* Once the material has parted, alternate partials take the daughter's side
+     * of the image; before that they only widen. Reconvergence closes it. */
+    const daughterSide = separation > 0.18 && i % 2 === 1 ? (voice.split?.daughterPan ?? 0) * separation : 0;
+    const pan = CRYSTAL_PAN[i] * (1 + voice.spread * 0.5) + daughterSide * 0.55;
     ramp(partial.panner.pan, clamp(pan, -1, 1), now, seconds);
   }
 }
@@ -163,6 +188,9 @@ export function updateCrystalLayer(layer, voice, baseFrequency, brightness, now,
 export function updateAirLayer(layer, voice, now, slewBase) {
   const seconds = materialSlew(slewBase, voice);
   ramp(layer.gain.gain, 0.021 * clamp(voice.air), now, seconds);
+  /* Roughening rather than silencing: a fractured surface loses its sheen but
+   * keeps a broader, less defined high band. */
+  ramp(layer.peak.Q, 0.9 + clamp(voice.damage ?? 0) * 1.8, now, seconds);
   /* Support loss takes the floor out from under the tone; the air band lifts as
    * the body below it thins, which is what makes the collapse audible as a
    * change of support rather than a change of volume. */
