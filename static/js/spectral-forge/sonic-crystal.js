@@ -141,7 +141,9 @@ export function updateCrystalLayer(layer, voice, baseFrequency, brightness, now,
 
   for (let i = 0; i < layer.bank.length; i += 1) {
     const partial = layer.bank[i];
-    const presence = crystal * partial.weight * (0.35 + brightness * 0.65);
+    /* Brightness shades the bank rather than gating it: a dark mapping should
+     * make the material sound covered, not absent. */
+    const presence = crystal * partial.weight * (0.58 + brightness * 0.42);
     ramp(partial.gain.gain, 0.052 * presence, now, seconds);
 
     /* Inharmonic push and tension both bend the bank off true, in opposite

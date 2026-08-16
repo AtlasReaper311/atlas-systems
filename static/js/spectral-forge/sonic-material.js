@@ -21,6 +21,7 @@
 
 import { clamp } from "./domain.js";
 
+export const MATERIAL_AUDIO_VERSION = "3.0";
 export const CRYSTAL_PARTIALS = 5;
 
 /* Inharmonic ratios, not a harmonic series. A harmonic stack reads as one
@@ -29,11 +30,6 @@ export const CRYSTAL_PARTIALS = 5;
  * synth lead. Chosen to land the bank between roughly 1 and 5 kHz on the 92 Hz
  * base, which is where the instrument previously had nothing at all. */
 export const CRYSTAL_RATIOS = Object.freeze([11.03, 17.47, 25.94, 36.82, 50.61]);
-
-/* Per-partial detune targets when the material is pushed off true. Spread so a
- * destabilised body beats against itself rather than sliding in parallel. */
-const CRYSTAL_INHARMONIC_BIAS = Object.freeze([0.31, -0.52, 0.78, -1.14, 1.63]);
-const CRYSTAL_PAN = Object.freeze([-0.42, 0.31, -0.18, 0.52, -0.07]);
 
 /* How each regime works the material.
  *
@@ -59,7 +55,7 @@ export const REGIME_VOICE = Object.freeze({
     density: 0.78, tension: 0.2, domains: 0, floorDrop: 0, converge: 0, combShift: 0.94,
   }),
   "support-loss": Object.freeze({
-    crystal: 0.72, inharmonic: 0.2, air: 0.44, spread: 0.56, drag: 0.12,
+    crystal: 0.86, inharmonic: 0.2, air: 0.44, spread: 0.56, drag: 0.12,
     density: 0.34, tension: 0.26, domains: 0, floorDrop: 1, converge: 0, combShift: 1.14,
   }),
   oscillating: Object.freeze({
@@ -67,11 +63,11 @@ export const REGIME_VOICE = Object.freeze({
     density: 0.44, tension: 0.22, domains: 1, floorDrop: 0, converge: 0, combShift: 1,
   }),
   viscous: Object.freeze({
-    crystal: 0.64, inharmonic: 0.14, air: 0.26, spread: 0.48, drag: 0.88,
+    crystal: 0.78, inharmonic: 0.14, air: 0.26, spread: 0.48, drag: 0.88,
     density: 0.26, tension: 0.3, domains: 0, floorDrop: 0, converge: 0, combShift: 0.86,
   }),
   "structural-failure": Object.freeze({
-    crystal: 0.58, inharmonic: 0.6, air: 0.24, spread: 0.88, drag: 0.24,
+    crystal: 0.82, inharmonic: 0.6, air: 0.24, spread: 0.88, drag: 0.24,
     density: 0.52, tension: 0.9, domains: 0.4, floorDrop: 0.3, converge: 0, combShift: 0.76,
   }),
   reassembly: Object.freeze({
@@ -120,9 +116,14 @@ export function materialVoice(physical, fission) {
   return {
     regime: p.regime ?? "coherent",
 
-    /* Crystalline presence falls as the body loses coherence: a material that
-     * cannot hold itself together cannot ring. */
-    crystal: clamp(voice.crystal * (0.55 + cohesion * 0.45) * (1 - damage * 0.3)),
+    /* Failure destabilises the ring; it does not silence it. Tying presence
+     * hard to cohesion made the crystalline layer collapse from 7.6% of output
+     * to 0.8% exactly during a fracture - the upper register disappeared at the
+     * one moment it was supposed to carry the event, leaving failure duller and
+     * quieter rather than beautiful and uneasy. Coherence now costs a little
+     * presence and buys a lot of instability, and accumulating charge lifts the
+     * bank so loading is audible before anything breaks. */
+    crystal: clamp(voice.crystal * (0.82 + cohesion * 0.18) * (1 - damage * 0.12) + charge * 0.25),
 
     /* Detuning of the upper bank. Charge loads it well before anything visibly
      * breaks, which is the "something is coming" the split needs. */
