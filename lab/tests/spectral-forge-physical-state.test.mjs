@@ -18,6 +18,7 @@ import {
 import {
   MATERIAL_REGIMES,
   createMaterialState,
+  stepMaterialState,
 } from "../../static/js/spectral-forge/spectral-field-material.js";
 import {
   beginScenarioHandoff,
@@ -393,4 +394,69 @@ test("the material model allocates a bounded, preallocated site and scar set", (
   const a = stepPhysicalState(model, { frame, outputs, lifeTime: 500 });
   const b = stepPhysicalState(model, { frame, outputs, lifeTime: 500.033 });
   assert.equal(a, b, "physical snapshot allocates a new object per frame");
+});
+
+test("domain disagreement reverses continuously instead of inverting polarity", () => {
+  /* Service Flapping showed a visible positional snap. The domain sites took the
+   * sign of sin(domainPhase) as their polarity while holding strength at half
+   * the disagreement or more, so at the zero crossing the field went from a
+   * substantial outward push to a substantial inward pull between two frames.
+   *
+   * Walking the phase through several full cycles, no site may invert its
+   * polarity while carrying meaningful strength, and the signed force each
+   * domain applies must never step. */
+  const model = createMaterialState(0.41);
+  const signals = {
+    request_rate: 0.5, latency_ms: 0.5, error_rate: 0.42,
+    queue_depth: 0.4, cache_hit_rate: 0.6, cpu_load: 0.5, anomaly_score: 0.55,
+  };
+  const trends = { request_rate: 0, latency_ms: 0, error_rate: 0, queue_depth: 0, cache_hit_rate: 0, cpu_load: 0, anomaly_score: 0 };
+
+  /* Drive it into an oscillating regime with a real disagreement. */
+  let lifeTime = 0;
+  const dt = 1 / 60;
+  for (let step = 0; step < 900; step += 1) {
+    lifeTime += dt;
+    const phase = Math.sin(lifeTime * 2.2);
+    stepMaterialState(model, {
+      signals: { ...signals, error_rate: 0.42 + phase * 0.3, anomaly_score: 0.55 + phase * 0.25 },
+      trends: { ...trends, error_rate: phase * 0.9, anomaly_score: phase * 0.8 },
+      physical: { instability: 0.8, cohesion: 0.6, propagation: 0.2, pressure: 0.4, stretch: 0.1, compression: 0.2, viscosity: 0.2, recovery: 0.1, memory: 0.2, surfaceTension: 0.5, peakRecruitment: 0.3 },
+      lifeTime,
+      dt,
+    });
+  }
+  assert.ok(model.domainDisagreement > 0.05, `domain disagreement never engaged (${model.domainDisagreement})`);
+
+  /* Now sample the site output across the phase, holding everything else. */
+  const samples = [];
+  for (let i = 0; i <= 720; i += 1) {
+    model.domainPhase = (i / 720) * Math.PI * 6;
+    stepMaterialState(model, { signals, trends, physical: { instability: 0.8, cohesion: 0.6, propagation: 0.2, pressure: 0.4, stretch: 0.1, compression: 0.2, viscosity: 0.2, recovery: 0.1, memory: 0.2, surfaceTension: 0.5, peakRecruitment: 0.3 }, lifeTime: (lifeTime += dt), dt: 0 });
+    const domains = model.sites.slice(0, model.activeSiteCount).filter((s) => s.kind === "domain");
+    samples.push(domains.map((s) => ({ polarity: s.polarity, strength: s.strength, signed: s.polarity * s.strength })));
+  }
+
+  let inversions = 0;
+  let maxSignedStep = 0;
+  for (let i = 1; i < samples.length; i += 1) {
+    const previous = samples[i - 1];
+    const current = samples[i];
+    const pairs = Math.min(previous.length, current.length);
+    for (let d = 0; d < pairs; d += 1) {
+      const a = previous[d];
+      const b = current[d];
+      /* A polarity flip is only acceptable where the force has gone to nothing. */
+      if (a.polarity !== b.polarity && Math.min(a.strength, b.strength) > 0.05) inversions += 1;
+      maxSignedStep = Math.max(maxSignedStep, Math.abs(b.signed - a.signed));
+    }
+  }
+
+  assert.equal(inversions, 0, `${inversions} polarity inversion(s) at substantial strength`);
+  assert.ok(maxSignedStep < 0.05, `signed domain force stepped by ${maxSignedStep.toFixed(4)} between adjacent phases`);
+
+  /* And the disagreement must still actually swing - the fix must not have been
+   * bought by making Flapping placid. */
+  const spans = samples.map((s) => (s.length >= 2 ? Math.abs(s[0].signed - s[1].signed) : 0));
+  assert.ok(Math.max(...spans) - Math.min(...spans) > 0.1, "domain opposition no longer varies across the cycle");
 });
