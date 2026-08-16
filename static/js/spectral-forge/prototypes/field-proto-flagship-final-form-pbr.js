@@ -15,6 +15,7 @@ import {
   attitudeTarget,
   audioLife,
   cameraOffset,
+  presentationCentreSettle,
   wideness,
   createAttitudeState,
   createSafeFramingState,
@@ -651,7 +652,7 @@ function updateObject(state, renderer, g, damage, activity, aspect, mix, gesture
     baseScale * present * (0.985 + damage * 0.018 + Math.abs(cz) * 0.018 - neck * 0.06),
   );
   state.group.position.x = wide * 0.6 + cx * (0.02 + wide * 0.025);
-  state.group.position.y = cy * 0.034 - g.art.compression * 0.018;
+  state.group.position.y = cy * 0.034 - g.art.compression * 0.018 + presentationCentreSettle(aspect);
   state.group.position.z = 0;
   state.group.rotation.x = state.attitude.x;
   state.group.rotation.y = state.attitude.y;

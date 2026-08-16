@@ -425,7 +425,38 @@ export function presentationOffsetX(aspect = 1.6) {
   return wideness(aspect) * 0.6;
 }
 
+/* A perspective camera holds its *vertical* field of view, so a wide, short
+ * stage is bound by its height while a tall one has room to spare. At rest the
+ * organism filled the wide stage edge to edge - measured y-span 0.000 to 0.998.
+ *
+ * The resting material reaches 1.123 world units from the frame centre, measured
+ * by standing the camera far enough off that nothing clipped and reading the
+ * span back. Holding 5% of the visible height clear on each side therefore needs
+ * a visible half-height of 1.248, which is a 4.913 standoff on the widest stage.
+ * That costs 10% of apparent size - against the 33% the old auto-fit surrendered
+ * - and costs nothing where the margin already exists. It is a fixed property of
+ * the composition, not a zoom: for a given stage this distance never changes. */
+export const REST_MATERIAL_OFFSET = 1.123;
+export const REST_MARGIN_DISTANCE_GAIN = 0.1115;
+
+/* The resting body does not sit on the frame centre. Measured span, reading the
+ * framebuffer bottom-up: 0.077 to 0.973, so the body sits 2.5% of the frame
+ * high and the top margin runs out first. Settling it back onto the centre buys
+ * the remaining margin for nothing, where more standoff would have cost another
+ * 5% of apparent size. */
+export const REST_CENTRE_SETTLE = -0.062;
+
+export function presentationCentreSettle(aspect = 1.6) {
+  return wideness(aspect) * REST_CENTRE_SETTLE;
+}
+
+export function restFramingDistance(aspect = 1.6) {
+  return CAMERA_DISTANCE * (1 + wideness(aspect) * REST_MARGIN_DISTANCE_GAIN);
+}
+
 export function presentationTarget(extent, aspect = 1.6) {
+  const rest = restFramingDistance(aspect);
+  const maxDistance = rest * (MAX_CAMERA_DISTANCE / CAMERA_DISTANCE);
   const desired = Math.max(extent, 0) * (1 + PRESENTATION_MARGIN);
   const overflow = Math.max(1, desired / REST_COMFORT_EXTENT);
   const extra = overflow - 1;
@@ -433,8 +464,8 @@ export function presentationTarget(extent, aspect = 1.6) {
    * than by shrinking the specimen: distance costs the viewer far less apparent
    * size than scale does, so the split still reads as big. */
   const scale = clamp(1 / (1 + extra * 0.34), MIN_PRESENTATION_SCALE, 1);
-  const distance = clamp(CAMERA_DISTANCE * (1 + extra * 0.3), CAMERA_DISTANCE, MAX_CAMERA_DISTANCE);
-  return { scale, distance, overflow, extra, wide: wideness(aspect) };
+  const distance = clamp(rest * (1 + extra * 0.3), rest, maxDistance);
+  return { scale, distance, overflow, extra, rest, wide: wideness(aspect) };
 }
 
 export function projectedContainment(extent, framing, aspect = 1.6) {
@@ -496,7 +527,9 @@ export function stepSafeFraming(state, extent, visualTime, lookahead = extent, a
   state.scaleVelocity += scaleAccel * dt;
   state.distance += state.velocity * dt;
   state.scale += state.scaleVelocity * dt;
-  state.distance = clamp(state.distance, CAMERA_DISTANCE, MAX_CAMERA_DISTANCE);
+  /* Clamp against this stage's own resting distance, not the shared constant,
+   * so the aspect-aware standoff is a floor the spring can never undo. */
+  state.distance = clamp(state.distance, target.rest, target.rest * (MAX_CAMERA_DISTANCE / CAMERA_DISTANCE));
   state.scale = clamp(state.scale, MIN_PRESENTATION_SCALE, 1);
   return state;
 }
