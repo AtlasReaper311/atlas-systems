@@ -444,3 +444,73 @@ body[data-lab-route="spectral-forge"] .forge-analysis-chain {
 @media (prefers-reduced-motion: reduce) {
   body[data-lab-route="spectral-forge"] .forge-first-use { transition: none; }
 }
+
+/* ---------------------------------------------------------------------------
+ * Sticky stack
+ *
+ * Spectral Forge stacks three sticky layers, not the two the shared Lab shell
+ * knows about: the fixed Atlas header, the Lab context bar, and the depth nav.
+ * Two consequences had to be fixed here rather than in the shared shell, which
+ * other Lab routes depend on.
+ *
+ * First, --lab-shell-context-height defaults to 0px and is only corrected once
+ * shell.js has measured the context bar. Until then the stack reads 56px, the
+ * depth nav sticks level with a 54px context bar it renders behind, and the
+ * section heading scrolling past is eaten. Declaring a measured-height default
+ * until the shell reports ready closes that window, and stops the layout being
+ * wrong outright if shell.js never loads.
+ *
+ * Second, scroll-padding-top is calc(stack + 24px), which accounts for the
+ * header and context bar but not for the depth nav below them. Anchor
+ * navigation and keyboard focus therefore landed up to a depth-nav height under
+ * the sticky stack.
+ * ------------------------------------------------------------------------- */
+/* Declared on the root as well as the body: scroll-padding-top is a property of
+ * the scrolling element, so it can only read custom properties that reach the
+ * root. The body copy carries the same values to the depth nav in browsers
+ * without :has(). Both defer to shell.js once it reports a measured shell. */
+html:not([data-lab-shell-ready]):has(body[data-lab-route="spectral-forge"]),
+html:not([data-lab-shell-ready]) body[data-lab-route="spectral-forge"] {
+  --lab-shell-context-height: 54px;
+  --lab-shell-stack-height: calc(var(--lab-shell-header-height) + var(--lab-shell-context-height));
+}
+
+html:has(body[data-lab-route="spectral-forge"]),
+body[data-lab-route="spectral-forge"] {
+  --forge-depth-nav-height: 48px;
+}
+
+html:has(body[data-lab-route="spectral-forge"]) {
+  scroll-padding-top: calc(
+    var(--lab-shell-stack-height, 111px) + var(--forge-depth-nav-height, 48px) + 16px
+  );
+}
+
+/* Sections the depth nav can scroll over need the same clearance, so a focused
+ * control or an anchored heading is never delivered underneath it. */
+body[data-lab-route="spectral-forge"] .forge-depth-panel,
+body[data-lab-route="spectral-forge"] .forge-mode-heading,
+body[data-lab-route="spectral-forge"] .forge-analysis-view > section,
+body[data-lab-route="spectral-forge"] .forge-workspace > section {
+  scroll-margin-top: calc(
+    var(--lab-shell-stack-height, 111px) + var(--forge-depth-nav-height, 48px) + 16px
+  );
+}
+
+@media (max-width: 560px) {
+  body[data-lab-route="spectral-forge"] { --forge-depth-nav-height: 52px; }
+}
+
+/* ---------------------------------------------------------------------------
+ * Column alignment
+ *
+ * Both workspaces are single-row grids, so every column inherited the height of
+ * the tallest - the Field. Measured at 1728x1000: the FORGE route rack and
+ * inspector were stretched to 1058px, leaving 211px of empty panel below Route
+ * Focus, and the ANALYSE primary column held 393px of content in a 747px box.
+ * The columns end where their content ends; only the Field claims full height.
+ * ------------------------------------------------------------------------- */
+body[data-lab-route="spectral-forge"] .forge-workspace,
+body[data-lab-route="spectral-forge"] .forge-analysis-view {
+  align-items: start;
+}
