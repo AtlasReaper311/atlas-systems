@@ -47,6 +47,7 @@ import {
 } from "./state.js";
 import { AudioAnalyserRenderer, SpectralFieldRenderer, TimelineRenderer } from "./visuals.js";
 import { createOrganismLifeClock, resetOrganismLifeClock } from "./spectral-field-life-clock.js";
+import { physicalStateSnapshot } from "./spectral-field-physical-state.js";
 import {
   applyScenarioSelection,
   beginScenarioHandoff,
@@ -570,6 +571,15 @@ function renderAnalysis() {
   elements.audioHarmonicState.textContent = HARMONIC_STATES[frame.health];
 }
 
+/* The physical snapshot the audio consumes. Null until the organism has been
+ * stepped at least once, which is the same condition the physical inspector
+ * uses, so the audio simply runs on its regime defaults until then. */
+function materialAudioState() {
+  if (!organismLife.physical) return null;
+  const physical = physicalStateSnapshot(organismLife.physical);
+  return { physical, fission: organismLife.fission ?? null };
+}
+
 function renderVisuals() {
   const shared = fieldState(true);
   playFieldRenderer.setState({ ...shared, fieldVisible: depth === "PLAY" });
@@ -592,7 +602,19 @@ function renderTelemetry({ updateAudio = true } = {}) {
   renderRibbon();
   renderAnalysis();
   renderVisuals();
-  if (updateAudio && audioEngine && audioEnabled) audioEngine.update(activeOutputState(), targetSmoothing(), frame.health, frame.deployEvent);
+  /* The audio is handed the same material state the organism is rendered from,
+   * so a regime change is one event heard and seen rather than two features
+   * that happen to agree. Reading it here keeps the renderers as consumers of
+   * the physical model rather than owners of it. */
+  if (updateAudio && audioEngine && audioEnabled) {
+    audioEngine.update(
+      activeOutputState(),
+      targetSmoothing(),
+      frame.health,
+      frame.deployEvent,
+      materialAudioState(),
+    );
+  }
 }
 
 function renderAll({ updateAudio = true } = {}) {
@@ -748,8 +770,18 @@ async function enableAudio() {
     setNotice("Audio enabled · true stereo-width stage · bounded −1 dBFS sample output · M mutes immediately");
   } catch (error) {
     audioError = error instanceof Error ? error.message : "The audio context could not be created.";
+    /* A failed activation used to drop the reference and leave the engine
+     * running: a live AudioContext, four started oscillators and the pulse
+     * interval, all orphaned, with a retry able to create another. Dispose
+     * before letting go. */
+    const orphaned = audioEngine;
     audioEngine = null;
     audioEnabled = false;
+    try {
+      await orphaned?.dispose();
+    } catch {
+      /* Disposal of an engine that never activated is best-effort. */
+    }
     setNotice("Audio engine unavailable · simulation, mapping and visual analysis remain active");
   }
   renderAll();
