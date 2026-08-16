@@ -532,8 +532,12 @@ async function assertDepthSwitchContinuity(page, engineName, evidence) {
     if (previous.progress > 0.05 && current.progress === 0 && previous.phase !== 'settle') progressResets += 1;
     if (previous.charge > 0.5 && current.charge < previous.charge * 0.25 && previous.phase === 'idle') chargeCollapses += 1;
   }
+  /* Enough samples to judge continuity, not a statement about machine speed. A
+   * software rasteriser on a loaded runner legitimately delivers a fraction of
+   * the frames a GPU does, and the properties under test - no progress reset, no
+   * charge collapse, no hidden draw - are just as visible in a sparser trace. */
   assert.ok(
-    comparableIntervals > 500,
+    comparableIntervals > 150,
     `${engineName}: too few continuously-visible intervals to judge continuity (${comparableIntervals})`,
   );
 

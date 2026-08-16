@@ -223,11 +223,11 @@ export function excite(context, bank, buffer, {
   /* Playback rate varies the grain of the excitation without a second buffer. */
   source.playbackRate.value = 0.7 + sharpness * 1.1;
 
-  const tone = context.createBiquadFilter();
-  tone.type = "bandpass";
-  tone.frequency.value = 260 + sharpness * 2600;
-  tone.Q.value = 0.7;
-
+  /* The excitation's own colour is set by where the buffer is read and how fast,
+   * not by a filter per strike. A bandpass here cost a node on every impact -
+   * and with micro impacts running up to a dozen a second that is real
+   * main-thread work for a shaping the playback rate already provides. The bank
+   * has its own input roll-off, so nothing broadband reaches the modes. */
   const shaper = context.createGain();
   const peak = Math.max(0.0002, amplitude);
   /* A struck excitation is near-instant on and short off. The decay is what
@@ -239,7 +239,7 @@ export function excite(context, bank, buffer, {
   const panner = context.createStereoPanner();
   panner.pan.value = clamp(pan, -1, 1);
 
-  source.connect(tone).connect(shaper).connect(panner).connect(bank.input);
+  source.connect(shaper).connect(panner).connect(bank.input);
   source.start(start, 0.01 + sharpness * 0.05);
   source.stop(start + Math.max(0.006, duration) + 0.03);
 }
