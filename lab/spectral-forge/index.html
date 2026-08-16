@@ -191,20 +191,14 @@
     </section>
 
     <section class="forge-depth-panel forge-work" data-depth-panel="FORGE" aria-labelledby="forge-heading" hidden>
-      <header class="forge-mode-heading">
-        <div><span class="forge-micro-label">FORGE</span><h2 id="forge-heading">Shape the translation between signal and sound.</h2></div>
+      <header class="forge-mode-heading forge-mode-heading--console">
+        <div class="forge-console-identity"><span class="forge-micro-label">FORGE</span><h2 id="forge-heading">Shape the translation between signal and sound.</h2></div>
         <div class="forge-compare" role="group" aria-label="Deterministic mapping comparison">
           <span class="forge-control-label">TELEMETRY IDENTICAL · MAPPING CHANGED</span>
           <div><button type="button" id="variant-a" aria-pressed="true">A <strong>BASELINE</strong></button><button type="button" id="variant-b" aria-pressed="false">B <strong>CANDIDATE</strong></button></div>
           <small>A <code id="fingerprint-a">--------</code> · B <code id="fingerprint-b">--------</code></small>
         </div>
-        <div class="forge-compare-actions"><button type="button" id="capture-baseline">CAPTURE B AS A</button><button type="button" id="copy-baseline">COPY A → B</button></div>
       </header>
-
-      <div class="forge-preset-bar">
-        <label><span>PRESET</span><select id="preset-select"></select></label>
-        <button type="button" id="save-preset">SAVE CANDIDATE</button><button type="button" id="delete-preset" hidden>DELETE PRESET</button>
-      </div>
 
       <div class="forge-workspace">
         <section class="forge-route-rack" aria-labelledby="routes-title">
@@ -237,19 +231,33 @@
           <header><span class="forge-micro-label">TRANSFORMATION</span><h3 id="route-inspector-title">Selected route</h3><small id="route-lock-state">A / BASELINE LOCKED</small></header>
           <div class="forge-transform-chain" id="transform-chain"></div>
           <svg class="forge-transform-curve" id="transform-curve" viewBox="0 0 220 120" role="img" aria-label="Selected route transformation curve"><path class="forge-curve-grid" d="M10 10V110H210M10 60H210M110 10V110"></path><path class="forge-curve-line" id="transform-curve-line" d="M10 110L210 10"></path></svg>
-          <div class="forge-inspector-controls">
+          <div class="forge-inspector-controls forge-inspector-controls--primary">
             <label>TRANSFORM<select id="mapping-transform"></select></label>
             <label>POLARITY<select id="mapping-polarity"></select></label>
             <label>SMOOTHING<select id="mapping-smoothing"></select></label>
-            <label>INPUT MIN<input id="mapping-input-min" type="number" min="0" max="0.99" step="0.01"></label>
-            <label>INPUT MAX<input id="mapping-input-max" type="number" min="0.01" max="1" step="0.01"></label>
-            <label>OUTPUT MIN<input id="mapping-output-min" type="number"></label>
-            <label>OUTPUT MAX<input id="mapping-output-max" type="number"></label>
           </div>
+          <details class="forge-inspector-bounds">
+            <summary>Range and bounds</summary>
+            <div class="forge-inspector-controls">
+              <label>INPUT MIN<input id="mapping-input-min" type="number" min="0" max="0.99" step="0.01"></label>
+              <label>INPUT MAX<input id="mapping-input-max" type="number" min="0.01" max="1" step="0.01"></label>
+              <label>OUTPUT MIN<input id="mapping-output-min" type="number"></label>
+              <label>OUTPUT MAX<input id="mapping-output-max" type="number"></label>
+            </div>
+          </details>
           <p id="mapping-explanation" class="forge-mapping-explanation"></p>
           <div class="forge-inspector-actions"><button type="button" id="mapping-bypass">BYPASS</button><button type="button" id="mapping-remove">REMOVE ROUTE</button></div>
         </section>
       </div>
+
+      <section class="forge-utility-strip" aria-labelledby="forge-utility-title">
+        <h3 id="forge-utility-title" class="sr-only">Mapping utilities</h3>
+        <div class="forge-preset-bar">
+          <label><span>PRESET</span><select id="preset-select"></select></label>
+          <button type="button" id="save-preset">SAVE CANDIDATE</button><button type="button" id="delete-preset" hidden>DELETE PRESET</button>
+        </div>
+        <div class="forge-compare-actions"><button type="button" id="capture-baseline">CAPTURE B AS A</button><button type="button" id="copy-baseline">COPY A → B</button></div>
+      </section>
     </section>
 
     <section class="forge-depth-panel forge-analysis" data-depth-panel="ANALYSE" aria-labelledby="analyse-heading" hidden>

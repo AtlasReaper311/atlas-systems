@@ -514,3 +514,154 @@ body[data-lab-route="spectral-forge"] .forge-workspace,
 body[data-lab-route="spectral-forge"] .forge-analysis-view {
   align-items: start;
 }
+/* ---------------------------------------------------------------------------
+ * FORGE instrument console
+ *
+ * The panel used to read as several unrelated configuration sections stacked
+ * vertically: a large A/B header, an empty consequence surface, a preset bar and
+ * a full-width patch block, all above the instrument itself. Measured, the
+ * workspace did not begin until 1082px down the page.
+ *
+ * The workspace is now the first substantial thing on the panel and the three
+ * columns are bonded into one surface rather than three bordered boxes.
+ * Everything that is a capability rather than the central story - presets,
+ * transfer, capture - sits in a compact strip beneath it.
+ * ------------------------------------------------------------------------- */
+body[data-lab-route="spectral-forge"] .forge-mode-heading--console {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 20px 32px;
+  padding-bottom: 14px;
+}
+body[data-lab-route="spectral-forge"] .forge-mode-heading--console h2 { margin: 2px 0 0; }
+body[data-lab-route="spectral-forge"] .forge-console-identity { min-width: 0; }
+
+/* One surface. The interior rules read as an instrument's own divisions rather
+ * than as three panels that happen to be adjacent. */
+body[data-lab-route="spectral-forge"] .forge-workspace {
+  gap: 0;
+  border: 1px solid var(--forge-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(12, 12, 18, .55);
+}
+body[data-lab-route="spectral-forge"] .forge-route-rack {
+  border-right: 1px solid var(--forge-border);
+}
+body[data-lab-route="spectral-forge"] .forge-route-inspector {
+  border-left: 1px solid var(--forge-border);
+}
+body[data-lab-route="spectral-forge"] .forge-field-dock { background: transparent; }
+
+/* Progressive inspector: the causal chain and the three decisions that change
+ * its shape stay visible; the numeric bounds are one disclosure away. Seven
+ * fields two-up in a 346px column was why editing felt like filling a form. */
+body[data-lab-route="spectral-forge"] .forge-inspector-controls--primary {
+  grid-template-columns: 1fr;
+}
+body[data-lab-route="spectral-forge"] .forge-inspector-bounds {
+  margin-top: 10px;
+  border-top: 1px solid var(--forge-border);
+  padding-top: 10px;
+}
+body[data-lab-route="spectral-forge"] .forge-inspector-bounds > summary {
+  cursor: pointer;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  color: var(--forge-faint);
+  font-family: var(--forge-mono, ui-monospace, monospace);
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+body[data-lab-route="spectral-forge"] .forge-inspector-bounds > summary:hover { color: var(--forge-text, #e8e8e0); }
+body[data-lab-route="spectral-forge"] .forge-inspector-bounds[open] > summary { color: var(--forge-amber, #f5a623); }
+
+/* Utilities are capabilities, not the reason FORGE exists. */
+body[data-lab-route="spectral-forge"] .forge-utility-strip {
+  margin-top: 1px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 20px;
+  padding: 10px 16px;
+  border: 1px solid var(--forge-border);
+  border-top: 0;
+  background: rgba(12, 12, 18, .4);
+}
+body[data-lab-route="spectral-forge"] .forge-utility-strip .forge-preset-bar,
+body[data-lab-route="spectral-forge"] .forge-utility-strip .forge-compare-actions {
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  width: auto;
+}
+
+/* The console header states what the mode is for and gets out of the way. At
+ * full editorial size it cost 211px above the instrument, which is most of the
+ * reason the Field did not reach the first viewport. */
+body[data-lab-route="spectral-forge"] .forge-mode-heading--console h2 {
+  font-size: clamp(17px, 1.5vw, 21px);
+  line-height: 1.2;
+  max-width: 46ch;
+}
+body[data-lab-route="spectral-forge"] .forge-mode-heading--console { padding: 6px 0 12px; }
+body[data-lab-route="spectral-forge"] .forge-mode-heading--console .forge-compare { align-self: end; }
+
+/* The patch bank is a way to make a route, not a catalogue to read. Collapsed,
+ * the rail stays about the height of the routes it lists. */
+body[data-lab-route="spectral-forge"] .forge-patch-bay > summary {
+  cursor: pointer;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--forge-faint);
+  font-family: var(--forge-mono, ui-monospace, monospace);
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+body[data-lab-route="spectral-forge"] .forge-patch-bay > summary:hover { color: var(--forge-dim); }
+body[data-lab-route="spectral-forge"] .forge-patch-bay[open] > summary { color: var(--forge-amber, #f5a623); }
+
+/* ---------------------------------------------------------------------------
+ * Identity by depth
+ *
+ * The product header is the instrument's title card and earns its size on PLAY,
+ * where the organism is the subject. In FORGE and ANALYSE the subject is the
+ * work, and 303px of title above a persistent 157px sticky stack is most of the
+ * reason the workspace could not reach the first viewport. It compresses rather
+ * than disappearing, so the three depths stay recognisably one page.
+ * ------------------------------------------------------------------------- */
+body[data-lab-route="spectral-forge"][data-forge-depth="forge"] .forge-product-header,
+body[data-lab-route="spectral-forge"][data-forge-depth="analyse"] .forge-product-header {
+  padding: 4px 0 2px;
+  transition: padding 220ms ease;
+}
+body[data-lab-route="spectral-forge"][data-forge-depth="forge"] .forge-product-identity h1,
+body[data-lab-route="spectral-forge"][data-forge-depth="analyse"] .forge-product-identity h1 {
+  font-size: clamp(19px, 1.7vw, 25px);
+  transition: font-size 220ms ease;
+}
+body[data-lab-route="spectral-forge"][data-forge-depth="forge"] .forge-product-identity > p,
+body[data-lab-route="spectral-forge"][data-forge-depth="analyse"] .forge-product-identity > p,
+body[data-lab-route="spectral-forge"][data-forge-depth="forge"] .forge-evidence-surface small,
+body[data-lab-route="spectral-forge"][data-forge-depth="analyse"] .forge-evidence-surface small {
+  display: none;
+}
+body[data-lab-route="spectral-forge"][data-forge-depth="forge"] .forge-evidence-surface,
+body[data-lab-route="spectral-forge"][data-forge-depth="analyse"] .forge-evidence-surface {
+  min-height: 0;
+  padding: 4px 0 4px 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-lab-route="spectral-forge"] .forge-product-header,
+  body[data-lab-route="spectral-forge"] .forge-product-identity h1 { transition: none; }
+}
