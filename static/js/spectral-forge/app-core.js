@@ -316,6 +316,10 @@ function renderAudioControls() {
   elements.masterLabel.textContent = `${linearToDb(masterLevel).toFixed(1)} dB`;
   if (!audioEnabled) elements.audioToggle.textContent = "ENABLE AUDIO";
   else elements.audioToggle.textContent = audioMuted ? "UNMUTE" : "MUTE";
+  /* State on the control as well as in the live region: pressed means audio is
+   * reaching the listener. A name change alone leaves a screen-reader user to
+   * infer the state from the verb. */
+  elements.audioToggle.setAttribute("aria-pressed", String(audioEnabled && !audioMuted));
   elements.audioToggle.classList.toggle("forge-secondary-control", audioEnabled);
   elements.audioToggle.classList.toggle("forge-primary-control", !audioEnabled);
   if (audioError) elements.audioToggle.title = audioError;

@@ -1,4 +1,19 @@
-@media (max-width: 1180px) {
+/* Responsive contract for Spectral Forge.
+ *
+ * One set of breakpoints, shared with spectral-forge-flagship-v2.css:
+ *
+ *   1280  three columns become two; the ribbon halves
+ *    900  two columns become one, Field first
+ *    768  touch affordances
+ *    560  full-bleed
+ *
+ * These two stylesheets previously disagreed - 1180/820 here against 1280/900
+ * there - which left the 1180-1280 and 820-900 bands governed by whichever rule
+ * happened to win, and the rules that lost were dead weight. flagship-v2 is
+ * route-scoped and loads last, so its values are the ones that were actually in
+ * force; they are now stated identically in both places.
+ */
+@media (max-width: 1280px) {
   .forge-transport { grid-template-columns: 1fr auto; }
   .forge-audio-controls { grid-column: 1 / -1; justify-self: stretch; justify-content: flex-end; }
   .forge-instrument-ribbon { grid-template-columns: repeat(2,1fr); }
@@ -13,7 +28,7 @@
   .forge-audio-analysis { grid-template-areas: "scope" "parameters" "field"; }
 }
 
-@media (max-width: 820px) {
+@media (max-width: 900px) {
   .forge-product-header, .forge-depth-nav, .forge-transport, .forge-depth-panel, .forge-notice { width: min(100% - 28px, var(--forge-wide)); }
   .forge-product-header { min-height: 0; align-items: flex-start; padding: 28px 0 24px; }
   .forge-evidence-surface { flex-basis: 270px; grid-template-columns: 1fr; }

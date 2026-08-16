@@ -123,9 +123,9 @@
     </header>
 
     <nav class="forge-depth-nav" aria-label="Spectral Forge depth">
-      <button type="button" data-depth="PLAY" aria-pressed="true"><span>01</span><strong>PLAY</strong><small>Experience the system</small></button>
-      <button type="button" data-depth="FORGE" aria-pressed="false"><span>02</span><strong>FORGE</strong><small>Shape the translation</small></button>
-      <button type="button" data-depth="ANALYSE" aria-pressed="false"><span>03</span><strong>ANALYSE</strong><small>Inspect what changed</small></button>
+      <button type="button" data-depth="PLAY" aria-pressed="true" aria-controls="forge-depth-play"><span>01</span><strong>PLAY</strong><small>Experience the system</small></button>
+      <button type="button" data-depth="FORGE" aria-pressed="false" aria-controls="forge-depth-forge"><span>02</span><strong>FORGE</strong><small>Shape the translation</small></button>
+      <button type="button" data-depth="ANALYSE" aria-pressed="false" aria-controls="forge-depth-analyse"><span>03</span><strong>ANALYSE</strong><small>Inspect what changed</small></button>
     </nav>
 
     <section class="forge-transport" aria-label="Scenario, transport, and audio controls">
@@ -146,7 +146,7 @@
       </div>
 
       <div class="forge-audio-controls">
-        <button class="forge-primary-control" id="audio-toggle" type="button">ENABLE AUDIO</button>
+        <button class="forge-primary-control" id="audio-toggle" type="button" aria-pressed="false">ENABLE AUDIO</button>
         <div class="forge-master-control">
           <span>MASTER <output id="master-level-label" for="master-level">−5.0 dB</output></span>
           <input id="master-level" type="range" min="0.18" max="0.78" step="0.01" value="0.56" aria-label="Master output level">
@@ -156,7 +156,7 @@
 
     <p class="forge-notice" id="forge-notice" role="status" aria-live="polite">SIMULATED · Synthetic deterministic telemetry · No production data connected</p>
 
-    <section class="forge-depth-panel forge-play" data-depth-panel="PLAY" aria-labelledby="play-heading">
+    <section class="forge-depth-panel forge-play" id="forge-depth-play" data-depth-panel="PLAY" aria-labelledby="play-heading">
       <h2 id="play-heading" class="sr-only">Play</h2>
       <figure class="forge-field-stage">
         <canvas id="play-field" role="img" aria-label="Spectral Field awaiting simulation"></canvas>
@@ -190,7 +190,7 @@
       </section>
     </section>
 
-    <section class="forge-depth-panel forge-work" data-depth-panel="FORGE" aria-labelledby="forge-heading" hidden>
+    <section class="forge-depth-panel forge-work" id="forge-depth-forge" data-depth-panel="FORGE" aria-labelledby="forge-heading" hidden>
       <header class="forge-mode-heading forge-mode-heading--console">
         <div class="forge-console-identity"><span class="forge-micro-label">FORGE</span><h2 id="forge-heading">Shape the translation between signal and sound.</h2></div>
         <div class="forge-compare" role="group" aria-label="Deterministic mapping comparison">
@@ -260,7 +260,7 @@
       </section>
     </section>
 
-    <section class="forge-depth-panel forge-analysis" data-depth-panel="ANALYSE" aria-labelledby="analyse-heading" hidden>
+    <section class="forge-depth-panel forge-analysis" id="forge-depth-analyse" data-depth-panel="ANALYSE" aria-labelledby="analyse-heading" hidden>
       <header class="forge-mode-heading forge-mode-heading--analysis">
         <div><span class="forge-micro-label">ANALYSE</span><h2 id="analyse-heading">Inspect what changed and why.</h2></div>
         <div class="forge-analysis-switch" role="group" aria-label="Emphasise a stage of the causal chain"><button type="button" data-analysis="SIGNAL" aria-pressed="true" aria-controls="analysis-stage-signal">SIGNAL</button><button type="button" data-analysis="AUDIO" aria-pressed="false" aria-controls="analysis-stage-audio">AUDIO</button></div>

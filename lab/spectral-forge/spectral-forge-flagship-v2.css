@@ -311,6 +311,8 @@ body[data-lab-route="spectral-forge"] .forge-analysis-chain {
   background: rgba(8,8,13,.62);
 }
 
+/* Breakpoint contract, shared with spectral-forge-responsive.css:
+ * 1280 three columns to two, 900 two to one, 768 touch, 560 full-bleed. */
 @media (max-width: 1280px) {
   body[data-lab-route="spectral-forge"] .forge-product-header,
   body[data-lab-route="spectral-forge"] .forge-depth-nav,
@@ -641,8 +643,11 @@ body[data-lab-route="spectral-forge"] .forge-patch-bay[open] > summary { color: 
  * ------------------------------------------------------------------------- */
 body[data-lab-route="spectral-forge"][data-forge-depth="forge"] .forge-product-header,
 body[data-lab-route="spectral-forge"][data-forge-depth="analyse"] .forge-product-header {
-  padding: 4px 0 2px;
-  transition: padding 220ms ease;
+  /* Vertical only. Using the shorthand here removed the horizontal padding the
+   * narrow-viewport rules rely on, which pushed the counterpart link 10px past
+   * a 390px viewport. */
+  padding-block: 4px 2px;
+  transition: padding-block 220ms ease;
 }
 body[data-lab-route="spectral-forge"][data-forge-depth="forge"] .forge-product-identity h1,
 body[data-lab-route="spectral-forge"][data-forge-depth="analyse"] .forge-product-identity h1 {
@@ -664,6 +669,7 @@ body[data-lab-route="spectral-forge"][data-forge-depth="analyse"] .forge-evidenc
 @media (prefers-reduced-motion: reduce) {
   body[data-lab-route="spectral-forge"] .forge-product-header,
   body[data-lab-route="spectral-forge"] .forge-product-identity h1 { transition: none; }
+  body[data-lab-route="spectral-forge"] .forge-depth-panel:not([hidden]) > * { animation: none; }
 }
 
 /* ---------------------------------------------------------------------------
@@ -799,4 +805,44 @@ body[data-lab-route="spectral-forge"] .forge-field-stage--analysis {
 
 @media (prefers-reduced-motion: reduce) {
   body[data-lab-route="spectral-forge"] .forge-depth-panel:not([hidden]) > * { animation: none; }
+}
+
+/* ---------------------------------------------------------------------------
+ * Narrow-viewport corrections
+ *
+ * Measured at 390px: the counterpart link is nowrap and sat 10px past the
+ * viewport in FORGE and ANALYSE, where the compressed header gives it less room;
+ * and the patch pills held a 30px target, below the 44px minimum the rest of the
+ * instrument keeps.
+ * ------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  body[data-lab-route="spectral-forge"] .forge-counterpart-link {
+    max-width: 100%;
+    margin-left: 0;
+    white-space: normal;
+  }
+  body[data-lab-route="spectral-forge"] .forge-patch-point { min-height: 44px; }
+  body[data-lab-route="spectral-forge"] .forge-patch-bay > summary,
+  body[data-lab-route="spectral-forge"] .forge-inspector-bounds > summary,
+  body[data-lab-route="spectral-forge"] .forge-physical-detail > summary { min-height: 44px; }
+  body[data-lab-route="spectral-forge"] .forge-analysis-switch button { min-height: 44px; }
+
+  /* Nothing may push the page sideways. */
+  body[data-lab-route="spectral-forge"] .forge-depth-panel,
+  body[data-lab-route="spectral-forge"] .forge-causal-summary,
+  body[data-lab-route="spectral-forge"] .forge-analysis-view { max-width: 100%; overflow-x: clip; }
+  body[data-lab-route="spectral-forge"] .forge-analysis-switch { flex-wrap: wrap; }
+}
+
+/* On a phone the sticky stack is a large share of the viewport, so the depth nav
+ * carries only what identifies it. The labels stay in the accessible name. */
+@media (max-width: 560px) {
+  body[data-lab-route="spectral-forge"] .forge-depth-nav button {
+    min-height: 44px;
+    grid-template-columns: auto 1fr;
+    gap: 8px;
+    padding: 0 12px;
+  }
+  body[data-lab-route="spectral-forge"] .forge-depth-nav button small { display: none; }
+  body[data-lab-route="spectral-forge"] { --forge-depth-nav-height: 44px; }
 }
