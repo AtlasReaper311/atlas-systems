@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Consensus // Atlas Systems. A deterministic protocol trace for quorum, propagation delay, partitions, and convergence.">
+  <meta name="description" content="Consensus // Atlas Systems. A deterministic cluster instrument for quorum, propagation delay, partitions, and convergence.">
   <meta name="theme-color" content="#0a0a0f">
   <title>Consensus // Atlas Systems</title>
   <link rel="canonical" href="https://atlas-systems.uk/lab/consensus/">
@@ -14,19 +14,19 @@
   <link rel="manifest" href="/site.webmanifest">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Consensus // Atlas Systems">
-  <meta property="og:description" content="Watch three replicas negotiate one shared history through proposal, acknowledgement, commit, apply, and convergence.">
+  <meta property="og:description" content="Watch three replicas negotiate one shared state through proposal, acknowledgement, commit, apply, and convergence.">
   <meta property="og:url" content="https://atlas-systems.uk/lab/consensus/">
   <meta property="og:site_name" content="Atlas Systems">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Consensus // Atlas Systems">
-  <meta name="twitter:description" content="A deterministic three-replica protocol trace for quorum, latency, isolation, and catch-up.">
+  <meta name="twitter:description" content="A deterministic three-replica instrument for quorum, latency, isolation, and catch-up.">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/lab/shared/lab-context-navigation.css?v=20260806-lab-consistency-v2">
   <link rel="stylesheet" href="/lab/shared/lab-shell-layout.css?v=20260806-lab-consistency-v2">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
   <link rel="stylesheet" href="/static/css/estate-search.css">
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260724-source-hardening">
-  <link rel="stylesheet" href="/lab/consensus/consensus.css?v=20260816-consensus-v3">
+  <link rel="stylesheet" href="/lab/consensus/consensus.css?v=20260816-consensus-v4">
 </head>
 <body class="consensus-page" data-atlas-bottom-nav="true" data-lab-shell="" data-lab-layout="standard" data-lab-route="consensus">
   <nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
@@ -36,7 +36,6 @@
       <div class="atlas-header__actions atlas-global-header__actions"><button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button></div>
     </div>
   </nav>
-
   <nav class="lab-context-nav lab-context-nav--compact" aria-label="Lab navigation" data-lab-context-mode="compact" data-current-lab-route="Consensus">
     <div class="lab-context-compact">
       <div class="lab-context-compact__crumbs" role="group" aria-label="Current Lab location"><a href="/lab/">Lab</a><span class="lab-context-compact__separator" aria-hidden="true">/</span><span class="lab-context-compact__current" aria-current="page">Consensus</span></div>
@@ -48,56 +47,44 @@
       </div></details>
     </div>
   </nav>
-
   <main class="consensus-main">
     <section class="consensus-stage" aria-labelledby="consensus-title">
       <header class="consensus-hero">
-        <div><p class="consensus-kicker">ATLAS / CONSENSUS / PROTOCOL TRACE</p><h1 id="consensus-title">Agreement has a timeline<span>.</span></h1><p class="consensus-subtitle">Watch a fixed leader replicate one write through two followers. Messages travel, acknowledgements return, quorum forms, commit becomes safe, and stale replicas catch up later.</p></div>
+        <div><p class="consensus-kicker">ATLAS / CONSENSUS / CLUSTER INSTRUMENT</p><h1 id="consensus-title">Watch agreement form<span>.</span></h1><p class="consensus-subtitle">Write one value into a three-replica cluster. Watch the leader propose it, followers acknowledge it, quorum make it safe, and delayed replicas converge later.</p></div>
         <div class="consensus-boundary" data-evidence-mode="simulated"><strong>SIMULATED LAB</strong>Deterministic fixed-leader model. No production Atlas Systems data connected.</div>
       </header>
-
-      <div class="consensus-instrument" id="consensus-instrument" data-mode="quorum" data-network="clean">
-        <div class="consensus-primer"><strong>WRITE STATE. BREAK A LINK. WATCH THE CLUSTER NEGOTIATE ONE SHARED HISTORY.</strong><span>PROPOSE → ACK → COMMIT → APPLY → CONVERGE</span></div>
+      <div class="consensus-instrument" id="consensus-instrument" data-mode="quorum" data-network="clean" data-phase="ready">
+        <div class="consensus-primer"><strong>WRITE A VALUE. BREAK THE NETWORK. WATCH THE CLUSTER DECIDE WHAT COUNTS AS TRUE.</strong><span>PROPOSE → APPEND → ACK → COMMIT → APPLY → CONVERGE</span></div>
         <div class="consensus-toolbar" role="group" aria-label="Consensus controls">
           <div class="consensus-control"><span>COMMIT POLICY</span><div class="consensus-segment" role="group" aria-label="Commit policy"><button type="button" data-mode="quorum" aria-pressed="true">QUORUM 2/3</button><button type="button" data-mode="eventual" aria-pressed="false">EVENTUAL</button></div></div>
           <button class="consensus-write" id="consensus-write" type="button"><span>WRITE NEXT</span><strong id="consensus-next-value">0x7C</strong></button>
           <div class="consensus-control consensus-control--network"><span>NETWORK</span><div class="consensus-segment" role="group" aria-label="Network profile"><button type="button" data-network="clean" aria-pressed="true">CLEAN</button><button type="button" data-network="slow-b" aria-pressed="false">SLOW B</button><button type="button" data-network="isolate-c" aria-pressed="false">ISOLATE C</button></div></div>
           <button class="consensus-reset" id="consensus-reset" type="button">RESET</button>
         </div>
-
-        <div class="consensus-truth-rail" role="group" aria-label="Cluster truth">
-          <div><span>LATEST ACCEPTED</span><strong id="consensus-accepted">0x2A</strong><b id="consensus-accepted-version">v0</b></div>
-          <div><span>COMMITTED</span><strong id="consensus-committed">0x2A</strong><b id="consensus-committed-version">v0</b></div>
-          <div><span>FULLY CONVERGED</span><strong id="consensus-converged">0x2A</strong><b id="consensus-converged-version">v0</b></div>
-          <div class="consensus-quorum"><span>QUORUM</span><strong id="consensus-quorum">3 / 3</strong><i><b id="consensus-quorum-bar"></b></i></div>
+        <div class="consensus-cluster-head"><span>CLUSTER VIEW / FIXED LEADER</span><span id="consensus-clock">0000 ms</span></div>
+        <div class="consensus-cluster" id="consensus-cluster">
+          <svg class="consensus-links" id="consensus-links" viewBox="0 0 1000 520" aria-hidden="true" focusable="false">
+            <defs><filter id="consensus-glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="4" result="blur"></feGaussianBlur><feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter></defs>
+            <path class="consensus-link consensus-link--ab" id="consensus-link-path-b" d="M500 126 C430 190 330 220 270 326"></path>
+            <path class="consensus-link consensus-link--ac" id="consensus-link-path-c" d="M500 126 C570 190 670 220 730 326"></path>
+            <path class="consensus-context-link" d="M270 326 C420 398 580 398 730 326"></path>
+            <g class="consensus-packet-layer" id="consensus-packet-layer"></g>
+          </svg>
+          <button class="consensus-node consensus-node--a" type="button" data-node="A" aria-label="Replica A, leader. Local value 0x2A, version 0."><span class="consensus-node__orbit" aria-hidden="true"><i></i><i></i><i></i></span><span class="consensus-node__role">REPLICA A / LEADER</span><strong data-node-value="A">0x2A</strong><span class="consensus-node__meta"><b data-node-version="A">v0</b><em data-node-state="A">SYNCED</em></span><span class="consensus-node__log" data-node-log="A" aria-hidden="true"></span></button>
+          <button class="consensus-node consensus-node--b" type="button" data-node="B" aria-label="Replica B, follower. Local value 0x2A, version 0."><span class="consensus-node__orbit" aria-hidden="true"><i></i><i></i><i></i></span><span class="consensus-node__role">REPLICA B / FOLLOWER</span><strong data-node-value="B">0x2A</strong><span class="consensus-node__meta"><b data-node-version="B">v0</b><em data-node-state="B">SYNCED</em></span><span class="consensus-node__log" data-node-log="B" aria-hidden="true"></span></button>
+          <button class="consensus-node consensus-node--c" type="button" data-node="C" aria-label="Replica C, follower. Local value 0x2A, version 0."><span class="consensus-node__orbit" aria-hidden="true"><i></i><i></i><i></i></span><span class="consensus-node__role">REPLICA C / FOLLOWER</span><strong data-node-value="C">0x2A</strong><span class="consensus-node__meta"><b data-node-version="C">v0</b><em data-node-state="C">SYNCED</em></span><span class="consensus-node__log" data-node-log="C" aria-hidden="true"></span></button>
+          <div class="consensus-core" id="consensus-core" data-state="converged"><span class="consensus-core__halo" aria-hidden="true"></span><div class="consensus-core__quorum" aria-hidden="true"><i></i><i></i><i></i></div><div class="consensus-core__quorum-mode"><span>COMMITTED TRUTH</span><strong id="consensus-core-value">0x2A</strong><b id="consensus-core-version">VERSION 0</b><em id="consensus-core-quorum">3 / 3 AGREE</em></div><div class="consensus-core__eventual-mode"><span>LATEST ACCEPTED</span><strong id="consensus-core-accepted">0x2A</strong><b id="consensus-core-accepted-version">v0</b><i></i><span>FULLY CONVERGED</span><strong id="consensus-core-converged">0x2A</strong><b id="consensus-core-converged-version">v0</b></div></div>
+          <div class="consensus-partition-badge" id="consensus-partition-badge" hidden><span>LINK FRACTURED</span><strong>C ISOLATED</strong></div>
+          <div class="consensus-node-inspector" id="consensus-node-inspector" hidden><span id="consensus-inspector-label">REPLICA A</span><b>LOCAL <strong id="consensus-inspector-local">0x2A / v0</strong></b><b>APPLIED <strong id="consensus-inspector-applied">v0</strong></b><b>LAG <strong id="consensus-inspector-lag">0</strong></b><b>LINK <strong id="consensus-inspector-link">LEADER</strong></b></div>
         </div>
-
-        <div class="consensus-analyser" id="consensus-analyser">
-          <div class="consensus-analyser-head"><span>PROTOCOL TRACE</span><span>TIME ↓</span><span id="consensus-clock">0000 ms</span></div>
-          <div class="consensus-lanes" role="group" aria-label="Replica lanes">
-            <article class="consensus-lane" data-lane="A"><header><span>REPLICA A</span><b>LEADER</b><strong data-lane-value="A">0x2A</strong><small data-lane-version="A">v0</small></header><div class="consensus-log" data-log="A" role="group" aria-label="Replica A log"></div></article>
-            <article class="consensus-lane" data-lane="B"><header><span>REPLICA B</span><b>FOLLOWER</b><strong data-lane-value="B">0x2A</strong><small data-lane-version="B">v0</small></header><div class="consensus-log" data-log="B" role="group" aria-label="Replica B log"></div></article>
-            <article class="consensus-lane" data-lane="C"><header><span>REPLICA C</span><b>FOLLOWER</b><strong data-lane-value="C">0x2A</strong><small data-lane-version="C">v0</small></header><div class="consensus-log" data-log="C" role="group" aria-label="Replica C log"></div></article>
-          </div>
-          <div class="consensus-stream-shell">
-            <div class="consensus-time-axis" aria-hidden="true"><span>NOW</span><i></i></div>
-            <div class="consensus-stream" id="consensus-stream" role="log" aria-live="polite" aria-label="Consensus protocol history"></div>
-            <div class="consensus-partition" id="consensus-partition" hidden><span>PARTITION</span><b>C ISOLATED</b></div>
-          </div>
-        </div>
-
-        <div class="consensus-status" role="group" aria-label="Consensus state">
-          <div><span>PHASE</span><strong id="consensus-phase">READY</strong></div>
-          <div><span>B LINK</span><strong id="consensus-link-b">520 ms</strong></div>
-          <div><span>C LINK</span><strong id="consensus-link-c">760 ms</strong></div>
-          <p id="consensus-help">A write is safe to commit after the leader and one follower acknowledge it. Full convergence is a later event and can be delayed by the network.</p>
-        </div>
+        <div class="consensus-protocol" aria-label="Current write protocol"><div class="consensus-protocol__head"><span>CURRENT WRITE</span><strong id="consensus-protocol-write">NO WRITE YET</strong></div><ol class="consensus-protocol__rail"><li data-stage="propose"><span>01</span><strong>PROPOSE</strong><b>Leader sends</b></li><li data-stage="append"><span>02</span><strong>APPEND</strong><b>Follower stores</b></li><li data-stage="ack"><span>03</span><strong>ACK</strong><b>Follower returns</b></li><li data-stage="commit"><span>04</span><strong>COMMIT</strong><b>Quorum safe</b></li><li data-stage="apply"><span>05</span><strong>APPLY</strong><b>Replica applies</b></li><li data-stage="converge"><span>06</span><strong>CONVERGE</strong><b>All replicas agree</b></li></ol></div>
+        <div class="consensus-history"><div class="consensus-history__head"><span>RECENT WRITES</span><b>BOUNDED HISTORY / 4</b></div><div class="consensus-history__items" id="consensus-history"><p>Write a value to begin the cluster history.</p></div></div>
+        <div class="consensus-status" role="group" aria-label="Consensus state"><div><span>PHASE</span><strong id="consensus-phase">READY</strong></div><div><span>B LINK</span><strong id="consensus-link-b">520 ms</strong></div><div><span>C LINK</span><strong id="consensus-link-c">760 ms</strong></div><div><span>TRUTH</span><strong id="consensus-truth">v0 / CONVERGED</strong></div><p id="consensus-help">Quorum commits after the leader and one follower acknowledge. Full convergence happens only after every reachable replica catches up and applies the value.</p></div>
         <p class="visually-hidden" id="consensus-state-summary" role="status" aria-live="polite">Mode quorum. Network clean. Accepted v0 0x2A. Committed v0 0x2A. Converged v0 0x2A.</p>
       </div>
     </section>
   </main>
-
-  <script type="module" src="/lab/consensus/consensus.js?v=20260816-consensus-v3"></script>
+  <script type="module" src="/lab/consensus/consensus.js?v=20260816-consensus-v4"></script>
   <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation"><div class="mobile-nav-inner atlas-mobile-nav__inner"><a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><span>Work</span></a><a class="mobile-nav-item atlas-mobile-nav__item" href="/writing/"><span>Writing</span></a><a class="mobile-nav-item atlas-mobile-nav__item active" href="/lab/" aria-current="page"><span>Lab</span></a><a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><span>Systems</span></a><a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><span>About</span></a></div></nav>
 </body>
 </html>

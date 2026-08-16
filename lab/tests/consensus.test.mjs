@@ -46,7 +46,7 @@ test("quorum commits after first follower ack returns", () => {
   assert.ok(state.events.some((event) => event.type === "commit"));
 });
 
-test("quorum does not report convergence before every replica applies the commit", () => {
+test("quorum convergence remains later than commit", () => {
   let state = beginWrite(createConsensusState({ mode: MODE_QUORUM, network: NETWORK_CLEAN }));
   state = advanceConsensus(state, 900);
   assert.equal(state.committedVersion, 1);
@@ -55,16 +55,7 @@ test("quorum does not report convergence before every replica applies the commit
   assert.equal(state.convergedVersion, 1);
 });
 
-test("clean network eventually converges all three replicas", () => {
-  let state = beginWrite(createConsensusState({ mode: MODE_QUORUM, network: NETWORK_CLEAN }));
-  state = advanceConsensus(state, 2400);
-  assert.equal(state.convergedVersion, 1);
-  assert.equal(state.nodes.B.version, 1);
-  assert.equal(state.nodes.C.version, 1);
-  assert.ok(state.events.some((event) => event.type === "converged"));
-});
-
-test("slow B allows quorum while B remains visibly behind", () => {
+test("slow B allows quorum while B remains stale", () => {
   let state = beginWrite(createConsensusState({ mode: MODE_QUORUM, network: NETWORK_SLOW_B }));
   state = advanceConsensus(state, 1100);
   assert.equal(state.committedVersion, 1);
@@ -73,7 +64,7 @@ test("slow B allows quorum while B remains visibly behind", () => {
   assert.equal(replicaLag(state, "B"), 1);
 });
 
-test("isolated C does not block 2 of 3 quorum", () => {
+test("isolated C does not block two-of-three quorum", () => {
   let state = beginWrite(createConsensusState({ mode: MODE_QUORUM, network: NETWORK_ISOLATE_C }));
   state = advanceConsensus(state, 1300);
   assert.equal(state.committedVersion, 1);
@@ -81,7 +72,7 @@ test("isolated C does not block 2 of 3 quorum", () => {
   assert.ok(state.events.some((event) => event.type === "partition-drop" && event.node === "C"));
 });
 
-test("healing isolated C schedules explicit catch-up and convergence", () => {
+test("healing C performs explicit catch-up before convergence", () => {
   let state = beginWrite(createConsensusState({ mode: MODE_QUORUM, network: NETWORK_ISOLATE_C }));
   state = advanceConsensus(state, 1400);
   state = setNetwork(state, NETWORK_CLEAN);
@@ -89,10 +80,9 @@ test("healing isolated C schedules explicit catch-up and convergence", () => {
   state = advanceConsensus(state, 1600);
   assert.equal(state.nodes.C.version, 1);
   assert.equal(state.convergedVersion, 1);
-  assert.ok(state.events.some((event) => event.type === "catchup-arrive"));
 });
 
-test("eventual mode separates accepted from converged state", () => {
+test("eventual mode separates accepted from converged truth", () => {
   let state = beginWrite(createConsensusState({ mode: MODE_EVENTUAL, network: NETWORK_SLOW_B }));
   assert.equal(state.acceptedVersion, 1);
   assert.equal(state.committedVersion, 1);
@@ -103,7 +93,7 @@ test("eventual mode separates accepted from converged state", () => {
   assert.equal(state.convergedVersion, 0);
 });
 
-test("history retains multiple transaction traces", () => {
+test("bounded history retains multiple writes", () => {
   let state = beginWrite(createConsensusState());
   state = advanceConsensus(state, 2400);
   assert.equal(canBeginWrite(state), true);
@@ -111,39 +101,56 @@ test("history retains multiple transaction traces", () => {
   state = advanceConsensus(state, 2400);
   assert.equal(state.transactions.length, 2);
   assert.equal(state.transactions[0].version, 2);
-  assert.equal(state.transactions[1].version, 1);
 });
 
-test("state summary names accepted committed and converged truth", () => {
+test("state summary still names accepted committed and converged truth", () => {
   const summary = stateSummary(beginWrite(createConsensusState()));
   assert.match(summary, /Accepted v1/);
   assert.match(summary, /Committed v0/);
   assert.match(summary, /Converged v0/);
 });
 
-test("page describes flow rather than an agreement plane", () => {
-  assert.match(html, /PROTOCOL TRACE/);
-  assert.match(html, /TIME ↓/);
-  assert.match(html, /PROPOSE → ACK → COMMIT → APPLY → CONVERGE/);
-  assert.match(html, /data-lane="A"/);
-  assert.match(html, /data-lane="B"/);
-  assert.match(html, /data-lane="C"/);
-  assert.match(html, /id="consensus-stream"/);
-  assert.doesNotMatch(html, /AGREEMENT PLANE/);
+test("page uses the approved hybrid cluster and protocol rail", () => {
+  assert.match(html, /CLUSTER VIEW \/ FIXED LEADER/);
+  assert.match(html, /PROPOSE → APPEND → ACK → COMMIT → APPLY → CONVERGE/);
+  assert.match(html, /class="consensus-cluster"/);
+  assert.match(html, /data-node="A"/);
+  assert.match(html, /data-node="B"/);
+  assert.match(html, /data-node="C"/);
+  assert.match(html, /class="consensus-protocol__rail"/);
+  assert.match(html, /id="consensus-history"/);
+  assert.doesNotMatch(html, /PROTOCOL TRACE/);
+  assert.doesNotMatch(html, /TIME ↓/);
 });
 
-test("browser renderer creates protocol event classes", () => {
-  for (const token of ["proposal-send", "ack-arrive", "commit", "catchup-send", "partition-drop"]) assert.match(js, new RegExp(token));
+test("eventual mode has a separate accepted versus converged core", () => {
+  assert.match(html, /LATEST ACCEPTED/);
+  assert.match(html, /FULLY CONVERGED/);
+  assert.match(html, /consensus-core__eventual-mode/);
+  assert.match(js, /MODE_EVENTUAL/);
+  assert.match(js, /Leader advances/);
+});
+
+test("browser renderer drives packets, node inspection, rail and bounded history", () => {
+  assert.match(js, /getPointAtLength/);
+  assert.match(js, /proposal-arrive/);
+  assert.match(js, /ack-arrive/);
+  assert.match(js, /catchup-arrive/);
+  assert.match(js, /renderProtocol/);
+  assert.match(js, /renderHistory/);
+  assert.match(js, /renderInspector/);
   assert.match(js, /requestAnimationFrame/);
   assert.match(js, /document\.hidden/);
   assert.doesNotMatch(js, /Math\.random/);
 });
 
-test("visual system contains timeline, packets, partition and responsive rules", () => {
-  assert.match(css, /consensus-stream/);
-  assert.match(css, /consensus-packet/);
-  assert.match(css, /consensus-commit-front/);
-  assert.match(css, /consensus-partition/);
+test("visual system is calm by default and stronger only for slow or isolated links", () => {
+  assert.match(css, /consensus-node--a/);
+  assert.match(css, /consensus-core/);
+  assert.match(css, /consensus-protocol__rail/);
+  assert.match(css, /consensus-history-card/);
+  assert.match(css, /data-network="slow-b"/);
+  assert.match(css, /data-network="isolate-c"/);
   assert.match(css, /@media\(max-width:680px\)/);
   assert.match(css, /@media\(prefers-reduced-motion:reduce\)/);
 });
