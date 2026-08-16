@@ -665,3 +665,93 @@ body[data-lab-route="spectral-forge"][data-forge-depth="analyse"] .forge-evidenc
   body[data-lab-route="spectral-forge"] .forge-product-header,
   body[data-lab-route="spectral-forge"] .forge-product-identity h1 { transition: none; }
 }
+
+/* ---------------------------------------------------------------------------
+ * ANALYSE causal spine
+ *
+ * The page asked "what changed and why" and answered it as eighteen headings
+ * across 3.35 screens, with SIGNAL and AUDIO split into two page-level worlds
+ * that cut the chain at exactly the point where causality crosses from signal
+ * into sound. Both halves are now present in causal order, each stage states
+ * its place in the chain, and the summary answers the question before the
+ * detail does.
+ * ------------------------------------------------------------------------- */
+body[data-lab-route="spectral-forge"] .forge-causal-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1px;
+  margin-bottom: 14px;
+  border: 1px solid var(--forge-border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--forge-border);
+}
+body[data-lab-route="spectral-forge"] .forge-causal-summary > div {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  background: rgba(14, 14, 20, .92);
+  min-width: 0;
+}
+body[data-lab-route="spectral-forge"] .forge-causal-summary small {
+  color: var(--forge-faint);
+  font-size: 8px;
+  letter-spacing: .13em;
+}
+body[data-lab-route="spectral-forge"] .forge-causal-summary strong {
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+/* The regime is the hinge of the whole chain, so it reads first. */
+body[data-lab-route="spectral-forge"] .forge-causal-summary__regime strong {
+  color: var(--forge-amber, #f5a623);
+  font-size: 13px;
+  letter-spacing: .04em;
+}
+body[data-lab-route="spectral-forge"] .forge-causal-summary[data-regime="structural-failure"] .forge-causal-summary__regime strong { color: #ff7060; }
+body[data-lab-route="spectral-forge"] .forge-causal-summary[data-regime="coherent"] .forge-causal-summary__regime strong { color: #4ade80; }
+
+/* Each stage says where it sits in the chain. */
+body[data-lab-route="spectral-forge"] .forge-stage { position: relative; }
+body[data-lab-route="spectral-forge"] .forge-stage::before {
+  content: attr(data-stage) " · " attr(data-stage-name);
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(170, 169, 160, .55);
+  font-family: var(--forge-mono, ui-monospace, monospace);
+  font-size: 8px;
+  letter-spacing: .16em;
+}
+body[data-lab-route="spectral-forge"] .forge-stage-note {
+  margin: 4px 0 0;
+  color: var(--forge-faint);
+  font-size: 9px;
+  line-height: 1.5;
+  max-width: 62ch;
+}
+
+/* Emphasis, not concealment. */
+body[data-lab-route="spectral-forge"] .forge-analysis-view[data-emphasis="false"] { opacity: .82; }
+body[data-lab-route="spectral-forge"] .forge-analysis-view[data-emphasis="true"] { opacity: 1; }
+
+/* Active mechanisms lead; dormant ones recede without being hidden. */
+body[data-lab-route="spectral-forge"] #analysis-physical-state span[data-activity="resting"] { opacity: .38; }
+body[data-lab-route="spectral-forge"] #analysis-physical-state span[data-activity="active"] strong { color: var(--forge-amber, #f5a623); }
+body[data-lab-route="spectral-forge"] .forge-physical-detail {
+  margin-top: 8px;
+  border-top: 1px solid var(--forge-border);
+  padding-top: 6px;
+}
+body[data-lab-route="spectral-forge"] .forge-physical-detail > summary {
+  cursor: pointer;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  color: var(--forge-faint);
+  font-family: var(--forge-mono, ui-monospace, monospace);
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+body[data-lab-route="spectral-forge"] .forge-physical-detail[open] > summary { color: var(--forge-amber, #f5a623); }

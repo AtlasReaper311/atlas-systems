@@ -286,9 +286,18 @@ function renderDepth() {
   audioRenderer.meterElements = depth === "ANALYSE" && analysisView === "AUDIO" ? meterTargets.analysis : meterTargets.play;
 }
 
+/* ANALYSE is one causal chain, not two page-level worlds.
+ *
+ * Splitting SIGNAL from AUDIO cut the chain at exactly the point where causality
+ * crosses from signal into sound, so no single view ever showed the whole story
+ * the surface exists to tell. Both stages are now always present in causal
+ * order; the control emphasises one rather than hiding the other. */
 function renderAnalysisView() {
   elements.analysisButtons.forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.analysis === analysisView)));
-  elements.analysisPanels.forEach((panel) => { panel.hidden = panel.dataset.analysisPanel !== analysisView; });
+  elements.analysisPanels.forEach((panel) => {
+    panel.hidden = false;
+    panel.dataset.emphasis = String(panel.dataset.analysisPanel === analysisView);
+  });
   audioRenderer.meterElements = depth === "ANALYSE" && analysisView === "AUDIO" ? meterTargets.analysis : meterTargets.play;
 }
 
@@ -535,7 +544,60 @@ function ensureAudioParameterNodes() {
   elements.audioParameterList.replaceChildren(...spans);
 }
 
+const REGIME_CONSEQUENCE = Object.freeze({
+  coherent: "Cohesive body, surface tension holding",
+  compressed: "Material compressed, breathing room reduced",
+  "support-loss": "Local support failing, disturbance propagating",
+  oscillating: "Competing domains, reversible disagreement",
+  viscous: "Persistent stretch, material response lagging",
+  "structural-failure": "Fracture charged, structure separating",
+  reassembly: "Attraction returning, material reforming",
+});
+
+const REGIME_SONIC = Object.freeze({
+  coherent: "Crystalline surface, stable harmonic identity",
+  compressed: "Tighter spacing, narrowed image, no added level",
+  "support-loss": "Spectral floor withdrawn beneath the tone",
+  oscillating: "Tonal pair splitting and re-agreeing",
+  viscous: "Envelopes stretched, spectral drag",
+  "structural-failure": "Loading, release, and spatial separation",
+  reassembly: "Phase, image and harmony reconverging",
+});
+
+/* The signal furthest from its own resting value is the one driving the run. */
+function primaryDriver() {
+  let best = null;
+  let bestDistance = -1;
+  for (const definition of SIGNALS) {
+    const value = frame.normalised[definition.id];
+    if (!Number.isFinite(value)) continue;
+    const distance = Math.abs(value - 0.5);
+    if (distance > bestDistance) {
+      bestDistance = distance;
+      best = definition;
+    }
+  }
+  return best;
+}
+
+function renderCausalSummary() {
+  const physical = organismLife.physical ? physicalStateSnapshot(organismLife.physical) : null;
+  const regime = physical?.regime ?? "coherent";
+  const driver = primaryDriver();
+  const set = (id, text) => { const node = $(`#${id}`); if (node) node.textContent = text; };
+  set("summary-scenario", SCENARIO_BY_ID[scenarioId].label);
+  set("summary-time", formatTime(time));
+  set("summary-health", frame.health);
+  set("summary-regime", regime.replace(/-/g, " ").toUpperCase());
+  set("summary-driver", driver ? `${SIGNAL_BY_ID[driver.id].label} ${formatValue(frame.values[driver.id], driver.decimals)} ${driver.unit}` : "—");
+  set("summary-material", REGIME_CONSEQUENCE[regime] ?? REGIME_CONSEQUENCE.coherent);
+  set("summary-sonic", REGIME_SONIC[regime] ?? REGIME_SONIC.coherent);
+  const host = $(".forge-causal-summary");
+  if (host) host.dataset.regime = regime;
+}
+
 function renderAnalysis() {
+  renderCausalSummary();
   const signal = SIGNAL_BY_ID[selectedSignalId];
   elements.analysisSignalSelect.value = selectedSignalId;
   elements.analysisSignalValue.textContent = formatValue(frame.values[selectedSignalId], signal.decimals);

@@ -263,23 +263,34 @@
     <section class="forge-depth-panel forge-analysis" data-depth-panel="ANALYSE" aria-labelledby="analyse-heading" hidden>
       <header class="forge-mode-heading forge-mode-heading--analysis">
         <div><span class="forge-micro-label">ANALYSE</span><h2 id="analyse-heading">Inspect what changed and why.</h2></div>
-        <div class="forge-analysis-switch" role="group" aria-label="Analysis view"><button type="button" data-analysis="SIGNAL" aria-pressed="true">SIGNAL</button><button type="button" data-analysis="AUDIO" aria-pressed="false">AUDIO</button></div>
+        <div class="forge-analysis-switch" role="group" aria-label="Emphasise a stage of the causal chain"><button type="button" data-analysis="SIGNAL" aria-pressed="true" aria-controls="analysis-stage-signal">SIGNAL</button><button type="button" data-analysis="AUDIO" aria-pressed="false" aria-controls="analysis-stage-audio">AUDIO</button></div>
       </header>
 
-      <div class="forge-analysis-view" data-analysis-panel="SIGNAL">
-        <section class="forge-analysis-primary" aria-labelledby="signal-analysis-title">
+      <section class="forge-causal-summary" aria-labelledby="causal-summary-title">
+        <h3 id="causal-summary-title" class="sr-only">Current causal state</h3>
+        <div><small>SCENARIO</small><strong id="summary-scenario">NORMAL LOAD</strong></div>
+        <div><small>TIME</small><strong id="summary-time">00:00.0</strong></div>
+        <div><small>PRIMARY DRIVER</small><strong id="summary-driver">—</strong></div>
+        <div class="forge-causal-summary__regime"><small>MATERIAL REGIME</small><strong id="summary-regime">COHERENT</strong></div>
+        <div><small>MATERIAL CONSEQUENCE</small><strong id="summary-material">—</strong></div>
+        <div><small>SONIC CONSEQUENCE</small><strong id="summary-sonic">—</strong></div>
+        <div><small>HEALTH</small><strong id="summary-health">STABLE</strong></div>
+      </section>
+
+      <div class="forge-analysis-view" data-analysis-panel="SIGNAL" id="analysis-stage-signal">
+        <section class="forge-analysis-primary forge-stage" data-stage="01" data-stage-name="RAW TELEMETRY → NORMALISATION" aria-labelledby="signal-analysis-title">
           <header><span class="forge-micro-label">SELECTED SIGNAL</span><h3 id="signal-analysis-title">Signal history</h3><label>SIGNAL<select id="analysis-signal-select"></select></label></header>
           <div class="forge-analysis-hero-value"><strong id="analysis-signal-value">0</strong><span id="analysis-signal-unit"></span><small>NORMALISED <b id="analysis-signal-normalised">0.000</b></small></div>
           <canvas id="analysis-signal-timeline" role="img" aria-label="Selected signal history"></canvas>
         </section>
-        <section class="forge-analysis-phase" aria-labelledby="analysis-phase-title"><span class="forge-micro-label">DETERMINISTIC RUN STATE</span><h3 id="analysis-phase-title">Current phase</h3><dl><div><dt>SCENARIO</dt><dd id="analysis-scenario">NORMAL LOAD</dd></div><div><dt>TIME</dt><dd id="analysis-time">00:00.0</dd></div><div><dt>HEALTH MODEL</dt><dd id="analysis-health">STABLE</dd></div><div><dt>PHASE</dt><dd id="analysis-phase">1 / 3</dd></div></dl><h4 id="analysis-phase-name">REFERENCE BASELINE</h4><p id="analysis-phase-description"></p><div id="analysis-chain" class="forge-analysis-chain"></div></section>
-        <section class="forge-signal-index" aria-labelledby="signal-index-title"><span class="forge-micro-label">SIGNAL INDEX</span><h3 id="signal-index-title">All synthetic telemetry</h3><div id="signal-index"></div></section>
+        <section class="forge-signal-index forge-stage" data-stage="01b" data-stage-name="ALL TELEMETRY" aria-labelledby="signal-index-title"><span class="forge-micro-label">SIGNAL INDEX</span><h3 id="signal-index-title">All synthetic telemetry</h3><div id="signal-index"></div></section>
+        <section class="forge-analysis-phase forge-stage" data-stage="02" data-stage-name="MATERIAL REGIME → SPATIAL RESPONSE" aria-labelledby="analysis-phase-title"><span class="forge-micro-label">DETERMINISTIC RUN STATE</span><h3 id="analysis-phase-title">Current phase</h3><dl><div><dt>SCENARIO</dt><dd id="analysis-scenario">NORMAL LOAD</dd></div><div><dt>TIME</dt><dd id="analysis-time">00:00.0</dd></div><div><dt>HEALTH MODEL</dt><dd id="analysis-health">STABLE</dd></div><div><dt>PHASE</dt><dd id="analysis-phase">1 / 3</dd></div></dl><h4 id="analysis-phase-name">REFERENCE BASELINE</h4><p id="analysis-phase-description"></p><div id="analysis-chain" class="forge-analysis-chain"></div></section>
       </div>
 
-      <div class="forge-analysis-view forge-audio-analysis" data-analysis-panel="AUDIO" hidden>
-        <section class="forge-audio-scope-panel" aria-labelledby="audio-scope-title"><span class="forge-micro-label">ACTUAL AUDIO OUTPUT</span><h3 id="audio-scope-title">Waveform and spectrum</h3><canvas id="audio-scope" role="img" aria-label="Audio analyser inactive until audio is enabled"></canvas><div class="forge-analysis-meter"><div><span><small>PEAK</small><strong id="analysis-peak">−∞ dBFS</strong></span><span><small>RMS</small><strong id="analysis-rms">−∞ dBFS</strong></span></div><div class="forge-meter" aria-hidden="true"><i id="analysis-meter-bar"></i><b id="analysis-meter-marker"></b><span>−1 dBFS sample bound</span></div></div></section>
-        <section class="forge-audio-parameters" aria-labelledby="audio-parameters-title"><span class="forge-micro-label">MAPPED SONIC STATE</span><h3 id="audio-parameters-title">Synthesis parameters</h3><div id="audio-parameter-list"></div><dl class="forge-audio-boundary"><div><dt>HARMONIC STATE</dt><dd id="audio-harmonic-state">CRYSTALLINE / OPEN FIFTH</dd></div><div><dt>SAFETY STAGE</dt><dd>SOFT CLIP + −1 dBFS SAMPLE BOUND</dd></div><div><dt>STEREO</dt><dd>TRUE MID / SIDE WIDTH</dd></div></dl></section>
-        <section class="forge-audio-field" aria-labelledby="audio-field-title"><span class="forge-micro-label">INTERPRETIVE VISUALISATION</span><h3 id="audio-field-title">Mapped Spectral Field</h3><figure class="forge-field-stage forge-field-stage--analysis"><canvas id="analysis-field" role="img" aria-label="Mapped Spectral Field"></canvas></figure></section>
+      <div class="forge-analysis-view forge-audio-analysis" data-analysis-panel="AUDIO" id="analysis-stage-audio">
+        <section class="forge-audio-parameters forge-stage" data-stage="03" data-stage-name="MAPPING → SONIC PARAMETER" aria-labelledby="audio-parameters-title"><span class="forge-micro-label">MAPPED SONIC STATE</span><h3 id="audio-parameters-title">Synthesis parameters</h3><div id="audio-parameter-list"></div><dl class="forge-audio-boundary"><div><dt>HARMONIC STATE</dt><dd id="audio-harmonic-state">CRYSTALLINE / OPEN FIFTH</dd></div><div><dt>SAFETY STAGE</dt><dd>SOFT CLIP + −1 dBFS SAMPLE BOUND</dd></div><div><dt>STEREO</dt><dd>TRUE MID / SIDE WIDTH</dd></div></dl></section>
+        <section class="forge-audio-scope-panel forge-stage" data-stage="04" data-stage-name="GENERATED → ACTUAL OUTPUT" aria-labelledby="audio-scope-title"><span class="forge-micro-label">GENERATED SOUND / ACTUAL OUTPUT</span><h3 id="audio-scope-title">Waveform and spectrum</h3><p class="forge-stage-note">The scope shows what the synthesis is generating, before mute. The meter shows what reaches the listener, after mute and the safety stage.</p><canvas id="audio-scope" role="img" aria-label="Audio analyser inactive until audio is enabled"></canvas><div class="forge-analysis-meter"><div><span><small>PEAK</small><strong id="analysis-peak">−∞ dBFS</strong></span><span><small>RMS</small><strong id="analysis-rms">−∞ dBFS</strong></span></div><div class="forge-meter" aria-hidden="true"><i id="analysis-meter-bar"></i><b id="analysis-meter-marker"></b><span>−1 dBFS sample bound</span></div></div></section>
+        <section class="forge-audio-field forge-stage" data-stage="05" data-stage-name="MAPPED FIELD" aria-labelledby="audio-field-title"><span class="forge-micro-label">INTERPRETIVE VISUALISATION</span><h3 id="audio-field-title">Mapped Spectral Field</h3><figure class="forge-field-stage forge-field-stage--analysis"><canvas id="analysis-field" role="img" aria-label="Mapped Spectral Field"></canvas></figure></section>
       </div>
     </section>
   </main>
