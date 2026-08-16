@@ -755,3 +755,48 @@ body[data-lab-route="spectral-forge"] .forge-physical-detail > summary {
   text-transform: uppercase;
 }
 body[data-lab-route="spectral-forge"] .forge-physical-detail[open] > summary { color: var(--forge-amber, #f5a623); }
+
+/* ---------------------------------------------------------------------------
+ * Cross-mode continuity
+ *
+ * The three depths are three distances from one instrument, not three pages.
+ * The organism, its physical state, damage history, separation, transport and
+ * audio all survive the change untouched - Wave 1 and 2 made that true - so the
+ * transition only has to avoid asserting otherwise. It is a short settle on the
+ * panel that arrives, nothing on the organism itself: no cross-fade over the
+ * Field, which would read as the specimen blinking, and no travel, which would
+ * read as a page.
+ * ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  body[data-lab-route="spectral-forge"] .forge-depth-panel:not([hidden]) > *:not(.forge-field-stage):not(figure) {
+    animation: forge-depth-settle 260ms cubic-bezier(.22, .61, .36, 1) both;
+  }
+  /* Staged by a hair so the panel resolves in reading order rather than as one
+   * block arriving. Capped at four so nothing at the bottom feels late. */
+  body[data-lab-route="spectral-forge"] .forge-depth-panel:not([hidden]) > *:nth-child(2) { animation-delay: 30ms; }
+  body[data-lab-route="spectral-forge"] .forge-depth-panel:not([hidden]) > *:nth-child(3) { animation-delay: 60ms; }
+  body[data-lab-route="spectral-forge"] .forge-depth-panel:not([hidden]) > *:nth-child(n+4) { animation-delay: 80ms; }
+}
+
+@keyframes forge-depth-settle {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* The Field is explicitly excluded from the settle. The same organism is on
+ * screen before and after, and animating it would contradict that. */
+body[data-lab-route="spectral-forge"] .forge-field-stage,
+body[data-lab-route="spectral-forge"] .forge-field-stage canvas {
+  animation: none !important;
+}
+
+/* Organism prominence by depth: dominant in PLAY, a major anchor in FORGE,
+ * evidence rather than spectacle in ANALYSE. Three identical hero canvases would
+ * dilute the instrument rather than reinforce it. */
+body[data-lab-route="spectral-forge"] .forge-field-stage--analysis {
+  min-height: clamp(300px, 32vh, 400px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-lab-route="spectral-forge"] .forge-depth-panel:not([hidden]) > * { animation: none; }
+}
