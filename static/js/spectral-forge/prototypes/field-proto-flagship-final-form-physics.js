@@ -106,16 +106,6 @@ const IDLE_FISSION = Object.freeze({
   daughters: Object.freeze([]), extent: 1.14, phase: "idle",
 });
 
-function resetForBackwardTime(state, lifeTime) {
-  state.active = false;
-  state.progress = 0;
-  state.lastLifeTime = lifeTime;
-  state.cooldownUntil = lifeTime;
-  state.startDrive = 0;
-  state.count = 0;
-  state.scarRecorded = false;
-}
-
 function chooseAxis(state, physical, seedPhase) {
   const material = physical?.material;
   if (material?.fractureCharge > 0.4) {
@@ -248,7 +238,14 @@ export function stepPhysicalFission(state, {
   const now = Math.max(0, Number.isFinite(lifeTime) ? lifeTime : 0);
   const drive = physicalFissionEnvelope(physical);
 
-  if (model.lastLifeTime != null && now + 0.0001 < model.lastLifeTime) resetForBackwardTime(model, now);
+  /* A backward stamp is renderer bookkeeping, not a physical event. Cancelling
+   * an in-flight separation here is what made a cascade restart from `gather`
+   * three times in one run and never reach `settle`. Hold the separation, adopt
+   * the stamp, and let the next forward step continue it. */
+  if (model.lastLifeTime != null && now + 0.0001 < model.lastLifeTime) {
+    model.lastLifeTime = now;
+    return model.active ? model.result : IDLE_FISSION;
+  }
   /* Separation progress advances by elapsed time, not a clamped frame budget: a
    * slow renderer must not make the split itself run in slow motion. */
   const dt = model.lastLifeTime == null

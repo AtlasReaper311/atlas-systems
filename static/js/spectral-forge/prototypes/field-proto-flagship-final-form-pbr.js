@@ -3,6 +3,7 @@
 import * as THREE from "/lab/vendor/three/three.module.min.js";
 import { deriveFieldGeometry } from "../spectral-field-geometry.js";
 import { transitionMix } from "../spectral-field-state.js";
+import { rendererShouldAnimate } from "../spectral-field-life-clock.js";
 import { canvasSize, clamp, routeBand, unit } from "./proto-core.js";
 import {
   FINAL_FIELD_COUNT,
@@ -55,6 +56,10 @@ const QUALITY_TIERS = Object.freeze([
 const QUALITY_DOWN_MS = 34;
 const QUALITY_UP_MS = 20;
 const QUALITY_DWELL_MS = 2200;
+/* Above this an interval is a stall, not a frame rate. Measured: an undisturbed
+ * cascade holds a 9ms median with a 27ms p95, while a depth change costs a
+ * single 90-157ms frame. */
+const QUALITY_STALL_MS = 80;
 const MESH_FALLBACK_WIDTH = 240;
 const MESH_FALLBACK_HEIGHT = 144;
 const PLATE_STRIDE = 4;
@@ -211,6 +216,7 @@ function createState(renderer, seedPhase) {
     fields: FINAL_FIELD_COUNT,
     continuousMicroPeaks: true,
     dprCap: WEBGL_DPR_CAP,
+    pixelRatio: Math.min(WEBGL_DPR_CAP, window.devicePixelRatio || 1),
     qualityTier: QUALITY_TIERS[0].name,
     shaderCompiled: false,
     lastCpuMs: 0,
@@ -369,7 +375,9 @@ function resize(state, sourceCanvas) {
   if (state.cssWidth === cssWidth && state.cssHeight === cssHeight) return false;
   state.cssWidth = cssWidth;
   state.cssHeight = cssHeight;
-  state.webgl.setPixelRatio(Math.min(WEBGL_DPR_CAP, window.devicePixelRatio || 1));
+  const ratio = tierPixelRatio(state);
+  state.webgl.setPixelRatio(ratio);
+  state.perf.pixelRatio = ratio;
   state.webgl.setSize(cssWidth, cssHeight, false);
   state.camera.aspect = cssWidth / cssHeight;
   state.camera.updateProjectionMatrix();
@@ -651,41 +659,79 @@ function markStage(stages, name, startedAt) {
   return now;
 }
 
-/* Swaps the body mesh to the tier's tessellation. Called only on a tier change,
- * which sustained-evidence hysteresis keeps rare. */
+/* The pixel ratio the active tier is entitled to. resize() and applyQualityTier
+ * both read this, so a resize can no longer restore the full-tier ratio while
+ * the mesh stays coarse - which previously flickered the buffer between
+ * 1701x558 and 1185x389 with nothing about the machine having changed. */
+function tierPixelRatio(state) {
+  const tier = QUALITY_TIERS[state.qualityTier] ?? QUALITY_TIERS[0];
+  return Math.min(tier.dpr, window.devicePixelRatio || 1);
+}
+
+/* Swaps the body mesh to the tier's tessellation, and reports what is actually
+ * in use rather than what was requested. Called only on a tier change, which
+ * sustained-evidence hysteresis keeps rare.
+ *
+ * Returns true when the caller must repaint: setPixelRatio resizes the drawing
+ * buffer, and a resized buffer is a cleared buffer. This runs after the frame
+ * has been rendered, so without that repaint the tier change erases the image it
+ * just produced - invisible at 60fps, permanent while paused. */
 function applyQualityTier(state, index) {
   const tier = QUALITY_TIERS[index];
-  if (!tier || state.qualityTier === index) return;
+  if (!tier || state.qualityTier === index) return false;
   const previous = state.geometry;
   state.geometry = new THREE.SphereGeometry(1, tier.width, tier.height);
   state.body.geometry = state.geometry;
   previous?.dispose?.();
-  state.webgl.setPixelRatio(Math.min(tier.dpr, window.devicePixelRatio || 1));
   state.qualityTier = index;
+  const ratio = tierPixelRatio(state);
+  state.webgl.setPixelRatio(ratio);
   state.perf.vertices = state.geometry.getAttribute("position").count;
   state.perf.qualityTier = tier.name;
   state.perf.dprCap = tier.dpr;
+  state.perf.pixelRatio = ratio;
   state.cssWidth = 0;
   state.cssHeight = 0;
+  return true;
 }
 
-function stepAdaptiveQuality(state, now) {
-  if (state.lastFrameAt) {
+/* Frame cadence is only evidence of machine capability while the machine is
+ * actually animating. While the transport is paused the renderer draws on
+ * interaction, so the interval between draws is how fast the user clicks -
+ * previously read as a 700ms frame against a 34ms budget, which stepped the
+ * organism down a tier every 2.2s of paused interaction and could never step
+ * back up. Idle time is not slow rendering. */
+function stepAdaptiveQuality(state, now, animating, resized) {
+  if (!animating) {
+    /* Drop the stale anchor so the first animated frame after resuming is not
+     * measured against whenever the last interaction happened. */
+    state.lastFrameAt = 0;
+    state.qualityHeldSince = 0;
+    return false;
+  }
+  if (state.lastFrameAt && !resized) {
     const interval = now - state.lastFrameAt;
-    if (interval > 0 && interval < 2000) {
+    /* A one-off stall - a depth change relaying the page, a layout pass, the
+     * compositor catching up - says nothing about whether this GPU can hold the
+     * detail. Feeding those spikes in stepped the organism down a tier on every
+     * depth switch and straight back up 2.2s later, which is exactly the visible
+     * churn tier adaptation exists to avoid. Only plausible frame intervals are
+     * evidence; the frame that spans a resize is not measured at all. */
+    if (interval > 0 && interval < QUALITY_STALL_MS) {
       state.qualityEmaMs = state.qualityEmaMs === 0 ? interval : state.qualityEmaMs * 0.9 + interval * 0.1;
     }
   }
   state.lastFrameAt = now;
   if (!state.qualityHeldSince) state.qualityHeldSince = now;
-  if (state.qualityEmaMs === 0 || now - state.qualityHeldSince < QUALITY_DWELL_MS) return;
+  if (state.qualityEmaMs === 0 || now - state.qualityHeldSince < QUALITY_DWELL_MS) return false;
 
   const slow = state.qualityEmaMs > QUALITY_DOWN_MS && state.qualityTier < QUALITY_TIERS.length - 1;
   const fast = state.qualityEmaMs < QUALITY_UP_MS && state.qualityTier > 0;
-  if (!slow && !fast) return;
-  applyQualityTier(state, state.qualityTier + (slow ? 1 : -1));
+  if (!slow && !fast) return false;
+  const changed = applyQualityTier(state, state.qualityTier + (slow ? 1 : -1));
   state.qualityHeldSince = now;
   state.qualityEmaMs = 0;
+  return changed;
 }
 
 function recordCpuPerf(state, stages, startedAt) {
@@ -724,6 +770,7 @@ export function drawFlagshipFinalForm(renderer, timestamp = performance.now()) {
     g.health.severity * 0.66 + g.deformation * 0.32 + g.art.fractureBias * 0.18,
   );
   const audioActive = Boolean(renderer.state.audioEnabled && !renderer.state.muted);
+  const animating = rendererShouldAnimate(renderer.state, renderer.reducedMotion);
 
   let state;
   try {
@@ -815,7 +862,14 @@ export function drawFlagshipFinalForm(renderer, timestamp = performance.now()) {
   markStage(stages, "studioPlateMs", stageStartedAt);
   state.frameIndex += 1;
   recordCpuPerf(state, stages, startedAt);
-  stepAdaptiveQuality(state, plateNow);
+
+  /* A tier change resizes - and therefore clears - the drawing buffer. Present
+   * the new tier immediately so no frame is ever left blank, whether or not an
+   * animation loop is going to run again. */
+  if (stepAdaptiveQuality(state, plateNow, animating, resized)) {
+    resize(state, renderer.canvas);
+    state.webgl.render(state.scene, state.camera);
+  }
   /* Publish the separation the physical layer actually resolved during render,
    * never the scheduled value captured before it. Reading the stale local here
    * reported an idle organism on every frame while a cascade was visibly
