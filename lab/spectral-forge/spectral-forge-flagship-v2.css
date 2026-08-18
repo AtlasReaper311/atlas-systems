@@ -311,6 +311,8 @@ body[data-lab-route="spectral-forge"] .forge-analysis-chain {
   background: rgba(8,8,13,.62);
 }
 
+/* Breakpoint contract, shared with spectral-forge-responsive.css:
+ * 1280 three columns to two, 900 two to one, 768 touch, 560 full-bleed. */
 @media (max-width: 1280px) {
   body[data-lab-route="spectral-forge"] .forge-product-header,
   body[data-lab-route="spectral-forge"] .forge-depth-nav,
@@ -443,4 +445,404 @@ body[data-lab-route="spectral-forge"] .forge-analysis-chain {
 
 @media (prefers-reduced-motion: reduce) {
   body[data-lab-route="spectral-forge"] .forge-first-use { transition: none; }
+}
+
+/* ---------------------------------------------------------------------------
+ * Sticky stack
+ *
+ * Spectral Forge stacks three sticky layers, not the two the shared Lab shell
+ * knows about: the fixed Atlas header, the Lab context bar, and the depth nav.
+ * Two consequences had to be fixed here rather than in the shared shell, which
+ * other Lab routes depend on.
+ *
+ * First, --lab-shell-context-height defaults to 0px and is only corrected once
+ * shell.js has measured the context bar. Until then the stack reads 56px, the
+ * depth nav sticks level with a 54px context bar it renders behind, and the
+ * section heading scrolling past is eaten. Declaring a measured-height default
+ * until the shell reports ready closes that window, and stops the layout being
+ * wrong outright if shell.js never loads.
+ *
+ * Second, scroll-padding-top is calc(stack + 24px), which accounts for the
+ * header and context bar but not for the depth nav below them. Anchor
+ * navigation and keyboard focus therefore landed up to a depth-nav height under
+ * the sticky stack.
+ * ------------------------------------------------------------------------- */
+/* Declared on the root as well as the body: scroll-padding-top is a property of
+ * the scrolling element, so it can only read custom properties that reach the
+ * root. The body copy carries the same values to the depth nav in browsers
+ * without :has(). Both defer to shell.js once it reports a measured shell. */
+html:not([data-lab-shell-ready]):has(body[data-lab-route="spectral-forge"]),
+html:not([data-lab-shell-ready]) body[data-lab-route="spectral-forge"] {
+  --lab-shell-context-height: 54px;
+  --lab-shell-stack-height: calc(var(--lab-shell-header-height) + var(--lab-shell-context-height));
+}
+
+html:has(body[data-lab-route="spectral-forge"]),
+body[data-lab-route="spectral-forge"] {
+  --forge-depth-nav-height: 48px;
+}
+
+html:has(body[data-lab-route="spectral-forge"]) {
+  scroll-padding-top: calc(
+    var(--lab-shell-stack-height, 111px) + var(--forge-depth-nav-height, 48px) + 16px
+  );
+}
+
+/* Sections the depth nav can scroll over need the same clearance, so a focused
+ * control or an anchored heading is never delivered underneath it. */
+body[data-lab-route="spectral-forge"] .forge-depth-panel,
+body[data-lab-route="spectral-forge"] .forge-mode-heading,
+body[data-lab-route="spectral-forge"] .forge-analysis-view > section,
+body[data-lab-route="spectral-forge"] .forge-workspace > section {
+  scroll-margin-top: calc(
+    var(--lab-shell-stack-height, 111px) + var(--forge-depth-nav-height, 48px) + 16px
+  );
+}
+
+@media (max-width: 560px) {
+  body[data-lab-route="spectral-forge"] { --forge-depth-nav-height: 52px; }
+}
+
+/* ---------------------------------------------------------------------------
+ * Column alignment
+ *
+ * Both workspaces are single-row grids, so every column inherited the height of
+ * the tallest - the Field. Measured at 1728x1000: the FORGE route rack and
+ * inspector were stretched to 1058px, leaving 211px of empty panel below Route
+ * Focus, and the ANALYSE primary column held 393px of content in a 747px box.
+ * The columns end where their content ends; only the Field claims full height.
+ * ------------------------------------------------------------------------- */
+body[data-lab-route="spectral-forge"] .forge-workspace,
+body[data-lab-route="spectral-forge"] .forge-analysis-view {
+  align-items: start;
+}
+/* ---------------------------------------------------------------------------
+ * FORGE instrument console
+ *
+ * The panel used to read as several unrelated configuration sections stacked
+ * vertically: a large A/B header, an empty consequence surface, a preset bar and
+ * a full-width patch block, all above the instrument itself. Measured, the
+ * workspace did not begin until 1082px down the page.
+ *
+ * The workspace is now the first substantial thing on the panel and the three
+ * columns are bonded into one surface rather than three bordered boxes.
+ * Everything that is a capability rather than the central story - presets,
+ * transfer, capture - sits in a compact strip beneath it.
+ * ------------------------------------------------------------------------- */
+body[data-lab-route="spectral-forge"] .forge-mode-heading--console {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 20px 32px;
+  padding-bottom: 14px;
+}
+body[data-lab-route="spectral-forge"] .forge-mode-heading--console h2 { margin: 2px 0 0; }
+body[data-lab-route="spectral-forge"] .forge-console-identity { min-width: 0; }
+
+/* One surface. The interior rules read as an instrument's own divisions rather
+ * than as three panels that happen to be adjacent. */
+body[data-lab-route="spectral-forge"] .forge-workspace {
+  gap: 0;
+  border: 1px solid var(--forge-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(12, 12, 18, .55);
+}
+body[data-lab-route="spectral-forge"] .forge-route-rack {
+  border-right: 1px solid var(--forge-border);
+}
+body[data-lab-route="spectral-forge"] .forge-route-inspector {
+  border-left: 1px solid var(--forge-border);
+}
+body[data-lab-route="spectral-forge"] .forge-field-dock { background: transparent; }
+
+/* Progressive inspector: the causal chain and the three decisions that change
+ * its shape stay visible; the numeric bounds are one disclosure away. Seven
+ * fields two-up in a 346px column was why editing felt like filling a form. */
+body[data-lab-route="spectral-forge"] .forge-inspector-controls--primary {
+  grid-template-columns: 1fr;
+}
+body[data-lab-route="spectral-forge"] .forge-inspector-bounds {
+  margin-top: 10px;
+  border-top: 1px solid var(--forge-border);
+  padding-top: 10px;
+}
+body[data-lab-route="spectral-forge"] .forge-inspector-bounds > summary {
+  cursor: pointer;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  color: var(--forge-faint);
+  font-family: var(--forge-mono, ui-monospace, monospace);
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+body[data-lab-route="spectral-forge"] .forge-inspector-bounds > summary:hover { color: var(--forge-text, #e8e8e0); }
+body[data-lab-route="spectral-forge"] .forge-inspector-bounds[open] > summary { color: var(--forge-amber, #f5a623); }
+
+/* Utilities are capabilities, not the reason FORGE exists. */
+body[data-lab-route="spectral-forge"] .forge-utility-strip {
+  margin-top: 1px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 20px;
+  padding: 10px 16px;
+  border: 1px solid var(--forge-border);
+  border-top: 0;
+  background: rgba(12, 12, 18, .4);
+}
+body[data-lab-route="spectral-forge"] .forge-utility-strip .forge-preset-bar,
+body[data-lab-route="spectral-forge"] .forge-utility-strip .forge-compare-actions {
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  width: auto;
+}
+
+/* The console header states what the mode is for and gets out of the way. At
+ * full editorial size it cost 211px above the instrument, which is most of the
+ * reason the Field did not reach the first viewport. */
+body[data-lab-route="spectral-forge"] .forge-mode-heading--console h2 {
+  font-size: clamp(17px, 1.5vw, 21px);
+  line-height: 1.2;
+  max-width: 46ch;
+}
+body[data-lab-route="spectral-forge"] .forge-mode-heading--console { padding: 6px 0 12px; }
+body[data-lab-route="spectral-forge"] .forge-mode-heading--console .forge-compare { align-self: end; }
+
+/* The patch bank is a way to make a route, not a catalogue to read. Collapsed,
+ * the rail stays about the height of the routes it lists. */
+body[data-lab-route="spectral-forge"] .forge-patch-bay > summary {
+  cursor: pointer;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--forge-faint);
+  font-family: var(--forge-mono, ui-monospace, monospace);
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+body[data-lab-route="spectral-forge"] .forge-patch-bay > summary:hover { color: var(--forge-dim); }
+body[data-lab-route="spectral-forge"] .forge-patch-bay[open] > summary { color: var(--forge-amber, #f5a623); }
+
+/* ---------------------------------------------------------------------------
+ * Identity by depth
+ *
+ * The product header is the instrument's title card and earns its size on PLAY,
+ * where the organism is the subject. In FORGE and ANALYSE the subject is the
+ * work, and 303px of title above a persistent 157px sticky stack is most of the
+ * reason the workspace could not reach the first viewport. It compresses rather
+ * than disappearing, so the three depths stay recognisably one page.
+ * ------------------------------------------------------------------------- */
+body[data-lab-route="spectral-forge"][data-forge-depth="forge"] .forge-product-header,
+body[data-lab-route="spectral-forge"][data-forge-depth="analyse"] .forge-product-header {
+  /* Vertical only. Using the shorthand here removed the horizontal padding the
+   * narrow-viewport rules rely on, which pushed the counterpart link 10px past
+   * a 390px viewport. */
+  padding-block: 4px 2px;
+  transition: padding-block 220ms ease;
+}
+body[data-lab-route="spectral-forge"][data-forge-depth="forge"] .forge-product-identity h1,
+body[data-lab-route="spectral-forge"][data-forge-depth="analyse"] .forge-product-identity h1 {
+  font-size: clamp(19px, 1.7vw, 25px);
+  transition: font-size 220ms ease;
+}
+body[data-lab-route="spectral-forge"][data-forge-depth="forge"] .forge-product-identity > p,
+body[data-lab-route="spectral-forge"][data-forge-depth="analyse"] .forge-product-identity > p,
+body[data-lab-route="spectral-forge"][data-forge-depth="forge"] .forge-evidence-surface small,
+body[data-lab-route="spectral-forge"][data-forge-depth="analyse"] .forge-evidence-surface small {
+  display: none;
+}
+body[data-lab-route="spectral-forge"][data-forge-depth="forge"] .forge-evidence-surface,
+body[data-lab-route="spectral-forge"][data-forge-depth="analyse"] .forge-evidence-surface {
+  min-height: 0;
+  padding: 4px 0 4px 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-lab-route="spectral-forge"] .forge-product-header,
+  body[data-lab-route="spectral-forge"] .forge-product-identity h1 { transition: none; }
+  body[data-lab-route="spectral-forge"] .forge-depth-panel:not([hidden]) > * { animation: none; }
+}
+
+/* ---------------------------------------------------------------------------
+ * ANALYSE causal spine
+ *
+ * The page asked "what changed and why" and answered it as eighteen headings
+ * across 3.35 screens, with SIGNAL and AUDIO split into two page-level worlds
+ * that cut the chain at exactly the point where causality crosses from signal
+ * into sound. Both halves are now present in causal order, each stage states
+ * its place in the chain, and the summary answers the question before the
+ * detail does.
+ * ------------------------------------------------------------------------- */
+body[data-lab-route="spectral-forge"] .forge-causal-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1px;
+  margin-bottom: 14px;
+  border: 1px solid var(--forge-border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--forge-border);
+}
+body[data-lab-route="spectral-forge"] .forge-causal-summary > div {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  background: rgba(14, 14, 20, .92);
+  min-width: 0;
+}
+body[data-lab-route="spectral-forge"] .forge-causal-summary small {
+  color: var(--forge-faint);
+  font-size: 8px;
+  letter-spacing: .13em;
+}
+body[data-lab-route="spectral-forge"] .forge-causal-summary strong {
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+/* The regime is the hinge of the whole chain, so it reads first. */
+body[data-lab-route="spectral-forge"] .forge-causal-summary__regime strong {
+  color: var(--forge-amber, #f5a623);
+  font-size: 13px;
+  letter-spacing: .04em;
+}
+body[data-lab-route="spectral-forge"] .forge-causal-summary[data-regime="structural-failure"] .forge-causal-summary__regime strong { color: #ff7060; }
+body[data-lab-route="spectral-forge"] .forge-causal-summary[data-regime="coherent"] .forge-causal-summary__regime strong { color: #4ade80; }
+
+/* Each stage says where it sits in the chain. */
+body[data-lab-route="spectral-forge"] .forge-stage { position: relative; }
+body[data-lab-route="spectral-forge"] .forge-stage::before {
+  content: attr(data-stage) " · " attr(data-stage-name);
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(170, 169, 160, .55);
+  font-family: var(--forge-mono, ui-monospace, monospace);
+  font-size: 8px;
+  letter-spacing: .16em;
+}
+body[data-lab-route="spectral-forge"] .forge-stage-note {
+  margin: 4px 0 0;
+  color: var(--forge-faint);
+  font-size: 9px;
+  line-height: 1.5;
+  max-width: 62ch;
+}
+
+/* Emphasis, not concealment. */
+body[data-lab-route="spectral-forge"] .forge-analysis-view[data-emphasis="false"] { opacity: .82; }
+body[data-lab-route="spectral-forge"] .forge-analysis-view[data-emphasis="true"] { opacity: 1; }
+
+/* Active mechanisms lead; dormant ones recede without being hidden. */
+body[data-lab-route="spectral-forge"] #analysis-physical-state span[data-activity="resting"] { opacity: .38; }
+body[data-lab-route="spectral-forge"] #analysis-physical-state span[data-activity="active"] strong { color: var(--forge-amber, #f5a623); }
+body[data-lab-route="spectral-forge"] .forge-physical-detail {
+  margin-top: 8px;
+  border-top: 1px solid var(--forge-border);
+  padding-top: 6px;
+}
+body[data-lab-route="spectral-forge"] .forge-physical-detail > summary {
+  cursor: pointer;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  color: var(--forge-faint);
+  font-family: var(--forge-mono, ui-monospace, monospace);
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+body[data-lab-route="spectral-forge"] .forge-physical-detail[open] > summary { color: var(--forge-amber, #f5a623); }
+
+/* ---------------------------------------------------------------------------
+ * Cross-mode continuity
+ *
+ * The three depths are three distances from one instrument, not three pages.
+ * The organism, its physical state, damage history, separation, transport and
+ * audio all survive the change untouched - Wave 1 and 2 made that true - so the
+ * transition only has to avoid asserting otherwise. It is a short settle on the
+ * panel that arrives, nothing on the organism itself: no cross-fade over the
+ * Field, which would read as the specimen blinking, and no travel, which would
+ * read as a page.
+ * ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  body[data-lab-route="spectral-forge"] .forge-depth-panel:not([hidden]) > *:not(.forge-field-stage):not(figure) {
+    animation: forge-depth-settle 260ms cubic-bezier(.22, .61, .36, 1) both;
+  }
+  /* Staged by a hair so the panel resolves in reading order rather than as one
+   * block arriving. Capped at four so nothing at the bottom feels late. */
+  body[data-lab-route="spectral-forge"] .forge-depth-panel:not([hidden]) > *:nth-child(2) { animation-delay: 30ms; }
+  body[data-lab-route="spectral-forge"] .forge-depth-panel:not([hidden]) > *:nth-child(3) { animation-delay: 60ms; }
+  body[data-lab-route="spectral-forge"] .forge-depth-panel:not([hidden]) > *:nth-child(n+4) { animation-delay: 80ms; }
+}
+
+@keyframes forge-depth-settle {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* The Field is explicitly excluded from the settle. The same organism is on
+ * screen before and after, and animating it would contradict that. */
+body[data-lab-route="spectral-forge"] .forge-field-stage,
+body[data-lab-route="spectral-forge"] .forge-field-stage canvas {
+  animation: none !important;
+}
+
+/* Organism prominence by depth: dominant in PLAY, a major anchor in FORGE,
+ * evidence rather than spectacle in ANALYSE. Three identical hero canvases would
+ * dilute the instrument rather than reinforce it. */
+body[data-lab-route="spectral-forge"] .forge-field-stage--analysis {
+  min-height: clamp(300px, 32vh, 400px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-lab-route="spectral-forge"] .forge-depth-panel:not([hidden]) > * { animation: none; }
+}
+
+/* ---------------------------------------------------------------------------
+ * Narrow-viewport corrections
+ *
+ * Measured at 390px: the counterpart link is nowrap and sat 10px past the
+ * viewport in FORGE and ANALYSE, where the compressed header gives it less room;
+ * and the patch pills held a 30px target, below the 44px minimum the rest of the
+ * instrument keeps.
+ * ------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  body[data-lab-route="spectral-forge"] .forge-counterpart-link {
+    max-width: 100%;
+    margin-left: 0;
+    white-space: normal;
+  }
+  body[data-lab-route="spectral-forge"] .forge-patch-point { min-height: 44px; }
+  body[data-lab-route="spectral-forge"] .forge-patch-bay > summary,
+  body[data-lab-route="spectral-forge"] .forge-inspector-bounds > summary,
+  body[data-lab-route="spectral-forge"] .forge-physical-detail > summary { min-height: 44px; }
+  body[data-lab-route="spectral-forge"] .forge-analysis-switch button { min-height: 44px; }
+
+  /* Nothing may push the page sideways. */
+  body[data-lab-route="spectral-forge"] .forge-depth-panel,
+  body[data-lab-route="spectral-forge"] .forge-causal-summary,
+  body[data-lab-route="spectral-forge"] .forge-analysis-view { max-width: 100%; overflow-x: clip; }
+  body[data-lab-route="spectral-forge"] .forge-analysis-switch { flex-wrap: wrap; }
+}
+
+/* On a phone the sticky stack is a large share of the viewport, so the depth nav
+ * carries only what identifies it. The labels stay in the accessible name. */
+@media (max-width: 560px) {
+  body[data-lab-route="spectral-forge"] .forge-depth-nav button {
+    min-height: 44px;
+    grid-template-columns: auto 1fr;
+    gap: 8px;
+    padding: 0 12px;
+  }
+  body[data-lab-route="spectral-forge"] .forge-depth-nav button small { display: none; }
+  body[data-lab-route="spectral-forge"] { --forge-depth-nav-height: 44px; }
 }

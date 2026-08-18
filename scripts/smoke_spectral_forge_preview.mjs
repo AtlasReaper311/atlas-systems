@@ -316,6 +316,308 @@ async function runPhysicalBehaviourEvidence(page, evidence) {
   console.log(`ATLAS_FORGE_BROWSER_EVIDENCE ${JSON.stringify(evidence.behaviourEvidence)}`);
 }
 
+/* Organism presence, measured rather than inferred.
+ *
+ * The WebGL canvas clears to alpha 0 and the organism is drawn opaque, so the
+ * alpha channel of the drawing buffer is an exact "is the organism on screen"
+ * signal. Three one-pixel strips is cheap enough to sample every frame, which is
+ * the resolution needed to catch a single blank frame. */
+const ORGANISM_COVERAGE = `(() => {
+  const stage = document.querySelector('.forge-depth-panel:not([hidden]) .forge-field-stage');
+  const gl3 = stage?.querySelector('canvas.spectral-field-proto-webgl');
+  if (!gl3) return null;
+  const gl = gl3.getContext('webgl2');
+  if (!gl) return null;
+  const w = gl.drawingBufferWidth;
+  const h = gl.drawingBufferHeight;
+  if (w < 2 || h < 2) return null;
+  const strip = new Uint8Array(w * 4);
+  let lit = 0;
+  for (const fy of [0.3, 0.5, 0.7]) {
+    gl.readPixels(0, Math.round(h * fy), w, 1, gl.RGBA, gl.UNSIGNED_BYTE, strip);
+    for (let x = 0; x < w; x += 2) if (strip[x * 4 + 3] > 24) lit += 1;
+  }
+  const perf = gl3.__atlasPerf ?? {};
+  return {
+    lit,
+    coverage: lit / ((w / 2) * 3),
+    connected: gl3.isConnected,
+    contextLost: gl.isContextLost(),
+    buffer: w + 'x' + h,
+    tier: perf.qualityTier ?? null,
+    vertices: perf.vertices ?? null,
+    pixelRatio: perf.pixelRatio ?? null,
+  };
+})()`;
+
+/* Bug A regression.
+ *
+ * A note on what is and is not measurable here. The renderer runs with
+ * preserveDrawingBuffer false, so readPixels outside an animation frame reads a
+ * buffer the compositor has already consumed and reports zero whether or not the
+ * organism is on screen. Pixel coverage is therefore only meaningful while the
+ * loop is running, and is used here as a positive control that the renderer is
+ * genuinely producing an organism.
+ *
+ * The paused case is covered by the state that actually caused the
+ * disappearance: a tier change resizes - and so clears - the drawing buffer, and
+ * while paused no frame follows to repaint it. Holding tier, buffer size,
+ * geometry and pixel ratio steady across paused interaction is the guarantee,
+ * and it is checked after a wait longer than the quality dwell so a regression
+ * has every opportunity to fire. */
+async function assertPausedRuntimeStability(page, engineName, evidence) {
+  const samples = [];
+  const sample = async (label) => {
+    const value = await page.evaluate(ORGANISM_COVERAGE);
+    const entry = { label, ...(value ?? {}) };
+    samples.push(entry);
+    return entry;
+  };
+
+  await page.locator('#play-toggle').click();
+  await page.waitForTimeout(2200);
+  await page.locator('#audio-toggle').click();
+  await page.waitForTimeout(700);
+
+  /* Positive control: sampled inside an animation frame, while the loop is
+   * running, so the drawing buffer is still valid. */
+  const animatedCoverage = await page.evaluate(`new Promise((resolve) => requestAnimationFrame(() => resolve(${ORGANISM_COVERAGE})))`);
+  assert.ok(animatedCoverage, `${engineName}: no WebGL surface while playing`);
+  assert.ok(
+    animatedCoverage.lit > 0,
+    `${engineName}: renderer produced no organism while playing (alpha coverage 0)`,
+  );
+  samples.push({ label: 'playing-unmuted', ...animatedCoverage });
+
+  await page.locator('#play-toggle').click();
+  await page.waitForTimeout(600);
+  const paused = await sample('paused');
+  assert.ok(paused.buffer, `${engineName}: no WebGL surface after pausing`);
+
+  /* Longer than QUALITY_DWELL_MS, so an interaction-driven tier change would
+   * fire here if frame cadence were still being read from click intervals. */
+  await page.waitForTimeout(3000);
+  await page.locator('#audio-toggle').click();
+  await page.waitForTimeout(700);
+  const muted = await sample('paused-muted');
+
+  await page.waitForTimeout(3000);
+  await page.locator('#audio-toggle').click();
+  await page.waitForTimeout(700);
+  const unmuted = await sample('paused-unmuted');
+
+  for (const entry of [muted, unmuted]) {
+    assert.equal(entry.connected, true, `${engineName}: WebGL canvas detached at "${entry.label}"`);
+    assert.equal(entry.contextLost, false, `${engineName}: WebGL context lost at "${entry.label}"`);
+    assert.equal(
+      entry.tier,
+      paused.tier,
+      `${engineName}: quality tier changed while paused at "${entry.label}" -> ${paused.tier} to ${entry.tier}`,
+    );
+    assert.equal(
+      entry.buffer,
+      paused.buffer,
+      `${engineName}: drawing buffer resized while paused at "${entry.label}" -> ${entry.buffer}`,
+    );
+    assert.equal(
+      entry.vertices,
+      paused.vertices,
+      `${engineName}: mesh tessellation changed while paused at "${entry.label}" -> ${entry.vertices}`,
+    );
+    assert.equal(
+      entry.pixelRatio,
+      paused.pixelRatio,
+      `${engineName}: pixel ratio changed while paused at "${entry.label}" -> ${entry.pixelRatio}`,
+    );
+  }
+
+  /* Resuming must bring the organism back, which also proves the paused frames
+   * were never left with a dead renderer. */
+  await page.locator('#play-toggle').click();
+  await page.waitForTimeout(700);
+  const resumed = await page.evaluate(`new Promise((resolve) => requestAnimationFrame(() => resolve(${ORGANISM_COVERAGE})))`);
+  assert.ok(
+    resumed?.lit > 0,
+    `${engineName}: organism absent after resuming from a paused mute cycle`,
+  );
+  samples.push({ label: 'resumed', ...resumed });
+
+  evidence.pausedRuntimeStability = { baselineTier: paused.tier, samples };
+  await page.locator('#reset-run').click();
+  await page.waitForTimeout(350);
+}
+
+/* Bug B regression. A hidden renderer must not advance shared physical state, so
+ * a separation in progress has to survive repeated depth changes and reach
+ * settle. Sampling runs in-page at frame rate because the failure was a single
+ * blank frame and a one-frame progress reset. */
+async function assertDepthSwitchContinuity(page, engineName, evidence) {
+  await page.selectOption('#scenario-select', 'cascade');
+  await page.waitForTimeout(300);
+  await page.evaluate(`
+    window.__forgeContinuity = { rows: [], hiddenDraws: 0 };
+    (() => {
+      const ids = ['play-field', 'forge-field', 'analysis-field'];
+      const seen = new Map();
+      const tick = () => {
+        const stage = document.querySelector('.forge-depth-panel:not([hidden]) .forge-field-stage');
+        const active = stage?.querySelector('canvas:not(.spectral-field-proto-webgl)');
+        for (const id of ids) {
+          const c = document.querySelector('#' + id);
+          const gl3 = c?.parentElement?.querySelector('canvas.spectral-field-proto-webgl');
+          const samples = gl3?.__atlasPerf?.samples ?? null;
+          const hidden = !!c?.closest('[hidden]');
+          const previous = seen.get(id);
+          /* Only count a draw as hidden when the panel was hidden at both ends of
+           * the interval. A panel hidden by a depth change draws once more in the
+           * same task that hides it - that draw was made by the still-visible
+           * view, and attributing it here would report a fault that did not
+           * happen. */
+          if (previous && samples != null && samples > previous.samples && hidden && previous.hidden) {
+            window.__forgeContinuity.hiddenDraws += samples - previous.samples;
+          }
+          if (samples != null) seen.set(id, { samples, hidden });
+        }
+        if (active) {
+          window.__forgeContinuity.rows.push({
+            t: performance.now(),
+            /* Carried so consecutive rows are only compared within one canvas,
+             * across an interval where that canvas was visible at both ends. A
+             * hidden panel's dataset is frozen at whatever it last drew, so its
+             * first visible frame catches up in one step - real physics, read as
+             * a discontinuity that never happened. */
+            canvas: active.id,
+            visible: !active.closest('[hidden]'),
+            phase: active.dataset.fissionPhase ?? null,
+            progress: Number(active.dataset.fissionProgress || 0),
+            charge: Number(active.dataset.fractureCharge || 0),
+            tier: document.querySelector('.forge-depth-panel:not([hidden]) canvas.spectral-field-proto-webgl')?.__atlasPerf?.qualityTier ?? null,
+          });
+        }
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    })();
+  `);
+  await page.locator('#play-toggle').click();
+
+  for (let second = 0; second < 66; second += 1) {
+    await page.waitForTimeout(1000);
+    if (second >= 12 && second % 6 === 0) {
+      await page.locator('.forge-depth-nav button[data-depth="FORGE"]').click();
+      await page.waitForTimeout(250);
+      await page.locator('.forge-depth-nav button[data-depth="PLAY"]').click();
+    }
+  }
+
+  const continuity = await page.evaluate(() => window.__forgeContinuity);
+  const rows = continuity.rows;
+  const phases = [...new Set(rows.map((row) => row.phase).filter(Boolean))];
+  const tiers = [...new Set(rows.map((row) => row.tier).filter(Boolean))];
+
+  let progressResets = 0;
+  let chargeCollapses = 0;
+  let comparableIntervals = 0;
+  let sameCanvasRun = 0;
+  for (let index = 1; index < rows.length; index += 1) {
+    const previous = rows[index - 1];
+    const current = rows[index];
+    sameCanvasRun = previous.canvas === current.canvas ? sameCanvasRun + 1 : 0;
+    /* A panel that has just become visible still carries the dataset it froze
+     * when it was hidden; its first drawn frame catches up in one step. Waiting
+     * for a short run of frames on the same canvas guarantees both ends of the
+     * interval were published by a renderer that is actually drawing. */
+    if (sameCanvasRun < 5) continue;
+    comparableIntervals += 1;
+    if (previous.progress > 0.05 && current.progress === 0 && previous.phase !== 'settle') progressResets += 1;
+    if (previous.charge > 0.5 && current.charge < previous.charge * 0.25 && previous.phase === 'idle') chargeCollapses += 1;
+  }
+  /* Enough samples to judge continuity, not a statement about machine speed. A
+   * software rasteriser on a loaded runner legitimately delivers a fraction of
+   * the frames a GPU does, and the properties under test - no progress reset, no
+   * charge collapse, no hidden draw - are just as visible in a sparser trace. */
+  assert.ok(
+    comparableIntervals > 150,
+    `${engineName}: too few continuously-visible intervals to judge continuity (${comparableIntervals})`,
+  );
+
+  assert.equal(
+    continuity.hiddenDraws,
+    0,
+    `${engineName}: ${continuity.hiddenDraws} draw(s) executed on a hidden Field panel`,
+  );
+  assert.ok(
+    phases.includes('settle'),
+    `${engineName}: physical fission never reached settle across depth changes -> ${phases.join(', ')}`,
+  );
+  assert.equal(
+    progressResets,
+    0,
+    `${engineName}: active fission progress reset to zero ${progressResets} time(s) outside settle`,
+  );
+  assert.equal(
+    chargeCollapses,
+    0,
+    `${engineName}: fracture charge collapsed ${chargeCollapses} time(s) outside a legitimate reset`,
+  );
+  assert.ok(
+    tiers.length <= 1,
+    `${engineName}: quality tier changed during depth switching -> ${tiers.join(' -> ')}`,
+  );
+
+  evidence.depthSwitchContinuity = {
+    frames: rows.length,
+    comparableIntervals,
+    hiddenDraws: continuity.hiddenDraws,
+    phases,
+    tiers,
+    progressResets,
+    chargeCollapses,
+  };
+  console.log(`ATLAS_FORGE_CONTINUITY_EVIDENCE ${JSON.stringify({ engine: engineName, ...evidence.depthSwitchContinuity })}`);
+}
+
+/* Runtime continuity runs at devicePixelRatio 2 because the faults it covers are
+ * only reachable when a tier change genuinely reallocates the drawing buffer;
+ * at ratio 1 the tier pixel ratios collapse to the same value. */
+async function runRuntimeContinuity(engineName, engine, outputDir) {
+  const browser = await engine.launch({ headless: true });
+  const evidence = { engine: engineName, deviceScaleFactor: 2, route: ROUTE, expectedSha };
+  const pageErrors = [];
+  const context = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 2 });
+  const page = await context.newPage();
+  page.on('pageerror', (error) => pageErrors.push(String(error?.stack || error)));
+
+  try {
+    const response = await page.goto(`${baseUrl}${ROUTE}`, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+    assert.ok(response?.ok(), `${engineName}: HTTP ${response?.status() ?? 'no response'} for ${ROUTE}`);
+    await page.waitForSelector('.forge-play .forge-field-stage canvas', { timeout: 20_000 });
+    await page.waitForTimeout(1000);
+
+    if (!(await browserSupportsWebgl2(page))) {
+      evidence.result = 'skipped-no-webgl2';
+      return evidence;
+    }
+
+    await assertPausedRuntimeStability(page, engineName, evidence);
+    await assertDepthSwitchContinuity(page, engineName, evidence);
+    assert.deepEqual(pageErrors, [], `${engineName}: page errors during runtime continuity`);
+    evidence.result = 'pass';
+    return evidence;
+  } catch (error) {
+    evidence.result = 'fail';
+    evidence.failure = { name: error?.name || 'Error', message: error?.message || String(error) };
+    evidence.pageErrors = pageErrors;
+    await fs.writeFile(
+      path.join(outputDir, `${engineName}-runtime-continuity-failure.json`),
+      `${JSON.stringify(evidence, null, 2)}\n`,
+    );
+    throw error;
+  } finally {
+    await browser.close();
+  }
+}
+
 async function runEngine(engineName, engine) {
   const evidence = { engine: engineName, route: ROUTE, expectedSha, steps: [] };
   const pageErrors = [];
@@ -414,8 +716,14 @@ async function runEngine(engineName, engine) {
 }
 
 const report = [];
+const continuityReport = [];
 for (const [name, engine] of [['chromium', chromium], ['firefox', firefox]]) {
   report.push(await runEngine(name, engine));
+  continuityReport.push(await runRuntimeContinuity(name, engine, outputDir));
 }
-await fs.writeFile(path.join(outputDir, 'spectral-forge-smoke.json'), `${JSON.stringify({ baseUrl, expectedSha, report }, null, 2)}\n`);
+await fs.writeFile(
+  path.join(outputDir, 'spectral-forge-smoke.json'),
+  `${JSON.stringify({ baseUrl, expectedSha, report, continuityReport }, null, 2)}\n`,
+);
 console.log(`Spectral Forge preview smoke passed in ${report.map((entry) => entry.engine).join(' and ')}.`);
+console.log(`Runtime continuity passed in ${continuityReport.map((entry) => `${entry.engine}:${entry.result}`).join(' and ')}.`);

@@ -23,6 +23,13 @@ import {
   MIN_PRESENTATION_SCALE,
   presentationTarget,
   projectedContainment,
+  restFramingDistance,
+  restHalfHeight,
+  REST_MARGIN_DISTANCE_GAIN,
+  REST_MATERIAL_OFFSET,
+  presentationCentreSettle,
+  presentationBaseScale,
+  wideness,
   scheduledLifeEvent,
   DEBUG_FISSION_START,
   stepAttitude,
@@ -360,12 +367,64 @@ test("audio and mode-style inputs do not reset a living fission event", () => {
   assert.ok(debug.start < 60);
 });
 
+test("resting framing keeps a vertical safe margin without shrinking the organism", () => {
+  /* A perspective camera fixes its vertical field of view, so a wide short stage
+   * is bound by height while a tall one has room to spare. The organism used to
+   * fill the wide stage edge to edge at rest. */
+  const wideAspect = 3.05;   // PLAY
+  const tallAspect = 1.18;   // FORGE
+
+  /* Margin is a fraction of the *visible height*, so material must sit inside
+   * [0.05, 0.95] of the stage: its offset from the centre may reach 45% of the
+   * frame, which is 90% of the half-height. REST_MATERIAL_OFFSET is the measured
+   * reach of the resting organism, read back with the camera far enough off that
+   * nothing clipped; the centre settle removes the bias that made the top margin
+   * run out first. Baseline scale carries the tall stage's smaller body.
+   *
+   * Browser measurement at 1440x900 DPR 2, Normal Load, confirms the intent this
+   * models: framebuffer span 0.052 to 0.946, i.e. 5.2% and 5.4% clear, with zero
+   * frames touching an edge across 1204 samples. */
+  const marginAt = (aspect) => {
+    const scaleRatio = presentationBaseScale(aspect) / presentationBaseScale(wideAspect);
+    const offset = REST_MATERIAL_OFFSET * scaleRatio - Math.abs(presentationCentreSettle(aspect));
+    const half = restHalfHeight(restFramingDistance(aspect));
+    return (half - offset) / (2 * half);
+  };
+
+  assert.ok(
+    marginAt(wideAspect) >= 0.05,
+    `wide stage must keep a 5% resting margin, got ${(marginAt(wideAspect) * 100).toFixed(1)}%`,
+  );
+  assert.ok(
+    marginAt(tallAspect) >= 0.05,
+    `tall stage must keep a 5% resting margin, got ${(marginAt(tallAspect) * 100).toFixed(1)}%`,
+  );
+
+  /* The margin must be bought with a modest standoff, not by shrinking. Apparent
+   * size is inversely proportional to distance; the old auto-fit surrendered 33%,
+   * so hold this well inside that. */
+  const apparentCost = 1 - CAMERA_DISTANCE / restFramingDistance(wideAspect);
+  assert.ok(apparentCost <= 0.12, `resting standoff costs ${(apparentCost * 100).toFixed(1)}% apparent size`);
+  assert.equal(presentationTarget(1.0, wideAspect).scale, 1, "resting scale must not be reduced");
+
+  /* Where the margin already exists, nothing is spent on it. */
+  assert.ok(
+    restFramingDistance(tallAspect) < restFramingDistance(wideAspect),
+    "a tall stage should not pay the wide stage's standoff",
+  );
+  assert.ok(wideness(tallAspect) < wideness(wideAspect));
+});
+
 test("safe-framing target stays bounded and only eases outward when extent grows", () => {
   const framing = createSafeFramingState();
   stepSafeFraming(framing, 1.05, 1);
   const rest = framing.distance;
   const restScale = framing.scale;
-  assert.ok(rest >= CAMERA_DISTANCE && rest <= CAMERA_DISTANCE + 0.08);
+  /* Resting distance is a property of the stage, not of the organism: it stands
+   * off by the aspect-aware amount that buys the resting margin, and no further. */
+  assert.equal(rest, restFramingDistance(1.6));
+  assert.ok(rest >= CAMERA_DISTANCE);
+  assert.ok(rest <= CAMERA_DISTANCE * (1 + REST_MARGIN_DISTANCE_GAIN) + 1e-9);
   assert.equal(restScale, 1);
   for (let step = 0; step < 40; step += 1) {
     stepSafeFraming(framing, 1.85, 1 + step * 0.016);
@@ -409,7 +468,7 @@ test("fission and peak projected extent stay inside the presentation envelope", 
   const unframed = projectedContainment(peak.extent, { scale: 1, distance: CAMERA_DISTANCE }, 1.7);
   assert.ok(settled.apparent < unframed.apparent, "presentation envelope must shrink apparent fission extent");
   assert.ok(settled.contained, `peak fission still overflows rest composition (${settled.ratio})`);
-  assert.ok(framing.distance <= MAX_CAMERA_DISTANCE + 1e-6);
+  assert.ok(framing.distance <= restFramingDistance(1.7) * (MAX_CAMERA_DISTANCE / CAMERA_DISTANCE) + 1e-6);
   assert.ok(framing.scale >= MIN_PRESENTATION_SCALE);
 
   const afterExpand = framing.distance;
