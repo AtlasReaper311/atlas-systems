@@ -1,0 +1,60 @@
+{
+  "component_role_count": 30,
+  "contract_version": "2.0.0",
+  "evidence_mode_count": 7,
+  "evidence_mode_extension_version": "1.0.0",
+  "evidence_selector_count": 3,
+  "files": {
+    "atlas-fonts.css": {
+      "bytes": 1555,
+      "sha256": "1539e39908d5ffd447c4f976a36dc5aa0085f5daf15b967734fb24ec1a7251ce"
+    },
+    "atlas-interface-kit.css": {
+      "bytes": 17379,
+      "sha256": "573781fc06b0e52f9d1691597d1defd9e1a1575dbc96e15a58cd5c92bc30221e"
+    },
+    "components.json": {
+      "bytes": 3902,
+      "sha256": "f6f10eb55a897e8960dd14dfff4693a3f0facca7a68ffb31322104621e8c15bc"
+    },
+    "fonts/dm-serif-display-400-italic.woff2": {
+      "bytes": 24572,
+      "sha256": "ed8b291611e32fa2d2900488dd48fc95faf0957b2ef7ddf1527e8d21dd9cf2df"
+    },
+    "fonts/dm-serif-display-400.woff2": {
+      "bytes": 24744,
+      "sha256": "fdf61e20fd2c0108e0ea28da4daca0035205b4b7fc031a3974b865b704de160a"
+    },
+    "fonts/ibm-plex-mono-400.woff2": {
+      "bytes": 14708,
+      "sha256": "08949f728dc52d528e69b1667d15c89a5686a4ee9a296ff90983985f99c380f7"
+    },
+    "fonts/ibm-plex-mono-500.woff2": {
+      "bytes": 14888,
+      "sha256": "01d285447409c8a588692162439a038b8cbd7871309ee20267b0d2d91c6e8e22"
+    },
+    "licenses/DM-Serif-Display-OFL.txt": {
+      "bytes": 4605,
+      "sha256": "a3e5cdd67d4571dd0a24fcc968de0efde7ae97ef752daf0906e4767619dd7231"
+    },
+    "licenses/IBM-Plex-Mono-OFL.txt": {
+      "bytes": 4456,
+      "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da"
+    },
+    "semantics.json": {
+      "bytes": 10246,
+      "sha256": "3ebd54639abef42a852f08c8463b69a9ac7249440218cd480b912692d22c440f"
+    },
+    "tokens.json": {
+      "bytes": 1735,
+      "sha256": "8084cc3c4a6d4619e1684ea1c65758820896bbbe93baefeae6d98b2ecb9da7d8"
+    }
+  },
+  "footer_extension_version": "1.0.0",
+  "footer_slot_count": 5,
+  "footer_variant_count": 4,
+  "foundation_extension_version": "1.0.0",
+  "schema_version": "atlas-interface-kit/bundle/v1",
+  "semantic_contract_count": 5,
+  "version": "0.5.0"
+}

@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
 
 import {
@@ -10,6 +12,11 @@ import {
   classifyChangedFiles,
   parseSitemapRoutes,
 } from "../../scripts/interface-evidence/contract.mjs";
+import {
+  REPORTING_BASELINE,
+  acceptedReportingFinding,
+  reconcileEvidenceReport,
+} from "../../scripts/interface-evidence/reporting-baseline.mjs";
 
 const sitemapXml = readFileSync("sitemap.xml", "utf8");
 const sitemapRoutes = parseSitemapRoutes(sitemapXml);
@@ -25,6 +32,16 @@ test("the evidence inventory is derived from every current sitemap route plus re
   assert.ok(sitemapRoutes.includes("/lab/drift/"));
   assert.ok(sitemapRoutes.includes("/lab/speculum/"));
   assert.ok(sitemapRoutes.includes("/writing/atlas-systems-cicd-pipeline/"));
+  for (const route of [
+    "/lab/console/",
+    "/lab/system-symphony/roms/",
+    "/lab/system-symphony/build-log/",
+    "/lab/system-symphony/radio/",
+    "/404.html",
+  ]) {
+    assert.ok(NON_INDEXED_ROUTES.includes(route), `missing reviewed override ${route}`);
+    assert.ok(routes.includes(route), `missing evidence route ${route}`);
+  }
   for (const route of NON_INDEXED_ROUTES) assert.ok(routes.includes(route), `missing reviewed override ${route}`);
   assert.equal(routes.length, sitemapRoutes.length + NON_INDEXED_ROUTES.length);
 });
@@ -45,6 +62,20 @@ test("the plan gives every route semantic coverage and expands representative ro
   }
 });
 
+test("every Lab route requires the governed header, search, and mobile shell", () => {
+  const plan = buildEvidencePlan({ sitemapXml });
+  const labRoutes = plan.routes.filter(({ path: route }) => route === "/lab/" || route.startsWith("/lab/"));
+  assert.ok(labRoutes.length >= 16, `expected complete Lab inventory, found ${labRoutes.length}`);
+  for (const route of labRoutes) {
+    assert.equal(route.requiresStandardShell, true, `${route.path} does not require the governed shell`);
+  }
+  assert.equal(descriptor(plan, "/lab/bearing/").profile, "bearing");
+  assert.equal(descriptor(plan, "/lab/speculum/").profile, "speculum");
+  assert.equal(descriptor(plan, "/lab/system-symphony/roms/").profile, "system-symphony");
+  assert.equal(descriptor(plan, "/lab/system-symphony/build-log/").profile, "system-symphony");
+  assert.equal(descriptor(plan, "/lab/system-symphony/radio/").profile, "system-symphony");
+});
+
 test("changed routes receive the complete screenshot matrix", () => {
   const plan = buildEvidencePlan({ sitemapXml, changedRoutes: ["/lab/anomaly/"] });
   const anomaly = descriptor(plan, "/lab/anomaly/");
@@ -57,6 +88,11 @@ test("changed-file classification binds route work and shared assets to evidence
   assert.equal(bearing.evidence_required, true);
   assert.deepEqual(bearing.changed_routes, ["/lab/bearing/"]);
 
+  const sharedLab = classifyChangedFiles({ changedFiles: ["lab/shared/lab-shell-layout.css"], routes });
+  const expectedLabRoutes = routes.filter((route) => route === "/lab/" || route.startsWith("/lab/"));
+  assert.equal(sharedLab.visual_change, true);
+  assert.deepEqual(new Set(sharedLab.changed_routes), new Set(expectedLabRoutes));
+
   const shared = classifyChangedFiles({ changedFiles: ["static/css/estate-shell.css"], routes });
   assert.equal(shared.visual_change, true);
   assert.deepEqual(new Set(shared.changed_routes), new Set(routes));
@@ -65,4 +101,76 @@ test("changed-file classification binds route work and shared assets to evidence
   assert.equal(harness.visual_change, false);
   assert.equal(harness.evidence_contract_change, true);
   assert.equal(harness.evidence_required, true);
+});
+
+test("the reporting baseline is pinned to the reviewed Phase 15 evidence", () => {
+  assert.equal(REPORTING_BASELINE.schema_version, "atlas-systems/public-interface-reporting-baseline/v1");
+  assert.equal(REPORTING_BASELINE.source.pull_request, "AtlasReaper311/atlas-systems#205");
+  assert.equal(REPORTING_BASELINE.source.reviewed_head, "92db23a9fe795c641b640b27dae94d6b0a44d006");
+  assert.equal(REPORTING_BASELINE.source.workflow_run, 31066093763);
+  assert.equal(REPORTING_BASELINE.source.artifact_id, 8954248381);
+  assert.equal(REPORTING_BASELINE.source.reviewed_finding_count, 12);
+});
+
+test("baseline matching is route, browser, viewport, issue, and target specific", () => {
+  const accepted = acceptedReportingFinding({
+    routeName: "writing-sonin-generative-system",
+    browser: "chrome",
+    viewport: "375",
+    message: 'writing-sonin-generative-system/375: console errors [{"type":"error","text":"Framing \'https://www.youtube.com/\' violates the following Content Security Policy directive: \\"default-src \'self\'\\"."}]',
+  });
+  assert.ok(accepted);
+
+  assert.equal(acceptedReportingFinding({
+    routeName: "lab-speculum",
+    browser: "chrome",
+    viewport: "375",
+    message: 'writing-sonin-generative-system/375: console errors [{"type":"error","text":"Framing \'https://www.youtube.com/\' violates the following Content Security Policy directive: \\"default-src \'self\'\\"."}]',
+  }), null);
+
+  assert.equal(acceptedReportingFinding({
+    routeName: "writing-sonin-generative-system",
+    browser: "chrome",
+    viewport: "375",
+    message: 'writing-sonin-generative-system/375: serious accessibility findings [{"id":"color-contrast","nodes":[{"target":["span[data-layer=\\"noise\\"]"]}]}]',
+  }), null);
+});
+
+test("reconciliation preserves reviewed findings and retains unknown blockers", () => {
+  const directory = mkdtempSync(path.join(os.tmpdir(), "atlas-interface-baseline-"));
+  const reportPath = path.join(directory, "evidence.json");
+  const errorPath = path.join(directory, "capture-error.txt");
+  const acceptedMessage = 'writing-sonin-generative-system/375: console errors [{"type":"error","text":"Framing \'https://www.youtube.com/\' violates the following Content Security Policy directive: \\"default-src \'self\'\\"."}]';
+  const unknownMessage = "lab-speculum/375: expected one h1, found 2";
+  writeFileSync(reportPath, `${JSON.stringify({
+    routes: [
+      {
+        routeName: "writing-sonin-generative-system",
+        browser: "chrome",
+        viewport: "375",
+        findings: [],
+        blockingFailures: [acceptedMessage],
+      },
+      {
+        routeName: "lab-speculum",
+        browser: "chrome",
+        viewport: "375",
+        findings: [],
+        blockingFailures: [unknownMessage],
+      },
+    ],
+    findings: [],
+    blockingFailures: [acceptedMessage, unknownMessage],
+  }, null, 2)}\n`);
+
+  const result = reconcileEvidenceReport({ reportPath, errorPath });
+  const report = JSON.parse(readFileSync(reportPath, "utf8"));
+  assert.equal(result.reconciled, false);
+  assert.equal(result.acceptedCount, 1);
+  assert.equal(result.blockingCount, 1);
+  assert.equal(report.reportingBaseline.accepted_count, 1);
+  assert.deepEqual(report.blockingFailures, [unknownMessage]);
+  assert.match(report.findings[0], /accepted Phase 2 reporting baseline/);
+  assert.match(readFileSync(errorPath, "utf8"), /lab-speculum/);
+  rmSync(directory, { recursive: true, force: true });
 });

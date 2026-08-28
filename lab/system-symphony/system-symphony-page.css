@@ -888,68 +888,6 @@ body[data-symphony-mode="trace"] .symphony-page-main {
   display: none;
 }
 
-.symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock {
-  position: relative;
-  z-index: 12;
-  display: flex;
-  min-height: 44px;
-  align-items: center;
-  justify-content: flex-end;
-  margin: 0;
-}
-
-.symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock:empty {
-  display: none;
-}
-
-.symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock .symphony-source-panel {
-  display: flex;
-  width: auto;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
-
-.symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock .symphony-source-panel > div:first-child,
-.symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock .symphony-update-time {
-  display: none;
-}
-
-.symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock .symphony-source-panel__controls {
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-}
-
-.symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock .symphony-segmented {
-  width: auto;
-  min-width: min(360px, calc(100vw - 64px));
-}
-
-.symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock .symphony-performance {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 20;
-  width: min(880px, calc(100vw - 88px));
-  max-height: min(420px, calc(100vh - 260px));
-  overflow: auto;
-  border-color: var(--accent);
-  background:
-    linear-gradient(rgba(255, 255, 255, .018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, .018) 1px, transparent 1px),
-    var(--bg);
-  background-size: 24px 24px, 24px 24px, auto;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, .55);
-}
-
-.symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock .symphony-performance.is-collapsed {
-  width: min(420px, calc(100vw - 88px));
-  max-height: none;
-}
-
 .symphony-flagship[data-symphony-mode="trace"] .symphony-role-board {
   grid-template-columns: repeat(8, minmax(0, 1fr));
   margin: 2px 0 0;
@@ -1121,19 +1059,6 @@ body[data-symphony-mode="trace"] .symphony-boot {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  .symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock {
-    justify-content: flex-start;
-  }
-
-  .symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock .symphony-segmented {
-    width: 100%;
-  }
-
-  .symphony-flagship[data-symphony-mode="trace"] .symphony-trace-source-dock .symphony-performance {
-    right: auto;
-    left: 0;
-  }
-
   .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel {
     position: relative;
     grid-template-columns: 1fr;
@@ -1141,6 +1066,254 @@ body[data-symphony-mode="trace"] .symphony-boot {
 
   .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel__controls {
     justify-items: start;
+  }
+}
+
+/*
+ * TRACE keeps the PR 160 chiptune console as its visual and interaction
+ * contract. The later PCB work changes the topology renderer, not the
+ * instrument chrome around it.
+ */
+.symphony-flagship[data-symphony-mode="trace"] {
+  padding: 0;
+  overflow: clip;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] > .symphony-flagship__top,
+.symphony-flagship[data-symphony-mode="trace"] > .symphony-stage {
+  display: none !important;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host {
+  margin: 0;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console {
+  border: 0;
+  border-radius: 0;
+  background: var(--bg);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__header {
+  display: flex;
+  min-height: 92px;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__header h2 {
+  margin: 2px 0 0;
+  font-size: 44px;
+  line-height: .92;
+  letter-spacing: 0;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__mode,
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-kicker {
+  letter-spacing: 0;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__header-controls {
+  flex-wrap: nowrap;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-important-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__scroll {
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel {
+  order: 0;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(360px, auto);
+  gap: 18px;
+  align-items: center;
+  margin: 0;
+  padding: 10px 22px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel > div:first-child {
+  display: grid;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel > div:first-child p {
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel__controls {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel .symphony-segmented {
+  width: auto;
+  min-width: 360px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-update-time {
+  display: block;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-performance {
+  position: static;
+  width: min(780px, calc(100vw - 96px));
+  max-height: none;
+  margin-top: 4px;
+  overflow: visible;
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+  background: var(--bg-2);
+  box-shadow: none;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-performance.is-collapsed {
+  width: min(420px, calc(100vw - 96px));
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-metrics {
+  order: 1;
+  display: grid !important;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  margin: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-metrics article {
+  min-height: 56px;
+  padding: 8px 10px;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-metrics span {
+  min-height: 0;
+  font-size: 7px;
+  letter-spacing: 0;
+  line-height: 1.2;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-metrics strong {
+  margin-top: 5px;
+  font-size: 11px;
+  line-height: 1.15;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-hybrid-state {
+  display: none;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-orchestra {
+  order: 2;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-service-section {
+  order: 3;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-section-heading {
+  order: 0;
+  border-top: 0;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-role-board[data-trace-docked="true"] {
+  order: 1;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  margin: 0;
+  border-inline: 1px solid var(--border);
+  border-radius: 0;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host [data-apu-role-status][data-trace-docked="true"] {
+  order: 2;
+  margin: 0;
+  padding: 7px 12px;
+  border-inline: 1px solid var(--border);
+  color: var(--text-faint);
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-legend {
+  order: 3;
+}
+
+.symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-orchestra__grid {
+  order: 4;
+}
+
+@media (max-width: 1100px) {
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__header {
+    align-items: flex-start;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__header-controls {
+    flex-wrap: wrap;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel__controls {
+    justify-items: start;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-metrics {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-role-board[data-trace-docked="true"] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__header {
+    min-height: 0;
+    padding: 14px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__header h2 {
+    font-size: 34px;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-console__header-controls {
+    width: 100%;
+    max-width: none;
+    justify-content: flex-start;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel {
+    padding: 10px 14px;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-source-panel .symphony-segmented,
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-performance,
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-performance.is-collapsed {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .symphony-flagship[data-symphony-mode="trace"] .symphony-page-host .symphony-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 

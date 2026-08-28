@@ -1,0 +1,242 @@
+.systems-evidence-mode-inline {
+  margin-inline-start: 0.5rem;
+  vertical-align: middle;
+}
+
+.focus-metric strong[data-evidence-mode="stale-measured"] {
+  color: var(--warning);
+}
+
+.focus-metric strong[data-evidence-mode="unavailable"],
+.focus-metric strong[data-evidence-mode="unknown"] {
+  color: var(--text-dim);
+}
+
+.systems-evidence-cell {
+  min-width: 180px;
+}
+
+.systems-evidence-detail {
+  margin-top: 0.45rem;
+  display: block;
+  overflow-wrap: anywhere;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+
+.systems-heatmap-cell {
+  cursor: crosshair;
+  transition:
+    border-color 120ms ease,
+    opacity 120ms ease;
+}
+
+.systems-heatmap-cell:hover {
+  z-index: 1;
+  border-color: var(--accent);
+  opacity: 0.95;
+}
+
+.systems-heatmap-cell[data-evidence-mode="unknown"] {
+  border-style: dashed;
+  border-color: var(--border-hi);
+  background: transparent;
+}
+
+.systems-heatmap-padding {
+  visibility: hidden;
+}
+
+.systems-activity-tooltip {
+  position: fixed;
+  z-index: 500;
+  max-width: min(360px, calc(100vw - 32px));
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-hi);
+  border-radius: 4px;
+  background: var(--bg-1);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.5;
+  pointer-events: none;
+}
+
+.systems-activity-tooltip[hidden] {
+  display: none;
+}
+
+.systems-availability-table td:nth-child(2),
+.systems-availability-table td:nth-child(3),
+.systems-availability-table td:nth-child(4),
+.systems-availability-table td:nth-child(5) {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+#deployment-evidence-mode {
+  flex: 0 0 auto;
+}
+
+.systems-evidence-disclosure {
+  min-width: 0;
+  max-width: 100%;
+  margin-top: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(17, 17, 24, 0.62);
+}
+
+.systems-evidence-disclosure > summary {
+  min-height: 44px;
+  padding: 0.8rem 1rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--text-dim);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.systems-evidence-disclosure > summary:hover,
+.systems-evidence-disclosure > summary:focus-visible {
+  color: var(--accent);
+}
+
+.systems-evidence-disclosure[open] > summary {
+  border-bottom: 1px solid var(--border);
+}
+
+.systems-evidence-disclosure .focus-table-wrap {
+  border: 0;
+  border-radius: 0 0 8px 8px;
+}
+
+/* Keep wide evidence tables inside their own scrollports, including the source
+   HTML before JavaScript enhancement. Layout and paint containment prevent a
+   wide table from contributing to document-level horizontal overflow while the
+   scroll region remains independently usable. */
+.systems-detail-page[data-systems-detail="evidence"] .focus-table-wrap {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  contain: layout paint inline-size;
+}
+
+/* The no-JavaScript source document must obey the same shrink boundary as the
+   enhanced shell. Grid and flex descendants can otherwise retain an intrinsic
+   min-content width even when their own table scrollports are contained. Keep
+   every structural evidence container shrinkable without clipping its intended
+   local overflow regions. */
+.systems-detail-page[data-systems-detail="evidence"] .focus-main,
+.systems-detail-page[data-systems-detail="evidence"] .focus-main > *,
+.systems-detail-page[data-systems-detail="evidence"] .focus-section,
+.systems-detail-page[data-systems-detail="evidence"] .systems-detail-workbench,
+.systems-detail-page[data-systems-detail="evidence"] .systems-detail-panel,
+.systems-detail-page[data-systems-detail="evidence"] .focus-grid,
+.systems-detail-page[data-systems-detail="evidence"] .focus-provenance,
+.systems-detail-page[data-systems-detail="evidence"] .focus-rail,
+.systems-detail-page[data-systems-detail="evidence"] .systems-detail-boundary,
+.systems-detail-page[data-systems-detail="evidence"] .systems-detail-ledger,
+.systems-detail-page[data-systems-detail="evidence"] .systems-evidence-disclosure {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.systems-detail-page[data-systems-detail="evidence"] .focus-rail a,
+.systems-detail-page[data-systems-detail="evidence"] .focus-note,
+.systems-detail-page[data-systems-detail="evidence"] .systems-detail-boundary dd,
+.systems-detail-page[data-systems-detail="evidence"] .systems-detail-ledger dd {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.systems-detail-page[data-systems-detail="evidence"]
+  .systems-detail-workbench--support
+  .systems-detail-panel:first-child
+  .focus-table {
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.systems-detail-page[data-systems-detail="evidence"]
+  .systems-detail-workbench--support
+  .systems-detail-panel:first-child
+  .focus-table th,
+.systems-detail-page[data-systems-detail="evidence"]
+  .systems-detail-workbench--support
+  .systems-detail-panel:first-child
+  .focus-table td {
+  overflow-wrap: anywhere;
+}
+
+.systems-detail-page[data-systems-detail="evidence"]
+  .systems-detail-workbench--support
+  .systems-detail-panel:first-child
+  .focus-table th:nth-child(1) { width: 18%; }
+.systems-detail-page[data-systems-detail="evidence"]
+  .systems-detail-workbench--support
+  .systems-detail-panel:first-child
+  .focus-table th:nth-child(2) { width: 15%; }
+.systems-detail-page[data-systems-detail="evidence"]
+  .systems-detail-workbench--support
+  .systems-detail-panel:first-child
+  .focus-table th:nth-child(3) { width: 37%; }
+.systems-detail-page[data-systems-detail="evidence"]
+  .systems-detail-workbench--support
+  .systems-detail-panel:first-child
+  .focus-table th:nth-child(4) { width: 30%; }
+
+@media (min-width: 1025px) {
+  .systems-detail-page[data-systems-detail="reliability"]
+    .systems-detail-workbench:not(.systems-detail-workbench--support)
+    .focus-table {
+    min-width: 0;
+  }
+
+  .systems-detail-page[data-systems-detail="reliability"]
+    .systems-detail-compact-grid.cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Keep the source-only mobile fallback inside the viewport without clipping
+   overflow out of existence. Wide tables must stay in their own scrollports;
+   document-level clip would hide regressions from the Batch H overflow gate. */
+@media (max-width: 767px) {
+  .systems-detail-page[data-systems-detail="evidence"]
+    > nav[aria-label="Primary navigation"]:not(.atlas-nav-shell) {
+    max-width: 100vw;
+  }
+
+  .systems-detail-page[data-systems-detail="evidence"] .focus-main {
+    max-width: calc(100vw - 32px);
+  }
+}
+
+@media (max-width: 620px) {
+  .systems-evidence-mode-inline {
+    margin-inline-start: 0;
+    margin-top: 0.5rem;
+  }
+
+  .systems-evidence-cell {
+    min-width: 160px;
+  }
+
+  .systems-evidence-disclosure > summary {
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .systems-heatmap-cell {
+    transition: none;
+  }
+}

@@ -63,6 +63,21 @@
 /lab/shared/shell.js
   Cache-Control: no-store, max-age=0
 
+/static/js/spectral-forge/*
+  Cache-Control: no-store, max-age=0
+
+/lab/spectral-forge/spectral-forge.css
+  Cache-Control: no-store, max-age=0
+
+/lab/spectral-forge/spectral-forge-flagship-v2.css
+  Cache-Control: no-store, max-age=0
+
+/lab/shared/flagship-counterparts.js
+  Cache-Control: no-store, max-age=0
+
+/lab/shared/flagship-counterparts.css
+  Cache-Control: no-store, max-age=0
+
 /lab/shared/system-map-card-field.js
   Cache-Control: no-store, max-age=0
 

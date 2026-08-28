@@ -21,7 +21,8 @@ test("evidence is a focused provenance destination", () => {
 });
 
 test("evidence uses the governed estate header without inline layout overrides", () => {
-  assert.ok(page.includes('<header class="focus-hero">'));
+  assert.match(page, /<header class="[^"]*\bfocus-hero\b[^"]*">/);
+  assert.match(page, /<header class="[^"]*\batlas-composition--proof-trace\b[^"]*">/);
   assert.ok(page.includes('/static/css/estate-search.css'));
   assert.ok(page.includes('/static/css/estate-shell.css?v=20260723-interface-v2'));
   assert.ok(page.includes('/static/js/focused-systems-shell.js?v=20260725-batch-h-fixes'));
@@ -60,4 +61,10 @@ test("evidence keeps freshness and failure states independent", () => {
   }
   assert.ok(page.includes("One fresh source cannot wash a stale or unavailable source green."));
   assert.ok(page.includes("Empty evidence is not a successful pipeline."));
+});
+
+test("evidence pipeline list stays capped to the newest events", () => {
+  assert.match(script, /const PIPELINE_VISIBLE_LIMIT = 6/);
+  assert.match(script, /pipelineEvents\.slice\(0,\s*PIPELINE_VISIBLE_LIMIT\)/);
+  assert.match(script, /Newest \$\{events\.length\} of \$\{pipelineEvents\.length\} pipeline events/);
 });

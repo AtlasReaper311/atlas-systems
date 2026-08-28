@@ -7,6 +7,8 @@ const genericRunner = readFileSync("scripts/capture_interface_evidence.mjs", "ut
 const contract = readFileSync("scripts/interface-evidence/contract.mjs", "utf8");
 const browserCore = readFileSync("scripts/interface-evidence/browser-core.mjs", "utf8");
 const workflow = readFileSync(".github/workflows/interface-preview.yml", "utf8");
+const evidenceCss = readFileSync("static/css/systems-evidence-truthfulness.css", "utf8");
+const evidenceHtml = readFileSync("systems/evidence/index.html", "utf8");
 
 test("Batch H browser evidence preserves every focused destination", () => {
   for (const route of [
@@ -31,7 +33,7 @@ test("all evidence runners share the governed browser and viewport contract", ()
   assert.ok(genericRunner.includes('from "./interface-evidence/browser-core.mjs"'));
 });
 
-test("Batch H retains keyboard, unavailable-data, and audio-consent assertions", () => {
+test("Batch H retains keyboard, unavailable-data, audio-consent, and no-JavaScript overflow assertions", () => {
   assert.ok(runner.includes('page.keyboard.press("Tab")'));
   assert.ok(runner.includes('document.querySelector(":focus-visible")'));
   assert.ok(runner.includes("javaScriptEnabled: false"));
@@ -43,6 +45,17 @@ test("Batch H retains keyboard, unavailable-data, and audio-consent assertions",
   assert.ok(runner.includes("activeElementInsideSymphony"));
   assert.ok(runner.includes("Symphony stole focus during page load"));
   assert.ok(runner.includes("Symphony is not embedded as a non-modal page region"));
+  assert.ok(runner.includes("openSourceDocument"));
+  assert.ok(runner.includes("stylesApplied"));
+  assert.ok(runner.includes("stylesheets were not applied before no-JavaScript measurement"));
+  assert.ok(runner.includes("evidence.stylesApplied && evidence.scrollWidth > evidence.width + 1"));
+  assert.ok(runner.includes("horizontal overflow"));
+  assert.doesNotMatch(runner, /waitUntil:\s*"domcontentloaded"/);
+  assert.ok(browserCore.includes("export async function waitForAppliedStylesheets"));
+  assert.ok(browserCore.includes("export async function openSourceDocument"));
+  assert.ok(browserCore.includes('waitUntil: "load"'));
+  assert.ok(browserCore.includes('link[rel="stylesheet"][href]'));
+  assert.ok(browserCore.includes('bodyStyle.marginTop === "0px"'));
 });
 
 test("shared diagnostics record console, request, resource, and accessibility evidence", () => {
@@ -68,4 +81,38 @@ test("the preview workflow enforces approval before evidence deployment", () => 
   assert.ok(workflow.includes("node capture_batch_h_evidence.mjs"));
   assert.equal((workflow.match(/npm install --save-exact playwright@1\.61\.1 @axe-core\/playwright@4\.12\.1/g) || []).length, 1);
   assert.ok(workflow.includes("retention-days: 14"));
+});
+
+test("preview evidence captures cannot cascade into a misleading missing-artifact failure or silently pass", () => {
+  assert.ok(workflow.includes("id: route-capture"));
+  assert.ok(workflow.includes("id: batch-h-capture"));
+  assert.ok(workflow.includes("continue-on-error: true"));
+  assert.ok(workflow.includes("Enforce browser evidence capture results"));
+  assert.ok(workflow.includes("ROUTE_CAPTURE_OUTCOME"));
+  assert.ok(workflow.includes("BATCH_H_CAPTURE_OUTCOME"));
+  assert.ok(workflow.includes('if [ "${ROUTE_CAPTURE_OUTCOME}" != "success" ]'));
+  assert.ok(workflow.includes('if [ "${BATCH_H_CAPTURE_OUTCOME}" != "success" ]'));
+  assert.ok(workflow.includes('exit "${failed}"'));
+  assert.match(workflow, /name: Capture Batch H product assertions[\s\S]*?if: always\(\)/);
+  assert.match(
+    workflow,
+    /name: Upload route-derived visual and accessibility evidence[\s\S]*?if-no-files-found: error/,
+  );
+  assert.match(
+    workflow,
+    /name: Upload Batch H visual and accessibility evidence[\s\S]*?if-no-files-found: error/,
+  );
+});
+
+test("Verify source layout contains wide tables before JavaScript enhancement", () => {
+  assert.match(evidenceCss, /data-systems-detail="evidence"[\s\S]*?\.focus-table-wrap[\s\S]*?contain:\s*layout paint inline-size/);
+  assert.match(evidenceCss, /\.focus-table-wrap[\s\S]*?max-width:\s*100%/);
+  assert.match(evidenceCss, /\.focus-table-wrap[\s\S]*?overflow-x:\s*auto/);
+  assert.doesNotMatch(
+    evidenceCss,
+    /data-systems-detail="evidence"[\s\S]*?overflow-x:\s*clip/,
+    "document-level overflow clip must not hide no-JavaScript overflow regressions",
+  );
+  assert.match(evidenceHtml, /<details class="systems-evidence-disclosure">[\s\S]*?<tbody id="activity-rows">/);
+  assert.match(evidenceHtml, /systems-evidence-truthfulness\.css\?v=20260811-heatmap-density/);
 });

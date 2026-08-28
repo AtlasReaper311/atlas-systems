@@ -22,6 +22,12 @@ function setStateText(id, text, semanticState = "available") {
 
 function ensureHomepageFieldStyles() {
   if (document.head.querySelector('link[data-atlas-home-field="styles"]')) return;
+  // The homepage already links this stylesheet in <head>. Matching only the
+  // marker attribute made this append a second, uncached copy of it.
+  const wanted = new URL(HOMEPAGE_FIELD_CSS, window.location.origin);
+  const linked = [...document.head.querySelectorAll('link[rel="stylesheet"][href]')]
+    .some((sheet) => new URL(sheet.href, window.location.origin).pathname === wanted.pathname);
+  if (linked) return;
   const link = document.createElement("link");
   link.rel = "stylesheet";
   link.href = HOMEPAGE_FIELD_CSS;

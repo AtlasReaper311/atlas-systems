@@ -1,20 +1,92 @@
 <!--
   estate-search-includes.html
 
-  Every markup insertion the estate search needs, in one place. Nothing
-  here is a working page; copy each numbered block into the location it
-  names. Blocks 1 and 2 go on EVERY page (the overlay and the Ramone
-  bridge ride one stylesheet and one module script). Blocks 3 and 4 are
-  per-page nav edits. Block 5 goes on the homepage only.
+  The chrome and search markup every Atlas Systems page ships, in one
+  place. Nothing here is a working page; copy each numbered block into
+  the location it names.
+
+  This file is the source of truth for the global header. The site has
+  no build step, so the header is duplicated per page — copy it from
+  here rather than from whichever page you happened to open.
+
+  IMPORTANT: the header ships in the HTML. estate-shell.js and
+  lab/shared/shell.js are enhance-only: they refresh the status pill,
+  set aria-current, and normalise links, but they do NOT rebuild a
+  complete header. A page that omits blocks 1-3 will paint whatever
+  chrome it does have, then have the shell build the real header over
+  the top — which is the flash this markup exists to prevent.
 -->
 
 <!-- ================================================================
-  1. In <head>, on every page, after the page's own <style> block:
+  1. In <head>, on every page, as the LAST stylesheets. Order matters:
+     the page's own CSS first, then the kit tokens, then the shell.
+     Blocking links only — the header must be styled at first paint,
+     so none of this may arrive from JavaScript.
 ================================================================= -->
 <link rel="stylesheet" href="/static/css/estate-search.css">
+<link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
+<link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
+
+<!-- Lab routes only, before the two links above:
+<link rel="stylesheet" href="/lab/shared/lab-context-navigation.css?v=20260806-lab-consistency-v2">
+<link rel="stylesheet" href="/lab/shared/lab-shell-layout.css?v=20260806-lab-consistency-v2">
+-->
 
 <!-- ================================================================
-  2. Before </body>, on every page. One module include boots the
+  2. On the root elements. data-atlas-interface opts the document into
+     the shell's typography and scroll padding; data-atlas-bottom-nav
+     reserves room for the mobile bar. Lab routes additionally carry
+     data-lab-shell / data-lab-layout / data-lab-route on <body>, which
+     is what reserves space for the fixed header before JS runs.
+
+  <html lang="en" data-atlas-interface>
+  <body data-atlas-bottom-nav="true">
+  <body data-atlas-bottom-nav="true" data-lab-shell data-lab-layout="standard" data-lab-route="xray">
+================================================================= -->
+
+<!-- ================================================================
+  3. The global header, as the first element inside <body>. Set
+     aria-current="page" on the link for the current section and
+     nowhere else. On the homepage only, the status pill keeps
+     id="nav-build-status" on its label so home-live-signal.js can
+     still write through it.
+================================================================= -->
+<nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
+  <div class="atlas-header__inner">
+    <div class="atlas-header__brand atlas-global-header__identity">
+      <a class="nav-wordmark atlas-wordmark" href="/" data-atlas-wordmark>Atlas<span class="atlas-wordmark__cursor">_</span>Systems</a>
+      <a class="nav-status atlas-status atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" data-atlas-status aria-label="Atlas Systems status: Checking" aria-live="off"><span class="status-dot atlas-status__dot" aria-hidden="true"></span><span class="atlas-estate-status-label" data-atlas-status-label>Checking</span></a>
+    </div>
+    <div class="atlas-header__nav atlas-global-header__nav" role="group" aria-label="Atlas Systems sections">
+      <a class="atlas-global-header__link" href="/work/">Work</a>
+      <a class="atlas-global-header__link" href="/writing/">Writing</a>
+      <a class="atlas-global-header__link" href="/lab/">Lab</a>
+      <a class="atlas-global-header__link" href="/systems/">Systems</a>
+      <a class="atlas-global-header__link" href="/about/">About</a>
+    </div>
+    <div class="atlas-header__actions atlas-global-header__actions">
+      <button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button>
+    </div>
+  </div>
+</nav>
+
+<!-- ================================================================
+  4. The mobile bar, as the last element before </body>. Hidden above
+     768px by the shell stylesheet. Mark the current section with both
+     class="active" and aria-current="page".
+================================================================= -->
+<nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
+  <div class="mobile-nav-inner atlas-mobile-nav__inner">
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/writing/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="16" y2="13"></line></svg><span>Writing</span></a>
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/lab/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V9"></path><path d="M14 3h7v7"></path></svg><span>Lab</span></a>
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg><span>Systems</span></a>
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M20 21a8 8 0 10-16 0"></path></svg><span>About</span></a>
+  </div>
+</nav>
+
+<!-- ================================================================
+  5. Before </body>, on every page. One module include boots the
      cmd+k overlay, the "/" shortcut, the nav trigger binding, and the
      Ramone prefill listener (which only activates on pages that have
      the composer, i.e. the Lab page):
@@ -22,54 +94,72 @@
 <script type="module" src="/static/js/estate-search/global-search.js"></script>
 
 <!-- ================================================================
-  3. Inside <ul class="nav-links">, as the last item, on every page.
-     The kbd label self-corrects to the visitor's platform at runtime
-     (Cmd on mac, ctrl elsewhere):
+  6. Lab routes only: the context strip, immediately after the header
+     and before <main>. /lab/ itself uses the directory rail
+     (data-lab-context-mode="directory", .lab-context-nav--directory,
+     four .lab-context-group blocks); every individual tool uses the
+     compact strip below, with its own label in the crumb and
+     aria-current="page" on its entry in the disclosure. Keep the
+     group ids: lab/shared/shell.js checks completeness before it
+     decides whether it needs to build the strip itself.
 ================================================================= -->
-<li>
-  <button type="button" class="es-nav-search" data-estate-search-open
-          aria-label="Search the estate" aria-haspopup="dialog">
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="11" cy="11" r="7"></circle>
-      <line x1="21" y1="21" x2="16.2" y2="16.2"></line>
-    </svg>
-    Search
-    <kbd data-estate-search-kbd>ctrl k</kbd>
-  </button>
-</li>
+<nav class="lab-context-nav lab-context-nav--compact" aria-label="Lab navigation" data-lab-context-mode="compact" data-current-lab-route="X-Ray">
+  <div class="lab-context-compact">
+    <div class="lab-context-compact__crumbs" role="group" aria-label="Current Lab location">
+      <a href="/lab/">Lab</a>
+      <span class="lab-context-compact__separator" aria-hidden="true">/</span>
+      <span class="lab-context-compact__current" aria-current="page">X-Ray</span>
+    </div>
+    <details class="lab-context-tools">
+      <summary>All Lab tools</summary>
+      <div class="lab-context-tools__menu" role="group" aria-label="All Lab tools">
+        <div class="lab-context-tools__group" data-lab-context-group="experience" role="group" aria-labelledby="lab-context-tools-group-0">
+          <span class="lab-context-tools__group-label" id="lab-context-tools-group-0">Experience</span>
+          <div class="lab-context-tools__links">
+            <a href="/lab/system-symphony/">System Symphony</a>
+            <a href="/lab/spectral-forge/">Spectral Forge</a>
+            <a href="/lab/signal/">Signal Garden</a>
+          </div>
+        </div>
+        <div class="lab-context-tools__group" data-lab-context-group="observe" role="group" aria-labelledby="lab-context-tools-group-1">
+          <span class="lab-context-tools__group-label" id="lab-context-tools-group-1">Observe</span>
+          <div class="lab-context-tools__links">
+            <a href="/lab/system-map/">System Map</a>
+            <a href="/lab/blackbox/">Blackbox</a>
+            <a href="/systems/observability/">Observability</a>
+            <a href="/lab/console/">Operations</a>
+          </div>
+        </div>
+        <div class="lab-context-tools__group" data-lab-context-group="verify" role="group" aria-labelledby="lab-context-tools-group-2">
+          <span class="lab-context-tools__group-label" id="lab-context-tools-group-2">Verify</span>
+          <div class="lab-context-tools__links">
+            <a href="/lab/proof-chain/">Proof Chain</a>
+            <a href="/lab/conformance/">Estate Conformance</a>
+            <a href="/lab/xray/" aria-current="page">X-Ray</a>
+            <a href="/systems/reliability/">Reliability</a>
+            <a href="/systems/evidence/">Evidence</a>
+          </div>
+        </div>
+        <div class="lab-context-tools__group" data-lab-context-group="explore" role="group" aria-labelledby="lab-context-tools-group-3">
+          <span class="lab-context-tools__group-label" id="lab-context-tools-group-3">Explore</span>
+          <div class="lab-context-tools__links">
+            <a href="/lab/speculum/">Speculum</a>
+            <a href="/lab/almost/">Almost</a>
+            <a href="/lab/drift/">Drift</a>
+            <a href="/lab/bearing/">The Bearing</a>
+            <a href="/lab/anomaly/">Shape Detector</a>
+          </div>
+        </div>
+      </div>
+    </details>
+  </div>
+</nav>
 
 <!-- ================================================================
-  4. Optional but recommended: inside .mobile-nav-inner on every page,
-     because .nav-links is hidden under 680px. Same trigger, mobile
-     bar styling:
-================================================================= -->
-<button type="button" class="mobile-nav-item es-nav-search-mobile"
-        data-estate-search-open aria-label="Search the estate"
-        aria-haspopup="dialog"
-        style="background:transparent;border:none;font-family:inherit;cursor:pointer">
-  <svg viewBox="0 0 24 24" aria-hidden="true">
-    <circle cx="11" cy="11" r="7"></circle>
-    <line x1="21" y1="21" x2="16.2" y2="16.2"></line>
-  </svg>
-  Search
-</button>
-
-<!-- ================================================================
-  5. Homepage only: the full-size widget. Drop this section where the
-     search should live and add the module include next to block 2.
-     The container is empty on purpose; homepage-widget.js builds the
-     chassis so there is no markup to drift out of sync:
+  7. Homepage only: the full-size search widget. Drop this section
+     where the search should live and add the module include next to
+     block 5. The container is empty on purpose; homepage-widget.js
+     builds the chassis so there is no markup to drift out of sync:
 ================================================================= -->
 <section data-estate-search aria-label="Search the Atlas Systems corpus"></section>
 <script type="module" src="/static/js/estate-search/homepage-widget.js"></script>
-
-<!-- ================================================================
-  Migrating the Lab corpus panel (optional, recommended):
-  the Lab panel's existing .cs-w markup can keep its ids and classes.
-  Add data-estate-search to the <section class="cs-w" id="corpus-search">
-  element, include block 5's script tag on the Lab page, delete the old
-  inline corpus IIFE from live-section.js, and change the button label
-  from "ask" to "search". The panel then renders ranked hits instead of
-  a synthesized answer; synthesis is Ramone's job, one click away on
-  every result.
-================================================================= -->

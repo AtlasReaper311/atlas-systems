@@ -110,7 +110,11 @@
   display: flex; align-items: center; gap: 0.5rem;
   font-size: 12px; letter-spacing: 0.06em;
   color: var(--text-faint);
-  flex-wrap: wrap;
+  min-width: 0;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .ramone-hero-sysinfo strong { color: var(--text-dim); font-weight: 500; }
 .rh-sep { color: var(--accent); }
@@ -399,8 +403,21 @@
    RESPONSIVE
    ===================================================================== */
 @media (max-width: 600px) {
-  .ramone-hero-live { font-size: 10px; }
-  .ramone-hero-sysinfo { font-size: 11px; }
+  .ramone-hero-topbar {
+    flex-wrap: wrap;
+    gap: 7px 10px;
+    padding-inline: 14px;
+  }
+  .ramone-lights { padding-top: 2px; }
+  .ramone-hero-live {
+    width: 100%;
+    margin-left: 25px;
+    font-size: 10px;
+  }
+  .ramone-hero-sysinfo {
+    flex: 1 1 0;
+    font-size: 10px;
+  }
   .ramone-hero-heading {
     overflow-wrap: anywhere;
     font-size: min(2.4rem, 15vw);

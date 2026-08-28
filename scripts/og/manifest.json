@@ -1,12 +1,15 @@
 {
-  "note": "Copy source for route social-preview cards. Square brackets mark the accent word (amber italic). Local routes are wired in this repository; satellites are rendered here and wired in their owning repositories. `file` is the output name in /og/<file>.png.",
+  "note": "Copy source for route social-preview cards. Square brackets mark the accent word (amber italic). Local routes are wired in this repository; satellites are rendered here and wired in their owning repositories. `file` is the output name in /og/<file>.png. Optional `canonical` records an intentional alias target when it differs from `route`.",
   "routes": [
     {
       "file": "home",
       "html": "index.html",
       "route": "/",
       "kicker": "Local AI / Automation / Infrastructure",
-      "title": ["Three domains.", "Every system [documented.]"],
+      "title": [
+        "Three domains.",
+        "Every system [documented.]"
+      ],
       "tagline": "A live technical record of how the estate is built."
     },
     {
@@ -14,7 +17,9 @@
       "html": "work/index.html",
       "route": "/work/",
       "kicker": "Work",
-      "title": ["Systems with [evidence.]"],
+      "title": [
+        "Systems with [evidence.]"
+      ],
       "tagline": "Selected engineering work, and the proof behind it."
     },
     {
@@ -22,7 +27,9 @@
       "html": "writing/index.html",
       "route": "/writing/",
       "kicker": "Writing",
-      "title": ["The engineering [record.]"],
+      "title": [
+        "The engineering [record.]"
+      ],
       "tagline": "Case studies and technical notes, with the evidence."
     },
     {
@@ -30,7 +37,10 @@
       "html": "lab/index.html",
       "route": "/lab/",
       "kicker": "Lab",
-      "title": ["Experience, observe,", "verify, [explore.]"],
+      "title": [
+        "Experience, observe,",
+        "verify, [explore.]"
+      ],
       "tagline": "Interactive experiments and live estate instrumentation."
     },
     {
@@ -38,7 +48,10 @@
       "html": "systems/index.html",
       "route": "/systems/",
       "kicker": "Systems",
-      "title": ["One estate,", "[clear entrances.]"],
+      "title": [
+        "One estate,",
+        "[clear entrances.]"
+      ],
       "tagline": "Every public service in the estate, catalogued."
     },
     {
@@ -46,7 +59,10 @@
       "html": "systems/observability/index.html",
       "route": "/systems/observability/",
       "kicker": "Observe / Current evidence",
-      "title": ["What is being", "[observed now?]"],
+      "title": [
+        "What is being",
+        "[observed now?]"
+      ],
       "tagline": "Telemetry, registry state, incidents, and explicit unknowns."
     },
     {
@@ -54,7 +70,10 @@
       "html": "systems/reliability/index.html",
       "route": "/systems/reliability/",
       "kicker": "Verify / Reliability",
-      "title": ["Reliability under", "[measured failure.]"],
+      "title": [
+        "Reliability under",
+        "[measured failure.]"
+      ],
       "tagline": "Objectives, error budgets, chaos evidence, and runbooks."
     },
     {
@@ -62,7 +81,10 @@
       "html": "systems/evidence/index.html",
       "route": "/systems/evidence/",
       "kicker": "Verify / Public evidence",
-      "title": ["Claims need", "[provenance.]"],
+      "title": [
+        "Claims need",
+        "[provenance.]"
+      ],
       "tagline": "Activity, deployments, pipelines, timestamps, and fingerprints."
     },
     {
@@ -70,7 +92,9 @@
       "html": "about/index.html",
       "route": "/about/",
       "kicker": "About",
-      "title": ["Atlas [Reaper.]"],
+      "title": [
+        "Atlas [Reaper.]"
+      ],
       "tagline": "Engineer. Systems, local AI, and real-time audio."
     },
     {
@@ -78,31 +102,65 @@
       "html": "lab/system-map/index.html",
       "route": "/lab/system-map/",
       "kicker": "Observe / Architecture evidence",
-      "title": ["Public topology,", "without [invented edges.]"],
+      "title": [
+        "Public topology,",
+        "without [invented edges.]"
+      ],
       "tagline": "Declared architecture plus bounded live registry evidence."
     },
     {
       "file": "console",
       "html": "lab/console/index.html",
       "route": "/lab/console/",
+      "canonical": "https://atlas-systems.uk/lab/",
       "kicker": "Lab / Console",
-      "title": ["Live [systems.]"],
+      "title": [
+        "Live [systems.]"
+      ],
       "tagline": "The estate's services and status, at the terminal."
+    },
+    {
+      "file": "blackbox",
+      "html": "lab/blackbox/index.html",
+      "route": "/lab/blackbox/",
+      "kicker": "Observe / Incident evidence",
+      "title": [
+        "The minutes before",
+        "failure, [kept.]"
+      ],
+      "tagline": "Replay sealed incidents and open their reviewed postmortems."
     },
     {
       "file": "system-symphony",
       "html": "lab/system-symphony/index.html",
       "route": "/lab/system-symphony/",
       "kicker": "Experience / Telemetry sonification",
-      "title": ["Hear the estate,", "keep [uncertainty.]"],
+      "title": [
+        "Hear the estate,",
+        "keep [uncertainty.]"
+      ],
       "tagline": "A read-only generative instrument driven by bounded evidence."
+    },
+    {
+      "file": "spectral-forge",
+      "html": "lab/spectral-forge/index.html",
+      "route": "/lab/spectral-forge/",
+      "kicker": "Experience / Telemetry sonification",
+      "title": [
+        "Spectral Forge.",
+        "Map systems into [sound.]"
+      ],
+      "tagline": "Change the mapping. Hear the consequence."
     },
     {
       "file": "proof-chain",
       "html": "lab/proof-chain/index.html",
       "route": "/lab/proof-chain/",
       "kicker": "Verify / Atlas Trace",
-      "title": ["Proof,", "[connected.]"],
+      "title": [
+        "Proof,",
+        "[connected.]"
+      ],
       "tagline": "Follow public services back to source and accepted decisions."
     },
     {
@@ -110,15 +168,21 @@
       "html": "lab/signal/index.html",
       "route": "/lab/signal/",
       "kicker": "Experience / Generative DSP",
-      "title": ["Signal [Garden.]"],
+      "title": [
+        "Signal [Garden.]"
+      ],
       "tagline": "A browser-native instrument that grows rather than loops."
     },
     {
       "file": "reliability-evidence",
       "html": "lab/reliability/index.html",
       "route": "/lab/reliability/",
+      "canonical": "https://atlas-systems.uk/systems/reliability/",
       "kicker": "Verify / Reliability",
-      "title": ["Claims under", "[failure.]"],
+      "title": [
+        "Claims under",
+        "[failure.]"
+      ],
       "tagline": "Bounded fault injection, detection, rollback, and recovery."
     },
     {
@@ -126,15 +190,32 @@
       "html": "lab/conformance/index.html",
       "route": "/lab/conformance/",
       "kicker": "Verify / Estate policy",
-      "title": ["Conformance,", "[scored.]"],
+      "title": [
+        "Conformance,",
+        "[scored.]"
+      ],
       "tagline": "The complete denominator behind Atlas Systems policy evidence."
+    },
+    {
+      "file": "request-xray",
+      "html": "lab/xray/index.html",
+      "route": "/lab/xray/",
+      "kicker": "Verify / Simulated request path",
+      "title": [
+        "Request X-Ray.",
+        "Break the [route.]"
+      ],
+      "tagline": "Retries, deadlines, cache behaviour, rate limits, and service errors in one browser-only trace."
     },
     {
       "file": "telemetry-anomaly-detector",
       "html": "lab/anomaly/index.html",
       "route": "/lab/anomaly/",
       "kicker": "Explore / Telemetry",
-      "title": ["Shape before", "[threshold.]"],
+      "title": [
+        "Shape before",
+        "[threshold.]"
+      ],
       "tagline": "Trajectory-aware anomaly evidence from SPECULAR-CORE."
     },
     {
@@ -142,7 +223,10 @@
       "html": "lab/almost/index.html",
       "route": "/lab/almost/",
       "kicker": "Explore / Browser timing",
-      "title": ["Almost.", "A clock made of [missed moments.]"],
+      "title": [
+        "Almost.",
+        "A clock made of [missed moments.]"
+      ],
       "tagline": "An endless local drawing made from imperfect frame intervals."
     },
     {
@@ -150,7 +234,10 @@
       "html": "lab/drift/index.html",
       "route": "/lab/drift/",
       "kicker": "Explore / Estate entropy",
-      "title": ["Drift.", "Attention does not [scale.]"],
+      "title": [
+        "Drift.",
+        "Attention does not [scale.]"
+      ],
       "tagline": "Hold the estate by hand, then hand it to policy."
     },
     {
@@ -158,7 +245,10 @@
       "html": "lab/bearing/index.html",
       "route": "/lab/bearing/",
       "kicker": "Explore / Structural simulation",
-      "title": ["The Bearing.", "Failure finds a [path.]"],
+      "title": [
+        "The Bearing.",
+        "Nothing [falls.]"
+      ],
       "tagline": "A local lattice simulation of load, failure, rerouting, and recovery."
     },
     {
@@ -166,7 +256,10 @@
       "html": "lab/speculum/index.html",
       "route": "/lab/speculum/",
       "kicker": "Explore / Systems artwork",
-      "title": ["The estate keeps", "building [eyes.]"],
+      "title": [
+        "The estate keeps",
+        "building [eyes.]"
+      ],
       "tagline": "A time-compressed field of verified public attention paths."
     },
     {
@@ -174,7 +267,10 @@
       "html": "writing/overclocking-specular-core/index.html",
       "route": "/writing/overclocking-specular-core/",
       "kicker": "Writing / Hardware case study",
-      "title": ["Overclocking", "[SPECULAR-CORE.]"],
+      "title": [
+        "Overclocking",
+        "[SPECULAR-CORE.]"
+      ],
       "tagline": "BIOS, fabric, cooling and scheduling, validated end to end."
     },
     {
@@ -182,7 +278,10 @@
       "html": "writing/ramone-local-ai-system/index.html",
       "route": "/writing/ramone-local-ai-system/",
       "kicker": "Writing / Case study",
-      "title": ["A private AI system,", "[from scratch.]"],
+      "title": [
+        "A private AI system,",
+        "[from scratch.]"
+      ],
       "tagline": "Five local models, zero cloud dependency, fully rebuildable."
     },
     {
@@ -190,7 +289,10 @@
       "html": "writing/slampunk-dynamic-mix-engine/index.html",
       "route": "/writing/slampunk-dynamic-mix-engine/",
       "kicker": "Writing / Audio case study",
-      "title": ["A 15-stem dynamic", "[mix engine.]"],
+      "title": [
+        "A 15-stem dynamic",
+        "[mix engine.]"
+      ],
       "tagline": "Interactive music that mirrors play in real time."
     },
     {
@@ -198,7 +300,10 @@
       "html": "writing/sonin-generative-system/index.html",
       "route": "/writing/sonin-generative-system/",
       "kicker": "Writing / Case study",
-      "title": ["SONIN. A generative", "[audio-visual system.]"],
+      "title": [
+        "SONIN. A generative",
+        "[audio-visual system.]"
+      ],
       "tagline": "An autonomous instrument that listens to itself."
     }
   ],
@@ -207,28 +312,38 @@
       "file": "ramone",
       "route": "ramone.atlas-systems.uk",
       "kicker": "Local AI / Chat",
-      "title": ["Ramone.", "Local AI, [self-hosted.]"],
+      "title": [
+        "Ramone.",
+        "Local AI, [self-hosted.]"
+      ],
       "tagline": "A private chat interface over local models."
     },
     {
       "file": "status",
       "route": "status.atlas-systems.uk",
       "kicker": "Estate health",
-      "title": ["Live estate [status.]"],
+      "title": [
+        "Live estate [status.]"
+      ],
       "tagline": "Real-time health of every public Atlas Systems service."
     },
     {
       "file": "api-docs",
       "route": "api.atlas-systems.uk/v1/docs",
       "kicker": "Public API",
-      "title": ["The Atlas Systems [API.]"],
+      "title": [
+        "The Atlas Systems [API.]"
+      ],
       "tagline": "A versioned, evidence-backed public API surface."
     },
     {
       "file": "cv",
       "route": "cv.atlas-systems.uk",
       "kicker": "Curriculum vitae",
-      "title": ["Atlas Reaper:", "engineering [CV.]"],
+      "title": [
+        "Atlas Reaper:",
+        "engineering [CV.]"
+      ],
       "tagline": "Systems, local AI, and real-time audio engineering."
     }
   ]

@@ -1,0 +1,90 @@
+/* Executable 44px interaction-target corrections for System SYMPHONY. */
+.symphony-page :where(
+  button:not([disabled]),
+  summary,
+  input:not([type="hidden"]):not([disabled]),
+  select:not([disabled]),
+  textarea:not([disabled]),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="tab"]:not([aria-disabled="true"]),
+  .focus-action,
+  .wordmark,
+  .nav-links a,
+  .lab-context-nav a,
+  .lab-tool-footer a,
+  .atlas-header__brand a,
+  .atlas-header__nav a,
+  .atlas-header__actions a,
+  .atlas-mobile-nav a,
+  .symphony-product-link,
+  .symphony-product-mode-link,
+  .symphony-proof-open
+) {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.symphony-page :where(
+  .wordmark,
+  .nav-links a,
+  .lab-context-nav a,
+  .lab-tool-footer a,
+  .atlas-header__brand a,
+  .atlas-header__nav a,
+  .atlas-header__actions a,
+  .atlas-mobile-nav a,
+  .symphony-product-link,
+  .symphony-product-mode-link,
+  .symphony-proof-open
+) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.symphony-page .lab-context-nav .lab-context-group a,
+.symphony-page a.nav-status.atlas-status.atlas-estate-status,
+.symphony-page button.es-nav-search.atlas-search-control {
+  min-height: 44px !important;
+}
+
+.symphony-page .lab-context-nav .lab-context-group a,
+.symphony-page a.nav-status.atlas-status.atlas-estate-status {
+  min-width: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.symphony-page .symphony-lab-tools summary,
+.symphony-page .symphony-more-menu summary,
+.symphony-page .symphony-lab-tools__menu a,
+.symphony-page .symphony-more-menu__menu a,
+.symphony-page .symphony-product-link,
+.symphony-page .symphony-product-mode-link,
+.symphony-page .symphony-product-bar .symphony-mode-tabs button,
+.symphony-page .symphony-product-status,
+.symphony-page .symphony-product-audio,
+.symphony-page .symphony-button,
+.symphony-page .symphony-segmented button,
+.symphony-page .symphony-table-action {
+  min-width: 44px !important;
+  min-height: 44px !important;
+}
+
+.symphony-page .symphony-performance__collapse {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+}
+
+.symphony-page input[type="range"] {
+  min-width: 44px;
+}
+
+@media (max-width: 767px) {
+  .symphony-page .symphony-lab-tools__menu,
+  .symphony-page .symphony-more-menu__menu {
+    max-width: calc(100vw - 32px);
+  }
+}

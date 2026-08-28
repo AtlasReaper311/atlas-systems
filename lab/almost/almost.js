@@ -1,4 +1,5 @@
 import "../shared/shell.js";
+import { mountLabSound } from "../shared/lab-explore-sound.js?v=20260811-sound-v6";
 
 import {
   DEFAULT_FRAME_MS,
@@ -18,6 +19,8 @@ const context = canvas.getContext("2d", { alpha: false });
 const holdButton = document.querySelector("#hold-button");
 const newButton = document.querySelector("#new-button");
 const saveButton = document.querySelector("#save-button");
+const soundButton = document.querySelector("#sound-button");
+const exploreSound = mountLabSound({ voice: "almost", button: soundButton });
 const runState = document.querySelector("#run-state");
 const runSeed = document.querySelector("#run-seed");
 const timingState = document.querySelector("#timing-state");
@@ -26,6 +29,7 @@ const delayOutput = document.querySelector("#delay-output");
 const longestOutput = document.querySelector("#longest-output");
 const marksOutput = document.querySelector("#marks-output");
 const elapsedOutput = document.querySelector("#elapsed-output");
+const liveRegion = document.querySelector("#almost-live");
 const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
 const TRACE_COUNT = 112;
 const TIMELINE_SLOTS = 96;
@@ -170,6 +174,10 @@ function updateControls() {
   holdButton.textContent = running ? "Hold" : "Continue";
   if (running) updateRunState("running", "drawing");
   else updateRunState("held", motionPreference.matches ? "still by preference" : "held");
+}
+
+function announce(message) {
+  if (liveRegion) liveRegion.textContent = message;
 }
 
 function renderReadout(now) {
@@ -482,6 +490,7 @@ function start() {
   startedAt = performance.now();
   lastFrameAt = null;
   updateControls();
+  announce("Almost drawing continued.");
   animationFrame = requestAnimationFrame(frame);
 }
 
@@ -495,14 +504,17 @@ function stop() {
   animationFrame = null;
   updateControls();
   renderReadout(now);
+  announce("Almost drawing held.");
 }
 
 function toggleRunning() {
   if (running) stop();
   else start();
+  exploreSound.cue(running ? "mark" : "tick");
 }
 
 function reset(nextSeed, shouldExpose = true) {
+  exploreSound.cue("mark");
   seed = normalizeSeed(nextSeed);
   random = createRandom(seed);
   traces = Array.from(
@@ -526,6 +538,7 @@ function reset(nextSeed, shouldExpose = true) {
   drawFoundation();
   drawStillField();
   renderReadout(performance.now() + 1000);
+  announce(`Almost run ${String(seed).padStart(8, "0")} ready.`);
 }
 
 function saveFrame() {
@@ -542,6 +555,7 @@ function saveFrame() {
     link.click();
     URL.revokeObjectURL(url);
     saveButton.disabled = false;
+    announce("Almost frame saved.");
   }, "image/png");
 }
 

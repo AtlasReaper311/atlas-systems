@@ -1,6 +1,4 @@
-@import url("/static/css/atlas-field-consumer.css?v=20260728-consumer-contract-v1");
-
-#system-map.system-map-card-atlas-field::before {
+.system-map-card-atlas-field::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -10,14 +8,16 @@
     linear-gradient(90deg, rgba(10, 10, 15, .68) 0%, rgba(10, 10, 15, .42) 42%, rgba(10, 10, 15, .16) 70%, rgba(10, 10, 15, .05) 100%);
 }
 
-#system-map.system-map-card-atlas-field > .atlas-field-canvas {
+.system-map-card-atlas-field > .atlas-field-canvas {
+  --atlas-field-reveal-opacity: .64;
   opacity: .64;
   filter: saturate(1.24) brightness(1.12) contrast(1.02);
   -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 72%, rgba(0, 0, 0, .5) 100%);
   mask-image: linear-gradient(90deg, #000 0%, #000 72%, rgba(0, 0, 0, .5) 100%);
 }
 
-#system-map.system-map-card-atlas-field > .card-signature {
+.system-map-card-atlas-field > .card-signature {
+  position: absolute;
   z-index: 3;
   opacity: 1;
   background:
@@ -29,27 +29,29 @@
   backdrop-filter: blur(4px);
 }
 
-#system-map.system-map-card-atlas-field > .card-top,
-#system-map.system-map-card-atlas-field > h3,
-#system-map.system-map-card-atlas-field > p,
-#system-map.system-map-card-atlas-field > .data-mode,
-#system-map.system-map-card-atlas-field > .card-route {
+.system-map-card-atlas-field > .card-top,
+.system-map-card-atlas-field > h3,
+.system-map-card-atlas-field > p,
+.system-map-card-atlas-field > .data-mode,
+.system-map-card-atlas-field > .card-route {
   text-shadow: 0 1px 12px rgba(10, 10, 15, .96);
 }
 
 @media (max-width: 620px) {
-  #system-map.system-map-card-atlas-field > .atlas-field-canvas {
+  .system-map-card-atlas-field > .atlas-field-canvas {
+    --atlas-field-reveal-opacity: .56;
     opacity: .56;
     filter: saturate(1.18) brightness(1.06) contrast(1.01);
   }
 
-  #system-map.system-map-card-atlas-field > .card-signature {
+  .system-map-card-atlas-field > .card-signature {
     background: rgba(10, 10, 15, .84);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #system-map.system-map-card-atlas-field > .atlas-field-canvas {
+  .system-map-card-atlas-field > .atlas-field-canvas {
+    --atlas-field-reveal-opacity: .58;
     opacity: .58;
     filter: saturate(1.14) brightness(1.04) contrast(1.01);
   }

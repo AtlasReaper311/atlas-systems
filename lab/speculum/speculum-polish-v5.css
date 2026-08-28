@@ -64,14 +64,10 @@
 }
 
 .controls {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   min-height: 0;
-  max-height: 39%;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-hi) transparent;
+  max-height: none;
+  overflow: visible;
 }
 
 .detail {
@@ -92,13 +88,11 @@
   z-index: 0;
 }
 
-.controls::-webkit-scrollbar,
 .detail::-webkit-scrollbar,
 .ledger::-webkit-scrollbar {
   width: 8px;
 }
 
-.controls::-webkit-scrollbar-thumb,
 .detail::-webkit-scrollbar-thumb,
 .ledger::-webkit-scrollbar-thumb {
   background: var(--border-hi);
@@ -184,7 +178,6 @@ body.spc-presentation .field {
 }
 
 @media (max-height: 820px) and (min-width: 901px) {
-  .controls { max-height: 44%; }
   .detail { flex-basis: 28%; }
   .ledger-wrap { flex-basis: 34%; }
 }

@@ -8,6 +8,7 @@ import {
   actionableConsoleErrors,
   configureDeterministicContext,
   observePage,
+  openSourceDocument,
   openWithRetry,
   resourceMetrics,
   writeJson,
@@ -243,25 +244,67 @@ async function runNoJavaScriptAcceptance() {
           const prefix = `chrome/${viewport.name}/${route.name}/no-js`;
           const result = { browser: "chrome", viewport: viewport.name, route: route.path, scenario: "no-js", findings: [], blockingFailures: [] };
           try {
-            const response = await page.goto(new URL(route.path, base).toString(), { waitUntil: "domcontentloaded", timeout: 30_000 });
-            if (!response?.ok()) throw new Error(`HTTP ${response?.status() ?? "no response"}`);
+            const navigation = await openSourceDocument(page, new URL(route.path, base).toString(), {
+              minimumStylesheets: 1,
+            });
             const evidence = await page.evaluate(() => {
+              function selectorFor(element) {
+                if (!element || element === document.documentElement) return "html";
+                if (element === document.body) return "body";
+                if (element.id) return `#${CSS.escape(element.id)}`;
+                return `${element.tagName.toLowerCase()}${[...element.classList].slice(0, 3).map((name) => `.${CSS.escape(name)}`).join("")}`;
+              }
               const nav = document.querySelector('body > nav[aria-label="Primary navigation"]');
               const main = document.querySelector("main.focus-main");
+              const expectedStylesheets = document.querySelectorAll('link[rel="stylesheet"][href]').length;
+              const bodyStyle = getComputedStyle(document.body);
+              const stylesApplied = document.styleSheets.length >= expectedStylesheets
+                && expectedStylesheets > 0
+                && bodyStyle.marginTop === "0px"
+                && bodyStyle.marginLeft === "0px";
+              const width = document.documentElement.clientWidth;
+              const scrollWidth = document.documentElement.scrollWidth;
+              const overflow = [...document.querySelectorAll("body *")].map((element) => {
+                const rect = element.getBoundingClientRect();
+                return {
+                  selector: selectorFor(element),
+                  left: Math.round(rect.left),
+                  right: Math.round(rect.right),
+                  width: Math.round(rect.width),
+                };
+              }).filter((item) => item.left < -1 || item.right > width + 1)
+                .sort((a, b) => b.width - a.width)
+                .slice(0, 12);
               return {
                 navVisible: Boolean(nav) && getComputedStyle(nav).display !== "none" && nav.getBoundingClientRect().height > 0,
                 mainVisible: Boolean(main) && main.getBoundingClientRect().height > 0,
                 systemsLink: Boolean(nav?.querySelector('a[href="/systems/"]')),
                 iconCount: ["/favicon.ico", "/favicon-16x16.png", "/favicon-32x32.png", "/apple-touch-icon.png", "/site.webmanifest"]
                   .filter((href) => document.head.querySelector(`link[href="${href}"]`)).length,
-                width: document.documentElement.clientWidth,
-                scrollWidth: document.documentElement.scrollWidth,
+                expectedStylesheets,
+                stylesheetCount: document.styleSheets.length,
+                stylesApplied,
+                bodyMargin: `${bodyStyle.marginTop} ${bodyStyle.marginRight} ${bodyStyle.marginBottom} ${bodyStyle.marginLeft}`,
+                width,
+                scrollWidth,
+                overflow,
               };
             });
+            result.navigation = navigation;
+            if (!evidence.stylesApplied) {
+              result.blockingFailures.push(
+                `${prefix}: stylesheets were not applied before no-JavaScript measurement `
+                + `(sheets=${evidence.stylesheetCount}/${evidence.expectedStylesheets}, margin=${evidence.bodyMargin})`,
+              );
+            }
             if (!evidence.navVisible || !evidence.mainVisible) result.blockingFailures.push(`${prefix}: source navigation or main content is hidden`);
             if (!evidence.systemsLink) result.findings.push(`${prefix}: source navigation omits Systems`);
             if (evidence.iconCount !== 5) result.blockingFailures.push(`${prefix}: source icon package is incomplete`);
-            if (evidence.scrollWidth > evidence.width + 1) result.blockingFailures.push(`${prefix}: horizontal overflow ${evidence.scrollWidth} > ${evidence.width}`);
+            if (evidence.stylesApplied && evidence.scrollWidth > evidence.width + 1) {
+              result.blockingFailures.push(
+                `${prefix}: horizontal overflow ${evidence.scrollWidth} > ${evidence.width}; ${JSON.stringify(evidence.overflow)}`,
+              );
+            }
             result.evidence = evidence;
           } catch (error) {
             result.blockingFailures.push(`${prefix}: ${error.stack || error.message}`);

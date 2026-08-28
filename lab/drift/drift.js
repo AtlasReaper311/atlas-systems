@@ -1,4 +1,5 @@
 import "../shared/shell.js";
+import { mountLabSound } from "../shared/lab-explore-sound.js?v=20260811-sound-v6";
 
 import {
   ATTENTION_RADIUS,
@@ -32,6 +33,8 @@ const rail = document.querySelector(".drift-rail");
 const modeManualButton = document.querySelector("#mode-manual");
 const modePolicyButton = document.querySelector("#mode-policy");
 const resetButton = document.querySelector("#drift-reset");
+const soundButton = document.querySelector("#sound-button");
+const exploreSound = mountLabSound({ voice: "drift", button: soundButton });
 
 const conformanceOutput = document.querySelector("#out-conformance");
 const heldOutput = document.querySelector("#out-held");
@@ -422,14 +425,29 @@ function setMode(mode) {
   page.dataset.mode = mode;
   page.dataset.pointer = mode === MODE_POLICY ? "off" : "on";
   updateReadout(true);
+  liveRegion.textContent = mode === MODE_POLICY
+    ? "Policy sweep is holding the estate."
+    : "Manual attention is holding the estate.";
+  exploreSound.cue(mode === MODE_POLICY ? "mark" : "tick");
 }
 
 function reset() {
+  exploreSound.cue("clear");
   state.field = createField(normalizeSeed(null));
   state.verdictShown = false;
   state.verdictDismissed = false;
   verdict.hidden = true;
   updateReadout(true);
+  liveRegion.textContent = "New estate generated.";
+}
+
+function dismissVerdict() {
+  if (verdict.hidden) return false;
+  verdict.hidden = true;
+  state.verdictDismissed = true;
+  liveRegion.textContent = "Verdict dismissed. Manual attention remains active.";
+  canvas.focus();
+  return true;
 }
 
 function pointerToCell(event) {
@@ -487,6 +505,13 @@ canvas.addEventListener("keydown", (event) => {
     case "p": case "P": setMode(MODE_POLICY); break;
     case "m": case "M": setMode(MODE_MANUAL); break;
     case "r": case "R": reset(); break;
+    case "Escape":
+      if (!dismissVerdict()) {
+        state.attention.active = false;
+        state.keyboardDriving = false;
+        liveRegion.textContent = "Attention field cleared.";
+      }
+      break;
     default: handled = false;
   }
   if (handled) {
@@ -509,9 +534,7 @@ verdictAccept.addEventListener("click", () => {
 });
 
 verdictDecline.addEventListener("click", () => {
-  verdict.hidden = true;
-  state.verdictDismissed = true;
-  canvas.focus();
+  dismissVerdict();
 });
 
 const FIXED_STEP = 1 / 60;

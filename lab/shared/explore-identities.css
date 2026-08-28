@@ -1,0 +1,86 @@
+/* Explore mini-flagship identities.
+   Estate shell stays shared; each tool owns chroma, stage atmosphere, and motion. */
+
+:root {
+  --explore-almost: #f5a623;
+  --explore-drift: #4ade80;
+  --explore-drift-warn: #f5a623;
+  --explore-drift-gone: #e24b4a;
+  --explore-bearing: #f5a623;
+  --explore-bearing-hot: #ffd27a;
+  --explore-speculum: #7aa2ff;
+  --explore-speculum-beam: #f5a623;
+  --explore-shape: #48b9dc;
+  --explore-shape-score: #f5a623;
+  --explore-ground: #07070b;
+  --explore-ground-soft: #0a0a0f;
+}
+
+/* Match tool ground before local sheets finish — kills systems.css flash. */
+html:has(body.almost-page),
+html:has(body.drift-page),
+html:has(body.shape-page),
+html:has(body.bearing-page) {
+  background: var(--explore-ground);
+  color-scheme: dark;
+}
+
+html:has(body.speculum-page) {
+  background: var(--explore-ground-soft);
+  color-scheme: dark;
+}
+
+@keyframes explore-live-pulse {
+  0%, 100% { opacity: .55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+@keyframes explore-stage-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .explore-stage-enter,
+  .almost-stage,
+  .drift-field,
+  .shape-workbench,
+  .field,
+  .bearing {
+    animation: none !important;
+  }
+}
+
+/* One shared enter recipe across Explore tools. */
+.explore-stage-enter {
+  animation: explore-stage-in .55s ease both;
+}
+
+/* Card chroma wash — thin accent edge so the page continues the Lab card. */
+.almost-page .explore-stage-enter {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--explore-almost) 28%, transparent),
+    0 45px 120px rgba(0, 0, 0, 0.32);
+}
+
+.drift-page .explore-stage-enter {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--explore-drift) 30%, transparent),
+    0 28px 70px rgba(0, 0, 0, 0.38);
+}
+
+.shape-page .explore-stage-enter {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--explore-shape) 26%, transparent),
+    0 24px 60px rgba(0, 0, 0, 0.28);
+}
+
+.bearing-page .explore-stage-enter {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--explore-bearing) 24%, transparent);
+}
+
+.speculum-page .explore-stage-enter {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--explore-speculum) 22%, transparent);
+}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark" data-atlas-interface>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +11,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
 <link rel="manifest" href="/site.webmanifest">
 <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+<link rel="stylesheet" href="/lab/shared/explore-identities.css?v=20260811-continuity">
 <link rel="canonical" href="https://atlas-systems.uk/lab/bearing/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="The Bearing // Atlas Systems">
@@ -20,12 +21,12 @@
 <meta property="og:image" content="https://atlas-systems.uk/og/bearing.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="The Bearing. Failure finds a path. // Atlas Systems">
+<meta property="og:image:alt" content="The Bearing. Nothing falls. // Atlas Systems">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Bearing // Atlas Systems">
 <meta name="twitter:description" content="A browser-native lattice under simulated stress, rerouting, and recovery.">
 <meta name="twitter:image" content="https://atlas-systems.uk/og/bearing.png">
-<meta name="twitter:image:alt" content="The Bearing. Failure finds a path. // Atlas Systems">
+<meta name="twitter:image:alt" content="The Bearing. Nothing falls. // Atlas Systems">
 <title>The Bearing // Atlas Systems</title>
 
 <style>
@@ -69,29 +70,7 @@
                  Consolas, monospace;
   }
 
-  /* the blueprint */
-  @media (prefers-color-scheme: light) {
-    :root {
-      --ground:      #efece2;
-      --ground-deep: #e4e0d3;
-      --surface:     #f6f4ec;
-      --rule:        #cec8b7;
-      --rule-soft:   #dfdaca;
-      --ink:         #171a20;
-      --ink-quiet:   #5b5d60;
-      --ink-faint:   #93917f;
-
-      --strut:       #7d7a6d;
-      --load:        #a8620a;
-      --load-hot:    #d99321;
-      --critical:    #b0302f;
-      --restored:    #2f7d4a;
-      --flash:       #2a2519;
-
-      --glow: 0;
-      --paper-grid: 1;
-    }
-  }
+  /* Explore flagship stay dark; light theme only via explicit data-theme=light. */
   :root[data-theme="light"] {
     --ground:      #efece2;
     --ground-deep: #e4e0d3;
@@ -162,9 +141,12 @@
     height: 100svh;
     min-height: 560px;
     overflow: hidden;
-    background: var(--ground-deep);
+    background:
+      radial-gradient(circle at 50% 18%, rgba(245, 166, 35, 0.08), transparent 42%),
+      var(--ground-deep);
     border-bottom: 1px solid var(--rule);
     isolation: isolate;
+    animation: explore-stage-in 0.6s ease both;
   }
 
   #lattice {
@@ -175,6 +157,23 @@
     display: block;
     cursor: crosshair;
     touch-action: pan-y;
+  }
+
+  #lattice:focus-visible {
+    outline: 2px solid var(--load);
+    outline-offset: -8px;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   /* the sky presses down from above */
@@ -381,7 +380,7 @@
     position: absolute;
     z-index: 3;
     left: clamp(20px, 4.4vw, 68px);
-    bottom: calc(var(--rail-h) + 14px);
+    bottom: calc(var(--rail-h) + 38px);
     font-family: var(--f-data);
     font-size: 10px;
     letter-spacing: 0.14em;
@@ -390,6 +389,33 @@
     pointer-events: none;
   }
   .hint b { color: var(--load); font-weight: 400; }
+
+  .bearing-key {
+    position: absolute;
+    z-index: 3;
+    left: clamp(20px, 4.4vw, 68px);
+    bottom: calc(var(--rail-h) + 12px);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem 0.9rem;
+    margin: 0;
+    padding: 0;
+    color: var(--ink-faint);
+    font-family: var(--f-data);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+  .bearing-key span { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .bearing-key i {
+    width: 9px;
+    height: 9px;
+    display: inline-block;
+  }
+  .bearing-key-load { background: var(--load); }
+  .bearing-key-crit { background: var(--critical); }
+  .bearing-key-heal { background: var(--restored); }
 
   /* ---------- the incident log ---------- */
 
@@ -570,26 +596,108 @@
     .gauge .bar i { transition: none; }
   }
 </style>
+<link rel="stylesheet" href="/static/css/estate-search.css">
+<link rel="stylesheet" href="/lab/shared/lab-context-navigation.css?v=20260806-lab-consistency-v2">
+<link rel="stylesheet" href="/lab/shared/lab-shell-layout.css?v=20260806-lab-consistency-v2">
+<link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
+<link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
 </head>
-<body>
+<body class="bearing-page" data-atlas-bottom-nav="true" data-lab-shell="" data-lab-layout="immersive" data-lab-route="bearing">
+  <nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
+    <div class="atlas-header__inner">
+      <div class="atlas-header__brand atlas-global-header__identity">
+        <a class="nav-wordmark atlas-wordmark" href="/" data-atlas-wordmark>Atlas<span class="atlas-wordmark__cursor">_</span>Systems</a>
+        <a class="nav-status atlas-status atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" data-atlas-status aria-label="Atlas Systems status: Checking" aria-live="off"><span class="status-dot atlas-status__dot" aria-hidden="true"></span><span class="atlas-estate-status-label" data-atlas-status-label>Checking</span></a>
+      </div>
+      <div class="atlas-header__nav atlas-global-header__nav" role="group" aria-label="Atlas Systems sections">
+        <a class="atlas-global-header__link" href="/work/">Work</a>
+        <a class="atlas-global-header__link" href="/writing/">Writing</a>
+        <a class="atlas-global-header__link" href="/lab/" aria-current="page">Lab</a>
+        <a class="atlas-global-header__link" href="/systems/">Systems</a>
+        <a class="atlas-global-header__link" href="/about/">About</a>
+      </div>
+      <div class="atlas-header__actions atlas-global-header__actions">
+        <button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button>
+      </div>
+    </div>
+  </nav>
+  <nav class="lab-context-nav lab-context-nav--compact" aria-label="Lab navigation" data-lab-context-mode="compact" data-current-lab-route="The Bearing">
+    <div class="lab-context-compact">
+      <div class="lab-context-compact__crumbs" role="group" aria-label="Current Lab location">
+        <a href="/lab/">Lab</a>
+        <span class="lab-context-compact__separator" aria-hidden="true">/</span>
+        <span class="lab-context-compact__current" aria-current="page">The Bearing</span>
+      </div>
+      <details class="lab-context-tools">
+        <summary>All Lab tools</summary>
+        <div class="lab-context-tools__menu" role="group" aria-label="All Lab tools">
+          <div class="lab-context-tools__group" data-lab-context-group="experience" role="group" aria-labelledby="lab-context-tools-group-0">
+            <span class="lab-context-tools__group-label" id="lab-context-tools-group-0">Experience</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/system-symphony/">System Symphony</a>
+              <a href="/lab/spectral-forge/">Spectral Forge</a>
+              <a href="/lab/signal/">Signal Garden</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="observe" role="group" aria-labelledby="lab-context-tools-group-1">
+            <span class="lab-context-tools__group-label" id="lab-context-tools-group-1">Observe</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/system-map/">System Map</a>
+              <a href="/lab/blackbox/">Blackbox</a>
+              <a href="/systems/observability/">Observability</a>
+              <a href="/lab/console/">Operations</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="verify" role="group" aria-labelledby="lab-context-tools-group-2">
+            <span class="lab-context-tools__group-label" id="lab-context-tools-group-2">Verify</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/proof-chain/">Proof Chain</a>
+              <a href="/lab/conformance/">Estate Conformance</a>
+              <a href="/lab/xray/">X-Ray</a>
+              <a href="/systems/reliability/">Reliability</a>
+              <a href="/systems/evidence/">Evidence</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="explore" role="group" aria-labelledby="lab-context-tools-group-3">
+            <span class="lab-context-tools__group-label" id="lab-context-tools-group-3">Explore</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/speculum/">Speculum</a>
+              <a href="/lab/almost/">Almost</a>
+              <a href="/lab/drift/">Drift</a>
+              <a href="/lab/bearing/" aria-current="page">The Bearing</a>
+              <a href="/lab/anomaly/">Shape Detector</a>
+            </div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </nav>
 
 <main>
   <!-- ===================== THE BEARING ===================== -->
-  <section class="bearing" aria-label="A load-bearing lattice under live simulated stress">
-    <canvas id="lattice" aria-hidden="true"></canvas>
+  <section class="bearing explore-stage-enter" aria-label="A load-bearing lattice under live simulated stress">
+    <canvas
+      id="lattice"
+      tabindex="0"
+      role="application"
+      aria-describedby="bearing-help bearing-live"
+      aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Space Enter S C R Escape"
+      aria-label="A load-bearing lattice under simulated stress. Move focus through the lattice, surge load, toggle chaos, or rebuild without changing the simulation source."
+    ></canvas>
     <div class="sky"></div>
     <div class="bedrock"></div>
     <div class="scrim"></div>
 
-    <div class="controls">
-      <button class="act" id="btn-surge" type="button">Surge&nbsp;load</button>
-      <button class="act" id="btn-chaos" type="button" aria-pressed="false">Chaos&nbsp;on</button>
-      <button class="act" id="btn-rebuild" type="button">Rebuild</button>
+    <div class="controls" role="group" aria-label="Bearing simulation controls">
+      <button class="act" id="btn-surge" type="button" aria-keyshortcuts="S">Surge&nbsp;load</button>
+      <button class="act" id="btn-chaos" type="button" aria-pressed="false" aria-keyshortcuts="C">Chaos&nbsp;on</button>
+      <button class="act" id="btn-rebuild" type="button" aria-keyshortcuts="R">Rebuild</button>
+      <button class="act" id="btn-sound" type="button" aria-pressed="false" aria-label="Toggle soft Lab sound">Sound</button>
     </div>
 
     <div class="nameplate">
       <div class="eyebrow">
-        <span class="tag">Atlas&nbsp;Systems</span>
+        <span class="tag">LAB&nbsp;/&nbsp;EXPLORE&nbsp;/&nbsp;STRUCTURAL&nbsp;SIMULATION</span>
         <span class="sep"></span>
       </div>
       <h1 class="title">Nothing<em>falls</em></h1>
@@ -601,6 +709,16 @@
     </div>
 
     <p class="hint"><b>Drag</b> to cut struts &nbsp;·&nbsp; <b>Hover</b> to lean on it</p>
+    <div class="bearing-key" role="group" aria-label="Strut colour key">
+      <span><i class="bearing-key-load"></i> load</span>
+      <span><i class="bearing-key-crit"></i> over rating</span>
+      <span><i class="bearing-key-heal"></i> restored</span>
+    </div>
+    <p id="bearing-help" class="sr-only">
+      Focus the lattice, then use arrow keys to move the load point. Press Space or Enter to sever nearby struts,
+      S to surge load, C to toggle chaos, R to rebuild, and Escape to release keyboard pressure.
+    </p>
+    <p id="bearing-live" class="sr-only" role="status" aria-live="polite"></p>
 
     <ol class="log" id="log" aria-live="polite"></ol>
 
@@ -720,18 +838,35 @@
     </div>
   </section>
 
-  <footer class="sig">
-    <span class="tag">Atlas Systems &nbsp;·&nbsp; Reliability intelligence</span>
-    <span class="tag" id="sig-log">Bearing since you arrived</span>
+  <footer class="atlas-footer atlas-footer--tool phase-6-footer" aria-label="Lab tool footer" data-atlas-phase6-footer="tool">
+    <div class="atlas-footer__identity">
+      <strong>The Bearing</strong>
+      <span>Atlas Systems Lab instrument</span>
+    </div>
+    <div class="atlas-footer__context">
+      <a href="/lab/">Lab home</a>
+      <a href="/systems/">Systems directory</a>
+    </div>
+    <div class="atlas-footer__evidence">
+      <span id="sig-log">Bearing since you arrived</span>
+      <a href="https://status.atlas-systems.uk/">Estate status</a>
+    </div>
+    <div class="atlas-footer__escape">
+      <a href="/">Atlas Systems home</a>
+    </div>
   </footer>
 </main>
 
+<script type="module" src="/lab/shared/shell.js?v=20260811-explore-amber"></script>
+<script type="module" src="/static/js/phase-6-footer.js?v=20260811-explore-amber"></script>
+<script type="module" src="/lab/bearing/bearing-sound.js?v=20260811-sound-v6"></script>
 <script>
 (() => {
   "use strict";
 
   const cv  = document.getElementById("lattice");
   const ctx = cv.getContext("2d", { alpha: false });
+  const bearingLive = document.getElementById("bearing-live");
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
 
   /* ---------- theme tokens read from CSS, so both worlds stay in sync ---------- */
@@ -1690,6 +1825,60 @@
 
   function human(now) { defer(now, 30000); }
 
+  function announce(message) {
+    if (bearingLive) bearingLive.textContent = message;
+  }
+
+  function setKeyboardPointer(x, y, active = true) {
+    pointer.x = Math.max(0, Math.min(W, x));
+    pointer.y = Math.max(0, Math.min(H, y));
+    pointer.active = active;
+  }
+
+  function keyboardStep(event) {
+    const base = event.shiftKey ? 88 : 36;
+    const step = base * DPR;
+    if (!pointer.active || pointer.x < 0 || pointer.y < 0) {
+      setKeyboardPointer(W * 0.5, H * 0.48);
+    }
+
+    switch (event.key) {
+      case "ArrowLeft": setKeyboardPointer(pointer.x - step, pointer.y); break;
+      case "ArrowRight": setKeyboardPointer(pointer.x + step, pointer.y); break;
+      case "ArrowUp": setKeyboardPointer(pointer.x, pointer.y - step); break;
+      case "ArrowDown": setKeyboardPointer(pointer.x, pointer.y + step); break;
+      case " ": case "Enter": {
+        const now = performance.now();
+        const cut = severAt(pointer.x, pointer.y, 34 * DPR);
+        noteCut(cut, now);
+        human(now);
+        announce(cut ? `Manual keyboard severance affected ${cut} members.` : "No struts were close enough to sever.");
+        break;
+      }
+      case "s": case "S":
+        document.getElementById("btn-surge").click();
+        break;
+      case "c": case "C":
+        document.getElementById("btn-chaos").click();
+        break;
+      case "r": case "R":
+        document.getElementById("btn-rebuild").click();
+        break;
+      case "Escape":
+        pointer.active = false;
+        pointer.down = false;
+        announce("Keyboard pressure released.");
+        break;
+      default:
+        return;
+    }
+
+    event.preventDefault();
+    if (![" ", "Enter", "s", "S", "c", "C", "r", "R", "Escape"].includes(event.key)) {
+      announce("Keyboard pressure moved through the lattice.");
+    }
+  }
+
   cv.addEventListener("pointermove", ev => {
     const wasDown = pointer.down;
     const ox = pointer.x, oy = pointer.y;
@@ -1704,6 +1893,12 @@
   }, { passive: true });
 
   cv.addEventListener("pointerleave", () => { pointer.active = false; pointer.down = false; });
+  cv.addEventListener("focus", () => {
+    if (!pointer.active) setKeyboardPointer(W * 0.5, H * 0.48);
+    announce("Bearing lattice focused. Use arrow keys to move pressure.");
+  });
+  cv.addEventListener("blur", () => { pointer.down = false; });
+  cv.addEventListener("keydown", keyboardStep);
 
   cv.addEventListener("pointerdown", ev => {
     toLocal(ev);
@@ -1728,6 +1923,7 @@
     surge = 1;
     const now = performance.now();
     logEvent("warn", "load surge applied");
+    announce("Load surge applied.");
     director.recovering = now;
     director.struck = 0;
     human(now);
@@ -1739,6 +1935,7 @@
     btnChaos.setAttribute("aria-pressed", String(chaos));
     btnChaos.textContent = chaos ? "Chaos off" : "Chaos on";
     logEvent("info", chaos ? "chaos mode engaged" : "chaos mode stood down");
+    announce(chaos ? "Chaos mode engaged." : "Chaos mode stood down.");
     human(performance.now());
   });
 
@@ -1746,6 +1943,7 @@
     build();
     logRows.length = 0;
     logEvent("info", "structure rebuilt — " + M.total + " members");
+    announce("Structure rebuilt.");
     human(performance.now());
   });
 
@@ -1835,6 +2033,7 @@
     for (let i = 1; i <= 30; i++) hud(now + i * 600);
     sigLog.textContent = "Bearing — held still by motion preference";
     logEvent("ok", "bearing — " + M.live + " of " + M.total + " members");
+    announce("Bearing held still by motion preference.");
   } else {
     resize();
     director.next = performance.now() + CFG.quiet;
@@ -1843,5 +2042,14 @@
   }
 })();
 </script>
+  <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-inner atlas-mobile-nav__inner">
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/writing/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="16" y2="13"></line></svg><span>Writing</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item active" href="/lab/" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V9"></path><path d="M14 3h7v7"></path></svg><span>Lab</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg><span>Systems</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M20 21a8 8 0 10-16 0"></path></svg><span>About</span></a>
+    </div>
+  </nav>
 </body>
 </html>

@@ -174,6 +174,46 @@ h2 { font:400 clamp(1.7rem,4vw,2.6rem)/1.08 var(--serif); }
 [data-family="observe"] { --card-accent: var(--blue); }
 [data-family="verify"] { --card-accent: var(--violet); }
 [data-family="explore"] { --card-accent: var(--pink); }
+
+/* Explore mini-flagship card chroma — each experiment owns a colour. */
+.explore-grid [data-explore="speculum"] {
+  --card-accent: #7aa2ff;
+  background:
+    radial-gradient(circle at 88% 18%, color-mix(in srgb, #7aa2ff 16%, transparent), transparent 42%),
+    var(--bg-1);
+}
+.explore-grid [data-explore="almost"] {
+  --card-accent: #f5a623;
+  background:
+    radial-gradient(circle at 88% 18%, color-mix(in srgb, #f5a623 16%, transparent), transparent 42%),
+    var(--bg-1);
+}
+.explore-grid [data-explore="drift"] {
+  --card-accent: #4ade80;
+  background:
+    radial-gradient(circle at 88% 18%, color-mix(in srgb, #4ade80 14%, transparent), transparent 42%),
+    var(--bg-1);
+}
+.explore-grid [data-explore="bearing"] {
+  --card-accent: #f5a623;
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, #f5a623 18%, transparent), transparent 48%),
+    var(--bg-1);
+}
+.explore-grid [data-explore="shape"] {
+  --card-accent: #48b9dc;
+  background:
+    radial-gradient(circle at 88% 18%, color-mix(in srgb, #48b9dc 16%, transparent), transparent 42%),
+    var(--bg-1);
+}
+.explore-grid .system-card.directory-card--wide {
+  border-color: color-mix(in srgb, var(--card-accent) 34%, var(--border));
+}
+.explore-grid .system-card.directory-card--wide:hover,
+.explore-grid .system-card.directory-card--wide:focus-visible {
+  border-color: color-mix(in srgb, var(--card-accent) 70%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--card-accent) 28%, transparent);
+}
 [data-visual="ramone"] { --visual-image:
   linear-gradient(90deg,transparent 0 12%,color-mix(in srgb,var(--card-accent) 68%,transparent) 12% 14%,transparent 14%),
   repeating-linear-gradient(0deg,color-mix(in srgb,var(--card-accent) 16%,transparent) 0 1px,transparent 1px 12px),
@@ -261,13 +301,73 @@ h2 { font:400 clamp(1.7rem,4vw,2.6rem)/1.08 var(--serif); }
   .lab-context-nav-inner { -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent); mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent); }
 }
 .lab-context-nav a:hover,.lab-context-nav a[aria-current="page"] { color:var(--accent); }
-body:has(.lab-context-nav) main { padding-top:calc(var(--nav-h) + 104px); }
+body:has(.lab-context-nav) main { padding-top:calc(var(--nav-h) + 96px); }
 .lab-tool-footer { width:min(calc(100% - 48px),1180px); margin:0 auto; padding:32px 0 96px; display:flex; justify-content:space-between; gap:20px; color:var(--text-faint); font-size:11px; }
 .lab-tool-footer div { display:flex; flex-wrap:wrap; gap:16px; }
 .lab-tool-footer a { color:var(--text-dim); text-decoration:none; }
 .lab-tool-footer a:hover { color:var(--accent); }
 .ramone-stage { padding:64px 0; border-bottom:1px solid var(--border); }
 .ramone-stage .ramone-hero { margin:0; }
+.lab-home-page main { width:min(calc(100% - 48px),1280px); }
+.lab-landing-hero {
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(390px,.74fr);
+  gap:clamp(32px,5vw,72px);
+  align-items:center;
+  min-height:clamp(560px,calc(100vh - 188px),760px);
+  padding:34px 0 56px;
+  border-bottom:1px solid var(--border);
+}
+.lab-landing-hero::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  background:
+    linear-gradient(90deg,var(--bg) 0 18%,transparent 46%),
+    radial-gradient(circle at 72% 28%,rgba(96,165,250,.12),transparent 28%),
+    radial-gradient(circle at 90% 42%,rgba(245,166,35,.1),transparent 24%);
+  opacity:.92;
+}
+.lab-landing-hero .page-intro {
+  min-width:0;
+  padding:0;
+  border-bottom:0;
+}
+.lab-landing-hero .page-intro h1 {
+  max-width:790px;
+  font-size:clamp(3.8rem,7vw,6.45rem);
+}
+.lab-landing-hero .lede { max-width:720px; }
+.lab-landing-hero .ramone-stage {
+  min-width:0;
+  padding:0;
+  border-bottom:0;
+}
+.lab-landing-hero .ramone-hero {
+  margin:0;
+  padding:0;
+  border-bottom:0;
+}
+.lab-landing-hero .ramone-card {
+  max-width:100%;
+  transform:translateY(8px);
+}
+.lab-landing-hero .ramone-hero-center {
+  padding:clamp(1.35rem,2.6vw,2.15rem);
+}
+.lab-landing-hero .ramone-boot {
+  max-height:7.8rem;
+  overflow:hidden;
+}
+.lab-landing-hero .ramone-hero-heading {
+  font-size:clamp(2rem,3.6vw,3.05rem);
+}
+.lab-landing-hero .ramone-hero-suggestions {
+  max-height:8rem;
+  overflow:hidden;
+}
 .group-stack { display:grid; gap:52px; }
 .group-label { display:flex; align-items:center; gap:10px; margin-bottom:18px; color:var(--accent); font-size:11px; letter-spacing:.16em; text-transform:uppercase; }
 .group-label::before { content:""; width:22px; height:1px; background:currentColor; }
@@ -283,6 +383,8 @@ body:has(.lab-context-nav) main { padding-top:calc(var(--nav-h) + 104px); }
 @media(max-width:1050px){
   .systems-tools-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
   .product-showcase { grid-template-columns:minmax(0,1.25fr) minmax(260px,.85fr); }
+  .lab-landing-hero { grid-template-columns:1fr; min-height:0; padding-top:28px; }
+  .lab-landing-hero .ramone-card { max-width:760px; transform:none; }
 }
 @media(max-width:900px){
   .card-grid,.card-grid.two,.portfolio-grid,.verify-grid,.systems-tools-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -299,6 +401,11 @@ body:has(.lab-context-nav) main { padding-top:calc(var(--nav-h) + 104px); }
   main,.lab-context-nav-inner,.lab-tool-footer { width:min(calc(100% - 32px),1180px); }
   .page-intro { padding-top:28px; }
   .page-intro h1 { overflow-wrap:anywhere; font-size:min(2.8rem,15vw); }
+  .lab-home-page main { width:min(calc(100% - 32px),1180px); }
+  .lab-landing-hero { padding:24px 0 42px; }
+  .lab-landing-hero .page-intro h1 { font-size:min(3.15rem,15vw); }
+  .lab-landing-hero .page-actions { gap:10px; }
+  .lab-landing-hero .action { flex:1 1 150px; padding-inline:10px; }
   .card-grid,.card-grid.two,.portfolio-grid,.verify-grid,.systems-tools-grid,.featured-grid,.product-showcase,.architecture { grid-template-columns:1fr; }
   .featured-grid .specimen-card,
   .featured-grid .specimen-card--primary,

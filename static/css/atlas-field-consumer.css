@@ -14,9 +14,10 @@
   pointer-events: none;
 }
 
-.atlas-field-surface > :not(.atlas-field-canvas) {
+.atlas-field-surface > :not(.atlas-field-canvas):not(.card-signature) {
   position: relative;
-  z-index: 2;
+  /* Keep copy above ambient vignettes (::after is typically z-index 2–3). */
+  z-index: 4;
 }
 
 .atlas-field-surface--ambient > .atlas-field-canvas,

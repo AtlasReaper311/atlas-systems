@@ -3,11 +3,11 @@
 import {
   defineAtlasFieldConsumer,
   mountAtlasFieldConsumer,
-} from "./atlas-field-consumer.js?v=20260728-directory-header-compositions-v2";
+} from "./atlas-field-consumer.js?v=20260807-hero-contrast";
 
 const HEADER_STYLESHEETS = Object.freeze([
-  "/static/css/atlas-field-consumer.css?v=20260728-directory-header-compositions-v2",
-  "/static/css/directory-header-fields.css?v=20260728-directory-header-compositions-v2",
+  "/static/css/atlas-field-consumer.css?v=20260807-hero-contrast",
+  "/static/css/directory-header-fields.css?v=20260807-hero-contrast",
 ]);
 
 export const DIRECTORY_HEADER_COMPOSITIONS = Object.freeze({
@@ -87,7 +87,13 @@ export function compositionForPath(pathname) {
 }
 
 function ensureStylesheet(href) {
-  if (document.head.querySelector(`link[href="${href}"]`)) return;
+  // Match on pathname so the blocking <head> link counts, whatever query it
+  // carries. These stylesheets size the header field; if they arrive after the
+  // canvas mounts, the hero balloons and blanks the viewport until they land.
+  const wanted = new URL(href, window.location.origin);
+  const present = [...document.head.querySelectorAll('link[rel="stylesheet"][href]')]
+    .some((link) => new URL(link.href, window.location.origin).pathname === wanted.pathname);
+  if (present) return;
   const link = document.createElement("link");
   link.rel = "stylesheet";
   link.href = href;

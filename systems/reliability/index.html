@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-atlas-interface>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,36 +26,77 @@
   <meta name="twitter:description" content="Objectives, error budgets, burn states, delivery metrics, and bounded failure evidence.">
   <meta name="twitter:image" content="https://atlas-systems.uk/og/reliability.png">
   <meta name="twitter:image:alt" content="Reliability under measured failure. // Atlas Systems">
+  <link rel="preload" href="/static/vendor/atlas-interface/v0.2.0/fonts/ibm-plex-mono-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/static/vendor/atlas-interface/v0.2.0/fonts/ibm-plex-mono-500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/static/vendor/atlas-interface/v0.2.0/fonts/dm-serif-display-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.5.0/atlas-interface-kit.css">
   <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260728-lab-context-nav-wrap">
   <link rel="stylesheet" href="/static/css/estate-search.css">
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
   <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h-fixes">
+  <link rel="stylesheet" href="/static/css/systems-detail-surfaces.css?v=20260811-heatmap-compact">
+  <link rel="stylesheet" href="/static/css/systems-evidence-truthfulness.css?v=20260811-heatmap-density">
+<link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
+<link rel="stylesheet" href="/static/css/secondary-surface-fields.css?v=20260807-hero-contrast">
 </head>
-<body>
-  <nav aria-label="Primary navigation">
-    <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
-    <ul class="nav-links">
-      <li><a href="/work/">Work</a></li><li><a href="/writing/">Writing</a></li>
-      <li><a href="/lab/">Lab</a></li><li><a href="/systems/" aria-current="page">Systems</a></li>
-      <li><a href="/about/">About</a></li>
-    </ul>
+<body class="systems-detail-page" data-systems-detail="reliability" data-atlas-bottom-nav="true" data-atlas-composition="pulse-horizon">
+  <nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
+    <div class="atlas-header__inner">
+      <div class="atlas-header__brand atlas-global-header__identity">
+        <a class="nav-wordmark atlas-wordmark" href="/" data-atlas-wordmark>Atlas<span class="atlas-wordmark__cursor">_</span>Systems</a>
+        <a class="nav-status atlas-status atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" data-atlas-status aria-label="Atlas Systems status: Checking" aria-live="off"><span class="status-dot atlas-status__dot" aria-hidden="true"></span><span class="atlas-estate-status-label" data-atlas-status-label>Checking</span></a>
+      </div>
+      <div class="atlas-header__nav atlas-global-header__nav" role="group" aria-label="Atlas Systems sections">
+        <a class="atlas-global-header__link" href="/work/">Work</a>
+        <a class="atlas-global-header__link" href="/writing/">Writing</a>
+        <a class="atlas-global-header__link" href="/lab/">Lab</a>
+        <a class="atlas-global-header__link" href="/systems/" aria-current="page">Systems</a>
+        <a class="atlas-global-header__link" href="/about/">About</a>
+      </div>
+      <div class="atlas-header__actions atlas-global-header__actions">
+        <button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button>
+      </div>
+    </div>
   </nav>
   <main class="focus-main">
-    <header class="focus-hero">
-      <p class="focus-breadcrumb">Systems / reliability</p>
-      <h1 class="focus-title">Can the estate support its reliability claims?</h1>
-      <p class="focus-lede">Reliability is presented as measured objectives and evidence quality, not a decorative green light. This route joins policy coverage, error budgets, burn states, delivery outcomes, and bounded failure experiments while retaining explicit stale, insufficient, unavailable, malformed, and unmeasured states.</p>
-      <div class="focus-actions">
-        <a class="focus-action primary" href="https://status.atlas-systems.uk/">Public status</a>
-        <a class="focus-action" href="/systems/observability/">Current observations</a>
-        <a class="focus-action" href="/systems/evidence/">Claim evidence</a>
+    <header class="focus-hero atlas-field-surface atlas-field-surface--ambient atlas-composition-host atlas-composition--pulse-horizon">
+      <nav class="atlas-breadcrumbs systems-detail-breadcrumbs" aria-label="Breadcrumb">
+        <ol>
+          <li><a href="/systems/">Systems</a></li>
+          <li aria-current="page">Reliability</li>
+        </ol>
+      </nav>
+      <div class="systems-detail-hero-grid">
+        <div class="systems-detail-intro">
+          <p class="systems-detail-kicker">Evaluate the claim</p>
+          <h1 class="focus-title">Can the estate support its reliability claims?</h1>
+          <p class="focus-lede">Reliability is presented as measured objectives and evidence quality, not a decorative green light. This route joins policy coverage, error budgets, burn states, delivery outcomes, and bounded failure experiments while retaining explicit stale, insufficient, unavailable, malformed, and unmeasured states.</p>
+          <div class="focus-actions">
+            <a class="focus-action primary" href="https://status.atlas-systems.uk/">Open public status</a>
+            <a class="focus-action" href="/lab/conformance/">Inspect conformance</a>
+          </div>
+        </div>
+        <aside class="systems-detail-boundary" aria-labelledby="reliability-boundary-title">
+          <p class="systems-detail-kicker">Evidence boundary</p>
+          <h2 id="reliability-boundary-title">Measured, policy-backed, and deliberately incomplete</h2>
+          <dl>
+            <div><dt>Reads</dt><dd>Public reliability evaluation, objective policy, raw SLO counters, DORA metrics, and published chaos reports.</dd></div>
+            <div><dt>Does not infer</dt><dd>Unsupported percentiles are not invented. Missing measurements, current health from a historical budget, and success from an absent report are not inferred.</dd></div>
+            <div><dt>Freshness</dt><dd>Each evaluator reason is shown with its evaluation age; raw failure-day history remains separate from the current runtime view.</dd></div>
+          </dl>
+        </aside>
       </div>
+      <nav class="systems-detail-sequence" aria-label="Systems evidence sequence">
+        <a href="/systems/observability/"><span>01 // Observe</span><strong>What is happening?</strong></a>
+        <a href="/systems/reliability/" aria-current="page"><span>02 // Evaluate</span><strong>Is it reliable?</strong></a>
+        <a href="/systems/evidence/"><span>03 // Verify</span><strong>What proves it?</strong></a>
+      </nav>
     </header>
 
-    <section class="focus-section" aria-labelledby="reliability-summary-title">
+    <section class="focus-section systems-detail-summary" aria-labelledby="reliability-summary-title">
       <div class="focus-section-head">
-        <div><p class="focus-breadcrumb">Current evaluation</p><h2 id="reliability-summary-title">Reliability coverage</h2></div>
+        <div><p class="systems-detail-kicker">Current verdict</p><h2 id="reliability-summary-title">Reliability coverage</h2></div>
         <p id="reliability-status" class="focus-status-line" data-state="unknown" aria-live="polite">Contacting the public reliability evaluator.</p>
       </div>
       <div class="focus-grid cols-4">
@@ -66,9 +107,37 @@
       </div>
     </section>
 
+    <div class="systems-detail-workbench">
+      <section class="systems-detail-panel systems-detail-panel--dominant" aria-labelledby="budgets-title">
+        <div class="focus-section-head">
+          <div><p class="systems-detail-kicker">Primary evaluation</p><h2 id="budgets-title">Error budgets and burn states</h2></div>
+          <p>Burn rates are day-granular because the public counters are day-granular. Historical budget state is not presented as current service health.</p>
+        </div>
+        <section class="focus-table-wrap" tabindex="0" aria-label="Error budgets and burn states table">
+          <table class="focus-table">
+            <thead><tr><th scope="col">Service</th><th scope="col">State</th><th scope="col">Budget remaining</th><th scope="col">Fast burn</th><th scope="col">Slow burn</th><th scope="col">Evidence</th></tr></thead>
+            <tbody id="budget-rows"><tr><td colspan="6">No reliability evaluation loaded.</td></tr></tbody>
+          </table>
+        </section>
+      </section>
+
+      <section class="systems-detail-panel" aria-labelledby="dora-title">
+        <div class="focus-section-head">
+          <div><p class="systems-detail-kicker">Delivery context</p><h2 id="dora-title">DORA delivery metrics</h2></div>
+          <p id="dora-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for delivery evidence.</p>
+        </div>
+        <div class="focus-grid cols-3 systems-detail-compact-grid">
+          <article class="focus-metric"><span>Deploys per week</span><strong id="dora-frequency">unknown</strong><p id="dora-frequency-basis"></p></article>
+          <article class="focus-metric"><span>Change failure rate</span><strong id="dora-cfr">unknown</strong><p id="dora-cfr-basis"></p></article>
+          <article class="focus-metric"><span>Mean recovery time</span><strong id="dora-mttr">unknown</strong><p id="dora-mttr-basis"></p></article>
+        </div>
+        <p id="dora-window" class="focus-note">Window metadata unavailable.</p>
+      </section>
+    </div>
+
     <section class="focus-section" aria-labelledby="objectives-title">
       <div class="focus-section-head">
-        <div><p class="focus-breadcrumb">Policy</p><h2 id="objectives-title">Reliability objectives</h2></div>
+        <div><p class="systems-detail-kicker">Policy baseline</p><h2 id="objectives-title">Reliability objectives</h2></div>
         <p id="objectives-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for the fingerprinted public policy.</p>
       </div>
       <section class="focus-table-wrap" tabindex="0" aria-label="Reliability objectives table">
@@ -79,56 +148,43 @@
       </section>
     </section>
 
-    <section class="focus-section" aria-labelledby="budgets-title">
-      <div class="focus-section-head">
-        <div><p class="focus-breadcrumb">Evaluation</p><h2 id="budgets-title">Error budgets and burn states</h2></div>
-        <p>Burn rates are day-granular because the public counters are day-granular. Unsupported percentiles are not invented.</p>
-      </div>
-      <section class="focus-table-wrap" tabindex="0" aria-label="Error budgets and burn states table">
-        <table class="focus-table">
-          <thead><tr><th scope="col">Service</th><th scope="col">State</th><th scope="col">Budget remaining</th><th scope="col">Fast burn</th><th scope="col">Slow burn</th><th scope="col">Evidence</th></tr></thead>
-          <tbody id="budget-rows"><tr><td colspan="6">No reliability evaluation loaded.</td></tr></tbody>
-        </table>
+    <div class="systems-detail-workbench systems-detail-workbench--support">
+      <section class="systems-detail-panel" aria-labelledby="chaos-title">
+        <div class="focus-section-head">
+          <div><p class="systems-detail-kicker">Bounded failure evidence</p><h2 id="chaos-title">Latest failure evidence</h2></div>
+          <p id="chaos-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for the latest published report.</p>
+        </div>
+        <ul id="chaos-list" class="focus-list"><li><strong>No chaos evidence loaded.</strong><span>A simulated pass is not presented as production proof.</span></li></ul>
       </section>
-    </section>
 
-    <section class="focus-section" aria-labelledby="dora-title">
-      <div class="focus-section-head">
-        <div><p class="focus-breadcrumb">Delivery</p><h2 id="dora-title">DORA delivery metrics</h2></div>
-        <p id="dora-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for delivery evidence.</p>
-      </div>
-      <div class="focus-grid cols-3">
-        <article class="focus-metric"><span>Deploys per week</span><strong id="dora-frequency">unknown</strong><p id="dora-frequency-basis"></p></article>
-        <article class="focus-metric"><span>Change failure rate</span><strong id="dora-cfr">unknown</strong><p id="dora-cfr-basis"></p></article>
-        <article class="focus-metric"><span>Mean recovery time</span><strong id="dora-mttr">unknown</strong><p id="dora-mttr-basis"></p></article>
-      </div>
-      <p id="dora-window" class="focus-note">Window metadata unavailable.</p>
-    </section>
-
-    <section class="focus-section" aria-labelledby="chaos-title">
-      <div class="focus-section-head">
-        <div><p class="focus-breadcrumb">Bounded chaos</p><h2 id="chaos-title">Latest failure evidence</h2></div>
-        <p id="chaos-status" class="focus-status-line" data-state="unknown" aria-live="polite">Waiting for the latest published report.</p>
-      </div>
-      <ul id="chaos-list" class="focus-list"><li><strong>No chaos evidence loaded.</strong><span>A simulated pass is not presented as production proof.</span></li></ul>
-    </section>
-
-    <section class="focus-section" aria-labelledby="reliability-sources-title">
-      <div class="focus-section-head">
-        <div><p class="focus-breadcrumb">Runbooks and evidence</p><h2 id="reliability-sources-title">Inspect the contracts</h2></div>
-        <p>Public JSON supports the rendered claims. Runbooks remain source-controlled operational guidance, not proof that an incident occurred.</p>
-      </div>
-      <div class="focus-rail">
-        <a href="https://api.atlas-systems.uk/v1/reliability"><strong>Reliability evaluation</strong><span>/v1/reliability</span></a>
-        <a href="https://api.atlas-systems.uk/v1/reliability/objectives"><strong>Objective policy</strong><span>/v1/reliability/objectives</span></a>
-        <a href="https://api.atlas-systems.uk/dora/metrics"><strong>DORA metrics</strong><span>/dora/metrics</span></a>
-        <a href="https://api.atlas-systems.uk/v1/evidence/chaos"><strong>Chaos evidence</strong><span>/v1/evidence/chaos</span></a>
-        <a href="https://github.com/AtlasReaper311/atlas-infra/tree/main/docs/runbooks"><strong>Reliability runbooks</strong><span>atlas-infra/docs/runbooks</span></a>
-        <a href="/lab/console/"><strong>Preserved console</strong><span>compatibility evidence view</span></a>
-      </div>
-    </section>
+      <section class="systems-detail-panel" aria-labelledby="reliability-sources-title">
+        <div class="focus-section-head">
+          <div><p class="systems-detail-kicker">Inspect the basis</p><h2 id="reliability-sources-title">Inspect the contracts</h2></div>
+          <p>Public JSON supports the rendered claims. Runbooks remain source-controlled guidance, not proof that an incident occurred.</p>
+        </div>
+        <div class="focus-rail">
+          <a href="https://api.atlas-systems.uk/v1/reliability"><strong>Reliability evaluation</strong><span>/v1/reliability</span></a>
+          <a href="https://api.atlas-systems.uk/v1/reliability/objectives"><strong>Objective policy</strong><span>/v1/reliability/objectives</span></a>
+          <a href="https://api.atlas-systems.uk/v1/slo"><strong>Raw SLO counters</strong><span>/v1/slo</span></a>
+          <a href="https://api.atlas-systems.uk/dora/metrics"><strong>DORA metrics</strong><span>/dora/metrics</span></a>
+          <a href="https://api.atlas-systems.uk/v1/evidence/chaos"><strong>Chaos evidence</strong><span>/v1/evidence/chaos</span></a>
+          <a href="https://github.com/AtlasReaper311/atlas-infra/tree/main/docs/runbooks"><strong>Reliability runbooks</strong><span>atlas-infra/docs/runbooks</span></a>
+          <a href="/lab/console/"><strong>Preserved console</strong><span>compatibility evidence view</span></a>
+        </div>
+      </section>
+    </div>
   </main>
   <script type="module" src="/static/js/focused-systems-shell.js?v=20260725-batch-h-fixes"></script>
   <script type="module" src="/systems/reliability/reliability.js?v=20260725-batch-h"></script>
+  <script type="module" src="/systems/reliability/evidence-mode.js?v=20260810-evidence-truthfulness"></script>
+  <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-inner atlas-mobile-nav__inner">
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/writing/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="16" y2="13"></line></svg><span>Writing</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/lab/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V9"></path><path d="M14 3h7v7"></path></svg><span>Lab</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item active" href="/systems/" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg><span>Systems</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M20 21a8 8 0 10-16 0"></path></svg><span>About</span></a>
+    </div>
+  </nav>
 </body>
 </html>

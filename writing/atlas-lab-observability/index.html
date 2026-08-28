@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en" data-atlas-interface>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="This dated June 2026 build log records how pipeline events from eight rollout repositories were added to the Lab ring buffer alongside a pipeline status">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Atlas Lab // Atlas Systems</title>
+  <link rel="canonical" href="https://atlas-systems.uk/writing/atlas-lab-observability/">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Atlas Lab // Atlas Systems">
+  <meta property="og:description" content="This dated June 2026 build log records how pipeline events from eight rollout repositories were added to the Lab ring buffer alongside a pipeline status">
+  <meta property="og:url" content="https://atlas-systems.uk/writing/atlas-lab-observability/">
+  <meta property="og:site_name" content="Atlas Systems">
+  <meta property="og:image" content="https://atlas-systems.uk/og/atlas-lab-observability.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Atlas Lab // Atlas Systems">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Atlas Lab // Atlas Systems">
+  <meta name="twitter:description" content="This dated June 2026 build log records how pipeline events from eight rollout repositories were added to the Lab ring buffer alongside a pipeline status">
+  <meta name="twitter:image" content="https://atlas-systems.uk/og/atlas-lab-observability.png">
+  <meta name="twitter:image:alt" content="Atlas Lab // Atlas Systems">
+  <meta property="article:published_time" content="2026-07-29">
+  <meta property="article:author" content="Atlas Reaper">
+  <script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Atlas Lab",
+    "description": "This dated June 2026 build log records how pipeline events from eight rollout repositories were added to the Lab ring buffer alongside a pipeline status",
+    "datePublished": "2026-07-29",
+    "mainEntityOfPage": "https://atlas-systems.uk/writing/atlas-lab-observability/",
+    "author": {
+        "@type": "Person",
+        "name": "Atlas Reaper",
+        "url": "https://atlas-systems.uk/about/"
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Atlas Systems",
+        "url": "https://atlas-systems.uk/"
+    },
+    "image": "https://atlas-systems.uk/og/atlas-lab-observability.png",
+    "inLanguage": "en-GB"
+}
+  </script>
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.4.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.4.0/atlas-interface-kit.css">
+  <link rel="stylesheet" href="/static/css/estate-search.css">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
+  <link rel="stylesheet" href="/static/css/article-interface-v2.css?v=20260724-phase-b-v1">
+  <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;
+      --border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);
+      --text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;
+      --accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);
+      --mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px;
+      --content-w:720px
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
+    main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);position:relative;z-index:1}
+    .article-header{padding-top:calc(var(--nav-h) + 5rem);padding-bottom:4rem;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr 2fr;gap:3rem}
+    .header-meta{display:flex;flex-direction:column;gap:1rem}
+    .back-link{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s;margin-bottom:0.5rem}
+    .back-link:hover{color:var(--accent)}
+    .back-link svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .article-index{font-size:11px;color:var(--text-faint);letter-spacing:0.1em}
+    .article-date{font-size:11px;color:var(--text-dim)}
+    .article-read-time{font-size:11px;color:var(--text-faint)}
+    .header-tags{display:flex;flex-direction:column;gap:0.4rem;margin-top:0.5rem}
+    .tag{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:0.2rem 0.5rem;border:1px solid var(--border);color:var(--text-dim);display:inline-block}
+    .tag.highlight{border-color:rgba(245,166,35,0.4);color:rgba(245,166,35,0.8)}
+    .section-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem}
+    .section-label::before{content:'';display:inline-block;width:24px;height:1px;background:var(--accent)}
+    .article-title{font-family:var(--serif);font-size:clamp(2rem,4vw,3.2rem);line-height:1.05;color:var(--text);margin-bottom:0.75rem}
+    .article-subtitle{font-size:12px;color:var(--accent);letter-spacing:0.06em;margin-bottom:1.5rem}
+    .article-lede{font-size:14px;color:var(--text-dim);line-height:1.9;max-width:560px}
+    .spec-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin:3rem 0}
+    .spec-cell{background:var(--bg);padding:1rem 1.25rem}
+    .spec-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.3rem}
+    .spec-value{font-size:12px;color:var(--text)}
+    .article-body{display:grid;grid-template-columns:200px 1fr;gap:4rem;padding:4rem 0}
+    .toc{position:sticky;top:calc(var(--nav-h) + 2rem);align-self:start;height:fit-content}
+    .toc-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-faint);margin-bottom:1rem}
+    .toc-list{list-style:none;display:flex;flex-direction:column;gap:0.1rem}
+    .toc-item a{font-size:11px;color:var(--text-faint);text-decoration:none;display:block;padding:0.35rem 0.75rem;border-left:1px solid var(--border);transition:all 0.15s;line-height:1.4}
+    .toc-item a:hover{color:var(--text-dim);border-left-color:var(--border-hi)}
+    .toc-item a.active{color:var(--accent);border-left-color:var(--accent)}
+    .prose{max-width:var(--content-w)}
+    .prose h2{font-family:var(--serif);font-size:1.8rem;line-height:1.1;color:var(--text);margin:3rem 0 1.25rem;padding-top:1rem}
+    .prose h2:first-child{margin-top:0}
+    .prose h3{font-size:13px;font-weight:500;color:var(--text);letter-spacing:0.06em;text-transform:uppercase;margin:2rem 0 0.75rem;display:flex;align-items:center;gap:0.6rem}
+    .prose h3::before{content:'';display:inline-block;width:16px;height:1px;background:var(--accent);flex-shrink:0}
+    .prose p{font-size:13px;color:var(--text-dim);line-height:1.9;margin-bottom:1.25rem}
+    .prose p:last-child{margin-bottom:0}
+    .prose strong{color:var(--text);font-weight:500}
+    .prose a,.prose a:visited{color:var(--accent);text-decoration-color:rgba(245,166,35,0.45);text-decoration-thickness:1px;text-underline-offset:0.18em;transition:color 0.15s,text-decoration-color 0.15s}
+    .prose a:hover{color:var(--text);text-decoration-color:var(--accent)}
+    .prose a:focus-visible{color:var(--text);outline:2px solid var(--accent);outline-offset:3px;text-decoration-color:var(--accent)}
+    .prose code{font-family:var(--mono);font-size:12px;background:var(--bg-1);border:1px solid var(--border);padding:0.15rem 0.4rem;color:var(--accent)}
+    .prose pre{background:var(--bg-1);border:1px solid var(--border);border-left:2px solid var(--accent);padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto}
+    .prose pre code{background:none;border:none;padding:0;font-size:12px;color:var(--text-dim);line-height:1.7}
+    .prose ul{margin:1rem 0 1.25rem 0;display:flex;flex-direction:column;gap:0.5rem}
+    .prose ul li{font-size:13px;color:var(--text-dim);line-height:1.7;display:flex;gap:0.75rem;align-items:flex-start}
+    .prose ul li::before{content:'→';color:var(--accent);flex-shrink:0;margin-top:0.1rem}
+    .callout{border:1px solid var(--border);border-left:2px solid var(--accent);background:var(--bg-1);padding:1.25rem 1.5rem;margin:1.5rem 0}
+    .callout-label{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem}
+    .callout p{margin-bottom:0;font-size:12px}
+    .callout.error{border-left-color:#e24b4a}
+    .callout.error .callout-label{color:#e24b4a}
+    .callout.success{border-left-color:#4ade80}
+    .callout.success .callout-label{color:#4ade80}
+    .callout.warning{border-left-color:var(--accent)}
+    .phase-marker{display:flex;align-items:center;gap:1rem;margin:2.5rem 0 1.5rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border)}
+    .phase-num{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap}
+    .phase-title{font-size:13px;font-weight:500;color:var(--text)}
+    .section-break{height:1px;background:var(--border);margin:3rem 0}
+    .outcomes-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin:1.5rem 0}
+    .outcome-cell{background:var(--bg);padding:1.25rem 1.5rem}
+    .outcome-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.4rem}
+    .outcome-value{font-size:13px;color:var(--text)}
+    .article-footer{padding:3rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+    .footer-back{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s}
+    .footer-back:hover{color:var(--accent)}
+    .footer-back svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .footer-next{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);display:flex;align-items:center;gap:0.4rem}
+    @media(max-width:900px){.article-body{grid-template-columns:1fr}.toc{display:none}.article-header{grid-template-columns:1fr}}
+    @media(max-width:680px){main{padding-bottom:56px}.outcomes-grid{grid-template-columns:1fr}}
+
+    /* data tables (generated from markdown | a | b | ) */
+    .table-wrap{overflow-x:auto;margin:1.75rem 0;border:1px solid var(--border)}
+    .data-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+    .data-table th{background:var(--bg-1);color:var(--accent);text-align:left;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;font-size:10px;padding:0.6rem 0.85rem;border-bottom:1px solid var(--border-hi);white-space:nowrap}
+    .data-table td{color:var(--text-dim);padding:0.55rem 0.85rem;border-bottom:1px solid var(--border);line-height:1.5;vertical-align:top}
+    .data-table tbody tr:last-child td{border-bottom:none}
+    .data-table tbody tr:hover td{background:var(--bg-1)}
+    .data-table strong{color:var(--text);font-weight:500}
+    .data-table code{background:var(--bg-2);padding:0.1rem 0.35rem;font-size:11px;color:var(--accent)}
+
+/* Public interface contract overrides applied after the preserved article stylesheet. */
+.atlas-brand-cluster{display:inline-flex;align-items:center;gap:.75rem;min-width:0}
+.article-lede{font-size:16px;line-height:1.8;max-width:620px}
+.prose p{font-size:16px;line-height:1.8}
+.prose ul li{font-size:16px;line-height:1.8}
+.callout p{font-size:14px;line-height:1.75}
+.table-wrap{max-width:100%;overscroll-behavior-inline:contain}
+:where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:680px){
+  :root{--nav-h:112px}
+  main{padding-bottom:2rem}
+}
+@media(max-width:420px){
+  .atlas-estate-status-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  .atlas-estate-status{width:32px;justify-content:center;padding:0}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto!important}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+  </style>
+  <link rel="stylesheet" href="/writing/series-article.css?v=20260722-cluster">
+<link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
+</head>
+<body data-atlas-bottom-nav="true">
+
+  <nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
+    <div class="atlas-header__inner">
+      <div class="atlas-header__brand atlas-global-header__identity">
+        <a class="nav-wordmark atlas-wordmark" href="/" data-atlas-wordmark>Atlas<span class="atlas-wordmark__cursor">_</span>Systems</a>
+        <a class="nav-status atlas-status atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" data-atlas-status aria-label="Atlas Systems status: Checking" aria-live="off"><span class="status-dot atlas-status__dot" aria-hidden="true"></span><span class="atlas-estate-status-label" data-atlas-status-label>Checking</span></a>
+      </div>
+      <div class="atlas-header__nav atlas-global-header__nav" role="group" aria-label="Atlas Systems sections">
+        <a class="atlas-global-header__link" href="/work/">Work</a>
+        <a class="atlas-global-header__link" href="/writing/" aria-current="page">Writing</a>
+        <a class="atlas-global-header__link" href="/lab/">Lab</a>
+        <a class="atlas-global-header__link" href="/systems/">Systems</a>
+        <a class="atlas-global-header__link" href="/about/">About</a>
+      </div>
+      <div class="atlas-header__actions atlas-global-header__actions">
+        <button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button>
+      </div>
+    </div>
+  </nav>
+
+<main>
+
+  <header class="article-header">
+    <div class="header-meta">
+      <a href="/writing/" class="back-link">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        Writing
+      </a>
+      <div class="article-index">W-07</div>
+      <div class="article-date">27 July 2026</div>
+      <div class="article-read-time">~10 min read</div>
+      <div class="header-tags">
+        <span class="tag highlight">DevOps</span>
+        <span class="tag">Cloudflare Workers</span>
+        <span class="tag">CI/CD</span>
+        <span class="tag">Observability</span>
+        <span class="tag">GitHub Actions</span>
+      </div>
+    </div>
+    <div class="header-content">
+      <div class="section-label">Case Study</div>
+      <h1 class="article-title">Atlas Lab</h1>
+      <div class="article-subtitle">Atlas Lab — Live Observability // Case Study</div>
+      <p class="article-lede">This dated June 2026 build log records how pipeline events from eight rollout repositories were added to the Lab ring buffer alongside a pipeline status grid and an API surface map. The current estate has since added named signal-class routing in atlas-notify and moved authoritative public Worker discovery to the fail-closed atlas-api-index registry.</p>
+    </div>
+  </header>
+
+<!-- AUTO-SERIES-NAV-START -->
+<nav class="article-series-nav" aria-label="Pipeline &amp; Observability series">
+  <div class="article-series-heading">
+    <span class="article-series-kicker">Writing series · Part 3 of 3</span>
+    <a class="article-series-title" href="/writing/index.html#series-pipeline-observability">Pipeline &amp; Observability</a>
+  </div>
+  <ol class="article-series-parts">
+      <li class="article-series-part is-live"><a class="series-part-link" href="/writing/atlas-pipeline-infrastructure-dashboard/"><span class="series-part-number">Part 1</span><span class="series-part-title">Atlas Systems Infrastructure</span><span class="series-part-state">Live</span></a></li>
+      <li class="article-series-part is-live"><a class="series-part-link" href="/writing/atlas-systems-cicd-pipeline/"><span class="series-part-number">Part 2</span><span class="series-part-title">Atlas Systems CI/CD</span><span class="series-part-state">Live</span></a></li>
+      <li class="article-series-part is-current"><span class="series-part-link" aria-current="page"><span class="series-part-number">Part 3</span><span class="series-part-title">Atlas Lab</span><span class="series-part-state">Current</span></span></li>
+  </ol>
+</nav>
+<!-- AUTO-SERIES-NAV-END -->
+
+<div class="spec-strip">
+    <div class="spec-cell"><div class="spec-label">Series</div><div class="spec-value">Part 3 of 3 — Pipeline &amp; Observability</div></div>
+    <div class="spec-cell"><div class="spec-label">Timeline</div><div class="spec-value">21 June 2026, single session</div></div>
+    <div class="spec-cell"><div class="spec-label">Repos touched</div><div class="spec-value">atlas-notify, atlas-infra, atlas-systems</div></div>
+    <div class="spec-cell"><div class="spec-label">Platform</div><div class="spec-value">Cloudflare Workers, GitHub Actions</div></div>
+    <div class="spec-cell"><div class="spec-label">New Lab panels</div><div class="spec-value">2 (pipeline grid, API surface map)</div></div>
+    <div class="spec-cell"><div class="spec-label">Endpoints indexed</div><div class="spec-value">13 across 4 Workers in the June snapshot</div></div>
+    <div class="spec-cell"><div class="spec-label">Cost</div><div class="spec-value">£0 for the bounded build</div></div>
+  </div>
+
+  <div class="article-body">
+    <aside class="toc">
+      <div class="toc-label">Contents</div>
+      <ul class="toc-list">
+        <li class="toc-item"><a href="#overview">Overview</a></li>
+        <li class="toc-item"><a href="#background">Background</a></li>
+        <li class="toc-item"><a href="#the-persist-only-decision">The Persist-Only Decision</a></li>
+        <li class="toc-item"><a href="#wiring-it-into-every-pipeline">Wiring It Into Every Pipeline</a></li>
+        <li class="toc-item"><a href="#phase-i-the-wrong-eighth-repo">Phase I — The Wrong Eighth Repo</a></li>
+        <li class="toc-item"><a href="#phase-ii-two-versions-of-latest">Phase II — Two Versions of &quot;Latest&quot;</a></li>
+        <li class="toc-item"><a href="#phase-iii-cors-was-only-half-built">Phase III — CORS Was Only Half Built</a></li>
+        <li class="toc-item"><a href="#closing-the-surface">Closing the Surface</a></li>
+        <li class="toc-item"><a href="#outcomes">Outcomes</a></li>
+      </ul>
+    </aside>
+
+    <article class="prose">
+      <section id="overview">
+        <h2>Overview</h2>
+        <div class="callout"><div class="callout-label">Status Note — 26 July 2026</div><p>This article is a dated build log for the 21 June 2026 Lab observability session. Since then, <code>atlas-notify</code> has gained named <code>signal_class</code> routing and <code>atlas-api-index</code> has become the fail-closed authority for the public Worker registry. The persist-only decision, browser-facing defects, and debugging lessons below remain accurate to the build described.</p></div>
+        <p>The Lab page at <code>atlas-systems.uk/lab</code> existed before this session, with a 90-day commit heatmap and a Failure log reading from a ring buffer in <code>atlas-notify</code>. Both worked. Neither showed the whole picture. The heatmap counted commits; the Failure log showed runtime events, GitHub pushes, Cloudflare alerts, the occasional <code>pages_deploy</code> from <code>deploy-watch</code>. Every CI/CD pipeline outcome across the rollout scope, every Worker deploy, every blocked validation, and every static-site publish stayed in Discord and nowhere else.</p>
+        <p>This piece closed that gap for the eight repositories then calling <code>atlas-infra</code>&#x27;s reusable workflows. Their pipeline events began writing into the same ring buffer the Lab page already read, without changing the existing Discord notifications. Two new panels went up alongside it: a pipeline status grid showing the state of each rollout repository as a coloured tile, and an API surface map rendering the then-current endpoint declaration as worker-grouped cards.</p>
+        <p>Three real bugs surfaced building this. None of them were new. All three were sitting in already-shipped code, waiting for a consumer that actually looked.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="background">
+        <h2>Background</h2>
+        <p>Atlas Pipeline built the event bus and the Lab page&#x27;s first two panels. The CI/CD piece replaced five separate <code>deploy.yml</code> files with two reusable workflows shared across the rollout scope, gated and observable. Neither one wired the two together. The CI/CD rollout left a question open on purpose: should pipeline events flow through <code>atlas-notify</code> into the Failure log, or stay as direct <code>curl</code> posts from inside the reusable workflows. The deferral was deliberate; picking the wrong shape here meant either three Discord webhooks losing their separate channels, or a permanent gap in what the Lab page could show.</p>
+        <p>Two options were on the table going in. Route everything through <code>atlas-notify</code>, so it posts to Discord and writes to the ring buffer from one place. Or leave the direct <code>curl</code> calls untouched and accept that the Failure log only ever shows half the rollout. Neither was right.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="the-persist-only-decision">
+        <h2>The Persist-Only Decision</h2>
+        <p>At the time of this build, <code>atlas-notify</code> held a single <code>DISCORD_WEBHOOK_URL</code>. The reusable workflows posted to three separate channels (<code>api-deploys</code>, <code>deploy-log</code>, <code>ci-cd</code>) by design, so a regression in one pipeline class stayed legible against the others. Routing everything through one Worker with one webhook would have required building multi-channel routing into <code>atlas-notify</code> just to get back to where the estate already was, plus a circular dependency: <code>atlas-notify</code>&#x27;s own deploy would need to notify <code>atlas-notify</code> during the exact replacement window.</p>
+        <p>There was a sharper cost than the plumbing. Full routing would have made <code>atlas-notify</code> a single point of failure for every pipeline&#x27;s Discord notification across the rollout scope, not just for the Lab page&#x27;s history. A bad deploy to <code>atlas-notify</code> could have left every other repo&#x27;s CI/CD blind in Discord, not only invisible on the Lab page.</p>
+        <p>Keeping the direct <code>curl</code> calls untouched and doing nothing else avoided all of that, at the cost of the Lab page never being a complete picture. That was the actual status quo going into this session, and it was the option I rejected, not because it was unsafe, but because it left the dashboard half-finished.</p>
+        <p>The resolution: keep the direct <code>curl</code> to Discord exactly as it already worked, and add a second, best-effort POST to <code>atlas-notify</code> carrying a <code>persist_only</code> flag. The Worker writes that event to the ring buffer and skips the Discord forward entirely. If <code>atlas-notify</code> is down or slow during a deploy, the Discord notification has already landed through the unaffected direct call; the only thing lost is one entry in a historical log, which is the same acceptable loss the ring buffer&#x27;s own KV consistency note already accepts elsewhere.</p>
+        <div class="callout"><div class="callout-label">Design Decision</div><p>Discord notifications and Lab page persistence are two separate calls, not one routed through the other. The direct <code>curl</code> is the guarantee; the <code>persist_only</code> POST to <code>atlas-notify</code> is the enhancement layer. One can fail without the other noticing.</p></div>
+        <div class="callout"><div class="callout-label">Current Architecture</div><p><code>atlas-notify</code> later gained named <code>signal_class</code> routing for multiple destinations. That evolution changes the present-day routing capability, but it does not invalidate the June decision to keep the deploy notification and historical persistence paths independently failure-tolerant.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="wiring-it-into-every-pipeline">
+        <h2>Wiring It Into Every Pipeline</h2>
+        <p>Both of <code>atlas-infra</code>&#x27;s reusable workflows, <code>deploy-worker.yml</code> and <code>validate-static.yml</code>, already ended every run with a <code>notify</code> job that built a Discord embed and posted it. The fix was a second step appended after that one, with <code>continue-on-error: true</code>, sending the same outcome through the new envelope shape with <code>persist_only: true</code> set.</p>
+        <p>The step checks for <code>NOTIFY_TOKEN</code> before doing anything and exits cleanly if it is not set. That mattered for the rollout itself: the shared workflow change could land independently from the per-repository secret setup, so repositories without the secret would skip persistence rather than fail their next pipeline run. Current production callers pin immutable <code>atlas-infra</code> revisions, so comparable workflow changes now propagate through explicit pin-update pull requests rather than floating into every consumer automatically.</p>
+        <p>Three of the four existing severity levels carry pipeline events: <code>success</code> for a clean deploy, <code>warning</code> for a cancelled run, <code>failure</code> for both a blocked validation and a failed deploy after validation passed, distinguished only by title text (<code>Blocked:</code> versus <code>Deploy failed:</code>). The fourth level, <code>info</code>, stays reserved for runtime events; a pipeline event is never neutral by definition, it either worked or it did not.</p>
+        <div class="callout warning"><div class="callout-label">Caught Late</div><p>Setting <code>NOTIFY_TOKEN</code> across eight repos with <code>gh secret set</code> failed with a 403 on every call, the kind of error that reads like a permissions problem. The actual cause was a <code>GITHUB_TOKEN</code> environment variable set in the shell profile, left over from an unrelated work account, silently overriding <code>gh</code>&#x27;s own stored credentials on every invocation. Prefixing each command with <code>GITHUB_TOKEN=</code> cleared it for that single call without touching the shell profile. <code>gh auth status</code> would have surfaced this immediately; the lesson was to check which identity a CLI tool is actually using before assuming the failure is about permissions rather than identity.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="phase-i-the-wrong-eighth-repo">
+        <h2>Phase I — The Wrong Eighth Repo</h2>
+        <div class="phase-marker"><span class="phase-num">Phase I</span><span class="phase-title">The Wrong Eighth Repo</span></div>
+        <p>The pipeline status grid needed a fixed list of eight repo names to build its tiles from. Seven were unambiguous. The eighth was typed from memory against an earlier example payload rather than checked against the actual rollout scope, and landed as <code>atlas-scheduler</code>.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p><code>atlas-scheduler</code> was not one of the eight repos wired to the reusable workflows; <code>site-pulse</code> was. The grid silently built a tile for a repo that would never emit an event, while a real repo&#x27;s events had nowhere to land. An old alert that happened to mention <code>atlas-scheduler</code> from an earlier test bled onto a tile it had no real claim to.</p></div>
+        <p>The fix was a one-line swap in the grid&#x27;s repo list. The orphaned alert did not need cleaning up separately; once the wrong tile stopped claiming it, it fell through correctly to the Failure log below, which is where an event with no matching repo belongs.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>Repo list corrected to the real eight. No data was lost or needed recovering; the event was always landing in the right place underneath the grid, the grid was just reading it wrong.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="phase-ii-two-versions-of-latest">
+        <h2>Phase II — Two Versions of &quot;Latest&quot;</h2>
+        <div class="phase-marker"><span class="phase-num">Phase II</span><span class="phase-title">Two Versions of &quot;Latest&quot;</span></div>
+        <p>For repos with a successful deploy followed by a later routine push, the grid&#x27;s status dot stayed correctly green, last deploy was good, but the one-line summary underneath it read &quot;Push to main&quot;, the literal newest event regardless of severity. The two halves of the same tile told different stories.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p>The dot and the summary text were independently selecting &quot;the relevant event&quot; from the same event list using two different rules. The dot scanned newest-first and took the first event with a real severity, skipping informational pushes. The summary simply took the absolute newest event with no severity filter. Both selections were individually correct for what they were computing; they were just computing two different things and rendering them as if they agreed.</p></div>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>One shared selection feeding both halves of the tile: <code>const summaryEv = status || latest</code>. A green tile now reads &quot;Deployed&quot;; a red one reads &quot;Deploy failed&quot;. The fix was a single line once the actual disagreement was identified, which was the harder part, since nothing threw an error and the page simply looked plausible while quietly lying.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="phase-iii-cors-was-only-half-built">
+        <h2>Phase III — CORS Was Only Half Built</h2>
+        <div class="phase-marker"><span class="phase-num">Phase III</span><span class="phase-title">CORS Was Only Half Built</span></div>
+        <p>Backfilling synthetic deploy events for repos that had not pushed since the rollout meant POSTing to <code>/notify</code> from the browser console while looking at the Lab page directly. Every attempt failed at the preflight with <code>CORS Missing Allow Origin</code>.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p><code>atlas-notify</code>&#x27;s <code>corsHeaders()</code> function declared <code>Access-Control-Allow-Methods: GET, OPTIONS</code> only, with no <code>Access-Control-Allow-Headers</code> at all. The router&#x27;s <code>OPTIONS</code> handling was scoped to a single path, <code>/notify/recent</code>, so a preflight for <code>OPTIONS /notify</code> matched nothing and fell through to a generic 405 carrying no CORS headers whatsoever. <code>curl</code> does not enforce CORS, so every server-side caller, including the GitHub Actions workflows themselves, had been working the entire time; only a browser-originated request was ever blocked.</p></div>
+        <p>The workaround for the immediate task was simple, run the synthetic backfill from a terminal instead. The underlying gap was worth fixing properly rather than working around again later. <code>corsHeaders()</code> was rewritten to allow <code>GET, POST, OPTIONS</code>, declare <code>Authorization</code> and <code>Content-Type</code> as allowed request headers, and set a 24-hour preflight cache. The single path-specific <code>OPTIONS</code> check was replaced with one global catch-all at the very top of the request handler, ahead of every other route, since a preflight can arrive for any endpoint, not just the one that happened to need it first. Every response inside the POST <code>/notify</code> handler, nine separate return points including the Discord-rejected <code>502</code> branch, was threaded with the same CORS headers, merged carefully with the existing <code>Retry-After</code> header rather than overwriting it.</p>
+        <p>Two new tests went in alongside the existing twelve: one confirming an allowed origin gets a <code>204</code> with <code>POST</code> present in the allowed methods, one confirming an untrusted origin gets no <code>Access-Control-Allow-Origin</code> echoed back at all. The same gap turned up a second time once the API surface map needed to fetch the plain <code>GET /</code> index cross-origin; the index endpoint had never carried CORS headers either, on either its JSON or HTML response branch. Same shape, two more lines, caught before it shipped rather than after.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>CORS is now handled once, globally, for every method and every path this Worker serves, rather than added piecemeal per endpoint as each one happened to need it from a browser.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="closing-the-surface">
+        <h2>Closing the Surface</h2>
+        <p>During this June build, the API surface map fetched the existing <code>GET /</code> endpoint, which returned a static JSON object hand-written into <code>atlas-notify</code>&#x27;s source: a list of documented routes, methods, owning Workers, and one-line descriptions. Nothing was discovered or tested. The panel grouped that declaration by Worker and rendered each route as a card, with <code>POST</code> visually distinguished because it changes state.</p>
+        <p>Two endpoints carried <code>(auth required)</code> in their description text. Rather than leave that buried in a sentence, a short regex pulled it out into its own small tag next to the method badge, so a visitor skimming the page could see what was public and what was gated without reading every line of prose.</p>
+        <p>The panel fetched once on page load rather than polling on an interval the way the heatmap and Failure log did. That was deliberate: the data was a source declaration, not an event stream. It changed only when a Worker was redeployed, so polling it every thirty seconds would have spent requests against something that was almost always identical.</p>
+        <p><code>atlas-vault</code> did not appear anywhere in that index. That was a boundary, not a gap; it was a personal backup vault, and there was no reason its surface needed to be public just because every other Worker&#x27;s did. The map documented what was meant to be seen.</p>
+        <p>The current estate no longer treats that hand-authored <code>atlas-notify</code> object as the registry authority. <code>atlas-api-index</code> now owns fail-closed public Worker discovery, probing only explicitly approved services and publishing the public registry at <code>api.atlas-systems.uk/</code>. The old map remains useful as evidence of the first consumer-facing API inventory and of why a generated, policy-backed registry became necessary.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="outcomes">
+        <h2>Outcomes</h2>
+        <div class="outcomes-grid"><div class="outcome-cell"><div class="outcome-label">Pipeline event coverage</div><div class="outcome-value">8 of 8 rollout repos persisted deploy outcomes into the Lab Failure log</div></div><div class="outcome-cell"><div class="outcome-label">Lab page panels</div><div class="outcome-value">4 total in the June snapshot (heatmap, Failure log, pipeline grid, API surface map)</div></div><div class="outcome-cell"><div class="outcome-label">New Worker code</div><div class="outcome-value">roughly 20 lines added to <code>atlas-notify</code> across the <code>persist_only</code> handler and the CORS fix</div></div><div class="outcome-cell"><div class="outcome-label">Cost</div><div class="outcome-value">£0 for the bounded build described here</div></div></div>
+        <p>Pipeline events from every repository in the June rollout scope began showing up in the same place runtime events already did, without changing the shape or timing of the existing Discord notifications. Three real bugs were found and fixed in the process: a wrong repo name, two disagreeing event selections on one tile, and a CORS gap that had existed since the Worker was first written. None was introduced by this work, and all were invisible until a browser-facing consumer exercised code paths that had not previously been observed that way.</p>
+        <p>The deeper pattern worth keeping is that the engineering effort here was not new infrastructure. <code>atlas-notify</code> already existed. The ring buffer already existed. The first API declaration already existed as a static object nobody was rendering. The work was about building thin, honest views onto systems that already worked, and the bugs that surfaced were old defects seen from a new angle. A system can be correct and still be unobserved; the gap between those two states is often smaller, and more interesting, than building something from nothing.</p>
+      </section>
+    </article>
+  </div>
+
+  <div class="article-footer">
+    <a href="/writing/atlas-systems-cicd-pipeline/" class="footer-back">
+    <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    ← W-06 — Atlas Systems CI/CD
+  </a>
+  <a href="/writing/specular-core-architectural-recovery/" class="footer-back">
+    W-08 — SPECULAR-CORE
+    <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+  </a>
+  </div>
+
+</main>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-item a');
+  const sections = document.querySelectorAll('section[id]');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        tocLinks.forEach(a => a.classList.remove('active'));
+        const active = document.querySelector(`.toc-item a[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+<script src="/js/transitions.js?v=20260814-terminal-swipe"></script>
+<script type="module" src="/static/js/estate-shell.js?v=20260723-interface-v2"></script>
+<script type="module" src="/static/js/estate-search/global-search.js"></script>
+
+  <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-inner atlas-mobile-nav__inner">
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item active" href="/writing/" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="16" y2="13"></line></svg><span>Writing</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/lab/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V9"></path><path d="M14 3h7v7"></path></svg><span>Lab</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg><span>Systems</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M20 21a8 8 0 10-16 0"></path></svg><span>About</span></a>
+    </div>
+  </nav>
+</body>
+</html>

@@ -47,7 +47,7 @@ jobs:
 
   deploy:
     needs: [verify-pages-output]
-    uses: AtlasReaper311/atlas-infra/.github/workflows/validate-static.yml@a9a183bc055ec5e4c878e2d5aab8cf4a38ac9656 # atlas-infra Pages artifact boundary
+    uses: AtlasReaper311/atlas-infra/.github/workflows/validate-static.yml@ba99bab755d5601204ead565a6b308d60a5c53ad # atlas-infra Pages artifact boundary with pinned Wrangler
     with:
       project_name: atlas-systems
       site_label: atlas-systems.uk
@@ -106,6 +106,42 @@ jobs:
             echo "::error::The production Systems route did not expose the expected Systems route marker"
             exit 1
           fi
+
+      - name: Confirm Phase 6 footer assets are live
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+          SITE_URL: https://atlas-systems.uk
+        run: |
+          set -euo pipefail
+
+          for attempt in $(seq 1 30); do
+            JS_URL="${SITE_URL}/static/js/phase-6-footer.js?atlas-deploy=${EXPECTED_SHA}&attempt=${attempt}"
+            CSS_URL="${SITE_URL}/static/css/phase-6-footer.css?atlas-deploy=${EXPECTED_SHA}&attempt=${attempt}"
+            JS_BODY="$(curl -fsSL \
+              --connect-timeout 10 \
+              --max-time 20 \
+              -H 'Cache-Control: no-cache' \
+              -H 'Pragma: no-cache' \
+              "$JS_URL" || true)"
+            CSS_BODY="$(curl -fsSL \
+              --connect-timeout 10 \
+              --max-time 20 \
+              -H 'Cache-Control: no-cache' \
+              -H 'Pragma: no-cache' \
+              "$CSS_URL" || true)"
+
+            if printf '%s' "$JS_BODY" | grep -Fq 'const FOOTER_STYLESHEET' \
+              && printf '%s' "$CSS_BODY" | grep -Fq 'atlas-interface-kit v0.4.0'; then
+              echo "Phase 6 footer assets are live for ${EXPECTED_SHA}"
+              exit 0
+            fi
+
+            echo "Attempt ${attempt}/30: Phase 6 footer assets are not consistently live yet"
+            sleep 10
+          done
+
+          echo "::error::Phase 6 footer assets did not become live within five minutes"
+          exit 1
 
       - name: Check out production smoke tooling
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24

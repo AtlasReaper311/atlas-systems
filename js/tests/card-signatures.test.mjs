@@ -3,6 +3,9 @@ import fs from "node:fs";
 import test from "node:test";
 import { CARD_SIGNATURES } from "../../static/js/card-signatures.js";
 
+const EXPECTED_LAB_CARD_COUNT = 22;
+const EXPECTED_SYSTEM_CARD_COUNT = 17;
+
 function cardRecords(markup) {
   return [...markup.matchAll(/<a\b[^>]*class="[^"]*\bsystem-card\b[^"]*"[^>]*>/g)].map(([tag]) => ({
     visual: tag.match(/\bdata-visual="([^"]+)"/)?.[1] ?? null,
@@ -16,8 +19,8 @@ test("every current Lab and Systems card resolves to a specialised SVG signature
   const sprite = fs.readFileSync("static/media/card-signatures.svg", "utf8");
   const labCards = cardRecords(lab);
   const systemCards = cardRecords(systems);
-  assert.equal(labCards.length, 21);
-  assert.equal(systemCards.length, 17);
+  assert.equal(labCards.length, EXPECTED_LAB_CARD_COUNT);
+  assert.equal(systemCards.length, EXPECTED_SYSTEM_CARD_COUNT);
   for (const [page, cards] of [["Lab", labCards], ["Systems", systemCards]]) {
     for (const [index, card] of cards.entries()) {
       assert.ok(card.visual, `${page} card ${index + 1} data-visual`);
@@ -33,13 +36,20 @@ test("every current Lab and Systems card resolves to a specialised SVG signature
 test("Lab and Systems load the signature assets", () => {
   for (const path of ["lab/index.html", "systems/index.html"]) {
     const markup = fs.readFileSync(path, "utf8");
-    assert.match(markup, /\/static\/css\/card-signatures\.css\?v=20260724-card-signatures/);
-    assert.match(markup, /\/static\/js\/card-signatures\.js\?v=20260724-card-signatures/);
+    assert.match(markup, /\/static\/css\/card-signatures\.css\?v=20260811-bearing-lattice/);
+    assert.match(markup, /\/static\/js\/card-signatures\.js\?v=20260811-bearing-lattice/);
   }
   const css = fs.readFileSync("static/css/card-signatures.css", "utf8");
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
+  assert.match(css, /\.system-card > \.card-signature\s*\{[^}]*position:\s*absolute/s);
   assert.match(css, /\.system-card\.directory-card\s*\{[^}]*padding-bottom:/s);
-  assert.match(css, /\.system-card\.directory-card \.card-route\s*\{[^}]*max-width:\s*none/s);
+  assert.match(css, /\.system-card\.directory-card \.card-route\s*\{[^}]*width:\s*fit-content\s*!important/s);
+  assert.match(css, /\.system-card\.directory-card \.card-route\s*\{[^}]*max-width:\s*calc\(100% - var\(--card-signature-directory-width\) - var\(--card-signature-directory-gap\)\)\s*!important/s);
+  assert.match(css, /\.system-card\.directory-card \.card-route\s*\{[^}]*white-space:\s*normal\s*!important/s);
+  assert.match(css, /\.system-card\.directory-card \.card-route\s*\{[^}]*overflow-wrap:\s*anywhere/s);
+  assert.doesNotMatch(css, /\.system-card\.directory-card \.card-route\s*\{[^}]*max-width:\s*none/s);
+  assert.match(css, /\.system-card\.directory-card--wide\s*\{[^}]*--card-signature-directory-width:\s*190px/s);
+  assert.match(css, /max-width:\s*620px[^]*\.system-card\.directory-card--wide\s*\{[^}]*--card-signature-directory-width:\s*118px/s);
   assert.match(css, /\.system-card \.card-route\s*\{[^}]*white-space:\s*nowrap/s);
   assert.match(css, /\.system-card\.specimen-card\[data-card-signature-ready\]\s*\{[^}]*display:\s*grid/s);
   assert.match(css, /\.system-card\.specimen-card:not\(\[data-card-signature-ready\]\)[^}]*max-width:\s*50%/s);
@@ -49,7 +59,11 @@ test("Lab and Systems load the signature assets", () => {
   assert.match(css, /max-width:\s*620px[^]*grid-row:\s*6/);
   const script = fs.readFileSync("static/js/card-signatures.js", "utf8");
   assert.match(script, /fetch\(SPRITE_PATH/);
+  assert.match(script, /card-signatures\.svg\?v=20260811-bearing-lattice/);
   assert.match(script, /preserving CSS motif fallback/);
+  const sprite = fs.readFileSync("static/media/card-signatures.svg", "utf8");
+  assert.match(sprite, /<symbol id="signature-bearing"/);
+  assert.match(sprite, /fill="currentColor"/); // denser Explore-weight lattice uses filled joints
 });
 
 test("governed preview validates card layout and watches every signature asset", () => {
@@ -64,4 +78,20 @@ test("governed preview validates card layout and watches every signature asset",
   assert.match(evidence, /card signature\/text overlaps/);
   assert.match(evidence, /cardRouteOverflows/);
   assert.match(evidence, /card CTA overflows/);
+});
+
+test("late-added governed cards receive signatures after the initial scan", () => {
+  const script = fs.readFileSync("static/js/card-signatures.js", "utf8");
+  const shell = fs.readFileSync("lab/shared/shell.js", "utf8");
+
+  assert.match(script, /const GOVERNED_CARD_SELECTOR/);
+  assert.match(script, /new MutationObserver/);
+  assert.match(script, /observeCardSignatures\(document\)/);
+  assert.match(script, /cardObserver\.observe\(documentNode\.body, \{ childList: true, subtree: true \}\)/);
+
+  assert.match(shell, /function installBlackboxDirectoryCard\(\)/);
+  assert.match(shell, /card\.className = "system-card directory-card"/);
+  assert.match(shell, /card\.dataset\.visual = "console"/);
+  assert.match(shell, /card\.dataset\.motif = "REC"/);
+  assert.match(shell, /installBlackboxDirectoryCard\(\)/);
 });

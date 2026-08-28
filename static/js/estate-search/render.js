@@ -19,6 +19,7 @@
 "use strict";
 
 import "../estate-shell.js";
+import "../phase-6-footer.js";
 
 const GITHUB_OWNER = "AtlasReaper311";
 const RAMONE_INPUT_ID = "ramone-mini-input";

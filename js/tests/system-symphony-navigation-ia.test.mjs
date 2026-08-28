@@ -6,11 +6,20 @@ const shell = readFileSync("lab/shared/shell.js", "utf8");
 const navigation = readFileSync("lab/system-symphony/system-symphony-navigation.js", "utf8");
 const navigationCss = readFileSync("lab/system-symphony/system-symphony-navigation.css", "utf8");
 
+function traceBridgeIsFlagshipOnly() {
+  const routeEnhancementsStart = shell.indexOf("async function installRouteEnhancements()");
+  const routeEnhancementsEnd = shell.indexOf("function installMeasuredShell", routeEnhancementsStart);
+  const routeEnhancements = shell.slice(routeEnhancementsStart, routeEnhancementsEnd);
+  const earlyReturnGuard = /if \(currentPath\(\) !== SYSTEM_SYMPHONY_ROUTE\) return;\s*await import\("\/lab\/system-symphony\/trace-role-bridge\.js\?v=20260728-system-symphony-trace-board-v1"\);/s;
+  const positiveRootGuard = /if \(currentPath\(\) === SYSTEM_SYMPHONY_ROUTE\) \{\s*await import\("\/lab\/system-symphony\/trace-role-bridge\.js\?v=20260728-system-symphony-trace-board-v1"\);\s*\}/s;
+  return earlyReturnGuard.test(routeEnhancements) || positiveRootGuard.test(routeEnhancements);
+}
+
 test("System Symphony navigation enhancement is scoped to the product route family", () => {
   assert.ok(shell.includes("function isSystemSymphonyPath"));
   assert.ok(shell.includes("pathname.startsWith(SYSTEM_SYMPHONY_ROUTE)"));
   assert.ok(shell.includes("system-symphony-navigation.js?v=20260728-system-symphony-trace-board-v1"));
-  assert.ok(shell.includes("if (currentPath() !== SYSTEM_SYMPHONY_ROUTE) return;"));
+  assert.ok(traceBridgeIsFlagshipOnly());
   assert.ok(shell.includes("trace-role-bridge.js?v=20260728-system-symphony-trace-board-v1"));
 });
 

@@ -26,9 +26,10 @@ test("the v2 Lab and Systems directories expose every Batch H destination", () =
 });
 
 test("System Symphony no longer routes through the dense console", () => {
-  const symphonyCards = [...lab.matchAll(/<a[^>]+data-visual="symphony"[^>]+href="([^"]+)"/g)];
-  assert.ok(symphonyCards.length >= 2);
-  for (const match of symphonyCards) assert.equal(match[1], "/lab/system-symphony/");
+  const directoryCards = [...lab.matchAll(/<a[^>]+data-visual="symphony"[^>]+href="([^"]+)"/g)];
+  assert.ok(directoryCards.length >= 1);
+  for (const match of directoryCards) assert.equal(match[1], "/lab/system-symphony/");
+  assert.match(lab, /class="lab-flagship-card lab-flagship-card--symphony" href="\/lab\/system-symphony\/"/);
   assert.ok(systems.includes('data-visual="symphony"'));
   assert.ok(systems.includes('href="/lab/system-symphony/"'));
   assert.ok(labShell.includes('{ label: "System Symphony", href: "/lab/system-symphony/" }'));

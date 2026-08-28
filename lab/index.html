@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-atlas-interface>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,29 +27,117 @@
   <meta name="twitter:image" content="https://atlas-systems.uk/og/lab.png">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/lab/lab-card.css?v=20260707-lab-cache">
-  <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260728-lab-context-nav-wrap">
-  <link rel="stylesheet" href="/static/css/card-signatures.css?v=20260724-card-signatures">
+  <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260811-explore-chroma">
+  <link rel="stylesheet" href="/static/css/card-signatures.css?v=20260811-bearing-lattice">
+  <link rel="stylesheet" href="/static/css/atlas-field-consumer.css?v=20260807-hero-contrast">
+  <link rel="stylesheet" href="/static/css/secondary-surface-fields.css?v=20260807-hero-contrast">
+  <link rel="stylesheet" href="/lab/shared/lab-intro-field.css?v=20260807-signature-position">
+  <link rel="stylesheet" href="/lab/shared/system-map-card-field.css?v=20260807-signature-position">
   <link rel="stylesheet" href="/static/css/estate-search.css">
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260724-source-hardening">
+  <style>
+    .lab-home-page main { width:min(calc(100% - 48px),1180px); }
+    .lab-landing-hero { display:block; min-height:0; padding:48px 0 56px; }
+    .lab-landing-hero .page-intro { max-width:none; }
+    .lab-landing-hero .page-intro h1 { max-width:850px; font-size:clamp(2.8rem,7vw,5.25rem); }
+    .lab-landing-hero .lede { max-width:760px; }
+    .lab-ramone-section { padding:42px 0 66px; border-bottom:1px solid var(--border); }
+    .lab-ramone-section .ramone-hero { margin:0; padding:0; border-bottom:0; }
+    .lab-ramone-section .ramone-card { width:min(100%,880px); margin-inline:auto; }
+    .lab-ramone-section .ramone-hero-center { padding:clamp(1.35rem,2.6vw,2.15rem); }
+    /* Six boot lines need ~9.5rem; the previous 7.8rem clip cut the final two. */
+    .lab-ramone-section .ramone-boot { max-height:9.75rem; overflow:hidden; }
+    .lab-ramone-section .ramone-hero-heading { font-size:clamp(2rem,3.6vw,3.05rem); }
+    .lab-ramone-section .ramone-hero-suggestions { max-height:8rem; overflow:hidden; }
+    @media(max-width:1050px) {
+      .lab-landing-hero { padding-top:36px; }
+      .lab-ramone-section .ramone-card { width:min(100%,760px); }
+    }
+    @media(max-width:620px) {
+      .lab-home-page main { width:min(calc(100% - 32px),1180px); }
+      .lab-landing-hero { padding:24px 0 42px; }
+      .lab-landing-hero .page-intro h1 { font-size:min(2.8rem,15vw); }
+    }
+  </style>
   <meta name="twitter:image:alt" content="Experience, observe, verify, explore. // Atlas Systems">
+<link rel="stylesheet" href="/lab/shared/lab-context-navigation.css?v=20260806-lab-consistency-v2">
+<link rel="stylesheet" href="/lab/shared/lab-shell-layout.css?v=20260806-lab-consistency-v2">
+<link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
 </head>
-<body>
-  <nav aria-label="Primary navigation">
-    <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
-    <ul class="nav-links">
-      <li><a href="/work/">Work</a></li><li><a href="/writing/">Writing</a></li>
-      <li><a href="/lab/" aria-current="page">Lab</a></li><li><a href="/systems/">Systems</a></li>
-      <li><a href="/about/">About</a></li>
-    </ul>
+<body class="lab-home-page" data-atlas-bottom-nav="true" data-lab-shell="" data-lab-layout="directory" data-lab-route="lab">
+  <nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
+    <div class="atlas-header__inner">
+      <div class="atlas-header__brand atlas-global-header__identity">
+        <a class="nav-wordmark atlas-wordmark" href="/" data-atlas-wordmark>Atlas<span class="atlas-wordmark__cursor">_</span>Systems</a>
+        <a class="nav-status atlas-status atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" data-atlas-status aria-label="Atlas Systems status: Checking" aria-live="off"><span class="status-dot atlas-status__dot" aria-hidden="true"></span><span class="atlas-estate-status-label" data-atlas-status-label>Checking</span></a>
+      </div>
+      <div class="atlas-header__nav atlas-global-header__nav" role="group" aria-label="Atlas Systems sections">
+        <a class="atlas-global-header__link" href="/work/">Work</a>
+        <a class="atlas-global-header__link" href="/writing/">Writing</a>
+        <a class="atlas-global-header__link" href="/lab/" aria-current="page">Lab</a>
+        <a class="atlas-global-header__link" href="/systems/">Systems</a>
+        <a class="atlas-global-header__link" href="/about/">About</a>
+      </div>
+      <div class="atlas-header__actions atlas-global-header__actions">
+        <button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button>
+      </div>
+    </div>
+  </nav>
+  <nav class="lab-context-nav lab-context-nav--directory" aria-label="Lab navigation" data-lab-context-mode="directory">
+    <div class="lab-context-nav-inner">
+      <div class="lab-context-group" data-lab-context-group="experience" role="group" aria-labelledby="lab-context-group-0">
+        <span class="lab-context-group-label" id="lab-context-group-0">Experience</span>
+        <div class="lab-context-group-links">
+          <a href="/lab/system-symphony/">System Symphony</a>
+          <a href="/lab/spectral-forge/">Spectral Forge</a>
+          <a href="/lab/signal/">Signal Garden</a>
+        </div>
+      </div>
+      <div class="lab-context-group" data-lab-context-group="observe" role="group" aria-labelledby="lab-context-group-1">
+        <span class="lab-context-group-label" id="lab-context-group-1">Observe</span>
+        <div class="lab-context-group-links">
+          <a href="/lab/system-map/">System Map</a>
+          <a href="/lab/blackbox/">Blackbox</a>
+          <a href="/systems/observability/">Observability</a>
+          <a href="/lab/console/">Operations</a>
+        </div>
+      </div>
+      <div class="lab-context-group" data-lab-context-group="verify" role="group" aria-labelledby="lab-context-group-2">
+        <span class="lab-context-group-label" id="lab-context-group-2">Verify</span>
+        <div class="lab-context-group-links">
+          <a href="/lab/proof-chain/">Proof Chain</a>
+          <a href="/lab/conformance/">Estate Conformance</a>
+          <a href="/lab/xray/">X-Ray</a>
+          <a href="/systems/reliability/">Reliability</a>
+          <a href="/systems/evidence/">Evidence</a>
+        </div>
+      </div>
+      <div class="lab-context-group" data-lab-context-group="explore" role="group" aria-labelledby="lab-context-group-3">
+        <span class="lab-context-group-label" id="lab-context-group-3">Explore</span>
+        <div class="lab-context-group-links">
+          <a href="/lab/speculum/">Speculum</a>
+          <a href="/lab/almost/">Almost</a>
+          <a href="/lab/drift/">Drift</a>
+          <a href="/lab/bearing/">The Bearing</a>
+          <a href="/lab/anomaly/">Shape Detector</a>
+        </div>
+      </div>
+    </div>
   </nav>
   <main>
-    <header class="page-intro">
-      <p class="eyebrow">Lab / directory</p>
-      <h1>Experience, observe,<br>verify, explore.</h1>
-      <p class="lede">The Lab is the technical workspace of Atlas Systems. Ramone remains the flagship; every other destination now carries a visual signature tied to its actual operation.</p>
-    </header>
+    <div class="lab-landing-hero">
+      <header class="page-intro atlas-field-surface atlas-field-surface--ambient atlas-composition-host atlas-composition--signal-bloom">
+        <p class="eyebrow">&mdash; Lab / directory</p>
+        <h1>Experience, observe,<br>verify, explore.</h1>
+        <p class="lede">The Lab is the technical workspace of Atlas Systems. Ramone remains the flagship; every other destination carries a visual signature tied to its actual operation.</p>
+        <div class="page-actions">
+          <a class="action primary" href="https://ramone.atlas-systems.uk/">Ask Ramone</a>
+          <a class="action" href="#audio-flagships-title">Explore flagships</a>
+        </div>
+      </header>
+    </div>
 
-    <section class="ramone-stage" aria-labelledby="ramone-greet">
+    <section class="ramone-stage lab-ramone-section" aria-labelledby="ramone-greet">
       <div class="ramone-hero">
         <div class="ramone-card awake" id="ramone-card">
           <div class="ramone-hero-topbar">
@@ -71,6 +159,45 @@
           </div>
           <div class="ramone-hero-footer"><span>built &amp; maintained by atlas reaper</span><a class="ramone-hero-link" href="https://ramone.atlas-systems.uk/">open full interface →</a></div>
         </div>
+      </div>
+    </section>
+
+    <section class="lab-audio-flagships" aria-labelledby="audio-flagships-title">
+      <div class="section-head">
+        <div><p class="eyebrow">Audio counterparts</p><h2 id="audio-flagships-title">Listen to a system. Design how it becomes sound.</h2></div>
+        <p>System SYMPHONY interprets bounded estate state. Spectral Forge exposes the translation itself as a deterministic simulated instrument.</p>
+      </div>
+      <div class="lab-flagship-grid">
+        <a class="lab-flagship-card lab-flagship-card--symphony" href="/lab/system-symphony/">
+          <div class="lab-flagship-card__top"><span>Telemetry music</span><span class="badge preview">Preview</span></div>
+          <div class="lab-flagship-visual lab-flagship-visual--symphony" aria-hidden="true">
+            <svg viewBox="0 0 260 180" focusable="false">
+              <path class="grid" d="M10 30H250M10 60H250M10 90H250M10 120H250M10 150H250M50 10V170M100 10V170M150 10V170M200 10V170"/>
+              <path class="trace" d="M8 111c16 0 16-42 32-42s16 72 32 72 16-55 32-55 16 35 32 35 16-66 32-66 16 88 32 88 16-48 32-48 16 17 28 17"/>
+              <path class="trace" opacity=".35" d="M18 48 58 31 104 45 151 27 201 40 242 24"/>
+              <circle class="node" cx="58" cy="31" r="4"/><circle class="node" cx="151" cy="27" r="4"/><circle class="node" cx="242" cy="24" r="4"/>
+            </svg>
+          </div>
+          <div class="lab-flagship-card__copy"><h3>System SYMPHONY</h3><p class="lab-flagship-card__thesis">Listen to a system.</p><p class="lab-flagship-card__description">Bounded live evidence and explicit simulation become deterministic, replayable music through the Atlas APU.</p></div>
+          <div class="lab-flagship-card__footer"><span>Live + simulated</span><span class="lab-flagship-card__route">Open SYMPHONY →</span></div>
+        </a>
+
+        <a class="lab-flagship-card lab-flagship-card--forge" href="/lab/spectral-forge/">
+          <div class="lab-flagship-card__top"><span>Telemetry sonification instrument</span><span class="badge preview">Preview</span></div>
+          <div class="lab-flagship-visual lab-flagship-visual--forge" aria-hidden="true">
+            <svg viewBox="0 0 260 180" focusable="false">
+              <path class="grid" d="M10 30H250M10 60H250M10 90H250M10 120H250M10 150H250M50 10V170M100 10V170M150 10V170M200 10V170"/>
+              <path class="route" d="M16 92H73C94 92 91 48 116 48h27c23 0 22 64 45 64h56"/>
+              <path class="phase" d="M72 91c0-28 18-51 42-51s42 23 42 51-18 51-42 51-42-23-42-51Z"/>
+              <path class="phase" d="M91 55c20 8 34 27 34 49 0 22-13 42-33 50" opacity=".44"/>
+              <path class="wave" d="M150 93c8 0 8-31 16-31s8 57 16 57 8-44 16-44 8 30 16 30 8-48 16-48 8 67 18 67"/>
+              <path class="phase accent" d="M112 47c12 0 22 10 22 22s-10 22-22 22-22-10-22-22 10-22 22-22Z"/>
+              <circle class="node" cx="16" cy="92" r="4"/><circle class="node" cx="112" cy="47" r="4"/><circle class="node" cx="244" cy="112" r="4"/>
+            </svg>
+          </div>
+          <div class="lab-flagship-card__copy"><h3>Spectral Forge</h3><p class="lab-flagship-card__thesis">Design how a system becomes sound.</p><p class="lab-flagship-card__description">Synthetic deterministic telemetry passes through visible mappings, transforms and Web Audio so every sonic consequence can be inspected and changed.</p></div>
+          <div class="lab-flagship-card__footer"><span>Simulated</span><span class="lab-flagship-card__route">Open Forge →</span></div>
+        </a>
       </div>
     </section>
 
@@ -106,8 +233,8 @@
 
     <section class="content-section" aria-labelledby="featured-title">
       <div class="section-head">
-        <div><p class="eyebrow">Featured tools</p><h2 id="featured-title">Four distinct ways into the estate.</h2></div>
-        <p>Each specimen reflects the system behind it. System SYMPHONY now has a dedicated page while remaining a Preview interface.</p>
+        <div><p class="eyebrow">Featured tools</p><h2 id="featured-title">Three deeper ways into the estate.</h2></div>
+        <p>Architecture, proof, and generative DSP sit below the flagship experiences as focused ways to inspect or manipulate the estate.</p>
       </div>
       <div class="card-grid featured-grid">
         <a id="system-map" class="system-card specimen-card specimen-card--primary featured atlas-anchor-target" data-family="observe" data-visual="map" data-motif="TOPO" href="/lab/system-map/">
@@ -127,12 +254,6 @@
           <h3>Signal Garden</h3>
           <p>A browser-native AudioWorklet instrument with autonomous and performance modes.</p>
           <span class="data-mode">Generated live audio</span><span class="card-route">Open instrument →</span>
-        </a>
-        <a class="system-card specimen-card" data-family="experience" data-visual="symphony" data-motif="WAVE" href="/lab/system-symphony/">
-          <div class="card-top"><span class="type-label">Telemetry sonification</span><span class="badge preview">Preview</span></div>
-          <h3>System SYMPHONY</h3>
-          <p>The existing live and simulated instrument presented as normal page content with measured and unmeasured evidence.</p>
-          <span class="data-mode">Preview · live and simulated</span><span class="card-route">Open instrument →</span>
         </a>
       </div>
     </section>
@@ -154,6 +275,11 @@
               <div class="card-top"><span class="type-label">Telemetry music</span><span class="badge preview">Preview</span></div>
               <h3>System SYMPHONY</h3><p>Live estate telemetry and explicit simulation translated into a bounded musical state.</p>
               <span class="data-mode">Live and simulated</span><span class="card-route">Open instrument →</span>
+            </a>
+            <a class="system-card directory-card" data-family="experience" data-visual="signal" data-motif="MAP" href="/lab/spectral-forge/">
+              <div class="card-top"><span class="type-label">Telemetry sonification</span><span class="badge preview">Preview</span></div>
+              <h3>Spectral Forge</h3><p>Map deterministic synthetic telemetry into sound, then change the translation and inspect the consequence.</p>
+              <span class="data-mode">Simulated</span><span class="card-route">Open instrument →</span>
             </a>
             <a class="system-card directory-card" data-family="experience" data-visual="signal" data-motif="DSP" href="/lab/signal/">
               <div class="card-top"><span class="type-label">Audio DSP</span><span class="badge experiment">Experiment</span></div>
@@ -204,6 +330,11 @@
               <div class="card-top"><span class="type-label">Claim provenance</span><span class="badge tool">Tool</span></div>
               <h3>Evidence</h3><p>Activity, deployments, pipeline records, timestamps, and report fingerprints supporting public claims.</p><span class="card-route">Open evidence →</span>
             </a>
+            <a class="system-card directory-card" data-family="verify" data-visual="api" data-motif="XRAY" href="/lab/xray/">
+              <div class="card-top"><span class="type-label">Request path simulator</span><span class="badge tool">Tool</span></div>
+              <h3>Request X-Ray</h3><p>Break a simulated request path, then inspect retries, timeouts, caching, rate limits, and service errors.</p>
+              <span class="data-mode">Simulated</span><span class="card-route">Open X-Ray →</span>
+            </a>
             <a class="system-card directory-card" data-family="verify" data-visual="api" data-motif="OPENAPI" href="https://api.atlas-systems.uk/v1/docs">
               <div class="card-top"><span class="type-label">OpenAPI</span><span class="badge tool">Tool</span></div>
               <h3>API Docs</h3><p>The human-readable public machine contract.</p><span class="card-route">Open docs →</span>
@@ -214,35 +345,35 @@
         <div class="group-block" data-family="explore">
           <div class="group-label">Explore</div>
           <div class="card-grid directory-grid explore-grid">
-            <a class="system-card directory-card directory-card--wide" data-family="explore" data-visual="map" data-motif="ATTN" href="/lab/speculum/">
-              <div class="card-top"><span class="type-label">Systems artwork</span><span class="badge experiment">Experiment</span></div>
+            <a class="system-card directory-card directory-card--wide" data-family="explore" data-explore="speculum" data-visual="map" data-motif="ATTN" href="/lab/speculum/">
+              <div class="card-top"><span class="type-label">Attention field</span><span class="badge experiment">Experiment</span></div>
               <h3>Speculum</h3>
               <p>A time-compressed field of verified public attention paths, with pinning, guided traces, and generated ledger output.</p>
               <span class="data-mode">Generated simulation</span><span class="card-route">Enter the field →</span>
             </a>
-            <a class="system-card directory-card directory-card--wide" data-family="explore" data-visual="almost" data-motif="ΔT" href="/lab/almost/">
-              <div class="card-top"><span class="type-label">Browser-native artwork</span><span class="badge experiment">Experiment</span></div>
+            <a class="system-card directory-card directory-card--wide" data-family="explore" data-explore="almost" data-visual="almost" data-motif="ΔT" href="/lab/almost/">
+              <div class="card-top"><span class="type-label">Timing artwork</span><span class="badge experiment">Experiment</span></div>
               <h3>Almost</h3>
               <p>An endless drawing made from seeded geometry and the imperfect frame timing of the viewer's own tab.</p>
               <span class="data-mode">Local generated state</span><span class="card-route">Enter the process →</span>
             </a>
-            <a class="system-card directory-card directory-card--wide" data-family="explore" data-visual="drift" data-motif="dS" href="/lab/drift/">
+            <a class="system-card directory-card directory-card--wide" data-family="explore" data-explore="drift" data-visual="drift" data-motif="dS" href="/lab/drift/">
               <div class="card-top"><span class="type-label">Playable argument</span><span class="badge experiment">Experiment</span></div>
               <h3>Drift</h3>
               <p>Five hundred and twelve nodes losing conformance in real time. Hold them with your attention, then hand them to policy.</p>
               <span class="data-mode">Local generated state</span><span class="card-route">Hold the line →</span>
             </a>
-            <a class="system-card directory-card directory-card--wide" data-family="explore" data-visual="bearing" data-motif="LOAD" href="/lab/bearing/">
+            <a class="system-card directory-card directory-card--wide" data-family="explore" data-explore="bearing" data-visual="bearing" data-motif="LOAD" href="/lab/bearing/">
               <div class="card-top"><span class="type-label">Structural simulation</span><span class="badge experiment">Experiment</span></div>
               <h3>The Bearing</h3>
               <p>A load-bearing lattice stages failures, reroutes pressure, records incidents, and recovers without network input.</p>
               <span class="data-mode">Local simulated state</span><span class="card-route">Stress the frame →</span>
             </a>
-            <a class="system-card directory-card directory-card--wide" data-family="explore" data-visual="anomaly" data-motif="DTW" href="/lab/anomaly/">
-              <div class="card-top"><span class="type-label">Telemetry analysis</span><span class="badge experiment">Experiment</span></div>
+            <a class="system-card directory-card directory-card--wide" data-family="explore" data-explore="shape" data-visual="anomaly" data-motif="DTW" href="/lab/anomaly/">
+              <div class="card-top"><span class="type-label">Trajectory detector</span><span class="badge experiment">Experiment</span></div>
               <h3>Shape Detector</h3>
-              <p>Feature extraction, constrained DTW, and temporal decoding against recorded telemetry.</p>
-              <span class="data-mode">Recorded replay</span><span class="card-route">Open detector →</span>
+              <p>Detect trajectory bends from level, slope, volatility, and DTW before a static threshold fires.</p>
+              <span class="data-mode">Live and simulated</span><span class="card-route">Open detector →</span>
             </a>
           </div>
         </div>
@@ -256,9 +387,18 @@
       </div>
     </section>
   </main>
-  <script src="/js/transitions.js?v=20260706-history"></script>
-  <script src="/lab/lab-card.js?v=20260701-session-fallback" defer></script>
-  <script type="module" src="/lab/shared/shell.js?v=20260723-interface-v2"></script>
-  <script type="module" src="/static/js/card-signatures.js?v=20260724-card-signatures"></script>
+  <script src="/js/transitions.js?v=20260814-terminal-swipe"></script>
+  <script src="/lab/lab-card.js?v=20260811-boot-on-scroll" defer></script>
+  <script type="module" src="/lab/shared/shell.js?v=20260813-spectral-forge"></script>
+  <script type="module" src="/static/js/card-signatures.js?v=20260811-bearing-lattice"></script>
+  <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-inner atlas-mobile-nav__inner">
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/writing/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="16" y2="13"></line></svg><span>Writing</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item active" href="/lab/" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V9"></path><path d="M14 3h7v7"></path></svg><span>Lab</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg><span>Systems</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M20 21a8 8 0 10-16 0"></path></svg><span>About</span></a>
+    </div>
+  </nav>
 </body>
 </html>

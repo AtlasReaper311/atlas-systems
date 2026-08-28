@@ -1,130 +1,142 @@
 #!/usr/bin/env python3
+"""Verify the pinned repository-local Atlas Interface Kit release."""
+
 from __future__ import annotations
 
 import hashlib
 import json
 from pathlib import Path
-from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 VENDOR_ROOT = ROOT / "static/vendor/atlas-interface"
-VERSION = "0.2.0"
-BUNDLE_ROOT = VENDOR_ROOT / f"v{VERSION}"
-MANIFEST_PATH = BUNDLE_ROOT / "manifest.json"
-EXPECTED_FILES = {
+ACTIVE_VERSION = "0.5.0"
+ACTIVE_ROOT = VENDOR_ROOT / f"v{ACTIVE_VERSION}"
+PREVIOUS_ROOT = VENDOR_ROOT / "v0.4.0"
+FOUNDATION_ROOT = VENDOR_ROOT / "v0.3.0"
+LEGACY_ROOT = VENDOR_ROOT / "v0.2.0"
+EXPECTED_DIRECTORIES = ["v0.2.0", "v0.3.0", "v0.4.0", "v0.5.0"]
+UNCHANGED_ASSETS = {
     "atlas-fonts.css",
-    "atlas-interface-kit.css",
-    "components.json",
     "fonts/dm-serif-display-400-italic.woff2",
     "fonts/dm-serif-display-400.woff2",
     "fonts/ibm-plex-mono-400.woff2",
     "fonts/ibm-plex-mono-500.woff2",
     "licenses/DM-Serif-Display-OFL.txt",
     "licenses/IBM-Plex-Mono-OFL.txt",
-    "tokens.json",
-}
-OBSOLETE_FILES = {
-    "atlas-interface.css",
-    "atlas-interface.js",
-    "tokens.schema.json",
 }
 
 
-class BundleVerificationError(ValueError):
-    pass
-
-
-def load_json(path: Path) -> dict[str, Any]:
-    value = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(value, dict):
-        raise BundleVerificationError(f"JSON object required: {path}")
-    return value
+def read_json(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(65536), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def require(condition: bool, message: str) -> None:
     if not condition:
-        raise BundleVerificationError(message)
-
-
-def verify() -> dict[str, Any]:
-    version_directories = {
-        path.name
-        for path in VENDOR_ROOT.iterdir()
-        if path.is_dir()
-    }
-    require(
-        version_directories == {f"v{VERSION}"},
-        f"expected only v{VERSION}; found {sorted(version_directories)}",
-    )
-    require(MANIFEST_PATH.is_file(), f"bundle manifest is missing: {MANIFEST_PATH}")
-    manifest = load_json(MANIFEST_PATH)
-    require(
-        manifest.get("schema_version") == "atlas-interface-kit/bundle/v1",
-        "unsupported interface bundle schema",
-    )
-    require(manifest.get("version") == VERSION, "unexpected interface bundle version")
-    require(
-        manifest.get("contract_version") == "2.0.0",
-        "unexpected public interface contract version",
-    )
-    require(
-        manifest.get("component_role_count") == 25,
-        "unexpected component role count",
-    )
-
-    files = manifest.get("files")
-    require(isinstance(files, dict), "manifest files must be an object")
-    require(set(files) == EXPECTED_FILES, "interface bundle file set drifted")
-
-    actual_files = {
-        path.relative_to(BUNDLE_ROOT).as_posix()
-        for path in BUNDLE_ROOT.rglob("*")
-        if path.is_file() and path.name != "manifest.json"
-    }
-    require(actual_files == EXPECTED_FILES, "vendored interface directory contains drift")
-    for name in OBSOLETE_FILES:
-        require(not (BUNDLE_ROOT / name).exists(), f"obsolete interface file remains: {name}")
-
-    for name, record in files.items():
-        require(isinstance(record, dict), f"manifest record must be an object: {name}")
-        path = BUNDLE_ROOT / name
-        require(path.is_file(), f"manifest file is missing: {name}")
-        require(path.stat().st_size == record.get("bytes"), f"byte count mismatch: {name}")
-        require(sha256(path) == record.get("sha256"), f"SHA-256 mismatch: {name}")
-
-    css = (BUNDLE_ROOT / "atlas-interface-kit.css").read_text(encoding="utf-8")
-    font_css = (BUNDLE_ROOT / "atlas-fonts.css").read_text(encoding="utf-8")
-    require("http://" not in css and "https://" not in css, "bundle CSS has a remote runtime dependency")
-    require("http://" not in font_css and "https://" not in font_css, "font CSS has a remote runtime dependency")
-    require(":focus-visible" in css, "bundle CSS is missing visible focus")
-    require("prefers-reduced-motion" in css, "bundle CSS is missing reduced-motion handling")
-    require(font_css.count("@font-face") == 4, "font CSS does not declare the approved faces")
-    require(font_css.count("font-display: swap") == 4, "font CSS does not preserve swap rendering")
-
-    components = load_json(BUNDLE_ROOT / "components.json")
-    roles = components.get("roles")
-    require(isinstance(roles, list), "component roles must be a list")
-    require(len(roles) == manifest["component_role_count"], "component role count does not match manifest")
-    require(len({item.get("role") for item in roles if isinstance(item, dict)}) == len(roles), "component roles are not unique")
-
-    tokens = load_json(BUNDLE_ROOT / "tokens.json")
-    require(tokens.get("version") == manifest["version"], "token version does not match manifest")
-    require(tokens.get("contract_version") == manifest["contract_version"], "token contract version does not match manifest")
-    require(tokens.get("colour", {}).get("text_faint") == "#888894", "accessible faint-text token drifted")
-    return manifest
+        raise SystemExit(message)
 
 
 def main() -> int:
-    manifest = verify()
-    print(
-        "Atlas interface bundle verified: "
-        f"v{manifest['version']} / contract {manifest['contract_version']} / "
-        f"{len(manifest['files'])} files"
-    )
+    directories = sorted(path.name for path in VENDOR_ROOT.iterdir() if path.is_dir())
+    require(directories == EXPECTED_DIRECTORIES, f"unexpected interface-kit directories: {directories}")
+
+    manifest = read_json(ACTIVE_ROOT / "manifest.json")
+    require(manifest.get("schema_version") == "atlas-interface-kit/bundle/v1", "invalid v0.5.0 manifest schema")
+    require(manifest.get("version") == ACTIVE_VERSION, "v0.5.0 manifest version drifted")
+    require(manifest.get("contract_version") == "2.0.0", "base interface contract version drifted")
+    require(manifest.get("foundation_extension_version") == "1.0.0", "foundation extension version drifted")
+    require(manifest.get("footer_extension_version") == "1.0.0", "footer extension version drifted")
+    require(manifest.get("evidence_mode_extension_version") == "1.0.0", "evidence-mode extension version drifted")
+    require(manifest.get("component_role_count") == 30, "component role count drifted")
+    require(manifest.get("semantic_contract_count") == 5, "semantic contract count drifted")
+    require(manifest.get("evidence_mode_count") == 7, "evidence mode count drifted")
+    require(manifest.get("evidence_selector_count") == 3, "evidence selector count drifted")
+
+    expected_files = set(manifest.get("files", {}))
+    actual_files = {
+        str(path.relative_to(ACTIVE_ROOT)).replace("\\", "/")
+        for path in ACTIVE_ROOT.rglob("*")
+        if path.is_file() and path.name != "manifest.json"
+    }
+    require(actual_files == expected_files, f"v0.5.0 file set drifted: {sorted(actual_files ^ expected_files)}")
+
+    for relative, record in manifest["files"].items():
+        path = ACTIVE_ROOT / relative
+        require(path.stat().st_size == record["bytes"], f"byte size drifted for {relative}")
+        require(sha256(path) == record["sha256"], f"fingerprint drifted for {relative}")
+
+    previous_manifest = read_json(PREVIOUS_ROOT / "manifest.json")
+    for relative in UNCHANGED_ASSETS:
+        require(
+            manifest["files"][relative] == previous_manifest["files"][relative],
+            f"unchanged asset record drifted between v0.4.0 and v0.5.0: {relative}",
+        )
+        require(
+            (ACTIVE_ROOT / relative).read_bytes() == (PREVIOUS_ROOT / relative).read_bytes(),
+            f"unchanged asset bytes drifted between v0.4.0 and v0.5.0: {relative}",
+        )
+
+    components = read_json(ACTIVE_ROOT / "components.json")
+    require(components.get("version") == ACTIVE_VERSION, "component contract version drifted")
+    evidence = components.get("evidence_mode", {})
+    require(evidence.get("mode_attribute") == "data-evidence-mode", "evidence-mode attribute drifted")
+    require(evidence.get("mode_label_selector") == ".atlas-evidence-mode", "evidence label selector drifted")
+    require(evidence.get("surface_selector") == ".atlas-evidence-surface", "evidence surface selector drifted")
+    require(evidence.get("value_selector") == ".atlas-evidence-value", "evidence value selector drifted")
+    require(set(evidence.get("mode_selectors", {})) == {
+        "measured",
+        "stale-measured",
+        "recorded-replay",
+        "simulated",
+        "unavailable",
+        "unknown",
+        "not-applicable-unscored",
+    }, "evidence mode selector set drifted")
+
+    semantics = read_json(ACTIVE_ROOT / "semantics.json")
+    authority = semantics.get("evidence_mode_authority", {})
+    require(semantics.get("version") == ACTIVE_VERSION, "semantic contract version drifted")
+    require(authority.get("visible_mode_label_required") is True, "visible evidence labels are no longer required")
+    require(authority.get("machine_readable_mode_required") is True, "machine-readable evidence mode is no longer required")
+    require(authority.get("zero_may_not_represent") == [
+        "unavailable",
+        "unknown",
+        "not-applicable-unscored",
+    ], "zero prohibition drifted")
+    require(authority.get("directory_and_destination_vocabulary_must_agree") is True, "directory vocabulary contract drifted")
+    require(authority.get("fallback_mode_must_remain_visible_across_primary_state_metrics_tables_and_charts") is True, "fallback visibility contract drifted")
+
+    tokens = read_json(ACTIVE_ROOT / "tokens.json")
+    require(tokens.get("version") == ACTIVE_VERSION, "token version drifted")
+    require(tokens.get("control_px", {}).get("touch_min") == 44, "44px touch minimum drifted")
+
+    css = (ACTIVE_ROOT / "atlas-interface-kit.css").read_text(encoding="utf-8")
+    for fragment in (
+        "Atlas Interface Kit v0.5.0",
+        ".atlas-evidence-mode",
+        ".atlas-evidence-surface",
+        ".atlas-evidence-value",
+        "data-evidence-mode='simulated'",
+        "data-evidence-mode='unavailable'",
+        "--atlas-touch-min: 44px",
+    ):
+        require(fragment in css, f"v0.5.0 CSS contract missing {fragment}")
+    require("url(http" not in css.lower(), "remote runtime CSS dependency detected")
+
+    shell = (ROOT / "static/js/estate-shell.js").read_text(encoding="utf-8")
+    require("/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css" in shell, "global shell foundation changed outside this bounded adoption")
+    require("/static/vendor/atlas-interface/v0.5.0/atlas-interface-kit.css" not in shell, "v0.5.0 must remain bounded to evidence surfaces")
+
+    require((LEGACY_ROOT / "manifest.json").exists(), "legacy v0.2.0 evidence is missing")
+    require((FOUNDATION_ROOT / "manifest.json").exists(), "foundation v0.3.0 evidence is missing")
+    print("Atlas Interface Kit v0.5.0 bundle verification passed.")
     return 0
 
 

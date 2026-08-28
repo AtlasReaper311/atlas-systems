@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en" data-evidence-mode="simulated" data-atlas-interface>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Spectral Forge // Atlas Systems. A simulated telemetry sonification instrument for designing how system behaviour becomes sound.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Spectral Forge // Atlas Systems</title>
+  <link rel="canonical" href="https://atlas-systems.uk/lab/spectral-forge/">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Spectral Forge // Atlas Systems">
+  <meta property="og:description" content="Map deterministic synthetic telemetry into procedural sound, change the mapping, and hear the consequence.">
+  <meta property="og:url" content="https://atlas-systems.uk/lab/spectral-forge/">
+  <meta property="og:site_name" content="Atlas Systems">
+  <meta property="og:image" content="https://atlas-systems.uk/og/spectral-forge.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Spectral Forge. Map systems into sound. // Atlas Systems">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Spectral Forge // Atlas Systems">
+  <meta name="twitter:description" content="A deterministic telemetry sonification instrument.">
+  <meta name="twitter:image" content="https://atlas-systems.uk/og/spectral-forge.png">
+  <meta name="twitter:image:alt" content="Spectral Forge. Map systems into sound. // Atlas Systems">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.4.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/lab/spectral-forge/spectral-forge.css?v=20260813-visual-restoration-v2">
+<link rel="stylesheet" href="/static/css/estate-search.css">
+<link rel="stylesheet" href="/lab/shared/lab-context-navigation.css?v=20260806-lab-consistency-v2">
+<link rel="stylesheet" href="/lab/shared/lab-shell-layout.css?v=20260806-lab-consistency-v2">
+<link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
+<link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
+<link rel="stylesheet" href="/lab/shared/flagship-counterparts.css?v=20260814-flagship-v5">
+<link rel="stylesheet" href="/lab/spectral-forge/spectral-forge-flagship-v2.css?v=20260814-flagship-v5">
+</head>
+<body class="spectral-forge-page" data-atlas-bottom-nav="true" data-lab-shell="" data-lab-layout="product" data-lab-route="spectral-forge">
+  <a class="forge-skip-link" href="#forge-main">Skip to Spectral Forge</a>
+  <nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
+    <div class="atlas-header__inner">
+      <div class="atlas-header__brand atlas-global-header__identity">
+        <a class="nav-wordmark atlas-wordmark" href="/" data-atlas-wordmark>Atlas<span class="atlas-wordmark__cursor">_</span>Systems</a>
+        <a class="nav-status atlas-status atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" data-atlas-status aria-label="Atlas Systems status: Checking" aria-live="off"><span class="status-dot atlas-status__dot" aria-hidden="true"></span><span class="atlas-estate-status-label" data-atlas-status-label>Checking</span></a>
+      </div>
+      <div class="atlas-header__nav atlas-global-header__nav" role="group" aria-label="Atlas Systems sections">
+        <a class="atlas-global-header__link" href="/work/">Work</a>
+        <a class="atlas-global-header__link" href="/writing/">Writing</a>
+        <a class="atlas-global-header__link" href="/lab/" aria-current="page">Lab</a>
+        <a class="atlas-global-header__link" href="/systems/">Systems</a>
+        <a class="atlas-global-header__link" href="/about/">About</a>
+      </div>
+      <div class="atlas-header__actions atlas-global-header__actions">
+        <button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button>
+      </div>
+    </div>
+  </nav>
+  <nav class="lab-context-nav lab-context-nav--compact" aria-label="Lab navigation" data-lab-context-mode="compact" data-current-lab-route="Spectral Forge">
+    <div class="lab-context-compact">
+      <div class="lab-context-compact__crumbs" role="group" aria-label="Current Lab location">
+        <a href="/lab/">Lab</a>
+        <span class="lab-context-compact__separator" aria-hidden="true">/</span>
+        <span class="lab-context-compact__current" aria-current="page">Spectral Forge</span>
+      </div>
+      <details class="lab-context-tools">
+        <summary>All Lab tools</summary>
+        <div class="lab-context-tools__menu" role="group" aria-label="All Lab tools">
+          <div class="lab-context-tools__group" data-lab-context-group="experience" role="group" aria-labelledby="lab-context-tools-group-0">
+            <span class="lab-context-tools__group-label" id="lab-context-tools-group-0">Experience</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/system-symphony/">System Symphony</a>
+              <a href="/lab/spectral-forge/" aria-current="page">Spectral Forge</a>
+              <a href="/lab/signal/">Signal Garden</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="observe" role="group" aria-labelledby="lab-context-tools-group-1">
+            <span class="lab-context-tools__group-label" id="lab-context-tools-group-1">Observe</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/system-map/">System Map</a>
+              <a href="/lab/blackbox/">Blackbox</a>
+              <a href="/systems/observability/">Observability</a>
+              <a href="/lab/console/">Operations</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="verify" role="group" aria-labelledby="lab-context-tools-group-2">
+            <span class="lab-context-tools__group-label" id="lab-context-tools-group-2">Verify</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/proof-chain/">Proof Chain</a>
+              <a href="/lab/conformance/">Estate Conformance</a>
+              <a href="/lab/xray/">X-Ray</a>
+              <a href="/systems/reliability/">Reliability</a>
+              <a href="/systems/evidence/">Evidence</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="explore" role="group" aria-labelledby="lab-context-tools-group-3">
+            <span class="lab-context-tools__group-label" id="lab-context-tools-group-3">Explore</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/speculum/">Speculum</a>
+              <a href="/lab/almost/">Almost</a>
+              <a href="/lab/drift/">Drift</a>
+              <a href="/lab/bearing/">The Bearing</a>
+              <a href="/lab/anomaly/">Shape Detector</a>
+            </div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </nav>
+
+  <main id="forge-main" class="spectral-forge" tabindex="-1">
+    <header class="forge-product-header">
+      <div class="forge-product-identity">
+        <span class="forge-eyebrow">Telemetry sonification instrument</span>
+        <h1>Spectral <em>Forge</em></h1>
+        <p>Map system behaviour into sound. <strong>Change the mapping. Hear the consequence.</strong></p>
+      </div>
+      <div class="forge-evidence-surface atlas-evidence-surface" data-evidence-mode="simulated">
+        <span class="atlas-evidence-mode forge-evidence-mode" data-evidence-mode="simulated">SIMULATED</span>
+        <span>Synthetic deterministic telemetry</span>
+        <small>No production Atlas Systems data connected</small>
+      </div>
+    </header>
+
+    <nav class="forge-depth-nav" aria-label="Spectral Forge depth">
+      <button type="button" data-depth="PLAY" aria-pressed="true" aria-controls="forge-depth-play"><span>01</span><strong>PLAY</strong><small>Experience the system</small></button>
+      <button type="button" data-depth="FORGE" aria-pressed="false" aria-controls="forge-depth-forge"><span>02</span><strong>FORGE</strong><small>Shape the translation</small></button>
+      <button type="button" data-depth="ANALYSE" aria-pressed="false" aria-controls="forge-depth-analyse"><span>03</span><strong>ANALYSE</strong><small>Inspect what changed</small></button>
+    </nav>
+
+    <section class="forge-transport" aria-label="Scenario, transport, and audio controls">
+      <div class="forge-scenario-control">
+        <span class="forge-control-label">SCENARIO</span>
+        <button class="forge-square-control" id="scenario-prev" type="button" aria-label="Previous scenario">←</button>
+        <label class="forge-scenario-select">
+          <span class="sr-only">Scenario</span>
+          <select id="scenario-select" aria-label="Synthetic telemetry scenario"></select>
+        </label>
+        <button class="forge-square-control" id="scenario-next" type="button" aria-label="Next scenario">→</button>
+      </div>
+
+      <div class="forge-playback-controls">
+        <button class="forge-primary-control" id="play-toggle" type="button">PLAY</button>
+        <button class="forge-secondary-control" id="reset-run" type="button">RESET RUN</button>
+        <span class="forge-clock"><strong id="simulation-time">00:00.0</strong><small id="playback-state">STOPPED</small></span>
+      </div>
+
+      <div class="forge-audio-controls">
+        <button class="forge-primary-control" id="audio-toggle" type="button" aria-pressed="false">ENABLE AUDIO</button>
+        <div class="forge-master-control">
+          <span>MASTER <output id="master-level-label" for="master-level">−5.0 dB</output></span>
+          <input id="master-level" type="range" min="0.18" max="0.78" step="0.01" value="0.56" aria-label="Master output level">
+        </div>
+      </div>
+    </section>
+
+    <p class="forge-notice" id="forge-notice" role="status" aria-live="polite">SIMULATED · Synthetic deterministic telemetry · No production data connected</p>
+
+    <section class="forge-depth-panel forge-play" id="forge-depth-play" data-depth-panel="PLAY" aria-labelledby="play-heading">
+      <h2 id="play-heading" class="sr-only">Play</h2>
+      <figure class="forge-field-stage">
+        <canvas id="play-field" role="img" aria-label="Spectral Field awaiting simulation"></canvas>
+        <div class="forge-field-label" aria-hidden="true">SPECTRAL FIELD</div>
+        <div class="forge-field-grammar" aria-hidden="true"><span>CRYSTALLINE LATTICE</span><span>SPECTRAL TRACES</span><span>CAUSAL FRACTURE</span></div>
+        <div class="forge-route-overlay" id="play-route-overlay" aria-hidden="true">
+          <span><small id="play-route-source-label">REQUEST RATE</small><strong id="play-route-source-value">0 req/s</strong></span>
+          <span><small id="play-route-transform-label">LINEAR</small><strong id="play-route-transform-value">0.000</strong></span>
+          <span><small id="play-route-target-label">PULSE RATE</small><strong id="play-route-target-value">0.00 Hz</strong></span>
+        </div>
+        <div class="forge-first-use" id="first-use-cue">
+          <span>TELEMETRY ENTERS AS BEHAVIOUR</span>
+          <strong>It leaves as sound.</strong>
+          <small>Enable audio, then press Play to begin the deterministic run.</small>
+        </div>
+      </figure>
+
+      <div class="forge-instrument-ribbon">
+        <section aria-labelledby="ribbon-signal-title"><span class="forge-micro-label">SIGNAL</span><h3 id="ribbon-signal-title">Current system</h3><div id="play-signal-readout" class="forge-ribbon-values"></div></section>
+        <section aria-labelledby="ribbon-sonic-title"><span class="forge-micro-label">SONIC</span><h3 id="ribbon-sonic-title">Mapped state</h3><div id="play-sonic-readout" class="forge-ribbon-values"></div></section>
+        <section aria-labelledby="ribbon-route-title"><span class="forge-micro-label">ROUTE</span><h3 id="ribbon-route-title">Selected transform</h3><div id="play-route-readout" class="forge-ribbon-values"></div></section>
+        <section aria-labelledby="ribbon-output-title"><span class="forge-micro-label">OUTPUT</span><h3 id="ribbon-output-title">Post-master</h3>
+          <div class="forge-output-readout"><span><small>PEAK</small><strong id="play-peak">−∞ dBFS</strong></span><span><small>RMS</small><strong id="play-rms">−∞ dBFS</strong></span></div>
+          <div class="forge-meter" aria-hidden="true"><i id="play-meter-bar"></i><b id="play-meter-marker"></b><span>−1 dBFS bound</span></div>
+        </section>
+      </div>
+
+      <section class="forge-causal" aria-labelledby="causal-title">
+        <div><span class="forge-micro-label">CAUSAL TIMELINE</span><h3 id="causal-title"><span id="phase-number">PHASE 01 / 03</span> · <span id="phase-title">REFERENCE BASELINE</span></h3><p id="phase-description">Demand and downstream response remain inside the reference envelope.</p></div>
+        <div class="forge-timeline-wrap"><canvas id="play-timeline" role="img" aria-label="Scenario causal timeline"></canvas><div class="forge-time-axis" aria-hidden="true"><span>00:00</span><span>00:15</span><span>00:30</span><span>00:45</span><span>01:00</span></div></div>
+      </section>
+    </section>
+
+    <section class="forge-depth-panel forge-work" id="forge-depth-forge" data-depth-panel="FORGE" aria-labelledby="forge-heading" hidden>
+      <header class="forge-mode-heading forge-mode-heading--console">
+        <div class="forge-console-identity"><span class="forge-micro-label">FORGE</span><h2 id="forge-heading">Shape the translation between signal and sound.</h2></div>
+        <div class="forge-compare" role="group" aria-label="Deterministic mapping comparison">
+          <span class="forge-control-label">TELEMETRY IDENTICAL · MAPPING CHANGED</span>
+          <div><button type="button" id="variant-a" aria-pressed="true">A <strong>BASELINE</strong></button><button type="button" id="variant-b" aria-pressed="false">B <strong>CANDIDATE</strong></button></div>
+          <small>A <code id="fingerprint-a">--------</code> · B <code id="fingerprint-b">--------</code></small>
+        </div>
+      </header>
+
+      <div class="forge-workspace">
+        <section class="forge-route-rack" aria-labelledby="routes-title">
+          <header><span class="forge-micro-label">SIGNAL PATHS</span><h3 id="routes-title">Active routes</h3></header>
+          <div id="route-list" class="forge-route-list"></div>
+          <details class="forge-route-create" id="route-create">
+            <summary>+ CREATE ROUTE</summary>
+            <div>
+              <label>SOURCE<select id="route-source"></select></label>
+              <label>TARGET<select id="route-target"></select></label>
+              <button type="button" id="route-create-confirm">PATCH ROUTE</button>
+            </div>
+          </details>
+        </section>
+
+        <section class="forge-field-dock" aria-labelledby="forge-field-title">
+          <header><span class="forge-micro-label">SPECTRAL FIELD</span><h3 id="forge-field-title">Selected route through the field</h3></header>
+          <figure class="forge-field-stage forge-field-stage--compact">
+            <canvas id="forge-field" role="img" aria-label="Spectral Field selected route"></canvas>
+            <div class="forge-route-overlay" id="forge-route-overlay" aria-hidden="true">
+              <span><small id="forge-route-source-label">REQUEST RATE</small><strong id="forge-route-source-value">0 req/s</strong></span>
+              <span><small id="forge-route-transform-label">LINEAR</small><strong id="forge-route-transform-value">0.000</strong></span>
+              <span><small id="forge-route-target-label">PULSE RATE</small><strong id="forge-route-target-value">0.00 Hz</strong></span>
+            </div>
+          </figure>
+          <button type="button" class="forge-route-focus" id="route-focus" aria-pressed="false"><span aria-hidden="true"></span><strong>ROUTE FOCUS</strong><small>Keep baseline context and isolate this mapping's target change.</small></button>
+        </section>
+
+        <section class="forge-route-inspector" aria-labelledby="route-inspector-title">
+          <header><span class="forge-micro-label">TRANSFORMATION</span><h3 id="route-inspector-title">Selected route</h3><small id="route-lock-state">A / BASELINE LOCKED</small></header>
+          <div class="forge-transform-chain" id="transform-chain"></div>
+          <svg class="forge-transform-curve" id="transform-curve" viewBox="0 0 220 120" role="img" aria-label="Selected route transformation curve"><path class="forge-curve-grid" d="M10 10V110H210M10 60H210M110 10V110"></path><path class="forge-curve-line" id="transform-curve-line" d="M10 110L210 10"></path></svg>
+          <div class="forge-inspector-controls forge-inspector-controls--primary">
+            <label>TRANSFORM<select id="mapping-transform"></select></label>
+            <label>POLARITY<select id="mapping-polarity"></select></label>
+            <label>SMOOTHING<select id="mapping-smoothing"></select></label>
+          </div>
+          <details class="forge-inspector-bounds">
+            <summary>Range and bounds</summary>
+            <div class="forge-inspector-controls">
+              <label>INPUT MIN<input id="mapping-input-min" type="number" min="0" max="0.99" step="0.01"></label>
+              <label>INPUT MAX<input id="mapping-input-max" type="number" min="0.01" max="1" step="0.01"></label>
+              <label>OUTPUT MIN<input id="mapping-output-min" type="number"></label>
+              <label>OUTPUT MAX<input id="mapping-output-max" type="number"></label>
+            </div>
+          </details>
+          <p id="mapping-explanation" class="forge-mapping-explanation"></p>
+          <div class="forge-inspector-actions"><button type="button" id="mapping-bypass">BYPASS</button><button type="button" id="mapping-remove">REMOVE ROUTE</button></div>
+        </section>
+      </div>
+
+      <section class="forge-utility-strip" aria-labelledby="forge-utility-title">
+        <h3 id="forge-utility-title" class="sr-only">Mapping utilities</h3>
+        <div class="forge-preset-bar">
+          <label><span>PRESET</span><select id="preset-select"></select></label>
+          <button type="button" id="save-preset">SAVE CANDIDATE</button><button type="button" id="delete-preset" hidden>DELETE PRESET</button>
+        </div>
+        <div class="forge-compare-actions"><button type="button" id="capture-baseline">CAPTURE B AS A</button><button type="button" id="copy-baseline">COPY A → B</button></div>
+      </section>
+    </section>
+
+    <section class="forge-depth-panel forge-analysis" id="forge-depth-analyse" data-depth-panel="ANALYSE" aria-labelledby="analyse-heading" hidden>
+      <header class="forge-mode-heading forge-mode-heading--analysis">
+        <div><span class="forge-micro-label">ANALYSE</span><h2 id="analyse-heading">Inspect what changed and why.</h2></div>
+        <div class="forge-analysis-switch" role="group" aria-label="Emphasise a stage of the causal chain"><button type="button" data-analysis="SIGNAL" aria-pressed="true" aria-controls="analysis-stage-signal">SIGNAL</button><button type="button" data-analysis="AUDIO" aria-pressed="false" aria-controls="analysis-stage-audio">AUDIO</button></div>
+      </header>
+
+      <section class="forge-causal-summary" aria-labelledby="causal-summary-title">
+        <h3 id="causal-summary-title" class="sr-only">Current causal state</h3>
+        <div><small>SCENARIO</small><strong id="summary-scenario">NORMAL LOAD</strong></div>
+        <div><small>TIME</small><strong id="summary-time">00:00.0</strong></div>
+        <div><small>PRIMARY DRIVER</small><strong id="summary-driver">—</strong></div>
+        <div class="forge-causal-summary__regime"><small>MATERIAL REGIME</small><strong id="summary-regime">COHERENT</strong></div>
+        <div><small>MATERIAL CONSEQUENCE</small><strong id="summary-material">—</strong></div>
+        <div><small>SONIC CONSEQUENCE</small><strong id="summary-sonic">—</strong></div>
+        <div><small>HEALTH</small><strong id="summary-health">STABLE</strong></div>
+      </section>
+
+      <div class="forge-analysis-view" data-analysis-panel="SIGNAL" id="analysis-stage-signal">
+        <section class="forge-analysis-primary forge-stage" data-stage="01" data-stage-name="RAW TELEMETRY → NORMALISATION" aria-labelledby="signal-analysis-title">
+          <header><span class="forge-micro-label">SELECTED SIGNAL</span><h3 id="signal-analysis-title">Signal history</h3><label>SIGNAL<select id="analysis-signal-select"></select></label></header>
+          <div class="forge-analysis-hero-value"><strong id="analysis-signal-value">0</strong><span id="analysis-signal-unit"></span><small>NORMALISED <b id="analysis-signal-normalised">0.000</b></small></div>
+          <canvas id="analysis-signal-timeline" role="img" aria-label="Selected signal history"></canvas>
+        </section>
+        <section class="forge-signal-index forge-stage" data-stage="01b" data-stage-name="ALL TELEMETRY" aria-labelledby="signal-index-title"><span class="forge-micro-label">SIGNAL INDEX</span><h3 id="signal-index-title">All synthetic telemetry</h3><div id="signal-index"></div></section>
+        <section class="forge-analysis-phase forge-stage" data-stage="02" data-stage-name="MATERIAL REGIME → SPATIAL RESPONSE" aria-labelledby="analysis-phase-title"><span class="forge-micro-label">DETERMINISTIC RUN STATE</span><h3 id="analysis-phase-title">Current phase</h3><dl><div><dt>SCENARIO</dt><dd id="analysis-scenario">NORMAL LOAD</dd></div><div><dt>TIME</dt><dd id="analysis-time">00:00.0</dd></div><div><dt>HEALTH MODEL</dt><dd id="analysis-health">STABLE</dd></div><div><dt>PHASE</dt><dd id="analysis-phase">1 / 3</dd></div></dl><h4 id="analysis-phase-name">REFERENCE BASELINE</h4><p id="analysis-phase-description"></p><div id="analysis-chain" class="forge-analysis-chain"></div></section>
+      </div>
+
+      <div class="forge-analysis-view forge-audio-analysis" data-analysis-panel="AUDIO" id="analysis-stage-audio">
+        <section class="forge-audio-parameters forge-stage" data-stage="03" data-stage-name="MAPPING → SONIC PARAMETER" aria-labelledby="audio-parameters-title"><span class="forge-micro-label">MAPPED SONIC STATE</span><h3 id="audio-parameters-title">Synthesis parameters</h3><div id="audio-parameter-list"></div><dl class="forge-audio-boundary"><div><dt>HARMONIC STATE</dt><dd id="audio-harmonic-state">CRYSTALLINE / OPEN FIFTH</dd></div><div><dt>SAFETY STAGE</dt><dd>SOFT CLIP + −1 dBFS SAMPLE BOUND</dd></div><div><dt>STEREO</dt><dd>TRUE MID / SIDE WIDTH</dd></div></dl></section>
+        <section class="forge-audio-scope-panel forge-stage" data-stage="04" data-stage-name="GENERATED → ACTUAL OUTPUT" aria-labelledby="audio-scope-title"><span class="forge-micro-label">GENERATED SOUND / ACTUAL OUTPUT</span><h3 id="audio-scope-title">Waveform and spectrum</h3><p class="forge-stage-note">The scope shows what the synthesis is generating, before mute. The meter shows what reaches the listener, after mute and the safety stage.</p><canvas id="audio-scope" role="img" aria-label="Audio analyser inactive until audio is enabled"></canvas><div class="forge-analysis-meter"><div><span><small>PEAK</small><strong id="analysis-peak">−∞ dBFS</strong></span><span><small>RMS</small><strong id="analysis-rms">−∞ dBFS</strong></span></div><div class="forge-meter" aria-hidden="true"><i id="analysis-meter-bar"></i><b id="analysis-meter-marker"></b><span>−1 dBFS sample bound</span></div></div></section>
+        <section class="forge-audio-field forge-stage" data-stage="05" data-stage-name="MAPPED FIELD" aria-labelledby="audio-field-title"><span class="forge-micro-label">INTERPRETIVE VISUALISATION</span><h3 id="audio-field-title">Mapped Spectral Field</h3><figure class="forge-field-stage forge-field-stage--analysis"><canvas id="analysis-field" role="img" aria-label="Mapped Spectral Field"></canvas></figure></section>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="save-preset-dialog" class="forge-dialog">
+    <form method="dialog" id="save-preset-form">
+      <header aria-label="Save preset dialog header"><div><span class="forge-micro-label">LOCAL PRESET</span><h2>Save candidate mapping</h2></div><button type="button" data-dialog-close aria-label="Close save preset dialog">×</button></header>
+      <div class="forge-dialog-body"><label>PRESET NAME<input id="preset-name" name="preset-name" type="text" required maxlength="48" autocomplete="off"></label><p>Saved in this browser only. No account, database, or production telemetry is involved.</p><div><button type="button" data-dialog-close>CANCEL</button><button type="submit" value="save">SAVE PRESET</button></div></div>
+    </form>
+  </dialog>
+
+  <dialog id="forge-help-dialog" class="forge-dialog forge-dialog--wide">
+    <div>
+      <header aria-label="Spectral Forge help dialog header"><div><span class="forge-micro-label">INSTRUMENT HELP</span><h2>Spectral Forge controls</h2></div><button type="button" data-dialog-close aria-label="Close help dialog">×</button></header>
+      <div class="forge-dialog-body"><p><strong>PLAY</strong> experiences deterministic synthetic scenarios. <strong>FORGE</strong> changes how telemetry maps into sound. <strong>ANALYSE</strong> exposes the signal and audio evidence behind the result.</p><dl class="forge-shortcuts"><div><dt>SPACE</dt><dd>Play / pause</dd></div><div><dt>R</dt><dd>Reset run</dd></div><div><dt>M</dt><dd>Mute / unmute</dd></div><div><dt>1–7</dt><dd>Select scenario</dd></div><div><dt>P</dt><dd>Play view</dd></div><div><dt>F</dt><dd>Forge view</dd></div><div><dt>A</dt><dd>Analyse view</dd></div><div><dt>?</dt><dd>Open help</dd></div></dl><p class="forge-dialog-evidence"><strong>SIMULATED</strong> The telemetry is generated deterministically in your browser. It does not represent current Atlas Systems health.</p></div>
+    </div>
+  </dialog>
+
+  <button class="forge-help-button" id="forge-help" type="button" aria-label="Open Spectral Forge help">?</button>
+
+  <script type="module" src="/static/js/spectral-forge/app.js"></script>
+  <script type="module" src="/static/js/spectral-forge/prototypes/preview-switch.js"></script>
+  <script type="module" src="/lab/shared/shell.js?v=20260812-spectral-forge"></script>
+  <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-inner atlas-mobile-nav__inner">
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/writing/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="16" y2="13"></line></svg><span>Writing</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item active" href="/lab/" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V9"></path><path d="M14 3h7v7"></path></svg><span>Lab</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg><span>Systems</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M20 21a8 8 0 10-16 0"></path></svg><span>About</span></a>
+    </div>
+  </nav>
+</body>
+</html>

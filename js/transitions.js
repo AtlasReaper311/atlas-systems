@@ -1,5 +1,23 @@
+/**
+ * js/transitions.js
+ *
+ * Route entry behaviour.
+ *
+ * This file used to preventDefault same-origin clicks, hold the old
+ * document for 190ms behind a full-screen overlay, and only then call
+ * location.assign. The overlay could never cover the next page's first
+ * paint, because it did not exist until that page's own JavaScript ran.
+ * All it produced was a delay, a curtain over the page you were
+ * leaving, and a fade over the page you had already arrived on.
+ *
+ * The old full-screen curtain is gone. Top-level Atlas route changes
+ * keep a short terminal-style scan wipe here, without adding shared-shell
+ * bytes to every Lab instrument.
+ */
 (function () {
   "use strict";
+
+  var ROUTE_EXIT_MS = 180;
 
   if (window.location.pathname === "/about/") {
     void import("/static/js/secondary-surface-fields.js?v=20260728-composition-batch-two-v1");
@@ -8,82 +26,71 @@
   var reduceMotion = window.matchMedia &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  if (reduceMotion) {
-    var ramoneMusing = document.getElementById("ramone-musing");
-    if (ramoneMusing) {
-      ramoneMusing.removeAttribute("id");
-      ramoneMusing.setAttribute("data-ramone-reduced-musing", "");
-      document.addEventListener("DOMContentLoaded", function () {
-        ramoneMusing.id = "ramone-musing";
-        ramoneMusing.innerHTML = "How can I assist?<span class=\"ramone-musing-cursor\"></span>";
-        ramoneMusing.classList.add("in");
-      }, { once: true });
+  if (!reduceMotion) {
+    var leaving = false;
+
+    function routeDestination(anchor, event) {
+      if (!anchor || event.defaultPrevented || event.button !== 0) return null;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return null;
+      if (anchor.target && anchor.target !== "_self") return null;
+      if (anchor.hasAttribute("download")) return null;
+      var url = new URL(anchor.href, window.location.href);
+      if (url.origin !== window.location.origin) return null;
+      if (url.pathname === window.location.pathname && url.search === window.location.search && url.hash) return null;
+      return url.href;
     }
+
+    function showTerminalWipe() {
+      document.documentElement.dataset.atlasRouteTransition = "leaving";
+      var wipe = document.createElement("div");
+      wipe.setAttribute("aria-hidden", "true");
+      wipe.style.cssText = "position:fixed;inset:var(--atlas-header-height,56px) 0 0;z-index:2147483000;pointer-events:none;mix-blend-mode:screen;background:linear-gradient(90deg,transparent 0%,rgba(245,166,35,.08) 22%,rgba(245,166,35,.42) 43%,rgba(74,222,128,.34) 50%,rgba(56,189,248,.18) 58%,transparent 76%),repeating-linear-gradient(180deg,rgba(245,166,35,.16) 0 1px,transparent 1px 6px);opacity:0;transform:translate3d(-120%,0,0)";
+      document.body.appendChild(wipe);
+      if (wipe.animate) {
+        wipe.animate([
+          { transform: "translate3d(-120%,0,0)", opacity: 0 },
+          { transform: "translate3d(-72%,0,0)", opacity: .86 },
+          { transform: "translate3d(44%,0,0)", opacity: .68 },
+          { transform: "translate3d(118%,0,0)", opacity: 0 }
+        ], { duration: ROUTE_EXIT_MS, easing: "cubic-bezier(.2,.72,.2,1)", fill: "forwards" });
+      }
+      var main = document.querySelector("body > main");
+      if (main && main.animate) {
+        main.animate([
+          { transform: "translate3d(0,0,0)", filter: "brightness(1)" },
+          { transform: "translate3d(0,-10px,0)", filter: "brightness(.9) saturate(1.04)" }
+        ], { duration: ROUTE_EXIT_MS, easing: "cubic-bezier(.28,.76,.24,1)", fill: "forwards" });
+      }
+    }
+
+    document.addEventListener("click", function (event) {
+      var anchor = event.target && event.target.closest ? event.target.closest("a[href]") : null;
+      var destination = routeDestination(anchor, event);
+      if (!destination) return;
+      event.preventDefault();
+      if (leaving) return;
+      leaving = true;
+      showTerminalWipe();
+      window.setTimeout(function () {
+        window.location.href = destination;
+      }, ROUTE_EXIT_MS);
+    }, { capture: true });
+
+    window.addEventListener("pageshow", function () {
+      leaving = false;
+      delete document.documentElement.dataset.atlasRouteTransition;
+    });
     return;
   }
 
-  var style = document.createElement("style");
-  style.textContent = [
-    "#page-overlay{position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:1;background:#0a0a0f;transition:opacity .22s ease}",
-    "#page-overlay::before{content:'';position:absolute;top:0;bottom:0;left:-32%;width:32%;background:linear-gradient(90deg,transparent,rgba(245,166,35,.18),transparent);animation:route-scan .46s ease both}",
-    "#page-overlay::after{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(245,166,35,.22);opacity:.7}",
-    "body.route-ready #page-overlay{opacity:0}",
-    "body.route-closing #page-overlay{opacity:1}",
-    "body.route-closing #page-overlay::before{animation:route-scan-out .28s ease both}",
-    "@keyframes route-scan{from{transform:translateX(0)}to{transform:translateX(410%)}}",
-    "@keyframes route-scan-out{from{transform:translateX(0)}to{transform:translateX(410%)}}"
-  ].join("");
-  document.head.appendChild(style);
+  var ramoneMusing = document.getElementById("ramone-musing");
+  if (!ramoneMusing) return;
 
-  var overlay = document.createElement("div");
-  overlay.id = "page-overlay";
-  overlay.setAttribute("aria-hidden", "true");
-  document.body.appendChild(overlay);
-
-  function showPage() {
-    document.body.classList.remove("route-closing");
-    requestAnimationFrame(function () {
-      requestAnimationFrame(function () {
-        document.body.classList.add("route-ready");
-      });
-    });
-  }
-
-  showPage();
-  window.addEventListener("pageshow", showPage);
-
-  document.addEventListener("click", function (event) {
-    if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-
-    var anchor = event.target.closest("a");
-    if (!anchor) return;
-
-    var href = anchor.getAttribute("href");
-    if (!href) return;
-
-    var url;
-    try {
-      url = new URL(href, window.location.href);
-    } catch {
-      return;
-    }
-
-    if (
-      anchor.target === "_blank" ||
-      anchor.hasAttribute("download") ||
-      anchor.dataset.noTransition === "true" ||
-      url.origin !== window.location.origin ||
-      (url.pathname === window.location.pathname && url.hash)
-    ) {
-      return;
-    }
-
-    event.preventDefault();
-    document.body.classList.remove("route-ready");
-    document.body.classList.add("route-closing");
-
-    window.setTimeout(function () {
-      window.location.assign(url.href);
-    }, 190);
-  });
+  ramoneMusing.removeAttribute("id");
+  ramoneMusing.setAttribute("data-ramone-reduced-musing", "");
+  document.addEventListener("DOMContentLoaded", function () {
+    ramoneMusing.id = "ramone-musing";
+    ramoneMusing.innerHTML = "How can I assist?<span class=\"ramone-musing-cursor\"></span>";
+    ramoneMusing.classList.add("in");
+  }, { once: true });
 })();

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-atlas-interface>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,8 +8,14 @@
   <title>Drift // Atlas Systems</title>
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/lab/shared/systems.css">
-  <link rel="stylesheet" href="/lab/drift/drift.css">
+  <link rel="stylesheet" href="/lab/shared/explore-identities.css?v=20260811-continuity">
+  <link rel="stylesheet" href="/lab/drift/drift.css?v=20260811-continuity">
   <link rel="canonical" href="https://atlas-systems.uk/lab/drift/">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Drift // Atlas Systems">
   <meta property="og:description" content="Attention does not scale. Policy does. A playable proof, in one browser tab.">
@@ -24,32 +30,104 @@
   <meta name="twitter:description" content="Attention does not scale. Policy does. A playable proof, in one browser tab.">
   <meta name="twitter:image" content="https://atlas-systems.uk/og/drift.png">
   <meta name="twitter:image:alt" content="Drift. Attention does not scale. // Atlas Systems">
+<link rel="stylesheet" href="/static/css/estate-search.css">
+<link rel="stylesheet" href="/lab/shared/lab-context-navigation.css?v=20260806-lab-consistency-v2">
+<link rel="stylesheet" href="/lab/shared/lab-shell-layout.css?v=20260806-lab-consistency-v2">
+<link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
+<link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
 </head>
-<body class="drift-page" data-mode="manual" data-pointer="on">
-  <nav aria-label="Primary navigation">
-    <a class="wordmark" href="/">Atlas<span>_</span>Systems</a>
+<body class="drift-page" data-mode="manual" data-pointer="on" data-atlas-bottom-nav="true" data-lab-shell="" data-lab-layout="immersive" data-lab-route="drift">
+  <nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
+    <div class="atlas-header__inner">
+      <div class="atlas-header__brand atlas-global-header__identity">
+        <a class="nav-wordmark atlas-wordmark" href="/" data-atlas-wordmark>Atlas<span class="atlas-wordmark__cursor">_</span>Systems</a>
+        <a class="nav-status atlas-status atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" data-atlas-status aria-label="Atlas Systems status: Checking" aria-live="off"><span class="status-dot atlas-status__dot" aria-hidden="true"></span><span class="atlas-estate-status-label" data-atlas-status-label>Checking</span></a>
+      </div>
+      <div class="atlas-header__nav atlas-global-header__nav" role="group" aria-label="Atlas Systems sections">
+        <a class="atlas-global-header__link" href="/work/">Work</a>
+        <a class="atlas-global-header__link" href="/writing/">Writing</a>
+        <a class="atlas-global-header__link" href="/lab/" aria-current="page">Lab</a>
+        <a class="atlas-global-header__link" href="/systems/">Systems</a>
+        <a class="atlas-global-header__link" href="/about/">About</a>
+      </div>
+      <div class="atlas-header__actions atlas-global-header__actions">
+        <button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button>
+      </div>
+    </div>
+  </nav>
+  <nav class="lab-context-nav lab-context-nav--compact" aria-label="Lab navigation" data-lab-context-mode="compact" data-current-lab-route="Drift">
+    <div class="lab-context-compact">
+      <div class="lab-context-compact__crumbs" role="group" aria-label="Current Lab location">
+        <a href="/lab/">Lab</a>
+        <span class="lab-context-compact__separator" aria-hidden="true">/</span>
+        <span class="lab-context-compact__current" aria-current="page">Drift</span>
+      </div>
+      <details class="lab-context-tools">
+        <summary>All Lab tools</summary>
+        <div class="lab-context-tools__menu" role="group" aria-label="All Lab tools">
+          <div class="lab-context-tools__group" data-lab-context-group="experience" role="group" aria-labelledby="lab-context-tools-group-0">
+            <span class="lab-context-tools__group-label" id="lab-context-tools-group-0">Experience</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/system-symphony/">System Symphony</a>
+              <a href="/lab/spectral-forge/">Spectral Forge</a>
+              <a href="/lab/signal/">Signal Garden</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="observe" role="group" aria-labelledby="lab-context-tools-group-1">
+            <span class="lab-context-tools__group-label" id="lab-context-tools-group-1">Observe</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/system-map/">System Map</a>
+              <a href="/lab/blackbox/">Blackbox</a>
+              <a href="/systems/observability/">Observability</a>
+              <a href="/lab/console/">Operations</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="verify" role="group" aria-labelledby="lab-context-tools-group-2">
+            <span class="lab-context-tools__group-label" id="lab-context-tools-group-2">Verify</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/proof-chain/">Proof Chain</a>
+              <a href="/lab/conformance/">Estate Conformance</a>
+              <a href="/lab/xray/">X-Ray</a>
+              <a href="/systems/reliability/">Reliability</a>
+              <a href="/systems/evidence/">Evidence</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="explore" role="group" aria-labelledby="lab-context-tools-group-3">
+            <span class="lab-context-tools__group-label" id="lab-context-tools-group-3">Explore</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/speculum/">Speculum</a>
+              <a href="/lab/almost/">Almost</a>
+              <a href="/lab/drift/" aria-current="page">Drift</a>
+              <a href="/lab/bearing/">The Bearing</a>
+              <a href="/lab/anomaly/">Shape Detector</a>
+            </div>
+          </div>
+        </div>
+      </details>
+    </div>
   </nav>
 
   <main>
     <section class="drift-stage" aria-labelledby="drift-title">
-      <div class="drift-field">
+      <header class="drift-title">
+        <p class="drift-index">LAB / EXPLORE / CONFORMANCE SIMULATION</p>
+        <h1 id="drift-title">Drift<span>.</span></h1>
+        <p>Five hundred and twelve nodes. One operator. Move your attention across the field and hold conformance above ninety percent for as long as you can.</p>
+      </header>
+
+      <div class="drift-field explore-stage-enter">
       <canvas
         id="drift-canvas"
         width="1400"
         height="700"
         tabindex="0"
         role="application"
-        aria-describedby="drift-help"
+        aria-describedby="drift-help drift-live"
+        aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown P M R Escape"
         aria-label="An estate of five hundred and twelve nodes losing conformance. Move the attention field to repair what it covers."
       >
         Drift is an interactive lattice of estate nodes losing conformance over time.
       </canvas>
-
-      <header class="drift-title">
-        <p class="drift-index">Atlas Systems / local process 01</p>
-        <h1 id="drift-title">Drift<span>.</span></h1>
-        <p>Five hundred and twelve nodes. One operator. Move your attention across the field and hold conformance above ninety percent for as long as you can.</p>
-      </header>
 
       <div class="drift-controls">
         <div class="drift-switch" role="group" aria-label="Who is holding the estate">
@@ -57,6 +135,16 @@
           <button id="mode-policy" type="button" aria-pressed="false">By policy</button>
         </div>
         <button id="drift-reset" class="drift-reset" type="button">New estate</button>
+        <button id="sound-button" class="drift-reset" type="button" aria-pressed="false" aria-label="Toggle soft Lab sound">Sound</button>
+      </div>
+
+      <div class="drift-legend-wrap drift-legend-wrap--field" role="group" aria-label="Node conformance key">
+        <ul class="drift-legend drift-legend--field">
+          <li><i class="drift-swatch drift-swatch--held"></i> held</li>
+          <li><i class="drift-swatch drift-swatch--warn"></i> drifting</li>
+          <li><i class="drift-swatch drift-swatch--gone"></i> breached</li>
+          <li><i class="drift-swatch drift-swatch--void"></i> gone</li>
+        </ul>
       </div>
 
       <dl class="drift-rail">
@@ -97,7 +185,7 @@
 
       <p id="drift-help" class="visually-hidden">
         Move the pointer over the field, or focus the field and use the arrow keys, to place your attention.
-        Press P to hand the estate to policy, M to take it back by hand, and R for a new estate.
+        Press P to hand the estate to policy, M to take it back by hand, R for a new estate, and Escape to clear attention or dismiss the verdict.
       </p>
       <p id="drift-live" class="visually-hidden" role="status" aria-live="polite"></p>
       </div>
@@ -136,15 +224,26 @@
         rather than as diligence in a person. Nothing here is fetched from the live estate. This runs entirely
         in your browser, from a seed, and no two runs are the same.
       </p>
-      <ul class="drift-legend">
-        <li><i style="background:#4ade80"></i> held, above seventy five percent</li>
-        <li><i style="background:#f5a623"></i> drifting</li>
-        <li><i style="background:#e24b4a"></i> breached, below forty percent</li>
-        <li><i style="background:#1e0e12;outline:1px solid rgba(255,255,255,.2)"></i> gone</li>
-      </ul>
+      <div class="drift-legend-wrap" role="group" aria-label="Colour key">
+        <ul class="drift-legend drift-legend--essay">
+          <li><i class="drift-swatch drift-swatch--held"></i> held (≥75%)</li>
+          <li><i class="drift-swatch drift-swatch--warn"></i> drifting</li>
+          <li><i class="drift-swatch drift-swatch--gone"></i> breached (&lt;40%)</li>
+          <li><i class="drift-swatch drift-swatch--void"></i> gone</li>
+        </ul>
+      </div>
     </section>
   </main>
 
-  <script type="module" src="/lab/drift/drift.js"></script>
+  <script type="module" src="/lab/drift/drift.js?v=20260811-sound-v6"></script>
+  <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-inner atlas-mobile-nav__inner">
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/writing/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="16" y2="13"></line></svg><span>Writing</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item active" href="/lab/" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V9"></path><path d="M14 3h7v7"></path></svg><span>Lab</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg><span>Systems</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M20 21a8 8 0 10-16 0"></path></svg><span>About</span></a>
+    </div>
+  </nav>
 </body>
 </html>
