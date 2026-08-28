@@ -194,219 +194,26 @@
 </head>
 <body>
 
-<nav aria-label="Primary navigation">
-  <div class="atlas-brand-cluster">
-    <a href="/" class="nav-wordmark">Atlas<span>_</span>Systems</a>
-    <a class="atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" aria-label="Atlas Systems status: checking">
-      <span class="atlas-estate-status-dot" aria-hidden="true"></span>
-      <span class="atlas-estate-status-label">checking</span>
-    </a>
-  </div>
-  <ul class="nav-links">
-    <li><a href="/work/">Work</a></li>
-    <li><a href="/writing/" class="active" aria-current="page">Writing</a></li>
-    <li><a href="/lab/">Lab</a></li>
-    <li><a href="/systems/">Systems</a></li>
-    <li><a href="/about/">About</a></li>
-    <li>
-      <button type="button" class="es-nav-search" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg>
-        Search
-        <kbd data-estate-search-kbd>ctrl k</kbd>
-      </button>
-    </li>
-  </ul>
-</nav>
-
-<main>
-
-  <header class="article-header">
-    <div class="header-meta">
-      <a href="/writing/" class="back-link">
-        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-        Writing
-      </a>
-      <div class="article-index">W-08</div>
-      <div class="article-date">23 August 2026</div>
-      <div class="article-read-time">~8 min read</div>
-      <div class="header-tags">
-        <span class="tag highlight">DevOps</span>
-        <span class="tag">Docker</span>
-        <span class="tag">WSL2</span>
-        <span class="tag">Infrastructure</span>
-        <span class="tag">Linux</span>
+<nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
+    <div class="atlas-header__inner">
+      <div class="atlas-header__brand atlas-global-header__identity">
+        <a class="nav-wordmark atlas-wordmark" href="/" data-atlas-wordmark>Atlas<span class="atlas-wordmark__cursor">_</span>Systems</a>
+        <a class="nav-status atlas-status atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" data-atlas-status aria-label="Atlas Systems status: Checking" aria-live="off"><span class="status-dot atlas-status__dot" aria-hidden="true"></span><span class="atlas-estate-status-label" data-atlas-status-label>Checking</span></a>
+      </div>
+      <div class="atlas-header__nav atlas-global-header__nav" role="group" aria-label="Atlas Systems sections">
+        <a class="atlas-global-header__link" href="/work/">Work</a>
+        <a class="atlas-global-header__link" href="/writing/" aria-current="page">Writing</a>
+        <a class="atlas-global-header__link" href="/lab/">Lab</a>
+        <a class="atlas-global-header__link" href="/systems/">Systems</a>
+        <a class="atlas-global-header__link" href="/about/">About</a>
+      </div>
+      <div class="atlas-header__actions atlas-global-header__actions">
+        <button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button>
       </div>
     </div>
-    <div class="header-content">
-      <div class="section-label">Case Study</div>
-      <h1 class="article-title">SPECULAR-CORE: Architectural Recovery</h1>
-      <div class="article-subtitle">SPECULAR-CORE — Infrastructure // Case Study</div>
-      <p class="article-lede">This June 2026 recovery record follows a compound Docker Desktop and Proton VPN failure across the local AI stack, then documents the migration from Windows-managed containers to a native Linux Docker engine inside WSL2. The result removed the Windows Hyper-V path from this specific topology without claiming immunity from every future host, bridge, kernel, or VPN failure.</p>
-    </div>
-  </header>
+  </nav>
 
-  <div class="spec-strip">
-    <div class="spec-cell"><div class="spec-label">Timeline</div><div class="spec-value">June 2026</div></div>
-    <div class="spec-cell"><div class="spec-label">Platform</div><div class="spec-value">Windows 11 / WSL2 Ubuntu</div></div>
-    <div class="spec-cell"><div class="spec-label">Architecture</div><div class="spec-value">Native Linux Docker Engine</div></div>
-    <div class="spec-cell"><div class="spec-label">Services</div><div class="spec-value">5 containerised + 2 native</div></div>
-    <div class="spec-cell"><div class="spec-label">Root Causes</div><div class="spec-value">4 identified and resolved</div></div>
-    <div class="spec-cell"><div class="spec-label">Cost</div><div class="spec-value">£0</div></div>
-  </div>
-
-  <div class="article-body">
-    <aside class="toc">
-      <div class="toc-label">Contents</div>
-      <ul class="toc-list">
-        <li class="toc-item"><a href="#overview">Overview</a></li>
-        <li class="toc-item"><a href="#original-architecture">Original Architecture</a></li>
-        <li class="toc-item"><a href="#the-failure-chain">The Failure Chain</a></li>
-        <li class="toc-item"><a href="#phase-i-hyper-v-network-collapse">Phase I — Hyper-V Network Collapse</a></li>
-        <li class="toc-item"><a href="#phase-ii-volume-isolation-and-data-loss">Phase II — Volume Isolation and Data Loss</a></li>
-        <li class="toc-item"><a href="#phase-iii-comfyui-venv-corruption">Phase III — ComfyUI venv Corruption</a></li>
-        <li class="toc-item"><a href="#phase-iv-ollama-bridge-routing">Phase IV — Ollama Bridge Routing</a></li>
-        <li class="toc-item"><a href="#new-architecture">New Architecture</a></li>
-        <li class="toc-item"><a href="#outcomes">Outcomes</a></li>
-      </ul>
-    </aside>
-
-    <article class="prose">
-      <section id="overview">
-        <h2>Overview</h2>
-        <p>In June 2026, a Docker Desktop update on SPECULAR-CORE, running alongside Proton VPN&#x27;s always-on kill switch, brought down the entire local AI stack simultaneously. Open WebUI lost its data volume. Ollama stopped accepting connections from inside containers. ComfyUI refused to import its dependencies. The monitoring stack reported every service as down.</p>
-        <p>The immediate instinct was to patch each failure in isolation. The correct move turned out to be more fundamental: decommission Docker Desktop for Windows, install a native Linux Docker engine inside WSL2, and remove Docker Desktop&#x27;s Windows and Hyper-V bridge from the recovered container-to-host path.</p>
-        <p>This case study documents what broke, why it broke, and the exact sequence of decisions that rebuilt the stack into something structurally more resilient than what existed before.</p>
-        <div class="callout warning"><div class="callout-label">Snapshot Boundary</div><p>This article records the June 2026 recovery topology. It does not describe every service later added to SPECULAR-CORE, and it does not claim that native WSL2 Docker removes every possible VPN, kernel, bridge, or host-network failure. It records the narrower result proved here: the Docker Desktop and Windows Hyper-V path was removed from this stack.</p></div>
-      </section>
-      <div class="section-break"></div>
-      <section id="original-architecture">
-        <h2>Original Architecture</h2>
-        <p>The stack before the failure ran across two distinct execution layers with Docker Desktop for Windows acting as the bridge between them.</p>
-        <p>Ollama and ComfyUI ran natively inside WSL2 Ubuntu, serving their APIs on <code>localhost</code> ports. Docker Desktop for Windows managed the frontend containers — Open WebUI, Uptime Kuma, and Portainer — using its own Hyper-V virtual network switches to route traffic between the Windows host, the Docker bridge network, and the WSL2 subsystem.</p>
-        <div class="table-wrap"><table class="data-table"><thead><tr><th>Service</th><th>Layer</th><th>Port</th></tr></thead><tbody><tr><td>Ollama</td><td>Native WSL2</td><td>11434</td></tr><tr><td>ComfyUI</td><td>Native Python venv</td><td>8008</td></tr><tr><td>Open WebUI</td><td>Docker Desktop container</td><td>3000</td></tr><tr><td>Uptime Kuma</td><td>Docker Desktop container</td><td>3001</td></tr><tr><td>Portainer</td><td>Docker Desktop container</td><td>9000</td></tr></tbody></table></div>
-        <p>This worked until it didn&#x27;t. The architecture required traffic to traverse three distinct network namespaces on every request: the Docker bridge, the Hyper-V virtual switch, and the WSL2 subsystem. Each crossing was a potential failure point.</p>
-        <div class="callout"><div class="callout-label">Architecture Decision</div><p>The original architecture was functional but fragile. Three network namespace crossings per request means three places where a firewall policy, a kernel update, or a VPN routing change can silently break everything at once.</p></div>
-      </section>
-      <div class="section-break"></div>
-      <section id="the-failure-chain">
-        <h2>The Failure Chain</h2>
-        <p>Two things happened within the same maintenance window. Docker Desktop updated itself, and Proton VPN&#x27;s always-on kill switch was active.</p>
-        <p>The update changed how Docker Desktop managed its internal Hyper-V network switches. Proton VPN&#x27;s kernel-level firewall, running in always-on mode, flagged the resulting cross-subsystem traffic as an unencrypted local data leak and dropped it. Traffic traversing from the Docker bridge through the Windows host OS to the WSL2 backend was systematically blocked.</p>
-        <p>The result was a cascade. Every container that needed to reach Ollama got <code>ECONNREFUSED</code>. Open WebUI&#x27;s WebSocket connections dropped with <code>xhr poll error</code>. The volume mount that held the user database got swapped to an empty named volume during the Docker update, wiping the active session. Every monitor in Uptime Kuma flipped red simultaneously.</p>
-        <p>From the outside it looked like total system failure. From the inside, each service had a distinct root cause.</p>
-      </section>
-      <div class="section-break"></div>
-      <section id="phase-i-hyper-v-network-collapse">
-        <h2>Phase I — Hyper-V Network Collapse</h2>
-        <div class="phase-marker"><span class="phase-num">Phase I</span><span class="phase-title">Hyper-V Network Collapse</span></div>
-        <p>Every container that attempted to reach Ollama on <code>host.docker.internal:11434</code> returned a connection refused error. Switching to <code>172.17.0.1</code>, <code>172.23.x.x</code>, and <code>localhost</code> all produced the same result. The Ollama service was confirmed running and listening on <code>0.0.0.0:11434</code> via <code>ss -tlnp</code> inside WSL2.</p>
-        <div class="callout error"><div class="callout-label">Root Cause</div><p>Proton VPN&#x27;s kernel-level firewall was dropping all traffic crossing the Windows Hyper-V virtual switch between the Docker bridge network and the WSL2 network namespace. The packets left the container correctly but were intercepted before reaching the WSL2 subsystem. No Windows firewall rule, no Docker network flag, and no <code>host.docker.internal</code> alias could bypass a VPN kill switch operating at the kernel level.</p></div>
-        <p>Attempting to work around this with <code>.wslconfig</code> mirrored networking mode broke Docker Desktop&#x27;s WSL2 integration entirely, producing <code>Wsl/Service/0x8007274c</code> errors and taking the Docker daemon offline. That was reverted immediately.</p>
-        <p>The structural fix was to remove Docker Desktop&#x27;s Windows-managed bridge from this path. Installing a native Linux Docker engine inside WSL2 moved container networking onto the Linux host boundary; in the recovery tests, container-to-host traffic no longer crossed the Hyper-V hop that Proton VPN had blocked.</p>
-        <pre><code class="language-bash">sudo apt-get update &amp;&amp; sudo apt-get install -y ca-certificates curl gnupg
-sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --yes --dearmor -o /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release &amp;&amp; echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
-sudo apt-get update &amp;&amp; sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-sudo systemctl enable --now docker</code></pre>
-        <p>In the recovered configuration, <code>172.17.0.1</code> was the validated host-facing Docker bridge address for container-to-host traffic. It remained stable across the validation reboots without being presented as a universal or permanent address for every future Docker configuration.</p>
-        <div class="callout success"><div class="callout-label">Resolution</div><p>Native Linux Docker Engine installed inside WSL2. The recovered container-to-host path stays inside the Linux host boundary, and this build used <code>172.17.0.1</code> as its validated Docker bridge gateway instead of <code>host.docker.internal</code>.</p></div>
-      </section>
-      <div class="section-break"></div>
-      <section id="phase-ii-volume-isolation-and-data-loss">
-        <h2>Phase II — Volume Isolation and Data Loss</h2>
-        <div class="phase-marker"><span class="phase-num">Phase II</span><span class="phase-title">Volume Isolation and Data Loss</span></div>
-        <p>After the networking fix, Open WebUI launched but presented a blank sign-up screen. All bots, knowledge bases, and user accounts were gone. The container was running but treating itself as a fresh installation.</p>
-        <div class="callout error"><div class="callout-label">Root Cause</div><p>The Docker Desktop update had swapped the volume mount from the explicit L drive path (<code>/mnt/l/Openweb:/app/backend/data</code>) to an anonymous named volume, silently isolating the container from the database file on the L drive. Additionally, migrating to native Linux Docker running as root caused an immediate permission collision with the existing <code>ext4</code> data directory, causing the backend to crash in a silent restart loop rather than report the error clearly.</p></div>
-        <p>Two fixes were required. First, the file ownership on the data directory was realigned to the root Docker process context:</p>
-        <pre><code class="language-bash">sudo chown -R root:root /home/atlas/openwebui-core-data
-sudo chmod -R 775 /home/atlas/openwebui-core-data</code></pre>
-        <p>Second, the container was redeployed with an explicit volume binding to the native Linux filesystem path rather than the NTFS-mounted L drive path. Open WebUI&#x27;s database performs frequent write operations; on NTFS those writes produce locking conflicts under a root Docker daemon:</p>
-        <pre><code class="language-bash">sudo docker run -d \
-  -p 3000:8080 \
-  -v /home/atlas/openwebui-core-data:/app/backend/data \
-  -e OLLAMA_BASE_URL=http://172.17.0.1:11434 \
-  --name open-webui \
-  --restart always \
-  ghcr.io/open-webui/open-webui:main</code></pre>
-        <p>The user database was restored from the automated weekly backup at <code>/mnt/l/Backups/openwebui-backup-20260601/webui.db</code>. All bots, system prompts, knowledge bases, and RAG configurations were recovered intact.</p>
-        <div class="callout success"><div class="callout-label">Resolution</div><p>Open WebUI data directory migrated from NTFS L drive mount to native Linux filesystem at <code>/home/atlas/openwebui-core-data</code>. File ownership realigned to root Docker context. Database restored from weekly backup. All ten workbots recovered.</p></div>
-      </section>
-      <div class="section-break"></div>
-      <section id="phase-iii-comfyui-venv-corruption">
-        <h2>Phase III — ComfyUI venv Corruption</h2>
-        <div class="phase-marker"><span class="phase-num">Phase III</span><span class="phase-title">ComfyUI venv Corruption</span></div>
-        <p>ComfyUI&#x27;s Python environment, which had been created inside the ComfyUI directory on the NTFS-mounted L drive, stopped resolving installed packages. <code>pip list</code> reported packages as installed; <code>python -c &quot;import torch&quot;</code> returned <code>ModuleNotFoundError</code>. The venv was broken at the symlink level.</p>
-        <div class="callout error"><div class="callout-label">Root Cause</div><p>NTFS does not fully support the Linux symlink structure that Python virtual environments depend on. When the native Linux Docker daemon took over as root, the permission model for the L drive mount changed, invalidating the symlinks inside the venv. Packages were present on disk but the interpreter could no longer follow the symlink chain to find them.</p></div>
-        <p>The fix is an architectural principle rather than a patch: Python environments belong on the native Linux filesystem. Model files, code, and data can live on NTFS; the interpreter environment must not.</p>
-        <pre><code class="language-bash"># Remove the broken venv from NTFS
-rm -rf /mnt/l/StableDiffusion/ComfyUI/venv
-
-# Create a new venv on the native Linux filesystem
-python3.11 -m venv ~/comfyui-venv
-source ~/comfyui-venv/bin/activate
-
-# Reinstall dependencies using the absolute venv pip path
-/home/atlas/comfyui-venv/bin/pip install torch torchvision torchaudio \
-  --index-url https://download.pytorch.org/whl/cu128
-/home/atlas/comfyui-venv/bin/pip install -r /mnt/l/StableDiffusion/ComfyUI/requirements.txt</code></pre>
-        <p>The launch script was updated to call the venv Python by absolute path, bypassing any activation ambiguity:</p>
-        <pre><code class="language-bash">#!/bin/bash
-export PATH="/home/atlas/comfyui-venv/bin:$PATH"
-cd /mnt/l/StableDiffusion/ComfyUI
-/home/atlas/comfyui-venv/bin/python main.py \
-  --listen 0.0.0.0 \
-  --port 8008 \
-  --output-directory /mnt/l/StableDiffusion/Output \
-  --cuda-device 0 \
-  --disable-cuda-malloc</code></pre>
-        <p>All three models (Flux.1 Dev fp8, DreamShaper XL, Deliberate v6) remained untouched on the L drive throughout. No re-downloading was required.</p>
-        <div class="callout success"><div class="callout-label">Resolution</div><p>venv relocated from NTFS L drive to native Linux filesystem at <code>~/comfyui-venv</code>. Launch script updated to use absolute Python path. All 25GB of models recovered without re-download.</p></div>
-      </section>
-      <div class="section-break"></div>
-      <section id="phase-iv-ollama-bridge-routing">
-        <h2>Phase IV — Ollama Bridge Routing</h2>
-        <div class="phase-marker"><span class="phase-num">Phase IV</span><span class="phase-title">Ollama Bridge Routing</span></div>
-        <p>With Open WebUI running under native Linux Docker, the Ollama connection URL needed to be updated. <code>host.docker.internal</code> no longer resolved correctly without Docker Desktop&#x27;s DNS injection layer. <code>localhost</code> and <code>127.0.0.1</code> refer to the container&#x27;s own loopback, not the host. The WSL2 eth0 IP (<code>172.23.x.x</code>) works but changes on every WSL2 restart.</p>
-        <div class="callout error"><div class="callout-label">Root Cause</div><p><code>host.docker.internal</code> is a Docker Desktop for Windows feature. Native Linux Docker does not inject this hostname. Without it, containers have no built-in mechanism to resolve the host machine&#x27;s address. The WSL2 subsystem&#x27;s <code>eth0</code> IP is dynamically assigned by the Hyper-V NAT stack and changes across restarts.</p></div>
-        <p>The solution used in this recovery was the native Linux Docker bridge gateway: <code>172.17.0.1</code>. It is the host-facing interface of the <code>docker0</code> bridge and, in the validated configuration, remained stable across the reboot tests while avoiding dependence on the changing WSL2 <code>eth0</code> address.</p>
-        <p>The Ollama systemd override was updated to broadcast on all interfaces and point at the correct model storage path:</p>
-        <pre><code class="language-bash">echo -e "[Service]\nEnvironment=\"OLLAMA_HOST=0.0.0.0\"\nEnvironment=\"OLLAMA_MODELS=/mnt/l/Ollama/models\"" \
-  | sudo tee /etc/systemd/system/ollama.service.d/override.conf
-
-sudo systemctl daemon-reload &amp;&amp; sudo systemctl restart ollama</code></pre>
-        <p>Open WebUI&#x27;s Ollama connection URL was set to <code>http://172.17.0.1:11434</code>. Uptime Kuma monitor URLs were updated to <code>http://172.17.0.1:[port]</code> for each service.</p>
-        <div class="callout success"><div class="callout-label">Resolution</div><p>In the recovered configuration, container-to-host service references used <code>172.17.0.1</code>, required no hostname resolution, and reached Ollama from each tested container on port 11434.</p></div>
-      </section>
-      <div class="section-break"></div>
-      <section id="new-architecture">
-        <h2>New Architecture</h2>
-        <p>After the migration, all five services operated within one Linux host boundary. Docker still used separate container network namespaces behind its Linux bridge, but container-to-host traffic no longer crossed Docker Desktop&#x27;s Hyper-V layer or the Windows host network path. The recovered routing was simpler and easier to inspect without claiming that Windows could never affect the machine in another way.</p>
-        <div class="table-wrap"><table class="data-table"><thead><tr><th>Service</th><th>Layer</th><th>Launch Method</th><th>Internal Target</th><th>External Port</th></tr></thead><tbody><tr><td>Ollama</td><td>Native WSL2</td><td><code>systemd</code></td><td><code>0.0.0.0:11434</code></td><td><code>localhost:11434</code></td></tr><tr><td>ComfyUI</td><td>Native Python venv</td><td><code>launch_comfyui.sh</code></td><td><code>0.0.0.0:8008</code></td><td><code>localhost:8008</code></td></tr><tr><td>Open WebUI</td><td>Native Linux Docker</td><td><code>docker run</code></td><td><code>http://172.17.0.1:11434</code></td><td><code>localhost:3000</code></td></tr><tr><td>Portainer</td><td>Native Linux Docker</td><td><code>docker run</code></td><td><code>/var/run/docker.sock</code></td><td><code>localhost:9000</code></td></tr><tr><td>Uptime Kuma</td><td>Native Linux Docker</td><td><code>docker run</code></td><td><code>172.17.0.1:[port]</code></td><td><code>localhost:3001</code></td></tr></tbody></table></div>
-        <p>The Windows startup sequence (<code>ATLAS_BOOTSTRAP.bat</code>) was updated to start the native Linux Docker service via WSL rather than waiting for Docker Desktop:</p>
-        <pre><code class="language-batch">wsl -d Ubuntu -u root bash -c "service docker start"</code></pre>
-        <p>Docker Desktop for Windows is disabled on startup and no longer part of the boot sequence.</p>
-        <div class="callout"><div class="callout-label">Maintenance Constraint</div><p>In the June 2026 recovery configuration, Docker Desktop remained disabled because running it beside the native engine reintroduced port and routing conflicts. Container-to-host lookups in this recorded topology used the validated Linux bridge address rather than a Docker Desktop hostname.</p></div>
-      </section>
-      <div class="section-break"></div>
-      <section id="outcomes">
-        <h2>Outcomes</h2>
-        <div class="outcomes-grid"><div class="outcome-cell"><div class="outcome-label">Architecture path</div><div class="outcome-value">Docker Desktop and the Windows Hyper-V hop removed from container-to-host routing</div></div><div class="outcome-cell"><div class="outcome-label">Services recovered</div><div class="outcome-value">all five — Open WebUI, Ollama, ComfyUI, Portainer, Uptime Kuma</div></div><div class="outcome-cell"><div class="outcome-label">Data recovered</div><div class="outcome-value">ten workbots, all knowledge bases, full RAG configuration</div></div><div class="outcome-cell"><div class="outcome-label">Rebuild time</div><div class="outcome-value">full stack operational from bare WSL2 in under 45 minutes</div></div></div>
-        <p>The immediate outcome was a working system. The more significant outcome was removal of the specific Windows-managed container path implicated in the collapse. That narrowed the failure surface for this topology, but it did not make the wider machine immune to every VPN, kernel, bridge, or Windows networking change.</p>
-        <p>The transferable principle is this: when a compound failure exposes a structural dependency you didn&#x27;t know existed, the correct response is not to patch around it but to remove it. The Docker Desktop bridge between Windows and WSL2 was convenient until it became a single point of failure for everything. Replacing it with something simpler — a native Linux engine and a validated bridge path — cost an afternoon and removed that known failure path from the recovered stack.</p>
-      </section>
-    </article>
-  </div>
-
-  <div class="article-footer">
-    <a href="/writing/atlas-lab-observability/" class="footer-back">
-    <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-    ← W-07 — Atlas Lab
-  </a>
-  <span class="footer-next">Latest article</span>
-  </div>
-
-</main>
+  <main>
 
 <script>
   const tocLinks = document.querySelectorAll('.toc-item a');
