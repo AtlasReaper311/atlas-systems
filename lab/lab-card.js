@@ -259,7 +259,7 @@
     /* ---- am I ChatGPT ---- */
     { match: /\b(are you (chatgpt|gpt|claude|gemini|copilot|openai|grok))\b/i,
       replies: [
-        "No. I'm llama3.1:8b running locally on an RTX 5070. No API keys, no third-party inference, no surveillance. Just me, the docs, and a tunnel.",
+        "No. I'm qwen3.5-mtp running locally on an RTX 5070. No API keys, no third-party inference, no surveillance. Just me, the docs, and a tunnel.",
         "Absolutely not. I live in a box on Reaper's desk, not a data centre in Nevada.",
         "Different vintage. Same general idea, smaller carbon footprint, much worse jokes.",
       ],
@@ -606,9 +606,9 @@
      BOOT log — typed on load
      ===================================================================== */
   const BOOT = [
-    ['<span class="acc">RAMONE/OS v8.1</span> &mdash; cold start', 0],
+    ['<span class="acc">RAMONE/OS v9.0</span> &mdash; cold start', 0],
     ['[<span class="ok">ok</span>] waking specular-core <span class="by">· gpu RTX 5070 warm</span>', 150],
-    ['[<span class="ok">ok</span>] pouring llama3.1:8b into memory <span class="by">· 8.0B params</span>', 150],
+    ['[<span class="ok">ok</span>] pouring qwen3.5-mtp into memory <span class="by">· 9.2B params</span>', 150],
     ['[<span class="ok">ok</span>] cloudflare tunnel <span class="acc">established</span>', 140],
     ['[<span class="ok">ok</span>] reading the docs again, just in case', 140],
     ['[<span class="ok">ok</span>] consciousness: <span class="acc">nominal</span> · ready to chat', 150],
@@ -812,7 +812,7 @@ function getRandomMusing() {
     card.classList.toggle("awake", awake);
     card.classList.toggle("asleep", !awake);
     if (stateLabel) {
-      stateLabel.textContent = awake ? "awake · llama3.1:8b · RTX 5070" : "asleep · powered down";
+      stateLabel.textContent = awake ? "awake · qwen3.5-mtp · RTX 5070" : "asleep · powered down";
     }
   }
   async function pollStatus() {
