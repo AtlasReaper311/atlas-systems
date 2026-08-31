@@ -58,6 +58,7 @@ export function displayExcerpt(text, limit) {
 
 /** "atlas-corpus/app/main.py" style provenance label. */
 export function hitLabel(hit) {
+  if (hit.title) return hit.title;
   return hit.repo + "/" + hit.path;
 }
 
@@ -70,6 +71,8 @@ export function hitLabel(hit) {
  *                   widget uses
  */
 export function hitPrimaryHref(hit) {
+  if (hit.url) return hit.url;
+  if (hit.publicUrl) return hit.publicUrl;
   if (hit.repo === "local") return null;
   if (/\.html?$/i.test(hit.path)) {
     const sitePath = hit.path.replace(/index\.html?$/i, "");
@@ -226,6 +229,13 @@ export function renderHitItem(hit, options) {
     main.appendChild(badge);
   }
 
+  if (hit.sourceScope) {
+    const scope = document.createElement("span");
+    scope.className = "es-hit-badge";
+    scope.textContent = hit.sourceScope;
+    main.appendChild(scope);
+  }
+
   if (!href) {
     const priv = document.createElement("span");
     priv.className = "es-hit-badge es-hit-badge-private";
@@ -242,7 +252,7 @@ export function renderHitItem(hit, options) {
 
   const excerpt = document.createElement("p");
   excerpt.className = "es-hit-excerpt";
-  excerpt.textContent = displayExcerpt(hit.excerpt);
+  excerpt.textContent = displayExcerpt(hit.heading ? hit.heading + " - " + hit.excerpt : hit.excerpt);
   item.appendChild(excerpt);
 
   const actions = document.createElement("div");
