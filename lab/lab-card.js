@@ -18,7 +18,7 @@
        - `match`   : RegExp tested against the lowercased question
        - `reply`   : single string  OR
        - `replies` : array of strings (one is picked at random)
-       - `sources` : optional [{ id, preview }] shown as fake citation chips
+       - `sources` : legacy metadata kept out of the UI for local replies
        - `thinking`: optional array of funny "processing" lines shown
                      briefly before the reply streams (one is picked).
                      If omitted, a random global THINKING line is used.
@@ -893,9 +893,10 @@ function getRandomMusing() {
     let firstTokenAt = null;
     let totalChars = 0;
 
-    function finish() {
+    function finish(kind) {
       cursor.remove();
       const parts = [];
+      if (kind) parts.push(kind);
       if (firstTokenAt !== null) parts.push(`first token ${Math.round(firstTokenAt - startedAt)}ms`);
       parts.push(`total ${Math.round(performance.now() - startedAt)}ms`);
       parts.push(`${totalChars} chars`);
@@ -961,10 +962,9 @@ function getRandomMusing() {
       }
 
       function streamReply() {
-        if (egg.sources) renderSources(egg.sources);
         let i = 0;
         (function tick() {
-          if (i >= reply.length) { finish(); cleanup(); return; }
+          if (i >= reply.length) { finish("personality response · local · no evidence"); cleanup(); return; }
           const step = 2 + Math.floor(Math.random() * 3);
           const chunk = reply.slice(i, i + step);
           textNode.data += chunk;
@@ -1040,11 +1040,21 @@ function getRandomMusing() {
   function renderSources(sources) {
     sourcesEl.innerHTML = "";
     sources.forEach((s, i) => {
-      const tag = document.createElement("span");
+      const href = s && typeof s.url === "string" ? s.url : "";
+      const tag = document.createElement(href ? "a" : "span");
       tag.className = "src";
-      const id = (s && typeof s.id === "string" ? s.id : "source")
-        .replace(/[<>&"']/g, (c) => ({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;","'":"&#039;"}[c]));
-      tag.innerHTML = `<strong>[${i + 1}]</strong> ${id}`;
+      if (href) {
+        tag.href = href;
+        tag.rel = "noopener noreferrer";
+      }
+      const index = document.createElement("strong");
+      index.textContent = `[${i + 1}]`;
+      const label = document.createTextNode(" " + (
+        (s && typeof s.title === "string" && s.title) ||
+        (s && typeof s.id === "string" && s.id) ||
+        "source"
+      ));
+      tag.append(index, label);
       if (s && s.preview) tag.title = s.preview;
       sourcesEl.appendChild(tag);
     });

@@ -352,7 +352,9 @@
   padding: 3px 8px;
   font-size: 11px;
   border-radius: 2px;
+  text-decoration: none;
 }
+.ramone-mini-sources a.src:hover { color: var(--accent); border-color: rgba(245,166,35,0.45); }
 .ramone-mini-sources .src strong {
   color: var(--accent); font-weight: 500; margin-right: 4px;
 }
