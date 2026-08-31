@@ -1,4 +1,4 @@
-import "../../static/js/sonify/ui.js?v=20260728-system-symphony-trace-board-v1";
+import "../../static/js/sonify/ui.js?v=20260831-system-symphony-heading-clearance-v1";
 import {
   DEFAULT_USER_GAIN,
   SYSTEM_SYMPHONY_BUILD_ID,

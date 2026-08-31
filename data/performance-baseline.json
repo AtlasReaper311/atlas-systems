@@ -25,8 +25,8 @@
       "route": "/lab/",
       "html_bytes": 32877,
       "first_party_request_count": 23,
-      "referenced_asset_bytes": 229172,
-      "total_static_bytes": 262049,
+      "referenced_asset_bytes": 229184,
+      "total_static_bytes": 262061,
       "largest_referenced_asset": "lab/lab-card.js",
       "largest_referenced_asset_bytes": 44061
     },
@@ -52,10 +52,10 @@
       "route": "/lab/bearing/",
       "html_bytes": 71588,
       "first_party_request_count": 16,
-      "referenced_asset_bytes": 119457,
-      "total_static_bytes": 191045,
+      "referenced_asset_bytes": 119469,
+      "total_static_bytes": 191057,
       "largest_referenced_asset": "lab/shared/shell.js",
-      "largest_referenced_asset_bytes": 34498
+      "largest_referenced_asset_bytes": 34510
     },
     {
       "route": "/writing/",
@@ -67,5 +67,5 @@
       "largest_referenced_asset_bytes": 24744
     }
   ],
-  "sha256": "e3a5d1d14dc5fa2b6a8a67772224c0d7622b58aa129413cceccec11e7318c813"
+  "sha256": "0f129fea8d61d1230d8453113a2193d2b3d64bde46ebce7b572a9b51f95457c1"
 }

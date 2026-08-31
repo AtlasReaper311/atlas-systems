@@ -12,15 +12,15 @@ function traceBridgeIsFlagshipOnly() {
   const routeEnhancementsStart = labShell.indexOf("async function installRouteEnhancements()");
   const routeEnhancementsEnd = labShell.indexOf("function installMeasuredShell", routeEnhancementsStart);
   const routeEnhancements = labShell.slice(routeEnhancementsStart, routeEnhancementsEnd);
-  const earlyReturnGuard = /if \(currentPath\(\) !== SYSTEM_SYMPHONY_ROUTE\) return;\s*await import\("\/lab\/system-symphony\/trace-role-bridge\.js\?v=20260728-system-symphony-trace-board-v1"\);/s;
-  const positiveRootGuard = /if \(currentPath\(\) === SYSTEM_SYMPHONY_ROUTE\) \{\s*await import\("\/lab\/system-symphony\/trace-role-bridge\.js\?v=20260728-system-symphony-trace-board-v1"\);\s*\}/s;
+  const earlyReturnGuard = /if \(currentPath\(\) !== SYSTEM_SYMPHONY_ROUTE\) return;\s*await import\("\/lab\/system-symphony\/trace-role-bridge\.js\?v=20260831-system-symphony-heading-clearance-v1"\);/s;
+  const positiveRootGuard = /if \(currentPath\(\) === SYSTEM_SYMPHONY_ROUTE\) \{\s*await import\("\/lab\/system-symphony\/trace-role-bridge\.js\?v=20260831-system-symphony-heading-clearance-v1"\);\s*\}/s;
   return earlyReturnGuard.test(routeEnhancements) || positiveRootGuard.test(routeEnhancements);
 }
 
 test("System Symphony loads the Phase D role bridge only on the flagship route", () => {
   assert.ok(labShell.includes('const SYSTEM_SYMPHONY_ROUTE = "/lab/system-symphony/"'));
   assert.ok(traceBridgeIsFlagshipOnly());
-  assert.ok(labShell.includes("trace-role-bridge.js?v=20260728-system-symphony-trace-board-v1"));
+  assert.ok(labShell.includes("trace-role-bridge.js?v=20260831-system-symphony-heading-clearance-v1"));
 });
 
 test("TRACE role selection maps service rows onto topology nodes and dependency routes", () => {
