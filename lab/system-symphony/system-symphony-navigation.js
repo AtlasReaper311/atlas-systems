@@ -3,7 +3,7 @@
 import { installFlagshipCounterpart } from "../shared/flagship-counterparts.js?v=20260813-spectral-forge";
 
 const ROOT_ROUTE = "/lab/system-symphony/";
-const NAV_STYLESHEET = "/lab/system-symphony/system-symphony-navigation.css?v=20260728-system-symphony-trace-board-v1";
+const NAV_STYLESHEET = "/lab/system-symphony/system-symphony-navigation.css?v=20260831-heading-clearance";
 const MODE_NAMES = new Set(["play", "trace", "replay"]);
 
 let trustReturnTarget = null;
