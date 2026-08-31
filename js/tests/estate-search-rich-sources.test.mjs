@@ -43,3 +43,12 @@ test("Lab local personality replies cannot render fake source chips", () => {
   assert.match(labCard, /personality response .* local .* no evidence/);
   assert.match(labCard, /document\.createElement\(href \? "a" : "span"\)/);
 });
+
+test("Lab Ramone renders readable public source cards", () => {
+  assert.match(labCard, /ramone-mini-source-title/);
+  assert.match(labCard, /ramone-mini-source-meta/);
+  assert.match(labCard, /ramone-mini-source-preview/);
+  assert.match(labCard, /sourceMeta\(s\)/);
+  assert.match(labCard, /sourcePreview\(s && s\.preview\)/);
+  assert.match(labCard, /aria-label", `source \$\{i \+ 1\}: \$\{title\}`/);
+});
