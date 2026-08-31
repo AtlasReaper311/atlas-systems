@@ -35,7 +35,7 @@ import {
   chipStateForVoice,
   copperRoute,
   routeOffsets,
-} from "./trace-board.js?v=20260728-system-symphony-trace-board-v1";
+} from "./trace-board.js?v=20260831-system-symphony-heading-clearance-v1";
 
 if (typeof window !== "undefined") {
   window.__ATLAS_SYSTEM_SYMPHONY_BUILD__ = SYSTEM_SYMPHONY_BUILD_ID;
