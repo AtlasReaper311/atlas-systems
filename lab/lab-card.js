@@ -1047,17 +1047,53 @@ function getRandomMusing() {
         tag.href = href;
         tag.rel = "noopener noreferrer";
       }
+      const title = sourceText(s && s.title, sourceText(s && s.id, "source"));
+      const meta = sourceMeta(s);
+      const preview = sourcePreview(s && s.preview);
       const index = document.createElement("strong");
       index.textContent = `[${i + 1}]`;
-      const label = document.createTextNode(" " + (
-        (s && typeof s.title === "string" && s.title) ||
-        (s && typeof s.id === "string" && s.id) ||
-        "source"
-      ));
+      const label = document.createElement("span");
+      label.className = "ramone-mini-source-title";
+      label.textContent = title;
       tag.append(index, label);
-      if (s && s.preview) tag.title = s.preview;
+      if (meta) {
+        const metaEl = document.createElement("span");
+        metaEl.className = "ramone-mini-source-meta";
+        metaEl.textContent = meta;
+        tag.appendChild(metaEl);
+      }
+      if (preview) {
+        const previewEl = document.createElement("span");
+        previewEl.className = "ramone-mini-source-preview";
+        previewEl.textContent = preview;
+        tag.appendChild(previewEl);
+        tag.title = preview;
+      }
+      tag.setAttribute("aria-label", `source ${i + 1}: ${title}`);
       sourcesEl.appendChild(tag);
     });
+  }
+
+  function sourceText(value, fallback) {
+    return typeof value === "string" && value.trim() ? value.trim() : fallback;
+  }
+
+  function sourceMeta(source) {
+    if (!source) return "";
+    const repo = sourceText(source.repo, "");
+    const path = sourceText(source.path, "");
+    const section = sourceText(source.heading, "");
+    const type = sourceText(source.doc_type, "");
+    return [repo && path ? `${repo}/${path}` : repo || path, section, type]
+      .filter(Boolean)
+      .slice(0, 3)
+      .join(" · ");
+  }
+
+  function sourcePreview(value) {
+    const text = sourceText(value, "");
+    if (!text) return "";
+    return text.length > 180 ? text.slice(0, 179).trimEnd() + "…" : text;
   }
 
   updateCharCount();
