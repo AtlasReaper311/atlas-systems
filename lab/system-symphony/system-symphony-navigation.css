@@ -135,7 +135,7 @@
 }
 
 .symphony-page-main {
-  padding-top: calc(var(--symphony-shell-offset) + 26px) !important;
+  padding-top: calc(var(--symphony-shell-offset) + 38px) !important;
 }
 
 .symphony-product-bar {
