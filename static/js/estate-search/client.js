@@ -18,8 +18,9 @@
  * GET route for exactly this reason. The edge tier wraps the corpus
  * response in {ok, count, ...}; normalizeResponse absorbs both shapes.
  *
- * Hit shape note: the deployed SearchHit model is
- *   {text, score, source_repo, file_path, doc_type, last_updated, chunk_index}
+ * Hit shape note: the deployed SearchHit model includes text, score,
+ * repo/path fields, doc type, timestamps, source class/scope/lifecycle,
+ * heading, stable source id, and URL fields.
  * Some estate docs describe it as {repo, path, excerpt, ...}. normalizeHit
  * accepts both spellings so a consumer never breaks if the producer's
  * serialization shifts (the API registry panel already taught this lesson).
@@ -118,7 +119,16 @@ export function normalizeHit(raw) {
     score: Number.isFinite(Number(raw.score)) ? Number(raw.score) : 0,
     excerpt: excerpt,
     chunkIndex: Number.isFinite(Number(raw.chunk_index)) ? Number(raw.chunk_index) : 0,
-    lastUpdated: String(raw.last_updated || raw.lastUpdated || "")
+    lastUpdated: String(raw.last_updated || raw.lastUpdated || ""),
+    id: String(raw.id || ""),
+    title: String(raw.source_title || raw.title || ""),
+    url: String(raw.public_url || raw.source_url || raw.url || ""),
+    publicUrl: String(raw.public_url || raw.publicUrl || ""),
+    heading: String(raw.heading_path || raw.heading || ""),
+    sourceClass: String(raw.source_class || raw.sourceClass || ""),
+    sourceScope: String(raw.source_scope || raw.sourceScope || ""),
+    sourceLifecycle: String(raw.source_lifecycle || raw.sourceLifecycle || ""),
+    sourceRef: String(raw.source_ref || raw.sourceRef || "")
   };
 }
 

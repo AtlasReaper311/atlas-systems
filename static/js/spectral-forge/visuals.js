@@ -46,7 +46,16 @@ export class SpectralFieldRenderer {
       this.draw(performance.now());
     };
     this.motionQuery.addEventListener?.("change", this.onMotionChange);
-    this.resizeObserver = new ResizeObserver(() => this.draw(performance.now()));
+    /* A resize is a reason to repaint the view that is on screen, never a reason
+     * to run the organism. A hidden panel still resizes - showing or hiding a
+     * depth panel changes both canvases - and an unguarded repaint here drew the
+     * shared physical model forward with this renderer's stale visualTime, which
+     * the model read as time running backwards and answered by erasing itself.
+     * Every other draw path already checks fieldVisible; this one now agrees. */
+    this.resizeObserver = new ResizeObserver(() => {
+      if (this.state?.fieldVisible === false) return;
+      this.draw(performance.now());
+    });
     this.resizeObserver.observe(canvas);
   }
 

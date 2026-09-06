@@ -8,7 +8,7 @@
  * frame; nothing about a service is invented locally.
  */
 
-export const TRACE_BOARD_BUILD_ID = "20260728-system-symphony-trace-board-v1";
+export const TRACE_BOARD_BUILD_ID = "20260831-system-symphony-heading-clearance-v1";
 
 /**
  * Districts are a deterministic regrouping of the existing `voice.layer`

@@ -449,9 +449,30 @@ function updateSites(model, e) {
   }
 
   if (model.domainDisagreement > 0.05) {
+    /* Two domains trading dominance, not one domain changing its mind.
+     *
+     * This previously took the sign of sin(domainPhase) as the polarity while
+     * holding strength at half disagreement or more. At the zero crossing the
+     * polarity inverted in a single frame with the force still at half
+     * amplitude, so the shader field went from a substantial outward push to a
+     * substantial inward pull between two frames - the visible snap in Service
+     * Flapping.
+     *
+     * Each domain now keeps its own fixed polarity and its own axis, and only
+     * the share of the disagreement moves between them. Every value is
+     * continuous through the crossing, where both sites sit at half strength
+     * pulling against each other, which is what disagreement physically is. The
+     * material stays as unstable and indecisive as before; nothing teleports. */
     const swing = Math.sin(model.domainPhase);
-    index = pushSite(model, index, model.domainA, swing >= 0 ? 1 : -1, model.domainDisagreement * (0.5 + Math.abs(swing) * 0.5), 0.85, "domain");
-    index = pushSite(model, index, model.domainB, swing >= 0 ? -1 : 1, model.domainDisagreement * (0.5 + Math.abs(swing) * 0.5), 0.85, "domain");
+    const share = 0.5 + swing * 0.5;
+    /* Both domains stay engaged throughout - the argument never stops, only its
+     * balance moves - and the whole disagreement breathes with the swing so the
+     * body still surges rather than merely leaning. Sharing the disagreement
+     * without these terms halved the visible excursion, which would have traded
+     * the snap for a duller Flapping. */
+    const breath = 0.78 + Math.abs(swing) * 0.42;
+    index = pushSite(model, index, model.domainA, 1, model.domainDisagreement * (0.5 + share * 0.5) * breath, 0.85, "domain");
+    index = pushSite(model, index, model.domainB, -1, model.domainDisagreement * (1 - share * 0.5) * breath, 0.85, "domain");
   }
 
   if (model.stretchMagnitude > 0.05) {

@@ -48,6 +48,30 @@ function numberText(value) {
   return Number.isFinite(value) ? Number(value).toFixed(3) : "0.000";
 }
 
+/* Which mechanisms are actually doing something right now.
+ *
+ * The panel showed twenty-odd values at equal weight, and in any given instant
+ * most of them read 0.000 - measured, eleven of fifteen - which trains the eye
+ * to skip the whole block. The values are all truthful and all still shown; what
+ * changes is that the ones the material is currently expressing are legible at a
+ * glance and the dormant ones recede. */
+const ACTIVE_THRESHOLD = 0.02;
+
+function activityOf(key, value) {
+  if (key === "regime" || key === "fissionPhase") {
+    return value && value !== "coherent" && value !== "idle" ? "active" : "resting";
+  }
+  const numeric = Number.parseFloat(value);
+  if (!Number.isFinite(numeric)) return "resting";
+  return Math.abs(numeric) > ACTIVE_THRESHOLD ? "active" : "resting";
+}
+
+function markActivity(node, key, text) {
+  node.textContent = text;
+  const cell = node.parentElement;
+  if (cell) cell.dataset.activity = activityOf(key, text);
+}
+
 function buildPanel() {
   const anchor = document.querySelector("#analysis-chain");
   if (!anchor || document.querySelector("#analysis-physical-state")) return;
@@ -62,7 +86,7 @@ function buildPanel() {
   panel.setAttribute("role", "group");
   panel.setAttribute("aria-labelledby", label.id);
 
-  const rows = [...PHYSICAL_KEYS, ...MATERIAL_KEYS, ...DEVELOPMENT_KEYS].map(([key, text]) => {
+  const cellFor = ([key, text]) => {
     const cell = document.createElement("span");
     const small = document.createElement("small");
     small.textContent = text;
@@ -70,11 +94,25 @@ function buildPanel() {
     strong.dataset.physicalEvidence = key;
     strong.textContent = initialText(key);
     cell.append(small, strong);
+    cell.dataset.activity = "resting";
     return cell;
-  });
-  panel.append(...rows);
+  };
+
+  panel.append(...[...MATERIAL_KEYS, ...PHYSICAL_KEYS].map(cellFor));
+
+  /* Complete raw state stays available and truthful, one disclosure away. */
+  const detail = document.createElement("details");
+  detail.className = "forge-physical-detail";
+  const summary = document.createElement("summary");
+  summary.textContent = "Complete physical state";
+  const grid = document.createElement("div");
+  grid.className = "forge-analysis-chain";
+  grid.append(...DEVELOPMENT_KEYS.map(cellFor));
+  detail.append(summary, grid);
+
   anchor.insertAdjacentElement("afterend", label);
   label.insertAdjacentElement("afterend", panel);
+  panel.insertAdjacentElement("afterend", detail);
 }
 
 function updatePanel(evidence) {
@@ -83,7 +121,7 @@ function updatePanel(evidence) {
   const physical = evidence.physical ?? {};
   for (const [key] of PHYSICAL_KEYS) {
     const node = document.querySelector(`[data-physical-evidence="${key}"]`);
-    if (node) node.textContent = numberText(physical[key]);
+    if (node) markActivity(node, key, numberText(physical[key]));
   }
   const values = {
     regime: String(evidence.regime ?? "coherent"),
@@ -105,7 +143,7 @@ function updatePanel(evidence) {
   };
   for (const [key, value] of Object.entries(values)) {
     const node = document.querySelector(`[data-physical-evidence="${key}"]`);
-    if (node) node.textContent = value;
+    if (node) markActivity(node, key, value);
   }
 }
 
