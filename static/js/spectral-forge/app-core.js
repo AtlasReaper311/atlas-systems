@@ -47,6 +47,7 @@ import {
 } from "./state.js";
 import { AudioAnalyserRenderer, SpectralFieldRenderer, TimelineRenderer } from "./visuals.js";
 import { createOrganismLifeClock, resetOrganismLifeClock } from "./spectral-field-life-clock.js";
+import { physicalStateSnapshot } from "./spectral-field-physical-state.js";
 import {
   applyScenarioSelection,
   beginScenarioHandoff,
@@ -285,9 +286,18 @@ function renderDepth() {
   audioRenderer.meterElements = depth === "ANALYSE" && analysisView === "AUDIO" ? meterTargets.analysis : meterTargets.play;
 }
 
+/* ANALYSE is one causal chain, not two page-level worlds.
+ *
+ * Splitting SIGNAL from AUDIO cut the chain at exactly the point where causality
+ * crosses from signal into sound, so no single view ever showed the whole story
+ * the surface exists to tell. Both stages are now always present in causal
+ * order; the control emphasises one rather than hiding the other. */
 function renderAnalysisView() {
   elements.analysisButtons.forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.analysis === analysisView)));
-  elements.analysisPanels.forEach((panel) => { panel.hidden = panel.dataset.analysisPanel !== analysisView; });
+  elements.analysisPanels.forEach((panel) => {
+    panel.hidden = false;
+    panel.dataset.emphasis = String(panel.dataset.analysisPanel === analysisView);
+  });
   audioRenderer.meterElements = depth === "ANALYSE" && analysisView === "AUDIO" ? meterTargets.analysis : meterTargets.play;
 }
 
@@ -306,6 +316,10 @@ function renderAudioControls() {
   elements.masterLabel.textContent = `${linearToDb(masterLevel).toFixed(1)} dB`;
   if (!audioEnabled) elements.audioToggle.textContent = "ENABLE AUDIO";
   else elements.audioToggle.textContent = audioMuted ? "UNMUTE" : "MUTE";
+  /* State on the control as well as in the live region: pressed means audio is
+   * reaching the listener. A name change alone leaves a screen-reader user to
+   * infer the state from the verb. */
+  elements.audioToggle.setAttribute("aria-pressed", String(audioEnabled && !audioMuted));
   elements.audioToggle.classList.toggle("forge-secondary-control", audioEnabled);
   elements.audioToggle.classList.toggle("forge-primary-control", !audioEnabled);
   if (audioError) elements.audioToggle.title = audioError;
@@ -534,7 +548,60 @@ function ensureAudioParameterNodes() {
   elements.audioParameterList.replaceChildren(...spans);
 }
 
+const REGIME_CONSEQUENCE = Object.freeze({
+  coherent: "Cohesive body, surface tension holding",
+  compressed: "Material compressed, breathing room reduced",
+  "support-loss": "Local support failing, disturbance propagating",
+  oscillating: "Competing domains, reversible disagreement",
+  viscous: "Persistent stretch, material response lagging",
+  "structural-failure": "Fracture charged, structure separating",
+  reassembly: "Attraction returning, material reforming",
+});
+
+const REGIME_SONIC = Object.freeze({
+  coherent: "Crystalline surface, stable harmonic identity",
+  compressed: "Tighter spacing, narrowed image, no added level",
+  "support-loss": "Spectral floor withdrawn beneath the tone",
+  oscillating: "Tonal pair splitting and re-agreeing",
+  viscous: "Envelopes stretched, spectral drag",
+  "structural-failure": "Loading, release, and spatial separation",
+  reassembly: "Phase, image and harmony reconverging",
+});
+
+/* The signal furthest from its own resting value is the one driving the run. */
+function primaryDriver() {
+  let best = null;
+  let bestDistance = -1;
+  for (const definition of SIGNALS) {
+    const value = frame.normalised[definition.id];
+    if (!Number.isFinite(value)) continue;
+    const distance = Math.abs(value - 0.5);
+    if (distance > bestDistance) {
+      bestDistance = distance;
+      best = definition;
+    }
+  }
+  return best;
+}
+
+function renderCausalSummary() {
+  const physical = organismLife.physical ? physicalStateSnapshot(organismLife.physical) : null;
+  const regime = physical?.regime ?? "coherent";
+  const driver = primaryDriver();
+  const set = (id, text) => { const node = $(`#${id}`); if (node) node.textContent = text; };
+  set("summary-scenario", SCENARIO_BY_ID[scenarioId].label);
+  set("summary-time", formatTime(time));
+  set("summary-health", frame.health);
+  set("summary-regime", regime.replace(/-/g, " ").toUpperCase());
+  set("summary-driver", driver ? `${SIGNAL_BY_ID[driver.id].label} ${formatValue(frame.values[driver.id], driver.decimals)} ${driver.unit}` : "—");
+  set("summary-material", REGIME_CONSEQUENCE[regime] ?? REGIME_CONSEQUENCE.coherent);
+  set("summary-sonic", REGIME_SONIC[regime] ?? REGIME_SONIC.coherent);
+  const host = $(".forge-causal-summary");
+  if (host) host.dataset.regime = regime;
+}
+
 function renderAnalysis() {
+  renderCausalSummary();
   const signal = SIGNAL_BY_ID[selectedSignalId];
   elements.analysisSignalSelect.value = selectedSignalId;
   elements.analysisSignalValue.textContent = formatValue(frame.values[selectedSignalId], signal.decimals);
@@ -570,6 +637,15 @@ function renderAnalysis() {
   elements.audioHarmonicState.textContent = HARMONIC_STATES[frame.health];
 }
 
+/* The physical snapshot the audio consumes. Null until the organism has been
+ * stepped at least once, which is the same condition the physical inspector
+ * uses, so the audio simply runs on its regime defaults until then. */
+function materialAudioState() {
+  if (!organismLife.physical) return null;
+  const physical = physicalStateSnapshot(organismLife.physical);
+  return { physical, fission: organismLife.fission ?? null };
+}
+
 function renderVisuals() {
   const shared = fieldState(true);
   playFieldRenderer.setState({ ...shared, fieldVisible: depth === "PLAY" });
@@ -592,7 +668,19 @@ function renderTelemetry({ updateAudio = true } = {}) {
   renderRibbon();
   renderAnalysis();
   renderVisuals();
-  if (updateAudio && audioEngine && audioEnabled) audioEngine.update(activeOutputState(), targetSmoothing(), frame.health, frame.deployEvent);
+  /* The audio is handed the same material state the organism is rendered from,
+   * so a regime change is one event heard and seen rather than two features
+   * that happen to agree. Reading it here keeps the renderers as consumers of
+   * the physical model rather than owners of it. */
+  if (updateAudio && audioEngine && audioEnabled) {
+    audioEngine.update(
+      activeOutputState(),
+      targetSmoothing(),
+      frame.health,
+      frame.deployEvent,
+      materialAudioState(),
+    );
+  }
 }
 
 function renderAll({ updateAudio = true } = {}) {
@@ -748,8 +836,18 @@ async function enableAudio() {
     setNotice("Audio enabled · true stereo-width stage · bounded −1 dBFS sample output · M mutes immediately");
   } catch (error) {
     audioError = error instanceof Error ? error.message : "The audio context could not be created.";
+    /* A failed activation used to drop the reference and leave the engine
+     * running: a live AudioContext, four started oscillators and the pulse
+     * interval, all orphaned, with a retry able to create another. Dispose
+     * before letting go. */
+    const orphaned = audioEngine;
     audioEngine = null;
     audioEnabled = false;
+    try {
+      await orphaned?.dispose();
+    } catch {
+      /* Disposal of an engine that never activated is best-effort. */
+    }
     setNotice("Audio engine unavailable · simulation, mapping and visual analysis remain active");
   }
   renderAll();

@@ -48,11 +48,17 @@ test("abrupt mapped changes receive at least the approved comparison interpolati
 test("sonic identity is procedural, sample-free and does not encode scenario names", async () => {
   const [nodes, install] = await Promise.all([source(nodesUrl), source(installUrl)]);
   const combined = `${nodes}\n${install}`;
+  /* The identity is a material that rings when excited, not a set of voices
+   * that sound continuously. These names track that architecture; the contracts
+   * below - procedural, sample-free, deterministic, and ignorant of scenario
+   * identity - are what must hold whatever the synthesis is made of. */
   assert.match(nodes, /subOscillator/);
-  assert.match(nodes, /crystalDelay/);
+  assert.match(nodes, /resonators/);
   assert.match(nodes, /scheduleHeartbeat/);
-  assert.match(nodes, /pulseVoice/);
-  assert.doesNotMatch(combined, /fetch\(|decodeAudioData|AudioBufferSourceNode/i);
+  assert.match(nodes, /excite\(/);
+  assert.match(nodes, /scheduleMicroImpacts/);
+  assert.doesNotMatch(combined, /fetch\(|decodeAudioData/i);
+  assert.doesNotMatch(combined, /Math\.random\s*\(/);
   assert.doesNotMatch(combined, /\b(?:normal|traffic|cache|flapping|creep|cascade|deploy)\b/i);
 });
 

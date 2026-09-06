@@ -531,6 +531,87 @@
         </div>
       </article>
 
+      <!-- P-05: SPECULAR-CORE: Architectural Recovery -->
+      <article class="project-entry" id="specular-core-architectural-recovery" data-project-id="specular-core-architectural-recovery" data-project-section="all" data-tags="devops">
+        <div class="project-media">
+          <div class="gallery" id="specular-core-architectural-recovery-gallery" onclick="openLightbox(getCurrentGalleryImg('specular-core-architectural-recovery-gallery'),'specular-core-architectural-recovery-gallery')">
+            <img class="gallery-img active" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1785506376/specular-core-recovery-diagram_eweh3r.png" alt="Old and new SPECULAR-CORE architecture, showing the Hyper-V bridge removed from container-to-host routing">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1785506376/uptime_kuma_abj23x.png" alt="Uptime Kuma dashboard showing all five services green after recovery">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1785506376/Systemd_override_ca1r74.png" alt="systemctl status and the Ollama systemd override binding OLLAMA_HOST to 0.0.0.0">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1785506376/docker_ps_z5feqj.png" alt="docker ps output showing the three native Linux Docker containers with port mappings">
+            <div class="gallery-nav" onclick="event.stopPropagation()">
+              <div class="gallery-arrows">
+                <button type="button" class="gallery-arrow" onclick="galleryPrev('specular-core-architectural-recovery-gallery')">← prev</button>
+                <button type="button" class="gallery-arrow" onclick="galleryNext('specular-core-architectural-recovery-gallery')">next →</button>
+              </div>
+              <div class="gallery-dots" id="specular-core-architectural-recovery-gallery-dots">
+                <button type="button" class="gallery-dot active" onclick="galleryGoto('specular-core-architectural-recovery-gallery',0)" aria-label="View image 1"></button>
+                <button type="button" class="gallery-dot" onclick="galleryGoto('specular-core-architectural-recovery-gallery',1)" aria-label="View image 2"></button>
+                <button type="button" class="gallery-dot" onclick="galleryGoto('specular-core-architectural-recovery-gallery',2)" aria-label="View image 3"></button>
+                <button type="button" class="gallery-dot" onclick="galleryGoto('specular-core-architectural-recovery-gallery',3)" aria-label="View image 4"></button>
+              </div>
+              <span class="gallery-counter" id="specular-core-architectural-recovery-gallery-counter">1 / 4</span>
+            </div>
+          </div>
+        </div>
+        <div class="project-info">
+          <div class="project-meta">
+            <span class="project-index">P-05</span>
+            <div class="project-tags">
+              <span class="tag highlight">DevOps</span>
+              <span class="tag">Docker</span>
+              <span class="tag">WSL2</span>
+              <span class="tag">Infrastructure</span>
+            </div>
+          </div>
+          <h2 class="project-title">SPECULAR-CORE — Infrastructure</h2>
+          <div class="project-role">Infrastructure Architect</div>
+          <p class="project-desc">A June 2026 recovery snapshot covering a compound Docker Desktop and Proton VPN failure across five services. It records four distinct failure modes — Hyper-V network collapse, volume isolation, NTFS venv corruption, and bridge routing breakdown — and the decision to remove Docker Desktop from this stack in favour of a native Linux Docker engine inside WSL2.
+</p>
+          <div class="project-result">
+            <span class="project-result-label">Result</span>
+            <p>Removed the Docker Desktop and Windows Hyper-V hop from the container-to-host path</p>
+          </div>
+          <details class="project-disclosure">
+            <summary><span>Technical detail</span><span aria-hidden="true">expand</span></summary>
+            <div class="project-disclosure-body">
+              <div class="spec-grid">
+            <div class="spec-cell"><div class="spec-label">Estate</div><div class="spec-value">5 services rebuilt from scratch</div></div>
+            <div class="spec-cell"><div class="spec-label">Platform</div><div class="spec-value">WSL2 Ubuntu / Native Linux Docker</div></div>
+            <div class="spec-cell"><div class="spec-label">Cost</div><div class="spec-value">£0</div></div>
+            <div class="spec-cell"><div class="spec-label">Root Causes</div><div class="spec-value">4 identified and resolved</div></div>
+            <div class="spec-cell"><div class="spec-label">Recovery Time</div><div class="spec-value">Under 45 minutes</div></div>
+            <div class="spec-cell"><div class="spec-label">Data Recovered</div><div class="spec-value">10 workbots, full RAG configuration</div></div>
+              </div>
+              <div class="tech-stack">
+            <span class="tech-pill">Docker Engine</span>
+            <span class="tech-pill">WSL2</span>
+            <span class="tech-pill">Ollama</span>
+            <span class="tech-pill">Open WebUI</span>
+            <span class="tech-pill">ComfyUI</span>
+            <span class="tech-pill">systemd</span>
+            <span class="tech-pill">PyTorch CUDA</span>
+            <span class="tech-pill">Uptime Kuma</span>
+            <span class="tech-pill">Portainer</span>
+              </div>
+              <div class="achievements">
+                <div class="achievement">All five services recovered with correct volume mounts and bridge routing</div>
+                <div class="achievement">Removed the Windows Hyper-V and Docker Desktop network path from the recovered stack</div>
+                <div class="achievement">Docker Desktop removed from the recorded boot and container path</div>
+              </div>
+            </div>
+          </details>
+          <div class="project-links">
+            <a href="/writing/specular-core-architectural-recovery/" class="proj-link primary">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Case Study
+            </a>
+            <a href="https://github.com/AtlasReaper311" class="proj-link" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>GitHub
+            </a>
+          </div>
+        </div>
+      </article>
+
       <!-- WORK_CARDS_INSERT_POINT -->
 
       </div>

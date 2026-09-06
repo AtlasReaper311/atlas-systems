@@ -123,9 +123,9 @@
     </header>
 
     <nav class="forge-depth-nav" aria-label="Spectral Forge depth">
-      <button type="button" data-depth="PLAY" aria-pressed="true"><span>01</span><strong>PLAY</strong><small>Experience the system</small></button>
-      <button type="button" data-depth="FORGE" aria-pressed="false"><span>02</span><strong>FORGE</strong><small>Shape the translation</small></button>
-      <button type="button" data-depth="ANALYSE" aria-pressed="false"><span>03</span><strong>ANALYSE</strong><small>Inspect what changed</small></button>
+      <button type="button" data-depth="PLAY" aria-pressed="true" aria-controls="forge-depth-play"><span>01</span><strong>PLAY</strong><small>Experience the system</small></button>
+      <button type="button" data-depth="FORGE" aria-pressed="false" aria-controls="forge-depth-forge"><span>02</span><strong>FORGE</strong><small>Shape the translation</small></button>
+      <button type="button" data-depth="ANALYSE" aria-pressed="false" aria-controls="forge-depth-analyse"><span>03</span><strong>ANALYSE</strong><small>Inspect what changed</small></button>
     </nav>
 
     <section class="forge-transport" aria-label="Scenario, transport, and audio controls">
@@ -146,7 +146,7 @@
       </div>
 
       <div class="forge-audio-controls">
-        <button class="forge-primary-control" id="audio-toggle" type="button">ENABLE AUDIO</button>
+        <button class="forge-primary-control" id="audio-toggle" type="button" aria-pressed="false">ENABLE AUDIO</button>
         <div class="forge-master-control">
           <span>MASTER <output id="master-level-label" for="master-level">−5.0 dB</output></span>
           <input id="master-level" type="range" min="0.18" max="0.78" step="0.01" value="0.56" aria-label="Master output level">
@@ -156,7 +156,7 @@
 
     <p class="forge-notice" id="forge-notice" role="status" aria-live="polite">SIMULATED · Synthetic deterministic telemetry · No production data connected</p>
 
-    <section class="forge-depth-panel forge-play" data-depth-panel="PLAY" aria-labelledby="play-heading">
+    <section class="forge-depth-panel forge-play" id="forge-depth-play" data-depth-panel="PLAY" aria-labelledby="play-heading">
       <h2 id="play-heading" class="sr-only">Play</h2>
       <figure class="forge-field-stage">
         <canvas id="play-field" role="img" aria-label="Spectral Field awaiting simulation"></canvas>
@@ -190,21 +190,15 @@
       </section>
     </section>
 
-    <section class="forge-depth-panel forge-work" data-depth-panel="FORGE" aria-labelledby="forge-heading" hidden>
-      <header class="forge-mode-heading">
-        <div><span class="forge-micro-label">FORGE</span><h2 id="forge-heading">Shape the translation between signal and sound.</h2></div>
+    <section class="forge-depth-panel forge-work" id="forge-depth-forge" data-depth-panel="FORGE" aria-labelledby="forge-heading" hidden>
+      <header class="forge-mode-heading forge-mode-heading--console">
+        <div class="forge-console-identity"><span class="forge-micro-label">FORGE</span><h2 id="forge-heading">Shape the translation between signal and sound.</h2></div>
         <div class="forge-compare" role="group" aria-label="Deterministic mapping comparison">
           <span class="forge-control-label">TELEMETRY IDENTICAL · MAPPING CHANGED</span>
           <div><button type="button" id="variant-a" aria-pressed="true">A <strong>BASELINE</strong></button><button type="button" id="variant-b" aria-pressed="false">B <strong>CANDIDATE</strong></button></div>
           <small>A <code id="fingerprint-a">--------</code> · B <code id="fingerprint-b">--------</code></small>
         </div>
-        <div class="forge-compare-actions"><button type="button" id="capture-baseline">CAPTURE B AS A</button><button type="button" id="copy-baseline">COPY A → B</button></div>
       </header>
-
-      <div class="forge-preset-bar">
-        <label><span>PRESET</span><select id="preset-select"></select></label>
-        <button type="button" id="save-preset">SAVE CANDIDATE</button><button type="button" id="delete-preset" hidden>DELETE PRESET</button>
-      </div>
 
       <div class="forge-workspace">
         <section class="forge-route-rack" aria-labelledby="routes-title">
@@ -237,41 +231,66 @@
           <header><span class="forge-micro-label">TRANSFORMATION</span><h3 id="route-inspector-title">Selected route</h3><small id="route-lock-state">A / BASELINE LOCKED</small></header>
           <div class="forge-transform-chain" id="transform-chain"></div>
           <svg class="forge-transform-curve" id="transform-curve" viewBox="0 0 220 120" role="img" aria-label="Selected route transformation curve"><path class="forge-curve-grid" d="M10 10V110H210M10 60H210M110 10V110"></path><path class="forge-curve-line" id="transform-curve-line" d="M10 110L210 10"></path></svg>
-          <div class="forge-inspector-controls">
+          <div class="forge-inspector-controls forge-inspector-controls--primary">
             <label>TRANSFORM<select id="mapping-transform"></select></label>
             <label>POLARITY<select id="mapping-polarity"></select></label>
             <label>SMOOTHING<select id="mapping-smoothing"></select></label>
-            <label>INPUT MIN<input id="mapping-input-min" type="number" min="0" max="0.99" step="0.01"></label>
-            <label>INPUT MAX<input id="mapping-input-max" type="number" min="0.01" max="1" step="0.01"></label>
-            <label>OUTPUT MIN<input id="mapping-output-min" type="number"></label>
-            <label>OUTPUT MAX<input id="mapping-output-max" type="number"></label>
           </div>
+          <details class="forge-inspector-bounds">
+            <summary>Range and bounds</summary>
+            <div class="forge-inspector-controls">
+              <label>INPUT MIN<input id="mapping-input-min" type="number" min="0" max="0.99" step="0.01"></label>
+              <label>INPUT MAX<input id="mapping-input-max" type="number" min="0.01" max="1" step="0.01"></label>
+              <label>OUTPUT MIN<input id="mapping-output-min" type="number"></label>
+              <label>OUTPUT MAX<input id="mapping-output-max" type="number"></label>
+            </div>
+          </details>
           <p id="mapping-explanation" class="forge-mapping-explanation"></p>
           <div class="forge-inspector-actions"><button type="button" id="mapping-bypass">BYPASS</button><button type="button" id="mapping-remove">REMOVE ROUTE</button></div>
         </section>
       </div>
+
+      <section class="forge-utility-strip" aria-labelledby="forge-utility-title">
+        <h3 id="forge-utility-title" class="sr-only">Mapping utilities</h3>
+        <div class="forge-preset-bar">
+          <label><span>PRESET</span><select id="preset-select"></select></label>
+          <button type="button" id="save-preset">SAVE CANDIDATE</button><button type="button" id="delete-preset" hidden>DELETE PRESET</button>
+        </div>
+        <div class="forge-compare-actions"><button type="button" id="capture-baseline">CAPTURE B AS A</button><button type="button" id="copy-baseline">COPY A → B</button></div>
+      </section>
     </section>
 
-    <section class="forge-depth-panel forge-analysis" data-depth-panel="ANALYSE" aria-labelledby="analyse-heading" hidden>
+    <section class="forge-depth-panel forge-analysis" id="forge-depth-analyse" data-depth-panel="ANALYSE" aria-labelledby="analyse-heading" hidden>
       <header class="forge-mode-heading forge-mode-heading--analysis">
         <div><span class="forge-micro-label">ANALYSE</span><h2 id="analyse-heading">Inspect what changed and why.</h2></div>
-        <div class="forge-analysis-switch" role="group" aria-label="Analysis view"><button type="button" data-analysis="SIGNAL" aria-pressed="true">SIGNAL</button><button type="button" data-analysis="AUDIO" aria-pressed="false">AUDIO</button></div>
+        <div class="forge-analysis-switch" role="group" aria-label="Emphasise a stage of the causal chain"><button type="button" data-analysis="SIGNAL" aria-pressed="true" aria-controls="analysis-stage-signal">SIGNAL</button><button type="button" data-analysis="AUDIO" aria-pressed="false" aria-controls="analysis-stage-audio">AUDIO</button></div>
       </header>
 
-      <div class="forge-analysis-view" data-analysis-panel="SIGNAL">
-        <section class="forge-analysis-primary" aria-labelledby="signal-analysis-title">
+      <section class="forge-causal-summary" aria-labelledby="causal-summary-title">
+        <h3 id="causal-summary-title" class="sr-only">Current causal state</h3>
+        <div><small>SCENARIO</small><strong id="summary-scenario">NORMAL LOAD</strong></div>
+        <div><small>TIME</small><strong id="summary-time">00:00.0</strong></div>
+        <div><small>PRIMARY DRIVER</small><strong id="summary-driver">—</strong></div>
+        <div class="forge-causal-summary__regime"><small>MATERIAL REGIME</small><strong id="summary-regime">COHERENT</strong></div>
+        <div><small>MATERIAL CONSEQUENCE</small><strong id="summary-material">—</strong></div>
+        <div><small>SONIC CONSEQUENCE</small><strong id="summary-sonic">—</strong></div>
+        <div><small>HEALTH</small><strong id="summary-health">STABLE</strong></div>
+      </section>
+
+      <div class="forge-analysis-view" data-analysis-panel="SIGNAL" id="analysis-stage-signal">
+        <section class="forge-analysis-primary forge-stage" data-stage="01" data-stage-name="RAW TELEMETRY → NORMALISATION" aria-labelledby="signal-analysis-title">
           <header><span class="forge-micro-label">SELECTED SIGNAL</span><h3 id="signal-analysis-title">Signal history</h3><label>SIGNAL<select id="analysis-signal-select"></select></label></header>
           <div class="forge-analysis-hero-value"><strong id="analysis-signal-value">0</strong><span id="analysis-signal-unit"></span><small>NORMALISED <b id="analysis-signal-normalised">0.000</b></small></div>
           <canvas id="analysis-signal-timeline" role="img" aria-label="Selected signal history"></canvas>
         </section>
-        <section class="forge-analysis-phase" aria-labelledby="analysis-phase-title"><span class="forge-micro-label">DETERMINISTIC RUN STATE</span><h3 id="analysis-phase-title">Current phase</h3><dl><div><dt>SCENARIO</dt><dd id="analysis-scenario">NORMAL LOAD</dd></div><div><dt>TIME</dt><dd id="analysis-time">00:00.0</dd></div><div><dt>HEALTH MODEL</dt><dd id="analysis-health">STABLE</dd></div><div><dt>PHASE</dt><dd id="analysis-phase">1 / 3</dd></div></dl><h4 id="analysis-phase-name">REFERENCE BASELINE</h4><p id="analysis-phase-description"></p><div id="analysis-chain" class="forge-analysis-chain"></div></section>
-        <section class="forge-signal-index" aria-labelledby="signal-index-title"><span class="forge-micro-label">SIGNAL INDEX</span><h3 id="signal-index-title">All synthetic telemetry</h3><div id="signal-index"></div></section>
+        <section class="forge-signal-index forge-stage" data-stage="01b" data-stage-name="ALL TELEMETRY" aria-labelledby="signal-index-title"><span class="forge-micro-label">SIGNAL INDEX</span><h3 id="signal-index-title">All synthetic telemetry</h3><div id="signal-index"></div></section>
+        <section class="forge-analysis-phase forge-stage" data-stage="02" data-stage-name="MATERIAL REGIME → SPATIAL RESPONSE" aria-labelledby="analysis-phase-title"><span class="forge-micro-label">DETERMINISTIC RUN STATE</span><h3 id="analysis-phase-title">Current phase</h3><dl><div><dt>SCENARIO</dt><dd id="analysis-scenario">NORMAL LOAD</dd></div><div><dt>TIME</dt><dd id="analysis-time">00:00.0</dd></div><div><dt>HEALTH MODEL</dt><dd id="analysis-health">STABLE</dd></div><div><dt>PHASE</dt><dd id="analysis-phase">1 / 3</dd></div></dl><h4 id="analysis-phase-name">REFERENCE BASELINE</h4><p id="analysis-phase-description"></p><div id="analysis-chain" class="forge-analysis-chain"></div></section>
       </div>
 
-      <div class="forge-analysis-view forge-audio-analysis" data-analysis-panel="AUDIO" hidden>
-        <section class="forge-audio-scope-panel" aria-labelledby="audio-scope-title"><span class="forge-micro-label">ACTUAL AUDIO OUTPUT</span><h3 id="audio-scope-title">Waveform and spectrum</h3><canvas id="audio-scope" role="img" aria-label="Audio analyser inactive until audio is enabled"></canvas><div class="forge-analysis-meter"><div><span><small>PEAK</small><strong id="analysis-peak">−∞ dBFS</strong></span><span><small>RMS</small><strong id="analysis-rms">−∞ dBFS</strong></span></div><div class="forge-meter" aria-hidden="true"><i id="analysis-meter-bar"></i><b id="analysis-meter-marker"></b><span>−1 dBFS sample bound</span></div></div></section>
-        <section class="forge-audio-parameters" aria-labelledby="audio-parameters-title"><span class="forge-micro-label">MAPPED SONIC STATE</span><h3 id="audio-parameters-title">Synthesis parameters</h3><div id="audio-parameter-list"></div><dl class="forge-audio-boundary"><div><dt>HARMONIC STATE</dt><dd id="audio-harmonic-state">CRYSTALLINE / OPEN FIFTH</dd></div><div><dt>SAFETY STAGE</dt><dd>SOFT CLIP + −1 dBFS SAMPLE BOUND</dd></div><div><dt>STEREO</dt><dd>TRUE MID / SIDE WIDTH</dd></div></dl></section>
-        <section class="forge-audio-field" aria-labelledby="audio-field-title"><span class="forge-micro-label">INTERPRETIVE VISUALISATION</span><h3 id="audio-field-title">Mapped Spectral Field</h3><figure class="forge-field-stage forge-field-stage--analysis"><canvas id="analysis-field" role="img" aria-label="Mapped Spectral Field"></canvas></figure></section>
+      <div class="forge-analysis-view forge-audio-analysis" data-analysis-panel="AUDIO" id="analysis-stage-audio">
+        <section class="forge-audio-parameters forge-stage" data-stage="03" data-stage-name="MAPPING → SONIC PARAMETER" aria-labelledby="audio-parameters-title"><span class="forge-micro-label">MAPPED SONIC STATE</span><h3 id="audio-parameters-title">Synthesis parameters</h3><div id="audio-parameter-list"></div><dl class="forge-audio-boundary"><div><dt>HARMONIC STATE</dt><dd id="audio-harmonic-state">CRYSTALLINE / OPEN FIFTH</dd></div><div><dt>SAFETY STAGE</dt><dd>SOFT CLIP + −1 dBFS SAMPLE BOUND</dd></div><div><dt>STEREO</dt><dd>TRUE MID / SIDE WIDTH</dd></div></dl></section>
+        <section class="forge-audio-scope-panel forge-stage" data-stage="04" data-stage-name="GENERATED → ACTUAL OUTPUT" aria-labelledby="audio-scope-title"><span class="forge-micro-label">GENERATED SOUND / ACTUAL OUTPUT</span><h3 id="audio-scope-title">Waveform and spectrum</h3><p class="forge-stage-note">The scope shows what the synthesis is generating, before mute. The meter shows what reaches the listener, after mute and the safety stage.</p><canvas id="audio-scope" role="img" aria-label="Audio analyser inactive until audio is enabled"></canvas><div class="forge-analysis-meter"><div><span><small>PEAK</small><strong id="analysis-peak">−∞ dBFS</strong></span><span><small>RMS</small><strong id="analysis-rms">−∞ dBFS</strong></span></div><div class="forge-meter" aria-hidden="true"><i id="analysis-meter-bar"></i><b id="analysis-meter-marker"></b><span>−1 dBFS sample bound</span></div></div></section>
+        <section class="forge-audio-field forge-stage" data-stage="05" data-stage-name="MAPPED FIELD" aria-labelledby="audio-field-title"><span class="forge-micro-label">INTERPRETIVE VISUALISATION</span><h3 id="audio-field-title">Mapped Spectral Field</h3><figure class="forge-field-stage forge-field-stage--analysis"><canvas id="analysis-field" role="img" aria-label="Mapped Spectral Field"></canvas></figure></section>
       </div>
     </section>
   </main>
