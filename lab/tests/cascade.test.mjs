@@ -13,6 +13,9 @@ import {
 const html = readFileSync(new URL("../cascade/index.html", import.meta.url), "utf8");
 const source = readFileSync(new URL("../cascade/cascade.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../cascade/cascade.css", import.meta.url), "utf8");
+const headers = readFileSync(new URL("../../_headers", import.meta.url), "utf8");
+const sitemap = readFileSync(new URL("../../sitemap.xml", import.meta.url), "utf8");
+const sitemapGenerator = readFileSync(new URL("../../scripts/generate_sitemap.py", import.meta.url), "utf8");
 
 test("baseline is exact, synthetic, and stable", () => {
   const first = createBaselineState();
@@ -93,6 +96,15 @@ test("all fault types are deterministic for both prototype roots", () => {
       assert.match(stateSummary(first), new RegExp(`Root fault: ${node} ${type}`));
     }
   }
+});
+
+test("unpublished CASCADE route stays outside index and social-card graphs", () => {
+  assert.match(html, /<meta name="robots" content="noindex, follow">/);
+  assert.doesNotMatch(html, /property="og:image"/);
+  assert.doesNotMatch(html, /name="twitter:image"/);
+  assert.match(headers, /\/lab\/cascade\/\*[\s\S]*X-Robots-Tag: noindex, follow/);
+  assert.doesNotMatch(sitemap, /\/lab\/cascade\//);
+  assert.doesNotMatch(sitemapGenerator, /\/lab\/cascade\//);
 });
 
 test("page exposes the micro-lab evidence and interaction contract", () => {
