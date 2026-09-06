@@ -37,6 +37,22 @@ test("the Writing source owns the complete scheduler series attribute contract",
   assert.match(script, /Invalid scheduler-owned Writing series metadata/);
 });
 
+test("an upcoming mini-series is projected with every part before publication", () => {
+  const cards = writing.match(
+    /<a\b[^>]*class="article-entry coming-soon"[^>]*data-series="ramone-voice-assistant"[^>]*>/g,
+  ) || [];
+  assert.equal(cards.length, 2);
+  for (const [index, card] of cards.entries()) {
+    const part = 2 - index;
+    assert.match(card, new RegExp(`data-series-part="${part}"`));
+    assert.match(card, /data-series-total="2"/);
+    assert.match(card, /data-series-title="Ramone Voice Assistant"/);
+    assert.match(card, /data-series-note="2 parts · 24–26 September 2026"/);
+    assert.match(card, /data-series-publish-date="2026-09-2[46]"/);
+  }
+  assert.match(writing, /id="series-ramone-voice-assistant"/);
+});
+
 test("series refresh is observer-idempotent", () => {
   assert.match(script, /var observers = \[\];/);
   assert.match(script, /function disconnectObservers\(\)/);

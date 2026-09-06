@@ -95,7 +95,7 @@ export function createPhysicalFissionState() {
     result: {
       active: false, stressDriven: false, progress: 0, phase: "idle", count: 0,
       gather: 0, pinch: 0, lobe: 0, gap: 0, scar: 0, reach: 0,
-      axis: null, daughters: null, extent: 1.14, independent: false,
+      axis: null, daughters: null, extent: 1.14, lookahead: 1.14, independent: false,
     },
     scratchTangent: { x: 1, y: 0, z: 0 },
   };
@@ -105,16 +105,6 @@ const IDLE_FISSION = Object.freeze({
   active: false, stressDriven: false, count: 0,
   daughters: Object.freeze([]), extent: 1.14, phase: "idle",
 });
-
-function resetForBackwardTime(state, lifeTime) {
-  state.active = false;
-  state.progress = 0;
-  state.lastLifeTime = lifeTime;
-  state.cooldownUntil = lifeTime;
-  state.startDrive = 0;
-  state.count = 0;
-  state.scarRecorded = false;
-}
 
 function chooseAxis(state, physical, seedPhase) {
   const material = physical?.material;
@@ -216,6 +206,19 @@ function buildStressFission(state, physical, drive) {
     if (item.independent) independent = true;
   }
 
+  /* Where the separation is going, not only where it is. Without this the
+   * framing reacted after material had already travelled, so a daughter could
+   * reach the edge of the stage before the camera acknowledged it. The peak of
+   * the excursion is known from the event's own parameters, so anticipating it
+   * costs nothing and needs no prediction. */
+  let lookahead = extent;
+  for (let i = 0; i < state.count; i += 1) {
+    const item = state.daughters[i];
+    if (item.scale <= 0.004 && progress > 0.5) continue;
+    const size = Math.max(item.scale, i === 0 ? state.primaryScale : state.secondaryScale);
+    lookahead = Math.max(lookahead, state.peakDistance + size * 1.1);
+  }
+
   const result = state.result;
   result.active = true;
   result.stressDriven = true;
@@ -231,6 +234,7 @@ function buildStressFission(state, physical, drive) {
   result.axis = state.axis;
   result.daughters = state.daughters;
   result.extent = extent;
+  result.lookahead = lookahead;
   result.independent = independent;
   return result;
 }
@@ -248,7 +252,14 @@ export function stepPhysicalFission(state, {
   const now = Math.max(0, Number.isFinite(lifeTime) ? lifeTime : 0);
   const drive = physicalFissionEnvelope(physical);
 
-  if (model.lastLifeTime != null && now + 0.0001 < model.lastLifeTime) resetForBackwardTime(model, now);
+  /* A backward stamp is renderer bookkeeping, not a physical event. Cancelling
+   * an in-flight separation here is what made a cascade restart from `gather`
+   * three times in one run and never reach `settle`. Hold the separation, adopt
+   * the stamp, and let the next forward step continue it. */
+  if (model.lastLifeTime != null && now + 0.0001 < model.lastLifeTime) {
+    model.lastLifeTime = now;
+    return model.active ? model.result : IDLE_FISSION;
+  }
   /* Separation progress advances by elapsed time, not a clamped frame budget: a
    * slow renderer must not make the split itself run in slow motion. */
   const dt = model.lastLifeTime == null
@@ -317,10 +328,20 @@ export function readFissionEvidence(fission) {
   };
 }
 
+/* Daughters are the same material as the parent, so they must be given the
+ * parent's uniform state as it stands *after* the physical layer has written its
+ * material sites. The copy used to be taken during the draw, before those sites
+ * existed, which left a body torn out of a fracturing organism rendering as a
+ * clean sphere with none of the damage it was made from.
+ *
+ * The renderer owns the copy itself and hands it over on the state object; this
+ * module cannot import it directly without eagerly pulling in three.js and
+ * breaking the Canvas2D fallback for browsers with no WebGL2. */
 function setFissionChildren(webglState, fission) {
   const daughters = fission?.daughters;
   const children = webglState.fissionChildren;
   if (!children) return;
+  webglState.syncDaughterMaterial?.();
   for (let index = 0; index < Math.min(MAX_DAUGHTERS, children.length); index += 1) {
     const mesh = children[index];
     const item = index < (fission?.count ?? 0) ? daughters?.[index] : null;

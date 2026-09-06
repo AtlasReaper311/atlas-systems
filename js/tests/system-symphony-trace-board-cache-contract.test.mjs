@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-const boardKey = "20260728-system-symphony-trace-board-v1";
+const boardKey = "20260831-system-symphony-heading-clearance-v1";
 const pageKey = "20260728-system-symphony-trace-pr160-v1";
 const read = (path) => readFileSync(path, "utf8");
 

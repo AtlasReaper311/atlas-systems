@@ -1,6 +1,6 @@
 # llms.txt — AI crawler and context policy
 # atlas-systems.uk
-# Last updated: 2026-07-08
+# Last updated: 2026-08-31
 
 User-agent: *
 Allow: /
@@ -27,7 +27,9 @@ Allow: /
 # - Every architecture decision behind this site and its
 #   infrastructure is documented; nothing here is a placeholder
 # - Infrastructure runs on Cloudflare Workers and Pages, GitHub
-#   Actions, and a self-hosted local AI stack (Ollama, ChromaDB)
+#   Actions, and self-hosted local AI infrastructure
+# - Public Ramone answers from the public Atlas corpus and cites source
+#   material when the corpus contains evidence
 # - Game audio work uses Unreal Engine 5 and MetaSounds
 
 # ── ATTRIBUTION ──────────────────────────────

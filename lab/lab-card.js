@@ -18,7 +18,7 @@
        - `match`   : RegExp tested against the lowercased question
        - `reply`   : single string  OR
        - `replies` : array of strings (one is picked at random)
-       - `sources` : optional [{ id, preview }] shown as fake citation chips
+       - `sources` : legacy metadata kept out of the UI for local replies
        - `thinking`: optional array of funny "processing" lines shown
                      briefly before the reply streams (one is picked).
                      If omitted, a random global THINKING line is used.
@@ -259,7 +259,7 @@
     /* ---- am I ChatGPT ---- */
     { match: /\b(are you (chatgpt|gpt|claude|gemini|copilot|openai|grok))\b/i,
       replies: [
-        "No. I'm llama3.1:8b running locally on an RTX 5070. No API keys, no third-party inference, no surveillance. Just me, the docs, and a tunnel.",
+        "No. I'm qwen3.5-mtp running locally on an RTX 5070. No API keys, no third-party inference, no surveillance. Just me, the docs, and a tunnel.",
         "Absolutely not. I live in a box on Reaper's desk, not a data centre in Nevada.",
         "Different vintage. Same general idea, smaller carbon footprint, much worse jokes.",
       ],
@@ -606,9 +606,9 @@
      BOOT log — typed on load
      ===================================================================== */
   const BOOT = [
-    ['<span class="acc">RAMONE/OS v8.1</span> &mdash; cold start', 0],
+    ['<span class="acc">RAMONE/OS v9.0</span> &mdash; cold start', 0],
     ['[<span class="ok">ok</span>] waking specular-core <span class="by">· gpu RTX 5070 warm</span>', 150],
-    ['[<span class="ok">ok</span>] pouring llama3.1:8b into memory <span class="by">· 8.0B params</span>', 150],
+    ['[<span class="ok">ok</span>] pouring qwen3.5-mtp into memory <span class="by">· 9.2B params</span>', 150],
     ['[<span class="ok">ok</span>] cloudflare tunnel <span class="acc">established</span>', 140],
     ['[<span class="ok">ok</span>] reading the docs again, just in case', 140],
     ['[<span class="ok">ok</span>] consciousness: <span class="acc">nominal</span> · ready to chat', 150],
@@ -812,7 +812,7 @@ function getRandomMusing() {
     card.classList.toggle("awake", awake);
     card.classList.toggle("asleep", !awake);
     if (stateLabel) {
-      stateLabel.textContent = awake ? "awake · llama3.1:8b · RTX 5070" : "asleep · powered down";
+      stateLabel.textContent = awake ? "awake · qwen3.5-mtp · RTX 5070" : "asleep · powered down";
     }
   }
   async function pollStatus() {
@@ -893,9 +893,10 @@ function getRandomMusing() {
     let firstTokenAt = null;
     let totalChars = 0;
 
-    function finish() {
+    function finish(kind) {
       cursor.remove();
       const parts = [];
+      if (kind) parts.push(kind);
       if (firstTokenAt !== null) parts.push(`first token ${Math.round(firstTokenAt - startedAt)}ms`);
       parts.push(`total ${Math.round(performance.now() - startedAt)}ms`);
       parts.push(`${totalChars} chars`);
@@ -961,10 +962,9 @@ function getRandomMusing() {
       }
 
       function streamReply() {
-        if (egg.sources) renderSources(egg.sources);
         let i = 0;
         (function tick() {
-          if (i >= reply.length) { finish(); cleanup(); return; }
+          if (i >= reply.length) { finish("personality response · local · no evidence"); cleanup(); return; }
           const step = 2 + Math.floor(Math.random() * 3);
           const chunk = reply.slice(i, i + step);
           textNode.data += chunk;
@@ -1040,14 +1040,60 @@ function getRandomMusing() {
   function renderSources(sources) {
     sourcesEl.innerHTML = "";
     sources.forEach((s, i) => {
-      const tag = document.createElement("span");
+      const href = s && typeof s.url === "string" ? s.url : "";
+      const tag = document.createElement(href ? "a" : "span");
       tag.className = "src";
-      const id = (s && typeof s.id === "string" ? s.id : "source")
-        .replace(/[<>&"']/g, (c) => ({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;","'":"&#039;"}[c]));
-      tag.innerHTML = `<strong>[${i + 1}]</strong> ${id}`;
-      if (s && s.preview) tag.title = s.preview;
+      if (href) {
+        tag.href = href;
+        tag.rel = "noopener noreferrer";
+      }
+      const title = sourceText(s && s.title, sourceText(s && s.id, "source"));
+      const meta = sourceMeta(s);
+      const preview = sourcePreview(s && s.preview);
+      const index = document.createElement("strong");
+      index.textContent = `[${i + 1}]`;
+      const label = document.createElement("span");
+      label.className = "ramone-mini-source-title";
+      label.textContent = title;
+      tag.append(index, label);
+      if (meta) {
+        const metaEl = document.createElement("span");
+        metaEl.className = "ramone-mini-source-meta";
+        metaEl.textContent = meta;
+        tag.appendChild(metaEl);
+      }
+      if (preview) {
+        const previewEl = document.createElement("span");
+        previewEl.className = "ramone-mini-source-preview";
+        previewEl.textContent = preview;
+        tag.appendChild(previewEl);
+        tag.title = preview;
+      }
+      tag.setAttribute("aria-label", `source ${i + 1}: ${title}`);
       sourcesEl.appendChild(tag);
     });
+  }
+
+  function sourceText(value, fallback) {
+    return typeof value === "string" && value.trim() ? value.trim() : fallback;
+  }
+
+  function sourceMeta(source) {
+    if (!source) return "";
+    const repo = sourceText(source.repo, "");
+    const path = sourceText(source.path, "");
+    const section = sourceText(source.heading, "");
+    const type = sourceText(source.doc_type, "");
+    return [repo && path ? `${repo}/${path}` : repo || path, section, type]
+      .filter(Boolean)
+      .slice(0, 3)
+      .join(" · ");
+  }
+
+  function sourcePreview(value) {
+    const text = sourceText(value, "");
+    if (!text) return "";
+    return text.length > 180 ? text.slice(0, 179).trimEnd() + "…" : text;
   }
 
   updateCharCount();

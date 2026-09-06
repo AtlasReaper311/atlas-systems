@@ -8,6 +8,14 @@ export const MASTER_MIN = 0.18;
 export const MASTER_MAX = 0.78;
 export const MASTER_DEFAULT = 0.56;
 
+/* Lookahead scheduling. The timer wakes often; the window it fills is what keeps
+ * the grid intact when a wake-up is late. */
+export const PULSE_TIMER_MS = 25;
+export const PULSE_LOOKAHEAD_SECONDS = 0.12;
+/* A gap longer than this means the transport was suspended rather than delayed,
+ * so the grid restarts instead of trying to catch up through it. */
+export const PULSE_MAX_CATCHUP_SECONDS = 1.5;
+
 export function normaliseTarget(id, value) {
   const target = TARGET_BY_ID[id];
   if (!target) throw new TypeError(`Unknown audio target: ${id}`);
@@ -181,13 +189,33 @@ export class SpectralForgeAudioEngine {
     this.analyser.fftSize = 2048;
     this.analyser.smoothingTimeConstant = 0.72;
 
+    /* Two analysers, because muting answers two different questions.
+     *
+     * The output meter must tell the truth: muted means silence reaches the
+     * listener, and the meter should say so. But ANALYSE exists to explain what
+     * the instrument is doing, and taking its evidence from after the master
+     * gain meant muting blanked the one surface that could still explain the
+     * sound. The generated tap sits before the master so the synthesised state
+     * stays inspectable while the output is genuinely silent. */
+    this.generatedAnalyser = context.createAnalyser();
+    this.generatedAnalyser.fftSize = 2048;
+    this.generatedAnalyser.smoothingTimeConstant = 0.72;
+    this.widthOutput.connect(this.generatedAnalyser);
+
     this.widthOutput.connect(this.master).connect(this.softClipper).connect(this.ceiling).connect(this.analyser).connect(context.destination);
 
     this.primary.oscillator.start();
     this.harmonic.oscillator.start();
     this.shimmer.oscillator.start();
     this.noiseSource.start();
-    this.pulseTimer = setInterval(() => this.schedulePulse(), 24);
+    /* The rhythm is scheduled against the audio clock with a lookahead window,
+     * not emitted by the timer itself. The timer only asks "is anything due in
+     * the next slice?", so a callback delayed by main-thread work - which the
+     * WebGL renderer produces in quantity - loses no pulse and shifts no phase.
+     * The previous form scheduled one pulse per callback and, when late,
+     * discarded what it had missed and reset the grid, which let graphics load
+     * audibly disturb the beat. */
+    this.pulseTimer = setInterval(() => this.schedulePulse(), PULSE_TIMER_MS);
   }
 
   async activate(level = MASTER_DEFAULT) {

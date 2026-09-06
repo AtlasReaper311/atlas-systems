@@ -167,7 +167,16 @@ export function stepPhysicalState(model, {
   const subSteps = Math.min(MAX_SUB_STEPS, Math.max(1, Math.ceil(elapsed / MAX_SUB_STEP_SECONDS)));
   const dt = elapsed / subSteps;
 
-  if (!first && rawDt < -0.001) resetPhysicalStateModel(model);
+  /* Time running backwards means a renderer handed us a stale stamp, not that
+   * the organism restarted. Skipping the advance preserves fracture charge,
+   * retained damage, scars and material sites; erasing them here destroyed a
+   * cascade mid-fracture whenever a panel resized. Deliberate restarts own the
+   * reset: RESET clears organismLife.physical, so the next step builds a fresh
+   * model rather than reusing this one. */
+  if (!first && rawDt < -0.001) {
+    model.lastLifeTime = now;
+    return publishSnapshot(model);
+  }
 
   const signals = model.signals;
   const previous = model.previousSignals;
