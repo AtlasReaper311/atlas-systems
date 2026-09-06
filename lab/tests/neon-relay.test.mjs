@@ -16,6 +16,7 @@ import {
 const html = readFileSync(new URL("../neon-relay/index.html", import.meta.url), "utf8");
 const source = readFileSync(new URL("../neon-relay/neon-relay.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../neon-relay/neon-relay.css", import.meta.url), "utf8");
+const headers = readFileSync(new URL("../../_headers", import.meta.url), "utf8");
 
 test("baseline is deterministic and Ignition isolates the lower feeder", () => {
   const first = createCircuitState();
@@ -129,6 +130,8 @@ test("page presents challenges rather than generic presets and hides assistive s
   assert.match(html, />DUAL BUS</);
   assert.match(html, />BYPASS</);
   assert.match(html, />INTERLOCK</);
+  assert.match(html, /<meta name="robots" content="noindex, follow">/);
+  assert.match(headers, /\/lab\/neon-relay\/\*[\s\S]*?X-Robots-Tag: noindex, follow/);
   assert.match(html, /id="nr-hint-toggle"/);
   assert.match(html, /id="nr-next"/);
   assert.match(html, /id="nr-state-summary"/);
