@@ -132,6 +132,8 @@ test("page presents challenges rather than generic presets and hides assistive s
   assert.match(html, /id="nr-hint-toggle"/);
   assert.match(html, /id="nr-next"/);
   assert.match(html, /id="nr-state-summary"/);
+  assert.match(css, /\.nr-hint-toggle\{[^}]*min-width:44px/);
+  assert.match(css, /\.nr-hint-toggle\{[^}]*min-height:44px/);
   assert.match(css, /\.visually-hidden\{/);
   assert.match(css, /clip:rect\(0,0,0,0\)/);
 });
