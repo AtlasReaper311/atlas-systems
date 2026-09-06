@@ -206,6 +206,7 @@ function renderPackets() {
     dot.classList.add("consensus-packet-dot");
     dot.dataset.kind = kind;
     dot.setAttribute("cx", String(point.x)); dot.setAttribute("cy", String(point.y)); dot.setAttribute("r", "6");
+    dot.setAttribute("filter", "url(#consensus-glow)");
     const text = createSvgElement("text");
     text.classList.add("consensus-packet-label");
     text.setAttribute("x", String(point.x + 10)); text.setAttribute("y", String(point.y - 10));

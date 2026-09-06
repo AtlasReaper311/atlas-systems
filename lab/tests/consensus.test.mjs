@@ -154,3 +154,18 @@ test("visual system is calm by default and stronger only for slow or isolated li
   assert.match(css, /@media\(max-width:680px\)/);
   assert.match(css, /@media\(prefers-reduced-motion:reduce\)/);
 });
+
+test("packet glow stays on the HTML SVG filter instead of a CSS fragment URL", () => {
+  assert.match(html, /<filter id="consensus-glow"/);
+  assert.match(js, /dot\.setAttribute\("filter", "url\(#consensus-glow\)"\)/);
+  assert.doesNotMatch(css, /url\(#/);
+});
+
+test("Consensus remains a reviewed non-indexed Lab route", () => {
+  const headers = readFileSync(new URL("../../_headers", import.meta.url), "utf8");
+  assert.match(html, /<meta name="robots" content="noindex, follow">/);
+  assert.match(headers, /\/lab\/consensus\/\*[\s\S]*X-Robots-Tag: noindex, follow/);
+  assert.doesNotMatch(html, /property="og:image"/);
+  assert.doesNotMatch(html, /name="twitter:image"/);
+  assert.match(css, /--c-faint:#888894/);
+});
