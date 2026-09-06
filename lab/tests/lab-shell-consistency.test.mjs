@@ -33,6 +33,7 @@ const CANONICAL_LAB_ROUTES = [
 
 const NON_INDEXED_LAB_ROUTES = [
   "/lab/console/",
+  "/lab/consensus/",
   "/lab/system-symphony/roms/",
   "/lab/system-symphony/build-log/",
   "/lab/system-symphony/radio/",
