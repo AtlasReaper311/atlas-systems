@@ -15,7 +15,9 @@ export const STANDARD_VIEWPORTS = Object.freeze([
 export const SEMANTIC_VIEWPORT_NAMES = Object.freeze(["375", "1440"]);
 export const NON_INDEXED_ROUTES = Object.freeze([
   "/lab/console/",
+  "/lab/cascade/",
   "/lab/consensus/",
+  "/lab/neon-relay/",
   "/lab/system-symphony/roms/",
   "/lab/system-symphony/build-log/",
   "/lab/system-symphony/radio/",

@@ -11,7 +11,13 @@
 /lab/console/*
   X-Robots-Tag: noindex, follow
 
+/lab/cascade/*
+  X-Robots-Tag: noindex, follow
+
 /lab/consensus/*
+  X-Robots-Tag: noindex, follow
+
+/lab/neon-relay/*
   X-Robots-Tag: noindex, follow
 
 /static/vendor/atlas-interface/*
