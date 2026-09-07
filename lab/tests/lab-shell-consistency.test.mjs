@@ -34,6 +34,8 @@ const CANONICAL_LAB_ROUTES = [
 const NON_INDEXED_LAB_ROUTES = [
   "/lab/console/",
   "/lab/cascade/",
+  "/lab/consensus/",
+  "/lab/neon-relay/",
   "/lab/system-symphony/roms/",
   "/lab/system-symphony/build-log/",
   "/lab/system-symphony/radio/",
@@ -123,6 +125,8 @@ test("standard and experimental route entrypoints all reach the shared shell", (
     "lab/almost/almost.js",
     "lab/drift/drift.js",
     "lab/cascade/cascade.js",
+    "lab/consensus/consensus.js",
+    "lab/neon-relay/neon-relay.js",
   ];
   for (const path of routeModules) {
     assert.match(fs.readFileSync(path, "utf8"), /\.\.\/shared\/shell\.js/, `${path} shell entrypoint`);

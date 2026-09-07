@@ -34,7 +34,8 @@ const CHROME_EXEMPT_ROUTES = new Set([
 // strip beneath the global header.
 const LAB_SHELL_ROUTES = Object.freeze([
   "lab/almost/index.html", "lab/anomaly/index.html", "lab/bearing/index.html",
-  "lab/blackbox/index.html", "lab/conformance/index.html", "lab/console/index.html",
+  "lab/blackbox/index.html", "lab/conformance/index.html", "lab/consensus/index.html",
+  "lab/console/index.html",
   "lab/drift/index.html", "lab/index.html", "lab/proof-chain/index.html",
   "lab/signal/index.html", "lab/spectral-forge/index.html", "lab/speculum/index.html",
   "lab/system-map/index.html", "lab/system-symphony/build-log/index.html",

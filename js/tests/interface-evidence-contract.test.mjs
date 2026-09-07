@@ -35,6 +35,8 @@ test("the evidence inventory is derived from every current sitemap route plus re
   for (const route of [
     "/lab/console/",
     "/lab/cascade/",
+    "/lab/consensus/",
+    "/lab/neon-relay/",
     "/lab/system-symphony/roms/",
     "/lab/system-symphony/build-log/",
     "/lab/system-symphony/radio/",
