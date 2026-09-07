@@ -3,7 +3,6 @@ import "../../static/js/interaction-target-contract.js";
 import {
   MODE_EVENTUAL,
   MODE_QUORUM,
-  NETWORK_CLEAN,
   NETWORK_ISOLATE_C,
   NETWORK_SLOW_B,
   advanceConsensus,
