@@ -11,6 +11,9 @@
 /lab/console/*
   X-Robots-Tag: noindex, follow
 
+/lab/neon-relay/*
+  X-Robots-Tag: noindex, follow
+
 /static/vendor/atlas-interface/*
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable
