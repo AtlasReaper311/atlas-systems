@@ -130,3 +130,37 @@ test("production deploy verifies visible homepage AtlasField pixels", () => {
   assert.match(smoke, /luminousPixels >= 8/);
   assert.match(smoke, /heroState, "ready"/);
 });
+
+test("production smoke assertions run before evidence artifact publication", () => {
+  const workflow = fs.readFileSync(".github/workflows/deploy.yml", "utf8");
+  const verifyStart = workflow.indexOf("verify-production:");
+  const refreshStart = workflow.indexOf("refresh-corpus:");
+  assert.ok(verifyStart >= 0, "verify-production job is missing");
+  assert.ok(refreshStart > verifyStart, "refresh-corpus must follow verify-production");
+
+  const job = workflow.slice(verifyStart, refreshStart);
+  const homepageSmoke = job.indexOf("node scripts/smoke_homepage_atlas_field_production.mjs");
+  const symphonySmoke = job.indexOf("node scripts/smoke_system_symphony_production.mjs");
+  const homepageUpload = job.indexOf("name: Upload production homepage AtlasField evidence");
+  const symphonyUpload = job.indexOf("name: Upload production System Symphony evidence");
+
+  assert.ok(homepageSmoke >= 0, "homepage AtlasField smoke is missing");
+  assert.ok(symphonySmoke >= 0, "System Symphony smoke is missing");
+  assert.ok(homepageUpload >= 0, "homepage AtlasField evidence upload is missing");
+  assert.ok(symphonyUpload >= 0, "System Symphony evidence upload is missing");
+  assert.ok(
+    homepageSmoke < homepageUpload && homepageSmoke < symphonyUpload,
+    "homepage smoke must run before either evidence artifact upload",
+  );
+  assert.ok(
+    symphonySmoke < homepageUpload && symphonySmoke < symphonyUpload,
+    "System Symphony smoke must run before either evidence artifact upload",
+  );
+
+  const homepageUploadBlock = job.slice(homepageUpload, symphonyUpload);
+  const symphonyUploadBlock = job.slice(symphonyUpload);
+  assert.match(homepageUploadBlock, /if: always\(\)/);
+  assert.match(homepageUploadBlock, /if-no-files-found: error/);
+  assert.match(symphonyUploadBlock, /if: always\(\)/);
+  assert.match(symphonyUploadBlock, /if-no-files-found: error/);
+});
