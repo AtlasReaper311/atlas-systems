@@ -18,7 +18,7 @@ const engine = readFileSync("static/js/sonify/engine.js", "utf8");
 
 test("System Symphony has a dedicated canonical product page", () => {
   assert.ok(page.includes('<link rel="canonical" href="https://atlas-systems.uk/lab/system-symphony/">'));
-  assert.ok(page.includes("System SYMPHONY"));
+  assert.ok(page.includes("System Symphony"));
   assert.ok(page.includes("NOW PLAYING"));
   assert.ok(page.includes("sample-free fictional chip"));
   assert.ok(page.includes("Atlas APU-01"));

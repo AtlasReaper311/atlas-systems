@@ -227,7 +227,7 @@ async function initialiseRomLibrary() {
     setStatus(`${validCount} static cartridge(s) and ${incidentArchive.incidentArcs.length} incident arc(s) loaded. All are labelled fixture evidence until live persistence is approved.`);
   } catch (error) {
     console.warn("system-symphony-rom-library: archive unavailable", error);
-    setStatus("Static ROM archive is unavailable. Live System SYMPHONY behavior is unchanged.");
+    setStatus("Static ROM archive is unavailable. Live System Symphony behavior is unchanged.");
   }
 }
 

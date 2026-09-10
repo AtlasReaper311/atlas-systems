@@ -31,7 +31,7 @@ test("Lab presents System Symphony and Spectral Forge as complementary audio fla
   assert.match(html, /Listen to a system\. Design how it becomes sound\./);
   assert.match(html, /href="\/lab\/system-symphony\/"/);
   assert.match(html, /href="\/lab\/spectral-forge\/"/);
-  assert.match(html, /System SYMPHONY interprets bounded estate state/);
+  assert.match(html, /System Symphony interprets bounded estate state/);
   assert.match(html, /Spectral Forge exposes the translation itself as a deterministic simulated instrument/);
 });
 
@@ -48,8 +48,8 @@ test("shared counterpart module gives the two root instruments a LISTEN and DESI
   assert.match(module, /"\/lab\/system-symphony\/"/);
   assert.match(module, /href: "\/lab\/spectral-forge\/"/);
   assert.match(module, /family: "LISTEN"/);
-  assert.match(module, /prefix: "SYSTEM"/);
-  assert.match(module, /signature: "SYMPHONY"/);
+  assert.match(module, /prefix: "System"/);
+  assert.match(module, /signature: "Symphony"/);
   assert.match(module, /counterpartFamily: "DESIGN"/);
   assert.match(module, /"\/lab\/spectral-forge\/"/);
   assert.match(module, /href: "\/lab\/system-symphony\/"/);
