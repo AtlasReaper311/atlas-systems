@@ -168,3 +168,10 @@ test("the executable shell contract blocks disconnected or obscured Lab pages", 
   assert.match(shellContract, /dataset\.labShellContract = "fail"/);
   assert.match(shellContract, /console\.error/);
 });
+
+test("heading clearance remains strict at entry without treating normal scroll as overlap", () => {
+  assert.match(shell, /const scrollY = Math\.max\(0, window\.scrollY \|\| 0\)/);
+  assert.match(shell, /scrollY <= SHELL_TOLERANCE_PX[\s\S]*headingRect\.top < contextRect\.bottom \+ 8/);
+  assert.match(shellContract, /const scrollY = Math\.max\(0, window\.scrollY \|\| 0\)/);
+  assert.match(shellContract, /scrollY <= LAB_SHELL_TOLERANCE_PX[\s\S]*headingRect\.top < contextRect\.bottom \+ 8/);
+});

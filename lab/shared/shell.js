@@ -716,6 +716,7 @@ function inspectLabShell(root = document) {
   const contextRect = roundedRect(context);
   const headingRect = roundedRect(heading);
   const bodyPaddingTop = Number.parseFloat(getComputedStyle(document.body).paddingTop) || 0;
+  const scrollY = Math.max(0, window.scrollY || 0);
   const layout = document.body.dataset.labLayout || "";
   const contextMode = context?.dataset.labContextMode || "";
   const failures = [];
@@ -747,7 +748,15 @@ function inspectLabShell(root = document) {
       failures.push({ rule: "no-gap-between-header-and-context-navigation", header: headerRect, context: contextRect });
     }
   }
-  if (contextRect && headingRect && headingRect.top < contextRect.bottom + 8) {
+  // Heading clearance is an entry-layout invariant. Once the document has
+  // scrolled, the fixed context navigation is expected to pass over the
+  // heading as it leaves the viewport and must not be treated as overlap.
+  if (
+    scrollY <= SHELL_TOLERANCE_PX
+    && contextRect
+    && headingRect
+    && headingRect.top < contextRect.bottom + 8
+  ) {
     failures.push({ rule: "heading-clears-context-navigation", context: contextRect, heading: headingRect });
   }
   return {
@@ -755,6 +764,7 @@ function inspectLabShell(root = document) {
     layout,
     contextMode,
     bodyPaddingTop,
+    scrollY,
     header: headerRect,
     context: contextRect,
     main: roundedRect(main),
