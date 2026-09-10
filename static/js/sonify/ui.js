@@ -122,7 +122,7 @@ function template() {
       <div class="symphony-widget__topline">
         <div>
           <p class="symphony-kicker">Atlas APU live instrument</p>
-          <h2 id="symphony-widget-title">SYSTEM <em>SYMPHONY</em></h2>
+          <h2 id="symphony-widget-title">System <em>Symphony</em></h2>
         </div>
         <span class="symphony-source-badge" data-source-badge>CONNECTING</span>
       </div>
@@ -135,7 +135,7 @@ function template() {
         <button class="symphony-button symphony-button--primary" type="button" data-audio-toggle>Start</button>
         <label class="symphony-volume symphony-volume--compact">
           <span>Vol</span>
-          <input type="range" min="0" max="100" step="1" value="${Math.round(DEFAULT_USER_GAIN * 100)}" data-volume aria-label="System SYMPHONY volume" />
+          <input type="range" min="0" max="100" step="1" value="${Math.round(DEFAULT_USER_GAIN * 100)}" data-volume aria-label="System Symphony volume" />
         </label>
         <button class="symphony-button" type="button" data-open-console aria-expanded="false" aria-haspopup="dialog">Open console</button>
       </div>
@@ -146,17 +146,17 @@ function template() {
         <header class="symphony-console__header">
           <div>
             <p class="symphony-kicker">Live estate Atlas APU score</p>
-            <h2 id="symphony-console-title">System <em>SYMPHONY</em></h2>
+            <h2 id="symphony-console-title">System <em>Symphony</em></h2>
             <p class="symphony-console__mode"><span data-dialog-source>CONNECTING</span> <span aria-hidden="true">/</span> <span data-dialog-score>Unknown score</span></p>
           </div>
           <div class="symphony-console__header-controls">
             <button class="symphony-button symphony-button--primary" type="button" data-audio-toggle>Start</button>
             <label class="symphony-volume">
               <span>Volume</span>
-              <input type="range" min="0" max="100" step="1" value="${Math.round(DEFAULT_USER_GAIN * 100)}" data-volume aria-label="System SYMPHONY console volume" />
+              <input type="range" min="0" max="100" step="1" value="${Math.round(DEFAULT_USER_GAIN * 100)}" data-volume aria-label="System Symphony console volume" />
             </label>
             <button class="symphony-button" type="button" data-help-toggle aria-expanded="false">Mapping help</button>
-            <button class="symphony-button symphony-button--icon" type="button" data-close-console aria-label="Close System SYMPHONY console">Close</button>
+            <button class="symphony-button symphony-button--icon" type="button" data-close-console aria-label="Close System Symphony console">Close</button>
           </div>
         </header>
 
@@ -289,11 +289,11 @@ function template() {
                 <div class="symphony-analyser-grid">
                   <div class="symphony-waveform-wrap">
                     <span>Master waveform / real analyser</span>
-                    <canvas data-waveform width="960" height="112" aria-label="Real-time waveform from the System SYMPHONY master analyser"></canvas>
+                    <canvas data-waveform width="960" height="112" aria-label="Real-time waveform from the System Symphony master analyser"></canvas>
                   </div>
                   <div class="symphony-spectrum-wrap">
                     <span>Master spectrum / 32 bands</span>
-                    <canvas data-spectrum width="960" height="112" aria-label="Real-time 32-band spectrum from the System SYMPHONY master analyser"></canvas>
+                    <canvas data-spectrum width="960" height="112" aria-label="Real-time 32-band spectrum from the System Symphony master analyser"></canvas>
                   </div>
                 </div>
               </div>
@@ -625,7 +625,7 @@ export function initSystemSymphony() {
       button.setAttribute("aria-pressed", String(running));
       button.setAttribute(
         "aria-label",
-        running ? "Stop System SYMPHONY audio" : "Start System SYMPHONY audio",
+        running ? "Stop System Symphony audio" : "Start System Symphony audio",
       );
     }
   }
@@ -1568,7 +1568,7 @@ export function initSystemSymphony() {
       if (blocked) {
         buttons.forEach((button) => {
           button.textContent = "Retry audio";
-          button.setAttribute("aria-label", "Retry System SYMPHONY audio");
+          button.setAttribute("aria-label", "Retry System Symphony audio");
         });
       }
     } finally {

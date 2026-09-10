@@ -5,7 +5,7 @@ import { ATLAS_FIELD_COMPOSITIONS } from "../../static/js/atlas-field-compositio
 
 const AUDIO_FLAGSHIP_CARDS_CSS = "/lab/shared/audio-flagship-cards.css?v=20260813-audio-family-scope-v2";
 const AUDIO_FLAGSHIP_CARDS = Object.freeze([
-  Object.freeze({ selector: ".lab-flagship-card--symphony", family: "LISTEN", prefix: "System", signature: "SYMPHONY", italic: false }),
+  Object.freeze({ selector: ".lab-flagship-card--symphony", family: "LISTEN", prefix: "System", signature: "Symphony", italic: false }),
   Object.freeze({ selector: ".lab-flagship-card--forge", family: "DESIGN", prefix: "Spectral", signature: "Forge", italic: true }),
 ]);
 

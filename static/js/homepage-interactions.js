@@ -5,7 +5,7 @@ const commands = [
   },
   {
     cmd: "atlas audio --list",
-    out: "System SYMPHONY · Signal Garden · real-time DSP surfaces",
+    out: "System Symphony · Signal Garden · real-time DSP surfaces",
   },
   {
     cmd: "atlas evidence --latest",

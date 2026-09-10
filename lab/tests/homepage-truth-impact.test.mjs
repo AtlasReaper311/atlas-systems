@@ -49,7 +49,7 @@ test("body operational claims are evidence driven rather than hardcoded green", 
 });
 
 test("homepage foregrounds interactive audio engineering without overcrowding navigation", () => {
-  assert.match(html, /System SYMPHONY/);
+  assert.match(html, /System Symphony/);
   assert.match(html, /Signal Garden/);
   assert.match(html, /href="\/lab\/signal\/"/);
   assert.match(html, /Specialism \/ real-time audio/);
