@@ -10,6 +10,7 @@ test("evidence is a focused provenance destination", () => {
   assert.ok(page.includes('<link rel="canonical" href="https://atlas-systems.uk/systems/evidence/">'));
   for (const section of [
     "Evidence summary",
+    "First source-to-live chain",
     "Ninety days of public commit evidence",
     "Latest bounded deployment record",
     "Recent CI and deployment events",

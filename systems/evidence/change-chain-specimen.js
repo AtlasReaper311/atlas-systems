@@ -1,0 +1,92 @@
+import { RESULT } from "./change-chain.js";
+
+export const SPECIMEN_256_RECORD = Object.freeze({
+  schema: "atlas-systems/change-lifecycle-record/v1",
+  classification: "recorded-public-projection",
+  liveFeed: false,
+  profile: "static-public-site",
+  authority: Object.freeze({
+    lifecycle: "ADR-0013",
+    profile: "ADR-0014",
+    infraCommit: "11e7a727590aa5376e766416b1e6a83fb6fd98ef",
+  }),
+  subject: Object.freeze({
+    repository: "AtlasReaper311/atlas-systems",
+    issue: 253,
+    pullRequest: 256,
+    title: "Make production smoke coverage independent of artifact-upload transport failures",
+    sourceHead: "cb91d9282543b2ab4a2c59a87d5d428692eda856",
+    mergeCommit: "db82da52f13a441a5f88344be6211be71ea2d92e",
+  }),
+  recordedAt: "2026-09-11T08:49:00Z",
+  recordedFrom: Object.freeze([
+    "public GitHub repository AtlasReaper311/atlas-systems",
+    "public pull request 256",
+    "public Deploy workflow run 34579657571",
+  ]),
+  review: Object.freeze({
+    existed: true,
+    approved: false,
+    githubReviewState: "COMMENTED",
+    identifier: "cursor[bot] COMMENTED review on cb91d9282543b2ab4a2c59a87d5d428692eda856",
+    observedAt: "2026-09-10T21:59:27Z",
+    scope: "Review evidence existed as a COMMENTED Atlas Site Autopilot receipt on the exact source head, plus a passing Cursor Bugbot check. No GitHub APPROVED review was recorded. Review is not merge, deployment, or live proof.",
+  }),
+  observations: Object.freeze({
+    SOURCE: Object.freeze({
+      result: RESULT.OBSERVED,
+      identifier: "atlas-systems#256 / cb91d9282543b2ab4a2c59a87d5d428692eda856",
+      provenance: "public GitHub pull request AtlasReaper311/atlas-systems#256",
+      observedAt: "2026-09-10T21:56:09Z",
+      sourceUrl: "https://github.com/AtlasReaper311/atlas-systems/pull/256",
+      scope: "Named source change exists as public pull request 256, exact head cb91d9282543b2ab4a2c59a87d5d428692eda856. SOURCE does not prove checks, review approval, merge, deployment, or live behaviour.",
+    }),
+    CHECKED: Object.freeze({
+      result: RESULT.OBSERVED,
+      identifier: "exact head cb91d9282543b2ab4a2c59a87d5d428692eda856 / Static site validation run 34534835753",
+      provenance: "public GitHub pull-request checks on AtlasReaper311/atlas-systems#256",
+      observedAt: "2026-09-10T21:56:52Z",
+      sourceUrl: "https://github.com/AtlasReaper311/atlas-systems/actions/runs/34534835753",
+      scope: "Repository-native validation ran against that exact head. Passed checks included Static site validation, CodeQL, Cursor Bugbot, Supply-chain score, Validate declared browser surfaces, Validate interface preview candidate, Require approved browser evidence, and Gardener native auto-merge barrier. CHECKED does not mean review approval, merge, deployment, or live proof.",
+    }),
+    MERGED: Object.freeze({
+      result: RESULT.OBSERVED,
+      identifier: "db82da52f13a441a5f88344be6211be71ea2d92e",
+      provenance: "public GitHub merge of AtlasReaper311/atlas-systems#256 onto main",
+      observedAt: "2026-09-11T08:32:02Z",
+      sourceUrl: "https://github.com/AtlasReaper311/atlas-systems/commit/db82da52f13a441a5f88344be6211be71ea2d92e",
+      scope: "The exact source head was integrated onto main as merge commit db82da52f13a441a5f88344be6211be71ea2d92e. MERGED proves source integration only. It does not prove deployment, runtime, or live verification.",
+    }),
+    "DEPLOYMENT OBSERVED": Object.freeze({
+      result: RESULT.OBSERVED,
+      identifier: "Deploy run 34579657571 / run number 387",
+      provenance: "public GitHub Actions workflow Deploy on push to main",
+      observedAt: "2026-09-11T08:32:59Z",
+      sourceUrl: "https://github.com/AtlasReaper311/atlas-systems/actions/runs/34579657571",
+      scope: "A named production Pages deploy event was observed: workflow Deploy, run 34579657571 (number 387), job deploy / Deploy to Cloudflare Pages concluded success for headSha db82da52f13a441a5f88344be6211be71ea2d92e. Seeing that named event is not proof that the expected identity was the deployed identity.",
+    }),
+    DEPLOYED: Object.freeze({
+      result: RESULT.OBSERVED,
+      identifier: "build-commit db82da52f13a441a5f88344be6211be71ea2d92e on atlas-systems.uk",
+      provenance: "public GitHub job Verify production custom domain, step Confirm the custom domain serves this commit",
+      observedAt: "2026-09-11T08:33:13Z",
+      sourceUrl: "https://github.com/AtlasReaper311/atlas-systems/actions/runs/34579657571/job/103200281779",
+      scope: "The expected merge identity db82da52f13a441a5f88344be6211be71ea2d92e was confirmed as the deployed Pages identity on the production custom domain. DEPLOYED does not imply runtime or live verification, and this historical confirmation does not prove the identity remains current after later main commits.",
+    }),
+    "LIVE VERIFIED": Object.freeze({
+      result: RESULT.OBSERVED,
+      identifier: "homepage AtlasField and System Symphony production smokes on run 34579657571",
+      provenance: "public GitHub job Verify production custom domain live browser smoke steps and both evidence artifact uploads",
+      observedAt: "2026-09-11T08:38:45Z",
+      sourceUrl: "https://github.com/AtlasReaper311/atlas-systems/actions/runs/34579657571/job/103200281779",
+      scope: "Independent live browser checks of public behaviour succeeded for the expected identity after rollout: homepage AtlasField renderer at 2026-09-11T08:33:47Z and System Symphony Atlas APU and topology map at 2026-09-11T08:38:45Z. Both required production evidence uploads succeeded. These checks prove live behaviour at that observation time for that identity only.",
+    }),
+  }),
+  extraGaps: Object.freeze([
+    Object.freeze({
+      label: "Current production identity",
+      result: RESULT.UNKNOWN_NOT_OBSERVED,
+      scope: "Later main commits 14f8195e4d3aa171e12b91505fd298684a84493b and be31c5b238371f75d5d44041a6ac5851231e038e exist after this merge. This recorded chain does not observe whether db82da52f13a441a5f88344be6211be71ea2d92e remains the current production identity.",
+    }),
+  ]),
+});
