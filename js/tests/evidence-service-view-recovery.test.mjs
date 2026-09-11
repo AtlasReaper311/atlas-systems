@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 
-import { RESULT } from "../../systems/evidence/change-chain.js";
+import { RESULT, projectChangeChain } from "../../systems/evidence/change-chain.js";
+import { SPECIMEN_256_RECORD } from "../../systems/evidence/change-chain-specimen.js";
 import { observationsFromPublicSources } from "../../systems/evidence/service-profile.js";
 import { SERVICE_SPECIMEN } from "../../systems/evidence/service-specimen.js";
 
@@ -45,7 +46,14 @@ test("Service View provenance links expose bounded touch targets and narrow wrap
   assert.match(css, /@media \(max-width:\s*360px\)[\s\S]*\.focus-table[\s\S]*min-width:\s*100%/);
 });
 
-test("merged Phase 2.1 Change View still renders extra-gap scope", () => {
+test("merged Phase 2.1 Change View still renders and explains the extra-gap scope", () => {
   const view = read("systems/evidence/change-view.js");
+  const chain = projectChangeChain(SPECIMEN_256_RECORD);
+  const gap = chain.reading.lines.find((line) => line.kind === "gap");
+
   assert.match(view, /if \(line\.scope\) \{[\s\S]*appendText\(item, "p", "systems-change-scope", line\.scope\)/);
+  assert.equal(gap?.label, "Current production identity");
+  assert.match(String(gap?.scope), /14f8195e4d3aa171e12b91505fd298684a84493b/);
+  assert.match(String(gap?.scope), /be31c5b238371f75d5d44041a6ac5851231e038e/);
+  assert.match(String(gap?.scope), /db82da52f13a441a5f88344be6211be71ea2d92e/);
 });
