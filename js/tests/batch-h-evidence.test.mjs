@@ -12,6 +12,7 @@ test("evidence is a focused provenance destination", () => {
     "Evidence summary",
     "First source-to-live chain",
     "First runtime service evidence",
+    "First public estate evidence overview",
     "Ninety days of public commit evidence",
     "Latest bounded deployment record",
     "Recent CI and deployment events",

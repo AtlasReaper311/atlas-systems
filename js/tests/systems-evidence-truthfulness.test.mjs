@@ -244,7 +244,7 @@ test("Systems detail routes consume Interface Kit v0.5.0 evidence semantics", ()
   assert.match(routes.evidence, /systems\/evidence\/receipts\.js/);
   assert.match(routes.evidence, /\/v1\/stats/);
   assert.match(routes.evidence, /\/v1\/slo/);
-  assert.match(routes.evidence, /systems-evidence-truthfulness\.css\?v=20260911-service-view/);
+  assert.match(routes.evidence, /systems-evidence-truthfulness\.css\?v=20260911-estate-view/);
 });
 
 test("Evidence layout corrections remove desktop clipping without deleting accessible detail", () => {
@@ -277,6 +277,9 @@ test("Correction modules keep public rendering bounded and secret-free", () => {
     "systems/evidence/service-profile.js",
     "systems/evidence/service-specimen.js",
     "systems/evidence/service-view.js",
+    "systems/evidence/estate-profile.js",
+    "systems/evidence/estate-view.js",
+    "systems/evidence/evidence-views.js",
     "systems/evidence/public-safe-href.js",
   ]) {
     const source = read(path);

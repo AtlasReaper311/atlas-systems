@@ -145,10 +145,16 @@
 .systems-detail-page[data-systems-detail="evidence"] .systems-detail-ledger,
 .systems-detail-page[data-systems-detail="evidence"] .systems-evidence-disclosure,
 .systems-detail-page[data-systems-detail="evidence"] .systems-change-view,
+.systems-detail-page[data-systems-detail="evidence"] .systems-service-view,
+.systems-detail-page[data-systems-detail="evidence"] .systems-estate-view,
+.systems-detail-page[data-systems-detail="evidence"] .systems-evidence-major-view,
+.systems-detail-page[data-systems-detail="evidence"] .systems-evidence-views,
+.systems-detail-page[data-systems-detail="evidence"] .systems-evidence-supporting,
 .systems-detail-page[data-systems-detail="evidence"] .systems-change-workbench,
 .systems-detail-page[data-systems-detail="evidence"] .systems-change-chain,
 .systems-detail-page[data-systems-detail="evidence"] .systems-change-reading,
-.systems-detail-page[data-systems-detail="evidence"] .systems-change-stage {
+.systems-detail-page[data-systems-detail="evidence"] .systems-change-stage,
+.systems-detail-page[data-systems-detail="evidence"] .systems-estate-table {
   min-width: 0;
   max-width: 100%;
 }
