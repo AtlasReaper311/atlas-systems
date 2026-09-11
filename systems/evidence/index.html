@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Change-level source-to-live evidence plus public activity, deployment, availability, pipeline, timestamp, and provenance records supporting Atlas Systems claims.">
+  <meta name="description" content="Change-level source-to-live evidence, one runtime Service View, plus public activity, deployment, availability, pipeline, timestamp, and provenance records supporting Atlas Systems claims.">
   <meta name="theme-color" content="#0a0a0f">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
@@ -36,7 +36,7 @@
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
   <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h-fixes">
   <link rel="stylesheet" href="/static/css/systems-detail-surfaces.css?v=20260811-heatmap-compact">
-  <link rel="stylesheet" href="/static/css/systems-evidence-truthfulness.css?v=20260911-change-chain">
+  <link rel="stylesheet" href="/static/css/systems-evidence-truthfulness.css?v=20260911-service-view">
 <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
 <link rel="stylesheet" href="/static/css/secondary-surface-fields.css?v=20260807-hero-contrast">
 </head>
@@ -68,16 +68,16 @@
         <div class="systems-detail-intro">
           <p class="systems-detail-kicker">Verify the claim</p>
           <h1 class="focus-title">What supports the public claims?</h1>
-          <p class="focus-lede">A provenance-first view of one recorded change-level evidence chain, then recent activity, measured availability, deployment outcomes, pipeline events, evidence reports, and source timestamps. This surface distinguishes a claim, the record supporting it, and the freshness of that record. Later missing facts stay unknown.</p>
+          <p class="focus-lede">A provenance-first view of one recorded change-level evidence chain, one runtime Service View, then recent activity, measured availability, deployment outcomes, pipeline events, evidence reports, and source timestamps. This surface distinguishes a claim, the record supporting it, and the freshness of that record. Later missing facts stay unknown.</p>
           <div class="focus-actions"><a class="focus-action primary" href="/lab/proof-chain/">Open Proof Chain</a><a class="focus-action" href="https://status.atlas-systems.uk/">Open public status</a></div>
         </div>
         <aside class="systems-detail-boundary" aria-labelledby="evidence-boundary-title">
           <p class="systems-detail-kicker">Provenance boundary</p>
           <h2 id="evidence-boundary-title">A record can support a claim without proving the whole estate</h2>
           <dl>
-            <div><dt>Reads</dt><dd>One recorded public-safe change chain, plus public activity, raw availability, deployment, pipeline event, and assurance-report records.</dd></div>
-            <div><dt>Separates</dt><dd>ADR-0013 delivery stages, observation result, claim, runtime state, evidence mode, supporting record, observation time, source time, and freshness.</dd></div>
-            <div><dt>Freshness</dt><dd>Every source is judged independently. A merge is not a deployment. One fresh record cannot mask another stale, unknown, or unavailable source.</dd></div>
+            <div><dt>Reads</dt><dd>One recorded public-safe change chain, one runtime Service View for a named Worker, plus public activity, raw availability, deployment, pipeline event, and assurance-report records.</dd></div>
+            <div><dt>Separates</dt><dd>ADR-0013 delivery stages, ADR-0014 runtime-worker profile facts, observation result, claim, runtime state, evidence mode, supporting record, observation time, source time, and freshness.</dd></div>
+            <div><dt>Freshness</dt><dd>Every source is judged independently. A merge is not a deployment. Runtime is not live. One fresh record cannot mask another stale, unknown, or unavailable source.</dd></div>
           </dl>
         </aside>
       </div>
@@ -125,6 +125,45 @@
           </ol>
           <div id="change-provenance" class="systems-change-provenance">
             <p>Change-chain provenance has not been rendered yet.</p>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="focus-section systems-service-view atlas-evidence-surface" aria-labelledby="service-view-title">
+      <div class="focus-section-head">
+        <div>
+          <p class="systems-detail-kicker">Service view</p>
+          <h2 id="service-view-title">First runtime service evidence</h2>
+        </div>
+        <p id="service-view-status" class="focus-status-line" data-state="unknown" aria-live="polite">Live public projection for atlas-api-public requires JavaScript. Missing evidence is not success.</p>
+      </div>
+      <p class="focus-note">Specimen: public runtime Worker atlas-api-public, ADR-0014 runtime-worker profile. Topology and registry are declared public maps, not deployment authority. /_meta is runtime metadata, not live proof. GET /v1 is public behaviour at observation time only. Proof Chain remains the source/governance map and is not duplicated here.</p>
+      <div class="systems-change-workbench">
+        <section class="systems-detail-panel systems-detail-panel--dominant" aria-labelledby="service-reading-title">
+          <div class="focus-section-head">
+            <div>
+              <p class="systems-detail-kicker">Public reading</p>
+              <h3 id="service-reading-title">What this running service currently proves</h3>
+            </div>
+            <span class="atlas-evidence-mode" data-evidence-mode="unknown">Live public projection</span>
+          </div>
+          <ol id="service-reading" class="systems-change-reading">
+            <li>No compact service reading rendered yet. Missing later evidence remains UNKNOWN / NOT OBSERVED.</li>
+          </ol>
+        </section>
+        <section class="systems-detail-panel" aria-labelledby="service-facts-title">
+          <div class="focus-section-head">
+            <div>
+              <p class="systems-detail-kicker">Runtime-worker facts</p>
+              <h3 id="service-facts-title">ADR-0014 profile</h3>
+            </div>
+          </div>
+          <ol id="service-facts" class="systems-change-chain">
+            <li>No service facts rendered yet. Empty evidence is not a healthy service.</li>
+          </ol>
+          <div id="service-provenance" class="systems-change-provenance">
+            <p>Service-view provenance has not been rendered yet.</p>
           </div>
         </section>
       </div>
@@ -197,6 +236,7 @@
           <div><dt>Pipeline</dt><dd id="source-pipeline">not loaded</dd></div>
           <div><dt>Assurance reports</dt><dd id="source-reports">not loaded</dd></div>
           <div><dt>Change chain</dt><dd id="source-change-chain">not loaded</dd></div>
+          <div><dt>Service view</dt><dd id="source-service-view">not loaded</dd></div>
         </dl>
         <div class="focus-rail focus-rail-spaced">
           <a href="https://api.atlas-systems.uk/pulse/heatmap"><strong>Activity JSON</strong><span>/pulse/heatmap</span></a>
@@ -205,6 +245,12 @@
           <a href="https://api.atlas-systems.uk/deploy-watch/latest"><strong>Deployment JSON</strong><span>/deploy-watch/latest</span></a>
           <a href="https://api.atlas-systems.uk/notify/recent"><strong>Pipeline event JSON</strong><span>/notify/recent</span></a>
           <a href="https://api.atlas-systems.uk/v1/evidence"><strong>Evidence index JSON</strong><span>/v1/evidence</span></a>
+          <a href="https://api.atlas-systems.uk/v1/topology"><strong>Public topology JSON</strong><span>/v1/topology</span></a>
+          <a href="https://api.atlas-systems.uk/v1/registry"><strong>Worker registry JSON</strong><span>/v1/registry</span></a>
+          <a href="https://api.atlas-systems.uk/v1/_meta"><strong>Runtime metadata JSON</strong><span>/v1/_meta</span></a>
+          <a href="https://api.atlas-systems.uk/v1"><strong>Public API index JSON</strong><span>/v1</span></a>
+          <a href="https://api.atlas-systems.uk/v1/reliability/services/atlas-api-public"><strong>Service reliability JSON</strong><span>/v1/reliability/services/atlas-api-public</span></a>
+          <a href="https://github.com/AtlasReaper311/atlas-api-public" target="_blank" rel="noopener"><strong>Service source</strong><span>atlas-api-public</span></a>
           <a href="https://github.com/AtlasReaper311/atlas-systems/pull/256" target="_blank" rel="noopener"><strong>Specimen PR</strong><span>atlas-systems#256</span></a>
           <a href="/lab/console/"><strong>Preserved console</strong><span>noindex compatibility route</span></a>
         </div>
@@ -215,6 +261,7 @@
   <script type="module" src="/systems/evidence/evidence.js?v=20260811-pipeline-cap"></script>
   <script type="module" src="/systems/evidence/receipts.js?v=20260810-evidence-truthfulness"></script>
   <script type="module" src="/systems/evidence/change-view.js?v=20260911-change-chain-href"></script>
+  <script type="module" src="/systems/evidence/service-view.js?v=20260911-service-view"></script>
   <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
     <div class="mobile-nav-inner atlas-mobile-nav__inner">
       <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>

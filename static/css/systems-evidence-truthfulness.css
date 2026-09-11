@@ -277,7 +277,8 @@
 }
 
 .systems-change-reading-line--later,
-.systems-change-reading-line--gap {
+.systems-change-reading-line--gap,
+.systems-change-reading-line--identity {
   color: var(--text-dim);
 }
 
@@ -397,6 +398,16 @@
   text-decoration: underline;
 }
 
+.systems-service-reading-scope {
+  display: block;
+  margin-top: 0.35rem;
+  overflow-wrap: anywhere;
+  color: var(--text-faint);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.55;
+}
+
 .systems-change-sources {
   margin: 0.75rem 0 0;
   padding-left: 1.2rem;
@@ -421,7 +432,8 @@
     transition: none;
   }
 
-  .systems-change-source {
+  .systems-change-source,
+  .systems-service-reading-scope {
     transition: none;
   }
 }

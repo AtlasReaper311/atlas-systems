@@ -255,6 +255,7 @@ test("Evidence Console keeps existing public records and adds the change view wi
   const view = read("systems/evidence/change-view.js");
   const projector = read("systems/evidence/change-chain.js");
   const specimen = read("systems/evidence/change-chain-specimen.js");
+  const href = read("systems/evidence/public-safe-href.js");
   const css = read("static/css/systems-evidence-truthfulness.css");
 
   for (const section of [
@@ -276,7 +277,7 @@ test("Evidence Console keeps existing public records and adds the change view wi
     assert.match(page, new RegExp(`id="${id}"`));
   }
   assert.match(page, /systems\/evidence\/change-view\.js\?v=20260911-change-chain-href/);
-  assert.match(page, /systems-evidence-truthfulness\.css\?v=20260911-change-chain/);
+  assert.match(page, /systems-evidence-truthfulness\.css\?v=20260911-service-view/);
   assert.match(page, /data-evidence-mode="recorded-replay"/);
   assert.match(page, /not a live feed/);
   assert.match(css, /prefers-reduced-motion: reduce/);
@@ -293,12 +294,12 @@ test("Evidence Console keeps existing public records and adds the change view wi
     assert.ok(evidence.includes(endpoint) || receipts.includes(endpoint) || page.includes(endpoint), endpoint);
   }
 
-  for (const source of [view, projector, specimen, evidence, receipts]) {
+  for (const source of [view, projector, specimen, evidence, receipts, href]) {
     assert.doesNotMatch(source, /innerHTML\s*=/);
     assert.doesNotMatch(source, /Authorization|Bearer|secret|token/i);
   }
   assert.equal(view.includes("fetch("), false);
-  assert.match(view, /new URL\(value\)/);
+  assert.match(href, /new URL\(value\)/);
   assert.match(view, /textContent/);
   assert.match(specimen, /cb91d9282543b2ab4a2c59a87d5d428692eda856/);
   assert.match(specimen, /34579657571/);

@@ -1,25 +1,13 @@
 import { RESULT, projectChangeChain } from "./change-chain.js";
 import { SPECIMEN_256_RECORD } from "./change-chain-specimen.js";
+import { isPublicSafeHref } from "./public-safe-href.js";
+
+export { isPublicSafeHref };
 
 const byId = (id) => document.getElementById(id);
 
 function resultLabel(result) {
   return result === RESULT.OBSERVED ? "Observed" : result;
-}
-
-export function isPublicSafeHref(value) {
-  if (typeof value !== "string" || value.length === 0 || value.length > 2048) return false;
-  let parsed;
-  try {
-    parsed = new URL(value);
-  } catch {
-    return false;
-  }
-  if (parsed.protocol !== "https:" || parsed.username || parsed.password) return false;
-  if (parsed.hostname === "github.com") {
-    return parsed.pathname === "/AtlasReaper311" || parsed.pathname.startsWith("/AtlasReaper311/");
-  }
-  return parsed.hostname === "atlas-systems.uk";
 }
 
 function appendText(parent, tag, className, text) {
