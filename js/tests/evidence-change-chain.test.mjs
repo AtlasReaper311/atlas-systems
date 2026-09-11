@@ -297,7 +297,8 @@ test("Evidence Console keeps existing public records and adds the change view wi
     assert.doesNotMatch(source, /innerHTML\s*=/);
     assert.doesNotMatch(source, /Authorization|Bearer|secret|token/i);
   }
-  assert.equal(view.includes("https://api.github.com"), false);
+  assert.equal(view.includes("fetch("), false);
+  assert.match(view, /new URL\(value\)/);
   assert.match(view, /textContent/);
   assert.match(specimen, /cb91d9282543b2ab4a2c59a87d5d428692eda856/);
   assert.match(specimen, /34579657571/);
