@@ -66,6 +66,9 @@ function renderReading(reading) {
     const value = document.createElement("strong");
     value.textContent = line.result;
     item.append(label, value);
+    if (line.scope) {
+      appendText(item, "p", "systems-change-scope", line.scope);
+    }
     list.appendChild(item);
   }
 }
