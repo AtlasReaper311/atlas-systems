@@ -10,7 +10,18 @@ import { SERVICE_SPECIMEN } from "./service-specimen.js";
 export { isPublicSafeHref };
 
 const FETCH_TIMEOUT_MS = 6000;
+const SERVICE_STYLE_HREF = "/static/css/systems-evidence-service-view.css?v=20260911-recovery";
 const byId = (id) => document.getElementById(id);
+
+function ensureServiceViewStyles() {
+  if (typeof document === "undefined" || !document.head) return;
+  if (document.querySelector(`link[data-service-view-styles][href="${SERVICE_STYLE_HREF}"]`)) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = SERVICE_STYLE_HREF;
+  link.dataset.serviceViewStyles = "true";
+  document.head.appendChild(link);
+}
 
 function resultLabel(result) {
   return result === RESULT.OBSERVED ? "Observed" : result;
@@ -137,12 +148,16 @@ function renderProvenance(projection) {
     "This Service View reads current public-safe contracts for one named runtime service. Topology and registry are not deployment authority. /_meta is runtime metadata, not live proof. GET /v1 is public behaviour at this observation time only. Missing later facts stay UNKNOWN / NOT OBSERVED.",
   );
   const from = document.createElement("ul");
-  from.className = "systems-change-sources";
+  from.className = "systems-change-sources systems-service-sources";
   for (const item of projection.recordedFrom) {
     const entry = document.createElement("li");
     const link = safeLink(item, item);
-    if (link) entry.appendChild(link);
-    else entry.textContent = item;
+    if (link) {
+      link.className = "systems-service-source";
+      entry.appendChild(link);
+    } else {
+      entry.textContent = item;
+    }
     from.appendChild(entry);
   }
   note.appendChild(from);
@@ -162,6 +177,7 @@ function renderStatus(projection) {
 }
 
 export function renderServiceView(record) {
+  ensureServiceViewStyles();
   const projection = projectServiceView(record);
   const list = byId("service-facts");
   if (!list) return projection;
@@ -174,6 +190,7 @@ export function renderServiceView(record) {
 }
 
 export async function loadServiceView(specimen = SERVICE_SPECIMEN, fetchImpl = fetchJson) {
+  ensureServiceViewStyles();
   const [topology, registry, meta, live, reliability] = await Promise.allSettled([
     fetchImpl(specimen.endpoints.topology),
     fetchImpl(specimen.endpoints.registry),
@@ -189,6 +206,7 @@ export async function loadServiceView(specimen = SERVICE_SPECIMEN, fetchImpl = f
 }
 
 if (typeof window !== "undefined" && window.document) {
+  ensureServiceViewStyles();
   loadServiceView().catch(() => {
     const status = byId("service-view-status");
     if (!status) return;
