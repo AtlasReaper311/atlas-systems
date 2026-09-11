@@ -1,6 +1,7 @@
 import { RESULT } from "./change-chain.js";
 import {
   ESTATE_TOPOLOGY_URL,
+  estateProfileGroups,
   estateViewStatus,
   projectEstateView,
   topologyRecordFromSettled,
@@ -138,7 +139,41 @@ function emptyRow(message) {
   return row;
 }
 
-function renderRows(projection, selectedId) {
+function visibleSubjects(projection, profileId) {
+  if (!profileId) return projection.subjects;
+  return projection.subjects.filter((subject) => subject.profile.id === profileId);
+}
+
+function renderProfileOverview(projection, selectedProfile) {
+  const target = byId("estate-profiles");
+  if (!target) return;
+  target.replaceChildren();
+  const groups = estateProfileGroups(projection.subjects);
+  if (!groups.length) {
+    appendText(target, "p", "systems-change-scope", "No ADR-0014 profile groups are available from the current public topology projection.");
+    return;
+  }
+  const all = document.createElement("button");
+  all.type = "button";
+  all.className = "systems-evidence-profile-card";
+  all.dataset.profile = "";
+  all.setAttribute("aria-pressed", String(!selectedProfile));
+  appendText(all, "span", null, "All subjects");
+  appendText(all, "strong", null, `${projection.subjectCount} subject${projection.subjectCount === 1 ? "" : "s"}`);
+  target.appendChild(all);
+  for (const group of groups) {
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "systems-evidence-profile-card";
+    card.dataset.profile = group.id;
+    card.setAttribute("aria-pressed", String(selectedProfile === group.id));
+    appendText(card, "span", null, group.label);
+    appendText(card, "strong", null, `${group.count} subject${group.count === 1 ? "" : "s"}`);
+    target.appendChild(card);
+  }
+}
+
+function renderRows(projection, selectedId, profileId = null) {
   const body = byId("estate-rows");
   if (!body) return;
   body.replaceChildren();
@@ -154,11 +189,16 @@ function renderRows(projection, selectedId) {
     ));
     return;
   }
-  if (!projection.subjects.length) {
-    body.appendChild(emptyRow("Public topology returned no usable subjects. Empty evidence is not a complete estate."));
+  const subjects = visibleSubjects(projection, profileId);
+  if (!subjects.length) {
+    body.appendChild(emptyRow(
+      profileId
+        ? "No public topology subjects match the selected ADR-0014 profile. The complete roster remains available."
+        : "Public topology returned no usable subjects. Empty evidence is not a complete estate.",
+    ));
     return;
   }
-  for (const subject of projection.subjects) {
+  for (const subject of subjects) {
     body.appendChild(renderSubjectRow(subject, subject.id === selectedId));
   }
 }
@@ -309,25 +349,45 @@ function selectedSubjectId(projection, requested) {
 
 function bindEstateRoster(projection) {
   const body = byId("estate-rows");
+  const profiles = byId("estate-profiles");
   if (!body || typeof body.addEventListener !== "function") return;
   if (body.dataset.ladderBound === "true") return;
   body.dataset.ladderBound = "true";
   const names = projection.subjects.map((subject) => subject.id);
-  const select = (claim) => {
-    if (!claim) return;
-    const next = selectedSubjectId(projection, claim);
-    renderRows(projection, next);
+  let selectedProfile = null;
+  const paint = (claim, profileId = selectedProfile, persistFocus = true) => {
+    selectedProfile = profileId || null;
+    const visible = visibleSubjects(projection, selectedProfile);
+    const next = visible.some((subject) => subject.id === claim)
+      ? claim
+      : selectedSubjectId({ subjects: visible }, claim);
+    renderProfileOverview(projection, selectedProfile);
+    renderRows(projection, next, selectedProfile);
     renderEvidenceDetail(byId("estate-detail"), detailForEstateSubject(projection, next), {
       titleId: "estate-detail-title",
+      siblingIdentifiers: projection.subjects.map((subject) => subject.identifier ?? subject.id).filter(Boolean),
     });
     renderSecondary(projection, next);
-    const focused = [...body.querySelectorAll("[data-claim]")].find((node) => node.dataset.claim === next);
-    focused?.focus?.();
+    if (persistFocus) {
+      const focused = [...body.querySelectorAll("[data-claim]")].find((node) => node.dataset.claim === next);
+      focused?.focus?.();
+    }
+  };
+  const select = (claim) => {
+    if (!claim) return;
+    paint(claim, selectedProfile);
   };
   body.addEventListener("click", (event) => {
     const row = event.target?.closest?.("tr[data-claim]");
     if (!row || !body.contains(row)) return;
     select(row.dataset.claim);
+  });
+  profiles?.addEventListener("click", (event) => {
+    const card = event.target?.closest?.("[data-profile]");
+    if (!card || !profiles.contains(card)) return;
+    const nextProfile = card.dataset.profile || null;
+    const visible = visibleSubjects(projection, nextProfile);
+    paint(visible[0]?.id ?? selectedSubjectId(projection), nextProfile, false);
   });
   bindLadderKeyboard(body, (claim) => select(claim));
   if (typeof window !== "undefined") {
@@ -349,9 +409,11 @@ export function renderEstateView(record, options = {}) {
       projection.subjects[0]?.id ?? null,
     );
   const selected = selectedSubjectId(projection, requested);
-  renderRows(projection, selected);
+  renderProfileOverview(projection, null);
+  renderRows(projection, selected, null);
   renderEvidenceDetail(byId("estate-detail"), detailForEstateSubject(projection, selected), {
     titleId: "estate-detail-title",
+    siblingIdentifiers: projection.subjects.map((subject) => subject.identifier ?? subject.id).filter(Boolean),
   });
   renderSecondary(projection, selected);
   renderProvenance(projection);

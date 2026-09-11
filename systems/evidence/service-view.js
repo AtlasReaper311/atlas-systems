@@ -84,6 +84,37 @@ function renderReading(reading) {
   }
 }
 
+const SERVICE_MAP_FACTS = Object.freeze([
+  Object.freeze({ fact: "LIVE VERIFIED", label: "Live behaviour" }),
+  Object.freeze({ fact: "RUNTIME VERIFIED", label: "Runtime contract" }),
+  Object.freeze({ fact: "DEPLOYED", label: "Deployment id" }),
+]);
+
+function renderServiceMap(projection) {
+  const target = byId("service-map");
+  if (!target) return;
+  target.replaceChildren();
+  const heading = document.createElement("div");
+  heading.className = "systems-evidence-service-identity";
+  appendText(heading, "strong", null, projection.subject.id ?? SERVICE_SPECIMEN.id);
+  appendText(heading, "span", null, projection.profile?.subjectType ?? "Profile not supplied");
+  target.appendChild(heading);
+  const list = document.createElement("dl");
+  list.className = "systems-evidence-service-map-list";
+  for (const item of SERVICE_MAP_FACTS) {
+    const fact = projection.facts.find((entry) => entry.fact === item.fact);
+    const wrap = document.createElement("div");
+    const dt = document.createElement("dt");
+    const dd = document.createElement("dd");
+    dt.textContent = item.label;
+    dd.textContent = fact?.result ?? RESULT.UNKNOWN_NOT_OBSERVED;
+    dd.dataset.result = dd.textContent;
+    wrap.append(dt, dd);
+    list.appendChild(wrap);
+  }
+  target.appendChild(list);
+}
+
 function renderSummary(projection) {
   const proven = latestObservedFact(projection.facts);
   const next = projection.nextGap;
@@ -94,6 +125,7 @@ function renderSummary(projection) {
     nextGapResult: next?.result ?? null,
     evidence: "Live public projection",
   });
+  renderServiceMap(projection);
 }
 
 export function detailForServiceFact(projection, factName) {
@@ -146,6 +178,7 @@ function renderLadder(projection, selectedFact) {
 function renderSelectedDetail(projection, selectedFact) {
   renderEvidenceDetail(byId("service-detail"), detailForServiceFact(projection, selectedFact), {
     titleId: "service-detail-title",
+    siblingIdentifiers: projection.facts.map((fact) => fact.identifier).filter(Boolean),
   });
 }
 

@@ -141,7 +141,7 @@ function renderLadder(chain, selectedStage) {
   const list = byId("change-chain");
   if (!list) return;
   list.replaceChildren();
-  list.className = "systems-change-chain systems-evidence-ladder";
+  list.className = "systems-change-chain systems-evidence-ladder systems-evidence-chain";
   if (typeof list.setAttribute === "function") {
     list.setAttribute("role", "list");
   }
@@ -170,7 +170,10 @@ function hideFallback() {
 
 function renderSelectedDetail(chain, selectedStage) {
   const detail = detailForChangeStage(chain, selectedStage);
-  renderEvidenceDetail(byId("change-detail"), detail, { titleId: "change-detail-title" });
+  renderEvidenceDetail(byId("change-detail"), detail, {
+    titleId: "change-detail-title",
+    siblingIdentifiers: chain.stages.map((stage) => stage.identifier).filter(Boolean),
+  });
   return detail;
 }
 

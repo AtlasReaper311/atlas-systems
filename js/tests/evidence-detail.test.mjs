@@ -13,9 +13,15 @@ import {
   RESULT_ASSISTANCE,
   claimElementId,
   evidenceDetailRows,
+  formatFriendlyUtc,
   parseEvidenceClaim,
   projectEvidenceDetail,
+  renderAnswerFirst,
+  renderEvidenceDetail,
+  resultMark,
+  shortenIdentifier,
 } from "../../systems/evidence/evidence-detail.js";
+import { estateProfileGroups } from "../../systems/evidence/estate-profile.js";
 import { observationsFromPublicSources, projectServiceView } from "../../systems/evidence/service-profile.js";
 import { SERVICE_SPECIMEN } from "../../systems/evidence/service-specimen.js";
 import { projectEstateView } from "../../systems/evidence/estate-profile.js";
@@ -234,6 +240,100 @@ test("Estate Detail cannot turn classification into a proven delivery stage", ()
   assert.equal(detail.nextGap.result, RESULT.UNKNOWN_NOT_OBSERVED);
 });
 
+test("Identifier shortening is presentation-only and avoids collisions", () => {
+  const full = "db82da52f13a441a5f88344be6211be71ea2d92e";
+  assert.equal(shortenIdentifier(full), "db82da52…a2d92e");
+  assert.equal(shortenIdentifier("short-id"), "short-id");
+  const twin = "db82da52aaaaaaaaaaaaaaaaaaaaea2d92e";
+  assert.notEqual(shortenIdentifier(full, [twin]), shortenIdentifier(twin, [full]));
+  assert.equal(formatFriendlyUtc("2026-09-11T08:32:02Z"), "11 Sep 2026 · 08:32 UTC");
+  assert.equal(resultMark(RESULT.OBSERVED), "●");
+  assert.equal(resultMark(RESULT.FAILED), "×");
+  assert.equal(resultMark(RESULT.NOT_APPLICABLE), "/");
+  assert.equal(resultMark(RESULT.UNKNOWN_NOT_OBSERVED), "?");
+});
+
+test("Receipt rendering keeps the same values and moves machine fields behind disclosure", () => {
+  const chain = projectChangeChain(SPECIMEN_256_RECORD);
+  const detail = changeDetail(chain, "MERGED");
+  const children = [];
+  const createElement = (tag) => {
+    const node = {
+      tagName: String(tag).toUpperCase(),
+      className: "",
+      id: "",
+      href: "",
+      target: "",
+      rel: "",
+      title: "",
+      dateTime: "",
+      hidden: false,
+      type: "",
+      textContent: "",
+      dataset: {},
+      childNodes: [],
+      classList: { add() {} },
+      setAttribute() {},
+      addEventListener() {},
+      appendChild(child) {
+        this.childNodes.push(child);
+        return child;
+      },
+      append(...nodes) {
+        this.childNodes.push(...nodes);
+      },
+    };
+    children.push(node);
+    return node;
+  };
+  const target = createElement("section");
+  target.replaceChildren = function replaceChildren() {
+    this.childNodes.length = 0;
+  };
+  renderEvidenceDetail(target, detail, { createElement, titleId: "change-detail-title" });
+  const text = JSON.stringify(target);
+  assert.match(text, /Claim \/ result/);
+  assert.match(text, /What this proves/);
+  assert.match(text, /What this does not prove/);
+  assert.match(text, /Technical provenance/);
+  assert.match(text, /db82da52…a2d92e/);
+  assert.match(text, /db82da52f13a441a5f88344be6211be71ea2d92e/);
+  assert.match(text, /11 Sep 2026 · 08:32 UTC/);
+  assert.match(text, /2026-09-11T08:32:02Z/);
+  assert.equal(detail.identifier, "db82da52f13a441a5f88344be6211be71ea2d92e");
+  assert.equal(detail.observationResult, RESULT.OBSERVED);
+  const summary = createElement("div");
+  summary.replaceChildren = function replaceChildren() {
+    this.childNodes.length = 0;
+  };
+  renderAnswerFirst(summary, {
+    proven: "LIVE VERIFIED",
+    provenResult: RESULT.OBSERVED,
+    nextGap: "Current production identity — UNKNOWN / NOT OBSERVED",
+    nextGapResult: RESULT.UNKNOWN_NOT_OBSERVED,
+    evidence: "Recorded public projection",
+  }, createElement);
+  assert.match(JSON.stringify(summary), /focus-metric/);
+  assert.match(JSON.stringify(summary), /LIVE VERIFIED/);
+});
+
+test("Estate profile groups are counted from the current projection", () => {
+  const projection = projectEstateView({
+    schema: "atlas-public-topology/v3",
+    generated_at: "2026-09-11T16:00:00Z",
+    classification_authority: "AtlasReaper311/atlas-infra",
+    components: [
+      { id: "atlas-systems", kind: "site", runtime_service: true, repo_name: "atlas-systems" },
+      { id: "atlas-api-public", kind: "worker", runtime_service: true, repo_name: "atlas-api-public" },
+      { id: "atlas-interface-kit", kind: "repository", runtime_service: false, repo_name: "atlas-interface-kit" },
+    ],
+  }, Date.parse("2026-09-11T17:00:00.000Z"));
+  const groups = estateProfileGroups(projection.subjects);
+  assert.deepEqual(groups.map((group) => group.id).sort(), ["library-toolkit", "runtime-worker", "static-public-site"]);
+  assert.equal(groups.find((group) => group.id === "runtime-worker").count, 1);
+  assert.equal(groups.reduce((sum, group) => sum + group.count, 0), projection.subjects.length);
+});
+
 test("Evidence Console registers the reusable detail surface without secrets", () => {
   const page = read("systems/evidence/index.html");
   const detail = read("systems/evidence/evidence-detail.js");
@@ -241,16 +341,17 @@ test("Evidence Console registers the reusable detail surface without secrets", (
   const css = read("static/css/systems-evidence-detail.css");
   for (const id of [
     "change-summary", "change-detail", "change-detail-fallback", "claim-merged",
-    "service-summary", "service-detail",
-    "estate-summary", "estate-detail", "estate-secondary",
+    "service-summary", "service-detail", "service-map", "service-boundaries",
+    "estate-summary", "estate-detail", "estate-secondary", "estate-profiles",
     "how-to-read-evidence",
   ]) {
     assert.match(page, new RegExp(`id="${id}"`));
   }
   assert.match(page, /How to read this evidence/);
   assert.match(page, /Inspect MERGED without JavaScript/);
+  assert.match(page, /Technical provenance/);
   assert.match(page, /db82da52f13a441a5f88344be6211be71ea2d92e/);
-  assert.match(page, /systems-evidence-detail\.css\?v=20260911-detail/);
+  assert.match(page, /systems-evidence-detail\.css\?v=20260911-visual/);
   assert.match(page, /Latest proven/);
   assert.match(page, /colspan="5"/);
   assert.match(changeView, /detailForChangeStage/);
@@ -258,6 +359,8 @@ test("Evidence Console registers the reusable detail surface without secrets", (
   assert.match(css, /min-height: 48px/);
   assert.match(css, /position: sticky/);
   assert.match(css, /scroll-padding-top/);
+  assert.match(css, /systems-evidence-proof-pair/);
+  assert.match(css, /systems-evidence-chain-mark/);
   assert.doesNotMatch(detail, /innerHTML\s*=/);
   assert.doesNotMatch(detail, /Authorization|Bearer|secret|token/i);
 });

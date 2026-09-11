@@ -197,6 +197,49 @@ export function projectEvidenceDetail(input = {}) {
   });
 }
 
+const UTC_MONTHS = Object.freeze([
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+]);
+
+export function resultMark(result) {
+  if (result === RESULT.OBSERVED) return "●";
+  if (result === RESULT.FAILED) return "×";
+  if (result === RESULT.NOT_APPLICABLE) return "/";
+  return "?";
+}
+
+export function formatFriendlyUtc(value) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return null;
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return null;
+  const day = String(parsed.getUTCDate());
+  const month = UTC_MONTHS[parsed.getUTCMonth()];
+  const year = parsed.getUTCFullYear();
+  const hours = String(parsed.getUTCHours()).padStart(2, "0");
+  const minutes = String(parsed.getUTCMinutes()).padStart(2, "0");
+  return `${day} ${month} ${year} · ${hours}:${minutes} UTC`;
+}
+
+export function shortenIdentifier(value, others = []) {
+  const text = String(value ?? "");
+  if (!text) return "";
+  if (text.length <= 16) return text;
+  const siblings = (Array.isArray(others) ? others : [others])
+    .map((item) => String(item ?? ""))
+    .filter((item) => item && item !== text);
+  for (let prefix = 8; prefix <= text.length - 6; prefix += 2) {
+    const display = `${text.slice(0, prefix)}…${text.slice(-6)}`;
+    const conflict = siblings.some((other) => {
+      const otherDisplay = other.length <= 16 ? other : `${other.slice(0, prefix)}…${other.slice(-6)}`;
+      return otherDisplay === display;
+    });
+    if (!conflict) return display;
+  }
+  return text;
+}
+
 export function evidenceDetailRows(detail) {
   const record = asRecord(detail);
   const nextGap = record.nextGap
@@ -227,14 +270,69 @@ function appendText(parent, tag, className, text, createElement) {
   return node;
 }
 
+function appendFact(list, term, value, createElement, extraClass = "") {
+  if (!value) return null;
+  const wrap = createElement("div");
+  if (extraClass) wrap.className = extraClass;
+  const dt = createElement("dt");
+  const dd = createElement("dd");
+  dt.textContent = term;
+  dd.textContent = value;
+  wrap.append(dt, dd);
+  list.appendChild(wrap);
+  return wrap;
+}
+
+function bindCopyButton(button, value) {
+  if (!button || typeof button.addEventListener !== "function") return;
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const write = typeof navigator !== "undefined" ? navigator.clipboard?.writeText : null;
+    if (typeof write === "function") {
+      Promise.resolve(write.call(navigator.clipboard, value)).catch(() => {});
+    }
+    const previous = button.textContent;
+    button.textContent = "Copied";
+    if (typeof window !== "undefined" && typeof window.setTimeout === "function") {
+      window.setTimeout(() => {
+        button.textContent = previous;
+      }, 1500);
+    }
+  });
+}
+
+function renderIdentifier(parent, identifier, others, createElement) {
+  if (!identifier) return null;
+  const wrap = createElement("div");
+  wrap.className = "systems-evidence-identifier";
+  const code = createElement("code");
+  code.className = "systems-evidence-identifier-short";
+  code.textContent = shortenIdentifier(identifier, others);
+  code.title = identifier;
+  const copy = createElement("button");
+  copy.type = "button";
+  copy.className = "systems-evidence-copy";
+  copy.textContent = "Copy";
+  if (typeof copy.setAttribute === "function") {
+    copy.setAttribute("aria-label", `Copy exact identifier ${identifier}`);
+  }
+  bindCopyButton(copy, identifier);
+  wrap.append(code, copy);
+  parent.appendChild(wrap);
+  return wrap;
+}
+
 export function renderEvidenceDetail(target, detail, options = {}) {
   if (!target) return detail;
   const createElement = options.createElement
     ?? (typeof document !== "undefined" ? document.createElement.bind(document) : null);
   if (!createElement) return detail;
   const hrefSafe = options.isPublicSafeHref ?? isPublicSafeHref;
+  const siblings = options.siblingIdentifiers ?? [];
   target.replaceChildren();
   target.hidden = false;
+  target.classList?.add?.("systems-evidence-receipt");
   target.dataset.result = detail.observationResult;
   target.dataset.stage = detail.lifecycleStage ?? "";
 
@@ -249,26 +347,67 @@ export function renderEvidenceDetail(target, detail, options = {}) {
   );
   title.id = options.titleId ?? "evidence-detail-title";
 
-  const result = appendText(target, "p", "systems-evidence-detail-result", "", createElement);
+  const claim = createElement("section");
+  claim.className = "systems-evidence-receipt-claim";
+  appendText(claim, "p", "systems-evidence-receipt-label", "Claim / result", createElement);
+  if (detail.assertion) {
+    appendText(claim, "p", "systems-evidence-receipt-assertion", detail.assertion, createElement);
+  }
+  const result = appendText(claim, "p", "systems-evidence-detail-result", "", createElement);
   const resultLabel = appendText(result, "strong", null, detail.observationResult, createElement);
   resultLabel.dataset.result = detail.observationResult;
   appendText(result, "span", "systems-evidence-sr", `Observation result: ${detail.observationResult}. `, createElement);
   if (detail.assistance) {
     appendText(result, "span", "systems-evidence-detail-assist", detail.assistance, createElement);
   }
+  target.appendChild(claim);
 
-  const facts = createElement("dl");
-  facts.className = "systems-evidence-detail-facts";
-  for (const [term, value] of evidenceDetailRows(detail)) {
-    const wrap = createElement("div");
-    const dt = createElement("dt");
-    const dd = createElement("dd");
-    dt.textContent = term;
-    dd.textContent = value;
-    wrap.append(dt, dd);
-    facts.appendChild(wrap);
+  const provenance = createElement("section");
+  provenance.className = "systems-evidence-receipt-provenance";
+  appendText(provenance, "p", "systems-evidence-receipt-label", "Provenance", createElement);
+  const strip = createElement("div");
+  strip.className = "systems-evidence-receipt-strip";
+  if (detail.evidenceType) {
+    appendText(strip, "span", "systems-evidence-receipt-type", detail.evidenceType, createElement);
   }
-  target.appendChild(facts);
+  if (detail.identifier) {
+    renderIdentifier(strip, detail.identifier, siblings, createElement);
+  }
+  const friendly = formatFriendlyUtc(detail.observedAt);
+  if (friendly) {
+    const time = appendText(strip, "time", "systems-evidence-receipt-time", friendly, createElement);
+    time.dateTime = detail.observedAt;
+  }
+  if (strip.childNodes.length) provenance.appendChild(strip);
+  target.appendChild(provenance);
+
+  const bounds = createElement("div");
+  bounds.className = "systems-evidence-proof-pair";
+  const proves = createElement("section");
+  proves.className = "systems-evidence-proof systems-evidence-proof--proves";
+  appendText(proves, "h4", "systems-evidence-receipt-label", "What this proves", createElement);
+  appendText(proves, "p", null, detail.proves, createElement);
+  const doesNot = createElement("section");
+  doesNot.className = "systems-evidence-proof systems-evidence-proof--boundary";
+  appendText(doesNot, "h4", "systems-evidence-receipt-label", "What this does not prove", createElement);
+  appendText(doesNot, "p", null, detail.doesNotProve, createElement);
+  bounds.append(proves, doesNot);
+  target.appendChild(bounds);
+
+  if (detail.nextGap) {
+    const gap = createElement("section");
+    gap.className = "systems-evidence-receipt-gap";
+    appendText(gap, "p", "systems-evidence-receipt-label", "Next applicable gap", createElement);
+    const gapValue = appendText(
+      gap,
+      "p",
+      "systems-evidence-receipt-gap-value",
+      `${detail.nextGap.label ?? "unspecified"}${detail.nextGap.result ? ` — ${detail.nextGap.result}` : ""}`,
+      createElement,
+    );
+    if (detail.nextGap.result) gapValue.dataset.result = detail.nextGap.result;
+    target.appendChild(gap);
+  }
 
   const link = detail.sourceUrl && hrefSafe(detail.sourceUrl) ? createElement("a") : null;
   if (link) {
@@ -278,6 +417,26 @@ export function renderEvidenceDetail(target, detail, options = {}) {
     link.className = "systems-change-source systems-evidence-detail-source";
     link.textContent = "Open public evidence source";
     target.appendChild(link);
+  }
+
+  const technical = createElement("details");
+  technical.className = "systems-evidence-disclosure systems-evidence-technical";
+  appendText(technical, "summary", null, "Technical provenance", createElement);
+  const facts = createElement("dl");
+  facts.className = "systems-evidence-detail-facts";
+  appendFact(facts, "Subject", detail.subjectLabel, createElement);
+  appendFact(facts, "Assertion", detail.assertion, createElement);
+  appendFact(facts, "Lifecycle stage", detail.lifecycleStage, createElement);
+  appendFact(facts, "Observation result", detail.observationResult, createElement);
+  appendFact(facts, "Evidence type", detail.evidenceType, createElement);
+  appendFact(facts, "Exact identifier", detail.identifier, createElement);
+  appendFact(facts, "Observed at", detail.observedAt, createElement);
+  appendFact(facts, "Source time", detail.sourceTime, createElement);
+  appendFact(facts, "Freshness", detail.freshness, createElement);
+  appendFact(facts, "Provenance", detail.provenance, createElement);
+  if (facts.childNodes.length) {
+    technical.appendChild(facts);
+    target.appendChild(technical);
   }
   return detail;
 }
@@ -289,21 +448,19 @@ export function renderAnswerFirst(target, summary, createElementImpl) {
   if (!createElement) return summary;
   const record = asRecord(summary);
   target.replaceChildren();
+  target.className = "focus-grid cols-3 systems-evidence-answer";
   const rows = [
-    ["Proven", record.proven],
-    ["Next gap", record.nextGap],
-    ["Evidence", record.evidence],
+    ["Proven", record.proven, record.provenResult],
+    ["Next gap", record.nextGap, record.nextGapResult],
+    ["Evidence", record.evidence, null],
   ];
-  for (const [term, value] of rows) {
-    const wrap = createElement("div");
-    const dt = createElement("dt");
-    const dd = createElement("dd");
-    dt.textContent = term;
-    dd.textContent = value ?? "not supplied";
-    if (term === "Proven" && record.provenResult) dd.dataset.result = record.provenResult;
-    if (term === "Next gap" && record.nextGapResult) dd.dataset.result = record.nextGapResult;
-    wrap.append(dt, dd);
-    target.appendChild(wrap);
+  for (const [term, value, result] of rows) {
+    const card = createElement("article");
+    card.className = "focus-metric systems-evidence-answer-card";
+    appendText(card, "span", null, term, createElement);
+    const strong = appendText(card, "strong", null, value ?? "not supplied", createElement);
+    if (result) strong.dataset.result = result;
+    target.appendChild(card);
   }
   return summary;
 }
@@ -334,6 +491,12 @@ export function renderLadderItem(item, options = {}) {
     button.tabIndex = selected || options.tabIndex === 0 ? 0 : -1;
   }
 
+  const mark = createElement("span");
+  mark.className = "systems-evidence-chain-mark";
+  mark.dataset.result = item.result;
+  mark.textContent = resultMark(item.result);
+  if (typeof mark.setAttribute === "function") mark.setAttribute("aria-hidden", "true");
+
   const stage = createElement("span");
   stage.className = "systems-evidence-ladder-stage";
   stage.textContent = item.label;
@@ -343,8 +506,8 @@ export function renderLadderItem(item, options = {}) {
   result.textContent = item.result;
   const sr = createElement("span");
   sr.className = "systems-evidence-sr";
-  sr.textContent = `Lifecycle stage ${item.label}. Observation result ${item.result}. ${RESULT_ASSISTANCE[item.result] ?? ""}`;
-  button.append(stage, result, sr);
+  sr.textContent = `Lifecycle stage ${item.label}. Observation result ${item.result}. Mark ${resultMark(item.result)}. ${RESULT_ASSISTANCE[item.result] ?? ""}`;
+  button.append(mark, stage, result, sr);
   row.appendChild(button);
   return row;
 }

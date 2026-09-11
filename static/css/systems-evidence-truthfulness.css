@@ -152,6 +152,10 @@
 .systems-detail-page[data-systems-detail="evidence"] .systems-evidence-supporting,
 .systems-detail-page[data-systems-detail="evidence"] .systems-change-workbench,
 .systems-detail-page[data-systems-detail="evidence"] .systems-change-chain,
+.systems-detail-page[data-systems-detail="evidence"] .systems-evidence-chain,
+.systems-detail-page[data-systems-detail="evidence"] .systems-evidence-receipt,
+.systems-detail-page[data-systems-detail="evidence"] .systems-evidence-service-map,
+.systems-detail-page[data-systems-detail="evidence"] .systems-evidence-profile-overview,
 .systems-detail-page[data-systems-detail="evidence"] .systems-change-reading,
 .systems-detail-page[data-systems-detail="evidence"] .systems-change-stage,
 .systems-detail-page[data-systems-detail="evidence"] .systems-estate-table {
