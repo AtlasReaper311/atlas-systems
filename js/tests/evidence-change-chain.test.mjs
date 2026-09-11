@@ -11,6 +11,7 @@ import {
   projectChangeChain,
 } from "../../systems/evidence/change-chain.js";
 import { SPECIMEN_256_RECORD } from "../../systems/evidence/change-chain-specimen.js";
+import { isPublicSafeHref } from "../../systems/evidence/change-view.js";
 
 function read(path) {
   return fs.readFileSync(path, "utf8");
@@ -146,6 +147,16 @@ test("Static public-site profile makes RUNTIME VERIFIED NOT APPLICABLE even if a
   assert.equal(runtime.identifier, null);
 });
 
+test("Public href allowlist rejects host spoofing", () => {
+  assert.equal(isPublicSafeHref("https://github.com/AtlasReaper311/atlas-systems/pull/256"), true);
+  assert.equal(isPublicSafeHref("https://atlas-systems.uk/systems/evidence/"), true);
+  assert.equal(isPublicSafeHref("https://evil.com/?u=https://github.com/AtlasReaper311/atlas-systems"), false);
+  assert.equal(isPublicSafeHref("https://github.com.evil.com/AtlasReaper311/atlas-systems"), false);
+  assert.equal(isPublicSafeHref("https://github.com/AtlasReaper311.evil/atlas-systems"), false);
+  assert.equal(isPublicSafeHref("https://api.github.com/repos/AtlasReaper311/atlas-systems"), false);
+  assert.equal(isPublicSafeHref("http://github.com/AtlasReaper311/atlas-systems"), false);
+});
+
 test("First specimen projection is a recorded public chain for atlas-systems#256", () => {
   const chain = projectChangeChain(SPECIMEN_256_RECORD);
   const stages = stageMap(chain);
@@ -264,7 +275,7 @@ test("Evidence Console keeps existing public records and adds the change view wi
   ]) {
     assert.match(page, new RegExp(`id="${id}"`));
   }
-  assert.match(page, /systems\/evidence\/change-view\.js\?v=20260911-change-chain/);
+  assert.match(page, /systems\/evidence\/change-view\.js\?v=20260911-change-chain-href/);
   assert.match(page, /systems-evidence-truthfulness\.css\?v=20260911-change-chain/);
   assert.match(page, /data-evidence-mode="recorded-replay"/);
   assert.match(page, /not a live feed/);
@@ -286,7 +297,7 @@ test("Evidence Console keeps existing public records and adds the change view wi
     assert.doesNotMatch(source, /innerHTML\s*=/);
     assert.doesNotMatch(source, /Authorization|Bearer|secret|token/i);
   }
-  assert.doesNotMatch(view, /https:\/\/api\.github\.com/);
+  assert.equal(view.includes("https://api.github.com"), false);
   assert.match(view, /textContent/);
   assert.match(specimen, /cb91d9282543b2ab4a2c59a87d5d428692eda856/);
   assert.match(specimen, /34579657571/);

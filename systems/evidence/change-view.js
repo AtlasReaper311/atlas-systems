@@ -2,10 +2,24 @@ import { RESULT, projectChangeChain } from "./change-chain.js";
 import { SPECIMEN_256_RECORD } from "./change-chain-specimen.js";
 
 const byId = (id) => document.getElementById(id);
-const PUBLIC_HREF = /^(https:\/\/github\.com\/AtlasReaper311\/|https:\/\/atlas-systems\.uk\/)/i;
 
 function resultLabel(result) {
   return result === RESULT.OBSERVED ? "Observed" : result;
+}
+
+export function isPublicSafeHref(value) {
+  if (typeof value !== "string" || value.length === 0 || value.length > 2048) return false;
+  let parsed;
+  try {
+    parsed = new URL(value);
+  } catch {
+    return false;
+  }
+  if (parsed.protocol !== "https:" || parsed.username || parsed.password) return false;
+  if (parsed.hostname === "github.com") {
+    return parsed.pathname === "/AtlasReaper311" || parsed.pathname.startsWith("/AtlasReaper311/");
+  }
+  return parsed.hostname === "atlas-systems.uk";
 }
 
 function appendText(parent, tag, className, text) {
@@ -25,7 +39,7 @@ function evidenceBadge(result, evidenceMode) {
 }
 
 function safeLink(url, label) {
-  if (!url || !PUBLIC_HREF.test(url)) return null;
+  if (!isPublicSafeHref(url)) return null;
   const link = document.createElement("a");
   link.href = url;
   link.target = "_blank";
