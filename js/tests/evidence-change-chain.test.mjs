@@ -179,6 +179,10 @@ test("First specimen projection is a recorded public chain for atlas-systems#256
   assert.equal(reading[0], "LIVE VERIFIED");
   assert.ok(reading.includes("Runtime verification: NOT APPLICABLE"));
   assert.ok(reading.includes("Current production identity: UNKNOWN / NOT OBSERVED"));
+  const extraGap = chain.reading.lines.find((line) => line.kind === "gap");
+  assert.equal(extraGap?.label, "Current production identity");
+  assert.match(String(extraGap?.scope), /14f8195e4d3aa171e12b91505fd298684a84493b/);
+  assert.match(String(extraGap?.scope), /be31c5b238371f75d5d44041a6ac5851231e038e/);
   assert.equal(reading.includes("Live verification: UNKNOWN / NOT OBSERVED"), false);
   assert.equal(stages["LIVE VERIFIED"].evidenceMode, "recorded-replay");
   assert.equal(stages["RUNTIME VERIFIED"].evidenceMode, "not-applicable-unscored");
@@ -240,6 +244,8 @@ test("Change view renderer writes one stage per ADR-0013 step without innerHTML"
     assert.match(readingText, /^LIVE VERIFIED/m);
     assert.match(readingText, /Runtime verification: NOT APPLICABLE/);
     assert.match(readingText, /Current production identity: UNKNOWN \/ NOT OBSERVED/);
+    assert.match(readingText, /Later main commits 14f8195e4d3aa171e12b91505fd298684a84493b and be31c5b238371f75d5d44041a6ac5851231e038e/);
+    assert.match(readingText, /does not observe whether db82da52f13a441a5f88344be6211be71ea2d92e remains the current production identity/);
     assert.equal(nodes.get("change-view-status").dataset.state, "warning");
     assert.match(nodes.get("source-change-chain").textContent, /not a live feed/);
     assert.equal(created.some((node) => "innerHTML" in node && node.innerHTML), false);
@@ -275,8 +281,8 @@ test("Evidence Console keeps existing public records and adds the change view wi
   ]) {
     assert.match(page, new RegExp(`id="${id}"`));
   }
-  assert.match(page, /systems\/evidence\/change-view\.js\?v=20260911-change-chain-href/);
-  assert.match(page, /systems-evidence-truthfulness\.css\?v=20260911-change-chain/);
+  assert.match(page, /systems\/evidence\/change-view\.js\?v=20260911-extra-gap-scope/);
+  assert.match(page, /systems-evidence-truthfulness\.css\?v=20260911-extra-gap-scope/);
   assert.match(page, /data-evidence-mode="recorded-replay"/);
   assert.match(page, /not a live feed/);
   assert.match(css, /prefers-reduced-motion: reduce/);
