@@ -223,7 +223,7 @@ function renderSecondary(projection, selectedId) {
   node.replaceChildren();
   const subject = projection.subjects.find((item) => item.id === selectedId) ?? projection.subjects[0];
   if (!subject) {
-    appendText(node, "p", null, "Secondary classification fields appear when a subject can be inspected.", document.createElement.bind(document));
+    appendText(node, "p", null, "Secondary classification fields appear when a subject can be inspected.");
     return;
   }
   const facts = document.createElement("dl");
