@@ -245,11 +245,12 @@ export function observationsFromPublicSources(sources, specimen = SERVICE_SPECIM
     );
   }
 
-  const declaredVersion = meta.version
-    ? String(meta.version)
-    : (worker?.version ? String(worker.version) : null);
+  const metaVersion = meta.version ? String(meta.version) : null;
+  const registryVersion = worker?.version ? String(worker.version) : null;
+  const declaredVersion = metaVersion ?? registryVersion;
+  const declaredVersionSource = metaVersion ? "/_meta" : (registryVersion ? "registry" : null);
   const endpointCount = asArray(meta.endpoints).length;
-  const publicSurface = component?.public_surface ? String(component.public_surface) : specimen.endpoints.live;
+  const publicSurface = component?.public_surface ? String(component.public_surface) : null;
   const metaNameMatches = String(meta.name ?? "") === specimen.id;
 
   let expectedContract;
@@ -262,11 +263,15 @@ export function observationsFromPublicSources(sources, specimen = SERVICE_SPECIM
   } else if (metaNameMatches && endpointCount > 0) {
     expectedContract = Object.freeze({
       result: RESULT.OBSERVED,
-      identifier: `${meta.version ? `declared version ${meta.version}; ` : ""}${endpointCount} declared endpoints; public surface ${publicSurface}`,
-      provenance: "public GET /v1/_meta plus topology public_surface",
-      observedAt: observedAt,
+      identifier: `${metaVersion ? `declared version ${metaVersion}; ` : ""}${endpointCount} declared endpoints${publicSurface ? `; topology public surface ${publicSurface}` : ""}`,
+      provenance: publicSurface
+        ? "public GET /v1/_meta plus observed topology public_surface"
+        : "public GET /v1/_meta",
+      observedAt,
       sourceUrl: specimen.endpoints.meta,
-      scope: "This is the declared public/runtime contract. Declared endpoints and version metadata are not a deployment event, not the expected deployed git identity, and not live proof. The hardcoded _meta status field is ignored.",
+      scope: publicSurface
+        ? "This is the declared public/runtime contract from /_meta plus an observed topology public_surface. Declared endpoints and version metadata are not a deployment event, not the expected deployed git identity, and not live proof. The hardcoded _meta status field is ignored."
+        : "This is the declared runtime contract observed from /_meta. No topology public_surface was observed, so no hardcoded specimen URL is promoted into contract evidence. Declared endpoints and version metadata are not a deployment event, not the expected deployed git identity, and not live proof. The hardcoded _meta status field is ignored.",
     });
   } else {
     expectedContract = unknownObservation(
@@ -300,7 +305,7 @@ export function observationsFromPublicSources(sources, specimen = SERVICE_SPECIM
   } else if (metaNameMatches) {
     runtime = Object.freeze({
       result: RESULT.OBSERVED,
-      identifier: `${specimen.id} answered GET /v1/_meta${declaredVersion ? ` with declared version ${declaredVersion}` : ""}`,
+      identifier: `${specimen.id} answered GET /v1/_meta${metaVersion ? ` with declared version ${metaVersion}` : ""}`,
       provenance: "public GET /v1/_meta",
       observedAt,
       sourceUrl: specimen.endpoints.meta,
@@ -343,7 +348,7 @@ export function observationsFromPublicSources(sources, specimen = SERVICE_SPECIM
     extraGaps.push(Object.freeze({
       label: "Declared metadata version",
       result: RESULT.OBSERVED,
-      scope: `${declaredVersion} is declared /_meta or registry metadata. It is not a named deployment event and is not the expected deployed identity.`,
+      scope: `${declaredVersion} is declared ${declaredVersionSource} metadata. It is not a named deployment event and is not the expected deployed identity.`,
     }));
   }
 
