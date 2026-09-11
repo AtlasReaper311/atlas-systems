@@ -163,7 +163,10 @@ test("FAILED topology fetch is distinct from UNKNOWN / NOT OBSERVED", () => {
   assert.equal(estateViewStatus(unknown), "warning");
   assert.notEqual(estateViewStatus(failed), estateViewStatus(unknown));
   assert.equal(failed.subjectCount, 0);
+  assert.equal(failed.reading.lines[0].result, RESULT.FAILED);
+  assert.match(failed.reading.lines[0].scope, /FAILED is distinct from UNKNOWN \/ NOT OBSERVED/);
   assert.equal(unknown.reading.lines[0].result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.notEqual(failed.reading.lines[0].result, unknown.reading.lines[0].result);
 });
 
 test("Malformed or non-v3 topology fails closed without inventing a healthy fleet", () => {
@@ -389,7 +392,7 @@ test("Evidence Console keeps Change and Service Views and adds Estate navigation
   }
   assert.match(page, /systems\/evidence\/change-view\.js\?v=20260911-change-chain-href/);
   assert.match(page, /systems\/evidence\/service-view\.js\?v=20260911-service-view/);
-  assert.match(page, /systems\/evidence\/estate-view\.js\?v=20260911-estate-view/);
+  assert.match(page, /systems\/evidence\/estate-view\.js\?v=20260911-failed-roster/);
   assert.match(page, /systems\/evidence\/evidence-views\.js\?v=20260911-estate-view/);
   assert.match(page, /systems-evidence-estate-view\.css\?v=20260911-tab-contrast2/);
   assert.match(css, /\[aria-selected="true"\] span/);

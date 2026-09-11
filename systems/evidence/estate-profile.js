@@ -277,15 +277,26 @@ function extraGaps() {
   ]);
 }
 
-export function compactEstateReading(subjects, extra = extraGaps()) {
+export function compactEstateReading(subjects, extra = extraGaps(), options = {}) {
+  const fetchFailed = options.fetchFailed === true;
+  const malformed = options.malformed === true;
+  let rosterResult = RESULT.UNKNOWN_NOT_OBSERVED;
+  let rosterScope = "No usable public topology subjects were observed.";
+  if (fetchFailed) {
+    rosterResult = RESULT.FAILED;
+    rosterScope = "GET /v1/topology was contacted and did not return a usable roster. FAILED is distinct from UNKNOWN / NOT OBSERVED. A failed roster is not an estate health badge.";
+  } else if (subjects.length) {
+    rosterResult = RESULT.OBSERVED;
+    rosterScope = `${subjects.length} public subject${subjects.length === 1 ? "" : "s"} rendered from GET /v1/topology. Roster size is not a health score.`;
+  } else if (malformed) {
+    rosterScope = "The public topology payload was not atlas-public-topology/v3. Unusable schema remains UNKNOWN / NOT OBSERVED and is not a healthy fleet.";
+  }
   const lines = [
     Object.freeze({
       label: "Public topology roster",
-      result: subjects.length ? RESULT.OBSERVED : RESULT.UNKNOWN_NOT_OBSERVED,
+      result: rosterResult,
       kind: "identity",
-      scope: subjects.length
-        ? `${subjects.length} public subject${subjects.length === 1 ? "" : "s"} rendered from GET /v1/topology. Roster size is not a health score.`
-        : "No usable public topology subjects were observed.",
+      scope: rosterScope,
     }),
     Object.freeze({
       label: "Proven ADR-0013 delivery stage",
@@ -332,19 +343,20 @@ export function projectEstateView(record, nowMs = Date.now()) {
       .filter((subject) => subject.id !== "unknown-subject"),
   );
   const gaps = extraGaps();
+  const malformed = !fetchFailed && !usableSchema;
   return Object.freeze({
     schema: "atlas-systems/estate-overview-projection/v1",
     classification: fetchFailed ? "unavailable" : "live-public-projection",
     liveFeed: true,
     fetchFailed,
-    malformed: !fetchFailed && !usableSchema,
+    malformed,
     topologySchema: schema,
     classificationAuthority: authority,
     classificationFingerprint: fingerprint,
     generatedAt,
     subjectCount: subjects.length,
     subjects,
-    reading: compactEstateReading(subjects, gaps),
+    reading: compactEstateReading(subjects, gaps, { fetchFailed, malformed }),
     extraGaps: gaps,
     recordedFrom: Object.freeze([ESTATE_TOPOLOGY_URL]),
   });
