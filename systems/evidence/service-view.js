@@ -10,18 +10,7 @@ import { SERVICE_SPECIMEN } from "./service-specimen.js";
 export { isPublicSafeHref };
 
 const FETCH_TIMEOUT_MS = 6000;
-const SERVICE_STYLE_HREF = "/static/css/systems-evidence-service-view.css?v=20260911-recovery";
 const byId = (id) => document.getElementById(id);
-
-function ensureServiceViewStyles() {
-  if (typeof document === "undefined" || !document.head) return;
-  if (document.querySelector(`link[data-service-view-styles][href="${SERVICE_STYLE_HREF}"]`)) return;
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = SERVICE_STYLE_HREF;
-  link.dataset.serviceViewStyles = "true";
-  document.head.appendChild(link);
-}
 
 function resultLabel(result) {
   return result === RESULT.OBSERVED ? "Observed" : result;
@@ -177,7 +166,6 @@ function renderStatus(projection) {
 }
 
 export function renderServiceView(record) {
-  ensureServiceViewStyles();
   const projection = projectServiceView(record);
   const list = byId("service-facts");
   if (!list) return projection;
@@ -190,7 +178,6 @@ export function renderServiceView(record) {
 }
 
 export async function loadServiceView(specimen = SERVICE_SPECIMEN, fetchImpl = fetchJson) {
-  ensureServiceViewStyles();
   const [topology, registry, meta, live, reliability] = await Promise.allSettled([
     fetchImpl(specimen.endpoints.topology),
     fetchImpl(specimen.endpoints.registry),
@@ -206,7 +193,6 @@ export async function loadServiceView(specimen = SERVICE_SPECIMEN, fetchImpl = f
 }
 
 if (typeof window !== "undefined" && window.document) {
-  ensureServiceViewStyles();
   loadServiceView().catch(() => {
     const status = byId("service-view-status");
     if (!status) return;
