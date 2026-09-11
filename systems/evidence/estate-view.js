@@ -5,9 +5,18 @@ import {
   projectEstateView,
   topologyRecordFromSettled,
 } from "./estate-profile.js";
+import {
+  bindLadderKeyboard,
+  claimElementId,
+  parseEvidenceClaim,
+  projectEvidenceDetail,
+  renderAnswerFirst,
+  renderEvidenceDetail,
+} from "./evidence-detail.js";
 import { isPublicSafeHref } from "./public-safe-href.js";
 
 const FETCH_TIMEOUT_MS = 6000;
+const ESTATE_COLUMNS = 5;
 const byId = (id) => document.getElementById(id);
 
 function appendText(parent, tag, className, text) {
@@ -66,87 +75,183 @@ function renderReading(reading) {
   }
 }
 
-function cell(text) {
+function renderSummary(projection) {
+  const roster = projection.reading.lines.find((line) => line.label === "Public topology roster");
+  const next = projection.reading.lines.find((line) => line.label === "Proven ADR-0013 delivery stage");
+  renderAnswerFirst(byId("estate-summary"), {
+    proven: roster
+      ? `Public topology roster — ${roster.result}`
+      : "No public topology roster",
+    provenResult: roster?.result ?? RESULT.UNKNOWN_NOT_OBSERVED,
+    nextGap: next ? `${next.label} — ${next.result}` : "Estate-wide delivery snapshot — UNKNOWN / NOT OBSERVED",
+    nextGapResult: next?.result ?? RESULT.UNKNOWN_NOT_OBSERVED,
+    evidence: "Live public topology",
+  });
+}
+
+function cell(text, label) {
   const td = document.createElement("td");
   td.textContent = text;
+  if (label) td.dataset.label = label;
   return td;
 }
 
 function subjectCell(subject) {
   const td = document.createElement("td");
+  td.dataset.label = "Subject";
   const name = document.createElement("strong");
   name.textContent = subject.id;
   td.appendChild(name);
   if (subject.repository) {
     appendText(td, "span", "systems-estate-repo", subject.repository);
   }
-  if (subject.kind || subject.layer) {
-    appendText(td, "span", "systems-estate-kind", `${subject.kind} · ${subject.layer}`);
-  }
-  const link = safeLink(subject.repositoryUrl, "Open public source");
-  if (link) {
-    link.className = "systems-estate-source";
-    td.appendChild(link);
-  }
   return td;
 }
 
-function renderSubjectRow(subject) {
+function renderSubjectRow(subject, selected) {
   const row = document.createElement("tr");
   row.dataset.result = subject.latestProvenResult;
   row.dataset.profile = subject.profile.id;
+  row.dataset.claim = subject.id;
+  row.dataset.selected = String(selected);
+  row.id = claimElementId(subject.id, "estate");
+  if (typeof row.setAttribute === "function") {
+    row.setAttribute("tabindex", selected ? "0" : "-1");
+    row.setAttribute("aria-selected", String(selected));
+  }
   row.append(
     subjectCell(subject),
-    cell(`${subject.profile.id} (${subject.profile.authority})`),
-    cell([
-      `lifecycle ${subject.classification.lifecycle ?? "unknown"}`,
-      `scope ${subject.classification.scope ?? "unknown"}`,
-      `runtime_service ${subject.classification.runtimeService === null ? "not supplied" : String(subject.classification.runtimeService)}`,
-      resultLabel(subject.classification.result),
-    ].join(" · ")),
-    cell(subject.latestProvenStage ?? "UNKNOWN / NOT OBSERVED"),
-    cell(resultLabel(subject.latestProvenResult)),
-    cell(subject.nextApplicableMissing ?? "none remaining"),
-    cell(subject.notApplicableStages.length ? subject.notApplicableStages.join(", ") : "none"),
-    cell(subject.classification.evidenceMode === "stale-measured"
-      ? `stale classification · ${subject.observedAt ?? "timestamp unavailable"}`
-      : (subject.observedAt ?? "timestamp unavailable")),
+    cell(subject.profile.id, "Profile"),
+    cell(subject.latestProvenStage ?? "UNKNOWN / NOT OBSERVED", "Latest proven"),
+    cell(resultLabel(subject.latestProvenResult), "Result"),
+    cell(subject.nextApplicableMissing ?? "none remaining", "Next gap"),
   );
   return row;
 }
 
-function renderRows(projection) {
+function emptyRow(message) {
+  const row = document.createElement("tr");
+  const td = document.createElement("td");
+  td.colSpan = ESTATE_COLUMNS;
+  td.textContent = message;
+  row.appendChild(td);
+  return row;
+}
+
+function renderRows(projection, selectedId) {
   const body = byId("estate-rows");
   if (!body) return;
   body.replaceChildren();
   if (projection.fetchFailed) {
-    const row = document.createElement("tr");
-    const td = document.createElement("td");
-    td.colSpan = 8;
-    td.textContent = "The public topology source was contacted and did not return a usable roster. FAILED is distinct from UNKNOWN / NOT OBSERVED. Missing delivery evidence is not inferred.";
-    row.appendChild(td);
-    body.appendChild(row);
+    body.appendChild(emptyRow(
+      "The public topology source was contacted and did not return a usable roster. FAILED is distinct from UNKNOWN / NOT OBSERVED. Missing delivery evidence is not inferred.",
+    ));
     return;
   }
   if (projection.malformed) {
-    const row = document.createElement("tr");
-    const td = document.createElement("td");
-    td.colSpan = 8;
-    td.textContent = "The public topology response did not match atlas-public-topology/v3. Malformed estate data fails closed as UNKNOWN / NOT OBSERVED and is not a healthy fleet.";
-    row.appendChild(td);
-    body.appendChild(row);
+    body.appendChild(emptyRow(
+      "The public topology response did not match atlas-public-topology/v3. Malformed estate data fails closed as UNKNOWN / NOT OBSERVED and is not a healthy fleet.",
+    ));
     return;
   }
   if (!projection.subjects.length) {
-    const row = document.createElement("tr");
-    const td = document.createElement("td");
-    td.colSpan = 8;
-    td.textContent = "Public topology returned no usable subjects. Empty evidence is not a complete estate.";
-    row.appendChild(td);
-    body.appendChild(row);
+    body.appendChild(emptyRow("Public topology returned no usable subjects. Empty evidence is not a complete estate."));
     return;
   }
-  for (const subject of projection.subjects) body.appendChild(renderSubjectRow(subject));
+  for (const subject of projection.subjects) {
+    body.appendChild(renderSubjectRow(subject, subject.id === selectedId));
+  }
+}
+
+export function detailForEstateSubject(projection, subjectId) {
+  const subject = projection.subjects.find((item) => item.id === subjectId) ?? projection.subjects[0];
+  if (!subject) {
+    return projectEvidenceDetail({
+      view: "estate",
+      subject: { label: "Estate roster" },
+      stage: "Public topology roster",
+      result: projection.fetchFailed ? RESULT.FAILED : RESULT.UNKNOWN_NOT_OBSERVED,
+      evidenceType: "live-public-projection",
+      classification: projection.classification,
+      scope: projection.fetchFailed
+        ? "GET /v1/topology was contacted and did not return a usable roster."
+        : "No usable public topology subject is selected.",
+      nextGap: {
+        label: "Proven ADR-0013 delivery stage",
+        result: RESULT.UNKNOWN_NOT_OBSERVED,
+      },
+    });
+  }
+  const classification = subject.classification;
+  const na = subject.notApplicableStages.length
+    ? `Not applicable: ${subject.notApplicableStages.join(", ")}.`
+    : "No profile-driven NOT APPLICABLE stages.";
+  return projectEvidenceDetail({
+    view: "estate",
+    subject: {
+      id: subject.id,
+      repository: subject.repository,
+      label: subject.repository ? `${subject.id} (${subject.repository})` : subject.id,
+    },
+    assertion: `Public topology classification for ${subject.id}`,
+    stage: subject.latestProvenStage ?? "No proven ADR-0013 stage",
+    result: subject.latestProvenResult,
+    evidenceType: "live-public-projection",
+    classification: projection.classification,
+    identifier: subject.id,
+    observedAt: subject.observedAt,
+    provenance: `GET /v1/topology; ${subject.profile.authority} ${subject.profile.id}; ${classification.provenance ?? "provenance not supplied"}`,
+    scope: `${classification.gap ?? ""} Classification lifecycle ${classification.lifecycle ?? "unknown"}, scope ${classification.scope ?? "unknown"}, runtime_service ${classification.runtimeService === null ? "not supplied" : String(classification.runtimeService)}. ${na}`,
+    evidenceMode: classification.evidenceMode,
+    sourceUrl: subject.sourceUrl ?? subject.repositoryUrl,
+    nextGap: subject.nextApplicableMissing
+      ? {
+        label: subject.nextApplicableMissing,
+        result: RESULT.UNKNOWN_NOT_OBSERVED,
+        scope: "Public topology and classification are not a delivery chain.",
+      }
+      : {
+        label: "Estate-wide delivery snapshot",
+        result: RESULT.UNKNOWN_NOT_OBSERVED,
+      },
+  });
+}
+
+function renderSecondary(projection, selectedId) {
+  const node = byId("estate-secondary");
+  if (!node) return;
+  node.replaceChildren();
+  const subject = projection.subjects.find((item) => item.id === selectedId) ?? projection.subjects[0];
+  if (!subject) {
+    appendText(node, "p", null, "Secondary classification fields appear when a subject can be inspected.", document.createElement.bind(document));
+    return;
+  }
+  const facts = document.createElement("dl");
+  facts.className = "systems-evidence-detail-facts";
+  const rows = [
+    ["Classification lifecycle", subject.classification.lifecycle ?? "not supplied"],
+    ["Classification scope", subject.classification.scope ?? "not supplied"],
+    ["Runtime service flag", subject.classification.runtimeService === null ? "not supplied" : String(subject.classification.runtimeService)],
+    ["Kind / layer", `${subject.kind} · ${subject.layer}`],
+    ["Not applicable stages", subject.notApplicableStages.length ? subject.notApplicableStages.join(", ") : "none"],
+    ["Profile chosen from", subject.profile.chosenFrom ?? subject.profile.id],
+    ["Observed at", subject.observedAt ?? "timestamp unavailable"],
+  ];
+  for (const [term, value] of rows) {
+    const wrap = document.createElement("div");
+    const dt = document.createElement("dt");
+    const dd = document.createElement("dd");
+    dt.textContent = term;
+    dd.textContent = value;
+    wrap.append(dt, dd);
+    facts.appendChild(wrap);
+  }
+  node.appendChild(facts);
+  const link = safeLink(subject.repositoryUrl, "Open public source");
+  if (link) {
+    link.className = "systems-estate-source";
+    node.appendChild(link);
+  }
 }
 
 function renderProvenance(projection) {
@@ -197,12 +302,61 @@ function renderStatus(projection) {
   status.textContent = `Public topology roster for ${projection.subjectCount} subject${projection.subjectCount === 1 ? "" : "s"}. Classification is not delivery. Missing ADR-0013 stages remain UNKNOWN / NOT OBSERVED. This is not an estate health badge.`;
 }
 
-export function renderEstateView(record) {
+function selectedSubjectId(projection, requested) {
+  if (requested && projection.subjects.some((subject) => subject.id === requested)) return requested;
+  return projection.subjects[0]?.id ?? null;
+}
+
+function bindEstateRoster(projection) {
+  const body = byId("estate-rows");
+  if (!body || typeof body.addEventListener !== "function") return;
+  if (body.dataset.ladderBound === "true") return;
+  body.dataset.ladderBound = "true";
+  const names = projection.subjects.map((subject) => subject.id);
+  const select = (claim) => {
+    if (!claim) return;
+    const next = selectedSubjectId(projection, claim);
+    renderRows(projection, next);
+    renderEvidenceDetail(byId("estate-detail"), detailForEstateSubject(projection, next), {
+      titleId: "estate-detail-title",
+    });
+    renderSecondary(projection, next);
+    const focused = [...body.querySelectorAll("[data-claim]")].find((node) => node.dataset.claim === next);
+    focused?.focus?.();
+  };
+  body.addEventListener("click", (event) => {
+    const row = event.target?.closest?.("tr[data-claim]");
+    if (!row || !body.contains(row)) return;
+    select(row.dataset.claim);
+  });
+  bindLadderKeyboard(body, (claim) => select(claim));
+  if (typeof window !== "undefined") {
+    window.addEventListener("popstate", () => {
+      const claim = parseEvidenceClaim(window.location, names, names[0] ?? null);
+      select(claim);
+    });
+  }
+}
+
+export function renderEstateView(record, options = {}) {
   const projection = projectEstateView(record);
   renderReading(projection.reading);
-  renderRows(projection);
+  renderSummary(projection);
+  const requested = options.claim
+    ?? parseEvidenceClaim(
+      options.location ?? (typeof window !== "undefined" ? window.location : {}),
+      projection.subjects.map((subject) => subject.id),
+      projection.subjects[0]?.id ?? null,
+    );
+  const selected = selectedSubjectId(projection, requested);
+  renderRows(projection, selected);
+  renderEvidenceDetail(byId("estate-detail"), detailForEstateSubject(projection, selected), {
+    titleId: "estate-detail-title",
+  });
+  renderSecondary(projection, selected);
   renderProvenance(projection);
   renderStatus(projection);
+  if (options.bind !== false) bindEstateRoster(projection);
   return projection;
 }
 

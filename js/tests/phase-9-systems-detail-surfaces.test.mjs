@@ -34,6 +34,8 @@ const requiredIds = {
     "estate-view-title", "estate-view-status", "estate-reading", "estate-rows",
     "estate-provenance", "source-estate-view",
     "evidence-view-nav", "supporting-records",
+    "change-summary", "change-detail", "service-summary", "service-detail",
+    "estate-summary", "estate-detail", "how-to-read-evidence",
   ],
 };
 

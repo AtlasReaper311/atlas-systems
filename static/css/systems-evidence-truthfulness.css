@@ -246,9 +246,12 @@
   }
 }
 
-.systems-change-view {
-  padding: clamp(1.5rem, 4vw, 2.25rem);
-  border-style: dashed;
+.systems-change-view,
+.systems-service-view,
+.systems-estate-view {
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  border: 0;
+  background: transparent;
 }
 
 .systems-change-view > .focus-section-head {
@@ -264,11 +267,12 @@
 
 .systems-change-reading {
   margin: 0;
-  padding: 1rem 1.1rem;
+  padding: 0.35rem 0 0;
   list-style: none;
-  border: 1px solid var(--border-hi);
-  border-radius: 8px;
-  background: var(--bg-1);
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
   font-family: var(--mono);
   font-size: 13px;
   line-height: 1.7;
@@ -332,10 +336,11 @@
 
 .systems-change-stage {
   min-width: 0;
-  padding: 1rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: rgba(17, 17, 24, 0.72);
+  padding: 0.85rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
 }
 
 .systems-change-stage[data-result="UNKNOWN / NOT OBSERVED"],

@@ -36,8 +36,9 @@
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
   <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h-fixes">
   <link rel="stylesheet" href="/static/css/systems-detail-surfaces.css?v=20260811-heatmap-compact">
-  <link rel="stylesheet" href="/static/css/systems-evidence-truthfulness.css?v=20260911-estate-view">
-  <link rel="stylesheet" href="/static/css/systems-evidence-estate-view.css?v=20260911-tab-contrast2">
+  <link rel="stylesheet" href="/static/css/systems-evidence-truthfulness.css?v=20260911-detail">
+  <link rel="stylesheet" href="/static/css/systems-evidence-estate-view.css?v=20260911-detail">
+  <link rel="stylesheet" href="/static/css/systems-evidence-detail.css?v=20260911-detail">
 <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
 <link rel="stylesheet" href="/static/css/secondary-surface-fields.css?v=20260807-hero-contrast">
 </head>
@@ -69,18 +70,9 @@
         <div class="systems-detail-intro">
           <p class="systems-detail-kicker">Verify the claim</p>
           <h1 class="focus-title">What supports the public claims?</h1>
-          <p class="focus-lede">A provenance-first evidence browser. Choose Change, Service, or Estate. Change reads one recorded repair. Service reads one named runtime Worker. Estate scans the public topology roster for where evidence is complete, stale, failed, unknown, or not applicable. Supporting records stay available without dominating the first reading. Later missing facts stay unknown.</p>
+          <p class="focus-lede">Choose Change, Service, or Estate. Read what is proven, then inspect the exact source for one claim. Missing later facts stay unknown.</p>
           <div class="focus-actions"><a class="focus-action primary" href="/lab/proof-chain/">Open Proof Chain</a><a class="focus-action" href="https://status.atlas-systems.uk/">Open public status</a></div>
         </div>
-        <aside class="systems-detail-boundary" aria-labelledby="evidence-boundary-title">
-          <p class="systems-detail-kicker">Provenance boundary</p>
-          <h2 id="evidence-boundary-title">A record can support a claim without proving the whole estate</h2>
-          <dl>
-            <div><dt>Reads</dt><dd>One recorded public-safe change chain, one runtime Service View for a named Worker, a public topology Estate overview, plus public activity, raw availability, deployment, pipeline event, and assurance-report records.</dd></div>
-            <div><dt>Separates</dt><dd>ADR-0013 delivery stages, ADR-0014 profile applicability, classification lifecycle, observation result, claim, runtime state, evidence mode, supporting record, observation time, source time, and freshness. Classification is not delivery.</dd></div>
-            <div><dt>Freshness</dt><dd>Every source is judged independently. A merge is not a deployment. Runtime is not live. Topology is not an estate health badge. One fresh record cannot mask another stale, unknown, or unavailable source.</dd></div>
-          </dl>
-        </aside>
       </div>
       <nav class="systems-detail-sequence" aria-label="Systems evidence sequence">
         <a href="/systems/observability/"><span>01 // Observe</span><strong>What is happening?</strong></a>
@@ -95,6 +87,26 @@
       <a href="#view-estate" id="tab-estate" data-evidence-view-tab="estate"><span>Estate</span><strong>Where is evidence complete or missing?</strong></a>
     </nav>
 
+    <details class="systems-evidence-disclosure systems-evidence-howto" id="how-to-read-evidence">
+      <summary>How to read this evidence</summary>
+      <aside class="systems-detail-boundary" aria-labelledby="evidence-boundary-title">
+        <p class="systems-detail-kicker">Provenance boundary</p>
+        <h2 id="evidence-boundary-title">A record can support a claim without proving the whole estate</h2>
+        <dl>
+          <div><dt>Reads</dt><dd>One recorded public-safe change chain, one runtime Service View for a named Worker, a public topology Estate overview, plus public activity, raw availability, deployment, pipeline event, and assurance-report records.</dd></div>
+          <div><dt>Separates</dt><dd>ADR-0013 delivery stages, ADR-0014 profile applicability, classification lifecycle, observation result, claim, runtime state, evidence mode, supporting record, observation time, source time, and freshness. Classification is not delivery.</dd></div>
+          <div><dt>Freshness</dt><dd>Every source is judged independently. A merge is not a deployment. Runtime is not live. Topology is not an estate health badge. One fresh record cannot mask another stale, unknown, or unavailable source.</dd></div>
+        </dl>
+        <dl class="systems-evidence-glossary">
+          <div><dt>OBSERVED</dt><dd>Evidence was actually observed for this claim.</dd></div>
+          <div><dt>UNKNOWN / NOT OBSERVED</dt><dd>No approved evidence has established this claim.</dd></div>
+          <div><dt>FAILED</dt><dd>The evidence source or check was attempted and failed.</dd></div>
+          <div><dt>NOT APPLICABLE</dt><dd>This stage cannot exist for this subject or profile.</dd></div>
+        </dl>
+        <p class="focus-note">Opening Evidence Detail explains an existing record. It does not create stronger truth.</p>
+      </aside>
+    </details>
+
     <details class="systems-evidence-major-view" id="view-change" data-evidence-view="change" open>
       <summary class="systems-evidence-view-summary">Change: first source-to-live chain</summary>
     <section class="focus-section systems-change-view atlas-evidence-surface" data-evidence-mode="recorded-replay" aria-labelledby="change-view-title">
@@ -107,7 +119,7 @@
       </div>
       <p class="focus-note">Specimen: public atlas-systems#256, the production-smoke ordering repair from issue #253. This is a recorded public GitHub projection, not a live feed. Proof Chain remains the source/governance map and is not duplicated here.</p>
       <div class="systems-change-workbench">
-        <section class="systems-detail-panel systems-detail-panel--dominant" aria-labelledby="change-reading-title">
+        <section class="systems-detail-panel systems-detail-panel--dominant systems-evidence-primary" aria-labelledby="change-reading-title">
           <div class="focus-section-head">
             <div>
               <p class="systems-detail-kicker">Public reading</p>
@@ -115,6 +127,11 @@
             </div>
             <span class="atlas-evidence-mode" data-evidence-mode="recorded-replay">Recorded projection</span>
           </div>
+          <dl id="change-summary" class="systems-evidence-summary">
+            <div><dt>Proven</dt><dd>Recorded projection requires JavaScript</dd></div>
+            <div><dt>Next gap</dt><dd>UNKNOWN / NOT OBSERVED until the recorded chain is projected</dd></div>
+            <div><dt>Evidence</dt><dd>Recorded public projection</dd></div>
+          </dl>
           <ol id="change-reading" class="systems-change-reading">
             <li>No compact reading rendered yet. Missing later evidence remains UNKNOWN / NOT OBSERVED.</li>
           </ol>
@@ -122,18 +139,45 @@
             <p>Review evidence has not been rendered yet. Missing review is not an approval.</p>
           </div>
         </section>
-        <section class="systems-detail-panel" aria-labelledby="change-chain-title">
+        <section class="systems-detail-panel systems-evidence-inspect" aria-labelledby="change-chain-title">
           <div class="focus-section-head">
             <div>
-              <p class="systems-detail-kicker">Chronological chain</p>
+              <p class="systems-detail-kicker">Evidence ladder</p>
               <h3 id="change-chain-title">ADR-0013 stages</h3>
             </div>
           </div>
-          <ol id="change-chain" class="systems-change-chain">
+          <ol id="change-chain" class="systems-change-chain systems-evidence-ladder">
             <li>No change-chain stages rendered yet. Empty evidence is not a successful delivery chain.</li>
           </ol>
+          <section id="change-detail" class="systems-evidence-detail-panel" aria-labelledby="change-detail-title">
+            <p class="systems-detail-kicker">Evidence Detail</p>
+            <h3 id="change-detail-title">Inspect one claim</h3>
+            <p>Select a lifecycle stage to inspect its source. Opening a record does not create stronger truth.</p>
+          </section>
+          <details class="systems-evidence-disclosure" id="change-detail-fallback">
+            <summary>Inspect MERGED without JavaScript</summary>
+            <div id="claim-merged" class="systems-evidence-detail-noscript">
+              <p class="systems-detail-kicker">First Evidence Detail specimen</p>
+              <h3>MERGED</h3>
+              <dl class="systems-evidence-detail-facts">
+                <div><dt>Subject</dt><dd>AtlasReaper311/atlas-systems#256</dd></div>
+                <div><dt>Assertion</dt><dd>MERGED for AtlasReaper311/atlas-systems#256</dd></div>
+                <div><dt>Lifecycle stage</dt><dd>MERGED</dd></div>
+                <div><dt>Observation result</dt><dd>OBSERVED</dd></div>
+                <div><dt>Evidence type</dt><dd>recorded-public-projection</dd></div>
+                <div><dt>Exact identifier</dt><dd>db82da52f13a441a5f88344be6211be71ea2d92e</dd></div>
+                <div><dt>Observed at</dt><dd>2026-09-11T08:32:02Z</dd></div>
+                <div><dt>Freshness</dt><dd>Recorded public projection; not a live feed. Recorded at 2026-09-11T08:49:00Z.</dd></div>
+                <div><dt>Provenance</dt><dd>public GitHub merge of AtlasReaper311/atlas-systems#256 onto main</dd></div>
+                <div><dt>What this proves</dt><dd>The exact source head was integrated onto main as merge commit db82da52f13a441a5f88344be6211be71ea2d92e. MERGED proves source integration only. It does not prove deployment, runtime, or live verification.</dd></div>
+                <div><dt>What this does not prove</dt><dd>MERGED proves source integration only. It does not prove deployment, runtime, or live verification.</dd></div>
+                <div><dt>Next applicable evidence gap</dt><dd>Current production identity — UNKNOWN / NOT OBSERVED</dd></div>
+              </dl>
+              <a class="systems-change-source" href="https://github.com/AtlasReaper311/atlas-systems/commit/db82da52f13a441a5f88344be6211be71ea2d92e" target="_blank" rel="noopener">Open public evidence source</a>
+            </div>
+          </details>
           <div id="change-provenance" class="systems-change-provenance">
-            <p>Change-chain provenance has not been rendered yet.</p>
+            <p>Change-chain provenance has not been rendered yet. This Change View is a recorded public-safe projection, not a live feed.</p>
           </div>
         </section>
       </div>
@@ -152,7 +196,7 @@
       </div>
       <p class="focus-note">Specimen: public runtime Worker atlas-api-public, ADR-0014 runtime-worker profile. Topology and registry are declared public maps, not deployment authority. /_meta is runtime metadata, not live proof. GET /v1 is public behaviour at observation time only. Proof Chain remains the source/governance map and is not duplicated here.</p>
       <div class="systems-change-workbench">
-        <section class="systems-detail-panel systems-detail-panel--dominant" aria-labelledby="service-reading-title">
+        <section class="systems-detail-panel systems-detail-panel--dominant systems-evidence-primary" aria-labelledby="service-reading-title">
           <div class="focus-section-head">
             <div>
               <p class="systems-detail-kicker">Public reading</p>
@@ -160,20 +204,30 @@
             </div>
             <span class="atlas-evidence-mode" data-evidence-mode="unknown">Live public projection</span>
           </div>
+          <dl id="service-summary" class="systems-evidence-summary">
+            <div><dt>Proven</dt><dd>Live public projection requires JavaScript</dd></div>
+            <div><dt>Next gap</dt><dd>UNKNOWN / NOT OBSERVED until public contracts are read</dd></div>
+            <div><dt>Evidence</dt><dd>Live public projection</dd></div>
+          </dl>
           <ol id="service-reading" class="systems-change-reading">
             <li>No compact service reading rendered yet. Missing later evidence remains UNKNOWN / NOT OBSERVED.</li>
           </ol>
         </section>
-        <section class="systems-detail-panel" aria-labelledby="service-facts-title">
+        <section class="systems-detail-panel systems-evidence-inspect" aria-labelledby="service-facts-title">
           <div class="focus-section-head">
             <div>
-              <p class="systems-detail-kicker">Runtime-worker facts</p>
+              <p class="systems-detail-kicker">Evidence ladder</p>
               <h3 id="service-facts-title">ADR-0014 profile</h3>
             </div>
           </div>
-          <ol id="service-facts" class="systems-change-chain">
+          <ol id="service-facts" class="systems-change-chain systems-evidence-ladder">
             <li>No service facts rendered yet. Empty evidence is not a healthy service.</li>
           </ol>
+          <section id="service-detail" class="systems-evidence-detail-panel" aria-labelledby="service-detail-title">
+            <p class="systems-detail-kicker">Evidence Detail</p>
+            <h3 id="service-detail-title">Inspect one service fact</h3>
+            <p>Select a service fact to inspect its source. Opening a record does not create stronger truth.</p>
+          </section>
           <div id="service-provenance" class="systems-change-provenance">
             <p>Service-view provenance has not been rendered yet.</p>
           </div>
@@ -194,7 +248,7 @@
       </div>
       <p class="focus-note">This overview reads the current public topology projection from GET /v1/topology. Atlas Infra remains classification authority. Topology lifecycle is not ADR-0013 delivery. There is no public estate-wide delivery snapshot on this path. Do not read this table as a green fleet dashboard. Proof Chain remains the source/governance map and is not duplicated here.</p>
       <div class="systems-change-workbench">
-        <section class="systems-detail-panel systems-detail-panel--dominant" aria-labelledby="estate-reading-title">
+        <section class="systems-detail-panel systems-detail-panel--dominant systems-evidence-primary" aria-labelledby="estate-reading-title">
           <div class="focus-section-head">
             <div>
               <p class="systems-detail-kicker">Public reading</p>
@@ -202,11 +256,16 @@
             </div>
             <span class="atlas-evidence-mode" data-evidence-mode="unknown">Live public projection</span>
           </div>
+          <dl id="estate-summary" class="systems-evidence-summary">
+            <div><dt>Proven</dt><dd>Public topology roster requires JavaScript</dd></div>
+            <div><dt>Next gap</dt><dd>Proven ADR-0013 delivery stage — UNKNOWN / NOT OBSERVED</dd></div>
+            <div><dt>Evidence</dt><dd>Live public topology</dd></div>
+          </dl>
           <ol id="estate-reading" class="systems-change-reading">
             <li>No compact estate reading rendered yet. Missing later evidence remains UNKNOWN / NOT OBSERVED.</li>
           </ol>
         </section>
-        <section class="systems-detail-panel" aria-labelledby="estate-roster-title">
+        <section class="systems-detail-panel systems-evidence-inspect" aria-labelledby="estate-roster-title">
           <div class="focus-section-head">
             <div>
               <p class="systems-detail-kicker">Subject roster</p>
@@ -219,19 +278,27 @@
                 <tr>
                   <th scope="col">Subject</th>
                   <th scope="col">Profile</th>
-                  <th scope="col">Classification</th>
-                  <th scope="col">Latest proven stage</th>
-                  <th scope="col">Observation</th>
-                  <th scope="col">Next missing</th>
-                  <th scope="col">Not applicable</th>
-                  <th scope="col">Freshness</th>
+                  <th scope="col">Latest proven</th>
+                  <th scope="col">Result</th>
+                  <th scope="col">Next gap</th>
                 </tr>
               </thead>
               <tbody id="estate-rows">
-                <tr><td colspan="8">Estate roster requires JavaScript to read the public topology projection. Missing evidence is not success.</td></tr>
+                <tr><td colspan="5">Estate roster requires JavaScript to read the public topology projection. Missing evidence is not success.</td></tr>
               </tbody>
             </table>
           </section>
+          <section id="estate-detail" class="systems-evidence-detail-panel" aria-labelledby="estate-detail-title">
+            <p class="systems-detail-kicker">Evidence Detail</p>
+            <h3 id="estate-detail-title">Inspect one estate subject</h3>
+            <p>Select a subject to inspect classification and missing delivery evidence. Classification is not delivery.</p>
+          </section>
+          <details class="systems-evidence-disclosure" id="estate-secondary-wrap">
+            <summary>Classification and provenance detail</summary>
+            <div id="estate-secondary">
+              <p>Secondary classification fields appear when a subject can be inspected. They are not ADR-0013 delivery evidence.</p>
+            </div>
+          </details>
           <div id="estate-provenance" class="systems-change-provenance">
             <p>Estate-view provenance has not been rendered yet.</p>
           </div>
@@ -335,10 +402,10 @@
   <script type="module" src="/static/js/focused-systems-shell.js?v=20260725-batch-h-fixes"></script>
   <script type="module" src="/systems/evidence/evidence.js?v=20260811-pipeline-cap"></script>
   <script type="module" src="/systems/evidence/receipts.js?v=20260810-evidence-truthfulness"></script>
-  <script type="module" src="/systems/evidence/evidence-views.js?v=20260911-estate-view"></script>
-  <script type="module" src="/systems/evidence/change-view.js?v=20260911-change-chain-href"></script>
-  <script type="module" src="/systems/evidence/service-view.js?v=20260911-service-view"></script>
-  <script type="module" src="/systems/evidence/estate-view.js?v=20260911-failed-roster"></script>
+  <script type="module" src="/systems/evidence/evidence-views.js?v=20260911-detail"></script>
+  <script type="module" src="/systems/evidence/change-view.js?v=20260911-detail"></script>
+  <script type="module" src="/systems/evidence/service-view.js?v=20260911-detail"></script>
+  <script type="module" src="/systems/evidence/estate-view.js?v=20260911-detail"></script>
   <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
     <div class="mobile-nav-inner atlas-mobile-nav__inner">
       <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>

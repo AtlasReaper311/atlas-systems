@@ -320,9 +320,9 @@ test("Evidence Console keeps Phase 2.1 Change View and adds the Service View wit
   ]) {
     assert.match(page, new RegExp(`id="${id}"`));
   }
-  assert.match(page, /systems\/evidence\/change-view\.js\?v=20260911-change-chain-href/);
-  assert.match(page, /systems\/evidence\/service-view\.js\?v=20260911-service-view/);
-  assert.match(page, /systems-evidence-truthfulness\.css\?v=20260911-estate-view/);
+  assert.match(page, /systems\/evidence\/change-view\.js\?v=20260911-detail/);
+  assert.match(page, /systems\/evidence\/service-view\.js\?v=20260911-detail/);
+  assert.match(page, /systems-evidence-truthfulness\.css\?v=20260911-detail/);
   assert.match(page, /atlas-api-public/);
   assert.match(css, /prefers-reduced-motion: reduce/);
   assert.match(css, /systems-service-reading-scope/);
