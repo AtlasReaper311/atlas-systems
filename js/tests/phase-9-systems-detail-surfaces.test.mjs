@@ -31,6 +31,9 @@ const requiredIds = {
     "change-reading", "change-chain", "change-review", "change-provenance",
     "service-view-title", "service-view-status", "service-reading", "service-facts",
     "service-provenance", "source-service-view",
+    "estate-view-title", "estate-view-status", "estate-reading", "estate-rows",
+    "estate-provenance", "source-estate-view",
+    "evidence-view-nav", "supporting-records",
   ],
 };
 

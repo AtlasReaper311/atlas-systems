@@ -303,6 +303,7 @@ test("Evidence Console keeps Phase 2.1 Change View and adds the Service View wit
   for (const section of [
     "First source-to-live chain",
     "First runtime service evidence",
+    "First public estate evidence overview",
     "Evidence summary",
     "Ninety days of public commit evidence",
     "Latest bounded deployment record",
@@ -321,7 +322,7 @@ test("Evidence Console keeps Phase 2.1 Change View and adds the Service View wit
   }
   assert.match(page, /systems\/evidence\/change-view\.js\?v=20260911-change-chain-href/);
   assert.match(page, /systems\/evidence\/service-view\.js\?v=20260911-service-view/);
-  assert.match(page, /systems-evidence-truthfulness\.css\?v=20260911-service-view/);
+  assert.match(page, /systems-evidence-truthfulness\.css\?v=20260911-estate-view/);
   assert.match(page, /atlas-api-public/);
   assert.match(css, /prefers-reduced-motion: reduce/);
   assert.match(css, /systems-service-reading-scope/);
