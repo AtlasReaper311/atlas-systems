@@ -4,10 +4,21 @@
   min-height: 72px;
 }
 
+.systems-evidence-views span,
+.systems-evidence-views strong {
+  overflow-wrap: anywhere;
+}
+
 .systems-evidence-views [aria-selected="true"],
 .systems-evidence-views [aria-current="true"] {
   box-shadow: inset 0 3px 0 var(--accent);
   background: var(--accent-dim);
+}
+
+/* Selected kickers sit on --accent-dim (#382e22 blended). --text-faint is 3.79:1 there. */
+.systems-evidence-views [aria-selected="true"] span,
+.systems-evidence-views [aria-current="true"] span {
+  color: var(--text-dim);
 }
 
 .systems-evidence-view-summary {
@@ -74,6 +85,12 @@
 .systems-estate-source:hover,
 .systems-estate-source:focus-visible {
   text-decoration: underline;
+}
+
+.systems-detail-page[data-systems-detail="evidence"] .systems-estate-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
 }
 
 .systems-estate-table th,
