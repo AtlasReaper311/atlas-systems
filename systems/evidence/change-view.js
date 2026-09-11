@@ -150,10 +150,11 @@ function renderProvenance(chain) {
 function renderStatus(chain) {
   const status = byId("change-view-status");
   if (!status) return;
-  const unknown = chain.stages.filter((stage) => stage.result === RESULT.UNKNOWN_NOT_OBSERVED).length;
+  const unknownStages = chain.stages.some((stage) => stage.result === RESULT.UNKNOWN_NOT_OBSERVED);
+  const unknownLater = chain.reading.lines.some((line) => line.result === RESULT.UNKNOWN_NOT_OBSERVED);
   const failed = chain.stages.some((stage) => stage.result === RESULT.FAILED);
   const proven = chain.reading.provenStage ?? "none";
-  status.dataset.state = failed ? "failure" : unknown ? "warning" : "healthy";
+  status.dataset.state = failed ? "failure" : (unknownStages || unknownLater) ? "warning" : "healthy";
   status.textContent = failed
     ? `Recorded chain contains FAILED evidence. Proven stage ${proven}.`
     : `Recorded public projection for atlas-systems#256. Proven stage ${proven}. Later missing facts remain UNKNOWN / NOT OBSERVED.`;

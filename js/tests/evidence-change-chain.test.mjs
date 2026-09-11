@@ -229,7 +229,7 @@ test("Change view renderer writes one stage per ADR-0013 step without innerHTML"
     assert.match(readingText, /^LIVE VERIFIED/m);
     assert.match(readingText, /Runtime verification: NOT APPLICABLE/);
     assert.match(readingText, /Current production identity: UNKNOWN \/ NOT OBSERVED/);
-    assert.equal(nodes.get("change-view-status").dataset.state, "healthy");
+    assert.equal(nodes.get("change-view-status").dataset.state, "warning");
     assert.match(nodes.get("source-change-chain").textContent, /not a live feed/);
     assert.equal(created.some((node) => "innerHTML" in node && node.innerHTML), false);
   } finally {
