@@ -126,11 +126,26 @@ test("visual restoration uses hybrid flagship widths and focus-only skip link", 
   assert.match(css, /--forge-content:\s*1100px/);
   assert.match(css, /--forge-controls:\s*1320px/);
   assert.match(css, /--forge-wide:\s*1440px/);
-  assert.match(css, /\.forge-skip-link\s*\{[^}]*transform:\s*translateY\(calc\(-100% - 16px\)\)/);
-  assert.match(css, /\.forge-skip-link:focus\s*\{[^}]*transform:\s*translateY\(0\)/);
+  assert.match(css, /\.forge-skip-link\s*\{[^}]*transform:\s*translateX\(-120%\)/);
+  assert.match(css, /\.forge-skip-link:focus,\s*\.forge-skip-link:focus-visible\s*\{[^}]*transform:\s*none/);
   assert.match(css, /\.lab-flagship-counterpart--field\s*\{[^}]*width:\s*100%/);
   assert.match(bootstrap, /forge-product-identity p/);
   assert.match(bootstrap, /forge-counterpart-link/);
   assert.match(bootstrap, /lab-flagship-counterpart--field/);
-  assert.match(html, /spectral-forge\.css\?v=20260813-visual-restoration-v2/);
+  assert.match(html, /spectral-forge\.css\?v=20260911-skip-link-clearance/);
+});
+
+test("the Spectral Forge skip link clears fixed navigation without measured shell variables", async () => {
+  const css = await allCss();
+  const skipBlock = css.match(/\.forge-skip-link\s*\{[^}]+\}/)?.[0] ?? "";
+  assert.match(skipBlock, /top:\s*128px/);
+  assert.match(skipBlock, /transform:\s*translateX\(-120%\)/);
+  assert.doesNotMatch(skipBlock, /translateY/);
+  assert.doesNotMatch(skipBlock, /--lab-shell-/);
+  assert.doesNotMatch(skipBlock, /max\(/);
+  assert.match(
+    css,
+    /html\[data-lab-shell-ready\]\s*\.forge-skip-link\s*\{[^}]*top:\s*calc\(\s*var\(--lab-shell-stack-height\)\s*\+\s*8px\s*\)/,
+  );
+  assert.doesNotMatch(css, /\.forge-skip-link[^{]*\{[^}]*max\(/);
 });

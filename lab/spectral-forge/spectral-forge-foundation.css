@@ -32,21 +32,31 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 }
 button:disabled, input:disabled, select:disabled { cursor: not-allowed; opacity: .48; }
 .sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0,0,0,0) !important; white-space: nowrap !important; border: 0 !important; }
-.forge-skip-link { position: fixed; z-index: 999; top: 8px; left: 8px; transform: translateY(calc(-100% - 16px)); padding: 10px 14px; background: var(--forge-amber); color: #120e08; text-decoration: none; font: 500 12px "IBM Plex Mono", monospace; }
-/* The measured shell stack is only published after the lab shell boots and runs
- * its double-rAF measurement. Until then `--lab-shell-context-height` is still
- * 0px, so a focused skip link would land 64px down: below the fixed header by
- * only a few pixels and underneath the sticky context navigation. A keyboard
- * user who tabs before that measurement lands cannot see where focus went.
- * The floor is the same geometry the shell measures - fixed header plus context
- * navigation plus the gap - so the target clears navigation immediately, and
- * max() lets the measured value win once it is larger. */
-.forge-skip-link:focus {
-  top: max(
-    calc(var(--lab-shell-stack-height, 112px) + 8px),
-    calc(var(--lab-shell-header-height, 56px) + 56px + 8px)
-  );
-  transform: translateY(0);
+.forge-skip-link {
+  position: fixed;
+  z-index: 999;
+  /* Literal floor: 56px header + 56px compact Lab context + 16px gap. This must
+   * not read shell custom properties. Nested calc() stack variables stay invalid
+   * until shell.js publishes pixel values, and mixing that invalid value into a
+   * CSS maximum fallback discards the whole declaration. Keep measured refinement
+   * on the ready-state rule. Hide horizontally so the unfocused box already
+   * clears the header. */
+  top: 128px;
+  left: 8px;
+  transform: translateX(-120%);
+  transition: none;
+  padding: 10px 14px;
+  background: var(--forge-amber);
+  color: #120e08;
+  text-decoration: none;
+  font: 500 12px "IBM Plex Mono", monospace;
+}
+.forge-skip-link:focus,
+.forge-skip-link:focus-visible {
+  transform: none;
+}
+html[data-lab-shell-ready] .forge-skip-link {
+  top: calc(var(--lab-shell-stack-height) + 8px);
 }
 
 body[data-lab-route="spectral-forge"] main.spectral-forge,
