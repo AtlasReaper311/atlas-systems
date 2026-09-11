@@ -391,9 +391,10 @@ test("Evidence Console keeps Change and Service Views and adds Estate navigation
   assert.match(page, /systems\/evidence\/service-view\.js\?v=20260911-service-view/);
   assert.match(page, /systems\/evidence\/estate-view\.js\?v=20260911-estate-view/);
   assert.match(page, /systems\/evidence\/evidence-views\.js\?v=20260911-estate-view/);
-  assert.match(page, /systems-evidence-estate-view\.css\?v=20260911-tab-contrast/);
+  assert.match(page, /systems-evidence-estate-view\.css\?v=20260911-tab-contrast2/);
   assert.match(css, /\[aria-selected="true"\] span/);
   assert.match(css, /color:\s*var\(--text-dim\)/);
+  assert.match(css, /\.systems-evidence-view-summary\[hidden\]/);
   assert.match(page, /href="#view-change"/);
   assert.match(page, /href="#view-service"/);
   assert.match(page, /href="#view-estate"/);

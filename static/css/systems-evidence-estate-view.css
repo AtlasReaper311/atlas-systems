@@ -34,6 +34,10 @@
   list-style: none;
 }
 
+.systems-evidence-view-summary[hidden] {
+  display: none;
+}
+
 .systems-evidence-view-summary::-webkit-details-marker {
   display: none;
 }
