@@ -143,7 +143,12 @@
 .systems-detail-page[data-systems-detail="evidence"] .focus-rail,
 .systems-detail-page[data-systems-detail="evidence"] .systems-detail-boundary,
 .systems-detail-page[data-systems-detail="evidence"] .systems-detail-ledger,
-.systems-detail-page[data-systems-detail="evidence"] .systems-evidence-disclosure {
+.systems-detail-page[data-systems-detail="evidence"] .systems-evidence-disclosure,
+.systems-detail-page[data-systems-detail="evidence"] .systems-change-view,
+.systems-detail-page[data-systems-detail="evidence"] .systems-change-workbench,
+.systems-detail-page[data-systems-detail="evidence"] .systems-change-chain,
+.systems-detail-page[data-systems-detail="evidence"] .systems-change-reading,
+.systems-detail-page[data-systems-detail="evidence"] .systems-change-stage {
   min-width: 0;
   max-width: 100%;
 }
@@ -235,8 +240,188 @@
   }
 }
 
+.systems-change-view {
+  padding: clamp(1.5rem, 4vw, 2.25rem);
+  border-style: dashed;
+}
+
+.systems-change-view > .focus-section-head {
+  align-items: start;
+}
+
+.systems-change-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(1.25rem, 3vw, 2rem);
+  margin-top: 1.5rem;
+}
+
+.systems-change-reading {
+  margin: 0;
+  padding: 1rem 1.1rem;
+  list-style: none;
+  border: 1px solid var(--border-hi);
+  border-radius: 8px;
+  background: var(--bg-1);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.systems-change-reading-line--proven {
+  margin-bottom: 0.55rem;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.systems-change-reading-line--later,
+.systems-change-reading-line--gap {
+  color: var(--text-dim);
+}
+
+.systems-change-reading-line[data-result="UNKNOWN / NOT OBSERVED"] strong,
+.systems-change-reading-line[data-result="NOT APPLICABLE"] strong {
+  color: var(--text-faint);
+  font-weight: 500;
+}
+
+.systems-change-reading-line[data-result="FAILED"] strong {
+  color: var(--bad);
+  font-weight: 500;
+}
+
+.systems-change-reading-line[data-result="OBSERVED"] strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.systems-change-review {
+  margin-top: 1.25rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.systems-change-chain {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+  list-style: none;
+}
+
+.systems-change-stage {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(17, 17, 24, 0.72);
+}
+
+.systems-change-stage[data-result="UNKNOWN / NOT OBSERVED"],
+.systems-change-stage[data-result="NOT APPLICABLE"] {
+  border-style: dashed;
+  background: rgba(17, 17, 24, 0.45);
+}
+
+.systems-change-stage[data-result="FAILED"] {
+  border-color: var(--bad);
+}
+
+.systems-change-stage-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.systems-change-stage-name {
+  margin: 0;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.systems-change-facts {
+  margin: 1rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.systems-change-facts dt {
+  color: var(--text-faint);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.systems-change-facts dd {
+  margin: 0.3rem 0 0;
+  overflow-wrap: anywhere;
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.systems-change-scope,
+.systems-change-gap,
+.systems-change-meta,
+.systems-change-provenance p {
+  margin: 0.85rem 0 0;
+  overflow-wrap: anywhere;
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.systems-change-gap {
+  color: var(--text-faint);
+}
+
+.systems-change-source {
+  min-height: 44px;
+  margin-top: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.systems-change-source:hover,
+.systems-change-source:focus-visible {
+  text-decoration: underline;
+}
+
+.systems-change-sources {
+  margin: 0.75rem 0 0;
+  padding-left: 1.2rem;
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (max-width: 620px) {
+  .systems-change-facts {
+    grid-template-columns: 1fr;
+  }
+
+  .systems-change-stage-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .systems-heatmap-cell {
+    transition: none;
+  }
+
+  .systems-change-source {
     transition: none;
   }
 }

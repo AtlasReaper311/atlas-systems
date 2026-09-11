@@ -27,7 +27,8 @@ const requiredIds = {
     "activity-status", "activity-heatmap", "activity-rows", "deployment-status", "deploy-outcome",
     "deploy-repository", "deploy-commit", "deploy-id", "deploy-time", "pipeline-status", "pipeline-list",
     "reports-status", "report-rows", "source-provenance", "source-activity", "source-deployment",
-    "source-pipeline", "source-reports",
+    "source-pipeline", "source-reports", "source-change-chain", "change-view-title", "change-view-status",
+    "change-reading", "change-chain", "change-review", "change-provenance",
   ],
 };
 

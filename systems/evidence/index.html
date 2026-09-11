@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="The public activity, deployment, availability, pipeline, timestamp, and provenance evidence supporting Atlas Systems claims.">
+  <meta name="description" content="Change-level source-to-live evidence plus public activity, deployment, availability, pipeline, timestamp, and provenance records supporting Atlas Systems claims.">
   <meta name="theme-color" content="#0a0a0f">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
@@ -14,7 +14,7 @@
   <link rel="canonical" href="https://atlas-systems.uk/systems/evidence/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Evidence // Atlas Systems">
-  <meta property="og:description" content="Activity, deployment, availability, pipeline, timestamp, and provenance evidence supporting public claims.">
+  <meta property="og:description" content="Change-level source-to-live evidence plus activity, deployment, availability, pipeline, timestamp, and provenance records supporting public claims.">
   <meta property="og:url" content="https://atlas-systems.uk/systems/evidence/">
   <meta property="og:site_name" content="Atlas Systems">
   <meta property="og:image" content="https://atlas-systems.uk/og/evidence.png">
@@ -23,7 +23,7 @@
   <meta property="og:image:alt" content="Claims need provenance. // Atlas Systems">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Evidence // Atlas Systems">
-  <meta name="twitter:description" content="Evidence supporting public Atlas Systems claims.">
+  <meta name="twitter:description" content="Change-level evidence plus records supporting public Atlas Systems claims.">
   <meta name="twitter:image" content="https://atlas-systems.uk/og/evidence.png">
   <meta name="twitter:image:alt" content="Claims need provenance. // Atlas Systems">
   <link rel="preload" href="/static/vendor/atlas-interface/v0.2.0/fonts/ibm-plex-mono-400.woff2" as="font" type="font/woff2" crossorigin>
@@ -36,7 +36,7 @@
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
   <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h-fixes">
   <link rel="stylesheet" href="/static/css/systems-detail-surfaces.css?v=20260811-heatmap-compact">
-  <link rel="stylesheet" href="/static/css/systems-evidence-truthfulness.css?v=20260811-heatmap-density">
+  <link rel="stylesheet" href="/static/css/systems-evidence-truthfulness.css?v=20260911-change-chain">
 <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
 <link rel="stylesheet" href="/static/css/secondary-surface-fields.css?v=20260807-hero-contrast">
 </head>
@@ -68,16 +68,16 @@
         <div class="systems-detail-intro">
           <p class="systems-detail-kicker">Verify the claim</p>
           <h1 class="focus-title">What supports the public claims?</h1>
-          <p class="focus-lede">A provenance-first view of recent activity, measured availability, deployment outcomes, pipeline events, evidence reports, and source timestamps. This surface distinguishes a claim, the record supporting it, and the freshness of that record.</p>
+          <p class="focus-lede">A provenance-first view of one recorded change-level evidence chain, then recent activity, measured availability, deployment outcomes, pipeline events, evidence reports, and source timestamps. This surface distinguishes a claim, the record supporting it, and the freshness of that record. Later missing facts stay unknown.</p>
           <div class="focus-actions"><a class="focus-action primary" href="/lab/proof-chain/">Open Proof Chain</a><a class="focus-action" href="https://status.atlas-systems.uk/">Open public status</a></div>
         </div>
         <aside class="systems-detail-boundary" aria-labelledby="evidence-boundary-title">
           <p class="systems-detail-kicker">Provenance boundary</p>
           <h2 id="evidence-boundary-title">A record can support a claim without proving the whole estate</h2>
           <dl>
-            <div><dt>Reads</dt><dd>Public activity, raw availability, deployment, pipeline event, and assurance-report records.</dd></div>
-            <div><dt>Separates</dt><dd>Claim, runtime state, evidence mode, supporting record, observation time, source time, and freshness.</dd></div>
-            <div><dt>Freshness</dt><dd>Every source is judged independently. One fresh record cannot mask another stale or unavailable source.</dd></div>
+            <div><dt>Reads</dt><dd>One recorded public-safe change chain, plus public activity, raw availability, deployment, pipeline event, and assurance-report records.</dd></div>
+            <div><dt>Separates</dt><dd>ADR-0013 delivery stages, observation result, claim, runtime state, evidence mode, supporting record, observation time, source time, and freshness.</dd></div>
+            <div><dt>Freshness</dt><dd>Every source is judged independently. A merge is not a deployment. One fresh record cannot mask another stale, unknown, or unavailable source.</dd></div>
           </dl>
         </aside>
       </div>
@@ -87,6 +87,48 @@
         <a href="/systems/evidence/" aria-current="page"><span>03 // Verify</span><strong>What proves it?</strong></a>
       </nav>
     </header>
+
+    <section class="focus-section systems-change-view atlas-evidence-surface" data-evidence-mode="recorded-replay" aria-labelledby="change-view-title">
+      <div class="focus-section-head">
+        <div>
+          <p class="systems-detail-kicker">Change view</p>
+          <h2 id="change-view-title">First source-to-live chain</h2>
+        </div>
+        <p id="change-view-status" class="focus-status-line" data-state="unknown" aria-live="polite">Recorded change-chain projection requires JavaScript. Missing evidence is not success.</p>
+      </div>
+      <p class="focus-note">Specimen: public atlas-systems#256, the production-smoke ordering repair from issue #253. This is a recorded public GitHub projection, not a live feed. Proof Chain remains the source/governance map and is not duplicated here.</p>
+      <div class="systems-change-workbench">
+        <section class="systems-detail-panel systems-detail-panel--dominant" aria-labelledby="change-reading-title">
+          <div class="focus-section-head">
+            <div>
+              <p class="systems-detail-kicker">Public reading</p>
+              <h3 id="change-reading-title">What this change currently proves</h3>
+            </div>
+            <span class="atlas-evidence-mode" data-evidence-mode="recorded-replay">Recorded projection</span>
+          </div>
+          <ol id="change-reading" class="systems-change-reading">
+            <li>No compact reading rendered yet. Missing later evidence remains UNKNOWN / NOT OBSERVED.</li>
+          </ol>
+          <div id="change-review" class="systems-change-review">
+            <p>Review evidence has not been rendered yet. Missing review is not an approval.</p>
+          </div>
+        </section>
+        <section class="systems-detail-panel" aria-labelledby="change-chain-title">
+          <div class="focus-section-head">
+            <div>
+              <p class="systems-detail-kicker">Chronological chain</p>
+              <h3 id="change-chain-title">ADR-0013 stages</h3>
+            </div>
+          </div>
+          <ol id="change-chain" class="systems-change-chain">
+            <li>No change-chain stages rendered yet. Empty evidence is not a successful delivery chain.</li>
+          </ol>
+          <div id="change-provenance" class="systems-change-provenance">
+            <p>Change-chain provenance has not been rendered yet.</p>
+          </div>
+        </section>
+      </div>
+    </section>
 
     <section class="focus-section systems-detail-summary" aria-labelledby="evidence-summary-title">
       <div class="focus-section-head"><div><p class="systems-detail-kicker">Public record</p><h2 id="evidence-summary-title">Evidence summary</h2></div><p id="evidence-status" class="focus-status-line" data-state="unknown" aria-live="polite">Contacting public evidence sources.</p></div>
@@ -154,6 +196,7 @@
           <div><dt>Deployment</dt><dd id="source-deployment">not loaded</dd></div>
           <div><dt>Pipeline</dt><dd id="source-pipeline">not loaded</dd></div>
           <div><dt>Assurance reports</dt><dd id="source-reports">not loaded</dd></div>
+          <div><dt>Change chain</dt><dd id="source-change-chain">not loaded</dd></div>
         </dl>
         <div class="focus-rail focus-rail-spaced">
           <a href="https://api.atlas-systems.uk/pulse/heatmap"><strong>Activity JSON</strong><span>/pulse/heatmap</span></a>
@@ -162,6 +205,7 @@
           <a href="https://api.atlas-systems.uk/deploy-watch/latest"><strong>Deployment JSON</strong><span>/deploy-watch/latest</span></a>
           <a href="https://api.atlas-systems.uk/notify/recent"><strong>Pipeline event JSON</strong><span>/notify/recent</span></a>
           <a href="https://api.atlas-systems.uk/v1/evidence"><strong>Evidence index JSON</strong><span>/v1/evidence</span></a>
+          <a href="https://github.com/AtlasReaper311/atlas-systems/pull/256" target="_blank" rel="noopener"><strong>Specimen PR</strong><span>atlas-systems#256</span></a>
           <a href="/lab/console/"><strong>Preserved console</strong><span>noindex compatibility route</span></a>
         </div>
       </section>
@@ -170,6 +214,7 @@
   <script type="module" src="/static/js/focused-systems-shell.js?v=20260725-batch-h-fixes"></script>
   <script type="module" src="/systems/evidence/evidence.js?v=20260811-pipeline-cap"></script>
   <script type="module" src="/systems/evidence/receipts.js?v=20260810-evidence-truthfulness"></script>
+  <script type="module" src="/systems/evidence/change-view.js?v=20260911-change-chain"></script>
   <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
     <div class="mobile-nav-inner atlas-mobile-nav__inner">
       <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>
