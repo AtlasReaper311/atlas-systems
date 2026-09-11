@@ -302,6 +302,14 @@
   max-width: 72ch;
 }
 
+/* Service View uses the same evidence-reading vocabulary. The dedicated
+   recovery stylesheet adds viewport-specific wrapping and target sizing. */
+.systems-service-reading-scope {
+  display: block;
+  margin-top: 0.35rem;
+  overflow-wrap: anywhere;
+}
+
 .systems-change-review {
   margin-top: 1.25rem;
   display: grid;

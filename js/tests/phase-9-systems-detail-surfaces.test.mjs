@@ -29,6 +29,8 @@ const requiredIds = {
     "reports-status", "report-rows", "source-provenance", "source-activity", "source-deployment",
     "source-pipeline", "source-reports", "source-change-chain", "change-view-title", "change-view-status",
     "change-reading", "change-chain", "change-review", "change-provenance",
+    "service-view-title", "service-view-status", "service-reading", "service-facts",
+    "service-provenance", "source-service-view",
   ],
 };
 

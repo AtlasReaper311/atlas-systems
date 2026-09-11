@@ -1,0 +1,69 @@
+.systems-change-reading-line--identity {
+  color: var(--text-dim);
+}
+
+.systems-service-reading-scope {
+  display: block;
+  margin-top: 0.35rem;
+  overflow-wrap: anywhere;
+  color: var(--text-faint);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.55;
+}
+
+.systems-service-view,
+.systems-service-view .systems-change-workbench,
+.systems-service-view .systems-detail-panel,
+.systems-service-view .systems-change-chain,
+.systems-service-view .systems-change-reading,
+.systems-service-view .systems-change-stage,
+.systems-service-view .systems-change-provenance,
+.systems-service-view .systems-change-sources,
+.systems-service-view .systems-change-sources li,
+.systems-service-view .systems-change-sources a {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.systems-service-view .systems-change-sources a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.systems-service-view .systems-change-sources a:hover,
+.systems-service-view .systems-change-sources a:focus-visible {
+  text-decoration: underline;
+}
+
+@media (max-width: 360px) {
+  .systems-detail-page[data-systems-detail="evidence"] .focus-table-wrap {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .systems-detail-page[data-systems-detail="evidence"] .focus-table {
+    min-width: 100%;
+    table-layout: fixed;
+  }
+
+  .systems-detail-page[data-systems-detail="evidence"] .focus-table th,
+  .systems-detail-page[data-systems-detail="evidence"] .focus-table td {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .systems-service-view .systems-change-sources a,
+  .systems-service-reading-scope {
+    transition: none;
+  }
+}
