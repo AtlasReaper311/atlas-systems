@@ -11,6 +11,7 @@ import {
   attachLibrarySpecimen,
   isLibrarySpecimenSubject,
   libraryStageLabel,
+  libraryToolkitProjectionProfile,
   projectLibrarySpecimen,
 } from "../../systems/evidence/library-profile.js";
 import { LIBRARY_SPECIMEN_RECORD } from "../../systems/evidence/library-specimen.js";
@@ -51,6 +52,7 @@ test("Library runtime and live stay NOT APPLICABLE and are not missing evidence"
   const stages = stageMap(projectLifecycleStages(
     "library-toolkit",
     LIBRARY_SPECIMEN_RECORD.observations,
+    { releaseContract: true },
   ));
   assert.equal(stages["RUNTIME VERIFIED"].result, RESULT.NOT_APPLICABLE);
   assert.equal(stages["LIVE VERIFIED"].result, RESULT.NOT_APPLICABLE);
@@ -91,6 +93,7 @@ test("Estate selection of atlas-interface-kit binds the recorded specimen", () =
   assert.equal(isLibrarySpecimenSubject(subject), true);
   assert.equal(subject.profile.id, "library-toolkit");
   assert.equal(subject.profile.label, "Library / Toolkit");
+  assert.equal(subject.releaseContract, true);
   assert.equal(subject.classification.result, RESULT.OBSERVED);
   assert.match(subject.classification.gap, /not DEPLOYMENT OBSERVED, DEPLOYED/);
   assert.equal(subject.latestProvenStage, "DEPLOYED");
@@ -127,21 +130,74 @@ test("Evidence Detail for the kit specimen preserves exact release provenance", 
   assert.match(runtime.proves, /cannot apply/);
 });
 
-test("Unmapped library subjects keep applicable release stages unknown", () => {
+test("Generic Library / Toolkit subjects without a release contract mark release stages not applicable", () => {
   const subject = projectEstateSubject({
+    id: "ollama-rag-kit",
+    kind: "repository",
+    runtime_service: false,
+    source_only: true,
+    repo: "https://github.com/AtlasReaper311/ollama-rag-kit",
+    repo_name: "ollama-rag-kit",
+  }, { generatedAt: "2026-09-12T09:00:00Z" }, NOW);
+  const stages = stageMap(subject.stages);
+  assert.equal(subject.profile.id, "library-toolkit");
+  assert.equal(subject.releaseContract, false);
+  assert.deepEqual(libraryToolkitProjectionProfile().notApplicableStages, [
+    "DEPLOYMENT OBSERVED",
+    "DEPLOYED",
+    "RUNTIME VERIFIED",
+    "LIVE VERIFIED",
+  ]);
+  assert.equal(stages.SOURCE.result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.equal(stages.CHECKED.result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.equal(stages.MERGED.result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.equal(stages["DEPLOYMENT OBSERVED"].result, RESULT.NOT_APPLICABLE);
+  assert.equal(stages.DEPLOYED.result, RESULT.NOT_APPLICABLE);
+  assert.equal(stages["DEPLOYMENT OBSERVED"].gap, null);
+  assert.match(stages["DEPLOYMENT OBSERVED"].scope, /NOT APPLICABLE/);
+  assert.equal(stages["RUNTIME VERIFIED"].result, RESULT.NOT_APPLICABLE);
+  assert.equal(stages["LIVE VERIFIED"].result, RESULT.NOT_APPLICABLE);
+  assert.equal(subject.specimen, undefined);
+  assert.equal(subject.nextApplicableMissing, "SOURCE");
+});
+
+test("Library release contract with missing event or identity stays UNKNOWN / NOT OBSERVED", () => {
+  const unobserved = projectLibrarySpecimen({
+    ...LIBRARY_SPECIMEN_RECORD,
+    observations: {
+      SOURCE: LIBRARY_SPECIMEN_RECORD.observations.SOURCE,
+      CHECKED: LIBRARY_SPECIMEN_RECORD.observations.CHECKED,
+      MERGED: LIBRARY_SPECIMEN_RECORD.observations.MERGED,
+    },
+    extraGaps: [],
+  });
+  const unobservedStages = stageMap(unobserved.stages);
+  assert.equal(libraryToolkitProjectionProfile({ releaseContract: true }).releaseContract, true);
+  assert.equal(unobservedStages["DEPLOYMENT OBSERVED"].result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.equal(unobservedStages.DEPLOYED.result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.match(unobservedStages["DEPLOYMENT OBSERVED"].gap, /UNKNOWN \/ NOT OBSERVED/);
+  assert.match(unobservedStages.DEPLOYED.gap, /UNKNOWN \/ NOT OBSERVED/);
+  assert.equal(unobservedStages["RUNTIME VERIFIED"].result, RESULT.NOT_APPLICABLE);
+  assert.equal(unobservedStages["LIVE VERIFIED"].result, RESULT.NOT_APPLICABLE);
+  assert.equal(unobserved.nextGap.label, "DEPLOYMENT OBSERVED");
+
+  const estateContract = projectEstateSubject({
     id: "worker-meta-kit",
     kind: "repository",
     runtime_service: false,
     source_only: true,
+    releaseContract: true,
     repo: "https://github.com/AtlasReaper311/worker-meta-kit",
     repo_name: "worker-meta-kit",
   }, { generatedAt: "2026-09-12T09:00:00Z" }, NOW);
-  const stages = stageMap(subject.stages);
-  assert.equal(subject.profile.id, "library-toolkit");
-  assert.equal(stages["DEPLOYMENT OBSERVED"].result, RESULT.UNKNOWN_NOT_OBSERVED);
-  assert.match(stages["DEPLOYMENT OBSERVED"].gap, /release-event/);
-  assert.equal(stages["RUNTIME VERIFIED"].result, RESULT.NOT_APPLICABLE);
-  assert.equal(subject.specimen, undefined);
+  const estateStages = stageMap(estateContract.stages);
+  assert.equal(estateContract.releaseContract, true);
+  assert.equal(estateStages["DEPLOYMENT OBSERVED"].result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.match(estateStages["DEPLOYMENT OBSERVED"].gap, /release-event/);
+  assert.equal(estateStages.DEPLOYED.result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.match(estateStages.DEPLOYED.gap, /released-identity/);
+  assert.equal(estateStages["RUNTIME VERIFIED"].result, RESULT.NOT_APPLICABLE);
+  assert.equal(estateContract.specimen, undefined);
 });
 
 test("Recorded library specimen stays public-safe and secret-free", () => {

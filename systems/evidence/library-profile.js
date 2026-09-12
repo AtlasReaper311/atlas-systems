@@ -1,6 +1,7 @@
 import { latestObservedStage, projectChangeChain, RESULT } from "./change-chain.js";
 import { LIBRARY_TOOLKIT_PROFILE } from "./estate-profile.js";
 import { LIBRARY_SPECIMEN_RECORD } from "./library-specimen.js";
+import { presentLifecycleProfile } from "./lifecycle-profile.js";
 
 export const LIBRARY_SPECIMEN_SUBJECT_ID = "atlas-interface-kit";
 export const LIBRARY_SPECIMEN_REPOSITORY = "AtlasReaper311/atlas-interface-kit";
@@ -19,8 +20,20 @@ export function isLibrarySpecimenSubject(subject = {}) {
     || repoName === LIBRARY_SPECIMEN_SUBJECT_ID;
 }
 
+export function libraryToolkitProjectionProfile(record = {}) {
+  const releaseContract = record.releaseContract === true;
+  const presentation = presentLifecycleProfile("library-toolkit", { releaseContract });
+  return Object.freeze({
+    id: LIBRARY_TOOLKIT_PROFILE.id,
+    authority: LIBRARY_TOOLKIT_PROFILE.authority,
+    subjectType: LIBRARY_TOOLKIT_PROFILE.subjectType,
+    notApplicableStages: presentation.notApplicableStages,
+    releaseContract,
+  });
+}
+
 export function projectLibrarySpecimen(record = LIBRARY_SPECIMEN_RECORD) {
-  return projectChangeChain(record, LIBRARY_TOOLKIT_PROFILE);
+  return projectChangeChain(record, libraryToolkitProjectionProfile(record));
 }
 
 export function libraryStageLabel(stage) {
@@ -45,5 +58,6 @@ export function attachLibrarySpecimen(subject, record = LIBRARY_SPECIMEN_RECORD)
     specimen: chain,
     evidenceKind: chain.classification,
     domainLabels: LIBRARY_RELEASE_DOMAIN_LABELS,
+    releaseContract: true,
   });
 }

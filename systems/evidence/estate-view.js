@@ -313,9 +313,12 @@ function renderSelectedProfile(projection, selectedId) {
   renderProfileIdentity(byId("estate-subject-profile"), projectProfileIdentity({
     subject: subject.repository ? `${subject.id} (${subject.repository})` : subject.id,
     profileId: subject.profile.id,
+    releaseContract: Boolean(subject.specimen),
     classificationNote: subject.specimen
       ? "Recorded public-safe release specimen. This subject ships as a GitHub Release artifact, not a runtime service. RELEASED event maps to DEPLOYMENT OBSERVED. RELEASED identity maps to DEPLOYED. Topology classification is not that recorded release chain."
-      : "Public topology classification is not ADR-0013 delivery evidence. Applicable later stages stay UNKNOWN / NOT OBSERVED until a named public contract proves them.",
+      : subject.profile.id === "library-toolkit"
+        ? "Public topology classification is not ADR-0013 delivery evidence. This Library / Toolkit subject has no established release contract, so DEPLOYMENT OBSERVED and DEPLOYED are NOT APPLICABLE. RUNTIME VERIFIED and LIVE VERIFIED cannot apply."
+        : "Public topology classification is not ADR-0013 delivery evidence. Applicable later stages stay UNKNOWN / NOT OBSERVED until a named public contract proves them.",
   }));
   if (subject.specimen) {
     renderSpecimenPath(byId("estate-expected-path"), subject, selectedSpecimenStage(subject));
@@ -405,7 +408,7 @@ function renderProvenance(projection) {
     note,
     "p",
     null,
-    "This Estate View reads the current public topology projection. Atlas Infra remains classification authority. Topology lifecycle is not ADR-0013 delivery, not deployment, not runtime, and not live verification. There is no public estate-wide delivery snapshot on this path. atlas-interface-kit carries a recorded Library / Toolkit release specimen when selected; that recorded chain is not a live feed and is not estate-wide delivery. Other subjects keep later stages UNKNOWN / NOT OBSERVED unless a named public contract proves them. Investigate a named change in Change View or a named Worker in Service View.",
+    "This Estate View reads the current public topology projection. Atlas Infra remains classification authority. Topology lifecycle is not ADR-0013 delivery, not deployment, not runtime, and not live verification. There is no public estate-wide delivery snapshot on this path. atlas-interface-kit carries a recorded Library / Toolkit release specimen when selected; that recorded chain is not a live feed and is not estate-wide delivery. Other Library / Toolkit subjects without an established release contract mark DEPLOYMENT OBSERVED and DEPLOYED as NOT APPLICABLE. Other subjects keep later applicable stages UNKNOWN / NOT OBSERVED unless a named public contract proves them. Investigate a named change in Change View or a named Worker in Service View.",
   );
   const from = document.createElement("ul");
   from.className = "systems-change-sources systems-estate-sources";

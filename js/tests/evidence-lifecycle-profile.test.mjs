@@ -85,13 +85,22 @@ test("Static / Public Site and Runtime Worker keep ADR-0014 applicability", () =
   assert.equal(kit.label, "Library / Toolkit");
   assert.deepEqual(site.notApplicableStages, ["RUNTIME VERIFIED"]);
   assert.deepEqual(worker.notApplicableStages, []);
-  assert.deepEqual(kit.notApplicableStages, ["RUNTIME VERIFIED", "LIVE VERIFIED"]);
+  assert.deepEqual(kit.notApplicableStages, [
+    "DEPLOYMENT OBSERVED",
+    "DEPLOYED",
+    "RUNTIME VERIFIED",
+    "LIVE VERIFIED",
+  ]);
+  assert.equal(kit.expectedPath, "SOURCE → CHECKED → MERGED");
   assert.match(site.expectedPath, /LIVE VERIFIED/);
   assert.doesNotMatch(site.expectedPath, /RUNTIME VERIFIED/);
   assert.match(worker.expectedPath, /RUNTIME VERIFIED → LIVE VERIFIED/);
-  assert.match(kit.expectedPath, /DEPLOYED/);
-  assert.doesNotMatch(kit.expectedPath, /RUNTIME VERIFIED|LIVE VERIFIED/);
-  assert.match(kit.expectedSummary, /GitHub Release artifact/);
+  assert.doesNotMatch(kit.expectedPath, /DEPLOYMENT OBSERVED|DEPLOYED|RUNTIME VERIFIED|LIVE VERIFIED/);
+  assert.match(kit.expectedSummary, /NOT APPLICABLE, not missing evidence/);
+  const released = presentLifecycleProfile("library-toolkit", { releaseContract: true });
+  assert.equal(released.expectedPath, "SOURCE → CHECKED → MERGED → DEPLOYMENT OBSERVED → DEPLOYED");
+  assert.deepEqual(released.notApplicableStages, ["RUNTIME VERIFIED", "LIVE VERIFIED"]);
+  assert.match(released.expectedSummary, /GitHub Release artifact/);
   assert.equal(ESTATE_PROFILE_LABELS["static-public-site"], "Static / Public Site");
   assert.equal(ESTATE_PROFILE_LABELS["runtime-worker"], "Runtime Worker");
   assert.equal(ESTATE_PROFILE_LABELS["library-toolkit"], "Library / Toolkit");
@@ -140,6 +149,33 @@ test("Estate selection keeps classification separate from the expected delivery 
   assert.equal(stageMap(worker.stages)["RUNTIME VERIFIED"].result, RESULT.UNKNOWN_NOT_OBSERVED);
   assert.equal(site.classification.result, RESULT.OBSERVED);
   assert.notEqual(site.classification.result, stageMap(site.stages).MERGED.result);
+});
+
+test("Library / Toolkit release-contract applicability has three locked cases", () => {
+  const none = stageMap(projectLifecycleStages("library-toolkit"));
+  assert.equal(none.SOURCE.result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.equal(none["DEPLOYMENT OBSERVED"].result, RESULT.NOT_APPLICABLE);
+  assert.equal(none.DEPLOYED.result, RESULT.NOT_APPLICABLE);
+  assert.equal(none["RUNTIME VERIFIED"].result, RESULT.NOT_APPLICABLE);
+  assert.equal(none["LIVE VERIFIED"].result, RESULT.NOT_APPLICABLE);
+
+  const missing = stageMap(projectLifecycleStages("library-toolkit", {}, { releaseContract: true }));
+  assert.equal(missing["DEPLOYMENT OBSERVED"].result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.equal(missing.DEPLOYED.result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.equal(missing["RUNTIME VERIFIED"].result, RESULT.NOT_APPLICABLE);
+  assert.equal(missing["LIVE VERIFIED"].result, RESULT.NOT_APPLICABLE);
+
+  const identity = projectProfileIdentity({
+    subject: "ollama-rag-kit",
+    profileId: "library-toolkit",
+  });
+  assert.equal(identity.expectedPath, "SOURCE → CHECKED → MERGED");
+  const released = projectProfileIdentity({
+    subject: "atlas-interface-kit",
+    profileId: "library-toolkit",
+    releaseContract: true,
+  });
+  assert.match(released.expectedPath, /DEPLOYMENT OBSERVED → DEPLOYED/);
 });
 
 test("Profile identity names the subject without inventing a later stage", () => {

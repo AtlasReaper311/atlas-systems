@@ -35,9 +35,14 @@ export const LIFECYCLE_PROFILE_PRESENTATION = Object.freeze({
     label: "Library / Toolkit",
     authority: "ADR-0014",
     subjectType: "non-runtime library, kit, or template",
-    expectedPath: "SOURCE → CHECKED → MERGED → DEPLOYMENT OBSERVED → DEPLOYED",
-    expectedSummary: "This subject ships as source plus an optional GitHub Release artifact, not a runtime service. When a real release contract exists, RELEASED event maps to DEPLOYMENT OBSERVED and RELEASED identity maps to DEPLOYED. RUNTIME VERIFIED and LIVE VERIFIED are NOT APPLICABLE. A GitHub Release is not a running deployment.",
-    notApplicableStages: Object.freeze(["RUNTIME VERIFIED", "LIVE VERIFIED"]),
+    expectedPath: "SOURCE → CHECKED → MERGED",
+    expectedSummary: "Base evidence path is SOURCE → CHECKED → MERGED. DEPLOYMENT OBSERVED and DEPLOYED apply only when a real release contract exists for this subject. Without that contract they are NOT APPLICABLE, not missing evidence. RUNTIME VERIFIED and LIVE VERIFIED cannot apply.",
+    notApplicableStages: Object.freeze([
+      "DEPLOYMENT OBSERVED",
+      "DEPLOYED",
+      "RUNTIME VERIFIED",
+      "LIVE VERIFIED",
+    ]),
   }),
   "documentation-policy": Object.freeze({
     id: "documentation-policy",
@@ -59,10 +64,27 @@ export const LIFECYCLE_PROFILE_PRESENTATION = Object.freeze({
   }),
 });
 
-export function presentLifecycleProfile(profileId) {
+const LIBRARY_RELEASE_CONTRACT_PRESENTATION = Object.freeze({
+  expectedPath: "SOURCE → CHECKED → MERGED → DEPLOYMENT OBSERVED → DEPLOYED",
+  expectedSummary: "This subject ships as source plus an optional GitHub Release artifact, not a runtime service. When a real release contract exists, RELEASED event maps to DEPLOYMENT OBSERVED and RELEASED identity maps to DEPLOYED. RUNTIME VERIFIED and LIVE VERIFIED are NOT APPLICABLE. A GitHub Release is not a running deployment.",
+  notApplicableStages: Object.freeze(["RUNTIME VERIFIED", "LIVE VERIFIED"]),
+});
+
+export function presentLifecycleProfile(profileId, options = {}) {
   const id = String(profileId ?? "").trim();
   const known = LIFECYCLE_PROFILE_PRESENTATION[id];
-  if (known) return known;
+  if (known && id === "library-toolkit" && options.releaseContract === true) {
+    return Object.freeze({
+      ...known,
+      ...LIBRARY_RELEASE_CONTRACT_PRESENTATION,
+      releaseContract: true,
+    });
+  }
+  if (known) {
+    return id === "library-toolkit"
+      ? Object.freeze({ ...known, releaseContract: false })
+      : known;
+  }
   return Object.freeze({
     ...LIFECYCLE_PROFILE_PRESENTATION["unknown-subject"],
     id: id || "unknown-subject",
@@ -78,8 +100,8 @@ export function missingLifecycleGap(stage) {
   return `${stage} evidence is missing from the current approved public contracts for this view. Missing later evidence remains UNKNOWN / NOT OBSERVED and is not inferred from later runtime or live observations.`;
 }
 
-export function projectLifecycleStages(profileId, observations = {}) {
-  const presentation = presentLifecycleProfile(profileId);
+export function projectLifecycleStages(profileId, observations = {}, options = {}) {
+  const presentation = presentLifecycleProfile(profileId, options);
   const records = asRecord(observations);
   return Object.freeze(DELIVERY_STAGES.map((stage) => {
     if (presentation.notApplicableStages.includes(stage)) {
@@ -110,8 +132,9 @@ export function projectProfileIdentity({
   subject,
   profileId,
   classificationNote = null,
+  releaseContract = false,
 } = {}) {
-  const presentation = presentLifecycleProfile(profileId);
+  const presentation = presentLifecycleProfile(profileId, { releaseContract });
   return Object.freeze({
     subject: subject ? String(subject) : "Unnamed subject",
     profileId: presentation.id,
