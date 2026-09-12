@@ -360,6 +360,7 @@ function bindChangeControls() {
         subject: card.dataset.subject,
         claim: catalogEntry(card.dataset.subject).defaultClaim,
         persistFocus: true,
+        persist: true,
       });
     });
   }

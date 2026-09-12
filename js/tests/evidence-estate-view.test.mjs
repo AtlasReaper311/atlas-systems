@@ -395,7 +395,7 @@ test("Evidence Console keeps Change and Service Views and adds Estate navigation
   ]) {
     assert.match(page, new RegExp(`id="${id}"`));
   }
-  assert.match(page, /systems\/evidence\/change-view\.js\?v=20260912-article/);
+  assert.match(page, /systems\/evidence\/change-view\.js\?v=20260912-article-subject/);
   assert.match(page, /systems\/evidence\/service-view\.js\?v=20260912-profile/);
   assert.match(page, /systems\/evidence\/estate-view\.js\?v=20260912-roster-focus/);
   assert.match(page, /systems\/evidence\/evidence-views\.js\?v=20260911-visual/);

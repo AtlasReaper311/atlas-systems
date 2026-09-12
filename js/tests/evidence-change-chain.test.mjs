@@ -277,7 +277,7 @@ test("Evidence Console keeps existing public records and adds the change view wi
   ]) {
     assert.match(page, new RegExp(`id="${id}"`));
   }
-  assert.match(page, /systems\/evidence\/change-view\.js\?v=20260912-article/);
+  assert.match(page, /systems\/evidence\/change-view\.js\?v=20260912-article-subject/);
   assert.match(page, /systems-evidence-truthfulness\.css\?v=20260912-profile/);
   assert.match(page, /data-evidence-mode="recorded-replay"/);
   assert.match(page, /not a live feed/);

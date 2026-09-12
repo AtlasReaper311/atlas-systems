@@ -16,7 +16,8 @@ export const ARTICLE_SPECIMEN_RECORD = Object.freeze({
     title: "SPECULAR-CORE: Architectural Recovery",
     slug: "specular-core-architectural-recovery",
     wNumber: "W-08",
-    publishDate: "2026-08-23",
+    publishDate: "2026-08-27",
+    dateWritten: "2026-08-23",
     repository: "AtlasReaper311/atlas-systems",
     path: "writing/specular-core-architectural-recovery/index.html",
     route: "/writing/specular-core-architectural-recovery/",
@@ -24,7 +25,7 @@ export const ARTICLE_SPECIMEN_RECORD = Object.freeze({
     publishedBlob: "22657bd9d7a1e68e1876920b4ae1075b357a045a",
   }),
   recordedAt: "2026-09-12T15:31:00Z",
-  recordedNote: "Recorded public-safe evidence; not a live feed. Part 0 selected W-08 because it has the strongest currently public scheduler-execution and atlas-systems identity evidence. W-01 through W-03 were first added by a human commit, not atlas-scheduler[bot]. W-04 through W-07 have named scheduler publish commits, but W-08 is the newest of those and has a public exact-head Deploy run. The public-interface representative article surface remains ramone-local-ai-system; that declaration is not stronger publication-execution evidence. atlas-article-gen and atlas-scheduler are private in this runtime, so authored, generator-validation, and queue identities stay UNKNOWN / NOT OBSERVED.",
+  recordedNote: "Recorded public-safe evidence; not a live feed. Part 0 selected W-08 because it has the strongest currently public scheduler-execution and atlas-systems identity evidence. W-01 through W-03 were first added by a human commit, not atlas-scheduler[bot]. W-04 through W-07 have named scheduler publish commits, but W-08 is the newest of those and has a public exact-head Deploy run. The public-interface representative article surface remains ramone-local-ai-system; that declaration is not stronger publication-execution evidence. atlas-article-gen and atlas-scheduler are private repositories, but no approved public-safe projection establishes the exact AUTHORED source identity, generator VALIDATED record, or scheduler SCHEDULED queue identity for the public Evidence Console. SOURCE, CHECKED, and MERGED therefore remain UNKNOWN / NOT OBSERVED. Operator-runtime access to those private repositories is not a public-safe projection and does not strengthen this Console record. Generation is not publication. Queue sync is not publication. Scheduler execution is not live verification.",
   recordedFrom: Object.freeze([
     "public GitHub repository AtlasReaper311/atlas-systems",
     "public atlas-scheduler[bot] commit e36e544e92bc488f76c3a91224ba72044bd0a031",
@@ -44,17 +45,17 @@ export const ARTICLE_SPECIMEN_RECORD = Object.freeze({
   observations: Object.freeze({
     SOURCE: Object.freeze({
       result: RESULT.UNKNOWN_NOT_OBSERVED,
-      gap: "AUTHORED / SOURCE requires a named article source identity in atlas-article-gen. That repository is private in this runtime and no approved public-safe authored identity was recorded. Missing authored evidence remains UNKNOWN / NOT OBSERVED.",
+      gap: "AUTHORED / SOURCE requires a named article source identity in atlas-article-gen. That repository is private and no approved public-safe projection establishes the exact AUTHORED source identity for the public Evidence Console. Missing authored evidence remains UNKNOWN / NOT OBSERVED.",
       scope: "A currently visible writing page is not an authored source identity. Generation is not publication.",
     }),
     CHECKED: Object.freeze({
       result: RESULT.UNKNOWN_NOT_OBSERVED,
-      gap: "VALIDATED / CHECKED requires generator validation on that authored identity, such as build_article.py --check-only. No public-safe generator-validation record was observed. Missing validation remains UNKNOWN / NOT OBSERVED.",
+      gap: "VALIDATED / CHECKED requires generator validation on that authored identity, such as build_article.py --check-only. atlas-article-gen is private and no approved public-safe projection establishes the generator VALIDATED record for the public Evidence Console. Missing validation remains UNKNOWN / NOT OBSERVED.",
       scope: "Later scheduler execution or site deploy checks do not backfill generator validation.",
     }),
     MERGED: Object.freeze({
       result: RESULT.UNKNOWN_NOT_OBSERVED,
-      gap: "SCHEDULED / MERGED is the scheduler-queue identity with a publish date. It is not merge onto live writing pages. The scheduler queue is private and no approved public-safe queue identity was recorded. Missing scheduled evidence remains UNKNOWN / NOT OBSERVED.",
+      gap: "SCHEDULED / MERGED is the scheduler-queue identity with a publish date. It is not merge onto live writing pages. atlas-scheduler is private and no approved public-safe projection establishes the scheduler SCHEDULED queue identity for the public Evidence Console. Missing scheduled evidence remains UNKNOWN / NOT OBSERVED.",
       scope: "The atlas-scheduler[bot] commit on atlas-systems is SCHEDULER EXECUTED, not the SCHEDULED queue identity.",
     }),
     "DEPLOYMENT OBSERVED": Object.freeze({
