@@ -1,4 +1,4 @@
-import { RESULT } from "./change-chain.js";
+import { RESULT, nextApplicableGap } from "./change-chain.js";
 import { SERVICE_SPECIMEN } from "./service-specimen.js";
 
 export const SERVICE_FACTS = Object.freeze([
@@ -439,6 +439,10 @@ export function projectServiceView(record, profile = RUNTIME_WORKER_PROFILE, now
     ),
     facts,
     reading: compactServiceReading(facts, extraGaps),
+    nextGap: nextApplicableGap(
+      facts.map((fact) => ({ stage: fact.fact, result: fact.result, gap: fact.gap })),
+      extraGaps,
+    ),
     extraGaps: Object.freeze(extraGaps.map((gap) => Object.freeze({ ...asRecord(gap) }))),
   });
 }

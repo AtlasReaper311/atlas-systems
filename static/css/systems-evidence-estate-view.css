@@ -120,10 +120,6 @@
 }
 
 @media (max-width: 620px) {
-  .systems-evidence-views {
-    grid-template-columns: 1fr;
-  }
-
   .systems-evidence-views a,
   .systems-evidence-views [data-evidence-view-tab] {
     min-height: 64px;

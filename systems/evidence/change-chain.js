@@ -184,6 +184,28 @@ export function compactReading(stages, extraGaps = []) {
   });
 }
 
+export function nextApplicableGap(stages, extraGaps = []) {
+  const nextStage = stages.find((stage) => stage.result === RESULT.UNKNOWN_NOT_OBSERVED);
+  if (nextStage) {
+    return Object.freeze({
+      label: nextStage.stage,
+      result: nextStage.result,
+      scope: nextStage.gap ? String(nextStage.gap) : null,
+    });
+  }
+  for (const gap of extraGaps) {
+    const record = asRecord(gap);
+    if (!record.label) continue;
+    if (normalizeResult(record.result) !== RESULT.UNKNOWN_NOT_OBSERVED) continue;
+    return Object.freeze({
+      label: String(record.label),
+      result: RESULT.UNKNOWN_NOT_OBSERVED,
+      scope: record.scope ? String(record.scope) : null,
+    });
+  }
+  return null;
+}
+
 export function projectChangeChain(record, profile = STATIC_PUBLIC_SITE_PROFILE) {
   const payload = asRecord(record);
   const observations = asRecord(payload.observations);
@@ -208,6 +230,7 @@ export function projectChangeChain(record, profile = STATIC_PUBLIC_SITE_PROFILE)
     stages,
     review: projectReview(payload.review),
     reading: compactReading(stages, extraGaps),
+    nextGap: nextApplicableGap(stages, extraGaps),
     extraGaps: Object.freeze(extraGaps.map((gap) => Object.freeze({ ...asRecord(gap) }))),
   });
 }

@@ -30,6 +30,37 @@ export const UNKNOWN_SUBJECT_PROFILE = Object.freeze({
   notApplicableStages: Object.freeze([]),
 });
 
+export const ESTATE_PROFILE_ORDER = Object.freeze([
+  "runtime-worker",
+  "static-public-site",
+  "library-toolkit",
+  "documentation-policy",
+  "unknown-subject",
+]);
+
+export const ESTATE_PROFILE_LABELS = Object.freeze({
+  "runtime-worker": "Runtime worker",
+  "static-public-site": "Static / public",
+  "library-toolkit": "Library / toolkit",
+  "documentation-policy": "Documentation / policy",
+  "unknown-subject": "Unknown subject",
+});
+
+export function estateProfileGroups(subjects = []) {
+  const counts = new Map();
+  for (const subject of subjects) {
+    const id = subject?.profile?.id ? String(subject.profile.id) : "unknown-subject";
+    counts.set(id, (counts.get(id) ?? 0) + 1);
+  }
+  const known = ESTATE_PROFILE_ORDER.filter((id) => counts.has(id));
+  const extra = [...counts.keys()].filter((id) => !ESTATE_PROFILE_ORDER.includes(id)).sort();
+  return Object.freeze([...known, ...extra].map((id) => Object.freeze({
+    id,
+    label: ESTATE_PROFILE_LABELS[id] ?? id,
+    count: counts.get(id),
+  })));
+}
+
 const STATIC_SITE_IDS = new Set(["atlas-systems", "status", "atlas-doc-viewer"]);
 const DOCUMENTATION_REPOS = new Set(["atlas-infra", ".github", "AtlasReaper311"]);
 
