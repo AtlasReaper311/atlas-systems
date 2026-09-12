@@ -100,7 +100,36 @@ test("Estate selection of atlas-interface-kit binds the recorded specimen", () =
   assert.equal(subject.latestProvenResult, RESULT.OBSERVED);
   assert.equal(subject.evidenceKind, "recorded-public-projection");
   assert.equal(subject.specimen.subject.releaseTag, "v0.5.0");
+  assert.deepEqual(subject.notApplicableStages, ["RUNTIME VERIFIED", "LIVE VERIFIED"]);
+  assert.ok(!subject.notApplicableStages.includes("DEPLOYMENT OBSERVED"));
+  assert.ok(!subject.notApplicableStages.includes("DEPLOYED"));
   assert.equal(attachLibrarySpecimen({ id: "worker-meta-kit" }).specimen, undefined);
+});
+
+test("Attached kit specimen applicability matches its proven release contract", () => {
+  const staleTopology = {
+    id: "atlas-interface-kit",
+    repository: "AtlasReaper311/atlas-interface-kit",
+    profile: { id: "library-toolkit" },
+    releaseContract: false,
+    notApplicableStages: [
+      "DEPLOYMENT OBSERVED",
+      "DEPLOYED",
+      "RUNTIME VERIFIED",
+      "LIVE VERIFIED",
+    ],
+    stages: [],
+  };
+  const attached = attachLibrarySpecimen(staleTopology);
+  const stages = stageMap(attached.stages);
+  assert.equal(attached.releaseContract, true);
+  assert.deepEqual(attached.notApplicableStages, ["RUNTIME VERIFIED", "LIVE VERIFIED"]);
+  assert.equal(stages["DEPLOYMENT OBSERVED"].result, RESULT.OBSERVED);
+  assert.equal(stages.DEPLOYED.result, RESULT.OBSERVED);
+  assert.equal(stages["RUNTIME VERIFIED"].result, RESULT.NOT_APPLICABLE);
+  assert.equal(stages["LIVE VERIFIED"].result, RESULT.NOT_APPLICABLE);
+  assert.ok(!attached.notApplicableStages.includes("DEPLOYMENT OBSERVED"));
+  assert.ok(!attached.notApplicableStages.includes("DEPLOYED"));
 });
 
 test("Evidence Detail for the kit specimen preserves exact release provenance", () => {
@@ -157,6 +186,12 @@ test("Generic Library / Toolkit subjects without a release contract mark release
   assert.match(stages["DEPLOYMENT OBSERVED"].scope, /NOT APPLICABLE/);
   assert.equal(stages["RUNTIME VERIFIED"].result, RESULT.NOT_APPLICABLE);
   assert.equal(stages["LIVE VERIFIED"].result, RESULT.NOT_APPLICABLE);
+  assert.deepEqual(subject.notApplicableStages, [
+    "DEPLOYMENT OBSERVED",
+    "DEPLOYED",
+    "RUNTIME VERIFIED",
+    "LIVE VERIFIED",
+  ]);
   assert.equal(subject.specimen, undefined);
   assert.equal(subject.nextApplicableMissing, "SOURCE");
 });
@@ -192,6 +227,7 @@ test("Library release contract with missing event or identity stays UNKNOWN / NO
   }, { generatedAt: "2026-09-12T09:00:00Z" }, NOW);
   const estateStages = stageMap(estateContract.stages);
   assert.equal(estateContract.releaseContract, true);
+  assert.deepEqual(estateContract.notApplicableStages, ["RUNTIME VERIFIED", "LIVE VERIFIED"]);
   assert.equal(estateStages["DEPLOYMENT OBSERVED"].result, RESULT.UNKNOWN_NOT_OBSERVED);
   assert.match(estateStages["DEPLOYMENT OBSERVED"].gap, /release-event/);
   assert.equal(estateStages.DEPLOYED.result, RESULT.UNKNOWN_NOT_OBSERVED);

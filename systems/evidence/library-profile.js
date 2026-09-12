@@ -49,6 +49,10 @@ export function attachLibrarySpecimen(subject, record = LIBRARY_SPECIMEN_RECORD)
     ? chain.stages.find((stage) => stage.stage === proven) ?? null
     : null;
   const next = chain.nextGap;
+  const applicability = libraryToolkitProjectionProfile({
+    ...record,
+    releaseContract: true,
+  });
   return Object.freeze({
     ...subject,
     stages: chain.stages,
@@ -59,5 +63,6 @@ export function attachLibrarySpecimen(subject, record = LIBRARY_SPECIMEN_RECORD)
     evidenceKind: chain.classification,
     domainLabels: LIBRARY_RELEASE_DOMAIN_LABELS,
     releaseContract: true,
+    notApplicableStages: applicability.notApplicableStages,
   });
 }

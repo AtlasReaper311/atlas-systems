@@ -457,7 +457,7 @@ function bindEstateRoster(projection) {
   const names = projection.subjects.map((subject) => subject.id);
   let selectedProfile = null;
   let selectedStage = null;
-  const paint = (claim, profileId = selectedProfile, persistFocus = true, stageName = selectedStage) => {
+  const paint = (claim, profileId = selectedProfile, persistFocus = true, stageName = selectedStage, focusTarget = "roster") => {
     selectedProfile = profileId || null;
     const visible = visibleSubjects(projection, selectedProfile);
     const next = visible.some((subject) => subject.id === claim)
@@ -480,14 +480,17 @@ function bindEstateRoster(projection) {
     }
     renderSecondary(projection, next);
     if (persistFocus) {
-      if (subject?.specimen && path) focusClaimControl(path, selectedStage);
-      else focusClaimControl(body, next);
+      if (focusTarget === "path" && subject?.specimen && path) {
+        focusClaimControl(path, selectedStage);
+      } else {
+        focusClaimControl(body, next);
+      }
     }
   };
   const select = (claim) => {
     if (!claim) return;
     selectedStage = null;
-    paint(claim, selectedProfile, true, null);
+    paint(claim, selectedProfile, true, null, "roster");
   };
   body.addEventListener("click", (event) => {
     const row = event.target?.closest?.("tr[data-claim]");
@@ -499,7 +502,7 @@ function bindEstateRoster(projection) {
     if (!button || !path.contains(button)) return;
     const current = body.querySelector?.('tr[data-selected="true"]')?.dataset?.claim
       ?? selectedSubjectId(projection);
-    paint(current, selectedProfile, true, button.dataset.claim);
+    paint(current, selectedProfile, true, button.dataset.claim, "path");
   });
   profiles?.addEventListener("click", (event) => {
     const card = event.target?.closest?.("[data-profile]");
@@ -507,13 +510,13 @@ function bindEstateRoster(projection) {
     const nextProfile = card.dataset.profile || null;
     const visible = visibleSubjects(projection, nextProfile);
     selectedStage = null;
-    paint(visible[0]?.id ?? selectedSubjectId(projection), nextProfile, false, null);
+    paint(visible[0]?.id ?? selectedSubjectId(projection), nextProfile, false, null, "roster");
   });
   bindLadderKeyboard(body, (claim) => select(claim));
   if (path) bindLadderKeyboard(path, (claim) => {
     const current = body.querySelector?.('tr[data-selected="true"]')?.dataset?.claim
       ?? selectedSubjectId(projection);
-    paint(current, selectedProfile, true, claim);
+    paint(current, selectedProfile, true, claim, "path");
   });
   if (typeof window !== "undefined") {
     window.addEventListener("popstate", () => {
