@@ -356,6 +356,52 @@
       ]
     },
     {
+      "url": "https://atlas-systems.uk/lab/atlas-motion/",
+      "source": "lab/atlas-motion/index.html",
+      "kind": "lab-tool",
+      "indexing": "index",
+      "global_header": true,
+      "search": true,
+      "status_indicator": "aggregate-link",
+      "contextual_navigation": true,
+      "icons": [
+        "favicon.ico",
+        "favicon-16x16.png",
+        "favicon-32x32.png",
+        "apple-touch-icon.png",
+        "android-chrome-192x192.png",
+        "android-chrome-512x512.png",
+        "site.webmanifest"
+      ],
+      "metadata": [
+        "title",
+        "description",
+        "canonical",
+        "theme-color",
+        "icons",
+        "og:type",
+        "og:title",
+        "og:description",
+        "og:url",
+        "og:site_name",
+        "og:image",
+        "og:image:width",
+        "og:image:height",
+        "og:image:alt",
+        "twitter:card",
+        "twitter:title",
+        "twitter:description",
+        "twitter:image"
+      ],
+      "footer": "Released motion evidence and Atlas estate escape",
+      "link_policy": "atlas-owned-same-tab-external-safe-new-tab",
+      "generated_owner": null,
+      "notes": [
+        "EstateBoot is a repository-local copy of the exact Motion v0.1.0 release media.",
+        "The recorded replay and historical topology are evidence only; they do not claim current deployment, runtime, estate, provider, or production state."
+      ]
+    },
+    {
       "url": "https://atlas-systems.uk/404.html",
       "source": "404.html",
       "kind": "error",
