@@ -1,0 +1,92 @@
+import { RESULT } from "./change-chain.js";
+
+export const ARTICLE_SPECIMEN_RECORD = Object.freeze({
+  schema: "atlas-systems/article-lifecycle-record/v1",
+  classification: "recorded-public-projection",
+  liveFeed: false,
+  profile: "article-publication",
+  authority: Object.freeze({
+    lifecycle: "ADR-0013",
+    profile: "ADR-0014",
+    infraCommit: "d20ac7593b5ce935ddf0745cdee5f452b1222dd1",
+    pipeline: "atlas-article-gen -> atlas-scheduler -> atlas-systems",
+  }),
+  subject: Object.freeze({
+    id: "specular-core-architectural-recovery",
+    title: "SPECULAR-CORE: Architectural Recovery",
+    slug: "specular-core-architectural-recovery",
+    wNumber: "W-08",
+    publishDate: "2026-08-27",
+    dateWritten: "2026-08-23",
+    repository: "AtlasReaper311/atlas-systems",
+    path: "writing/specular-core-architectural-recovery/index.html",
+    route: "/writing/specular-core-architectural-recovery/",
+    publishCommit: "e36e544e92bc488f76c3a91224ba72044bd0a031",
+    publishedBlob: "22657bd9d7a1e68e1876920b4ae1075b357a045a",
+  }),
+  recordedAt: "2026-09-12T15:31:00Z",
+  recordedNote: "Recorded public-safe evidence; not a live feed. Part 0 selected W-08 because it has the strongest currently public scheduler-execution and atlas-systems identity evidence. W-01 through W-03 were first added by a human commit, not atlas-scheduler[bot]. W-04 through W-07 have named scheduler publish commits, but W-08 is the newest of those and has a public exact-head Deploy run. The public-interface representative article surface remains ramone-local-ai-system; that declaration is not stronger publication-execution evidence. atlas-article-gen and atlas-scheduler are private repositories, but no approved public-safe projection establishes the exact AUTHORED source identity, generator VALIDATED record, or scheduler SCHEDULED queue identity for the public Evidence Console. SOURCE, CHECKED, and MERGED therefore remain UNKNOWN / NOT OBSERVED. Operator-runtime access to those private repositories is not a public-safe projection and does not strengthen this Console record. Generation is not publication. Queue sync is not publication. Scheduler execution is not live verification.",
+  recordedFrom: Object.freeze([
+    "public GitHub repository AtlasReaper311/atlas-systems",
+    "public atlas-scheduler[bot] commit e36e544e92bc488f76c3a91224ba72044bd0a031",
+    "public Deploy workflow run 33108256526",
+    "accepted atlas-infra ADR-0013 and ADR-0014 on main d20ac7593b5ce935ddf0745cdee5f452b1222dd1",
+    "public writing route /writing/specular-core-architectural-recovery/",
+    "public atlas-systems writing/manifest.json W-08 entry",
+  ]),
+  review: Object.freeze({
+    existed: false,
+    approved: false,
+    githubReviewState: "UNKNOWN / NOT OBSERVED",
+    identifier: null,
+    observedAt: null,
+    scope: "The W-08 publish commit has no associated public pull request. Missing review is not a successful review, scheduler execution, or live proof.",
+  }),
+  observations: Object.freeze({
+    SOURCE: Object.freeze({
+      result: RESULT.UNKNOWN_NOT_OBSERVED,
+      gap: "AUTHORED / SOURCE requires a named article source identity in atlas-article-gen. That repository is private and no approved public-safe projection establishes the exact AUTHORED source identity for the public Evidence Console. Missing authored evidence remains UNKNOWN / NOT OBSERVED.",
+      scope: "A currently visible writing page is not an authored source identity. Generation is not publication.",
+    }),
+    CHECKED: Object.freeze({
+      result: RESULT.UNKNOWN_NOT_OBSERVED,
+      gap: "VALIDATED / CHECKED requires generator validation on that authored identity, such as build_article.py --check-only. atlas-article-gen is private and no approved public-safe projection establishes the generator VALIDATED record for the public Evidence Console. Missing validation remains UNKNOWN / NOT OBSERVED.",
+      scope: "Later scheduler execution or site deploy checks do not backfill generator validation.",
+    }),
+    MERGED: Object.freeze({
+      result: RESULT.UNKNOWN_NOT_OBSERVED,
+      gap: "SCHEDULED / MERGED is the scheduler-queue identity with a publish date. It is not merge onto live writing pages. atlas-scheduler is private and no approved public-safe projection establishes the scheduler SCHEDULED queue identity for the public Evidence Console. Missing scheduled evidence remains UNKNOWN / NOT OBSERVED.",
+      scope: "The atlas-scheduler[bot] commit on atlas-systems is SCHEDULER EXECUTED, not the SCHEDULED queue identity.",
+    }),
+    "DEPLOYMENT OBSERVED": Object.freeze({
+      result: RESULT.OBSERVED,
+      identifier: "atlas-scheduler[bot] e36e544e92bc488f76c3a91224ba72044bd0a031 / publish: W-08",
+      provenance: "public GitHub commit authored by atlas-scheduler[bot] on AtlasReaper311/atlas-systems",
+      observedAt: "2026-08-27T19:23:58Z",
+      sourceUrl: "https://github.com/AtlasReaper311/atlas-systems/commit/e36e544e92bc488f76c3a91224ba72044bd0a031",
+      domainLabel: "SCHEDULER EXECUTED",
+      scope: "A named scheduler publication execution was observed: atlas-scheduler[bot] committed e36e544e92bc488f76c3a91224ba72044bd0a031 with message publish: W-08 SPECULAR-CORE: Architectural Recovery. ADR-0014 maps SCHEDULER EXECUTED onto DEPLOYMENT OBSERVED. Seeing that write event is not proof that the expected writing identity remained the current published identity, and scheduler execution is not live verification.",
+    }),
+    DEPLOYED: Object.freeze({
+      result: RESULT.OBSERVED,
+      identifier: "writing/specular-core-architectural-recovery/index.html @ e36e544e92bc488f76c3a91224ba72044bd0a031 blob 22657bd9d7a1e68e1876920b4ae1075b357a045a",
+      provenance: "public atlas-systems source identity created by the W-08 scheduler publish commit",
+      observedAt: "2026-08-27T19:23:58Z",
+      sourceUrl: "https://github.com/AtlasReaper311/atlas-systems/commit/e36e544e92bc488f76c3a91224ba72044bd0a031",
+      domainLabel: "published writing identity",
+      scope: "The expected writing identity W-08 / specular-core-architectural-recovery was present on atlas-systems as writing/specular-core-architectural-recovery/index.html at commit e36e544e92bc488f76c3a91224ba72044bd0a031 (blob 22657bd9d7a1e68e1876920b4ae1075b357a045a). ADR-0014 maps that published-source identity onto DEPLOYED. Source presence is not a Pages deploy by itself, not runtime verification, and not independent live verification of the article route. Deploy workflow run 33108256526 later observed a production Pages event for that same head and confirmed the custom domain served that commit; those site facts do not replace article-route live verification.",
+    }),
+  }),
+  extraGaps: Object.freeze([
+    Object.freeze({
+      label: "Independent article-route live verification",
+      result: RESULT.UNKNOWN_NOT_OBSERVED,
+      scope: "Deploy run 33108256526 verified the production custom domain for e36e544e92bc488f76c3a91224ba72044bd0a031 and ran homepage AtlasField plus System Symphony browser smokes. Those checks are not independent live verification of https://atlas-systems.uk/writing/specular-core-architectural-recovery/. A currently visible live page is not this recorded observation. Missing article-route LIVE VERIFIED remains UNKNOWN / NOT OBSERVED.",
+    }),
+    Object.freeze({
+      label: "Later published-page identity",
+      result: RESULT.UNKNOWN_NOT_OBSERVED,
+      scope: "The W-08 article file later includes a05e21b6bd566a6d1e36f97f20d1164c458b7eca, 66c6293b5d7b73aa3671812e819692d6ab5737fd, and 8b25517f006c1698096af4715dbd0713bcf34dd0. The recorded published blob is 22657bd9d7a1e68e1876920b4ae1075b357a045a. Later blob e566a59c464b610a3093d1f382ad2515ce9eb2fa is a different identity. Missing later-identity evidence remains UNKNOWN / NOT OBSERVED.",
+    }),
+  ]),
+});

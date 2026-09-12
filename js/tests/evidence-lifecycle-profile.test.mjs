@@ -80,9 +80,15 @@ test("Static / Public Site and Runtime Worker keep ADR-0014 applicability", () =
   const site = presentLifecycleProfile("static-public-site");
   const worker = presentLifecycleProfile("runtime-worker");
   const kit = presentLifecycleProfile("library-toolkit");
+  const article = presentLifecycleProfile("article-publication");
   assert.equal(site.label, "Static / Public Site");
   assert.equal(worker.label, "Runtime Worker");
   assert.equal(kit.label, "Library / Toolkit");
+  assert.equal(article.label, "Article Publication");
+  assert.deepEqual(article.notApplicableStages, ["RUNTIME VERIFIED"]);
+  assert.match(article.expectedPath, /LIVE VERIFIED/);
+  assert.doesNotMatch(article.expectedPath, /RUNTIME VERIFIED/);
+  assert.match(article.expectedSummary, /SCHEDULED maps to MERGED/);
   assert.deepEqual(site.notApplicableStages, ["RUNTIME VERIFIED"]);
   assert.deepEqual(worker.notApplicableStages, []);
   assert.deepEqual(kit.notApplicableStages, [
@@ -190,7 +196,7 @@ test("Profile identity names the subject without inventing a later stage", () =>
   assert.equal(LIFECYCLE_PROFILE_PRESENTATION["runtime-worker"].label, "Runtime Worker");
 });
 
-test("Evidence Console presents 2.3a and 2.3b specimens without a new top-level tab", () => {
+test("Evidence Console presents 2.3a, 2.3b and 2.3c specimens without a new top-level tab", () => {
   const page = read("systems/evidence/index.html");
   const profile = read("systems/evidence/lifecycle-profile.js");
   const change = read("systems/evidence/change-view.js");
@@ -198,16 +204,20 @@ test("Evidence Console presents 2.3a and 2.3b specimens without a new top-level 
   const estate = read("systems/evidence/estate-view.js");
   const detail = read("systems/evidence/evidence-detail.js");
   const library = read("systems/evidence/library-profile.js");
+  const article = read("systems/evidence/article-profile.js");
 
   assert.match(page, /data-evidence-view-tab="change"/);
   assert.match(page, /data-evidence-view-tab="service"/);
   assert.match(page, /data-evidence-view-tab="estate"/);
   assert.doesNotMatch(page, /data-evidence-view-tab="profile"/);
   assert.doesNotMatch(page, /data-evidence-view-tab="library"/);
+  assert.doesNotMatch(page, /data-evidence-view-tab="article"/);
   assert.match(page, /Static \/ Public Site/);
   assert.match(page, /Runtime Worker/);
   assert.match(page, /Library \/ Toolkit/);
+  assert.match(page, /Article Publication/);
   assert.match(page, /atlas-interface-kit/);
+  assert.match(page, /specular-core-architectural-recovery/);
   assert.match(page, /id="change-profile"/);
   assert.match(page, /id="service-expected-path"/);
   assert.match(page, /id="estate-expected-path"/);
@@ -220,7 +230,8 @@ test("Evidence Console presents 2.3a and 2.3b specimens without a new top-level 
   assert.match(detail, /export function renderExpectedPath/);
   assert.match(profile, /not missing evidence/);
   assert.match(library, /RELEASED event/);
-  for (const source of [profile, change, service, estate, detail, library]) {
+  assert.match(article, /SCHEDULER EXECUTED/);
+  for (const source of [profile, change, service, estate, detail, library, article]) {
     assert.doesNotMatch(source, /innerHTML\s*=/);
     assert.doesNotMatch(source, /Authorization|Bearer|secret|token/i);
   }
