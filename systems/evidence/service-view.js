@@ -9,9 +9,12 @@ import {
   projectEvidenceDetail,
   renderAnswerFirst,
   renderEvidenceDetail,
+  renderExpectedPath,
   renderLadderItem,
+  renderProfileIdentity,
   syncEvidenceClaimUrl,
 } from "./evidence-detail.js";
+import { projectProfileIdentity } from "./lifecycle-profile.js";
 import {
   observationsFromPublicSources,
   projectServiceView,
@@ -115,6 +118,14 @@ function renderServiceMap(projection) {
     list.appendChild(wrap);
   }
   target.appendChild(list);
+}
+
+function renderProfile(projection) {
+  renderProfileIdentity(byId("service-profile"), projectProfileIdentity({
+    subject: projection.subject.id ?? SERVICE_SPECIMEN.id,
+    profileId: projection.profile?.id,
+  }));
+  renderExpectedPath(byId("service-expected-path"), projection.lifecycleStages ?? []);
 }
 
 function renderSummary(projection) {
@@ -281,6 +292,7 @@ export function renderServiceView(record, options = {}) {
       DEFAULT_SERVICE_CLAIM,
     );
   const selected = selectedFactName(projection, requested);
+  renderProfile(projection);
   renderLadder(projection, selected);
   renderSelectedDetail(projection, selected);
   renderSummary(projection);

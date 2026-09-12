@@ -441,6 +441,93 @@ export function renderEvidenceDetail(target, detail, options = {}) {
   return detail;
 }
 
+export function renderProfileIdentity(target, reading, createElementImpl) {
+  if (!target) return reading;
+  const createElement = createElementImpl
+    ?? (typeof document !== "undefined" ? document.createElement.bind(document) : null);
+  if (!createElement) return reading;
+  const record = asRecord(reading);
+  target.replaceChildren();
+  target.className = "systems-evidence-profile-identity";
+  target.dataset.profile = record.profileId ? String(record.profileId) : "";
+  appendText(target, "p", "systems-detail-kicker", "Selected subject", createElement);
+  appendText(target, "p", "systems-evidence-subject-name", record.subject ?? "Unnamed subject", createElement);
+  const profile = appendText(
+    target,
+    "p",
+    "systems-evidence-profile-label",
+    record.profileLabel ?? "Unknown subject",
+    createElement,
+  );
+  profile.dataset.profile = record.profileId ? String(record.profileId) : "";
+  appendText(
+    target,
+    "p",
+    "systems-evidence-profile-authority",
+    `${record.authority ?? "ADR-0014"} · ${record.subjectType ?? "subject type not supplied"}`,
+    createElement,
+  );
+  appendText(
+    target,
+    "p",
+    "systems-evidence-profile-path",
+    `Expected path: ${record.expectedPath ?? "not supplied"}`,
+    createElement,
+  );
+  if (record.expectedSummary) {
+    appendText(target, "p", "systems-evidence-profile-summary", record.expectedSummary, createElement);
+  }
+  if (record.classificationNote) {
+    appendText(target, "p", "systems-evidence-profile-note", record.classificationNote, createElement);
+  }
+  return reading;
+}
+
+export function renderExpectedPath(target, stages, createElementImpl) {
+  if (!target) return stages;
+  const createElement = createElementImpl
+    ?? (typeof document !== "undefined" ? document.createElement.bind(document) : null);
+  if (!createElement) return stages;
+  const items = Array.isArray(stages) ? stages : [];
+  target.replaceChildren();
+  target.className = "systems-change-chain systems-evidence-ladder systems-evidence-chain systems-evidence-expected-path";
+  if (typeof target.setAttribute === "function") target.setAttribute("role", "list");
+  if (!items.length) {
+    const empty = createElement("li");
+    empty.textContent = "No expected ADR-0013 path is available for this subject.";
+    target.appendChild(empty);
+    return stages;
+  }
+  for (const item of items) {
+    const stage = asRecord(item);
+    const row = createElement("li");
+    row.className = "systems-evidence-ladder-item";
+    row.dataset.result = stage.result ?? RESULT.UNKNOWN_NOT_OBSERVED;
+    row.dataset.stage = stage.stage ?? "";
+    const body = createElement("div");
+    body.className = "systems-evidence-ladder-select";
+    const mark = createElement("span");
+    mark.className = "systems-evidence-chain-mark";
+    mark.dataset.result = row.dataset.result;
+    mark.textContent = resultMark(row.dataset.result);
+    if (typeof mark.setAttribute === "function") mark.setAttribute("aria-hidden", "true");
+    const label = createElement("span");
+    label.className = "systems-evidence-ladder-stage";
+    label.textContent = stage.stage ?? "Unnamed stage";
+    const result = createElement("span");
+    result.className = "systems-evidence-ladder-result";
+    result.dataset.result = row.dataset.result;
+    result.textContent = row.dataset.result;
+    const sr = createElement("span");
+    sr.className = "systems-evidence-sr";
+    sr.textContent = `Expected lifecycle stage ${label.textContent}. Observation result ${row.dataset.result}. ${RESULT_ASSISTANCE[row.dataset.result] ?? ""}`;
+    body.append(mark, label, result, sr);
+    row.appendChild(body);
+    target.appendChild(row);
+  }
+  return stages;
+}
+
 export function renderAnswerFirst(target, summary, createElementImpl) {
   if (!target) return summary;
   const createElement = createElementImpl

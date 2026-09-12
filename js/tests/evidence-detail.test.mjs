@@ -382,7 +382,9 @@ test("Evidence Console registers the reusable detail surface without secrets", (
   for (const id of [
     "change-summary", "change-detail", "change-detail-fallback", "claim-merged",
     "service-summary", "service-detail", "service-map", "service-boundaries",
+    "change-profile", "service-profile", "service-expected-path",
     "estate-summary", "estate-detail", "estate-secondary", "estate-profiles",
+    "estate-subject-profile", "estate-expected-path",
     "how-to-read-evidence",
   ]) {
     assert.match(page, new RegExp(`id="${id}"`));
@@ -391,7 +393,7 @@ test("Evidence Console registers the reusable detail surface without secrets", (
   assert.match(page, /Inspect MERGED without JavaScript/);
   assert.match(page, /Technical provenance/);
   assert.match(page, /db82da52f13a441a5f88344be6211be71ea2d92e/);
-  assert.match(page, /systems-evidence-detail\.css\?v=20260911-visual/);
+  assert.match(page, /systems-evidence-detail\.css\?v=20260912-profile/);
   assert.match(page, /Latest proven/);
   assert.match(page, /colspan="5"/);
   assert.match(changeView, /detailForChangeStage/);

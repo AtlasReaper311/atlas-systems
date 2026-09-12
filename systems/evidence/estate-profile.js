@@ -1,4 +1,5 @@
 import { DELIVERY_STAGES, RESULT, STATIC_PUBLIC_SITE_PROFILE } from "./change-chain.js";
+import { lifecycleProfileLabel } from "./lifecycle-profile.js";
 import { RUNTIME_WORKER_PROFILE } from "./service-profile.js";
 
 export const ESTATE_TOPOLOGY_URL = "https://api.atlas-systems.uk/v1/topology";
@@ -39,11 +40,11 @@ export const ESTATE_PROFILE_ORDER = Object.freeze([
 ]);
 
 export const ESTATE_PROFILE_LABELS = Object.freeze({
-  "runtime-worker": "Runtime worker",
-  "static-public-site": "Static / public",
-  "library-toolkit": "Library / toolkit",
-  "documentation-policy": "Documentation / policy",
-  "unknown-subject": "Unknown subject",
+  "runtime-worker": lifecycleProfileLabel("runtime-worker"),
+  "static-public-site": lifecycleProfileLabel("static-public-site"),
+  "library-toolkit": lifecycleProfileLabel("library-toolkit"),
+  "documentation-policy": lifecycleProfileLabel("documentation-policy"),
+  "unknown-subject": lifecycleProfileLabel("unknown-subject"),
 });
 
 export function estateProfileGroups(subjects = []) {
@@ -276,6 +277,7 @@ export function projectEstateSubject(component, context = {}, nowMs = Date.now()
       authority: profile.authority,
       subjectType: profile.subjectType,
       chosenFrom: profile.chosenFrom,
+      label: lifecycleProfileLabel(profile.id),
     }),
     classification,
     stages,

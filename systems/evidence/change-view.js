@@ -11,8 +11,10 @@ import {
   renderAnswerFirst,
   renderEvidenceDetail,
   renderLadderItem,
+  renderProfileIdentity,
   syncEvidenceClaimUrl,
 } from "./evidence-detail.js";
+import { projectProfileIdentity } from "./lifecycle-profile.js";
 
 const byId = (id) => document.getElementById(id);
 
@@ -74,6 +76,14 @@ function renderReading(reading) {
     }
     list.appendChild(item);
   }
+}
+
+function renderProfile(chain) {
+  const subject = changeSubject(chain);
+  renderProfileIdentity(byId("change-profile"), projectProfileIdentity({
+    subject: subject.label,
+    profileId: chain.profile?.id,
+  }));
 }
 
 function renderSummary(chain) {
@@ -272,6 +282,7 @@ export function renderChangeView(record = SPECIMEN_256_RECORD, options = {}) {
   const list = byId("change-chain");
   if (!list) return chain;
   hideFallback();
+  renderProfile(chain);
   renderLadder(chain, selected);
   renderSelectedDetail(chain, selected);
   renderSummary(chain);
