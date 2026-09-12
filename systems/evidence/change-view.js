@@ -1,3 +1,12 @@
+import {
+  ARTICLE_SPECIMEN_SUBJECT_ID,
+  CHANGE_SUBJECTS,
+  DEFAULT_CHANGE_SUBJECT,
+  articleStageLabel,
+  parseEvidenceSubject,
+  projectArticleSpecimen,
+} from "./article-profile.js";
+import { ARTICLE_SPECIMEN_RECORD } from "./article-specimen.js";
 import { RESULT, projectChangeChain } from "./change-chain.js";
 import { SPECIMEN_256_RECORD } from "./change-chain-specimen.js";
 import { parseEvidenceView } from "./estate-profile.js";
@@ -17,6 +26,12 @@ import {
 import { projectProfileIdentity } from "./lifecycle-profile.js";
 
 const byId = (id) => document.getElementById(id);
+
+const current = {
+  subjectId: DEFAULT_CHANGE_SUBJECT,
+  chain: null,
+};
+let popstateBound = false;
 
 function resultLabel(result) {
   return result === RESULT.OBSERVED ? "Observed" : result;
@@ -53,6 +68,34 @@ function evidenceBadge(result, evidenceMode) {
   return badge;
 }
 
+function catalogEntry(subjectId) {
+  return CHANGE_SUBJECTS.find((item) => item.id === subjectId) ?? CHANGE_SUBJECTS[0];
+}
+
+function chainFromRecord(record) {
+  if (record?.profile === "article-publication") return projectArticleSpecimen(record);
+  return projectChangeChain(record);
+}
+
+function resolveSubjectId(record, options, locationLike) {
+  if (options.subject && CHANGE_SUBJECTS.some((item) => item.id === options.subject)) {
+    return options.subject;
+  }
+  if (record?.profile === "article-publication") return ARTICLE_SPECIMEN_SUBJECT_ID;
+  if (record) return DEFAULT_CHANGE_SUBJECT;
+  return parseEvidenceSubject(
+    locationLike,
+    CHANGE_SUBJECTS.map((item) => item.id),
+    DEFAULT_CHANGE_SUBJECT,
+  );
+}
+
+function resolveRecord(subjectId, explicitRecord) {
+  if (explicitRecord) return explicitRecord;
+  if (subjectId === ARTICLE_SPECIMEN_SUBJECT_ID) return ARTICLE_SPECIMEN_RECORD;
+  return SPECIMEN_256_RECORD;
+}
+
 function renderReading(reading) {
   const list = byId("change-reading");
   if (!list) return;
@@ -83,6 +126,9 @@ function renderProfile(chain) {
   renderProfileIdentity(byId("change-profile"), projectProfileIdentity({
     subject: subject.label,
     profileId: chain.profile?.id,
+    classificationNote: chain.profile?.id === "article-publication"
+      ? "Recorded public-safe article specimen. atlas-article-gen authors and validates. atlas-scheduler is the only authorised write path into atlas-systems. Generation is not publication. Queue sync is not publication. Scheduler execution is not live verification."
+      : null,
   }));
 }
 
@@ -120,6 +166,15 @@ function renderReview(review) {
 }
 
 function changeSubject(chain) {
+  if (chain.profile?.id === "article-publication" || chain.subject?.slug) {
+    const title = chain.subject.title ?? chain.subject.slug ?? "Unnamed article";
+    const wNumber = chain.subject.wNumber;
+    return {
+      repository: chain.subject.repository ?? "AtlasReaper311/atlas-systems",
+      slug: chain.subject.slug ?? ARTICLE_SPECIMEN_SUBJECT_ID,
+      label: wNumber ? `${title} (${wNumber})` : String(title),
+    };
+  }
   return {
     repository: chain.subject.repository ?? "AtlasReaper311/atlas-systems",
     pullRequest: chain.subject.pullRequest ?? 256,
@@ -131,9 +186,13 @@ function changeSubject(chain) {
 
 export function detailForChangeStage(chain, stageName) {
   const stage = chain.stages.find((item) => item.stage === stageName) ?? chain.stages[0];
+  const domain = chain.domainLabels?.[stage.stage];
   return projectEvidenceDetail({
     view: "change",
     subject: changeSubject(chain),
+    assertion: domain
+      ? `${stage.stage} (${domain}) for ${changeSubject(chain).label}`
+      : undefined,
     stage: stage.stage,
     result: stage.result,
     evidenceType: "recorded-public-projection",
@@ -160,7 +219,7 @@ function renderLadder(chain, selectedStage) {
   for (const stage of chain.stages) {
     list.appendChild(renderLadderItem({
       id: stage.stage,
-      label: stage.stage,
+      label: chain.domainLabels ? articleStageLabel(stage.stage) : stage.stage,
       result: stage.result,
       elementId: claimElementId(stage.stage, "change"),
     }, {
@@ -171,13 +230,15 @@ function renderLadder(chain, selectedStage) {
 }
 
 function hideFallback() {
-  const fallback = byId("change-detail-fallback");
-  if (!fallback) return;
-  fallback.hidden = true;
-  const specimen = typeof fallback.querySelector === "function"
-    ? fallback.querySelector("#claim-merged")
-    : null;
-  if (specimen && typeof specimen.removeAttribute === "function") specimen.removeAttribute("id");
+  for (const id of ["change-detail-fallback", "change-article-fallback"]) {
+    const fallback = byId(id);
+    if (!fallback) continue;
+    fallback.hidden = true;
+    const specimen = typeof fallback.querySelector === "function"
+      ? fallback.querySelector("[id^='claim-']")
+      : null;
+    if (specimen && typeof specimen.removeAttribute === "function") specimen.removeAttribute("id");
+  }
 }
 
 function renderSelectedDetail(chain, selectedStage) {
@@ -202,7 +263,9 @@ function renderProvenance(chain) {
     note,
     "p",
     null,
-    "This Change View is a recorded public-safe projection of one named change. It is not a live authoritative feed and does not replace the bounded deployment, pipeline, activity, availability, or assurance records below.",
+    chain.profile?.id === "article-publication"
+      ? "This Change View can show the recorded static-site chain or the recorded Article Publication specimen. Both are public-safe projections, not live feeds. atlas-scheduler owns the only authorised production article write path into atlas-systems. Generation is not publication. Queue sync is not publication. Scheduler execution is not live verification."
+      : "This Change View is a recorded public-safe projection of one named change. It is not a live authoritative feed and does not replace the bounded deployment, pipeline, activity, availability, or assurance records below.",
   );
   const from = document.createElement("ul");
   from.className = "systems-change-sources";
@@ -214,74 +277,119 @@ function renderProvenance(chain) {
   note.appendChild(from);
 }
 
-function renderStatus(chain) {
+function renderStatus(chain, subjectId) {
   const status = byId("change-view-status");
   if (!status) return;
   const unknownStages = chain.stages.some((stage) => stage.result === RESULT.UNKNOWN_NOT_OBSERVED);
   const unknownLater = chain.reading.lines.some((line) => line.result === RESULT.UNKNOWN_NOT_OBSERVED);
   const failed = chain.stages.some((stage) => stage.result === RESULT.FAILED);
   const proven = chain.reading.provenStage ?? "none";
+  const label = catalogEntry(subjectId).label;
   status.dataset.state = failed ? "failure" : (unknownStages || unknownLater) ? "warning" : "healthy";
   status.textContent = failed
     ? `Recorded chain contains FAILED evidence. Proven stage ${proven}.`
-    : `Recorded public projection for atlas-systems#256. Proven stage ${proven}. Later missing facts remain UNKNOWN / NOT OBSERVED.`;
+    : `Recorded public projection for ${label}. Proven stage ${proven}. Later missing facts remain UNKNOWN / NOT OBSERVED.`;
 }
 
-function selectedStageName(chain, requested) {
+function renderSubjects(selectedId) {
+  const target = byId("change-subjects");
+  if (!target) return;
+  target.replaceChildren();
+  for (const item of CHANGE_SUBJECTS) {
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "systems-evidence-profile-card";
+    card.dataset.subject = item.id;
+    card.setAttribute("aria-pressed", String(selectedId === item.id));
+    appendText(card, "span", null, item.profileLabel);
+    appendText(card, "strong", null, item.label);
+    target.appendChild(card);
+  }
+}
+
+function selectedStageName(chain, requested, subjectId) {
+  const fallback = catalogEntry(subjectId).defaultClaim;
   if (requested && chain.stages.some((stage) => stage.stage === requested)) return requested;
+  if (chain.stages.some((stage) => stage.stage === fallback)) return fallback;
   if (chain.stages.some((stage) => stage.stage === DEFAULT_CHANGE_CLAIM)) return DEFAULT_CHANGE_CLAIM;
   return chain.stages[0]?.stage ?? DEFAULT_CHANGE_CLAIM;
 }
 
-function bindChangeLadder(chain, selected) {
-  const list = byId("change-chain");
-  if (!list || typeof list.addEventListener !== "function") return;
-  if (list.dataset.ladderBound === "true") return;
-  list.dataset.ladderBound = "true";
-  const select = (claim, persist = true) => {
-    if (!claim) return;
-    const next = selectedStageName(chain, claim);
-    renderLadder(chain, next);
-    renderSelectedDetail(chain, next);
-    focusClaimControl(list, next);
-    if (persist) {
-      syncEvidenceClaimUrl(
-        "change",
-        next,
-        typeof window !== "undefined" ? window.history : null,
-        typeof window !== "undefined" ? window.location : null,
-      );
-    }
-  };
-  list.addEventListener("click", (event) => {
-    const button = event.target?.closest?.("[data-claim]");
-    if (!button || !list.contains(button)) return;
-    select(button.dataset.claim);
-  });
-  bindLadderKeyboard(list, (claim) => select(claim));
-  if (typeof window !== "undefined") {
-    window.addEventListener("popstate", () => {
-      if (parseEvidenceView(window.location) !== "change") return;
-      const claim = parseEvidenceClaim(window.location, chain.stages.map((stage) => stage.stage), DEFAULT_CHANGE_CLAIM);
-      renderLadder(chain, claim);
-      renderSelectedDetail(chain, claim);
-    });
-  }
-  void selected;
+function persistUrl(subjectId, claim) {
+  syncEvidenceClaimUrl(
+    "change",
+    claim,
+    typeof window !== "undefined" ? window.history : null,
+    typeof window !== "undefined" ? window.location : null,
+    { subject: subjectId === DEFAULT_CHANGE_SUBJECT ? null : subjectId },
+  );
 }
 
-export function renderChangeView(record = SPECIMEN_256_RECORD, options = {}) {
-  const chain = projectChangeChain(record);
+function bindChangeControls() {
+  const list = byId("change-chain");
+  const subjects = byId("change-subjects");
+  if (list && typeof list.addEventListener === "function" && list.dataset.ladderBound !== "true") {
+    list.dataset.ladderBound = "true";
+    list.addEventListener("click", (event) => {
+      const button = event.target?.closest?.("[data-claim]");
+      if (!button || !list.contains(button)) return;
+      const chain = current.chain;
+      if (!chain) return;
+      const next = selectedStageName(chain, button.dataset.claim, current.subjectId);
+      renderLadder(chain, next);
+      renderSelectedDetail(chain, next);
+      focusClaimControl(list, next);
+      persistUrl(current.subjectId, next);
+    });
+    bindLadderKeyboard(list, (claim) => {
+      const chain = current.chain;
+      if (!chain) return;
+      const next = selectedStageName(chain, claim, current.subjectId);
+      renderLadder(chain, next);
+      renderSelectedDetail(chain, next);
+      focusClaimControl(list, next);
+      persistUrl(current.subjectId, next);
+    });
+  }
+  if (subjects && typeof subjects.addEventListener === "function" && subjects.dataset.subjectsBound !== "true") {
+    subjects.dataset.subjectsBound = "true";
+    subjects.addEventListener("click", (event) => {
+      const card = event.target?.closest?.("[data-subject]");
+      if (!card || !subjects.contains(card)) return;
+      renderChangeView(null, {
+        subject: card.dataset.subject,
+        claim: catalogEntry(card.dataset.subject).defaultClaim,
+        persistFocus: true,
+      });
+    });
+  }
+  if (typeof window !== "undefined" && !popstateBound) {
+    popstateBound = true;
+    window.addEventListener("popstate", () => {
+      if (parseEvidenceView(window.location) !== "change") return;
+      renderChangeView(null, { persistFocus: false, persist: false, location: window.location });
+    });
+  }
+}
+
+export function renderChangeView(record = null, options = {}) {
+  const locationLike = options.location ?? (typeof window !== "undefined" ? window.location : {});
+  const subjectId = resolveSubjectId(record, options, locationLike);
+  const resolved = resolveRecord(subjectId, record);
+  const chain = chainFromRecord(resolved);
+  current.subjectId = subjectId;
+  current.chain = chain;
   const requested = options.claim
     ?? parseEvidenceClaim(
-      options.location ?? (typeof window !== "undefined" ? window.location : {}),
+      locationLike,
       chain.stages.map((stage) => stage.stage),
-      DEFAULT_CHANGE_CLAIM,
+      catalogEntry(subjectId).defaultClaim,
     );
-  const selected = selectedStageName(chain, requested);
+  const selected = selectedStageName(chain, requested, subjectId);
   const list = byId("change-chain");
   if (!list) return chain;
   hideFallback();
+  renderSubjects(subjectId);
   renderProfile(chain);
   renderLadder(chain, selected);
   renderSelectedDetail(chain, selected);
@@ -289,8 +397,14 @@ export function renderChangeView(record = SPECIMEN_256_RECORD, options = {}) {
   renderReading(chain.reading);
   renderReview(chain.review);
   renderProvenance(chain);
-  renderStatus(chain);
-  if (options.bind !== false) bindChangeLadder(chain, selected);
+  renderStatus(chain, subjectId);
+  if (options.bind !== false) bindChangeControls();
+  if (options.persistFocus) {
+    const nav = byId("change-subjects");
+    const selectedCard = nav?.querySelector?.(`[data-subject="${subjectId}"]`);
+    if (selectedCard && typeof selectedCard.focus === "function") selectedCard.focus();
+  }
+  if (options.persist) persistUrl(subjectId, selected);
   return chain;
 }
 

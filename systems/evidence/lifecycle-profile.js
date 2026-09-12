@@ -53,6 +53,15 @@ export const LIFECYCLE_PROFILE_PRESENTATION = Object.freeze({
     expectedSummary: "RUNTIME VERIFIED cannot apply. LIVE VERIFIED applies only when a public consumer copy must be independently verified.",
     notApplicableStages: Object.freeze(["RUNTIME VERIFIED"]),
   }),
+  "article-publication": Object.freeze({
+    id: "article-publication",
+    label: "Article Publication",
+    authority: "ADR-0014",
+    subjectType: "published writing article",
+    expectedPath: "SOURCE → CHECKED → MERGED → DEPLOYMENT OBSERVED → DEPLOYED → LIVE VERIFIED",
+    expectedSummary: "Article publication follows atlas-article-gen → atlas-scheduler → atlas-systems. AUTHORED maps to SOURCE, VALIDATED maps to CHECKED, and SCHEDULED maps to MERGED of the scheduler-queue identity, not merge onto live writing pages. SCHEDULER EXECUTED maps to DEPLOYMENT OBSERVED. The expected writing identity on atlas-systems maps to DEPLOYED. RUNTIME VERIFIED is NOT APPLICABLE for static published writing, not missing evidence. Scheduler execution is not live verification.",
+    notApplicableStages: Object.freeze(["RUNTIME VERIFIED"]),
+  }),
   "unknown-subject": Object.freeze({
     id: "unknown-subject",
     label: "Unknown subject",

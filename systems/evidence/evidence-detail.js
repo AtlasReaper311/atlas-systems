@@ -66,14 +66,17 @@ export function parseEvidenceClaim(locationLike = {}, allowed = [], fallback = n
   return names.includes(fallback) ? fallback : (fallback ?? null);
 }
 
-export function evidenceClaimHref(view, claim, pathname = "/systems/evidence/") {
+export function evidenceClaimHref(view, claim, pathname = "/systems/evidence/", extras = {}) {
   const hash = claim ? claimElementId(claim, view) : `view-${view}`;
-  return `${pathname}?view=${view}${claim ? `&claim=${encodeURIComponent(claim)}` : ""}#${hash}`;
+  const subject = extras?.subject ? String(extras.subject) : "";
+  const subjectQuery = subject ? `&subject=${encodeURIComponent(subject)}` : "";
+  return `${pathname}?view=${view}${claim ? `&claim=${encodeURIComponent(claim)}` : ""}${subjectQuery}#${hash}`;
 }
 
-export function syncEvidenceClaimUrl(view, claim, historyImpl, locationLike) {
+export function syncEvidenceClaimUrl(view, claim, historyImpl, locationLike, extras = {}) {
+  const subject = extras && typeof extras === "object" ? extras.subject : undefined;
   if (!historyImpl || typeof historyImpl.pushState !== "function") {
-    return evidenceClaimHref(view, claim);
+    return evidenceClaimHref(view, claim, "/systems/evidence/", { subject });
   }
   const loc = locationLike ?? (typeof window === "undefined"
     ? { pathname: "/systems/evidence/", search: "", hash: "" }
@@ -85,10 +88,18 @@ export function syncEvidenceClaimUrl(view, claim, historyImpl, locationLike) {
   url.searchParams.set("view", view);
   if (claim) url.searchParams.set("claim", claim);
   else url.searchParams.delete("claim");
+  if (subject) url.searchParams.set("subject", String(subject));
+  else if (subject === null) url.searchParams.delete("subject");
   url.hash = claim ? claimElementId(claim, view) : `view-${view}`;
   const next = `${url.pathname}${url.search}${url.hash}`;
   const current = `${loc.pathname || ""}${loc.search || ""}${loc.hash || ""}`;
-  if (next !== current) historyImpl.pushState({ evidenceView: view, evidenceClaim: claim }, "", next);
+  if (next !== current) {
+    historyImpl.pushState({
+      evidenceView: view,
+      evidenceClaim: claim,
+      evidenceSubject: subject ?? null,
+    }, "", next);
+  }
   return next;
 }
 
