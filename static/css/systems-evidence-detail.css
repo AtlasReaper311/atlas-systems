@@ -306,6 +306,8 @@
 
 .systems-evidence-receipt-assertion {
   margin: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   color: var(--text);
   font-size: 15px;
   line-height: 1.5;
@@ -398,6 +400,8 @@
 
 .systems-evidence-proof p {
   margin: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   color: var(--text);
   font-size: 14px;
   line-height: 1.55;
@@ -554,7 +558,11 @@
 .systems-detail-page[data-systems-detail="evidence"] .systems-evidence-inspect,
 .systems-detail-page[data-systems-detail="evidence"] .systems-evidence-service-map,
 .systems-detail-page[data-systems-detail="evidence"] .systems-evidence-profile-overview,
-.systems-detail-page[data-systems-detail="evidence"] .systems-evidence-proof-pair {
+.systems-detail-page[data-systems-detail="evidence"] .systems-evidence-proof-pair,
+.systems-detail-page[data-systems-detail="evidence"] .systems-evidence-proof,
+.systems-detail-page[data-systems-detail="evidence"] .systems-evidence-receipt,
+.systems-detail-page[data-systems-detail="evidence"] .systems-evidence-receipt-assertion,
+.systems-detail-page[data-systems-detail="evidence"] .systems-evidence-receipt-gap-value {
   min-width: 0;
   max-width: 100%;
 }

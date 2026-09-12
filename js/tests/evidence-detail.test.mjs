@@ -361,6 +361,8 @@ test("Evidence Console registers the reusable detail surface without secrets", (
   assert.match(css, /scroll-padding-top/);
   assert.match(css, /systems-evidence-proof-pair/);
   assert.match(css, /systems-evidence-chain-mark/);
+  assert.match(css, /\.systems-evidence-proof p \{[\s\S]*overflow-wrap: anywhere/);
+  assert.match(css, /\.systems-evidence-receipt-assertion \{[\s\S]*overflow-wrap: anywhere/);
   assert.doesNotMatch(detail, /innerHTML\s*=/);
   assert.doesNotMatch(detail, /Authorization|Bearer|secret|token/i);
 });
