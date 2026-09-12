@@ -196,7 +196,7 @@ test("Profile identity names the subject without inventing a later stage", () =>
   assert.equal(LIFECYCLE_PROFILE_PRESENTATION["runtime-worker"].label, "Runtime Worker");
 });
 
-test("Evidence Console presents 2.3a, 2.3b and 2.3c specimens without a new top-level tab", () => {
+test("Evidence Console presents 2.3a, 2.3b, 2.3c and 2.3d closure without a new top-level tab", () => {
   const page = read("systems/evidence/index.html");
   const profile = read("systems/evidence/lifecycle-profile.js");
   const change = read("systems/evidence/change-view.js");
@@ -222,6 +222,8 @@ test("Evidence Console presents 2.3a, 2.3b and 2.3c specimens without a new top-
   assert.match(page, /id="service-expected-path"/);
   assert.match(page, /id="estate-expected-path"/);
   assert.match(page, /id="estate-library-fallback"/);
+  assert.match(page, /id="estate-archetypes"/);
+  assert.match(page, /href="#change-article-fallback"/);
   assert.match(change, /renderProfileIdentity/);
   assert.match(service, /renderExpectedPath/);
   assert.match(estate, /renderSelectedProfile/);

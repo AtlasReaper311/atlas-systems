@@ -95,6 +95,7 @@
         <dl>
           <div><dt>Reads</dt><dd>One recorded public-safe change chain, a recorded Article Publication specimen for W-08, one runtime Service View for a named Worker, a public topology Estate overview with a recorded Library / Toolkit specimen for atlas-interface-kit, plus public activity, raw availability, deployment, pipeline event, and assurance-report records.</dd></div>
           <div><dt>Separates</dt><dd>ADR-0013 delivery stages, ADR-0014 profile applicability, classification lifecycle, observation result, claim, runtime state, evidence mode, supporting record, observation time, source time, and freshness. Classification is not delivery.</dd></div>
+          <div><dt>Phase 2.3 archetypes</dt><dd>Static / Public Site, Runtime Worker, Library / Toolkit, and Article Publication share one ADR-0013 vocabulary. Domain labels are explanatory mappings, not a second lifecycle. Article Publication is inspectable in Change View because current public topology does not model published writing as an estate component. Model Promotion remains Phase 4 work.</dd></div>
           <div><dt>Freshness</dt><dd>Every source is judged independently. A merge is not a deployment. Runtime is not live. Topology is not an estate health badge. One fresh record cannot mask another stale, unknown, or unavailable source.</dd></div>
         </dl>
         <dl class="systems-evidence-glossary">
@@ -361,7 +362,14 @@
         </div>
         <p id="estate-view-status" class="focus-status-line" data-state="unknown" aria-live="polite">Public topology roster requires JavaScript. Missing evidence is not success and is not an estate health badge.</p>
       </div>
-      <p class="focus-note">This overview reads the current public topology projection from GET /v1/topology. Classification is not delivery. Selecting atlas-interface-kit shows a recorded Library / Toolkit release specimen. There is no public estate-wide delivery snapshot on this path.</p>
+      <p class="focus-note">This overview reads the current public topology projection from GET /v1/topology. Classification is not delivery. Selecting atlas-interface-kit shows a recorded Library / Toolkit release specimen. Article Publication is not a topology subject; inspect W-08 in Change View. There is no public estate-wide delivery snapshot on this path.</p>
+      <nav id="estate-archetypes" class="systems-evidence-profile-overview" aria-label="Phase 2.3 lifecycle archetypes">
+        <p>The Console supports four ADR-0014 archetypes. Topology profile filters count only current public topology subjects. Those counts are not a health score. Article Publication is not a topology subject.</p>
+        <p class="systems-evidence-profile-card" data-archetype="static-public-site"><span>Static / Public Site</span><strong>Topology subjects plus Change View #256</strong><span class="systems-change-scope">RUNTIME VERIFIED is NOT APPLICABLE. Missing later stages stay UNKNOWN / NOT OBSERVED.</span></p>
+        <p class="systems-evidence-profile-card" data-archetype="runtime-worker"><span>Runtime Worker</span><strong>Topology subjects plus Service View</strong><span class="systems-change-scope">All seven ADR-0013 stages apply. Runtime never fills a missing deployment identity.</span></p>
+        <p class="systems-evidence-profile-card" data-archetype="library-toolkit"><span>Library / Toolkit</span><strong>Topology subjects plus recorded kit specimen</strong><span class="systems-change-scope">Without a release contract, DEPLOYMENT OBSERVED and DEPLOYED are NOT APPLICABLE.</span></p>
+        <a class="systems-evidence-profile-card" data-archetype="article-publication" href="#change-article-fallback"><span>Article Publication</span><strong>Inspect W-08 in Change View</strong><span class="systems-change-scope">Not a public topology component. No estate-wide publication projection is invented here. RUNTIME VERIFIED is NOT APPLICABLE.</span></a>
+      </nav>
       <div class="systems-change-workbench">
         <section class="systems-detail-panel systems-detail-panel--dominant systems-evidence-primary" aria-labelledby="estate-reading-title">
           <div class="focus-section-head">
@@ -381,7 +389,7 @@
           </nav>
           <details class="systems-evidence-disclosure">
             <summary>Estate evidence boundaries</summary>
-            <p>Atlas Infra remains classification authority. Topology lifecycle is not ADR-0013 delivery. Do not read the roster as a green fleet dashboard. Proof Chain remains the source/governance map and is not duplicated here. An honest delivery matrix is not published on this path, so this view does not invent one.</p>
+            <p>Atlas Infra remains classification authority. Topology lifecycle is not ADR-0013 delivery. Do not read the roster as a green fleet dashboard. Proof Chain remains the source/governance map and is not duplicated here. An honest delivery matrix is not published on this path, so this view does not invent one. Article Publication remains a Change View specimen because current topology does not model published writing as an estate component.</p>
             <ol id="estate-reading" class="systems-change-reading">
               <li>No compact estate reading rendered yet. Missing later evidence remains UNKNOWN / NOT OBSERVED.</li>
             </ol>
@@ -589,7 +597,7 @@
   <script type="module" src="/systems/evidence/evidence-views.js?v=20260911-visual"></script>
   <script type="module" src="/systems/evidence/change-view.js?v=20260912-article-subject"></script>
   <script type="module" src="/systems/evidence/service-view.js?v=20260912-profile"></script>
-  <script type="module" src="/systems/evidence/estate-view.js?v=20260912-roster-focus"></script>
+  <script type="module" src="/systems/evidence/estate-view.js?v=20260912-phase23d"></script>
   <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
     <div class="mobile-nav-inner atlas-mobile-nav__inner">
       <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>
