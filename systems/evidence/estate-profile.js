@@ -1,6 +1,7 @@
+import { ARTICLE_SPECIMEN_SUBJECT_ID } from "./article-profile.js";
 import { DELIVERY_STAGES, RESULT, STATIC_PUBLIC_SITE_PROFILE } from "./change-chain.js";
 import { attachLibrarySpecimen } from "./library-profile.js";
-import { lifecycleProfileLabel } from "./lifecycle-profile.js";
+import { lifecycleProfileLabel, presentLifecycleProfile } from "./lifecycle-profile.js";
 import { RUNTIME_WORKER_PROFILE } from "./service-profile.js";
 
 export const ESTATE_TOPOLOGY_URL = "https://api.atlas-systems.uk/v1/topology";
@@ -52,6 +53,66 @@ export const ESTATE_PROFILE_LABELS = Object.freeze({
   "documentation-policy": lifecycleProfileLabel("documentation-policy"),
   "unknown-subject": lifecycleProfileLabel("unknown-subject"),
 });
+
+export const PHASE_23_ARCHETYPE_IDS = Object.freeze([
+  "static-public-site",
+  "runtime-worker",
+  "library-toolkit",
+  "article-publication",
+]);
+
+export function articlePublicationEstateBoundary() {
+  return Object.freeze({
+    profileId: "article-publication",
+    topologySubject: false,
+    inspectView: "change",
+    inspectSubject: ARTICLE_SPECIMEN_SUBJECT_ID,
+    inspectClaim: "DEPLOYED",
+    reason: "Current public topology and classification contracts do not model published writing as a repository-level estate component. An estate-wide publication projection is a separate authority decision and is not created here.",
+  });
+}
+
+export function phase23Archetypes(subjects = []) {
+  const groups = estateProfileGroups(subjects);
+  const counts = new Map(groups.map((group) => [group.id, group.count]));
+  const article = articlePublicationEstateBoundary();
+  return Object.freeze(PHASE_23_ARCHETYPE_IDS.map((id) => {
+    const presentation = presentLifecycleProfile(id);
+    if (id === article.profileId) {
+      return Object.freeze({
+        id,
+        label: presentation.label,
+        authority: presentation.authority,
+        topologySubject: false,
+        count: null,
+        inspectView: article.inspectView,
+        inspectSubject: article.inspectSubject,
+        inspectClaim: article.inspectClaim,
+        inspectLabel: "Inspect W-08 in Change View",
+        summary: article.reason,
+        runtimeStage: "NOT APPLICABLE",
+        expectedPath: presentation.expectedPath,
+      });
+    }
+    const count = counts.get(id) ?? 0;
+    return Object.freeze({
+      id,
+      label: presentation.label,
+      authority: presentation.authority,
+      topologySubject: true,
+      count,
+      inspectView: id === "runtime-worker" ? "service" : "estate",
+      inspectSubject: null,
+      inspectClaim: null,
+      inspectLabel: `${count} subject${count === 1 ? "" : "s"} in current topology`,
+      summary: presentation.expectedSummary,
+      runtimeStage: presentation.notApplicableStages.includes("RUNTIME VERIFIED")
+        ? "NOT APPLICABLE"
+        : "applicable",
+      expectedPath: presentation.expectedPath,
+    });
+  }));
+}
 
 export function estateProfileGroups(subjects = []) {
   const counts = new Map();

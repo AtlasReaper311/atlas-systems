@@ -4,12 +4,14 @@ import {
   estateProfileGroups,
   estateViewStatus,
   parseEvidenceView,
+  phase23Archetypes,
   projectEstateView,
   topologyRecordFromSettled,
 } from "./estate-profile.js";
 import {
   bindLadderKeyboard,
   claimElementId,
+  evidenceClaimHref,
   focusClaimControl,
   parseEvidenceClaim,
   projectEvidenceDetail,
@@ -149,6 +151,48 @@ function emptyRow(message) {
 function visibleSubjects(projection, profileId) {
   if (!profileId) return projection.subjects;
   return projection.subjects.filter((subject) => subject.profile.id === profileId);
+}
+
+function classificationNoteForSubject(subject) {
+  if (subject.specimen) {
+    return "Recorded public-safe release specimen. This subject ships as a GitHub Release artifact, not a runtime service. RELEASED event maps to DEPLOYMENT OBSERVED. RELEASED identity maps to DEPLOYED. Topology classification is not that recorded release chain.";
+  }
+  if (subject.profile.id === "library-toolkit") {
+    return "Public topology classification is not ADR-0013 delivery evidence. This Library / Toolkit subject has no established release contract, so DEPLOYMENT OBSERVED and DEPLOYED are NOT APPLICABLE. RUNTIME VERIFIED and LIVE VERIFIED cannot apply.";
+  }
+  if (subject.profile.id === "static-public-site") {
+    return "Public topology classification is not ADR-0013 delivery evidence. RUNTIME VERIFIED is NOT APPLICABLE for a static public site, not missing evidence. Applicable later stages stay UNKNOWN / NOT OBSERVED until a named public contract proves them.";
+  }
+  if (subject.profile.id === "runtime-worker") {
+    return "Public topology classification is not ADR-0013 delivery evidence. All seven ADR-0013 stages apply. Runtime or live evidence never fills a missing deployment identity.";
+  }
+  return "Public topology classification is not ADR-0013 delivery evidence. Applicable later stages stay UNKNOWN / NOT OBSERVED until a named public contract proves them.";
+}
+
+function renderArchetypeGuide(projection) {
+  const target = byId("estate-archetypes");
+  if (!target) return;
+  target.replaceChildren();
+  appendText(
+    target,
+    "p",
+    null,
+    "The Console supports four ADR-0014 archetypes. Topology filters below count only current public topology subjects. Those counts are not a health score. Article Publication is not a topology subject and is not invented as a repository-level estate component.",
+  );
+  for (const archetype of phase23Archetypes(projection.subjects)) {
+    const card = document.createElement(archetype.topologySubject ? "p" : "a");
+    card.className = "systems-evidence-profile-card";
+    card.dataset.archetype = archetype.id;
+    if (!archetype.topologySubject) {
+      card.href = evidenceClaimHref("change", archetype.inspectClaim, "/systems/evidence/", {
+        subject: archetype.inspectSubject,
+      });
+    }
+    appendText(card, "span", null, archetype.label);
+    appendText(card, "strong", null, archetype.inspectLabel);
+    appendText(card, "span", "systems-change-scope", archetype.summary);
+    target.appendChild(card);
+  }
 }
 
 function renderProfileOverview(projection, selectedProfile) {
@@ -314,11 +358,7 @@ function renderSelectedProfile(projection, selectedId) {
     subject: subject.repository ? `${subject.id} (${subject.repository})` : subject.id,
     profileId: subject.profile.id,
     releaseContract: Boolean(subject.specimen),
-    classificationNote: subject.specimen
-      ? "Recorded public-safe release specimen. This subject ships as a GitHub Release artifact, not a runtime service. RELEASED event maps to DEPLOYMENT OBSERVED. RELEASED identity maps to DEPLOYED. Topology classification is not that recorded release chain."
-      : subject.profile.id === "library-toolkit"
-        ? "Public topology classification is not ADR-0013 delivery evidence. This Library / Toolkit subject has no established release contract, so DEPLOYMENT OBSERVED and DEPLOYED are NOT APPLICABLE. RUNTIME VERIFIED and LIVE VERIFIED cannot apply."
-        : "Public topology classification is not ADR-0013 delivery evidence. Applicable later stages stay UNKNOWN / NOT OBSERVED until a named public contract proves them.",
+    classificationNote: classificationNoteForSubject(subject),
   }));
   if (subject.specimen) {
     renderSpecimenPath(byId("estate-expected-path"), subject, selectedSpecimenStage(subject));
@@ -408,7 +448,7 @@ function renderProvenance(projection) {
     note,
     "p",
     null,
-    "This Estate View reads the current public topology projection. Atlas Infra remains classification authority. Topology lifecycle is not ADR-0013 delivery, not deployment, not runtime, and not live verification. There is no public estate-wide delivery snapshot on this path. atlas-interface-kit carries a recorded Library / Toolkit release specimen when selected; that recorded chain is not a live feed and is not estate-wide delivery. Other Library / Toolkit subjects without an established release contract mark DEPLOYMENT OBSERVED and DEPLOYED as NOT APPLICABLE. Other subjects keep later applicable stages UNKNOWN / NOT OBSERVED unless a named public contract proves them. Investigate a named change in Change View or a named Worker in Service View.",
+    "This Estate View reads the current public topology projection. Atlas Infra remains classification authority. Topology lifecycle is not ADR-0013 delivery, not deployment, not runtime, and not live verification. There is no public estate-wide delivery snapshot on this path. The Console's four Phase 2.3 archetypes are Static / Public Site, Runtime Worker, Library / Toolkit, and Article Publication. atlas-interface-kit carries a recorded Library / Toolkit release specimen when selected; that recorded chain is not a live feed and is not estate-wide delivery. Other Library / Toolkit subjects without an established release contract mark DEPLOYMENT OBSERVED and DEPLOYED as NOT APPLICABLE. Article Publication is not a public topology component; inspect the recorded W-08 specimen in Change View. Do not treat a missing article row as UNKNOWN fleet health. Other subjects keep later applicable stages UNKNOWN / NOT OBSERVED unless a named public contract proves them. Investigate a named change in Change View or a named Worker in Service View.",
   );
   const from = document.createElement("ul");
   from.className = "systems-change-sources systems-estate-sources";
@@ -542,6 +582,7 @@ export function renderEstateView(record, options = {}) {
   hideLibraryFallback();
   renderReading(projection.reading);
   renderSummary(projection);
+  renderArchetypeGuide(projection);
   const requested = options.claim
     ?? parseEvidenceClaim(
       options.location ?? (typeof window !== "undefined" ? window.location : {}),

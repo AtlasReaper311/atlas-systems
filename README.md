@@ -119,6 +119,14 @@ Quick verification after changes:
 3. Click "ask ramone about this" and confirm `/lab/#ramone-card`
    pre-fills the composer without submitting.
 
+## Evidence Console
+
+`/systems/evidence/` is the public Change / Service / Estate console. It projects ADR-0013 delivery stages and ADR-0014 profile applicability for four Phase 2.3 archetypes: Static / Public Site, Runtime Worker, Library / Toolkit, and Article Publication.
+
+The Console does not invent estate-wide delivery, fleet health, or live-production state. Article Publication is inspectable in Change View because current public topology does not model published writing as an estate component.
+
+Architecture, profile mappings, and public-safe projection boundaries live in [`docs/EVIDENCE-CONSOLE.md`](docs/EVIDENCE-CONSOLE.md). Accepted lifecycle authority remains in `atlas-infra` [ADR-0013](https://github.com/AtlasReaper311/atlas-infra/blob/main/docs/adrs/ADR-0013-estate-wide-evidence-lifecycle.md) and [ADR-0014](https://github.com/AtlasReaper311/atlas-infra/blob/main/docs/adrs/ADR-0014-evidence-lifecycle-profiles.md).
+
 ## How it fits into Atlas Systems
 
 This repo is the public surface of the estate. [`github-pulse`](https://github.com/AtlasReaper311/github-pulse), [`site-pulse`](https://github.com/AtlasReaper311/site-pulse), [`deploy-watch`](https://github.com/AtlasReaper311/deploy-watch), [`atlas-api-public`](https://github.com/AtlasReaper311/atlas-api-public), and [`atlas-corpus`](https://github.com/AtlasReaper311/atlas-corpus) all feed it; [`atlas-infra`](https://github.com/AtlasReaper311/atlas-infra) defines the deployment shape it runs through.
