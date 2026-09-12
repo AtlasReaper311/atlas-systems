@@ -1,4 +1,5 @@
 import { DELIVERY_STAGES, RESULT, STATIC_PUBLIC_SITE_PROFILE } from "./change-chain.js";
+import { attachLibrarySpecimen } from "./library-profile.js";
 import { lifecycleProfileLabel } from "./lifecycle-profile.js";
 import { RUNTIME_WORKER_PROFILE } from "./service-profile.js";
 
@@ -14,7 +15,12 @@ export const LIBRARY_TOOLKIT_PROFILE = Object.freeze({
   id: "library-toolkit",
   authority: "ADR-0014",
   subjectType: "non-runtime library, kit, or template",
-  notApplicableStages: Object.freeze(["RUNTIME VERIFIED", "LIVE VERIFIED"]),
+  notApplicableStages: Object.freeze([
+    "DEPLOYMENT OBSERVED",
+    "DEPLOYED",
+    "RUNTIME VERIFIED",
+    "LIVE VERIFIED",
+  ]),
 });
 
 export const DOCUMENTATION_POLICY_PROFILE = Object.freeze({
@@ -170,6 +176,10 @@ export function chooseEstateProfile(component) {
   });
 }
 
+function libraryHasReleaseContract(component) {
+  return component?.releaseContract === true;
+}
+
 function notApplicableStages(profile, component) {
   const stages = new Set(profile.notApplicableStages ?? []);
   if (profile.id === "documentation-policy" && !publicHttpsSurface(component?.public_surface)) {
@@ -178,16 +188,23 @@ function notApplicableStages(profile, component) {
   if (profile.id === "library-toolkit") {
     stages.add("RUNTIME VERIFIED");
     stages.add("LIVE VERIFIED");
+    if (libraryHasReleaseContract(component)) {
+      stages.delete("DEPLOYMENT OBSERVED");
+      stages.delete("DEPLOYED");
+    } else {
+      stages.add("DEPLOYMENT OBSERVED");
+      stages.add("DEPLOYED");
+    }
   }
   return DELIVERY_STAGES.filter((stage) => stages.has(stage));
 }
 
 function missingDeliveryGap(stage, profile) {
   if (stage === "DEPLOYMENT OBSERVED" && profile.id === "library-toolkit") {
-    return "No public release-event contract was observed for this subject. Topology membership is not a release. If no release contract exists, a later authorised profile decision may mark this stage NOT APPLICABLE rather than infer success.";
+    return "A release contract exists for this subject, but no public release-event was observed. Topology membership is not a release. Missing release-event evidence remains UNKNOWN / NOT OBSERVED.";
   }
   if (stage === "DEPLOYED" && profile.id === "library-toolkit") {
-    return "No public released-identity contract was observed. A declared repository or toolkit listing is not DEPLOYED.";
+    return "A release contract exists for this subject, but no public released-identity was observed. A declared repository or toolkit listing is not DEPLOYED. Missing release-identity evidence remains UNKNOWN / NOT OBSERVED.";
   }
   if ((stage === "DEPLOYMENT OBSERVED" || stage === "DEPLOYED") && profile.id === "documentation-policy") {
     return "No public PUBLISHED/PROJECTED event contract was observed for this subject. Merged documentation is MERGED only when a named change proves it. Topology classification is not that stage.";
@@ -264,7 +281,7 @@ export function projectEstateSubject(component, context = {}, nowMs = Date.now()
   const proven = latestProvenStage(stages);
   const nextMissing = nextApplicableMissing(stages);
   const repoName = repositoryName(record);
-  return Object.freeze({
+  const projected = Object.freeze({
     id: record.id ? String(record.id) : "unknown-subject",
     repository: repoName ? `AtlasReaper311/${repoName}` : null,
     repositoryUrl: typeof record.repo === "string" ? record.repo : null,
@@ -285,9 +302,11 @@ export function projectEstateSubject(component, context = {}, nowMs = Date.now()
     latestProvenResult: proven?.result ?? RESULT.UNKNOWN_NOT_OBSERVED,
     nextApplicableMissing: nextMissing?.stage ?? null,
     notApplicableStages: Object.freeze(notApplicableStages(profile, record)),
+    releaseContract: profile.id === "library-toolkit" && libraryHasReleaseContract(record),
     observedAt: generatedAt,
     sourceUrl: context.sourceUrl ?? ESTATE_TOPOLOGY_URL,
   });
+  return attachLibrarySpecimen(projected);
 }
 
 function extraGaps() {

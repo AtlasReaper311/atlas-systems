@@ -282,6 +282,8 @@ test("Correction modules keep public rendering bounded and secret-free", () => {
     "systems/evidence/evidence-views.js",
     "systems/evidence/evidence-detail.js",
     "systems/evidence/lifecycle-profile.js",
+    "systems/evidence/library-profile.js",
+    "systems/evidence/library-specimen.js",
     "systems/evidence/public-safe-href.js",
   ]) {
     const source = read(path);

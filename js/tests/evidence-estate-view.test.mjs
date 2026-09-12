@@ -143,12 +143,16 @@ test("Topology classification cannot become deployment, runtime, or live evidenc
 
 test("Library and documentation profiles keep runtime and live distinct from unknown", () => {
   const projection = projectEstateView(topology(), NOW);
-  const kit = stageMap(subjectMap(projection)["atlas-interface-kit"]);
+  const kitSubject = subjectMap(projection)["atlas-interface-kit"];
+  const kit = stageMap(kitSubject);
   const infra = stageMap(subjectMap(projection)["atlas-infra"]);
   assert.equal(kit["RUNTIME VERIFIED"].result, RESULT.NOT_APPLICABLE);
   assert.equal(kit["LIVE VERIFIED"].result, RESULT.NOT_APPLICABLE);
-  assert.equal(kit["DEPLOYMENT OBSERVED"].result, RESULT.UNKNOWN_NOT_OBSERVED);
-  assert.match(kit["DEPLOYMENT OBSERVED"].gap, /release-event/);
+  assert.equal(kit["DEPLOYMENT OBSERVED"].result, RESULT.OBSERVED);
+  assert.equal(kit.DEPLOYED.result, RESULT.OBSERVED);
+  assert.equal(kitSubject.latestProvenStage, "DEPLOYED");
+  assert.equal(kitSubject.nextApplicableMissing, "Later default-branch identity");
+  assert.deepEqual(kitSubject.notApplicableStages, ["RUNTIME VERIFIED", "LIVE VERIFIED"]);
   assert.equal(infra["RUNTIME VERIFIED"].result, RESULT.NOT_APPLICABLE);
   assert.equal(infra["LIVE VERIFIED"].result, RESULT.NOT_APPLICABLE);
   assert.equal(infra.SOURCE.result, RESULT.UNKNOWN_NOT_OBSERVED);
@@ -393,7 +397,7 @@ test("Evidence Console keeps Change and Service Views and adds Estate navigation
   }
   assert.match(page, /systems\/evidence\/change-view\.js\?v=20260912-profile/);
   assert.match(page, /systems\/evidence\/service-view\.js\?v=20260912-profile/);
-  assert.match(page, /systems\/evidence\/estate-view\.js\?v=20260912-profile/);
+  assert.match(page, /systems\/evidence\/estate-view\.js\?v=20260912-roster-focus/);
   assert.match(page, /systems\/evidence\/evidence-views\.js\?v=20260911-visual/);
   assert.match(page, /systems-evidence-estate-view\.css\?v=20260911-visual/);
   assert.match(css, /\[aria-selected="true"\] span/);
@@ -430,4 +434,195 @@ test("projectEstateSubject keeps ADR-0013 stage order", () => {
   }, { generatedAt: "2026-09-11T16:00:00Z" }, NOW);
   assert.deepEqual(subject.stages.map((stage) => stage.stage), [...DELIVERY_STAGES]);
   assert.equal(subject.profile.id, "runtime-worker");
+});
+
+function matchSelector(node, selector) {
+  if (!node || !selector) return false;
+  return String(selector).split(",").map((part) => part.trim()).filter(Boolean).some((part) => {
+    let rest = part;
+    if (rest.startsWith(".")) {
+      const cls = rest.slice(1).split("[")[0];
+      if (!String(node.className ?? "").split(/\s+/).includes(cls)) return false;
+      rest = rest.slice(cls.length + 1);
+    } else {
+      const tagMatch = rest.match(/^[a-zA-Z][\w-]*/);
+      if (tagMatch && !rest.startsWith("[")) {
+        if (String(node.tagName ?? "").toUpperCase() !== tagMatch[0].toUpperCase()) return false;
+        rest = rest.slice(tagMatch[0].length);
+      }
+    }
+    if (!rest) return true;
+    const attr = rest.match(/^\[([^\]]+)\]$/);
+    if (!attr) return false;
+    const [rawKey, rawValue] = attr[1].split("=");
+    const value = rawValue ? rawValue.replace(/^["']|["']$/g, "") : null;
+    if (rawKey === "data-claim") return Boolean(node.dataset?.claim) && (value === null || node.dataset.claim === value);
+    if (rawKey === "data-profile") return "profile" in (node.dataset ?? {});
+    if (rawKey === "data-selected") return String(node.dataset?.selected) === value;
+    if (rawKey === "tabindex") return node.tabIndex !== undefined && node.tabIndex !== null;
+    if (rawKey === "href") return Boolean(node.href);
+    return false;
+  });
+}
+
+function collectDescendants(node, found = []) {
+  for (const child of node.children ?? []) {
+    found.push(child);
+    collectDescendants(child, found);
+  }
+  return found;
+}
+
+function createInteractiveNode(tag) {
+  const children = [];
+  const listeners = new Map();
+  const node = {
+    tagName: String(tag).toUpperCase(),
+    className: "",
+    id: "",
+    href: "",
+    hidden: false,
+    tabIndex: -1,
+    dataset: {},
+    attributes: {},
+    children,
+    childNodes: children,
+    parentNode: null,
+    textContent: "",
+    addEventListener(type, handler) {
+      const list = listeners.get(type) ?? [];
+      list.push(handler);
+      listeners.set(type, list);
+    },
+    dispatchEvent(event) {
+      const list = listeners.get(event.type) ?? [];
+      for (const handler of list) handler(event);
+      return true;
+    },
+    setAttribute(name, value) { this.attributes[name] = String(value); },
+    getAttribute(name) { return this.attributes[name]; },
+    removeAttribute(name) { delete this.attributes[name]; },
+    appendChild(child) {
+      child.parentNode = this;
+      children.push(child);
+      return child;
+    },
+    append(...next) {
+      for (const child of next) this.appendChild(child);
+    },
+    replaceChildren(...next) {
+      for (const child of children) child.parentNode = null;
+      children.length = 0;
+      for (const child of next) this.appendChild(child);
+    },
+    contains(other) {
+      if (other === this) return true;
+      return collectDescendants(this).includes(other);
+    },
+    closest(selector) {
+      let current = this;
+      while (current) {
+        if (matchSelector(current, selector)) return current;
+        current = current.parentNode;
+      }
+      return null;
+    },
+    matches(selector) {
+      return matchSelector(this, selector);
+    },
+    querySelector(selector) {
+      return collectDescendants(this).find((child) => matchSelector(child, selector)) ?? null;
+    },
+    querySelectorAll(selector) {
+      return collectDescendants(this).filter((child) => matchSelector(child, selector));
+    },
+    focus() {
+      document.activeElement = this;
+    },
+  };
+  return node;
+}
+
+test("Estate roster click and arrows keep focus on the roster through the kit specimen", async () => {
+  const nodes = new Map();
+  for (const id of [
+    "estate-rows",
+    "estate-profiles",
+    "estate-expected-path",
+    "estate-detail",
+    "estate-subject-profile",
+    "estate-secondary",
+    "estate-reading",
+    "estate-summary",
+    "estate-provenance",
+    "estate-view-status",
+    "source-estate-view",
+    "estate-library-fallback",
+  ]) {
+    const tag = id === "estate-rows" ? "tbody" : (id === "estate-expected-path" ? "ol" : "div");
+    nodes.set(id, createInteractiveNode(tag));
+  }
+  const previousDocument = globalThis.document;
+  const previousWindow = globalThis.window;
+  const previousActive = { value: null };
+  globalThis.document = {
+    activeElement: null,
+    getElementById(id) {
+      return nodes.get(id) ?? null;
+    },
+    createElement: createInteractiveNode,
+  };
+  Object.defineProperty(globalThis.document, "activeElement", {
+    configurable: true,
+    get() { return previousActive.value; },
+    set(value) { previousActive.value = value; },
+  });
+  try {
+    const { renderEstateView } = await import("../../systems/evidence/estate-view.js");
+    renderEstateView(topology());
+    const body = nodes.get("estate-rows");
+    const path = nodes.get("estate-expected-path");
+    const rowById = (id) => body.querySelectorAll("tr[data-claim]").find((row) => row.dataset.claim === id);
+    assert.ok(rowById("atlas-interface-kit"), "kit roster row");
+
+    body.dispatchEvent({ type: "click", target: rowById("atlas-interface-kit") });
+    assert.equal(document.activeElement?.dataset?.claim, "atlas-interface-kit");
+    assert.equal(document.activeElement?.tagName, "TR");
+    assert.equal(path.contains(document.activeElement), false);
+
+    const sourceButton = path.querySelectorAll("button[data-claim]").find((button) => button.dataset.claim === "SOURCE");
+    assert.ok(sourceButton, "specimen SOURCE control");
+    path.dispatchEvent({ type: "click", target: sourceButton });
+    assert.equal(document.activeElement?.dataset?.claim, "SOURCE");
+    assert.equal(path.contains(document.activeElement), true);
+    assert.equal(body.contains(document.activeElement), false);
+
+    const apiRow = rowById("atlas-api-public");
+    apiRow.focus();
+    body.dispatchEvent({
+      type: "keydown",
+      key: "ArrowDown",
+      target: apiRow,
+      preventDefault() {},
+    });
+    assert.equal(document.activeElement?.dataset?.claim, "atlas-interface-kit");
+    assert.equal(document.activeElement?.tagName, "TR");
+    assert.equal(path.contains(document.activeElement), false);
+
+    const selectedKit = body.querySelector('tr[data-selected="true"]');
+    selectedKit.focus();
+    body.dispatchEvent({
+      type: "keydown",
+      key: "ArrowDown",
+      target: selectedKit,
+      preventDefault() {},
+    });
+    assert.equal(document.activeElement?.dataset?.claim, "atlas-infra");
+    assert.equal(document.activeElement?.tagName, "TR");
+  } finally {
+    if (previousDocument === undefined) delete globalThis.document;
+    else globalThis.document = previousDocument;
+    if (previousWindow === undefined) delete globalThis.window;
+    else globalThis.window = previousWindow;
+  }
 });
