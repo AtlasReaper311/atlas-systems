@@ -36,9 +36,9 @@
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
   <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h-fixes">
   <link rel="stylesheet" href="/static/css/systems-detail-surfaces.css?v=20260811-heatmap-compact">
-  <link rel="stylesheet" href="/static/css/systems-evidence-truthfulness.css?v=20260911-visual">
+  <link rel="stylesheet" href="/static/css/systems-evidence-truthfulness.css?v=20260912-profile">
   <link rel="stylesheet" href="/static/css/systems-evidence-estate-view.css?v=20260911-visual">
-  <link rel="stylesheet" href="/static/css/systems-evidence-detail.css?v=20260911-visual">
+  <link rel="stylesheet" href="/static/css/systems-evidence-detail.css?v=20260912-profile">
 <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
 <link rel="stylesheet" href="/static/css/secondary-surface-fields.css?v=20260807-hero-contrast">
 </head>
@@ -118,6 +118,14 @@
         <p id="change-view-status" class="focus-status-line" data-state="unknown" aria-live="polite">Recorded change-chain projection requires JavaScript. Missing evidence is not success.</p>
       </div>
       <p class="focus-note">Specimen: public atlas-systems#256, the production-smoke ordering repair from issue #253. This is a recorded public GitHub projection, not a live feed. Proof Chain remains the source/governance map and is not duplicated here.</p>
+      <section id="change-profile" class="systems-evidence-profile-identity" data-profile="static-public-site" aria-label="Selected change subject">
+        <p class="systems-detail-kicker">Selected subject</p>
+        <p class="systems-evidence-subject-name">AtlasReaper311/atlas-systems#256</p>
+        <p class="systems-evidence-profile-label" data-profile="static-public-site">Static / Public Site</p>
+        <p class="systems-evidence-profile-authority">ADR-0014 · Cloudflare Pages static public surface</p>
+        <p class="systems-evidence-profile-path">Expected path: SOURCE → CHECKED → MERGED → DEPLOYMENT OBSERVED → DEPLOYED → LIVE VERIFIED</p>
+        <p class="systems-evidence-profile-summary">Static Pages have no Worker runtime probe. RUNTIME VERIFIED is NOT APPLICABLE, not missing evidence.</p>
+      </section>
       <div class="systems-change-workbench">
         <section class="systems-detail-panel systems-detail-panel--dominant systems-evidence-primary" aria-labelledby="change-reading-title">
           <div class="focus-section-head">
@@ -225,6 +233,14 @@
         <p id="service-view-status" class="focus-status-line" data-state="unknown" aria-live="polite">Live public projection for atlas-api-public requires JavaScript. Missing evidence is not success.</p>
       </div>
       <p class="focus-note">Specimen: public runtime Worker atlas-api-public, ADR-0014 runtime-worker profile.</p>
+      <section id="service-profile" class="systems-evidence-profile-identity" data-profile="runtime-worker" aria-label="Selected service subject">
+        <p class="systems-detail-kicker">Selected subject</p>
+        <p class="systems-evidence-subject-name">atlas-api-public</p>
+        <p class="systems-evidence-profile-label" data-profile="runtime-worker">Runtime Worker</p>
+        <p class="systems-evidence-profile-authority">ADR-0014 · Cloudflare Worker runtime service</p>
+        <p class="systems-evidence-profile-path">Expected path: SOURCE → CHECKED → MERGED → DEPLOYMENT OBSERVED → DEPLOYED → RUNTIME VERIFIED → LIVE VERIFIED</p>
+        <p class="systems-evidence-profile-summary">All seven ADR-0013 stages apply. Runtime or live evidence never fills a missing deployment identity.</p>
+      </section>
       <div class="systems-change-workbench">
         <section class="systems-detail-panel systems-detail-panel--dominant systems-evidence-primary" aria-labelledby="service-reading-title">
           <div class="focus-section-head">
@@ -239,6 +255,9 @@
             <article class="focus-metric systems-evidence-answer-card"><span>Next gap</span><strong>UNKNOWN / NOT OBSERVED until public contracts are read</strong></article>
             <article class="focus-metric systems-evidence-answer-card"><span>Evidence</span><strong>Live public projection</strong></article>
           </div>
+          <ol id="service-expected-path" class="systems-change-chain systems-evidence-ladder systems-evidence-chain systems-evidence-expected-path">
+            <li>Expected ADR-0013 path requires JavaScript. All seven stages remain applicable. Missing later facts stay UNKNOWN / NOT OBSERVED.</li>
+          </ol>
           <div id="service-map" class="systems-evidence-service-map">
             <p>Service evidence map requires JavaScript. Missing later facts remain UNKNOWN / NOT OBSERVED.</p>
           </div>
@@ -335,6 +354,15 @@
               </tbody>
             </table>
           </section>
+          <section id="estate-subject-profile" class="systems-evidence-profile-identity" aria-label="Selected estate subject">
+            <p class="systems-detail-kicker">Selected subject</p>
+            <p class="systems-evidence-subject-name">Select a subject</p>
+            <p class="systems-evidence-profile-label">ADR-0014 profile</p>
+            <p class="systems-evidence-profile-summary">Select a subject to see its exact ADR-0014 profile and expected evidence path. Classification is not delivery.</p>
+          </section>
+          <ol id="estate-expected-path" class="systems-change-chain systems-evidence-ladder systems-evidence-chain systems-evidence-expected-path">
+            <li>Expected path requires JavaScript. Topology classification is not a delivery chain.</li>
+          </ol>
           <section id="estate-detail" class="systems-evidence-detail-panel" aria-labelledby="estate-detail-title">
             <p class="systems-detail-kicker">Evidence Detail</p>
             <h3 id="estate-detail-title">Inspect one estate subject</h3>
@@ -447,9 +475,9 @@
   <script type="module" src="/systems/evidence/evidence.js?v=20260811-pipeline-cap"></script>
   <script type="module" src="/systems/evidence/receipts.js?v=20260810-evidence-truthfulness"></script>
   <script type="module" src="/systems/evidence/evidence-views.js?v=20260911-visual"></script>
-  <script type="module" src="/systems/evidence/change-view.js?v=20260911-visual"></script>
-  <script type="module" src="/systems/evidence/service-view.js?v=20260911-visual"></script>
-  <script type="module" src="/systems/evidence/estate-view.js?v=20260911-visual"></script>
+  <script type="module" src="/systems/evidence/change-view.js?v=20260912-profile"></script>
+  <script type="module" src="/systems/evidence/service-view.js?v=20260912-profile"></script>
+  <script type="module" src="/systems/evidence/estate-view.js?v=20260912-profile"></script>
   <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
     <div class="mobile-nav-inner atlas-mobile-nav__inner">
       <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>

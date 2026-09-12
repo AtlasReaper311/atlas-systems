@@ -15,7 +15,10 @@ import {
   projectEvidenceDetail,
   renderAnswerFirst,
   renderEvidenceDetail,
+  renderExpectedPath,
+  renderProfileIdentity,
 } from "./evidence-detail.js";
+import { projectProfileIdentity } from "./lifecycle-profile.js";
 import { isPublicSafeHref } from "./public-safe-href.js";
 
 const FETCH_TIMEOUT_MS = 6000;
@@ -124,7 +127,7 @@ function renderSubjectRow(subject, selected) {
   }
   row.append(
     subjectCell(subject),
-    cell(subject.profile.id, "Profile"),
+    cell(subject.profile.label ?? subject.profile.id, "Profile"),
     cell(subject.latestProvenStage ?? "UNKNOWN / NOT OBSERVED", "Latest proven"),
     cell(resultLabel(subject.latestProvenResult), "Result"),
     cell(subject.nextApplicableMissing ?? "none remaining", "Next gap"),
@@ -259,6 +262,25 @@ export function detailForEstateSubject(projection, subjectId) {
   });
 }
 
+function renderSelectedProfile(projection, selectedId) {
+  const subject = projection.subjects.find((item) => item.id === selectedId) ?? projection.subjects[0];
+  if (!subject) {
+    renderProfileIdentity(byId("estate-subject-profile"), projectProfileIdentity({
+      subject: "Estate roster",
+      profileId: "unknown-subject",
+      classificationNote: "No usable public topology subject is selected. Classification is not delivery.",
+    }));
+    renderExpectedPath(byId("estate-expected-path"), []);
+    return;
+  }
+  renderProfileIdentity(byId("estate-subject-profile"), projectProfileIdentity({
+    subject: subject.repository ? `${subject.id} (${subject.repository})` : subject.id,
+    profileId: subject.profile.id,
+    classificationNote: "Public topology classification is not ADR-0013 delivery evidence. Applicable later stages stay UNKNOWN / NOT OBSERVED until a named public contract proves them.",
+  }));
+  renderExpectedPath(byId("estate-expected-path"), subject.stages);
+}
+
 function renderSecondary(projection, selectedId) {
   const node = byId("estate-secondary");
   if (!node) return;
@@ -369,6 +391,7 @@ function bindEstateRoster(projection) {
       titleId: "estate-detail-title",
       siblingIdentifiers: projection.subjects.map((subject) => subject.identifier ?? subject.id).filter(Boolean),
     });
+    renderSelectedProfile(projection, next);
     renderSecondary(projection, next);
     if (persistFocus) focusClaimControl(body, next);
   };
@@ -415,6 +438,7 @@ export function renderEstateView(record, options = {}) {
     titleId: "estate-detail-title",
     siblingIdentifiers: projection.subjects.map((subject) => subject.identifier ?? subject.id).filter(Boolean),
   });
+  renderSelectedProfile(projection, selected);
   renderSecondary(projection, selected);
   renderProvenance(projection);
   renderStatus(projection);

@@ -1,4 +1,5 @@
 import { RESULT, nextApplicableGap } from "./change-chain.js";
+import { projectLifecycleStages } from "./lifecycle-profile.js";
 import { SERVICE_SPECIMEN } from "./service-specimen.js";
 
 export const SERVICE_FACTS = Object.freeze([
@@ -438,6 +439,12 @@ export function projectServiceView(record, profile = RUNTIME_WORKER_PROFILE, now
       asArray(payload.recordedFrom).map((item) => String(item)),
     ),
     facts,
+    lifecycleStages: projectLifecycleStages(profile.id, {
+      "DEPLOYMENT OBSERVED": factByName(facts, "DEPLOYMENT OBSERVED"),
+      DEPLOYED: factByName(facts, "DEPLOYED"),
+      "RUNTIME VERIFIED": factByName(facts, "RUNTIME VERIFIED"),
+      "LIVE VERIFIED": factByName(facts, "LIVE VERIFIED"),
+    }),
     reading: compactServiceReading(facts, extraGaps),
     nextGap: nextApplicableGap(
       facts.map((fact) => ({ stage: fact.fact, result: fact.result, gap: fact.gap })),
