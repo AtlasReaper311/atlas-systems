@@ -67,7 +67,7 @@ export function parseEvidenceClaim(locationLike = {}, allowed = [], fallback = n
 }
 
 export function evidenceClaimHref(view, claim, pathname = "/systems/evidence/") {
-  const hash = claim ? claimElementId(claim) : `view-${view}`;
+  const hash = claim ? claimElementId(claim, view) : `view-${view}`;
   return `${pathname}?view=${view}${claim ? `&claim=${encodeURIComponent(claim)}` : ""}#${hash}`;
 }
 
@@ -85,7 +85,7 @@ export function syncEvidenceClaimUrl(view, claim, historyImpl, locationLike) {
   url.searchParams.set("view", view);
   if (claim) url.searchParams.set("claim", claim);
   else url.searchParams.delete("claim");
-  url.hash = claim ? claimElementId(claim) : `view-${view}`;
+  url.hash = claim ? claimElementId(claim, view) : `view-${view}`;
   const next = `${url.pathname}${url.search}${url.hash}`;
   const current = `${loc.pathname || ""}${loc.search || ""}${loc.hash || ""}`;
   if (next !== current) historyImpl.pushState({ evidenceView: view, evidenceClaim: claim }, "", next);
@@ -510,6 +510,21 @@ export function renderLadderItem(item, options = {}) {
   button.append(mark, stage, result, sr);
   row.appendChild(button);
   return row;
+}
+
+export function focusClaimControl(root, claim) {
+  if (!root || typeof root.querySelectorAll !== "function" || !claim) return null;
+  const matches = [...root.querySelectorAll("[data-claim]")].filter((node) => node.dataset?.claim === claim);
+  const interactive = matches.find((node) => {
+    const tag = String(node.tagName || "").toLowerCase();
+    if (tag === "button" || tag === "a" || tag === "input" || tag === "select" || tag === "textarea") return true;
+    return typeof node.matches === "function" && node.matches("button, a, [href], input, select, textarea");
+  });
+  const tabbable = matches.find((node) => Number.isInteger(Number(node.tabIndex)));
+  const nested = matches[0]?.querySelector?.("button[data-claim], button.systems-evidence-ladder-select, button");
+  const control = interactive ?? tabbable ?? nested ?? null;
+  if (control && typeof control.focus === "function") control.focus();
+  return control;
 }
 
 export function bindLadderKeyboard(list, onSelect) {

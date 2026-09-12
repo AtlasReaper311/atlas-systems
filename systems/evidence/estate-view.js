@@ -3,12 +3,14 @@ import {
   ESTATE_TOPOLOGY_URL,
   estateProfileGroups,
   estateViewStatus,
+  parseEvidenceView,
   projectEstateView,
   topologyRecordFromSettled,
 } from "./estate-profile.js";
 import {
   bindLadderKeyboard,
   claimElementId,
+  focusClaimControl,
   parseEvidenceClaim,
   projectEvidenceDetail,
   renderAnswerFirst,
@@ -368,10 +370,7 @@ function bindEstateRoster(projection) {
       siblingIdentifiers: projection.subjects.map((subject) => subject.identifier ?? subject.id).filter(Boolean),
     });
     renderSecondary(projection, next);
-    if (persistFocus) {
-      const focused = [...body.querySelectorAll("[data-claim]")].find((node) => node.dataset.claim === next);
-      focused?.focus?.();
-    }
+    if (persistFocus) focusClaimControl(body, next);
   };
   const select = (claim) => {
     if (!claim) return;
@@ -392,6 +391,7 @@ function bindEstateRoster(projection) {
   bindLadderKeyboard(body, (claim) => select(claim));
   if (typeof window !== "undefined") {
     window.addEventListener("popstate", () => {
+      if (parseEvidenceView(window.location) !== "estate") return;
       const claim = parseEvidenceClaim(window.location, names, names[0] ?? null);
       select(claim);
     });

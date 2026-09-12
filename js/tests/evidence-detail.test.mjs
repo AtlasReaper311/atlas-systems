@@ -12,7 +12,9 @@ import {
   DEFAULT_CHANGE_CLAIM,
   RESULT_ASSISTANCE,
   claimElementId,
+  evidenceClaimHref,
   evidenceDetailRows,
+  focusClaimControl,
   formatFriendlyUtc,
   parseEvidenceClaim,
   projectEvidenceDetail,
@@ -20,6 +22,7 @@ import {
   renderEvidenceDetail,
   resultMark,
   shortenIdentifier,
+  syncEvidenceClaimUrl,
 } from "../../systems/evidence/evidence-detail.js";
 import { estateProfileGroups } from "../../systems/evidence/estate-profile.js";
 import { observationsFromPublicSources, projectServiceView } from "../../systems/evidence/service-profile.js";
@@ -72,6 +75,43 @@ test("MERGED is the first Evidence Detail specimen and keeps a public-safe exact
   assert.equal(detail.nextGap.result, RESULT.UNKNOWN_NOT_OBSERVED);
   assert.equal(detail.sourceUrl, "https://github.com/AtlasReaper311/atlas-systems/commit/db82da52f13a441a5f88344be6211be71ea2d92e");
   assert.equal(claimElementId("MERGED", "change"), "claim-merged");
+  assert.equal(claimElementId("DEPLOYED", "change"), "claim-change-deployed");
+  assert.equal(claimElementId("OWNERSHIP", "service"), "claim-service-ownership");
+  assert.equal(
+    evidenceClaimHref("change", "DEPLOYED"),
+    "/systems/evidence/?view=change&claim=DEPLOYED#claim-change-deployed",
+  );
+  assert.equal(
+    evidenceClaimHref("change", "MERGED"),
+    "/systems/evidence/?view=change&claim=MERGED#claim-merged",
+  );
+  assert.equal(
+    syncEvidenceClaimUrl("service", "OWNERSHIP", { pushState() {} }, {
+      href: "https://atlas-systems.uk/systems/evidence/?view=service",
+      pathname: "/systems/evidence/",
+      search: "?view=service",
+      hash: "",
+    }),
+    "/systems/evidence/?view=service&claim=OWNERSHIP#claim-service-ownership",
+  );
+});
+
+test("focusClaimControl prefers the inner ladder button over the wrapper", () => {
+  const focused = [];
+  const button = {
+    tagName: "BUTTON",
+    dataset: { claim: "MERGED" },
+    matches: (selector) => selector.includes("button"),
+    focus() { focused.push("button"); },
+  };
+  const row = {
+    tagName: "LI",
+    dataset: { claim: "MERGED" },
+    matches: () => false,
+    querySelector: () => button,
+  };
+  focusClaimControl({ querySelectorAll: () => [row, button] }, "MERGED");
+  assert.deepEqual(focused, ["button"]);
 });
 
 test("Evidence Detail cannot promote a claim beyond the underlying record", () => {
@@ -355,6 +395,12 @@ test("Evidence Console registers the reusable detail surface without secrets", (
   assert.match(page, /Latest proven/);
   assert.match(page, /colspan="5"/);
   assert.match(changeView, /detailForChangeStage/);
+  assert.match(detail, /claimElementId\(claim, view\)/);
+  assert.match(detail, /export function focusClaimControl/);
+  assert.match(changeView, /focusClaimControl\(list, next\)/);
+  assert.match(changeView, /parseEvidenceView\(window\.location\) !== "change"/);
+  assert.match(read("systems/evidence/service-view.js"), /parseEvidenceView\(window\.location\) !== "service"/);
+  assert.match(read("systems/evidence/estate-view.js"), /parseEvidenceView\(window\.location\) !== "estate"/);
   assert.match(css, /prefers-reduced-motion: reduce/);
   assert.match(css, /min-height: 48px/);
   assert.match(css, /position: sticky/);

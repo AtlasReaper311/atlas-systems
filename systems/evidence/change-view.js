@@ -1,9 +1,11 @@
 import { RESULT, projectChangeChain } from "./change-chain.js";
 import { SPECIMEN_256_RECORD } from "./change-chain-specimen.js";
+import { parseEvidenceView } from "./estate-profile.js";
 import {
   DEFAULT_CHANGE_CLAIM,
   bindLadderKeyboard,
   claimElementId,
+  focusClaimControl,
   parseEvidenceClaim,
   projectEvidenceDetail,
   renderAnswerFirst,
@@ -231,8 +233,7 @@ function bindChangeLadder(chain, selected) {
     const next = selectedStageName(chain, claim);
     renderLadder(chain, next);
     renderSelectedDetail(chain, next);
-    const focused = [...list.querySelectorAll("[data-claim]")].find((node) => node.dataset.claim === next);
-    focused?.focus?.();
+    focusClaimControl(list, next);
     if (persist) {
       syncEvidenceClaimUrl(
         "change",
@@ -250,6 +251,7 @@ function bindChangeLadder(chain, selected) {
   bindLadderKeyboard(list, (claim) => select(claim));
   if (typeof window !== "undefined") {
     window.addEventListener("popstate", () => {
+      if (parseEvidenceView(window.location) !== "change") return;
       const claim = parseEvidenceClaim(window.location, chain.stages.map((stage) => stage.stage), DEFAULT_CHANGE_CLAIM);
       renderLadder(chain, claim);
       renderSelectedDetail(chain, claim);

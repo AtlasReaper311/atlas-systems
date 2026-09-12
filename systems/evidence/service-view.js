@@ -1,8 +1,10 @@
 import { RESULT } from "./change-chain.js";
 import { isPublicSafeHref } from "./public-safe-href.js";
+import { parseEvidenceView } from "./estate-profile.js";
 import {
   bindLadderKeyboard,
   claimElementId,
+  focusClaimControl,
   parseEvidenceClaim,
   projectEvidenceDetail,
   renderAnswerFirst,
@@ -241,8 +243,7 @@ function bindServiceLadder(projection) {
     const next = selectedFactName(projection, claim);
     renderLadder(projection, next);
     renderSelectedDetail(projection, next);
-    const focused = [...list.querySelectorAll("[data-claim]")].find((node) => node.dataset.claim === next);
-    focused?.focus?.();
+    focusClaimControl(list, next);
     if (persist) {
       syncEvidenceClaimUrl(
         "service",
@@ -260,6 +261,7 @@ function bindServiceLadder(projection) {
   bindLadderKeyboard(list, (claim) => select(claim));
   if (typeof window !== "undefined") {
     window.addEventListener("popstate", () => {
+      if (parseEvidenceView(window.location) !== "service") return;
       const claim = parseEvidenceClaim(window.location, names, DEFAULT_SERVICE_CLAIM);
       renderLadder(projection, claim);
       renderSelectedDetail(projection, claim);
