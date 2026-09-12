@@ -25,6 +25,7 @@ test("Lab context inventory uses current canonical destinations", () => {
   for (const href of [
     "/lab/system-symphony/",
     "/lab/spectral-forge/",
+    "/lab/atlas-motion/",
     "/lab/signal/",
     "/lab/system-map/",
     "/lab/blackbox/",

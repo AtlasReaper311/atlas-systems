@@ -55,12 +55,18 @@ test("Atlas Motion explains the replay, provenance, and evidence boundary", () =
   ]) {
     assert.match(page, new RegExp(value.replaceAll(".", "\\."), "i"), `page should state ${value}`);
   }
-  assert.match(page, /<video controls preload="metadata"/);
+  assert.match(page, /<video controls playsinline preload="metadata"/);
+  assert.match(page, /aria-label="EstateBoot recorded replay"/);
   assert.match(page, /Your browser cannot play this MP4/);
   assert.match(page, /href="#transcript"/);
   assert.match(page, /JavaScript is not required to read this surface/);
   assert.doesNotMatch(page, /https?:\/\/[^"']*AtlasReaper311\/atlas-motion/i);
   assert.doesNotMatch(page, /https?:\/\/[^"']*estate-boot/);
+});
+
+test("Atlas Motion is registered by the shared Lab shell", () => {
+  const shell = fs.readFileSync("lab/shared/shell.js", "utf8");
+  assert.match(shell, /label: "Atlas Motion", href: "\/lab\/atlas-motion\/"/);
 });
 
 test("Atlas Motion keeps the route responsive and reduced-motion safe", () => {
