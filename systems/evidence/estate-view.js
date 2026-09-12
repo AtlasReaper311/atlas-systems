@@ -16,8 +16,10 @@ import {
   renderAnswerFirst,
   renderEvidenceDetail,
   renderExpectedPath,
+  renderLadderItem,
   renderProfileIdentity,
 } from "./evidence-detail.js";
+import { libraryStageLabel } from "./library-profile.js";
 import { projectProfileIdentity } from "./lifecycle-profile.js";
 import { isPublicSafeHref } from "./public-safe-href.js";
 
@@ -208,7 +210,14 @@ function renderRows(projection, selectedId, profileId = null) {
   }
 }
 
-export function detailForEstateSubject(projection, subjectId) {
+function selectedSpecimenStage(subject, requested) {
+  if (!subject?.stages?.length) return null;
+  if (requested && subject.stages.some((stage) => stage.stage === requested)) return requested;
+  if (subject.latestProvenStage) return subject.latestProvenStage;
+  return subject.stages[0].stage;
+}
+
+export function detailForEstateSubject(projection, subjectId, stageName = null) {
   const subject = projection.subjects.find((item) => item.id === subjectId) ?? projection.subjects[0];
   if (!subject) {
     return projectEvidenceDetail({
@@ -225,6 +234,34 @@ export function detailForEstateSubject(projection, subjectId) {
         label: "Proven ADR-0013 delivery stage",
         result: RESULT.UNKNOWN_NOT_OBSERVED,
       },
+    });
+  }
+  if (subject.specimen) {
+    const selected = selectedSpecimenStage(subject, stageName);
+    const stage = subject.stages.find((item) => item.stage === selected) ?? subject.stages[0];
+    const domain = subject.domainLabels?.[stage.stage];
+    return projectEvidenceDetail({
+      view: "estate",
+      subject: {
+        id: subject.id,
+        repository: subject.repository,
+        label: subject.repository ? `${subject.id} (${subject.repository})` : subject.id,
+      },
+      assertion: domain
+        ? `${stage.stage} (${domain}) for ${subject.id}`
+        : `${stage.stage} for ${subject.id}`,
+      stage: stage.stage,
+      result: stage.result,
+      evidenceType: subject.evidenceKind ?? "recorded-public-projection",
+      classification: subject.specimen.classification,
+      identifier: stage.identifier,
+      observedAt: stage.observedAt,
+      recordedAt: subject.specimen.recordedAt,
+      provenance: stage.provenance,
+      scope: stage.scope ?? stage.gap,
+      evidenceMode: stage.evidenceMode,
+      sourceUrl: stage.sourceUrl,
+      nextGap: subject.specimen.nextGap,
     });
   }
   const classification = subject.classification;
@@ -276,9 +313,33 @@ function renderSelectedProfile(projection, selectedId) {
   renderProfileIdentity(byId("estate-subject-profile"), projectProfileIdentity({
     subject: subject.repository ? `${subject.id} (${subject.repository})` : subject.id,
     profileId: subject.profile.id,
-    classificationNote: "Public topology classification is not ADR-0013 delivery evidence. Applicable later stages stay UNKNOWN / NOT OBSERVED until a named public contract proves them.",
+    classificationNote: subject.specimen
+      ? "Recorded public-safe release specimen. This subject ships as a GitHub Release artifact, not a runtime service. RELEASED event maps to DEPLOYMENT OBSERVED. RELEASED identity maps to DEPLOYED. Topology classification is not that recorded release chain."
+      : "Public topology classification is not ADR-0013 delivery evidence. Applicable later stages stay UNKNOWN / NOT OBSERVED until a named public contract proves them.",
   }));
+  if (subject.specimen) {
+    renderSpecimenPath(byId("estate-expected-path"), subject, selectedSpecimenStage(subject));
+    return;
+  }
   renderExpectedPath(byId("estate-expected-path"), subject.stages);
+}
+
+function renderSpecimenPath(target, subject, selectedStage) {
+  if (!target) return;
+  target.replaceChildren();
+  target.className = "systems-change-chain systems-evidence-ladder systems-evidence-chain systems-evidence-expected-path";
+  if (typeof target.setAttribute === "function") target.setAttribute("role", "list");
+  for (const stage of subject.stages) {
+    target.appendChild(renderLadderItem({
+      id: stage.stage,
+      label: libraryStageLabel(stage.stage),
+      result: stage.result,
+      elementId: claimElementId(stage.stage, "estate"),
+    }, {
+      selected: stage.stage === selectedStage,
+      controlsId: "estate-detail",
+    }));
+  }
 }
 
 function renderSecondary(projection, selectedId) {
@@ -300,7 +361,19 @@ function renderSecondary(projection, selectedId) {
     ["Not applicable stages", subject.notApplicableStages.length ? subject.notApplicableStages.join(", ") : "none"],
     ["Profile chosen from", subject.profile.chosenFrom ?? subject.profile.id],
     ["Observed at", subject.observedAt ?? "timestamp unavailable"],
-  ];
+    ["Shipping model", subject.specimen
+      ? "Source plus optional GitHub Release artifact. Not loaded by consumers at runtime and not a package-registry publication."
+      : null],
+    ["RELEASED event mapping", subject.domainLabels?.["DEPLOYMENT OBSERVED"]
+      ? `${subject.domainLabels["DEPLOYMENT OBSERVED"]} maps onto DEPLOYMENT OBSERVED. It is not an estate-wide stage.`
+      : null],
+    ["RELEASED identity mapping", subject.domainLabels?.DEPLOYED
+      ? `${subject.domainLabels.DEPLOYED} maps onto DEPLOYED. A GitHub Release is not a running deployment.`
+      : null],
+    ["Recorded specimen", subject.specimen
+      ? `Recorded at ${subject.specimen.recordedAt ?? "time unavailable"}; not a live feed.`
+      : null],
+  ].filter(([, value]) => value);
   for (const [term, value] of rows) {
     const wrap = document.createElement("div");
     const dt = document.createElement("dt");
@@ -332,7 +405,7 @@ function renderProvenance(projection) {
     note,
     "p",
     null,
-    "This Estate View reads the current public topology projection. Atlas Infra remains classification authority. Topology lifecycle is not ADR-0013 delivery, not deployment, not runtime, and not live verification. There is no public estate-wide delivery snapshot on this path. Per-subject later stages stay UNKNOWN / NOT OBSERVED unless a named public contract proves them. Investigate a named change in Change View or a named Worker in Service View.",
+    "This Estate View reads the current public topology projection. Atlas Infra remains classification authority. Topology lifecycle is not ADR-0013 delivery, not deployment, not runtime, and not live verification. There is no public estate-wide delivery snapshot on this path. atlas-interface-kit carries a recorded Library / Toolkit release specimen when selected; that recorded chain is not a live feed and is not estate-wide delivery. Other subjects keep later stages UNKNOWN / NOT OBSERVED unless a named public contract proves them. Investigate a named change in Change View or a named Worker in Service View.",
   );
   const from = document.createElement("ul");
   from.className = "systems-change-sources systems-estate-sources";
@@ -374,44 +447,71 @@ function selectedSubjectId(projection, requested) {
 function bindEstateRoster(projection) {
   const body = byId("estate-rows");
   const profiles = byId("estate-profiles");
+  const path = byId("estate-expected-path");
   if (!body || typeof body.addEventListener !== "function") return;
   if (body.dataset.ladderBound === "true") return;
   body.dataset.ladderBound = "true";
   const names = projection.subjects.map((subject) => subject.id);
   let selectedProfile = null;
-  const paint = (claim, profileId = selectedProfile, persistFocus = true) => {
+  let selectedStage = null;
+  const paint = (claim, profileId = selectedProfile, persistFocus = true, stageName = selectedStage) => {
     selectedProfile = profileId || null;
     const visible = visibleSubjects(projection, selectedProfile);
     const next = visible.some((subject) => subject.id === claim)
       ? claim
       : selectedSubjectId({ subjects: visible }, claim);
+    const subject = projection.subjects.find((item) => item.id === next) ?? null;
+    selectedStage = subject?.specimen ? selectedSpecimenStage(subject, stageName) : null;
     renderProfileOverview(projection, selectedProfile);
     renderRows(projection, next, selectedProfile);
-    renderEvidenceDetail(byId("estate-detail"), detailForEstateSubject(projection, next), {
+    renderEvidenceDetail(byId("estate-detail"), detailForEstateSubject(projection, next, selectedStage), {
       titleId: "estate-detail-title",
-      siblingIdentifiers: projection.subjects.map((subject) => subject.identifier ?? subject.id).filter(Boolean),
+      siblingIdentifiers: [
+        ...projection.subjects.map((item) => item.identifier ?? item.id),
+        ...(subject?.stages ?? []).map((stage) => stage.identifier),
+      ].filter(Boolean),
     });
     renderSelectedProfile(projection, next);
+    if (subject?.specimen) {
+      renderSpecimenPath(path, subject, selectedStage);
+    }
     renderSecondary(projection, next);
-    if (persistFocus) focusClaimControl(body, next);
+    if (persistFocus) {
+      if (subject?.specimen && path) focusClaimControl(path, selectedStage);
+      else focusClaimControl(body, next);
+    }
   };
   const select = (claim) => {
     if (!claim) return;
-    paint(claim, selectedProfile);
+    selectedStage = null;
+    paint(claim, selectedProfile, true, null);
   };
   body.addEventListener("click", (event) => {
     const row = event.target?.closest?.("tr[data-claim]");
     if (!row || !body.contains(row)) return;
     select(row.dataset.claim);
   });
+  path?.addEventListener("click", (event) => {
+    const button = event.target?.closest?.("[data-claim]");
+    if (!button || !path.contains(button)) return;
+    const current = body.querySelector?.('tr[data-selected="true"]')?.dataset?.claim
+      ?? selectedSubjectId(projection);
+    paint(current, selectedProfile, true, button.dataset.claim);
+  });
   profiles?.addEventListener("click", (event) => {
     const card = event.target?.closest?.("[data-profile]");
     if (!card || !profiles.contains(card)) return;
     const nextProfile = card.dataset.profile || null;
     const visible = visibleSubjects(projection, nextProfile);
-    paint(visible[0]?.id ?? selectedSubjectId(projection), nextProfile, false);
+    selectedStage = null;
+    paint(visible[0]?.id ?? selectedSubjectId(projection), nextProfile, false, null);
   });
   bindLadderKeyboard(body, (claim) => select(claim));
+  if (path) bindLadderKeyboard(path, (claim) => {
+    const current = body.querySelector?.('tr[data-selected="true"]')?.dataset?.claim
+      ?? selectedSubjectId(projection);
+    paint(current, selectedProfile, true, claim);
+  });
   if (typeof window !== "undefined") {
     window.addEventListener("popstate", () => {
       if (parseEvidenceView(window.location) !== "estate") return;
@@ -421,8 +521,19 @@ function bindEstateRoster(projection) {
   }
 }
 
+function hideLibraryFallback() {
+  const fallback = byId("estate-library-fallback");
+  if (!fallback) return;
+  fallback.hidden = true;
+  const specimen = typeof fallback.querySelector === "function"
+    ? fallback.querySelector("#claim-estate-deployed")
+    : null;
+  if (specimen && typeof specimen.removeAttribute === "function") specimen.removeAttribute("id");
+}
+
 export function renderEstateView(record, options = {}) {
   const projection = projectEstateView(record);
+  hideLibraryFallback();
   renderReading(projection.reading);
   renderSummary(projection);
   const requested = options.claim

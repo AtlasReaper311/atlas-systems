@@ -93,7 +93,7 @@
         <p class="systems-detail-kicker">Provenance boundary</p>
         <h2 id="evidence-boundary-title">A record can support a claim without proving the whole estate</h2>
         <dl>
-          <div><dt>Reads</dt><dd>One recorded public-safe change chain, one runtime Service View for a named Worker, a public topology Estate overview, plus public activity, raw availability, deployment, pipeline event, and assurance-report records.</dd></div>
+          <div><dt>Reads</dt><dd>One recorded public-safe change chain, one runtime Service View for a named Worker, a public topology Estate overview with a recorded Library / Toolkit specimen for atlas-interface-kit, plus public activity, raw availability, deployment, pipeline event, and assurance-report records.</dd></div>
           <div><dt>Separates</dt><dd>ADR-0013 delivery stages, ADR-0014 profile applicability, classification lifecycle, observation result, claim, runtime state, evidence mode, supporting record, observation time, source time, and freshness. Classification is not delivery.</dd></div>
           <div><dt>Freshness</dt><dd>Every source is judged independently. A merge is not a deployment. Runtime is not live. Topology is not an estate health badge. One fresh record cannot mask another stale, unknown, or unavailable source.</dd></div>
         </dl>
@@ -302,7 +302,7 @@
         </div>
         <p id="estate-view-status" class="focus-status-line" data-state="unknown" aria-live="polite">Public topology roster requires JavaScript. Missing evidence is not success and is not an estate health badge.</p>
       </div>
-      <p class="focus-note">This overview reads the current public topology projection from GET /v1/topology. Classification is not delivery. There is no public estate-wide delivery snapshot on this path.</p>
+      <p class="focus-note">This overview reads the current public topology projection from GET /v1/topology. Classification is not delivery. Selecting atlas-interface-kit shows a recorded Library / Toolkit release specimen. There is no public estate-wide delivery snapshot on this path.</p>
       <div class="systems-change-workbench">
         <section class="systems-detail-panel systems-detail-panel--dominant systems-evidence-primary" aria-labelledby="estate-reading-title">
           <div class="focus-section-head">
@@ -363,6 +363,55 @@
           <ol id="estate-expected-path" class="systems-change-chain systems-evidence-ladder systems-evidence-chain systems-evidence-expected-path">
             <li>Expected path requires JavaScript. Topology classification is not a delivery chain.</li>
           </ol>
+          <details class="systems-evidence-disclosure" id="estate-library-fallback">
+            <summary>Inspect atlas-interface-kit DEPLOYED without JavaScript</summary>
+            <div id="claim-estate-deployed" class="systems-evidence-detail-noscript systems-evidence-receipt">
+              <p class="systems-detail-kicker">Library / Toolkit recorded specimen</p>
+              <h3 class="systems-evidence-detail-title">DEPLOYED</h3>
+              <section class="systems-evidence-receipt-claim">
+                <p class="systems-evidence-receipt-label">Claim / result</p>
+                <p class="systems-evidence-receipt-assertion">DEPLOYED (RELEASED identity) for atlas-interface-kit</p>
+                <p class="systems-evidence-detail-result"><strong data-result="OBSERVED">OBSERVED</strong><span> Evidence was actually observed for this claim.</span></p>
+              </section>
+              <section class="systems-evidence-receipt-provenance">
+                <p class="systems-evidence-receipt-label">Provenance</p>
+                <div class="systems-evidence-receipt-strip">
+                  <span class="systems-evidence-receipt-type">recorded-public-projection</span>
+                  <code class="systems-evidence-identifier-short" title="GitHub Release v0.5.0 / atlas-interface-kit-0.5.0.tar.gz sha256:00171c91963094fb028a124636db355ab0deb844f661e60590e89672e2379a94">GitHub Release v0.5.0…2379a94</code>
+                  <time class="systems-evidence-receipt-time" datetime="2026-08-05T17:54:42Z">5 Aug 2026 · 17:54 UTC</time>
+                </div>
+              </section>
+              <div class="systems-evidence-proof-pair">
+                <section class="systems-evidence-proof systems-evidence-proof--proves">
+                  <h4 class="systems-evidence-receipt-label">What this proves</h4>
+                  <p>The expected release identity v0.5.0 / 0.5.0 is the published GitHub Release, with assets atlas-interface-kit-0.5.0.tar.gz and atlas-interface-kit-0.5.0.release-manifest.json. ADR-0014 maps that RELEASED identity onto DEPLOYED. A published release artifact is not a running deployment, not runtime verification, and not live verification.</p>
+                </section>
+                <section class="systems-evidence-proof systems-evidence-proof--boundary">
+                  <h4 class="systems-evidence-receipt-label">What this does not prove</h4>
+                  <p>DEPLOYED does not imply runtime or live verification.</p>
+                </section>
+              </div>
+              <section class="systems-evidence-receipt-gap">
+                <p class="systems-evidence-receipt-label">Next applicable gap</p>
+                <p>Later default-branch identity — UNKNOWN / NOT OBSERVED</p>
+              </section>
+              <a class="systems-change-source" href="https://github.com/AtlasReaper311/atlas-interface-kit/releases/tag/v0.5.0" target="_blank" rel="noopener">Open public evidence source</a>
+              <details class="systems-evidence-disclosure systems-evidence-technical">
+                <summary>Technical provenance</summary>
+                <dl class="systems-evidence-detail-facts">
+                  <div><dt>Subject</dt><dd>atlas-interface-kit (AtlasReaper311/atlas-interface-kit)</dd></div>
+                  <div><dt>Assertion</dt><dd>DEPLOYED (RELEASED identity) for atlas-interface-kit</dd></div>
+                  <div><dt>Lifecycle stage</dt><dd>DEPLOYED</dd></div>
+                  <div><dt>Observation result</dt><dd>OBSERVED</dd></div>
+                  <div><dt>Evidence type</dt><dd>recorded-public-projection</dd></div>
+                  <div><dt>Exact identifier</dt><dd>GitHub Release v0.5.0 / atlas-interface-kit-0.5.0.tar.gz sha256:00171c91963094fb028a124636db355ab0deb844f661e60590e89672e2379a94</dd></div>
+                  <div><dt>Observed at</dt><dd>2026-08-05T17:54:42Z</dd></div>
+                  <div><dt>Freshness</dt><dd>Recorded public projection; not a live feed. Recorded at 2026-09-12T11:50:00Z.</dd></div>
+                  <div><dt>Provenance</dt><dd>public GitHub Release AtlasReaper311/atlas-interface-kit v0.5.0</dd></div>
+                </dl>
+              </details>
+            </div>
+          </details>
           <section id="estate-detail" class="systems-evidence-detail-panel" aria-labelledby="estate-detail-title">
             <p class="systems-detail-kicker">Evidence Detail</p>
             <h3 id="estate-detail-title">Inspect one estate subject</h3>
@@ -465,6 +514,8 @@
           <a href="https://api.atlas-systems.uk/v1/reliability/services/atlas-api-public"><strong>Service reliability JSON</strong><span>/v1/reliability/services/atlas-api-public</span></a>
           <a href="https://github.com/AtlasReaper311/atlas-api-public" target="_blank" rel="noopener"><strong>Service source</strong><span>atlas-api-public</span></a>
           <a href="https://github.com/AtlasReaper311/atlas-systems/pull/256" target="_blank" rel="noopener"><strong>Specimen PR</strong><span>atlas-systems#256</span></a>
+          <a href="https://github.com/AtlasReaper311/atlas-interface-kit/pull/14" target="_blank" rel="noopener"><strong>Library specimen PR</strong><span>atlas-interface-kit#14</span></a>
+          <a href="https://github.com/AtlasReaper311/atlas-interface-kit/releases/tag/v0.5.0" target="_blank" rel="noopener"><strong>Library release identity</strong><span>v0.5.0</span></a>
           <a href="/lab/console/"><strong>Preserved console</strong><span>noindex compatibility route</span></a>
         </div>
       </section>
@@ -477,7 +528,7 @@
   <script type="module" src="/systems/evidence/evidence-views.js?v=20260911-visual"></script>
   <script type="module" src="/systems/evidence/change-view.js?v=20260912-profile"></script>
   <script type="module" src="/systems/evidence/service-view.js?v=20260912-profile"></script>
-  <script type="module" src="/systems/evidence/estate-view.js?v=20260912-profile"></script>
+  <script type="module" src="/systems/evidence/estate-view.js?v=20260912-library"></script>
   <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
     <div class="mobile-nav-inner atlas-mobile-nav__inner">
       <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>

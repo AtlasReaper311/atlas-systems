@@ -143,12 +143,15 @@ test("Topology classification cannot become deployment, runtime, or live evidenc
 
 test("Library and documentation profiles keep runtime and live distinct from unknown", () => {
   const projection = projectEstateView(topology(), NOW);
-  const kit = stageMap(subjectMap(projection)["atlas-interface-kit"]);
+  const kitSubject = subjectMap(projection)["atlas-interface-kit"];
+  const kit = stageMap(kitSubject);
   const infra = stageMap(subjectMap(projection)["atlas-infra"]);
   assert.equal(kit["RUNTIME VERIFIED"].result, RESULT.NOT_APPLICABLE);
   assert.equal(kit["LIVE VERIFIED"].result, RESULT.NOT_APPLICABLE);
-  assert.equal(kit["DEPLOYMENT OBSERVED"].result, RESULT.UNKNOWN_NOT_OBSERVED);
-  assert.match(kit["DEPLOYMENT OBSERVED"].gap, /release-event/);
+  assert.equal(kit["DEPLOYMENT OBSERVED"].result, RESULT.OBSERVED);
+  assert.equal(kit.DEPLOYED.result, RESULT.OBSERVED);
+  assert.equal(kitSubject.latestProvenStage, "DEPLOYED");
+  assert.equal(kitSubject.nextApplicableMissing, "Later default-branch identity");
   assert.equal(infra["RUNTIME VERIFIED"].result, RESULT.NOT_APPLICABLE);
   assert.equal(infra["LIVE VERIFIED"].result, RESULT.NOT_APPLICABLE);
   assert.equal(infra.SOURCE.result, RESULT.UNKNOWN_NOT_OBSERVED);
@@ -393,7 +396,7 @@ test("Evidence Console keeps Change and Service Views and adds Estate navigation
   }
   assert.match(page, /systems\/evidence\/change-view\.js\?v=20260912-profile/);
   assert.match(page, /systems\/evidence\/service-view\.js\?v=20260912-profile/);
-  assert.match(page, /systems\/evidence\/estate-view\.js\?v=20260912-profile/);
+  assert.match(page, /systems\/evidence\/estate-view\.js\?v=20260912-library/);
   assert.match(page, /systems\/evidence\/evidence-views\.js\?v=20260911-visual/);
   assert.match(page, /systems-evidence-estate-view\.css\?v=20260911-visual/);
   assert.match(css, /\[aria-selected="true"\] span/);

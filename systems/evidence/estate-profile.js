@@ -1,4 +1,5 @@
 import { DELIVERY_STAGES, RESULT, STATIC_PUBLIC_SITE_PROFILE } from "./change-chain.js";
+import { attachLibrarySpecimen } from "./library-profile.js";
 import { lifecycleProfileLabel } from "./lifecycle-profile.js";
 import { RUNTIME_WORKER_PROFILE } from "./service-profile.js";
 
@@ -264,7 +265,7 @@ export function projectEstateSubject(component, context = {}, nowMs = Date.now()
   const proven = latestProvenStage(stages);
   const nextMissing = nextApplicableMissing(stages);
   const repoName = repositoryName(record);
-  return Object.freeze({
+  const projected = Object.freeze({
     id: record.id ? String(record.id) : "unknown-subject",
     repository: repoName ? `AtlasReaper311/${repoName}` : null,
     repositoryUrl: typeof record.repo === "string" ? record.repo : null,
@@ -288,6 +289,7 @@ export function projectEstateSubject(component, context = {}, nowMs = Date.now()
     observedAt: generatedAt,
     sourceUrl: context.sourceUrl ?? ESTATE_TOPOLOGY_URL,
   });
+  return attachLibrarySpecimen(projected);
 }
 
 function extraGaps() {

@@ -384,7 +384,7 @@ test("Evidence Console registers the reusable detail surface without secrets", (
     "service-summary", "service-detail", "service-map", "service-boundaries",
     "change-profile", "service-profile", "service-expected-path",
     "estate-summary", "estate-detail", "estate-secondary", "estate-profiles",
-    "estate-subject-profile", "estate-expected-path",
+    "estate-subject-profile", "estate-expected-path", "estate-library-fallback",
     "how-to-read-evidence",
   ]) {
     assert.match(page, new RegExp(`id="${id}"`));

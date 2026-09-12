@@ -79,15 +79,22 @@ function stageMap(stages) {
 test("Static / Public Site and Runtime Worker keep ADR-0014 applicability", () => {
   const site = presentLifecycleProfile("static-public-site");
   const worker = presentLifecycleProfile("runtime-worker");
+  const kit = presentLifecycleProfile("library-toolkit");
   assert.equal(site.label, "Static / Public Site");
   assert.equal(worker.label, "Runtime Worker");
+  assert.equal(kit.label, "Library / Toolkit");
   assert.deepEqual(site.notApplicableStages, ["RUNTIME VERIFIED"]);
   assert.deepEqual(worker.notApplicableStages, []);
+  assert.deepEqual(kit.notApplicableStages, ["RUNTIME VERIFIED", "LIVE VERIFIED"]);
   assert.match(site.expectedPath, /LIVE VERIFIED/);
   assert.doesNotMatch(site.expectedPath, /RUNTIME VERIFIED/);
   assert.match(worker.expectedPath, /RUNTIME VERIFIED → LIVE VERIFIED/);
+  assert.match(kit.expectedPath, /DEPLOYED/);
+  assert.doesNotMatch(kit.expectedPath, /RUNTIME VERIFIED|LIVE VERIFIED/);
+  assert.match(kit.expectedSummary, /GitHub Release artifact/);
   assert.equal(ESTATE_PROFILE_LABELS["static-public-site"], "Static / Public Site");
   assert.equal(ESTATE_PROFILE_LABELS["runtime-worker"], "Runtime Worker");
+  assert.equal(ESTATE_PROFILE_LABELS["library-toolkit"], "Library / Toolkit");
 });
 
 test("Static-site RUNTIME VERIFIED is NOT APPLICABLE and is not treated as missing", () => {
@@ -147,30 +154,37 @@ test("Profile identity names the subject without inventing a later stage", () =>
   assert.equal(LIFECYCLE_PROFILE_PRESENTATION["runtime-worker"].label, "Runtime Worker");
 });
 
-test("Evidence Console presents both 2.3a specimens without a new top-level tab", () => {
+test("Evidence Console presents 2.3a and 2.3b specimens without a new top-level tab", () => {
   const page = read("systems/evidence/index.html");
   const profile = read("systems/evidence/lifecycle-profile.js");
   const change = read("systems/evidence/change-view.js");
   const service = read("systems/evidence/service-view.js");
   const estate = read("systems/evidence/estate-view.js");
   const detail = read("systems/evidence/evidence-detail.js");
+  const library = read("systems/evidence/library-profile.js");
 
   assert.match(page, /data-evidence-view-tab="change"/);
   assert.match(page, /data-evidence-view-tab="service"/);
   assert.match(page, /data-evidence-view-tab="estate"/);
   assert.doesNotMatch(page, /data-evidence-view-tab="profile"/);
+  assert.doesNotMatch(page, /data-evidence-view-tab="library"/);
   assert.match(page, /Static \/ Public Site/);
   assert.match(page, /Runtime Worker/);
+  assert.match(page, /Library \/ Toolkit/);
+  assert.match(page, /atlas-interface-kit/);
   assert.match(page, /id="change-profile"/);
   assert.match(page, /id="service-expected-path"/);
   assert.match(page, /id="estate-expected-path"/);
+  assert.match(page, /id="estate-library-fallback"/);
   assert.match(change, /renderProfileIdentity/);
   assert.match(service, /renderExpectedPath/);
   assert.match(estate, /renderSelectedProfile/);
+  assert.match(estate, /renderSpecimenPath/);
   assert.match(detail, /export function renderProfileIdentity/);
   assert.match(detail, /export function renderExpectedPath/);
   assert.match(profile, /not missing evidence/);
-  for (const source of [profile, change, service, estate, detail]) {
+  assert.match(library, /RELEASED event/);
+  for (const source of [profile, change, service, estate, detail, library]) {
     assert.doesNotMatch(source, /innerHTML\s*=/);
     assert.doesNotMatch(source, /Authorization|Bearer|secret|token/i);
   }

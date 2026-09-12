@@ -35,8 +35,8 @@ export const LIFECYCLE_PROFILE_PRESENTATION = Object.freeze({
     label: "Library / Toolkit",
     authority: "ADR-0014",
     subjectType: "non-runtime library, kit, or template",
-    expectedPath: "SOURCE → CHECKED → MERGED",
-    expectedSummary: "RUNTIME VERIFIED and LIVE VERIFIED cannot apply. Later release stages stay UNKNOWN until a real release contract is observed.",
+    expectedPath: "SOURCE → CHECKED → MERGED → DEPLOYMENT OBSERVED → DEPLOYED",
+    expectedSummary: "This subject ships as source plus an optional GitHub Release artifact, not a runtime service. When a real release contract exists, RELEASED event maps to DEPLOYMENT OBSERVED and RELEASED identity maps to DEPLOYED. RUNTIME VERIFIED and LIVE VERIFIED are NOT APPLICABLE. A GitHub Release is not a running deployment.",
     notApplicableStages: Object.freeze(["RUNTIME VERIFIED", "LIVE VERIFIED"]),
   }),
   "documentation-policy": Object.freeze({
