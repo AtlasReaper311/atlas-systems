@@ -532,3 +532,18 @@ button.cascade-node:focus-visible,
 .cascade-topology[data-document-hidden="true"] .cascade-node--faultable {
   animation-play-state: paused !important;
 }
+.cascade-evidence .failure-lab-handoff {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  margin-top: 8px;
+  color: var(--cascade-accent);
+  font-size: 0.68rem;
+  text-decoration: none;
+}
+
+.cascade-evidence .failure-lab-handoff:hover,
+.cascade-evidence .failure-lab-handoff:focus-visible {
+  color: var(--cascade-accent-hover);
+  text-decoration: underline;
+}

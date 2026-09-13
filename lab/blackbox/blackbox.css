@@ -18,6 +18,28 @@
   padding: 7px 10px;
   text-transform: uppercase;
 }
+.blackbox-failure-lab-context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin: 14px 0 0;
+  color: var(--text-faint);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.blackbox-failure-lab-context .failure-lab-handoff {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-dim);
+  text-decoration: none;
+}
+.blackbox-failure-lab-context .failure-lab-handoff:hover,
+.blackbox-failure-lab-context .failure-lab-handoff:focus-visible {
+  color: var(--accent);
+  text-decoration: underline;
+}
 .blackbox-recorder { padding-top: 2rem; }
 .blackbox-section-head {
   align-items: end;
