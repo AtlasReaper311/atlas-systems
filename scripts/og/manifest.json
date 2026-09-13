@@ -44,6 +44,17 @@
       "tagline": "Interactive experiments and live estate instrumentation."
     },
     {
+      "file": "failure-laboratory",
+      "html": "lab/failure-laboratory/index.html",
+      "route": "/lab/failure-laboratory/",
+      "kicker": "Verify / Failure investigation",
+      "title": [
+        "Failure Laboratory.",
+        "Trace the [bounded path.]"
+      ],
+      "tagline": "Follow a scenario through request, dependencies, coordination, impact, evidence, and recovery."
+    },
+    {
       "file": "systems",
       "html": "systems/index.html",
       "route": "/systems/",

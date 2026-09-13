@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en" data-atlas-interface>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Failure Laboratory // Atlas Systems. Follow bounded scenarios through request, dependencies, coordination, impact, incident evidence, and recovery.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Failure Laboratory // Atlas Systems</title>
+  <link rel="canonical" href="https://atlas-systems.uk/lab/failure-laboratory/">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Failure Laboratory // Atlas Systems">
+  <meta property="og:description" content="Follow a bounded scenario through request, dependencies, coordination, impact, evidence, and recovery.">
+  <meta property="og:url" content="https://atlas-systems.uk/lab/failure-laboratory/">
+  <meta property="og:site_name" content="Atlas Systems">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Failure Laboratory // Atlas Systems">
+  <meta name="twitter:description" content="A guided systems investigation across existing Atlas instruments.">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/lab/shared/systems.css">
+  <link rel="stylesheet" href="/lab/failure-laboratory/failure-laboratory.css?v=20260913-failure-lab">
+  <link rel="stylesheet" href="/lab/shared/lab-context-navigation.css?v=20260806-lab-consistency-v2">
+  <link rel="stylesheet" href="/lab/shared/lab-shell-layout.css?v=20260806-lab-consistency-v2">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
+  <link rel="stylesheet" href="/static/css/estate-search.css">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260724-source-hardening">
+  <meta property="og:image" content="https://atlas-systems.uk/og/failure-laboratory.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Failure Laboratory. Trace the bounded path. // Atlas Systems">
+  <meta name="twitter:image" content="https://atlas-systems.uk/og/failure-laboratory.png">
+  <meta name="twitter:image:alt" content="Failure Laboratory. Trace the bounded path. // Atlas Systems">
+</head>
+<body class="failure-lab-page" data-atlas-bottom-nav="true" data-lab-shell data-lab-layout="standard" data-lab-route="failure-laboratory">
+  <nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
+    <div class="atlas-header__inner">
+      <div class="atlas-header__brand atlas-global-header__identity">
+        <a class="nav-wordmark atlas-wordmark" href="/" data-atlas-wordmark>Atlas<span class="atlas-wordmark__cursor">_</span>Systems</a>
+        <a class="nav-status atlas-status atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" data-atlas-status aria-label="Atlas Systems status: Checking" aria-live="off"><span class="status-dot atlas-status__dot" aria-hidden="true"></span><span class="atlas-estate-status-label" data-atlas-status-label>Checking</span></a>
+      </div>
+      <div class="atlas-header__nav atlas-global-header__nav" role="group" aria-label="Atlas Systems sections">
+        <a class="atlas-global-header__link" href="/work/">Work</a>
+        <a class="atlas-global-header__link" href="/writing/">Writing</a>
+        <a class="atlas-global-header__link" href="/lab/" aria-current="page">Lab</a>
+        <a class="atlas-global-header__link" href="/systems/">Systems</a>
+        <a class="atlas-global-header__link" href="/about/">About</a>
+      </div>
+      <div class="atlas-header__actions atlas-global-header__actions">
+        <button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button>
+      </div>
+    </div>
+  </nav>
+
+  <nav class="lab-context-nav lab-context-nav--compact" aria-label="Lab navigation" data-lab-context-mode="compact" data-current-lab-route="Failure Laboratory">
+    <div class="lab-context-compact">
+      <div class="lab-context-compact__crumbs" role="group" aria-label="Current Lab location">
+        <a href="/lab/">Lab</a>
+        <span class="lab-context-compact__separator" aria-hidden="true">/</span>
+        <span class="lab-context-compact__current" aria-current="page">Failure Laboratory</span>
+      </div>
+      <details class="lab-context-tools">
+        <summary>All Lab tools</summary>
+        <div class="lab-context-tools__menu" role="group" aria-label="All Lab tools">
+          <div class="lab-context-tools__group" data-lab-context-group="experience" role="group" aria-labelledby="failure-lab-tools-group-0">
+            <span class="lab-context-tools__group-label" id="failure-lab-tools-group-0">Experience</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/system-symphony/">System Symphony</a>
+              <a href="/lab/spectral-forge/">Spectral Forge</a>
+              <a href="/lab/signal/">Signal Garden</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="observe" role="group" aria-labelledby="failure-lab-tools-group-1">
+            <span class="lab-context-tools__group-label" id="failure-lab-tools-group-1">Observe</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/system-map/">System Map</a>
+              <a href="/lab/blackbox/">Blackbox</a>
+              <a href="/systems/observability/">Observability</a>
+              <a href="/lab/console/">Operations</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="verify" role="group" aria-labelledby="failure-lab-tools-group-2">
+            <span class="lab-context-tools__group-label" id="failure-lab-tools-group-2">Verify</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/failure-laboratory/">Failure Laboratory</a>
+              <a href="/lab/proof-chain/">Proof Chain</a>
+              <a href="/lab/conformance/">Estate Conformance</a>
+              <a href="/lab/xray/">X-Ray</a>
+              <a href="/systems/reliability/">Reliability</a>
+              <a href="/systems/evidence/">Evidence</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="explore" role="group" aria-labelledby="failure-lab-tools-group-3">
+            <span class="lab-context-tools__group-label" id="failure-lab-tools-group-3">Explore</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/speculum/">Speculum</a>
+              <a href="/lab/almost/">Almost</a>
+              <a href="/lab/drift/">Drift</a>
+              <a href="/lab/bearing/">The Bearing</a>
+              <a href="/lab/anomaly/">Shape Detector</a>
+            </div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </nav>
+
+  <main id="failure-laboratory-main">
+    <header class="failure-lab-hero">
+      <p class="eyebrow">LAB / VERIFY / FAILURE INVESTIGATION</p>
+      <h1 id="failure-lab-title">Failure Laboratory<span>.</span></h1>
+      <p class="lede">A guided investigation corridor for distributed-system failure questions. Choose a bounded scenario, follow the model-approved sequence, and enter the existing instrument that can answer that stage's question.</p>
+      <div class="failure-lab-actions page-actions">
+        <a class="action primary" href="#scenario-heading">Choose a scenario</a>
+        <a class="action" href="/lab/">Return to Lab</a>
+      </div>
+      <aside class="failure-lab-hero-boundary" aria-label="Failure Laboratory boundary">
+        <span class="failure-lab-label">PUBLIC ROUTE</span>
+        <strong>/lab/failure-laboratory/</strong>
+        <p>This page explains relationships. It does not run one shared incident, connect a common runtime, or replace any destination instrument.</p>
+      </aside>
+    </header>
+
+    <section class="failure-lab-boundary" aria-labelledby="boundary-heading">
+      <div>
+        <p class="failure-lab-kicker">READ THIS FIRST</p>
+        <h2 id="boundary-heading">One corridor. Separate proof boundaries.</h2>
+      </div>
+      <p>A scenario is context for choosing a bounded question. It is not a report that Atlas experienced that failure, and it does not make every instrument part of one executed event. Each room keeps its own evidence mode, source, freshness, and proof boundary.</p>
+      <dl class="failure-lab-boundary-facts">
+        <div><dt>SEQUENCE</dt><dd>Six investigation stages</dd></div>
+        <div><dt>STATE</dt><dd>Model relationship, not live incident</dd></div>
+        <div><dt>HANDOFF</dt><dd>Existing canonical route</dd></div>
+      </dl>
+    </section>
+
+    <section class="failure-lab-scenario" aria-labelledby="scenario-heading">
+      <div class="failure-lab-section-intro">
+        <p class="failure-lab-kicker">01 / SCENARIO CONTEXT</p>
+        <h2 id="scenario-heading">Which bounded scenario are you tracing?</h2>
+        <p>Changing this selection changes the explanatory relationships below. The selected label never changes a destination's mechanics or turns simulated behaviour into production evidence.</p>
+      </div>
+      <div class="failure-lab-scenario-layout">
+        <fieldset class="failure-lab-scenario-options">
+          <legend class="failure-lab-visually-hidden">Failure Laboratory scenarios</legend>
+          <label class="failure-lab-scenario-option">
+            <input id="scenario-normal-operation" type="radio" name="scenario" value="normal-operation" data-scenario-id="normal-operation" checked>
+            <span><strong>Normal operation</strong><small>Read a bounded baseline without calling it estate health.</small></span>
+          </label>
+          <label class="failure-lab-scenario-option">
+            <input id="scenario-latency-creep" type="radio" name="scenario" value="latency-creep" data-scenario-id="latency-creep">
+            <span><strong>Latency creep</strong><small>Trace delay in the instruments that own a delay model.</small></span>
+          </label>
+          <label class="failure-lab-scenario-option">
+            <input id="scenario-cache-collapse" type="radio" name="scenario" value="cache-collapse" data-scenario-id="cache-collapse">
+            <span><strong>Cache collapse</strong><small>Inspect bounded cache pressure and fallback behaviour.</small></span>
+          </label>
+          <label class="failure-lab-scenario-option">
+            <input id="scenario-dependency-failure" type="radio" name="scenario" value="dependency-failure" data-scenario-id="dependency-failure">
+            <span><strong>Dependency failure</strong><small>Follow an instrument's own dependency fault model.</small></span>
+          </label>
+          <label class="failure-lab-scenario-option">
+            <input id="scenario-network-partition" type="radio" name="scenario" value="network-partition" data-scenario-id="network-partition">
+            <span><strong>Network partition</strong><small>Compare the closest bounded isolation models.</small></span>
+          </label>
+          <label class="failure-lab-scenario-option">
+            <input id="scenario-cascading-failure" type="radio" name="scenario" value="cascading-failure" data-scenario-id="cascading-failure">
+            <span><strong>Cascading failure</strong><small>Trace bounded propagation or a named recorded escalation.</small></span>
+          </label>
+          <label class="failure-lab-scenario-option">
+            <input id="scenario-recovery" type="radio" name="scenario" value="recovery" data-scenario-id="recovery">
+            <span><strong>Recovery</strong><small>Keep recovery-like readings separate from recovery authority.</small></span>
+          </label>
+        </fieldset>
+        <aside class="failure-lab-scenario-reading" aria-labelledby="selected-scenario-label" aria-live="polite" aria-atomic="true">
+          <span class="failure-lab-context-badge">SELECTED CONTEXT</span>
+          <h3 id="selected-scenario-label">Normal operation</h3>
+          <p id="selected-scenario-question">What does a bounded baseline look like in the selected instrument?</p>
+          <div class="failure-lab-boundary-note">
+            <strong>This never means</strong>
+            <ul id="selected-scenario-boundary">
+              <li>The current Atlas estate is healthy.</li>
+              <li>No incident occurred.</li>
+              <li>All production dependencies are operating normally.</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="failure-lab-sequence" aria-labelledby="sequence-heading">
+      <div class="failure-lab-section-intro">
+        <p class="failure-lab-kicker">02 / INVESTIGATION SEQUENCE</p>
+        <h2 id="sequence-heading">Walk the corridor in order.</h2>
+        <p>Every stage has a question, an explicit relationship, and a handoff to an existing canonical instrument. A missing relationship stays visible as missing.</p>
+      </div>
+      <nav class="failure-lab-stage-nav" aria-label="Investigation stages">
+        <ol>
+          <li><a href="#stage-request"><span>01</span>Request</a></li>
+          <li><a href="#stage-dependencies"><span>02</span>Dependencies</a></li>
+          <li><a href="#stage-coordination"><span>03</span>Coordination</a></li>
+          <li><a href="#stage-impact"><span>04</span>Impact</a></li>
+          <li><a href="#stage-incident-evidence"><span>05</span>Incident evidence</a></li>
+          <li><a href="#stage-recovery"><span>06</span>Recovery</a></li>
+        </ol>
+      </nav>
+    </section>
+
+    <section class="failure-lab-journey" aria-labelledby="journey-heading">
+      <div class="failure-lab-journey-heading">
+        <div>
+          <p class="failure-lab-kicker">03 / THE CORRIDOR</p>
+          <h2 id="journey-heading">Selected model path: <span id="journey-scenario-label">Normal operation</span></h2>
+        </div>
+        <p class="failure-lab-journey-status" id="journey-status">Relationships are read from the shared Failure Laboratory model.</p>
+      </div>
+
+      <ol class="failure-lab-stage-list">
+        <li class="failure-lab-stage" id="stage-request" data-stage-id="request">
+          <div class="failure-lab-stage-marker" aria-hidden="true"><span>01</span><i></i></div>
+          <article class="failure-lab-stage-card">
+            <header class="failure-lab-stage-header"><div><p class="failure-lab-stage-index">REQUEST</p><h3>What happened to this request?</h3></div><span class="failure-lab-stage-kind">START HERE</span></header>
+            <div class="failure-lab-stage-content" data-stage-content="request">
+              <article class="failure-lab-reading" data-instrument-id="request-xray" data-support-type="direct">
+                <header><div><p class="failure-lab-reading-type">DIRECT / REQUEST</p><h4>Request X-Ray</h4></div><span class="failure-lab-evidence" data-evidence-mode="simulated">Simulated</span></header>
+                <p class="failure-lab-reading-question">What happened to this request?</p>
+                <dl class="failure-lab-reading-facts"><div><dt>NATIVE SCENARIO</dt><dd>Healthy baseline</dd></div><div><dt>IT DEMONSTRATES</dt><dd>A deterministic baseline request moving through the seven-layer browser model.</dd></div></dl>
+                <div class="failure-lab-proof"><strong>Proof boundary</strong><p>This is a bounded synthetic request baseline.</p></div>
+                <details><summary>What it does not prove</summary><ul><li>A real request is healthy.</li><li>The current estate has no request failures.</li></ul></details>
+                <a class="failure-lab-reading-link" href="/lab/xray/">Open Request X-Ray <span aria-hidden="true">→</span></a>
+              </article>
+            </div>
+            <a class="failure-lab-next" href="#stage-dependencies">Next: Dependencies <span aria-hidden="true">↓</span></a>
+          </article>
+        </li>
+
+        <li class="failure-lab-stage" id="stage-dependencies" data-stage-id="dependencies">
+          <div class="failure-lab-stage-marker" aria-hidden="true"><span>02</span><i></i></div>
+          <article class="failure-lab-stage-card">
+            <header class="failure-lab-stage-header"><div><p class="failure-lab-stage-index">DEPENDENCIES</p><h3>How did the problem propagate through dependencies?</h3></div><span class="failure-lab-stage-kind">PROPAGATION</span></header>
+            <div class="failure-lab-stage-content" data-stage-content="dependencies">
+              <article class="failure-lab-reading" data-instrument-id="cascade" data-support-type="direct">
+                <header><div><p class="failure-lab-reading-type">DIRECT / DEPENDENCIES</p><h4>CASCADE</h4></div><span class="failure-lab-evidence" data-evidence-mode="simulated">Simulated</span></header>
+                <p class="failure-lab-reading-question">How did a bounded fault propagate through dependencies and how did containment alter the result?</p>
+                <dl class="failure-lab-reading-facts"><div><dt>NATIVE SCENARIO</dt><dd>Baseline</dd></div><div><dt>IT DEMONSTRATES</dt><dd>The declared CASCADE graph before a synthetic fault is introduced.</dd></div></dl>
+                <div class="failure-lab-proof"><strong>Proof boundary</strong><p>This is a baseline state in a deterministic synthetic graph.</p></div>
+                <details><summary>What it does not prove</summary><ul><li>Production dependencies are healthy.</li><li>A real incident is absent.</li></ul></details>
+                <a class="failure-lab-reading-link" href="/lab/cascade/">Open CASCADE <span aria-hidden="true">→</span></a>
+              </article>
+            </div>
+            <a class="failure-lab-next" href="#stage-coordination">Next: Coordination <span aria-hidden="true">↓</span></a>
+          </article>
+        </li>
+
+        <li class="failure-lab-stage" id="stage-coordination" data-stage-id="coordination">
+          <div class="failure-lab-stage-marker" aria-hidden="true"><span>03</span><i></i></div>
+          <article class="failure-lab-stage-card">
+            <header class="failure-lab-stage-header"><div><p class="failure-lab-stage-index">COORDINATION</p><h3>How did replicated state, routing, isolation, and protection behave?</h3></div><span class="failure-lab-stage-kind">AGREEMENT</span></header>
+            <div class="failure-lab-stage-content" data-stage-content="coordination">
+              <article class="failure-lab-reading" data-instrument-id="consensus" data-support-type="direct">
+                <header><div><p class="failure-lab-reading-type">DIRECT / COORDINATION</p><h4>Consensus</h4></div><span class="failure-lab-evidence" data-evidence-mode="simulated">Simulated</span></header>
+                <p class="failure-lab-reading-question">How did the bounded replicated-state and quorum teaching model behave?</p>
+                <dl class="failure-lab-reading-facts"><div><dt>NATIVE SCENARIO</dt><dd>CLEAN</dd></div><div><dt>IT DEMONSTRATES</dt><dd>A clean starting point for the fixed-leader three-replica teaching model.</dd></div></dl>
+                <div class="failure-lab-proof"><strong>Proof boundary</strong><p>This is a clean state in a fixed teaching model.</p></div>
+                <details><summary>What it does not prove</summary><ul><li>A production cluster is healthy or converged.</li></ul></details>
+                <a class="failure-lab-reading-link" href="/lab/consensus/">Open Consensus <span aria-hidden="true">→</span></a>
+              </article>
+              <article class="failure-lab-reading" data-instrument-id="neon-relay" data-support-type="direct">
+                <header><div><p class="failure-lab-reading-type">DIRECT / COORDINATION</p><h4>Neon Relay</h4></div><span class="failure-lab-evidence" data-evidence-mode="simulated">Simulated</span></header>
+                <p class="failure-lab-reading-question">How did bounded routing, isolation, protection, and repair behave?</p>
+                <dl class="failure-lab-reading-facts"><div><dt>NATIVE SCENARIO</dt><dd>Prime board</dd></div><div><dt>IT DEMONSTRATES</dt><dd>A powered starting state for the relay's synthetic circuit puzzles.</dd></div></dl>
+                <div class="failure-lab-proof"><strong>Proof boundary</strong><p>This is a synthetic circuit baseline.</p></div>
+                <details><summary>What it does not prove</summary><ul><li>Production routes or infrastructure are healthy.</li></ul></details>
+                <a class="failure-lab-reading-link" href="/lab/neon-relay/">Open Neon Relay <span aria-hidden="true">→</span></a>
+              </article>
+            </div>
+            <a class="failure-lab-next" href="#stage-impact">Next: Impact <span aria-hidden="true">↓</span></a>
+          </article>
+        </li>
+
+        <li class="failure-lab-stage" id="stage-impact" data-stage-id="impact">
+          <div class="failure-lab-stage-marker" aria-hidden="true"><span>04</span><i></i></div>
+          <article class="failure-lab-stage-card">
+            <header class="failure-lab-stage-header"><div><p class="failure-lab-stage-index">IMPACT</p><h3>Which public components or contracts could be affected?</h3></div><span class="failure-lab-stage-kind">CONTEXT</span></header>
+            <div class="failure-lab-stage-content" data-stage-content="impact">
+              <div class="failure-lab-unmapped-stage" data-support-type="unsupported">
+                <span class="failure-lab-evidence" data-evidence-mode="not-applicable-unscored">Not applicable / unscored</span>
+                <h4>No normal-operation impact target is mapped.</h4>
+                <p>Atlas Twin context is available only through the public Evidence Console and remains separate from this selected baseline. A relationship that <em>could be affected</em> is never rewritten as a component that was affected.</p>
+                <p class="failure-lab-proof-copy">The current model does not infer impact from a normal-operation label.</p>
+              </div>
+            </div>
+            <a class="failure-lab-next" href="#stage-incident-evidence">Next: Incident evidence <span aria-hidden="true">↓</span></a>
+          </article>
+        </li>
+
+        <li class="failure-lab-stage" id="stage-incident-evidence" data-stage-id="incident-evidence">
+          <div class="failure-lab-stage-marker" aria-hidden="true"><span>05</span><i></i></div>
+          <article class="failure-lab-stage-card">
+            <header class="failure-lab-stage-header"><div><p class="failure-lab-stage-index">INCIDENT EVIDENCE</p><h3>What incident evidence was actually recorded or proven?</h3></div><span class="failure-lab-stage-kind">RECORD</span></header>
+            <div class="failure-lab-stage-content" data-stage-content="incident-evidence">
+              <article class="failure-lab-reading" data-instrument-id="blackbox" data-support-type="contextual">
+                <header><div><p class="failure-lab-reading-type">CONTEXTUAL / INCIDENT EVIDENCE</p><h4>Blackbox</h4></div><span class="failure-lab-evidence" data-evidence-mode="recorded-replay">Recorded replay</span></header>
+                <p class="failure-lab-reading-question">What incident evidence was actually recorded?</p>
+                <dl class="failure-lab-reading-facts"><div><dt>NATIVE SCENARIO</dt><dd>Record-specific before-failure frames</dd></div><div><dt>IT DEMONSTRATES</dt><dd>A named recorder record may provide historical baseline frames before its recorded incident.</dd></div></dl>
+                <div class="failure-lab-proof"><strong>Proof boundary</strong><p>Only a named recorded Blackbox record can support this contextual reading.</p></div>
+                <details><summary>What it does not prove</summary><ul><li>The current estate is normal.</li><li>The replay is current live evidence.</li></ul></details>
+                <a class="failure-lab-reading-link" href="/lab/blackbox/">Open Blackbox <span aria-hidden="true">→</span></a>
+              </article>
+            </div>
+            <a class="failure-lab-next" href="#stage-recovery">Next: Recovery <span aria-hidden="true">↓</span></a>
+          </article>
+        </li>
+
+        <li class="failure-lab-stage failure-lab-stage--last" id="stage-recovery" data-stage-id="recovery">
+          <div class="failure-lab-stage-marker" aria-hidden="true"><span>06</span><i></i></div>
+          <article class="failure-lab-stage-card">
+            <header class="failure-lab-stage-header"><div><p class="failure-lab-stage-index">RECOVERY</p><h3>What can be truthfully said about recovery?</h3></div><span class="failure-lab-stage-kind">GAP KEPT OPEN</span></header>
+            <div class="failure-lab-stage-content" data-stage-content="recovery">
+              <div class="failure-lab-recovery-gap" data-recovery-gap>
+                <span class="failure-lab-context-badge">NO SINGLE AUTHORITY</span>
+                <h4>There is no single current Phase 3 Recovery Evidence instrument.</h4>
+                <p>Recovery-like output, aftermath, or a named lifecycle fact does not prove universal current service recovery or root-cause resolution.</p>
+                <p class="failure-lab-proof-copy">Allowed readings stay distinct: simulated, recorded replay, measured, stale measured, unavailable, and unknown.</p>
+              </div>
+            </div>
+            <p class="failure-lab-next failure-lab-next--end">The corridor ends at the evidence boundary. No universal recovery claim is added.</p>
+          </article>
+        </li>
+      </ol>
+    </section>
+
+    <section class="failure-lab-cross-cutting" aria-labelledby="cross-cutting-heading">
+      <div class="failure-lab-section-intro">
+        <p class="failure-lab-kicker">04 / OPTIONAL INTERPRETATION</p>
+        <h2 id="cross-cutting-heading">Interpretation layers stay off the main rail.</h2>
+        <p>Spectral Forge and System SYMPHONY can add interpretation where the shared model permits it. They are not mandatory linear stages, and their underlying evidence mode stays visible.</p>
+      </div>
+      <div class="failure-lab-supporting-content" id="cross-cutting-content">
+        <article class="failure-lab-supporting-reading" data-instrument-id="spectral-forge" data-support-type="cross-cutting">
+          <header><div><p class="failure-lab-reading-type">CROSS-CUTTING / OPTIONAL</p><h3>Spectral Forge</h3></div><span class="failure-lab-evidence" data-evidence-mode="simulated">Simulated</span></header>
+          <p>How synthetic baseline telemetry can be mapped to sound and visual state.</p>
+          <p class="failure-lab-proof-copy">A deterministic mapping from selected synthetic telemetry to sound and visual state. Its audio is not incident evidence.</p>
+          <a class="failure-lab-reading-link" href="/lab/spectral-forge/">Open Spectral Forge <span aria-hidden="true">→</span></a>
+        </article>
+        <article class="failure-lab-supporting-reading" data-instrument-id="system-symphony" data-support-type="cross-cutting">
+          <header><div><p class="failure-lab-reading-type">CROSS-CUTTING / OPTIONAL</p><h3>System SYMPHONY</h3></div><div class="failure-lab-evidence-list"><span class="failure-lab-evidence" data-evidence-mode="simulated">Simulated</span><span class="failure-lab-evidence" data-evidence-mode="measured">Measured</span><span class="failure-lab-evidence" data-evidence-mode="stale-measured">Stale measured</span><span class="failure-lab-evidence" data-evidence-mode="recorded-replay">Recorded replay</span><span class="failure-lab-evidence" data-evidence-mode="unknown">Unknown</span></div></header>
+          <p>What does bounded changing telemetry sound like while uncertainty remains visible?</p>
+          <p class="failure-lab-proof-copy">A read-only sonification of selected source state and uncertainty. Musical state is not incident authority.</p>
+          <a class="failure-lab-reading-link" href="/lab/system-symphony/">Open System SYMPHONY <span aria-hidden="true">→</span></a>
+        </article>
+      </div>
+    </section>
+
+    <section class="failure-lab-unmapped" aria-labelledby="unmapped-heading">
+      <div class="failure-lab-section-intro">
+        <p class="failure-lab-kicker">05 / MODEL BOUNDARY</p>
+        <h2 id="unmapped-heading">Unsupported relationships stay visible.</h2>
+        <p>The selected scenario does not get a vaguely similar instrument. “Not applicable / unscored” means this relationship is intentionally not mapped; it is not a hidden failure and it is not a zero score.</p>
+      </div>
+      <div class="failure-lab-unmapped-list" id="unsupported-content">
+        <article class="failure-lab-unmapped-item" data-instrument-id="atlas-twin-context">
+          <div><h3>Atlas Twin context</h3><span class="failure-lab-evidence" data-evidence-mode="not-applicable-unscored">Not applicable / unscored</span></div>
+          <p>Twin describes bounded relationships that <em>could be affected</em>; it does not represent a normal-operation state.</p>
+        </article>
+        <article class="failure-lab-unmapped-item" data-instrument-id="evidence-console">
+          <div><h3>Evidence Console</h3><span class="failure-lab-evidence" data-evidence-mode="not-applicable-unscored">Not applicable / unscored</span></div>
+          <p>The Console reads named claims and context; it is not a normal-operation simulator.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="failure-lab-model-paths" aria-labelledby="paths-heading">
+      <details open>
+        <summary id="paths-heading">Model-approved reading paths</summary>
+        <div id="narrative-content">
+          <article class="failure-lab-path">
+            <h3>From dependency failure to recovery</h3>
+            <p>A beginner-readable bounded path from a synthetic request baseline through dependency failure and propagation to an explicitly limited recovery reading.</p>
+            <ol><li>Request / Normal operation / Request X-Ray</li><li>Dependencies / Dependency failure / CASCADE</li><li>Dependencies / Cascading failure / CASCADE</li><li>Incident evidence / Cascading failure / Blackbox</li><li>Recovery / Recovery / CASCADE</li></ol>
+            <p class="failure-lab-omitted">Omitted stages: Coordination and Impact. The path does not invent evidence merely to fill the sequence.</p>
+          </article>
+          <article class="failure-lab-path">
+            <h3>From bounded isolation to recovery</h3>
+            <p>A distributed-systems path using the closest bounded coordination and routing models, with its missing stages kept explicit.</p>
+            <ol><li>Request / Normal operation / Request X-Ray</li><li>Coordination / Network partition / Consensus</li><li>Coordination / Network partition / Neon Relay</li><li>Recovery / Recovery / Consensus</li></ol>
+            <p class="failure-lab-omitted">Omitted stages: Dependencies, Impact, and Incident evidence. No current instrument supplies those stages for this bounded partition-oriented narrative.</p>
+          </article>
+        </div>
+        <p class="failure-lab-path-note">These are model-approved explanatory paths, not synchronized execution traces. Each handoff still opens a separate instrument with its own state and evidence contract.</p>
+      </details>
+    </section>
+
+    <section class="failure-lab-destinations" aria-labelledby="destinations-heading">
+      <details>
+        <summary id="destinations-heading">Canonical rooms and proof boundaries</summary>
+        <p>These links keep every participating destination reachable without JavaScript. They are a handoff index, not a second product directory and not a shared runtime.</p>
+        <ul>
+          <li><a href="/lab/xray/"><strong>Request X-Ray</strong><span>Bounded request-path simulation</span></a></li>
+          <li><a href="/lab/cascade/"><strong>CASCADE</strong><span>Synthetic propagation and containment</span></a></li>
+          <li><a href="/lab/consensus/"><strong>Consensus</strong><span>Fixed-leader quorum teaching model</span></a></li>
+          <li><a href="/lab/neon-relay/"><strong>Neon Relay</strong><span>Bounded routing and protection circuit</span></a></li>
+          <li><a href="/systems/evidence/"><strong>Evidence Console</strong><span>Named public lifecycle and impact-context records</span></a></li>
+          <li><a href="/lab/blackbox/"><strong>Blackbox</strong><span>Measured recorder and recorded replay</span></a></li>
+          <li><a href="/lab/spectral-forge/"><strong>Spectral Forge</strong><span>Optional synthetic interpretation layer</span></a></li>
+          <li><a href="/lab/system-symphony/"><strong>System SYMPHONY</strong><span>Optional source-aware sonification layer</span></a></li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="failure-lab-reading-guide" aria-labelledby="reading-guide-heading">
+      <div class="failure-lab-section-intro">
+        <p class="failure-lab-kicker">06 / EVIDENCE LANGUAGE</p>
+        <h2 id="reading-guide-heading">Read the label before the result.</h2>
+        <p>The mode says what kind of evidence a destination can present. It does not make this route a live feed. For measured or recorded readings, source and freshness remain owned by the destination record.</p>
+      </div>
+      <dl class="failure-lab-mode-list">
+        <div><dt><span class="failure-lab-evidence" data-evidence-mode="measured">Measured</span></dt><dd>A current source-owned measurement, with source and observation time shown by the destination.</dd></div>
+        <div><dt><span class="failure-lab-evidence" data-evidence-mode="stale-measured">Stale measured</span></dt><dd>A previous measurement whose freshness threshold has elapsed.</dd></div>
+        <div><dt><span class="failure-lab-evidence" data-evidence-mode="recorded-replay">Recorded replay</span></dt><dd>A named historical record played back; it is not current live state.</dd></div>
+        <div><dt><span class="failure-lab-evidence" data-evidence-mode="simulated">Simulated</span></dt><dd>Bounded synthetic behaviour created by an instrument; it is not production failure.</dd></div>
+        <div><dt><span class="failure-lab-evidence" data-evidence-mode="unavailable">Unavailable</span></dt><dd>Expected evidence cannot currently be retrieved or served.</dd></div>
+        <div><dt><span class="failure-lab-evidence" data-evidence-mode="unknown">Unknown</span></dt><dd>The meaning or state is not established by the available record.</dd></div>
+        <div><dt><span class="failure-lab-evidence" data-evidence-mode="not-applicable-unscored">Not applicable / unscored</span></dt><dd>This scenario/instrument relationship is intentionally unsupported; no score is inferred.</dd></div>
+      </dl>
+    </section>
+
+    <aside class="failure-lab-guardrails" aria-labelledby="guardrails-heading">
+      <p class="failure-lab-kicker">CARRY THESE BOUNDARIES BETWEEN ROOMS</p>
+      <h2 id="guardrails-heading">The corridor does not close the unknowns.</h2>
+      <ul>
+        <li>A selected scenario is context only. It does not mean a real incident occurred.</li>
+        <li>Simulated behaviour is not production failure, and route availability does not prove the underlying scenario is live.</li>
+        <li>A topology relationship does not prove propagation.</li>
+        <li>Atlas Twin says only what <em>could be affected</em>; Twin is not incident evidence and never becomes “was affected” here.</li>
+        <li>Recorded replay is not current live state. Sonification is not automatically incident evidence.</li>
+        <li>Source or merge state does not prove deployment, runtime, or live state.</li>
+        <li>Recovery-like output does not create one universal Phase 3 Recovery Evidence authority.</li>
+      </ul>
+    </aside>
+
+    <noscript>
+      <p class="failure-lab-noscript">JavaScript is optional. The default Normal operation reading, all six stages, unsupported mappings, model-approved paths, evidence language, and canonical handoff links remain available above.</p>
+    </noscript>
+  </main>
+
+  <script type="module" src="/lab/shared/shell.js?v=20260813-xray-route"></script>
+  <script type="module" src="/lab/failure-laboratory/failure-laboratory.js?v=20260913-failure-lab"></script>
+  <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-inner atlas-mobile-nav__inner">
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><span>Work</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/writing/"><span>Writing</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item active" href="/lab/" aria-current="page"><span>Lab</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><span>Systems</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><span>About</span></a>
+    </div>
+  </nav>
+</body>
+</html>

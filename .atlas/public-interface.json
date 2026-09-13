@@ -403,6 +403,53 @@
       ]
     },
     {
+      "url": "https://atlas-systems.uk/lab/failure-laboratory/",
+      "source": "lab/failure-laboratory/index.html",
+      "kind": "lab-tool",
+      "indexing": "index",
+      "global_header": true,
+      "search": true,
+      "status_indicator": "aggregate-link",
+      "contextual_navigation": true,
+      "icons": [
+        "favicon.ico",
+        "favicon-16x16.png",
+        "favicon-32x32.png",
+        "apple-touch-icon.png",
+        "android-chrome-192x192.png",
+        "android-chrome-512x512.png",
+        "site.webmanifest"
+      ],
+      "metadata": [
+        "title",
+        "description",
+        "canonical",
+        "theme-color",
+        "icons",
+        "og:type",
+        "og:title",
+        "og:description",
+        "og:url",
+        "og:site_name",
+        "og:image",
+        "og:image:width",
+        "og:image:height",
+        "og:image:alt",
+        "twitter:card",
+        "twitter:title",
+        "twitter:description",
+        "twitter:image"
+      ],
+      "footer": "Failure Laboratory corridor and Atlas estate escape",
+      "link_policy": "atlas-owned-same-tab-external-safe-new-tab",
+      "generated_owner": null,
+      "notes": [
+        "The corridor explains model-approved relationships across existing instruments; it does not execute a shared incident or redesign its destinations.",
+        "Scenario labels are context only. Evidence mode, source, freshness, deployment, runtime, and live-state boundaries remain destination-owned.",
+        "Atlas Motion is excluded from the Failure Laboratory participation model."
+      ]
+    },
+    {
       "url": "https://atlas-systems.uk/404.html",
       "source": "404.html",
       "kind": "error",
