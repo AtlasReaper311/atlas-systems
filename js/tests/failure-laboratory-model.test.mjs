@@ -29,9 +29,17 @@ function relationship(scenarioId, instrumentId) {
 
 test("the checked-in model is valid and every stage identifier is unique", () => {
   assert.doesNotThrow(() => validateFailureLaboratoryModel(model));
+  assert.equal(model.authority.futureRoute, "/lab/failure-laboratory/");
+  assert.equal(model.authority.futureRouteStatus, "implemented");
   assert.deepEqual(model.journey.sequence, STAGE_IDS);
   assert.deepEqual(model.journey.stages.map((stage) => stage.id), STAGE_IDS);
   assert.equal(new Set(model.journey.stages.map((stage) => stage.id)).size, STAGE_IDS.length);
+});
+
+test("the reserved lifecycle marker cannot coexist with an implemented route", () => {
+  const invalid = cloneModel();
+  invalid.authority.futureRouteStatus = "reserved-not-implemented";
+  assert.throws(() => validateFailureLaboratoryModel(invalid), /while reserved/);
 });
 
 test("stage ordering and safe next-stage links are deterministic", () => {

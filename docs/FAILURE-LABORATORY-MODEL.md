@@ -1,8 +1,8 @@
 # Failure Laboratory shared model
 
 `data/failure-laboratory-model.json` is the repository-owned static contract
-for Phase 3.1 (#284). It gives the later `/lab/failure-laboratory/` surface a
-stable journey sequence, scenario vocabulary, instrument identities, safe
+for the Failure Laboratory. It gives `/lab/failure-laboratory/` a stable
+journey sequence, scenario vocabulary, instrument identities, safe
 destinations, evidence modes, and proof boundaries without creating a runtime
 or changing any existing instrument.
 
@@ -41,7 +41,9 @@ unknown evidence must keep their own boundaries.
 ## Ownership and use
 
 This JSON is source-owned by `atlas-systems`; it is not generated output and it
-does not fetch live state. `js/failure-laboratory-model.mjs` provides the
+does not fetch live state. Its route authority was `reserved-not-implemented`
+for #284 and is now `implemented` because the Phase 3.2 route exists on the
+same exact source tree. `js/failure-laboratory-model.mjs` provides the
 Node-native loader, deterministic serializer, and offline validation used by
 the focused tests in `js/tests/failure-laboratory-model.test.mjs`.
 

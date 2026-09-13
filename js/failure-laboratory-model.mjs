@@ -379,11 +379,15 @@ export function validateFailureLaboratoryModel(model, { rootDir = fileURLToPath(
   if (!isSafePublicRoute(authority.futureRoute)) {
     fail("model.authority.futureRoute", "must be a safe reserved local public route");
   }
-  if (authority.futureRouteStatus !== "reserved-not-implemented") {
-    fail("model.authority.futureRouteStatus", "must keep the public Failure Laboratory route unimplemented");
+  if (!["reserved-not-implemented", "implemented"].includes(authority.futureRouteStatus)) {
+    fail("model.authority.futureRouteStatus", "must be reserved-not-implemented or implemented");
   }
-  if (existsSync(routeFilePath(rootDir, authority.futureRoute))) {
-    fail("model.authority.futureRoute", "must not have a public route implementation in this issue");
+  const routeImplemented = existsSync(routeFilePath(rootDir, authority.futureRoute));
+  if (authority.futureRouteStatus === "reserved-not-implemented" && routeImplemented) {
+    fail("model.authority.futureRoute", "must not have a public route implementation while reserved");
+  }
+  if (authority.futureRouteStatus === "implemented" && !routeImplemented) {
+    fail("model.authority.futureRoute", "must resolve to the implemented public route");
   }
 
   requireExactValues(model.evidenceModes, ACCEPTED_EVIDENCE_MODES, "model.evidenceModes");

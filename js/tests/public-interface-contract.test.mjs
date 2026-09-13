@@ -36,7 +36,7 @@ const LAB_SHELL_ROUTES = Object.freeze([
   "lab/almost/index.html", "lab/anomaly/index.html", "lab/bearing/index.html",
   "lab/blackbox/index.html", "lab/conformance/index.html", "lab/consensus/index.html",
   "lab/console/index.html",
-  "lab/drift/index.html", "lab/index.html", "lab/proof-chain/index.html",
+  "lab/drift/index.html", "lab/failure-laboratory/index.html", "lab/index.html", "lab/proof-chain/index.html",
   "lab/signal/index.html", "lab/spectral-forge/index.html", "lab/speculum/index.html",
   "lab/system-map/index.html", "lab/atlas-motion/index.html", "lab/system-symphony/build-log/index.html",
   "lab/system-symphony/index.html", "lab/system-symphony/radio/index.html",
@@ -561,7 +561,7 @@ test("every HTML route consumes an accepted repository-local font bundle", () =>
 });
 
 test("new directory routes and preserved console exist", () => {
-  for (const path of ["systems/index.html", "lab/index.html", "lab/system-map/index.html", "lab/console/index.html"]) {
+  for (const path of ["systems/index.html", "lab/index.html", "lab/system-map/index.html", "lab/failure-laboratory/index.html", "lab/console/index.html"]) {
     assert.equal(fs.existsSync(path), true, `${path} must exist`);
   }
   const headers = fs.readFileSync("_headers", "utf8");

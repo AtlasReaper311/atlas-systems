@@ -2,6 +2,7 @@
 
 const SURFACE_ROUTES = Object.freeze({
   "/lab/": Object.freeze({ surface: "lab", mode: "directory", eyebrow: "LAB / DIRECTORY / TECHNICAL WORKSPACE" }),
+  "/lab/failure-laboratory/": Object.freeze({ surface: "lab", mode: "standard", eyebrow: "LAB / VERIFY / FAILURE INVESTIGATION" }),
   "/lab/system-map/": Object.freeze({ surface: "lab", mode: "standard", eyebrow: "LAB / OBSERVE / ARCHITECTURE EVIDENCE" }),
   "/lab/atlas-motion/": Object.freeze({ surface: "lab", mode: "standard", eyebrow: "LAB / EXPERIENCE / RELEASED MOTION" }),
   "/lab/blackbox/": Object.freeze({ surface: "lab", mode: "standard", eyebrow: "LAB / OBSERVE / INCIDENT REPLAY" }),
