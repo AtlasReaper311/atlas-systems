@@ -238,7 +238,7 @@
 
 .failure-lab-scenario-option {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.8rem;
   min-width: 0;
   min-height: 44px;
@@ -261,10 +261,12 @@
 }
 
 .failure-lab-scenario-option input {
-  flex: 0 0 auto;
-  width: 1.1rem;
-  height: 1.1rem;
-  margin: 0.1rem 0 0;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
   accent-color: var(--failure-lab-amber);
 }
 
@@ -628,11 +630,10 @@
   border-top: 1px solid var(--failure-lab-line);
 }
 
-.failure-lab-reading summary,
-.failure-lab-model-paths summary,
-.failure-lab-destinations summary {
+.failure-lab-page summary {
   display: flex;
   align-items: center;
+  min-width: 44px;
   min-height: 44px;
   padding: 0.75rem 0;
   color: var(--failure-lab-ink);

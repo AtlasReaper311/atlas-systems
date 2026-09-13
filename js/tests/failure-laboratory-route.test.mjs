@@ -7,6 +7,7 @@ import { loadFailureLaboratoryModel, validateFailureLaboratoryModel } from "../f
 
 const ROUTE = "/lab/failure-laboratory/";
 const html = fs.readFileSync("lab/failure-laboratory/index.html", "utf8");
+const css = fs.readFileSync("lab/failure-laboratory/failure-laboratory.css", "utf8");
 const script = fs.readFileSync("lab/failure-laboratory/failure-laboratory.js", "utf8");
 const model = loadFailureLaboratoryModel();
 const manifest = JSON.parse(fs.readFileSync(".atlas/public-interface.json", "utf8"));
@@ -48,6 +49,14 @@ test("the no-JS route keeps the complete sequence and every participating destin
   assert.match(html, /could be affected/);
   assert.match(html, /There is no single current Phase 3 Recovery Evidence instrument/);
   assert.doesNotMatch(html, /atlas-motion/);
+});
+
+test("route-local controls keep governed 44px targets and reduced-motion coverage", () => {
+  assert.match(css, /\.failure-lab-scenario-option input\s*\{[^}]*min-width:\s*44px;[^}]*min-height:\s*44px;/s);
+  assert.match(css, /\.failure-lab-page summary\s*\{[^}]*min-width:\s*44px;[^}]*min-height:\s*44px;/s);
+  assert.match(css, /\.failure-lab-actions \.action,\s*\.failure-lab-reading-link\s*\{[^}]*min-height:\s*44px;/s);
+  assert.match(css, /\.failure-lab-next\s*\{[^}]*min-height:\s*44px;/s);
+  assert.match(css, /@media \(prefers-reduced-motion:\s*reduce\)/);
 });
 
 test("scenario selection consumes model relationships without inferring unsupported pairs", () => {
