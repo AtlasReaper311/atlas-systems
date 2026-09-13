@@ -59,6 +59,24 @@ test("route-local controls keep governed 44px targets and reduced-motion coverag
   assert.match(css, /@media \(prefers-reduced-motion:\s*reduce\)/);
 });
 
+test("presentation keeps the reading order and intentional evidence gaps visible", () => {
+  assert.match(html, /A guided systems-failure investigation/);
+  assert.match(html, /failure-lab-hero-path[\s\S]*Scenario[\s\S]*Six-stage corridor[\s\S]*Specialist evidence/);
+  assert.match(html, /failure-lab-hero-path-label[^>]*>READ IN THIS ORDER \/ GUIDED, NOT LIVE/);
+  assert.match(html, /id="hero-selected-scenario">Normal operation/);
+  assert.equal((html.match(/data-stage-nav-link/g) || []).length, model.journey.sequence.length);
+  assert.match(html, /data-stage-nav-link href="#stage-request" aria-current="step"/);
+  assert.match(html, /EVIDENCE GAP \/ INTENTIONAL/);
+  assert.match(html, /OFF-RAIL \/ OPTIONAL \/ NOT A STAGE/);
+  assert.match(css, /\.failure-lab-stage-nav ol::before/);
+  assert.match(css, /scroll-margin-top:\s*calc\(var\(--lab-shell-stack-height/);
+  assert.match(css, /\.failure-lab-stage-content\s*\{[\s\S]*display: grid/);
+  assert.match(script, /IntersectionObserver/);
+  assert.match(script, /setText\("#hero-selected-scenario", scenario\.label\)/);
+  assert.match(script, /EVIDENCE GAP \/ INTENTIONAL/);
+  assert.doesNotMatch(script, /details\.open\s*=\s*true/);
+});
+
 test("scenario selection consumes model relationships without inferring unsupported pairs", () => {
   assert.match(script, /fetch\(MODEL_URL/);
   assert.match(script, /relationship\.supportType === "unsupported"/);

@@ -3,6 +3,7 @@
 const MODEL_URL = "/data/failure-laboratory-model.json";
 const main = document.querySelector("#failure-laboratory-main");
 const scenarioInputs = [...document.querySelectorAll('input[name="scenario"][data-scenario-id]')];
+const stageNavLinks = [...document.querySelectorAll("[data-stage-nav-link]")];
 let activeModel = null;
 
 const EVIDENCE_LABELS = Object.freeze({
@@ -173,7 +174,6 @@ function createReadingCard(model, relationship, instrument, stageAssociation) {
     ...relationship.readings.flatMap((reading) => reading.doesNotProve),
   ]);
   const details = element("details");
-  details.open = true;
   appendText(details, "summary", "", "What it does not prove");
   const list = element("ul");
   for (const claim of nonClaims) appendText(list, "li", "", claim);
@@ -203,6 +203,7 @@ function createUnmappedStage(scenario, stage) {
 function createRecoveryGap(gap) {
   const block = element("div", "failure-lab-recovery-gap");
   block.dataset.recoveryGap = gap.status;
+  block.appendChild(element("span", "failure-lab-gap-flag", "EVIDENCE GAP / INTENTIONAL"));
   block.appendChild(element("span", "failure-lab-context-badge", "NO SINGLE AUTHORITY"));
   appendText(block, "h4", "", gap.summary);
   appendText(block, "p", "", gap.nonClaim);
@@ -254,7 +255,6 @@ function createSupportingCard(relationship, instrument) {
   appendText(card, "p", "", readings.join(" "));
   appendText(card, "p", "failure-lab-proof-copy", relationship.proofBoundary);
   const details = element("details");
-  details.open = true;
   appendText(details, "summary", "", "What it does not prove");
   const list = element("ul");
   for (const claim of unique([
@@ -305,7 +305,6 @@ function renderUnsupported(model, scenario) {
     appendText(item, "p", "", relationship.unsupportedReason || relationship.proofBoundary);
     appendText(item, "p", "failure-lab-proof-copy", relationship.proofBoundary);
     const details = element("details");
-    details.open = true;
     appendText(details, "summary", "", "Boundary carried forward");
     const list = element("ul");
     for (const claim of unique([...instrument.nonClaims, ...relationship.nonClaims])) appendText(list, "li", "", claim);
@@ -342,6 +341,39 @@ function renderNarratives(model) {
   }
 }
 
+function updateStageNavigation(stageId) {
+  if (!stageId) return;
+  for (const link of stageNavLinks) {
+    const active = link.getAttribute("href") === `#stage-${stageId}`;
+    if (active) link.setAttribute("aria-current", "step");
+    else link.removeAttribute("aria-current");
+    link.closest("[data-stage-nav-item]")?.toggleAttribute("data-active", active);
+  }
+  if (main) main.dataset.activeStage = stageId;
+}
+
+function installStageNavigation() {
+  if (!stageNavLinks.length) return;
+  for (const link of stageNavLinks) {
+    link.addEventListener("click", () => updateStageNavigation(link.getAttribute("href")?.replace("#stage-", "")));
+  }
+  window.addEventListener("hashchange", () => {
+    const stageId = window.location.hash.startsWith("#stage-")
+      ? window.location.hash.replace("#stage-", "")
+      : null;
+    if (stageId) updateStageNavigation(stageId);
+  });
+  if (!("IntersectionObserver" in window)) return;
+  const stages = [...document.querySelectorAll(".failure-lab-stage[data-stage-id]")];
+  const observer = new IntersectionObserver((entries) => {
+    const visible = entries
+      .filter((entry) => entry.isIntersecting)
+      .sort((first, second) => second.intersectionRatio - first.intersectionRatio);
+    if (visible[0]) updateStageNavigation(visible[0].target.dataset.stageId);
+  }, { rootMargin: "-18% 0px -60%", threshold: [0.1, 0.35, 0.7] });
+  for (const stage of stages) observer.observe(stage);
+}
+
 function renderModel(model, scenarioId, updateUrlState = false) {
   const scenario = modelScenario(model, scenarioId);
   if (!scenario) return;
@@ -350,6 +382,7 @@ function renderModel(model, scenarioId, updateUrlState = false) {
   updateScenarioControls(model, scenario);
   setText("#selected-scenario-label", scenario.label);
   setText("#selected-scenario-question", scenario.question);
+  setText("#hero-selected-scenario", scenario.label);
   setText("#journey-scenario-label", scenario.label);
   setText("#journey-status", "Model-approved relationships only. No instrument has been executed by this corridor.");
   renderScenarioBoundary(scenario);
@@ -388,6 +421,7 @@ async function loadModel() {
   }
 }
 
+installStageNavigation();
 if (main) void loadModel();
 
 export {
