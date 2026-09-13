@@ -78,6 +78,29 @@ body[data-lab-route="spectral-forge"] .forge-product-identity > .atlas-audio-fam
   margin-top: 4px;
 }
 
+body[data-lab-route="spectral-forge"] .forge-failure-lab-context {
+  width: min(var(--forge-controls), calc(100% - clamp(32px, 4vw, 64px)));
+  margin: 0 auto 8px;
+  color: #888894;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+body[data-lab-route="spectral-forge"] .forge-failure-lab-context .failure-lab-handoff {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  color: #aaa9a0;
+  text-decoration: none;
+}
+
+body[data-lab-route="spectral-forge"] .forge-failure-lab-context .failure-lab-handoff:hover,
+body[data-lab-route="spectral-forge"] .forge-failure-lab-context .failure-lab-handoff:focus-visible {
+  color: #f5a623;
+  text-decoration: underline;
+}
+
 body[data-lab-route="spectral-forge"] .forge-evidence-surface {
   align-self: center;
   flex: none;
