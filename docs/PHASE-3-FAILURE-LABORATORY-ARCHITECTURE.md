@@ -67,6 +67,7 @@ Relevant current source heads were also inspected read-only:
 | `AtlasReaper311/atlas-blackbox` | `333c6d8a19b67172c4fb947ae3ecd76514d5ab21` | Blackbox recorder, incident, and replay contract. |
 | `AtlasReaper311/atlas-twin` | `937ac6ab929085f8e8f162dd2344802d2617f3d9` | Offline Twin producer context; no write was made. |
 | `AtlasReaper311/atlas-api-public` | `daf91a2bd79ad0e57f004c07849c1cb17ee9178e` | Public Twin projection serving contract. |
+| `AtlasReaper311/atlas-motion` | `fd3c720924dfa774f1df3b467ffc176031efc5a7` | Separate in-flight Motion completion stream; issue [#21](https://github.com/AtlasReaper311/atlas-motion/issues/21) remains open. |
 
 Current repository files remain the presentation authority for the local
 Atlas Systems copies. External source/contracts are used only where the local
@@ -104,7 +105,7 @@ manifest entry, or indexed first-class directory destination.
 | Blackbox | `/lab/blackbox/`; [`lab/blackbox/`](../lab/blackbox/), backed by the public `atlas-blackbox` Worker/API contract. | Public Lab incident-evidence route; listed in the current sitemap. | **INCIDENT EVIDENCE** — what incident evidence was actually recorded? | Live recorder/status frames are current public observations when successfully read; sealed incidents and reviewed postmortems are `recorded-replay`. | Link to the route and let its own replay/postmortem controls own the record. Do not copy incident IDs or turn replay into live state. |
 | Spectral Forge | `/lab/spectral-forge/`; [`lab/spectral-forge/`](../lab/spectral-forge/). | Approved product-layout Lab audio instrument; current Lab card calls it a telemetry sonification instrument and Preview. | Cross-cutting interpretation — what does synthetic changing telemetry sound like? | Deterministic synthetic telemetry; `simulated`. PLAY / FORGE / ANALYSE and native scenarios including NORMAL LOAD, LATENCY CREEP, CACHE COLLAPSE, CASCADING FAILURE, and DEPLOYMENT / RECOVERY. | Secondary cross-cutting link. Do not wrap, restyle, trigger, or re-map the instrument from the journey. |
 | System SYMPHONY | `/lab/system-symphony/`; [`lab/system-symphony/`](../lab/system-symphony/). | Approved product-layout Lab audio flagship; current Lab card calls it Telemetry music and Preview. | Cross-cutting interpretation — what does bounded changing system telemetry sound like while uncertainty remains visible? | Live mode can be `measured`, `stale-measured`, or `unknown`; demo is `simulated`; replay/fixture paths are `recorded-replay` or preview fixture evidence. | Secondary cross-cutting link to the existing PLAY / TRACE / REPLAY experience. Never make musical state the incident authority. |
-| Atlas Motion | `/lab/atlas-motion/`; [`lab/atlas-motion/`](../lab/atlas-motion/). | Approved mini-flagship treatment under Lab; current route is a released motion page, not a generic Lab card to be absorbed. | Optional contextual interpretation of topology/evidence sequence, not a required incident stage. | EstateBoot is a recorded topology replay; EvidenceChain is a reviewed replay of lifecycle vocabulary. Neither is live telemetry or current recovery proof. | Optional contextual link only. Existing composition/hash navigation may remain; do not add shared scenario control or demote the mini-flagship. |
+| Atlas Motion | `/lab/atlas-motion/`; [`lab/atlas-motion/`](../lab/atlas-motion/). | Adjacent in-flight mini-flagship; non-participating by default. The current route is an audit snapshot, not a generic Lab card to be absorbed. | Optional surrounding/contextual reference only; not a required journey stage or shared-scenario target. If a later Phase 3 implementation genuinely needs Motion as a participant, that requires a separate owner decision. | Current page snapshot presents EstateBoot as a recorded topology replay and EvidenceChain as a reviewed replay of lifecycle vocabulary. Neither is live telemetry or current recovery proof. | No Phase 3 integration is required. If referenced, use a subordinate route-level contextual link only. Do not depend on current composition count, layout, selector, navigation, or archive implementation. |
 | Evidence Console | `/systems/evidence/`; [`systems/evidence/`](../systems/evidence/). | Primary Systems evidence reader, not a Lab instrument. | **IMPACT / INCIDENT EVIDENCE destination** — what named public claim is supported, what is missing, and what remains unknown? | Change specimens are `recorded-replay`; Service/Estate views read current public contracts and preserve measured/unknown results per fact; Twin is generated impact context only. | Destination from the journey for lifecycle/change proof and Twin context. Do not duplicate its Change/Service/Estate views in the Failure Laboratory. |
 
 ### Detailed current readings
@@ -267,21 +268,32 @@ manifest entry, or indexed first-class directory destination.
 
 #### Atlas Motion
 
-- **Source and route:** `lab/atlas-motion/` owns the current mini-flagship at
-  `/lab/atlas-motion/`. The route was independently production/live-reconciled
-  above as the #281/#282 dependency.
-- **Model and behaviour:** EstateBoot is a released historical topology replay;
-  EvidenceChain is a released reviewed replay of the lifecycle vocabulary.
-  Local media, transcript/no-JS fallback, and provenance are part of the
-  route. The page explicitly says it is not live telemetry.
-- **Evidence mode and boundary:** `recorded-replay` / reviewed replay. The
-  lifecycle sequence explains that order is not proof; a rendered
+- **Current snapshot:** `lab/atlas-motion/` owns the current production route
+  `/lab/atlas-motion/`, which was independently production/live-reconciled
+  above as the #281/#282 dependency. The current page publishes EstateBoot and
+  EvidenceChain. It also currently provides local media, a textual/no-JS
+  fallback, and provenance. These are current page facts, not a product-
+  completion contract or final presentation authority.
+- **Separate completion stream:** `atlas-motion#21` remains open for the
+  targeted TwinImpact rendering path. A real TwinImpact artifact may later be
+  released, and a later Atlas Systems showcase pass may change the composition
+  count and presentation mechanics. Phase 3 must not prevent or pre-judge that
+  work. Atlas Motion is therefore adjacent and non-participating in the Failure
+  Laboratory by default.
+- **Evidence mode and boundary:** The current EstateBoot page content is a
+  recorded historical topology replay and EvidenceChain is a reviewed replay
+  of lifecycle vocabulary. Neither is live telemetry or current recovery proof.
+  The lifecycle sequence explains that order is not proof; a rendered
   `LIVE VERIFIED` stage is not a new live observation by the motion page.
-- **Non-claims:** It does not supply current Twin impact, incident, runtime, or
-  recovery evidence.
-- **Integration:** It may be referenced as an optional contextual reading of
-  topology and evidence order. It must retain its mini-flagship hierarchy and
-  must not become a required generic journey card.
+- **Non-claims:** It does not currently supply a Failure Laboratory scenario
+  target, current Twin impact, incident, runtime, or recovery evidence. The
+  presence or absence of a released TwinImpact showcase must remain owned by
+  the separate Motion completion stream.
+- **Integration:** No Phase 3 integration is required. The future journey may
+  mention or link to Motion only as optional surrounding/contextual material.
+  If a later Phase 3 slice proposes Motion as a participating instrument, that
+  proposal requires a separate owner decision rather than an inference from
+  this audit.
 
 #### Evidence Console
 
@@ -333,15 +345,20 @@ The identifiers below are audit labels for the roadmap vocabulary. Issue #284
 owns the final shared data contract and stable identifiers. Until then, these
 labels must be treated as contextual navigation terms, not a new runtime model.
 
+Atlas Motion is intentionally not a scenario target in this matrix. Its current
+replays may be mentioned as optional surrounding material, but it is not part
+of the shared scenario contract by default merely because its route is under
+`/lab/`.
+
 | Shared scenario | Current mapping and native terminology | Evidence mode | Demonstrates | Cannot infer | Safe future reference / unsupported mapping |
 | --- | --- | --- | --- | --- | --- |
-| `normal-operation` / Normal operation | **Direct:** Request X-Ray `Healthy baseline`; CASCADE baseline; Consensus `CLEAN` baseline; Neon Relay prime board; Spectral Forge `NORMAL LOAD` — all synthetic. **Contextual:** System SYMPHONY live source when it has measured data, or its labelled demo/replay; Blackbox only where a specific record contains before-failure frames; Atlas Motion's released replays. | Mostly `simulated`; System SYMPHONY varies; Blackbox/Motion `recorded-replay` where applicable. | A bounded baseline or normal-looking synthetic state in the named instrument. | Current estate health, absence of an incident, or production normality. | Safe as a clearly labelled scenario/context concept. Twin and Evidence Console do not represent this scenario; no instrument may turn the label into a health badge. |
-| `latency-creep` / Latency creep | **Direct:** CASCADE `ADD LATENCY`; Spectral Forge `LATENCY CREEP`. **Contextual:** Request X-Ray jitter/latency controls; Consensus `SLOW B` network; System SYMPHONY latency telemetry when its source supports it; Blackbox only for a record-specific latency trace. Neon Relay has no latency model. | X-Ray/CASCADE/Consensus/Spectral `simulated`; System SYMPHONY measured/stale/unknown or replay; Blackbox `recorded-replay` for a selected record. | How the named synthetic model or selected evidence changes under delay. | A real latency regression, shared cause, or current production performance. | Safe as contextual navigation with the native term preserved. Neon Relay, Twin, Evidence Console, and Atlas Motion have no direct latency-creep model. |
-| `cache-collapse` / Cache collapse | **Contextual:** Request X-Ray `Cache stampede` / miss/stale controls; CASCADE cache fault/fallback; System SYMPHONY cache telemetry if present. **Direct:** Spectral Forge `CACHE COLLAPSE`. | Synthetic instruments `simulated`; System SYMPHONY measured/stale/unknown or replay. | Synthetic cache pressure and its mapped downstream response in the instrument that models it. | A production cache collapse, observed dependency cascade, or actual impact. | Safe only when the native wording remains visible. Consensus, Neon Relay, Blackbox, Twin, Evidence Console, and Atlas Motion have no generic cache-collapse mapping. |
-| `dependency-failure` / Dependency failure | **Direct:** CASCADE database/cache root fault. **Contextual:** Request X-Ray service error/timeout; Neon Relay branch/fuse/output fault; Spectral Forge `SERVICE FLAPPING` or related synthetic pressure; System SYMPHONY service status; a specific Blackbox incident if its captured record supports the description. | Mostly `simulated`; System SYMPHONY may be measured/stale/unknown/replay; Blackbox `recorded-replay` for a named record. | The selected instrument's bounded response to its own synthetic or recorded failure input. | That the corresponding Atlas dependency failed, that the same failure crossed all instruments, or that Twin relationships observed the failure. | Safe as a navigation label only with a mode and boundary. Consensus, Twin, Evidence Console, and Atlas Motion do not directly represent dependency failure. |
-| `network-partition` / Network partition | **Contextual model:** Consensus `ISOLATE C` and delayed/heal behavior; Neon Relay isolated feed/branch behavior. These are the closest current instruments, but their native terms must remain visible. | `simulated`. | Bounded loss of a link/feed and the resulting synthetic quorum/routing consequences. | A real network partition, Atlas traffic loss, or production coordination event. | Safe as contextual framing, not as an observed incident label. Request X-Ray, CASCADE, Spectral Forge, Blackbox, Twin, Evidence Console, and Atlas Motion have no generic direct partition model. |
-| `cascading-failure` / Cascading failure | **Direct:** CASCADE propagation; Spectral Forge `CASCADING FAILURE`. **Contextual:** Request X-Ray `Cascading timeout`; System SYMPHONY incident arc or source telemetry when explicitly labelled; Blackbox selected recorded incident. | CASCADE/Spectral/X-Ray `simulated`; System SYMPHONY varies; Blackbox `recorded-replay`. | Propagation or mapped escalation in the named synthetic model, or captured frames in a named incident record. | That a CASCADE graph, Twin relationship, sonification, or label proves a real production cascade. | Safe as contextual navigation when the target's native scenario and mode are shown. Consensus, Neon Relay, Twin, Evidence Console, and Atlas Motion have no direct cascading-failure model. |
-| `recovery` / Recovery | **Direct synthetic:** Spectral Forge `DEPLOYMENT / RECOVERY`. **Contextual synthetic:** CASCADE replay/resilience/reset; Consensus heal/catch-up; Neon Relay reset/reroute; Request X-Ray reset/re-run. **Contextual recorded/measured:** Blackbox aftermath/postmortem; System SYMPHONY replay or measured state when a source record supports it; Atlas Motion EvidenceChain lifecycle replay; Evidence Console named `LIVE VERIFIED` delivery evidence. | Synthetic targets `simulated`; Blackbox/Motion `recorded-replay`; System SYMPHONY varies; Console is view-specific. | The selected model's recovery-like transition, the recorder's captured aftermath, or a named lifecycle fact. | A universal recovery event, current service recovery, root-cause resolution, or a future Recovery Evidence product. | Safe only as `explore recovery` / `recovery evidence unavailable or unknown` with the exact target boundary. Twin has no recovery mapping; there is no single authoritative Phase 3 recovery stage. |
+| `normal-operation` / Normal operation | **Direct:** Request X-Ray `Healthy baseline`; CASCADE baseline; Consensus `CLEAN` baseline; Neon Relay prime board; Spectral Forge `NORMAL LOAD` — all synthetic. **Contextual:** System SYMPHONY live source when it has measured data, or its labelled demo/replay; Blackbox only where a specific record contains before-failure frames. Atlas Motion is excluded from the shared scenario target set by default. | Mostly `simulated`; System SYMPHONY varies; Blackbox `recorded-replay` where applicable. | A bounded baseline or normal-looking synthetic state in the named instrument. | Current estate health, absence of an incident, or production normality. | Safe as a clearly labelled scenario/context concept for the mapped instruments. Twin, Evidence Console, and Atlas Motion do not represent this scenario target. |
+| `latency-creep` / Latency creep | **Direct:** CASCADE `ADD LATENCY`; Spectral Forge `LATENCY CREEP`. **Contextual:** Request X-Ray jitter/latency controls; Consensus `SLOW B` network; System SYMPHONY latency telemetry when its source supports it; Blackbox only for a record-specific latency trace. Neon Relay has no latency model. Atlas Motion is excluded by default. | X-Ray/CASCADE/Consensus/Spectral `simulated`; System SYMPHONY measured/stale/unknown or replay; Blackbox `recorded-replay` for a selected record. | How the named synthetic model or selected evidence changes under delay. | A real latency regression, shared cause, or current production performance. | Safe as contextual navigation with native terms preserved. Atlas Motion has no Phase 3 latency mapping. |
+| `cache-collapse` / Cache collapse | **Contextual:** Request X-Ray `Cache stampede` / miss/stale controls; CASCADE cache fault/fallback; System SYMPHONY cache telemetry if present. **Direct:** Spectral Forge `CACHE COLLAPSE`. Atlas Motion is excluded by default. | Synthetic instruments `simulated`; System SYMPHONY measured/stale/unknown or replay. | Synthetic cache pressure and its mapped downstream response in the instrument that models it. | A production cache collapse, observed dependency cascade, or actual impact. | Safe only when native wording remains visible. Consensus, Neon Relay, Blackbox, Twin, Evidence Console, and Atlas Motion have no Phase 3 cache-collapse target. |
+| `dependency-failure` / Dependency failure | **Direct:** CASCADE database/cache root fault. **Contextual:** Request X-Ray service error/timeout; Neon Relay branch/fuse/output fault; Spectral Forge `SERVICE FLAPPING` or related synthetic pressure; System SYMPHONY service status; a specific Blackbox incident if its captured record supports the description. Atlas Motion is excluded by default. | Mostly `simulated`; System SYMPHONY may be measured/stale/unknown/replay; Blackbox `recorded-replay` for a named record. | The selected instrument's bounded response to its own synthetic or recorded failure input. | That the corresponding Atlas dependency failed, that the same failure crossed all instruments, or that Twin relationships observed the failure. | Safe as a navigation label only with a mode and boundary. Consensus, Twin, Evidence Console, and Atlas Motion do not directly represent dependency failure. |
+| `network-partition` / Network partition | **Contextual model:** Consensus `ISOLATE C` and delayed/heal behavior; Neon Relay isolated feed/branch behavior. These are the closest current instruments, but their native terms must remain visible. Atlas Motion is excluded by default. | `simulated`. | Bounded loss of a link/feed and the resulting synthetic quorum/routing consequences. | A real network partition, Atlas traffic loss, or production coordination event. | Safe as contextual framing, not as an observed incident label. Request X-Ray, CASCADE, Spectral Forge, Blackbox, Twin, Evidence Console, and Atlas Motion have no generic direct partition model. |
+| `cascading-failure` / Cascading failure | **Direct:** CASCADE propagation; Spectral Forge `CASCADING FAILURE`. **Contextual:** Request X-Ray `Cascading timeout`; System SYMPHONY incident arc or source telemetry when explicitly labelled; Blackbox selected recorded incident. Atlas Motion is excluded by default. | CASCADE/Spectral/X-Ray `simulated`; System SYMPHONY varies; Blackbox `recorded-replay`. | Propagation or mapped escalation in the named synthetic model, or captured frames in a named incident record. | That a CASCADE graph, Twin relationship, sonification, or label proves a real production cascade. | Safe as contextual navigation when the target's native scenario and mode are shown. Consensus, Neon Relay, Twin, Evidence Console, and Atlas Motion have no direct cascading-failure target. |
+| `recovery` / Recovery | **Direct synthetic:** Spectral Forge `DEPLOYMENT / RECOVERY`. **Contextual synthetic:** CASCADE replay/resilience/reset; Consensus heal/catch-up; Neon Relay reset/reroute; Request X-Ray reset/re-run. **Contextual recorded/measured:** Blackbox aftermath/postmortem; System SYMPHONY replay or measured state when a source record supports it; Evidence Console named `LIVE VERIFIED` delivery evidence. Atlas Motion is excluded as a shared scenario target; its EvidenceChain replay may be optional surrounding lifecycle context only. | Synthetic targets `simulated`; Blackbox `recorded-replay`; System SYMPHONY varies; Console is view-specific. | The selected model's recovery-like transition, the recorder's captured aftermath, or a named lifecycle fact. | A universal recovery event, current service recovery, root-cause resolution, or a future Recovery Evidence product. | Safe only as `explore recovery` / `recovery evidence unavailable or unknown` with the exact target boundary. Twin and Atlas Motion have no Phase 3 recovery target; there is no single authoritative Phase 3 recovery stage. |
 
 The matrix deliberately contains unsupported and contextual combinations. A
 shared label may explain why a visitor is entering an instrument; it must not
@@ -365,7 +382,7 @@ behaviourally subordinate to the existing product.
 | Blackbox | Preserve the recorder/replay-deck composition, timeline, postmortem disclosure, route-specific typography/palette, and evidence-first hierarchy. | Preserve read-only replay, 30x playback, exact event timestamps, interpolated telemetry explanation, missing-frame handling, fetch failure copy, keyboard behavior, and reduced-motion behavior. | Preserve the distinction between current recorder observations, sealed recorded replay, and reviewed postmortem. Do not copy or reinterpret incident records in the corridor. |
 | Spectral Forge | Preserve the Forge hero, dark material/palette, product typography, PLAY/FORGE/ANALYSE progressive composition, and analysis surfaces. | Preserve scenario clock, mappings, procedural Web Audio, sample-free/bounded audio behavior, mute/audio-off, keyboard shortcuts, native controls, reduced motion, and deterministic model. No autoplay. | Preserve `SIMULATED`, synthetic telemetry, and the statement that it does not represent current health. Do not make its sound incident evidence. |
 | System SYMPHONY | Preserve the product-layout audio flagship, Atlas APU identity, visual score/topology composition, typography, palette, and mode-specific hierarchy. | Preserve PLAY/TRACE/REPLAY, live read-only lock, demo/replay state, audio scheduling/timing, mapping, unknown/unmeasured states, mute, keyboard, reduced motion, and no autoplay. | Preserve measured/stale/unknown/replay/demo labels, declared-topology boundary, source/provenance links, and the fact that musical state is not incident authority. |
-| Atlas Motion | Preserve the released mini-flagship hero, two-composition structure, local media/transcript, provenance, typography, palette, and motion composition. | Preserve existing composition/hash navigation, playback, silent media, no-JS transcript, reduced-motion behavior, and EvidenceChain stage semantics. | Preserve recorded/reviewed replay wording and `order is not proof`. Do not absorb it into a uniform Lab grid or turn `LIVE VERIFIED` replay text into current live evidence. |
+| Atlas Motion | Preserve Atlas Motion identity, mini-flagship hierarchy, product-specific visual character, truthful release semantics, released-media provenance, and the route's accessibility character. Do not freeze the current page composition, composition count, stage layout, selector, keyframe/gallery, archive, or showcase presentation. Those mechanics remain owned by the separate Motion completion stream. | Preserve accessibility guarantees, no-JS/textual fallback guarantees where applicable, reduced-motion/accessibility behavior, and any future Motion-owned playback contract. Phase 3 must not freeze today's selector or navigation mechanics, or make its current media arrangement a dependency. | Preserve replay/reviewed-replay boundaries, the distinction from live evidence, provenance, and `order is not proof`: a rendered lifecycle stage is not evidence that the stage occurred. Presence or absence of a released TwinImpact composition remains Motion-stream-owned. Do not absorb, demote, or make it a required Failure Laboratory instrument. |
 | Evidence Console | Preserve the Systems page hierarchy, Change/Service/Estate navigation, evidence density, and route-local typography/palette/layout. | Preserve its view state, JS/no-JS fallback, keyboard/focus behavior, malformed/unavailable/unknown handling, and current data loading. | Preserve ADR-0013/0014 lifecycle semantics, view-specific evidence modes, and separate Twin context. The Failure Laboratory links to it and does not clone it. |
 
 Global interface authority still applies around these products: fixed headers
@@ -407,10 +424,12 @@ The future route may present the six stages, scenario context, evidence modes,
 proof boundaries, and links. It must not embed instruments as generic widgets,
 share their state, inject their controls, or copy their visual systems.
 
-Atlas Motion belongs in the surrounding story only as an optional contextual
-reading of topology/evidence order. It remains directly accessible at
+Atlas Motion is adjacent optional material, not part of the Failure Laboratory
+journey contract by default. It remains directly accessible at
 `/lab/atlas-motion/` with its mini-flagship hierarchy and is not absorbed,
-demoted, or reclassified merely because it is under `/lab/`.
+demoted, or reclassified merely because it is under `/lab/`. The Failure
+Laboratory architecture must not depend on Motion's current page state or on
+the outcome of its separate completion stream.
 
 The current non-indexed CASCADE, Consensus, and Neon Relay routes may be linked
 as deliberate specialist destinations without being silently promoted into the
@@ -446,8 +465,9 @@ Existing native deep-link contracts remain the only safe exceptions:
 
 - Request X-Ray's existing permalink may reproduce its own experiment, but no
   Phase 3 scenario parameter is implied;
-- Atlas Motion's existing hash composition/seek behavior may remain intact,
-  but no shared scenario state is added;
+- Atlas Motion's current native composition/seek links are an audit snapshot,
+  not a Phase 3 dependency. A later slice must use whatever public, safe,
+  current Motion navigation contract exists when that slice is implemented;
 - System SYMPHONY's existing PLAY/TRACE/REPLAY URL modes remain product-owned.
 
 For CASCADE, Consensus, Neon Relay, Spectral Forge, Blackbox, Twin, and the
@@ -510,15 +530,19 @@ recommendations for implementation, not edits to those issues:
 
 | Issue | Current scope after audit | Reconciliation |
 | --- | --- | --- |
-| [#284 Shared failure-scenario vocabulary and journey model](https://github.com/AtlasReaper311/atlas-systems/issues/284) | Correctly scoped as a static, repository-local presentation contract. | Keep it. Its acceptance tests should carry the direct/contextual/unsupported distinction, native scenario wording, evidence mode, and proof boundary from this artifact. Recovery must be allowed to remain `unknown`/unavailable, and Atlas Motion must remain optional context rather than an automatic stage. |
-| [#285 Build integrated Failure Laboratory journey surface](https://github.com/AtlasReaper311/atlas-systems/issues/285) | Correctly scoped as the future public corridor, after #283 and #284. | Keep it. Use the recommended future route `/lab/failure-laboratory/`; keep the corridor static/progressive-enhanced and link to full instruments instead of rebuilding them. |
-| [#286 Add bounded Failure Laboratory handoffs](https://github.com/AtlasReaper311/atlas-systems/issues/286) | Correctly scoped as route-local, bounded contextual links. | Keep it. Permit one-way links and untouched routes where a return link would damage composition. Use native deep links only where already supported; never synchronize state or autoplay. |
-| [#287 Lab directory, sitemap and Failure Laboratory phase closure](https://github.com/AtlasReaper311/atlas-systems/issues/287) | Correctly scoped as the later directory/metadata/closure reconciliation. | Keep it. Reconcile deliberate first-class promotion, noindex specialist routes, representative manifest coverage, Atlas Motion mini-flagship hierarchy, canonical metadata, and independently verified production routes. |
+| [#284 Shared failure-scenario vocabulary and journey model](https://github.com/AtlasReaper311/atlas-systems/issues/284) | Correctly scoped as a static, repository-local presentation contract. | Keep it. It must not model Atlas Motion as a required scenario target; Motion is excluded by default and may be optional context only after separate owner approval. Its tests should carry the direct/contextual/unsupported distinction, native wording, evidence mode, and proof boundary. Recovery may remain `unknown`/unavailable. |
+| [#285 Build integrated Failure Laboratory journey surface](https://github.com/AtlasReaper311/atlas-systems/issues/285) | Correctly scoped as the future public corridor, after #283 and #284. | Keep it. Use `/lab/failure-laboratory/`; the corridor must not depend on Atlas Motion, its current page structure, its current navigation, or the outcome of the separate Motion completion stream. Link to full instruments instead of rebuilding them. |
+| [#286 Add bounded Failure Laboratory handoffs](https://github.com/AtlasReaper311/atlas-systems/issues/286) | Correctly scoped as route-local, bounded contextual links. | Keep it. Do not add an Atlas Motion handoff unless it is safe against the then-current Motion product and separately justified by the owner. Use whatever current public-safe Motion navigation contract exists then; do not freeze today's mechanics. One-way or untouched routes remain valid. |
+| [#287 Lab directory, sitemap and Failure Laboratory phase closure](https://github.com/AtlasReaper311/atlas-systems/issues/287) | Correctly scoped as the later directory/metadata/closure reconciliation. | Keep it. Preserve Atlas Motion's mini-flagship hierarchy and separate completion stream, but do not assume today's composition count, page mechanics, or TwinImpact presence/absence. Directory closure must not block Motion completion. |
 
 No downstream issue needs a cross-repository write as a prerequisite for the
 architecture itself. If a later implementation discovers a new missing public
 contract, it must stop at that owning boundary and record the exact contract
 before changing `atlas-systems`.
+
+No Phase 3 issue should block the separate Atlas Motion completion stream. A
+later participating-Motion proposal is an owner decision, not an implication of
+this architecture.
 
 ## 10. Audit and validation record
 
