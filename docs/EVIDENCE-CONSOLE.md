@@ -23,6 +23,21 @@ It is not:
 - a substitute for Proof Chain;
 - an estate-wide delivery matrix.
 
+The Change View also contains a bounded Twin impact-context layer. It reads the
+accepted public `GET /v1/evidence/twin-impact` projection from
+`atlas-api-public`. Twin context says only which public relationships could be
+affected within the projection's stated coverage. It is not a lifecycle stage,
+observation result, health signal, deployment record, merge approval, or live
+verification. The projection's generation time is not an observation time.
+
+The Twin layer shows the projection subject, relationship kind, relation,
+identity authority, coverage, explicit unknowns, producer/provenance,
+projection fingerprint, and contract limitations. The consumer validates the
+public v1 shape before rendering. A missing, malformed, incompatible, or
+unreachable projection remains `UNKNOWN / NOT OBSERVED`; it does not become
+`FAILED`, and no relationship is invented. Private or unclassified identities
+are never reconstructed in this Console.
+
 Missing later evidence remains `UNKNOWN / NOT OBSERVED`. `NOT APPLICABLE` is
 used only where the selected ADR-0014 profile cannot have that stage.
 
@@ -149,6 +164,22 @@ applicable ADR-0013 stage stays `UNKNOWN / NOT OBSERVED`.
 
 There is no published estate-wide delivery snapshot on this path. The Console
 does not invent one.
+
+## Twin impact context
+
+The public Twin contract is governed by Atlas Infra ADR-0017 and
+`atlas-control-plane/twin-impact-projection/v1`. Atlas Infra owns the schema,
+compatibility rules, classification authority, and fail-closed policy. Atlas
+API Public owns the static asset and route. Atlas Systems only consumes the
+accepted public projection inside Change View.
+
+The projection's `could-be-affected` conclusion must remain separate from the
+Console's ADR-0013 delivery chain and from live public records. `known-public-
+scope` is not complete-estate coverage, an empty relationship list is not proof
+that nothing private or unclassified could be affected, and a reachable API
+response is not runtime health. Relationship identity authority is displayed
+with each public relationship so repository, component, and service identity
+claims retain their governing source.
 
 ## Model Promotion
 

@@ -121,7 +121,7 @@ Quick verification after changes:
 
 ## Evidence Console
 
-`/systems/evidence/` is the public Change / Service / Estate console. It projects ADR-0013 delivery stages and ADR-0014 profile applicability for four Phase 2.3 archetypes: Static / Public Site, Runtime Worker, Library / Toolkit, and Article Publication.
+`/systems/evidence/` is the public Change / Service / Estate console. It projects ADR-0013 delivery stages and ADR-0014 profile applicability for four Phase 2.3 archetypes: Static / Public Site, Runtime Worker, Library / Toolkit, and Article Publication. Change View also carries a separate, public-only Twin context layer for relationships that could be affected; it never turns impact context into lifecycle, health, deployment, or live evidence.
 
 The Console does not invent estate-wide delivery, fleet health, or live-production state. Article Publication is inspectable in Change View because current public topology does not model published writing as an estate component.
 
