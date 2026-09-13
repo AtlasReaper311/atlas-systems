@@ -15,6 +15,7 @@ const LAB_ROUTE_GROUPS = Object.freeze([
     routes: Object.freeze([
       Object.freeze({ label: "System Symphony", href: "/lab/system-symphony/" }),
       Object.freeze({ label: "Spectral Forge", href: "/lab/spectral-forge/" }),
+      Object.freeze({ label: "Atlas Motion", href: "/lab/atlas-motion/" }),
       Object.freeze({ label: "Signal Garden", href: "/lab/signal/" }),
     ]),
   }),

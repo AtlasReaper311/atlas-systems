@@ -153,6 +153,17 @@
       "tagline": "Change the mapping. Hear the consequence."
     },
     {
+      "file": "atlas-motion",
+      "html": "lab/atlas-motion/index.html",
+      "route": "/lab/atlas-motion/",
+      "kicker": "Experience / Released motion",
+      "title": [
+        "Atlas Motion.",
+        "EstateBoot [replay.]"
+      ],
+      "tagline": "A deterministic recorded replay bound to the exact Motion v0.1.0 release."
+    },
+    {
       "file": "proof-chain",
       "html": "lab/proof-chain/index.html",
       "route": "/lab/proof-chain/",

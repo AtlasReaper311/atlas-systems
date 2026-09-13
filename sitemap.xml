@@ -2,175 +2,181 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://atlas-systems.uk/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-09-10T17:08:59+01:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/work/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-27T19:23:58Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/writing/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-09-04T11:11:41Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/lab/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-09-10T17:08:59+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/systems/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-09-10T17:08:59+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/systems/observability/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-13T19:26:08+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/systems/reliability/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-13T19:26:08+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/systems/evidence/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-09-12T20:03:12+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/lab/system-symphony/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-09-10T17:08:59+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/lab/spectral-forge/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-09-11T15:26:18+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/lab/system-map/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-13T18:03:37+01:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://atlas-systems.uk/lab/atlas-motion/</loc>
+    <lastmod>2026-09-12T22:31:25+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/lab/blackbox/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-13T18:03:37+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/lab/proof-chain/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-13T18:03:37+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/lab/signal/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-13T18:03:37+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/lab/conformance/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-13T18:03:37+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/lab/anomaly/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-13T18:03:37+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/lab/almost/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-13T18:03:37+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/lab/drift/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-13T18:03:37+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/lab/bearing/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-13T18:03:37+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/lab/speculum/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-13T18:03:37+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/about/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-14T02:13:12+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/writing/atlas-lab-observability/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-27T19:23:58Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/writing/atlas-pipeline-infrastructure-dashboard/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-14T02:13:12+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/writing/atlas-systems-cicd-pipeline/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-14T02:13:12+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/writing/overclocking-specular-core/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-14T02:13:12+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/writing/ramone-local-ai-system/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-14T02:13:12+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/writing/slampunk-dynamic-mix-engine/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-14T02:13:12+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/writing/sonin-generative-system/</loc>
-    <lastmod>2026-08-18T01:08:17+01:00</lastmod>
+    <lastmod>2026-08-14T02:13:12+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://atlas-systems.uk/writing/specular-core-architectural-recovery/</loc>
-    <lastmod>2026-08-27T19:23:56+00:00</lastmod>
+    <lastmod>2026-08-28T11:22:46+01:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

@@ -38,7 +38,7 @@ const LAB_SHELL_ROUTES = Object.freeze([
   "lab/console/index.html",
   "lab/drift/index.html", "lab/index.html", "lab/proof-chain/index.html",
   "lab/signal/index.html", "lab/spectral-forge/index.html", "lab/speculum/index.html",
-  "lab/system-map/index.html", "lab/system-symphony/build-log/index.html",
+  "lab/system-map/index.html", "lab/atlas-motion/index.html", "lab/system-symphony/build-log/index.html",
   "lab/system-symphony/index.html", "lab/system-symphony/radio/index.html",
   "lab/system-symphony/roms/index.html", "lab/xray/index.html",
 ]);

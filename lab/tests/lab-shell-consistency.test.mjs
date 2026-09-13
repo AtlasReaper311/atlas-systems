@@ -24,6 +24,7 @@ const CANONICAL_LAB_ROUTES = [
   "/lab/proof-chain/",
   "/lab/signal/",
   "/lab/conformance/",
+  "/lab/atlas-motion/",
   "/lab/anomaly/",
   "/lab/almost/",
   "/lab/drift/",
@@ -104,6 +105,7 @@ test("standard and experimental route entrypoints all reach the shared shell", (
   const directHtml = [
     "lab/index.html",
     "lab/system-map/index.html",
+    "lab/atlas-motion/index.html",
     "lab/speculum/index.html",
     "lab/bearing/index.html",
     "lab/system-symphony/index.html",

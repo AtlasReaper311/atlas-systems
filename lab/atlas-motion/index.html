@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" data-atlas-interface>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Atlas Motion EstateBoot // a deterministic replay of a historical Atlas topology snapshot from release v0.1.0.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Atlas Motion // EstateBoot // Atlas Systems</title>
+  <link rel="canonical" href="https://atlas-systems.uk/lab/atlas-motion/">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Atlas Motion // EstateBoot // Atlas Systems">
+  <meta property="og:description" content="A deterministic replay of a historical Atlas topology snapshot from release v0.1.0.">
+  <meta property="og:url" content="https://atlas-systems.uk/lab/atlas-motion/">
+  <meta property="og:site_name" content="Atlas Systems">
+  <meta property="og:image" content="https://atlas-systems.uk/og/atlas-motion.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Atlas Motion. EstateBoot replay. // Atlas Systems">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Atlas Motion // EstateBoot // Atlas Systems">
+  <meta name="twitter:description" content="A deterministic replay of a historical Atlas topology snapshot from release v0.1.0.">
+  <meta name="twitter:image" content="https://atlas-systems.uk/og/atlas-motion.png">
+  <meta name="twitter:image:alt" content="Atlas Motion. EstateBoot replay. // Atlas Systems">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
+  <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260811-explore-chroma">
+  <link rel="stylesheet" href="/lab/atlas-motion/atlas-motion.css?v=20260912-release-surface">
+  <link rel="stylesheet" href="/static/css/estate-search.css">
+  <link rel="stylesheet" href="/lab/shared/lab-context-navigation.css?v=20260806-lab-consistency-v2">
+  <link rel="stylesheet" href="/lab/shared/lab-shell-layout.css?v=20260806-lab-consistency-v2">
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
+</head>
+<body data-atlas-bottom-nav="true" data-lab-shell="" data-lab-layout="standard" data-lab-route="atlas-motion">
+  <nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
+    <div class="atlas-header__inner">
+      <div class="atlas-header__brand atlas-global-header__identity">
+        <a class="nav-wordmark atlas-wordmark" href="/" data-atlas-wordmark>Atlas<span class="atlas-wordmark__cursor">_</span>Systems</a>
+        <a class="nav-status atlas-status atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" data-atlas-status aria-label="Atlas Systems status: Checking" aria-live="off"><span class="status-dot atlas-status__dot" aria-hidden="true"></span><span class="atlas-estate-status-label" data-atlas-status-label>Checking</span></a>
+      </div>
+      <div class="atlas-header__nav atlas-global-header__nav" role="group" aria-label="Atlas Systems sections">
+        <a class="atlas-global-header__link" href="/work/">Work</a>
+        <a class="atlas-global-header__link" href="/writing/">Writing</a>
+        <a class="atlas-global-header__link" href="/lab/" aria-current="page">Lab</a>
+        <a class="atlas-global-header__link" href="/systems/">Systems</a>
+        <a class="atlas-global-header__link" href="/about/">About</a>
+      </div>
+      <div class="atlas-header__actions atlas-global-header__actions">
+        <button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button>
+      </div>
+    </div>
+  </nav>
+  <nav class="lab-context-nav lab-context-nav--compact" aria-label="Lab navigation" data-lab-context-mode="compact" data-current-lab-route="Atlas Motion">
+    <div class="lab-context-compact">
+      <div class="lab-context-compact__crumbs" role="group" aria-label="Current Lab location">
+        <a href="/lab/">Lab</a>
+        <span class="lab-context-compact__separator" aria-hidden="true">/</span>
+        <span class="lab-context-compact__current" aria-current="page">Atlas Motion</span>
+      </div>
+      <details class="lab-context-tools">
+        <summary>All Lab tools</summary>
+        <div class="lab-context-tools__menu" role="group" aria-label="All Lab tools">
+          <div class="lab-context-tools__group" data-lab-context-group="experience" role="group" aria-labelledby="lab-context-tools-group-0">
+            <span class="lab-context-tools__group-label" id="lab-context-tools-group-0">Experience</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/system-symphony/">System Symphony</a>
+              <a href="/lab/spectral-forge/">Spectral Forge</a>
+              <a href="/lab/atlas-motion/" aria-current="page">Atlas Motion</a>
+              <a href="/lab/signal/">Signal Garden</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="observe" role="group" aria-labelledby="lab-context-tools-group-1">
+            <span class="lab-context-tools__group-label" id="lab-context-tools-group-1">Observe</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/system-map/">System Map</a>
+              <a href="/lab/blackbox/">Blackbox</a>
+              <a href="/systems/observability/">Observability</a>
+              <a href="/lab/console/">Operations</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="verify" role="group" aria-labelledby="lab-context-tools-group-2">
+            <span class="lab-context-tools__group-label" id="lab-context-tools-group-2">Verify</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/proof-chain/">Proof Chain</a>
+              <a href="/lab/conformance/">Estate Conformance</a>
+              <a href="/lab/xray/">X-Ray</a>
+              <a href="/systems/reliability/">Reliability</a>
+              <a href="/systems/evidence/">Evidence</a>
+            </div>
+          </div>
+          <div class="lab-context-tools__group" data-lab-context-group="explore" role="group" aria-labelledby="lab-context-tools-group-3">
+            <span class="lab-context-tools__group-label" id="lab-context-tools-group-3">Explore</span>
+            <div class="lab-context-tools__links">
+              <a href="/lab/speculum/">Speculum</a>
+              <a href="/lab/almost/">Almost</a>
+              <a href="/lab/drift/">Drift</a>
+              <a href="/lab/bearing/">The Bearing</a>
+              <a href="/lab/anomaly/">Shape Detector</a>
+            </div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </nav>
+  <main class="atlas-motion-page">
+    <header class="page-intro atlas-motion-intro">
+      <p class="eyebrow">Experience / recorded replay</p>
+      <h1>Atlas Motion<br><span>EstateBoot</span></h1>
+      <p class="lede">A deterministic motion study of a bounded public topology snapshot. This page presents the exact released artifact so the composition, source identity, and evidence boundary can be inspected without running Motion in the browser.</p>
+      <div class="page-actions"><a class="action" href="/lab/">Back to Lab</a><a class="action" href="#provenance">Read provenance</a></div>
+    </header>
+
+    <section class="content-section atlas-motion-stage" aria-labelledby="estate-boot-title">
+      <div class="section-head">
+        <div><p class="eyebrow">Preview · v0.1.0</p><h2 id="estate-boot-title">The released EstateBoot composition.</h2></div>
+        <p><span class="mode-key" data-mode-key="replay">Recorded replay</span> of a historical, simplified topology snapshot. The media is served from this repository and does not call the Motion source repository at runtime.</p>
+      </div>
+      <figure class="atlas-motion-player">
+        <video controls playsinline preload="metadata" poster="/static/media/atlas-motion/v0.1.0/estate-boot-frame-000.png" aria-label="EstateBoot recorded replay" aria-describedby="estate-boot-caption">
+          <source src="/static/media/atlas-motion/v0.1.0/estate-boot.mp4" type="video/mp4">
+          <p>Your browser cannot play this MP4. The <a href="#transcript">textual sequence below</a> describes the complete EstateBoot composition.</p>
+        </video>
+        <figcaption id="estate-boot-caption">EstateBoot · 15 seconds · 1920 × 1080 · 30 fps · H.264 video · no audio. If playback is unavailable, the transcript below is the complete sequence.</figcaption>
+      </figure>
+      <div class="atlas-motion-facts">
+        <dl>
+          <div><dt>Motion release</dt><dd><code>v0.1.0</code> / tag <code>v0.1.0</code></dd></div>
+          <div><dt>Source identity</dt><dd><code>AtlasReaper311/atlas-motion</code></dd></div>
+          <div><dt>Source commit</dt><dd><code>857f2a575480590c75186694a79860f60fcf899d</code></dd></div>
+          <div><dt>Composition</dt><dd><code>EstateBoot</code></dd></div>
+          <div><dt>Render</dt><dd><code>450</code> frames / 15 seconds / 30 fps</dd></div>
+          <div><dt>Data mode</dt><dd>Recorded replay of a historical snapshot</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section id="transcript" class="content-section atlas-motion-transcript" aria-labelledby="transcript-title">
+      <div class="section-head">
+        <div><p class="eyebrow">Accessible sequence</p><h2 id="transcript-title">What EstateBoot shows.</h2></div>
+        <p>This detailed sequence is the non-visual equivalent of the released media and remains available with JavaScript disabled.</p>
+      </div>
+      <ol class="atlas-motion-sequence">
+        <li><strong>Public surface.</strong> The composition begins with <code>atlas-systems.uk</code>, the public portfolio and Lab surface.</li>
+        <li><strong>Public spine.</strong> It moves through <code>atlas-api-public</code>, the public API spine represented by the snapshot.</li>
+        <li><strong>Supporting components.</strong> The simplified view brings in <code>status</code>, <code>atlas-blackbox</code>, <code>atlas-notify</code>, and <code>specular-telemetry</code>.</li>
+        <li><strong>Infrastructure anchor.</strong> <code>SPECULAR-CORE</code> appears as the single infrastructure anchor derived from the telemetry declaration.</li>
+        <li><strong>Declared relationships.</strong> Six source-declared relationships resolve: <code>atlas-systems → atlas-api-public</code>, <code>status → atlas-api-public</code>, <code>atlas-api-public → specular-telemetry</code>, <code>atlas-blackbox → specular-telemetry</code>, <code>atlas-blackbox → atlas-notify</code>, and <code>specular-telemetry → SPECULAR-CORE</code>.</li>
+        <li><strong>Evidence close.</strong> The frame closes on the release and render identity: six components, one infrastructure anchor, and six relationships from the pinned snapshot.</li>
+      </ol>
+      <p class="atlas-motion-sequence-note">Snapshot identity: <code>estate-boot-v0-5b970a9bf3b6</code>. It was captured on <time datetime="2026-07-31T09:00:21.189Z">31 July 2026</time> and is historical/pinned evidence, not a live topology feed.</p>
+    </section>
+
+    <section id="provenance" class="content-section atlas-motion-provenance" aria-labelledby="provenance-title">
+      <div class="section-head">
+        <div><p class="eyebrow">Release and evidence</p><h2 id="provenance-title">Bound to exact source and output.</h2></div>
+        <p>The release manifest, render sidecar, and vendored media were checked together before this surface was added.</p>
+      </div>
+      <div class="atlas-motion-provenance-grid">
+        <article class="atlas-motion-record">
+          <h3>Release binding</h3>
+          <dl>
+            <div><dt>Release</dt><dd><code>v0.1.0</code> · candidate release</dd></div>
+            <div><dt>Source commit</dt><dd><code>857f2a575480590c75186694a79860f60fcf899d</code></dd></div>
+            <div><dt>Manifest SHA-256</dt><dd><code>7c13a6001eda8759a89e9922e6792d2f19cd83f8d2477abb83e810f37dcaed82</code></dd></div>
+            <div><dt>Release archive SHA-256</dt><dd><code>15cfe10ce335b823aa9becd00d5a3f95e45c343699e17a476e249e8f3dece5bf</code></dd></div>
+          </dl>
+        </article>
+        <article class="atlas-motion-record">
+          <h3>Topology evidence</h3>
+          <dl>
+            <div><dt>Snapshot</dt><dd><code>estate-boot-v0-5b970a9bf3b6</code> · simplified</dd></div>
+            <div><dt>Source commit</dt><dd><code>5b970a9bf3b66b5469ce883aacec4a4b496e72cc</code></dd></div>
+            <div><dt>Source blob</dt><dd><code>4fb554265a60c320f74500af1cfebc9465921484</code></dd></div>
+            <div><dt>Snapshot SHA-256</dt><dd><code>00acfc41c19b9c5e5477c6150cd917c1e880c541f356faf95ca2a6f294ea41fd</code></dd></div>
+          </dl>
+        </article>
+        <article class="atlas-motion-record">
+          <h3>Rendered output</h3>
+          <dl>
+            <div><dt>Composition</dt><dd><code>EstateBoot</code> · 1920 × 1080</dd></div>
+            <div><dt>Render evidence</dt><dd>30 fps · 450 frames · H.264 · yuv420p · no audio</dd></div>
+            <div><dt>MP4 SHA-256</dt><dd><code>c7c437b70d66eed9c1f8c50b4ea08adf6833981dcf242dd5e98325312aab6de4</code></dd></div>
+            <div><dt>Render sidecar SHA-256</dt><dd><code>c25d0e3bda706247b51deb67eaba92e089cc07e5de478d96dec89384bb6b9ce7</code></dd></div>
+          </dl>
+        </article>
+      </div>
+      <div class="atlas-motion-determinism">
+        <h3>Why this is deterministic release evidence</h3>
+        <p>The Motion release binds the <code>EstateBoot</code> composition, the exact source commit, the pinned topology snapshot, and the output hashes. Atlas Systems vendors the resulting MP4 and poster as versioned static assets. It does not execute Motion, fetch the private Motion repository, or require a Motion API or provider at page load.</p>
+      </div>
+    </section>
+
+    <aside class="content-section atlas-motion-boundary" aria-labelledby="boundary-title">
+      <div class="section-head">
+        <div><p class="eyebrow">Evidence boundary</p><h2 id="boundary-title">What this does not prove.</h2></div>
+        <p>Release, render, and route evidence are deliberately kept separate from live-system evidence.</p>
+      </div>
+      <ul>
+        <li>Current runtime health or current deployment state.</li>
+        <li>Current estate health or live topology freshness.</li>
+        <li>Current provider state or current production correctness.</li>
+        <li>Social or publication distribution beyond this separately verified Atlas Systems route.</li>
+      </ul>
+      <p>The topology is historical/pinned, the media is a recorded replay, and this page is a public presentation of release evidence rather than a live Motion integration.</p>
+    </aside>
+  </main>
+  <noscript><p class="atlas-motion-noscript">JavaScript is not required to read this surface. The released video, fallback text, transcript, provenance, and evidence boundary remain available with JavaScript disabled.</p></noscript>
+  <script type="module" src="/lab/shared/shell.js?v=20260912-atlas-motion"></script>
+  <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-inner atlas-mobile-nav__inner">
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/writing/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="16" y2="13"></line></svg><span>Writing</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item active" href="/lab/" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V9"></path><path d="M14 3h7v7"></path></svg><span>Lab</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg><span>Systems</span></a>
+      <a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M20 21a8 8 0 10-16 0"></path></svg><span>About</span></a>
+    </div>
+  </nav>
+</body>
+</html>

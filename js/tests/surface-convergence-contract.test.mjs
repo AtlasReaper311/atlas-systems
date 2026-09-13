@@ -28,6 +28,7 @@ test("every public Lab and Systems route has a presentation descriptor", () => {
 test("the accepted standard, immersive, product, and directory modes are explicit", () => {
   for (const route of [
     "/lab/system-map/",
+    "/lab/atlas-motion/",
     "/lab/blackbox/",
     "/lab/console/",
     "/lab/proof-chain/",

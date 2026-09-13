@@ -1,0 +1,57 @@
+{
+  "schema_version": "atlas-systems/atlas-motion-release-asset/v1",
+  "owner": "AtlasReaper311/atlas-systems",
+  "release_repository": "AtlasReaper311/atlas-motion",
+  "release": {
+    "version": "0.1.0",
+    "tag": "v0.1.0",
+    "source_commit": "857f2a575480590c75186694a79860f60fcf899d",
+    "manifest_sha256": "7c13a6001eda8759a89e9922e6792d2f19cd83f8d2477abb83e810f37dcaed82",
+    "archive_sha256": "15cfe10ce335b823aa9becd00d5a3f95e45c343699e17a476e249e8f3dece5bf"
+  },
+  "composition": {
+    "id": "EstateBoot",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "duration_seconds": 15,
+    "frames": 450,
+    "codec": "h264",
+    "pixel_format": "yuv420p",
+    "audio": false
+  },
+  "assets": {
+    "video": {
+      "path": "static/media/atlas-motion/v0.1.0/estate-boot.mp4",
+      "bytes": 1116873,
+      "sha256": "c7c437b70d66eed9c1f8c50b4ea08adf6833981dcf242dd5e98325312aab6de4"
+    },
+    "poster": {
+      "path": "static/media/atlas-motion/v0.1.0/estate-boot-frame-000.png",
+      "bytes": 1009596,
+      "sha256": "bedbe655157ed8cf34d3bcaee521ca837d8b1738898cd46ed0f92bf775a4e0e9"
+    }
+  },
+  "topology": {
+    "snapshot_id": "estate-boot-v0-5b970a9bf3b6",
+    "captured_at": "2026-07-31T09:00:21.189Z",
+    "source_repository": "AtlasReaper311/atlas-api-public",
+    "source_commit": "5b970a9bf3b66b5469ce883aacec4a4b496e72cc",
+    "source_blob": "4fb554265a60c320f74500af1cfebc9465921484",
+    "source_sha256": "00acfc41c19b9c5e5477c6150cd917c1e880c541f356faf95ca2a6f294ea41fd",
+    "simplified": true,
+    "component_count": 6,
+    "infrastructure_anchor_count": 1,
+    "relationship_count": 6
+  },
+  "boundaries": {
+    "recorded_replay": true,
+    "historical_topology": true,
+    "runtime_dependency_on_motion": false,
+    "deployment_claimed": false,
+    "live_health_claimed": false,
+    "current_topology_claimed": false,
+    "provider_state_claimed": false,
+    "production_correctness_claimed": false
+  }
+}
