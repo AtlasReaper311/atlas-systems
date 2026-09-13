@@ -441,6 +441,140 @@
   line-height: 1.6;
 }
 
+.systems-evidence-twin-context {
+  margin-top: 1.25rem;
+  border-top: 1px solid var(--border-hi);
+}
+
+.systems-evidence-twin-context .focus-section-head {
+  align-items: flex-start;
+}
+
+.systems-evidence-twin-summary {
+  margin: 1.15rem 0 0;
+}
+
+.systems-evidence-twin-metric strong {
+  color: var(--text-dim);
+  font-size: clamp(1rem, 2.2vw, 1.25rem);
+}
+
+.systems-evidence-twin-subject {
+  max-width: 78ch;
+}
+
+.systems-evidence-twin-relationships {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.systems-evidence-twin-relationships > h4,
+.systems-evidence-twin-group h4 {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.systems-evidence-twin-group {
+  margin-top: 1rem;
+}
+
+.systems-evidence-twin-list {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem 1rem;
+  list-style: none;
+}
+
+.systems-evidence-twin-list li {
+  min-width: 0;
+  padding: 0.65rem 0;
+  border-bottom: 1px dashed var(--border);
+}
+
+.systems-evidence-twin-list strong,
+.systems-evidence-twin-meta {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.systems-evidence-twin-list strong {
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.systems-evidence-twin-meta {
+  margin-top: 0.25rem;
+  color: var(--text-dim);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.systems-evidence-twin-unknowns {
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border);
+}
+
+.systems-evidence-twin-provenance {
+  margin-top: 1rem;
+}
+
+.systems-evidence-twin-facts {
+  margin: 1rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem 1rem;
+}
+
+.systems-evidence-twin-facts dt {
+  color: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.systems-evidence-twin-facts dd {
+  margin: 0.3rem 0 0;
+  overflow-wrap: anywhere;
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.systems-evidence-twin-limitations-title {
+  margin: 1rem 0 0;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.systems-evidence-twin-limitations {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.systems-evidence-twin-limitations li {
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 620px) {
   .systems-change-facts {
     grid-template-columns: 1fr;
@@ -449,6 +583,11 @@
   .systems-change-stage-head {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .systems-evidence-twin-list,
+  .systems-evidence-twin-facts {
+    grid-template-columns: 1fr;
   }
 }
 
