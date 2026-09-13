@@ -397,8 +397,9 @@
       "link_policy": "atlas-owned-same-tab-external-safe-new-tab",
       "generated_owner": null,
       "notes": [
-        "EstateBoot is a repository-local copy of the exact Motion v0.1.0 release media.",
-        "The recorded replay and historical topology are evidence only; they do not claim current deployment, runtime, estate, provider, or production state."
+        "Atlas Motion is the parent identity for two repository-local released compositions: EstateBoot v0.1.0 and EvidenceChain v0.2.0.",
+        "EstateBoot is a repository-local copy of the exact Motion v0.1.0 release media; EvidenceChain vendors the exact published v0.2.0 release media and engineering evidence.",
+        "The recorded replays and historical/reviewed inputs are evidence only; they do not claim current deployment, runtime, estate, provider, topology, production, TwinImpact, or publication state."
       ]
     },
     {
