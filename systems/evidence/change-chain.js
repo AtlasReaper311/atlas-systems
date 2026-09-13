@@ -52,6 +52,48 @@ export function statusStateForResult(result) {
   return "healthy";
 }
 
+function stageLabel(stage) {
+  return String(stage?.stage ?? stage?.fact ?? "later lifecycle stage");
+}
+
+export function enforceLifecycleChronology(stages, { startAt = null } = {}) {
+  const startIndex = startAt === null
+    ? 0
+    : stages.findIndex((stage) => stageLabel(stage) === startAt);
+  let blocker = null;
+
+  return Object.freeze(stages.map((stage, index) => {
+    if (startIndex < 0 || index < startIndex) return stage;
+    if (stage.result === RESULT.NOT_APPLICABLE) return stage;
+
+    if (blocker && stage.result === RESULT.OBSERVED) {
+      const label = stageLabel(stage);
+      const supportingObservation = Object.freeze({
+        result: stage.result,
+        identifier: stage.identifier ?? null,
+        provenance: stage.provenance ?? null,
+        observedAt: stage.observedAt ?? null,
+        sourceUrl: stage.sourceUrl ?? null,
+        scope: stage.scope ?? null,
+      });
+      return Object.freeze({
+        ...stage,
+        result: RESULT.UNKNOWN_NOT_OBSERVED,
+        evidenceMode: "unknown",
+        statusState: "unknown",
+        gap: `${label} was observed, but ${blocker.stage} is ${blocker.result}. The later record is supporting evidence only and does not advance the lifecycle.`,
+        scope: `Supporting observation retained: ${stage.scope ?? `${label} returned an observation.`} It is not promoted because ${blocker.stage} is ${blocker.result}.`,
+        supportingObservation,
+      });
+    }
+
+    if (!blocker && [RESULT.UNKNOWN_NOT_OBSERVED, RESULT.FAILED].includes(stage.result)) {
+      blocker = Object.freeze({ stage: stageLabel(stage), result: stage.result });
+    }
+    return stage;
+  }));
+}
+
 function missingGap(stage) {
   return `${stage} evidence is missing. Missing later evidence remains UNKNOWN / NOT OBSERVED and is not inferred from earlier stages.`;
 }
@@ -210,7 +252,7 @@ export function projectChangeChain(record, profile = STATIC_PUBLIC_SITE_PROFILE)
   const payload = asRecord(record);
   const observations = asRecord(payload.observations);
   const extraGaps = Array.isArray(payload.extraGaps) ? payload.extraGaps : [];
-  const stages = Object.freeze(
+  const stages = enforceLifecycleChronology(
     DELIVERY_STAGES.map((stage) => projectStage(stage, stageObservation(observations, stage), profile)),
   );
   return Object.freeze({

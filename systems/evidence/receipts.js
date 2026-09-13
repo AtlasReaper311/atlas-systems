@@ -62,6 +62,31 @@ function evidenceLabel(mode) {
   }[mode] ?? "Unknown";
 }
 
+export function availabilityEvidenceMode(sloPayload, nowMs = Date.now()) {
+  return evidenceModeFromTime(sloPayload?.generated_at ?? null, sloPayload?.stale === true, nowMs);
+}
+
+export function availabilityStatusState(sloPayload, records, nowMs = Date.now()) {
+  const rows = Array.isArray(records) ? records : [];
+  if (!rows.length) return "warning";
+  return availabilityEvidenceMode(sloPayload, nowMs) === "measured" ? "healthy" : "warning";
+}
+
+export function availabilityStatusText(sloPayload, records, nowMs = Date.now()) {
+  const rows = Array.isArray(records) ? records : [];
+  if (!rows.length) return "Raw availability evidence is empty.";
+  const mode = availabilityEvidenceMode(sloPayload, nowMs);
+  const age = ageLabel(sloPayload?.generated_at ?? null, nowMs);
+  const coverage = `${rows.length} components rendered from the ${rows[0]?.window ?? 30}-day raw probe window`;
+  if (mode === "stale-measured") {
+    return `${coverage}; source is stale (${age}). Historical counters remain visible, but they are not current availability health evidence.`;
+  }
+  if (mode === "unknown") {
+    return `${coverage}; source freshness is unknown. Counters remain visible as supporting evidence, not a current health claim.`;
+  }
+  return `${coverage}; source ${age}.`;
+}
+
 async function fetchJson(url) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -332,16 +357,19 @@ function renderAvailability(sloPayload, statsPayload) {
       row.appendChild(cell);
     }
     const evidence = document.createElement("td");
-    const mode = measured ? "measured" : "unknown";
+    const sourceMode = availabilityEvidenceMode(sloPayload);
+    const mode = measured ? sourceMode : "unknown";
     const badge = document.createElement("span");
     badge.className = "atlas-evidence-mode";
     badge.dataset.evidenceMode = mode;
     badge.textContent = evidenceLabel(mode);
     const detail = document.createElement("span");
     detail.className = "systems-evidence-detail";
-    detail.textContent = measured
+    detail.textContent = measured && sourceMode === "measured"
       ? `first measured day ${record.firstDay ?? "unknown"}; one probe pass every ten minutes`
-      : "no probe counters are available for this component";
+      : measured
+        ? `source ${evidenceLabel(sourceMode).toLowerCase()}; counters are supporting historical evidence`
+        : "no probe counters are available for this component";
     evidence.className = "systems-evidence-cell";
     evidence.append(badge, detail);
     row.appendChild(evidence);
@@ -356,15 +384,14 @@ function renderAvailability(sloPayload, statsPayload) {
     body.appendChild(row);
   }
   const generatedAt = sloPayload?.generated_at ?? null;
+  const sourceMode = availabilityEvidenceMode(sloPayload);
   const status = byId("availability-status");
   if (status) {
-    status.dataset.state = records.length ? "healthy" : "warning";
-    status.textContent = records.length
-      ? `${records.length} components rendered from the ${records[0]?.window ?? 30}-day raw probe window; source ${ageLabel(generatedAt)}.`
-      : "Raw availability evidence is empty.";
+    status.dataset.state = availabilityStatusState(sloPayload, records);
+    status.textContent = availabilityStatusText(sloPayload, records);
   }
   const source = byId("source-availability");
-  if (source) source.textContent = `${records.length ? evidenceModeFromTime(generatedAt) : "unknown"}; ${ageLabel(generatedAt)}; ${records.length} components`;
+  if (source) source.textContent = `${records.length ? sourceMode : "unknown"}; ${ageLabel(generatedAt)}; ${records.length} components`;
   const checked = statsPayload?.estate?.checked_at ?? statsPayload?.generated_at ?? null;
   const note = byId("availability-note");
   if (note) note.textContent = `Coverage means calendar days with probe evidence inside the configured window, not days that were fully up. Availability is successful probes divided by total probes. Current estate snapshot ${ageLabel(checked)}.`;

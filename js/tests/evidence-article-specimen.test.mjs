@@ -33,11 +33,14 @@ test("Article specimen keeps ADR-0013 order and maps publication labels", () => 
   assert.equal(stages.SOURCE.result, RESULT.UNKNOWN_NOT_OBSERVED);
   assert.equal(stages.CHECKED.result, RESULT.UNKNOWN_NOT_OBSERVED);
   assert.equal(stages.MERGED.result, RESULT.UNKNOWN_NOT_OBSERVED);
-  assert.equal(stages["DEPLOYMENT OBSERVED"].result, RESULT.OBSERVED);
-  assert.equal(stages.DEPLOYED.result, RESULT.OBSERVED);
+  assert.equal(stages["DEPLOYMENT OBSERVED"].result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.equal(stages.DEPLOYED.result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.ok(stages["DEPLOYMENT OBSERVED"].supportingObservation);
+  assert.ok(stages.DEPLOYED.supportingObservation);
   assert.equal(stages["RUNTIME VERIFIED"].result, RESULT.NOT_APPLICABLE);
   assert.equal(stages["LIVE VERIFIED"].result, RESULT.UNKNOWN_NOT_OBSERVED);
   assert.match(stages["DEPLOYMENT OBSERVED"].scope, /SCHEDULER EXECUTED/);
+  assert.match(stages["DEPLOYMENT OBSERVED"].scope, /not promoted/i);
   assert.match(stages.DEPLOYED.scope, /published-source identity/);
   assert.equal(ARTICLE_DOMAIN_LABELS["DEPLOYMENT OBSERVED"], "SCHEDULER EXECUTED");
   assert.equal(articleStageLabel("MERGED"), "MERGED · SCHEDULED");
@@ -71,7 +74,8 @@ test("Scheduler execution does not become live verification or authored source",
     extraGaps: [],
   });
   const stages = stageMap(eventOnly.stages);
-  assert.equal(stages["DEPLOYMENT OBSERVED"].result, RESULT.OBSERVED);
+  assert.equal(stages["DEPLOYMENT OBSERVED"].result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.ok(stages["DEPLOYMENT OBSERVED"].supportingObservation);
   assert.equal(stages.DEPLOYED.result, RESULT.UNKNOWN_NOT_OBSERVED);
   assert.match(stages.DEPLOYED.gap, /UNKNOWN \/ NOT OBSERVED/);
   assert.equal(stages.SOURCE.result, RESULT.UNKNOWN_NOT_OBSERVED);
@@ -80,10 +84,10 @@ test("Scheduler execution does not become live verification or authored source",
   assert.equal(eventOnly.nextGap.label, "SOURCE");
 });
 
-test("Evidence Detail for W-08 DEPLOYED preserves exact published identity", () => {
+test("Evidence Detail for W-08 DEPLOYED preserves exact identity as supporting evidence", () => {
   const chain = projectArticleSpecimen();
   const deployed = detailForChangeStage(chain, "DEPLOYED");
-  assert.equal(deployed.observationResult, RESULT.OBSERVED);
+  assert.equal(deployed.observationResult, RESULT.UNKNOWN_NOT_OBSERVED);
   assert.equal(deployed.lifecycleStage, "DEPLOYED");
   assert.match(deployed.identifier, /e36e544e92bc488f76c3a91224ba72044bd0a031/);
   assert.match(deployed.identifier, /22657bd9d7a1e68e1876920b4ae1075b357a045a/);
@@ -92,7 +96,7 @@ test("Evidence Detail for W-08 DEPLOYED preserves exact published identity", () 
     "https://github.com/AtlasReaper311/atlas-systems/commit/e36e544e92bc488f76c3a91224ba72044bd0a031",
   );
   assert.match(deployed.proves, /published-source identity/);
-  assert.match(deployed.doesNotProve, /runtime or live/);
+  assert.match(deployed.doesNotProve, /does not create evidence|runtime or live/);
   assert.equal(deployed.nextGap.label, "SOURCE");
   const runtime = detailForChangeStage(chain, "RUNTIME VERIFIED");
   assert.equal(runtime.observationResult, RESULT.NOT_APPLICABLE);
@@ -217,7 +221,7 @@ test("Recorded article specimen stays public-safe and secret-free", () => {
   assert.match(page, /e36e544e92bc488f76c3a91224ba72044bd0a031/);
   assert.match(page, /22657bd9d7a1e68e1876920b4ae1075b357a045a/);
   assert.match(page, /Article Publication/);
-  assert.match(page, /systems\/evidence\/change-view\.js\?v=20260912-article-subject/);
+  assert.match(page, /systems\/evidence\/change-view\.js\?v=20260913-phase25/);
   assert.doesNotMatch(page, /data-evidence-view-tab="article"/);
   assert.doesNotMatch(page, /data-evidence-view-tab="profile"/);
   assert.match(specimen, /recorded-public-projection/);

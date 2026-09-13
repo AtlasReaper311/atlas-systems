@@ -3,7 +3,8 @@
   vertical-align: middle;
 }
 
-.focus-metric strong[data-evidence-mode="stale-measured"] {
+.focus-metric strong[data-evidence-mode="stale-measured"],
+.atlas-evidence-mode[data-evidence-mode="stale-measured"] {
   color: var(--warning);
 }
 

@@ -1,10 +1,17 @@
-import { RESULT, nextApplicableGap } from "./change-chain.js";
+import { enforceLifecycleChronology, RESULT, nextApplicableGap } from "./change-chain.js";
 import { projectLifecycleStages } from "./lifecycle-profile.js";
 import { SERVICE_SPECIMEN } from "./service-specimen.js";
 
 export const SERVICE_FACTS = Object.freeze([
   "OWNERSHIP",
   "EXPECTED CONTRACT",
+  "DEPLOYMENT OBSERVED",
+  "DEPLOYED",
+  "RUNTIME VERIFIED",
+  "LIVE VERIFIED",
+]);
+
+const SERVICE_LIFECYCLE_FACTS = Object.freeze([
   "DEPLOYMENT OBSERVED",
   "DEPLOYED",
   "RUNTIME VERIFIED",
@@ -48,9 +55,11 @@ export function serviceEvidenceMode(result, observedAt, nowMs = Date.now()) {
   return nowMs - parsed > STALE_AFTER_MS ? "stale-measured" : "measured";
 }
 
-export function serviceStatusState(result) {
+export function serviceStatusState(result, observedAt = null, nowMs = Date.now(), evidenceMode = null) {
   if (result === RESULT.FAILED) return "failure";
   if (result === RESULT.UNKNOWN_NOT_OBSERVED || result === RESULT.NOT_APPLICABLE) return "unknown";
+  const parsed = timestampMs(observedAt);
+  if (evidenceMode === "stale-measured" || (parsed !== null && nowMs - parsed > STALE_AFTER_MS)) return "warning";
   return "healthy";
 }
 
@@ -81,11 +90,12 @@ function projectFact(fact, observation, profile, nowMs) {
 
   const result = observation ? normalizeResult(observation.result) : RESULT.UNKNOWN_NOT_OBSERVED;
   const observed = result === RESULT.OBSERVED || result === RESULT.FAILED;
+  const evidenceMode = serviceEvidenceMode(result, observation?.observedAt, nowMs);
   return Object.freeze({
     fact,
     result,
-    evidenceMode: serviceEvidenceMode(result, observation?.observedAt, nowMs),
-    statusState: serviceStatusState(result),
+    evidenceMode,
+    statusState: serviceStatusState(result, observation?.observedAt, nowMs, evidenceMode),
     identifier: observation?.identifier ? String(observation.identifier) : null,
     provenance: observation?.provenance ? String(observation.provenance) : null,
     observedAt: observation?.observedAt ? String(observation.observedAt) : null,
@@ -126,21 +136,25 @@ export function compactServiceReading(facts, extraGaps = []) {
       label: "Deployment",
       result: deployment?.result ?? RESULT.UNKNOWN_NOT_OBSERVED,
       kind: "later",
+      scope: deployment?.scope ?? deployment?.gap ?? null,
     }),
     Object.freeze({
       label: "Expected deployed identity",
       result: deployed?.result ?? RESULT.UNKNOWN_NOT_OBSERVED,
       kind: "later",
+      scope: deployed?.scope ?? deployed?.gap ?? null,
     }),
     Object.freeze({
       label: "Runtime verification",
       result: runtime?.result ?? RESULT.UNKNOWN_NOT_OBSERVED,
       kind: "later",
+      scope: runtime?.scope ?? runtime?.gap ?? null,
     }),
     Object.freeze({
       label: "Live verification",
       result: live?.result ?? RESULT.UNKNOWN_NOT_OBSERVED,
       kind: "later",
+      scope: live?.scope ?? live?.gap ?? null,
     }),
   ];
   for (const gap of extraGaps) {
@@ -421,8 +435,14 @@ export function projectServiceView(record, profile = RUNTIME_WORKER_PROFILE, now
   const payload = asRecord(record);
   const observations = asRecord(payload.observations);
   const extraGaps = asArray(payload.extraGaps);
+  const rawFacts = SERVICE_FACTS.map((fact) => projectFact(fact, factObservation(observations, fact), profile, nowMs));
+  const lifecycleFacts = enforceLifecycleChronology(
+    rawFacts.filter((fact) => SERVICE_LIFECYCLE_FACTS.includes(fact.fact)),
+    { startAt: "DEPLOYMENT OBSERVED" },
+  );
+  const lifecycleByFact = new Map(lifecycleFacts.map((fact) => [fact.fact, fact]));
   const facts = Object.freeze(
-    SERVICE_FACTS.map((fact) => projectFact(fact, factObservation(observations, fact), profile, nowMs)),
+    rawFacts.map((fact) => lifecycleByFact.get(fact.fact) ?? fact),
   );
   return Object.freeze({
     schema: "atlas-systems/runtime-service-projection/v1",
@@ -444,7 +464,7 @@ export function projectServiceView(record, profile = RUNTIME_WORKER_PROFILE, now
       DEPLOYED: factByName(facts, "DEPLOYED"),
       "RUNTIME VERIFIED": factByName(facts, "RUNTIME VERIFIED"),
       "LIVE VERIFIED": factByName(facts, "LIVE VERIFIED"),
-    }),
+    }, { chronologyStartStage: "DEPLOYMENT OBSERVED" }),
     reading: compactServiceReading(facts, extraGaps),
     nextGap: nextApplicableGap(
       facts.map((fact) => ({ stage: fact.fact, result: fact.result, gap: fact.gap })),
@@ -459,7 +479,10 @@ export function serviceViewStatus(projection) {
     || projection.reading.lines.some((line) => line.result === RESULT.FAILED);
   const unknown = projection.facts.some((fact) => fact.result === RESULT.UNKNOWN_NOT_OBSERVED)
     || projection.reading.lines.some((line) => line.result === RESULT.UNKNOWN_NOT_OBSERVED);
+  const warning = projection.facts.some((fact) => fact.statusState === "warning")
+    || projection.facts.some((fact) => fact.evidenceMode === "stale-measured");
   if (failed) return "failure";
   if (unknown) return "warning";
+  if (warning) return "warning";
   return "healthy";
 }

@@ -129,6 +129,52 @@ test("DEPLOYMENT OBSERVED does not imply DEPLOYED", () => {
   assert.ok(reading.includes("Live verification: UNKNOWN / NOT OBSERVED"));
 });
 
+test("Chronology demotes later observations when deployment identity is unknown and retains support", () => {
+  const chain = projectChangeChain({
+    observations: {
+      SOURCE: { result: RESULT.OBSERVED, identifier: "source-1", scope: "source exists" },
+      CHECKED: { result: RESULT.OBSERVED, identifier: "checks-1", scope: "checks passed" },
+      MERGED: { result: RESULT.OBSERVED, identifier: "merge-1", scope: "merge exists" },
+      "DEPLOYMENT OBSERVED": { result: RESULT.UNKNOWN_NOT_OBSERVED, gap: "deploy event unavailable" },
+      DEPLOYED: {
+        result: RESULT.OBSERVED,
+        identifier: "endpoint-1",
+        provenance: "public endpoint observation",
+        observedAt: "2026-09-11T09:00:00Z",
+        scope: "The endpoint answered with the expected route.",
+      },
+      "LIVE VERIFIED": {
+        result: RESULT.OBSERVED,
+        identifier: "live-1",
+        provenance: "public live observation",
+        scope: "The public page answered.",
+      },
+    },
+  });
+  const stages = stageMap(chain);
+  assert.equal(stages.DEPLOYED.result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.equal(stages["LIVE VERIFIED"].result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.equal(stages.DEPLOYED.supportingObservation.identifier, "endpoint-1");
+  assert.match(stages.DEPLOYED.scope, /supporting observation retained/i);
+  assert.match(stages["LIVE VERIFIED"].gap, /DEPLOYMENT OBSERVED is UNKNOWN/);
+  assert.equal(chain.nextGap.label, "DEPLOYMENT OBSERVED");
+});
+
+test("A failed predecessor also blocks later promotion without discarding its observation", () => {
+  const chain = projectChangeChain({
+    observations: {
+      SOURCE: { result: RESULT.OBSERVED, identifier: "source-1" },
+      CHECKED: { result: RESULT.FAILED, identifier: "checks-1", scope: "checks failed" },
+      MERGED: { result: RESULT.OBSERVED, identifier: "merge-1", scope: "merge record exists" },
+    },
+  });
+  const stages = stageMap(chain);
+  assert.equal(stages.CHECKED.result, RESULT.FAILED);
+  assert.equal(stages.MERGED.result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.equal(stages.MERGED.supportingObservation.identifier, "merge-1");
+  assert.match(stages.MERGED.scope, /not promoted because CHECKED is FAILED/);
+});
+
 test("Static public-site profile makes RUNTIME VERIFIED NOT APPLICABLE even if an observation is supplied", () => {
   const chain = projectChangeChain({
     observations: {
@@ -277,8 +323,8 @@ test("Evidence Console keeps existing public records and adds the change view wi
   ]) {
     assert.match(page, new RegExp(`id="${id}"`));
   }
-  assert.match(page, /systems\/evidence\/change-view\.js\?v=20260912-article-subject/);
-  assert.match(page, /systems-evidence-truthfulness\.css\?v=20260912-profile/);
+  assert.match(page, /systems\/evidence\/change-view\.js\?v=20260913-phase25/);
+  assert.match(page, /systems-evidence-truthfulness\.css\?v=20260913-phase25/);
   assert.match(page, /data-evidence-mode="recorded-replay"/);
   assert.match(page, /not a live feed/);
   assert.match(css, /prefers-reduced-motion: reduce/);

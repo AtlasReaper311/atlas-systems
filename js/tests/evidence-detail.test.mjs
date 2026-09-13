@@ -120,6 +120,7 @@ test("Evidence Detail cannot promote a claim beyond the underlying record", () =
     subject: { repository: "AtlasReaper311/atlas-systems", pullRequest: 1 },
     observations: {
       SOURCE: { result: RESULT.OBSERVED, identifier: "pr-1", scope: "source exists" },
+      CHECKED: { result: RESULT.OBSERVED, identifier: "checks-1", scope: "checks passed" },
       MERGED: { result: RESULT.OBSERVED, identifier: "merge-1", scope: "The exact head is on main." },
     },
   });
@@ -137,6 +138,8 @@ test("Evidence Detail cannot promote a claim beyond the underlying record", () =
 test("DEPLOYMENT OBSERVED detail cannot become expected-identity DEPLOYED", () => {
   const chain = projectChangeChain({
     observations: {
+      SOURCE: { result: RESULT.OBSERVED, identifier: "pr-1", scope: "source exists" },
+      CHECKED: { result: RESULT.OBSERVED, identifier: "checks-1", scope: "checks passed" },
       MERGED: { result: RESULT.OBSERVED, identifier: "merge-1", scope: "merged" },
       "DEPLOYMENT OBSERVED": {
         result: RESULT.OBSERVED,

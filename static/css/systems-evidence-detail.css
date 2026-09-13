@@ -224,7 +224,7 @@
 }
 
 .systems-evidence-ladder-result[data-result="FAILED"] {
-  color: var(--bad);
+  color: #f28b87;
 }
 
 .systems-evidence-chain {
