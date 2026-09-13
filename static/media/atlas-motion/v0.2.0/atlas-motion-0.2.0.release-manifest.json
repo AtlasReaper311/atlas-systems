@@ -1,0 +1,693 @@
+{
+  "schema_version": "atlas-motion/release-bundle/v2",
+  "repository": "AtlasReaper311/atlas-motion",
+  "release": {
+    "kind": "candidate",
+    "version": "0.2.0",
+    "tag": "v0.2.0",
+    "source_commit": "ec9e5cdec34905e77ed0653b8a74372f79df2a8c",
+    "source_tree": "f142234e486181881f388afd26f91599efc70337",
+    "tag_status": "not-created"
+  },
+  "compositions": [
+    {
+      "id": "EstateBoot",
+      "slug": "estate-boot",
+      "video_path": "out/estate-boot.mp4",
+      "sidecar_path": "out/estate-boot.render.json",
+      "still_paths": [
+        "out/validation/frame-000.png",
+        "out/validation/frame-225.png",
+        "out/validation/frame-449.png"
+      ],
+      "frame_md5_path": "reports/determinism/estate-boot.framemd5",
+      "ffprobe_path": "reports/render/estate-boot.ffprobe.json"
+    },
+    {
+      "id": "EvidenceChain",
+      "slug": "evidence-chain",
+      "video_path": "out/evidence-chain.mp4",
+      "sidecar_path": "out/evidence-chain.render.json",
+      "still_paths": [
+        "out/validation/evidence-chain/frame-000.png",
+        "out/validation/evidence-chain/frame-300.png",
+        "out/validation/evidence-chain/frame-599.png"
+      ],
+      "frame_md5_path": "reports/determinism/evidence-chain.framemd5",
+      "ffprobe_path": "reports/render/evidence-chain.ffprobe.json"
+    }
+  ],
+  "member_count": 107,
+  "members": [
+    {
+      "path": "out/estate-boot.mp4",
+      "kind": "render-evidence",
+      "bytes": 1116706,
+      "sha256": "2686f54c6b52bfc3012c7df898a578ab8a16b622c6e87c52b9ee569046ae84b4"
+    },
+    {
+      "path": "out/estate-boot.render.json",
+      "kind": "render-evidence",
+      "bytes": 6556,
+      "sha256": "9c5d3b637d4f685cd1800f1b0a0c00ad47ac8556408dd63f5aa1d988ed4bc134"
+    },
+    {
+      "path": "out/evidence-chain.mp4",
+      "kind": "render-evidence",
+      "bytes": 863879,
+      "sha256": "f944f6cda4f00b1205ef03468250456cf7a1252bc5fae75375c8df90e0a74abe"
+    },
+    {
+      "path": "out/evidence-chain.render.json",
+      "kind": "render-evidence",
+      "bytes": 6301,
+      "sha256": "39a24288e1e2b34a921c60c77c8acc687e9717c590ff7d707e44bd45d7bba2c4"
+    },
+    {
+      "path": "out/validation/evidence-chain/frame-000.png",
+      "kind": "render-evidence",
+      "bytes": 1082836,
+      "sha256": "4bfc4e5963f78bf265ce3377e1e6f56ea69cdf9852b5033d517ba61ed34399ee"
+    },
+    {
+      "path": "out/validation/evidence-chain/frame-300.png",
+      "kind": "render-evidence",
+      "bytes": 986361,
+      "sha256": "64d99edca2b15d6ce7004c9738b8787e6dc03a04b677cfcbf6087ad082094fba"
+    },
+    {
+      "path": "out/validation/evidence-chain/frame-599.png",
+      "kind": "render-evidence",
+      "bytes": 868489,
+      "sha256": "38773a2436811e8dfa1bb4c6b2dc28056913ad9e5cbc9f983d616f053e34c947"
+    },
+    {
+      "path": "out/validation/frame-000.png",
+      "kind": "render-evidence",
+      "bytes": 1009596,
+      "sha256": "bedbe655157ed8cf34d3bcaee521ca837d8b1738898cd46ed0f92bf775a4e0e9"
+    },
+    {
+      "path": "out/validation/frame-225.png",
+      "kind": "render-evidence",
+      "bytes": 926745,
+      "sha256": "abacab495e33d0e4ae13e46fd762b49a0354540005ad4dc2398e39a1c8211b15"
+    },
+    {
+      "path": "out/validation/frame-449.png",
+      "kind": "render-evidence",
+      "bytes": 1126919,
+      "sha256": "c6a0e8c8ce28a2c42393b61e007e959680fa6343acb0fc0eed40294f182c4fb0"
+    },
+    {
+      "path": "reports/determinism/estate-boot.framemd5",
+      "kind": "render-evidence",
+      "bytes": 36217,
+      "sha256": "5ca4ff6bbd494d69d03ede338bc3ea36884f9a06b238c600b37d76bf256e40dd"
+    },
+    {
+      "path": "reports/determinism/evidence-chain.framemd5",
+      "kind": "render-evidence",
+      "bytes": 48217,
+      "sha256": "566ffc51231d6226dbee4ac7e09fb526556ed793b182fbce5db745453b918200"
+    },
+    {
+      "path": "reports/render/estate-boot.ffprobe.json",
+      "kind": "render-evidence",
+      "bytes": 2737,
+      "sha256": "237461203ea575428753ba4aaca508fd91f60d27747ee22a4a8a05a1d058ff70"
+    },
+    {
+      "path": "reports/render/evidence-chain.ffprobe.json",
+      "kind": "render-evidence",
+      "bytes": 2739,
+      "sha256": "6c6bfcc086c13b36026e94c4739aec428902cd524230d26893fb7433a7963f22"
+    },
+    {
+      "path": "source/.atlas/governance.json",
+      "kind": "source",
+      "bytes": 344,
+      "sha256": "7309a9c97cb5465015d64168d66cc80cd0c6d5d8c0e30ec4005532f213cf57ad"
+    },
+    {
+      "path": "source/.github/workflows/ci.yml",
+      "kind": "source",
+      "bytes": 3455,
+      "sha256": "adca938b328f362ce7193ce5740727165cd1a67801e3f4cd78d5d692c7a67900"
+    },
+    {
+      "path": "source/.nvmrc",
+      "kind": "source",
+      "bytes": 8,
+      "sha256": "9c579c4eab1d526e689fe7cda201a0ab2f39070304043bb55c459a3d90954250"
+    },
+    {
+      "path": "source/LICENSE",
+      "kind": "source",
+      "bytes": 1069,
+      "sha256": "7aa46253891e42b4d1abe7ed4bfe2759560b7645c6d09ffad142ab8d7e7d6391"
+    },
+    {
+      "path": "source/README.md",
+      "kind": "source",
+      "bytes": 7063,
+      "sha256": "fc233095d5069a58cf2e3aecdcc27fdb9bf27bea1aa5a79e9d5804ea69181420"
+    },
+    {
+      "path": "source/config/composition.json",
+      "kind": "source",
+      "bytes": 3154,
+      "sha256": "292e95d76e4e7f193a2cdb199039d0102532c561141328b769e3a09d71027389"
+    },
+    {
+      "path": "source/config/debug-props.json",
+      "kind": "source",
+      "bytes": 56,
+      "sha256": "172e852088725374c4b59aabfacd9718450e6b0b113b5ffcf164203a881f4da4"
+    },
+    {
+      "path": "source/config/production-props.json",
+      "kind": "source",
+      "bytes": 57,
+      "sha256": "91967c6fa13eedf578b53ed8b03fdd8261240c454a932518973c71dc5b134180"
+    },
+    {
+      "path": "source/data/evidence/evidence-chain-v0.json",
+      "kind": "source",
+      "bytes": 3776,
+      "sha256": "80a5956d16ad513c2292f3ef60fba035c2edfa41488b5753be12d6655d5bbb14"
+    },
+    {
+      "path": "source/data/schema/composition-registry.schema.json",
+      "kind": "source",
+      "bytes": 4815,
+      "sha256": "8e65bbd14b28f4d45fea8c5c4a84db47b076ae76d4d548072c6fd62f74d51a3c"
+    },
+    {
+      "path": "source/data/schema/estate-boot-snapshot.schema.json",
+      "kind": "source",
+      "bytes": 2660,
+      "sha256": "f0094c82d2f48edec8ab93290f18a6bc2632ec8c4aa613cdb47f7388eabcff7f"
+    },
+    {
+      "path": "source/data/schema/evidence-chain-input.schema.json",
+      "kind": "source",
+      "bytes": 3543,
+      "sha256": "5cb9568cc622f852ec5db76c85e9b361837a4901c15a7398e137654b12bda00e"
+    },
+    {
+      "path": "source/data/schema/motion-release-bundle.schema.json",
+      "kind": "source",
+      "bytes": 3078,
+      "sha256": "6f413592874dbbfc1e626c246d88eabc6f1534049e439011cef46b4585646400"
+    },
+    {
+      "path": "source/data/snapshots/estate-boot-v0.json",
+      "kind": "source",
+      "bytes": 6057,
+      "sha256": "3f7ed747a9ea19cfcb24cb6765ea1e68d1401cc19f1824c1c5e5180060c16f60"
+    },
+    {
+      "path": "source/docs/DATA-CONTRACT.md",
+      "kind": "source",
+      "bytes": 2836,
+      "sha256": "1075669b640802acead9dac115a0bcfa4ada154054b9f817a1ecf3e30a3ed6c5"
+    },
+    {
+      "path": "source/docs/DEPENDENCY-DECISIONS.md",
+      "kind": "source",
+      "bytes": 1148,
+      "sha256": "8481c61afc3bc9a49e0cbba7abe9109acedd4033c09472ebf113f9fca0f86c71"
+    },
+    {
+      "path": "source/docs/MOTION-BRIEF.md",
+      "kind": "source",
+      "bytes": 1143,
+      "sha256": "928b60cd68ef4cb1730ec204c8b4581f6c644eb8f325f05d26a72ad6977fca34"
+    },
+    {
+      "path": "source/docs/NARRATIVE-CONTRACT.md",
+      "kind": "source",
+      "bytes": 2239,
+      "sha256": "89f97e0bfecd9d3046976be7ad87cb172a5467cacc61288ffa4ff93661a9d84d"
+    },
+    {
+      "path": "source/docs/RELEASE-CONTRACT.md",
+      "kind": "source",
+      "bytes": 2847,
+      "sha256": "a63cd1776ec7c2de48c38bedb7d6eaa9bcfd6ecae3bd1f2752b542575b30466a"
+    },
+    {
+      "path": "source/docs/RENDER-CONTRACT.md",
+      "kind": "source",
+      "bytes": 1870,
+      "sha256": "5aed1a5bf6dfe1de6050b3d6d01590a0b7b539107b96dcc2a8c5d1f5df1f7f43"
+    },
+    {
+      "path": "source/docs/VISUAL-MOTION-CONTRACT.md",
+      "kind": "source",
+      "bytes": 2100,
+      "sha256": "a777f9d4ff4f0ce4f0f52f5829b2247a0344cbcae514a9fe7d89919a3f490b29"
+    },
+    {
+      "path": "source/eslint.config.mjs",
+      "kind": "source",
+      "bytes": 813,
+      "sha256": "9ec6ef372db831b8802c1be1f345ea4b7072ad5fc15cb431c15b94b620d5a4a2"
+    },
+    {
+      "path": "source/package-lock.json",
+      "kind": "source",
+      "bytes": 216603,
+      "sha256": "26716ca597d1ba8b7d961b98d1b3c843c015b018b8adbc0acbbf204f358db13f"
+    },
+    {
+      "path": "source/package.json",
+      "kind": "source",
+      "bytes": 1725,
+      "sha256": "2fa9f1c960e985354f6b2606f5b49298c8f8eb366520e7137f2035a327ca1115"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/atlas-fonts.css",
+      "kind": "source",
+      "bytes": 1555,
+      "sha256": "1539e39908d5ffd447c4f976a36dc5aa0085f5daf15b967734fb24ec1a7251ce"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/atlas-interface-kit.css",
+      "kind": "source",
+      "bytes": 14978,
+      "sha256": "bfe09e432d87595bbc39d68f493882677e127512ce0d41993296481ea6969cce"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/components.json",
+      "kind": "source",
+      "bytes": 2958,
+      "sha256": "f009e7c42510ff7c3dd700afc636439c1b9bfd80a552c1d8d8c116ae7b95b7d2"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/fonts/dm-serif-display-400-italic.woff2",
+      "kind": "source",
+      "bytes": 24572,
+      "sha256": "ed8b291611e32fa2d2900488dd48fc95faf0957b2ef7ddf1527e8d21dd9cf2df"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/fonts/dm-serif-display-400.woff2",
+      "kind": "source",
+      "bytes": 24744,
+      "sha256": "fdf61e20fd2c0108e0ea28da4daca0035205b4b7fc031a3974b865b704de160a"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/fonts/ibm-plex-mono-400.woff2",
+      "kind": "source",
+      "bytes": 14708,
+      "sha256": "08949f728dc52d528e69b1667d15c89a5686a4ee9a296ff90983985f99c380f7"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/fonts/ibm-plex-mono-500.woff2",
+      "kind": "source",
+      "bytes": 14888,
+      "sha256": "01d285447409c8a588692162439a038b8cbd7871309ee20267b0d2d91c6e8e22"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/licenses/DM-Serif-Display-OFL.txt",
+      "kind": "source",
+      "bytes": 4605,
+      "sha256": "a3e5cdd67d4571dd0a24fcc968de0efde7ae97ef752daf0906e4767619dd7231"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/licenses/IBM-Plex-Mono-OFL.txt",
+      "kind": "source",
+      "bytes": 4456,
+      "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/manifest.json",
+      "kind": "source",
+      "bytes": 1931,
+      "sha256": "b809197182dab4fb531bc6be269daef4f63fbb46fd97554ad0906a700226f4f0"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/semantics.json",
+      "kind": "source",
+      "bytes": 5999,
+      "sha256": "c7233973fbd06b02809acb9269df1b9e313de20e1fbe179cc511c3ddac381ead"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/tokens.json",
+      "kind": "source",
+      "bytes": 1735,
+      "sha256": "10f0a9a8b151b9c6e8a85db01e3b2421e25ca79713c0198f6ccd36d350b2ed02"
+    },
+    {
+      "path": "source/remotion.config.ts",
+      "kind": "source",
+      "bytes": 114,
+      "sha256": "736c150a9bf154ddce17520b7c24ee5c60c8d3dd387a58c206b43a37f3c14869"
+    },
+    {
+      "path": "source/scripts/build-release-bundle.mjs",
+      "kind": "source",
+      "bytes": 545,
+      "sha256": "66cfc58ad28e916752b2e20569dab08381f9854d5e9948d7c7fadf80d40340e8"
+    },
+    {
+      "path": "source/scripts/capture-estate-snapshot.mjs",
+      "kind": "source",
+      "bytes": 712,
+      "sha256": "18a61cd7e8db5f511b1681c49042ee9952d022dc338e3fe7c9c767e85a5392e1"
+    },
+    {
+      "path": "source/scripts/check-composition-metadata.mjs",
+      "kind": "source",
+      "bytes": 618,
+      "sha256": "e5b4ffbdd7d9fba10a8753013e4c573abe3633743458a32377654904b6ffabe5"
+    },
+    {
+      "path": "source/scripts/check-remotion-versions.mjs",
+      "kind": "source",
+      "bytes": 1154,
+      "sha256": "a30d19bbb71cb9a5f85cad30b9959ff357ebb517f2f24b67adc7a6fc2bcd7b94"
+    },
+    {
+      "path": "source/scripts/check-source-network.mjs",
+      "kind": "source",
+      "bytes": 1149,
+      "sha256": "ab665055de8108785d0a98609519f7087e4912f7629133993fa4f8f28de0ce9e"
+    },
+    {
+      "path": "source/scripts/composition-values.mjs",
+      "kind": "source",
+      "bytes": 658,
+      "sha256": "e04913f7072eab1c2cf6d66192af33f4e6984521a35239633a42d1f1de20610e"
+    },
+    {
+      "path": "source/scripts/lib/capture-estate-snapshot.mjs",
+      "kind": "source",
+      "bytes": 6117,
+      "sha256": "85a2bf2c33491cf52e9c975d573416315d3a810718ce2967bedaae2e37ef237f"
+    },
+    {
+      "path": "source/scripts/lib/composition-registry.mjs",
+      "kind": "source",
+      "bytes": 4761,
+      "sha256": "2f2f5966726fffaf7ab3f8a69cb01d9bfd1b6acbe02d01652d0e59c702f4c820"
+    },
+    {
+      "path": "source/scripts/lib/evidence-chain.mjs",
+      "kind": "source",
+      "bytes": 1628,
+      "sha256": "1d5853db693cd6f5255d2ffafc2711eb31504d5f415616852dbe4a9b25b65392"
+    },
+    {
+      "path": "source/scripts/lib/release-bundle.mjs",
+      "kind": "source",
+      "bytes": 16977,
+      "sha256": "4a8495890b1b5ea249d4ef6934115fcc4cf0fea9b004a9ac8b4a0ab267ba6b67"
+    },
+    {
+      "path": "source/scripts/lib/render-sidecar.mjs",
+      "kind": "source",
+      "bytes": 7032,
+      "sha256": "19f898448d71c65fcef7755c9cc43fe6b22c59fed25f06a5ef8aa6dc5bdad8a8"
+    },
+    {
+      "path": "source/scripts/list-compositions.mjs",
+      "kind": "source",
+      "bytes": 247,
+      "sha256": "ce14eda34180ae64485049795ca03ed00c91935eafb48027dcd3d1cd8bac42da"
+    },
+    {
+      "path": "source/scripts/print-render-digests.mjs",
+      "kind": "source",
+      "bytes": 553,
+      "sha256": "c89372409e87305871b78a66fc0056861e3615afb2039e1d6510c73c0d016f2f"
+    },
+    {
+      "path": "source/scripts/render-validation.sh",
+      "kind": "source",
+      "bytes": 3973,
+      "sha256": "8e664713f28ad47fe1dcbaed1d5307d2d6d1ea019d3841bb85d6cec6bb9898b9"
+    },
+    {
+      "path": "source/scripts/validate-governance.mjs",
+      "kind": "source",
+      "bytes": 707,
+      "sha256": "11e57f30444b56571498ac6784ea9968d604e0149e0110eed215a2ae4e442183"
+    },
+    {
+      "path": "source/scripts/validate-media.mjs",
+      "kind": "source",
+      "bytes": 1917,
+      "sha256": "ba222f2f9e08e4d3903eb77b3cc66e2adb33d293824ea3b0d176053d4d49766e"
+    },
+    {
+      "path": "source/scripts/validate-release-bundle.mjs",
+      "kind": "source",
+      "bytes": 667,
+      "sha256": "3784a0c939ae3f6d696c25650568d59b7828caa0d42a03241bfd1a8352dea62e"
+    },
+    {
+      "path": "source/scripts/validate-render-sidecar.mjs",
+      "kind": "source",
+      "bytes": 879,
+      "sha256": "259e21810628f4162a931ea9dd5e414e8cd930b15db2eef374cbb801e57dc0f9"
+    },
+    {
+      "path": "source/scripts/validate-snapshot.mjs",
+      "kind": "source",
+      "bytes": 2781,
+      "sha256": "be5b663a524078d37b1dc2b60e39829c99554c1d67645d6afa490d4f6f50a9d0"
+    },
+    {
+      "path": "source/scripts/validate.sh",
+      "kind": "source",
+      "bytes": 340,
+      "sha256": "36516d7dc472bba6b46ca79441e3fc16f50a456ece446ea43aff8461ccb51c52"
+    },
+    {
+      "path": "source/scripts/verify-interface-kit.mjs",
+      "kind": "source",
+      "bytes": 3375,
+      "sha256": "f6dbd324c58447c320832f762bc6d5805fe3229a2805079fe0230db9a61431f7"
+    },
+    {
+      "path": "source/scripts/write-render-sidecar.mjs",
+      "kind": "source",
+      "bytes": 1321,
+      "sha256": "cf0772059aaa73529ba258ca7ee995e91ebea9da7f325967f0da18b620936cba"
+    },
+    {
+      "path": "source/src/Root.tsx",
+      "kind": "source",
+      "bytes": 630,
+      "sha256": "85fd4ec9cec336d0b61fb4d120d5483e9e72e8a99bec12bf68c074053eb00444"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/DebugOverlay.tsx",
+      "kind": "source",
+      "bytes": 2698,
+      "sha256": "233b6abdb4e14cdae8af6b6ed7cb17b96208e280d63ae6c9cdd12bfbb6500a3b"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/EstateBoot.tsx",
+      "kind": "source",
+      "bytes": 6737,
+      "sha256": "0698d54faea1859014332849cd5653fe3f8067827baf7c9fbd789f2407bea9ba"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/EvidencePanel.tsx",
+      "kind": "source",
+      "bytes": 2229,
+      "sha256": "76b30fa136712fbb7feedc0153322ad3adc7814b34cebcdf564853c33e9001ea"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/OrthogonalEdge.tsx",
+      "kind": "source",
+      "bytes": 2039,
+      "sha256": "9bff89888c3e0bf4a493735d7fb2b0e7c614617d8c6091c97f4346ea944c2303"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/TerminalPrompt.tsx",
+      "kind": "source",
+      "bytes": 1121,
+      "sha256": "4ec7412964e325a4b82c16a46d025f7377ee6da62a5e5fdf289de6935b8d656e"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/TopologyNode.tsx",
+      "kind": "source",
+      "bytes": 3399,
+      "sha256": "0a42c18a96dd8073bbc8290bb4371d6e196dfda3da772587f1f567c287e2b912"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/Wordmark.tsx",
+      "kind": "source",
+      "bytes": 435,
+      "sha256": "2bb169b6e750d950b9393b781f86d83c7fddbae7008ecf74b80924fb100bb6cb"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/contracts.ts",
+      "kind": "source",
+      "bytes": 1386,
+      "sha256": "3aa1f0052dc977dff46e41b16ae13e42def28d7232716d4a88c87b4490f39ca8"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/fonts-data.generated.ts",
+      "kind": "source",
+      "bytes": 72826,
+      "sha256": "2f5bb7d9dadb88d317581ca82924e643f22646296ab88c875a43df20cd5cbfe7"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/fonts.ts",
+      "kind": "source",
+      "bytes": 1143,
+      "sha256": "32df295ec5f21f12e74903387c837789088d37568b175826a8873522cc43b10d"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/layout.ts",
+      "kind": "source",
+      "bytes": 2815,
+      "sha256": "262a12abfb7bc3f8f2f6617047e5001878b2f9755e1ecd71e3dc426eb38b82cb"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/timing.ts",
+      "kind": "source",
+      "bytes": 912,
+      "sha256": "d60efe8fe7f226117b63cb072d7e36232880e70e2fba48b54f30d2b8efa6aa30"
+    },
+    {
+      "path": "source/src/compositions/evidence-chain/EvidenceChain.tsx",
+      "kind": "source",
+      "bytes": 10317,
+      "sha256": "58e48be4132ed1f95501aa65b984fcb720e2921df5aa9ac9b7619ad8ae041769"
+    },
+    {
+      "path": "source/src/compositions/evidence-chain/contracts.ts",
+      "kind": "source",
+      "bytes": 973,
+      "sha256": "86a112c0a57882a892befc0242ff4291fb29afda3aa31b4514c43ed64b527861"
+    },
+    {
+      "path": "source/src/compositions/evidence-chain/timing.ts",
+      "kind": "source",
+      "bytes": 462,
+      "sha256": "aa9ca1a71dc0f88042dd2c628b62df9d34d27663e8581eec77c497922bb4c275"
+    },
+    {
+      "path": "source/src/compositions/registry.ts",
+      "kind": "source",
+      "bytes": 1082,
+      "sha256": "552f9b8900994e6bae230b12a81bc6865bcec692448a763cafcd63d25c23076f"
+    },
+    {
+      "path": "source/src/compositions/types.ts",
+      "kind": "source",
+      "bytes": 73,
+      "sha256": "90f697a108d0e903ad964d8fa08176293f97ffa0245dc912997e09c3dd98716a"
+    },
+    {
+      "path": "source/src/design/tokens.generated.ts",
+      "kind": "source",
+      "bytes": 1833,
+      "sha256": "cfe95fd21cd4f8339d8a864e18ef3c0381fe304239f01afb616cc8204006cabf"
+    },
+    {
+      "path": "source/src/index.ts",
+      "kind": "source",
+      "bytes": 105,
+      "sha256": "855e23f5a7473a90b919295047a8b2a81e9634b68a9893dbb3b7dae377e4687d"
+    },
+    {
+      "path": "source/tests/capture-refusal.test.ts",
+      "kind": "source",
+      "bytes": 2849,
+      "sha256": "26a5270f3a9e3a69b94fbe17400fd9dc42d716ec2c0d9c77c3fda40262478749"
+    },
+    {
+      "path": "source/tests/composition-contract.test.ts",
+      "kind": "source",
+      "bytes": 2255,
+      "sha256": "646c32bfe81b61e777e9d1261465cd0f1a185f839ba16c4031c77eef7a30a6b3"
+    },
+    {
+      "path": "source/tests/composition-registry.test.ts",
+      "kind": "source",
+      "bytes": 3874,
+      "sha256": "51c0daeb1a1267d5ff954ae2b13f19fed40be5a96c6431a4dc6af952b69e317c"
+    },
+    {
+      "path": "source/tests/fixtures/minimal-estate.manifest.json",
+      "kind": "source",
+      "bytes": 63,
+      "sha256": "087e168640c6304668d7c471238729186587639679e0da0ff667d64dd1e047f9"
+    },
+    {
+      "path": "source/tests/interface-kit.test.ts",
+      "kind": "source",
+      "bytes": 516,
+      "sha256": "a20071d0ec886fbb6ab3192bf267adeaf5782342e67c1d7fc37c04fc7fc7f91a"
+    },
+    {
+      "path": "source/tests/release-bundle.test.ts",
+      "kind": "source",
+      "bytes": 9213,
+      "sha256": "8968cde1dc8082e5307f2a9f2bf6436f68a5ae387fa66c360731179f4c2c474b"
+    },
+    {
+      "path": "source/tests/remotion-versions.test.ts",
+      "kind": "source",
+      "bytes": 792,
+      "sha256": "1d58228050f3986c79ebac87fd7b2a78575ab36f88e3be288fc8af4ab8d0623c"
+    },
+    {
+      "path": "source/tests/render-sidecar.test.ts",
+      "kind": "source",
+      "bytes": 4426,
+      "sha256": "f5cdb3c960da529150abe286a8563b320b7f6f50a0c03569cd49d798528417bd"
+    },
+    {
+      "path": "source/tests/snapshot-schema.test.ts",
+      "kind": "source",
+      "bytes": 716,
+      "sha256": "0063cf12fcce47fa3770a2fdf15571d8e2ba0a6af97ffba4a900e621a94476c1"
+    },
+    {
+      "path": "source/tests/snapshot-selection.test.ts",
+      "kind": "source",
+      "bytes": 3021,
+      "sha256": "c00bc3b1257c9107603c794d934b5c6b79632feed723bbabf37d784c4525761e"
+    },
+    {
+      "path": "source/tsconfig.json",
+      "kind": "source",
+      "bytes": 599,
+      "sha256": "39c751d25ed30efc513b475f91c1fd7c531382dae21e927cc06e9077b26adc5b"
+    },
+    {
+      "path": "source/vendor/atlas-interface-kit/0.4.0/atlas-interface-kit-0.4.0.release-manifest.json",
+      "kind": "source",
+      "bytes": 3260,
+      "sha256": "86fcd399a451f99175cffc8e44abf4f404495f409fc1bfd751d95dfd1b86bbb3"
+    },
+    {
+      "path": "source/vendor/atlas-interface-kit/0.4.0/provenance.json",
+      "kind": "source",
+      "bytes": 604,
+      "sha256": "d1a6b5e916a77439a173fe67424734ca090219955c6dbac4f230f632c3510544"
+    },
+    {
+      "path": "source/vitest.config.ts",
+      "kind": "source",
+      "bytes": 186,
+      "sha256": "12d33b23a91fd103fd07e3b27e7d84055701c0e3979c075e90cf41dfee5ac7a1"
+    }
+  ],
+  "evidence_boundary": {
+    "deployed": false,
+    "published": false,
+    "embedded": false,
+    "live_health_claimed": false,
+    "cloud_rendered": false,
+    "atlas_integrated": false
+  }
+}

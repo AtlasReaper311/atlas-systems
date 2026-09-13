@@ -1,0 +1,190 @@
+{
+  "schema_version": "atlas-motion/render-evidence/v2",
+  "generated_at": "2026-09-13T02:16:55.103Z",
+  "repository": "AtlasReaper311/atlas-motion",
+  "source_commit": "ec9e5cdec34905e77ed0653b8a74372f79df2a8c",
+  "composition": {
+    "id": "EvidenceChain",
+    "slug": "evidence-chain",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "duration_in_frames": 600,
+    "codec": "h264",
+    "pixel_format": "yuv420p",
+    "audio": false
+  },
+  "provenance": {
+    "identity": "evidence-chain-v0",
+    "kind": "reviewed-lifecycle-vocabulary",
+    "source_repository": "AtlasReaper311/atlas-infra",
+    "input_contract": "evidence-chain-input",
+    "input_path": "data/evidence/evidence-chain-v0.json",
+    "input_sha256": "80a5956d16ad513c2292f3ef60fba035c2edfa41488b5753be12d6655d5bbb14",
+    "limitations": [
+      "Historical and reviewed vocabulary replay, not current live state.",
+      "A rendered stage never proves the next stage.",
+      "Rendering is offline and makes no provider or runtime claim."
+    ]
+  },
+  "input_evidence": {
+    "contract": "evidence-chain-input",
+    "path": "data/evidence/evidence-chain-v0.json",
+    "identity": "evidence-chain-v0",
+    "immutable": true,
+    "reviewed": true,
+    "offline": true,
+    "sha256": "80a5956d16ad513c2292f3ef60fba035c2edfa41488b5753be12d6655d5bbb14",
+    "source": {
+      "status": "accepted-authority",
+      "repository": "AtlasReaper311/atlas-infra",
+      "commit_sha": "fabca7e997b9efd76c11aec76166b5fb63405abe",
+      "documents": [
+        {
+          "path": "docs/adrs/ADR-0013-estate-wide-evidence-lifecycle.md",
+          "blob_sha": "62d38acffe6c747d1b8167afed549cc0f7c84635"
+        },
+        {
+          "path": "docs/adrs/ADR-0014-evidence-lifecycle-profiles.md",
+          "blob_sha": "766cd7884e8000a4b6ff87a6ec8ad2a404e9faf7"
+        }
+      ]
+    }
+  },
+  "interface_kit": {
+    "release_tag": "v0.4.0",
+    "source_commit": "c38b5b3edd631999dfad838c4fb70e505a9860cf",
+    "archive_sha256": "6b72d8acb07230f0b25d4b78b5c5b081ab09a296f11ad3ac1b1f5cb493cac9b9",
+    "external_manifest_sha256": "86fcd399a451f99175cffc8e44abf4f404495f409fc1bfd751d95dfd1b86bbb3"
+  },
+  "dependencies": {
+    "remotion": "4.0.502",
+    "remotion_cli": "4.0.502",
+    "react": "19.2.3",
+    "react_dom": "19.2.3"
+  },
+  "outputs": {
+    "mp4": {
+      "path": "out/evidence-chain.mp4",
+      "bytes": 863879,
+      "sha256": "f944f6cda4f00b1205ef03468250456cf7a1252bc5fae75375c8df90e0a74abe",
+      "ffprobe": {
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+            "profile": "High",
+            "codec_type": "video",
+            "codec_tag_string": "avc1",
+            "codec_tag": "0x31637661",
+            "mime_codec_string": "avc1.640028",
+            "width": 1920,
+            "height": 1080,
+            "coded_width": 1920,
+            "coded_height": 1088,
+            "has_b_frames": 2,
+            "pix_fmt": "yuv420p",
+            "level": 40,
+            "chroma_location": "left",
+            "field_order": "progressive",
+            "refs": 4,
+            "is_avc": "true",
+            "nal_length_size": "4",
+            "id": "0x1",
+            "r_frame_rate": "30/1",
+            "avg_frame_rate": "30/1",
+            "time_base": "1/90000",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 1800000,
+            "duration": "20.000000",
+            "bit_rate": "342330",
+            "bits_per_raw_sample": "8",
+            "nb_frames": "600",
+            "nb_read_frames": "600",
+            "extradata_size": 47,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0,
+              "multilayer": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "VideoHandler",
+              "encoder": "Lavc61.19.100 libx264"
+            }
+          }
+        ],
+        "format": {
+          "filename": "/Users/atlasreaper/Personal/atlas-motion/out/evidence-chain.validation-a.mp4",
+          "nb_streams": 1,
+          "nb_programs": 0,
+          "nb_stream_groups": 0,
+          "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+          "format_long_name": "QuickTime / MOV",
+          "start_time": "0.000000",
+          "duration": "20.000000",
+          "size": "863879",
+          "bit_rate": "345551",
+          "probe_score": 100,
+          "tags": {
+            "major_brand": "isom",
+            "minor_version": "512",
+            "compatible_brands": "isomiso2avc1mp41",
+            "encoder": "Lavf61.7.100",
+            "comment": "Made with Remotion 4.0.502"
+          }
+        }
+      }
+    },
+    "stills": [
+      {
+        "path": "out/validation/evidence-chain/frame-000.png",
+        "bytes": 1082836,
+        "sha256": "4bfc4e5963f78bf265ce3377e1e6f56ea69cdf9852b5033d517ba61ed34399ee"
+      },
+      {
+        "path": "out/validation/evidence-chain/frame-300.png",
+        "bytes": 986361,
+        "sha256": "64d99edca2b15d6ce7004c9738b8787e6dc03a04b677cfcbf6087ad082094fba"
+      },
+      {
+        "path": "out/validation/evidence-chain/frame-599.png",
+        "bytes": 868489,
+        "sha256": "38773a2436811e8dfa1bb4c6b2dc28056913ad9e5cbc9f983d616f053e34c947"
+      }
+    ],
+    "decoded_frames": {
+      "framemd5_path": "reports/determinism/evidence-chain.framemd5",
+      "framemd5_sha256": "566ffc51231d6226dbee4ac7e09fb526556ed793b182fbce5db745453b918200"
+    }
+  },
+  "boundaries": {
+    "deployed": false,
+    "published": false,
+    "embedded": false,
+    "live_health_claimed": false,
+    "cloud_rendered": false,
+    "atlas_integrated": false,
+    "network_calls": false,
+    "provider_calls": false,
+    "runtime_calls": false
+  }
+}

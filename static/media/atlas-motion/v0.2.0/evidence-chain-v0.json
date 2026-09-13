@@ -1,0 +1,97 @@
+{
+  "schema_version": "atlas-motion/evidence-chain-input/v1",
+  "evidence_id": "evidence-chain-v0",
+  "purpose": "Explain the distinction between evidence lifecycle stages without claiming that one stage proves the next.",
+  "reviewed_input": {
+    "status": "accepted-authority",
+    "repository": "AtlasReaper311/atlas-infra",
+    "commit_sha": "fabca7e997b9efd76c11aec76166b5fb63405abe",
+    "documents": [
+      {
+        "path": "docs/adrs/ADR-0013-estate-wide-evidence-lifecycle.md",
+        "blob_sha": "62d38acffe6c747d1b8167afed549cc0f7c84635"
+      },
+      {
+        "path": "docs/adrs/ADR-0014-evidence-lifecycle-profiles.md",
+        "blob_sha": "766cd7884e8000a4b6ff87a6ec8ad2a404e9faf7"
+      }
+    ]
+  },
+  "stages": [
+    {
+      "order": 1,
+      "label": "SOURCE",
+      "meaning": "A named change identity exists as repository source.",
+      "separate_evidence": "CHECKED requires repository-native validation on that exact identity."
+    },
+    {
+      "order": 2,
+      "label": "CHECKED",
+      "meaning": "Repository-native validation or required checks ran against the exact head.",
+      "separate_evidence": "MERGED requires exact integration on the target default branch."
+    },
+    {
+      "order": 3,
+      "label": "MERGED",
+      "meaning": "The exact head is integrated on the target default branch.",
+      "separate_evidence": "DEPLOYMENT OBSERVED requires a named deployment event for a stated identity."
+    },
+    {
+      "order": 4,
+      "label": "DEPLOYMENT OBSERVED",
+      "meaning": "A named deployment event was seen for a stated identity.",
+      "separate_evidence": "DEPLOYED requires proof that the expected identity is the deployed identity."
+    },
+    {
+      "order": 5,
+      "label": "DEPLOYED",
+      "meaning": "The expected identity is the deployed identity.",
+      "separate_evidence": "RUNTIME VERIFIED requires a stated runtime check for that identity."
+    },
+    {
+      "order": 6,
+      "label": "RUNTIME VERIFIED",
+      "meaning": "The deployed subject answered a stated runtime check for the expected identity.",
+      "separate_evidence": "LIVE VERIFIED requires an independent live check after rollout."
+    },
+    {
+      "order": 7,
+      "label": "LIVE VERIFIED",
+      "meaning": "An independent live check of the public or operator-facing behaviour succeeded.",
+      "separate_evidence": "No later lifecycle stage is implied by this label."
+    }
+  ],
+  "terminals": [
+    {
+      "label": "CLOSED / NOT SHIPPED",
+      "meaning": "The change closed without becoming the shipped identity; it is not live or verified."
+    },
+    {
+      "label": "FAILED",
+      "meaning": "The check or observation for a claimed stage was performed and did not hold."
+    },
+    {
+      "label": "UNKNOWN / NOT OBSERVED",
+      "meaning": "Required current or later-stage evidence is missing and must not be inferred."
+    },
+    {
+      "label": "NOT APPLICABLE",
+      "meaning": "The stage cannot exist for that subject; it is not a substitute for missing evidence."
+    }
+  ],
+  "non_implications": [
+    "CHECKED does not imply MERGED.",
+    "MERGED does not imply DEPLOYMENT OBSERVED.",
+    "MERGED does not imply DEPLOYED.",
+    "MERGED does not imply RUNTIME VERIFIED.",
+    "MERGED does not imply LIVE VERIFIED.",
+    "DEPLOYMENT OBSERVED does not imply DEPLOYED.",
+    "DEPLOYED does not imply RUNTIME VERIFIED.",
+    "RUNTIME VERIFIED does not imply LIVE VERIFIED."
+  ],
+  "limitations": [
+    "This is historical replay evidence of accepted lifecycle vocabulary, not a current rollout record.",
+    "The rendered sequence does not assert that any named stage has occurred for a live subject.",
+    "Rendering is deterministic, silent, offline, and makes no provider, runtime, or network claim."
+  ]
+}

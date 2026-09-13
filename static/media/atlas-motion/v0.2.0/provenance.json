@@ -1,0 +1,103 @@
+{
+  "schema_version": "atlas-systems/atlas-motion-release-asset/v1",
+  "owner": "AtlasReaper311/atlas-systems",
+  "release_repository": "AtlasReaper311/atlas-motion",
+  "release": {
+    "version": "0.2.0",
+    "tag": "v0.2.0",
+    "github_release_published": true,
+    "source_commit": "ec9e5cdec34905e77ed0653b8a74372f79df2a8c",
+    "source_tree": "f142234e486181881f388afd26f91599efc70337",
+    "manifest_sha256": "4f5f954b75dc78a819ced31d4ee16a599ee89bd37eb7f16cfc72970d78643fcc",
+    "archive_sha256": "07c1f1a170b900d9918ae859e2211176af96bf5aa14058a9d24e394c7588845c",
+    "bundle_kind": "candidate",
+    "bundle_tag_status": "not-created"
+  },
+  "composition": {
+    "id": "EvidenceChain",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "duration_seconds": 20,
+    "frames": 600,
+    "codec": "h264",
+    "pixel_format": "yuv420p",
+    "audio": false
+  },
+  "assets": {
+    "video": {
+      "path": "static/media/atlas-motion/v0.2.0/evidence-chain.mp4",
+      "bytes": 863879,
+      "sha256": "f944f6cda4f00b1205ef03468250456cf7a1252bc5fae75375c8df90e0a74abe"
+    },
+    "posters": [
+      {
+        "path": "static/media/atlas-motion/v0.2.0/evidence-chain-frame-000.png",
+        "frame": 0,
+        "bytes": 1082836,
+        "sha256": "4bfc4e5963f78bf265ce3377e1e6f56ea69cdf9852b5033d517ba61ed34399ee"
+      },
+      {
+        "path": "static/media/atlas-motion/v0.2.0/evidence-chain-frame-300.png",
+        "frame": 300,
+        "bytes": 986361,
+        "sha256": "64d99edca2b15d6ce7004c9738b8787e6dc03a04b677cfcbf6087ad082094fba"
+      },
+      {
+        "path": "static/media/atlas-motion/v0.2.0/evidence-chain-frame-599.png",
+        "frame": 599,
+        "bytes": 868489,
+        "sha256": "38773a2436811e8dfa1bb4c6b2dc28056913ad9e5cbc9f983d616f053e34c947"
+      }
+    ],
+    "render_sidecar": {
+      "path": "static/media/atlas-motion/v0.2.0/evidence-chain.render.json",
+      "sha256": "39a24288e1e2b34a921c60c77c8acc687e9717c590ff7d707e44bd45d7bba2c4"
+    },
+    "ffprobe": {
+      "path": "static/media/atlas-motion/v0.2.0/evidence-chain.ffprobe.json",
+      "sha256": "6c6bfcc086c13b36026e94c4739aec428902cd524230d26893fb7433a7963f22"
+    },
+    "frame_md5": {
+      "path": "static/media/atlas-motion/v0.2.0/evidence-chain.framemd5",
+      "sha256": "566ffc51231d6226dbee4ac7e09fb526556ed793b182fbce5db745453b918200"
+    },
+    "release_manifest": {
+      "path": "static/media/atlas-motion/v0.2.0/atlas-motion-0.2.0.release-manifest.json",
+      "sha256": "4f5f954b75dc78a819ced31d4ee16a599ee89bd37eb7f16cfc72970d78643fcc"
+    }
+  },
+  "reviewed_input": {
+    "path": "static/media/atlas-motion/v0.2.0/evidence-chain-v0.json",
+    "sha256": "80a5956d16ad513c2292f3ef60fba035c2edfa41488b5753be12d6655d5bbb14",
+    "identity": "evidence-chain-v0",
+    "authority_repository": "AtlasReaper311/atlas-infra",
+    "authority_commit": "fabca7e997b9efd76c11aec76166b5fb63405abe",
+    "authority_documents": [
+      {
+        "path": "docs/adrs/ADR-0013-estate-wide-evidence-lifecycle.md",
+        "blob_sha": "62d38acffe6c747d1b8167afed549cc0f7c84635"
+      },
+      {
+        "path": "docs/adrs/ADR-0014-evidence-lifecycle-profiles.md",
+        "blob_sha": "766cd7884e8000a4b6ff87a6ec8ad2a404e9faf7"
+      }
+    ],
+    "status": "accepted-authority",
+    "reviewed": true,
+    "offline": true
+  },
+  "boundaries": {
+    "recorded_replay": true,
+    "historical_reviewed_input": true,
+    "runtime_dependency_on_motion": false,
+    "deployed_claimed": false,
+    "published_as_current_evidence": false,
+    "live_health_claimed": false,
+    "current_topology_claimed": false,
+    "provider_state_claimed": false,
+    "production_correctness_claimed": false,
+    "network_calls": false,
+    "runtime_calls": false
+  }
+}
