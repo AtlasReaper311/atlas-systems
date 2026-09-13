@@ -161,6 +161,21 @@ test("Atlas Motion is neither a required journey instrument nor a shared scenari
   assert.ok(!model.journey.stages.flatMap((stage) => stage.instrumentAssociations).some((item) => item.instrumentId.includes("motion")));
 });
 
+test("supported scenario relationships appear on the journey stages they name", () => {
+  for (const scenario of model.scenarios) {
+    for (const relationship of scenario.relationships) {
+      if (relationship.supportType === "unsupported") continue;
+      for (const stageId of relationship.stageIds) {
+        const stage = model.journey.stages.find((candidate) => candidate.id === stageId);
+        assert.ok(
+          stage.instrumentAssociations.some((association) => association.instrumentId === relationship.instrumentId),
+          `${scenario.id}/${relationship.instrumentId} names ${stageId} without a journey association`,
+        );
+      }
+    }
+  }
+});
+
 test("recovery can remain unsupported, unknown, and contextual without failing validation", () => {
   const recovery = model.scenarios.find((scenario) => scenario.id === "recovery");
   assert.ok(recovery.relationships.some((item) => item.supportType === "unsupported"));

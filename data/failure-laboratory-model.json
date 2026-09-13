@@ -186,6 +186,11 @@
             "required": false
           },
           {
+            "instrumentId": "request-xray",
+            "relationshipType": "contextual",
+            "required": false
+          },
+          {
             "instrumentId": "cascade",
             "relationshipType": "contextual",
             "required": false
