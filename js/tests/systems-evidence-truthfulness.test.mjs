@@ -17,7 +17,10 @@ import {
 import {
   activityDisclosureLabel,
   assuranceStateSummary,
+  availabilityEvidenceMode,
   availabilityRows,
+  availabilityStatusState,
+  availabilityStatusText,
   denseActivityDays,
   deploymentReceipt,
 } from "../../systems/evidence/receipts.js";
@@ -244,7 +247,7 @@ test("Systems detail routes consume Interface Kit v0.5.0 evidence semantics", ()
   assert.match(routes.evidence, /systems\/evidence\/receipts\.js/);
   assert.match(routes.evidence, /\/v1\/stats/);
   assert.match(routes.evidence, /\/v1\/slo/);
-  assert.match(routes.evidence, /systems-evidence-truthfulness\.css\?v=20260912-profile/);
+  assert.match(routes.evidence, /systems-evidence-truthfulness\.css\?v=20260913-phase25/);
 });
 
 test("Evidence layout corrections remove desktop clipping without deleting accessible detail", () => {
@@ -264,6 +267,21 @@ test("Evidence layout corrections remove desktop clipping without deleting acces
   assert.match(observe, /registry-scope-status/);
   assert.match(receipts, /document\.createElement\("details"\)/);
   assert.match(receipts, /Freshness does not promote an unknown assurance verdict to healthy/);
+});
+
+test("Stale availability and metric evidence use the renderer attribute that CSS styles", () => {
+  const css = read("static/css/systems-evidence-truthfulness.css");
+  const receipts = read("systems/evidence/receipts.js");
+  const stalePayload = {
+    generated_at: "2026-07-10T00:00:00Z",
+    components: { github_pulse: { days_observed: 30, ok: 30, total: 30 } },
+  };
+  const records = availabilityRows(stalePayload);
+  assert.equal(availabilityEvidenceMode(stalePayload, NOW), "stale-measured");
+  assert.equal(availabilityStatusState(stalePayload, records, NOW), "warning");
+  assert.match(availabilityStatusText(stalePayload, records, NOW), /not current availability health evidence/);
+  assert.match(receipts, /badge\.dataset\.evidenceMode = mode/);
+  assert.match(css, /\.atlas-evidence-mode\[data-evidence-mode="stale-measured"\]/);
 });
 
 test("Correction modules keep public rendering bounded and secret-free", () => {

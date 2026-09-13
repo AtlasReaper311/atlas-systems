@@ -138,10 +138,12 @@ test("Worker lifecycle stages stay independent of runtime and live observations"
   assert.equal(stages.MERGED.result, RESULT.UNKNOWN_NOT_OBSERVED);
   assert.equal(stages["DEPLOYMENT OBSERVED"].result, RESULT.UNKNOWN_NOT_OBSERVED);
   assert.equal(stages.DEPLOYED.result, RESULT.UNKNOWN_NOT_OBSERVED);
-  assert.equal(stages["RUNTIME VERIFIED"].result, RESULT.OBSERVED);
-  assert.equal(stages["LIVE VERIFIED"].result, RESULT.OBSERVED);
+  assert.equal(stages["RUNTIME VERIFIED"].result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.equal(stages["LIVE VERIFIED"].result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.ok(stages["RUNTIME VERIFIED"].supportingObservation);
+  assert.ok(stages["LIVE VERIFIED"].supportingObservation);
   assert.match(stages.SOURCE.gap, /UNKNOWN \/ NOT OBSERVED/);
-  assert.notEqual(stages["RUNTIME VERIFIED"].result, stages.DEPLOYED.result);
+  assert.equal(stages["RUNTIME VERIFIED"].result, stages.DEPLOYED.result);
 });
 
 test("Estate selection keeps classification separate from the expected delivery path", () => {

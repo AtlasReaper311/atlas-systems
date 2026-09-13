@@ -73,6 +73,18 @@ Observation results are:
 Later stages are never inferred from earlier ones. Classification lifecycle is
 not a delivery stage.
 
+Phase 2.5 makes that chronology an enforced projection invariant. If an
+authority-required earlier stage is `UNKNOWN / NOT OBSERVED` or `FAILED`, a
+later `OBSERVED` record is not promoted. The raw later record is retained as a
+visible supporting observation, with its original identifier, source, and
+observation time. This keeps `observation != expected-version verification`.
+`NOT APPLICABLE` remains profile-specific and does not create a chronology gap.
+
+For `RUNTIME VERIFIED` and `LIVE VERIFIED`, the expected `DEPLOYED` identity
+must be known before either stage can become `OBSERVED`. A public endpoint
+answer, runtime metadata document, or live response can remain useful
+supporting evidence, but it cannot verify an unknown deployed identity.
+
 ## ADR-0014 profile applicability
 
 The Console uses ADR-0014 profiles as applicability rules, not as a second
@@ -180,6 +192,31 @@ that nothing private or unclassified could be affected, and a reachable API
 response is not runtime health. Relationship identity authority is displayed
 with each public relationship so repository, component, and service identity
 claims retain their governing source.
+
+`generated_at` and `passport_generated_at` describe projection generation, not
+the time an event was observed. The consumer accepts valid RFC3339 date-time
+offsets, enforces the public contract's identifier limits, and fails closed on
+malformed or incompatible values. `UNKNOWN / NOT OBSERVED` is preserved for
+unavailable or offline Twin input; it is never rewritten as `FAILED`.
+
+## Freshness and stale presentation
+
+Availability counters remain visible when their source is stale, but the
+availability status becomes warning/unknown and explains that the counters are
+historical supporting evidence rather than current health evidence. Stale
+metric badges use the renderer's `data-evidence-mode="stale-measured"`
+attribute, so the visual warning and the evidence semantics cannot drift apart.
+
+## Phase 2.5 browser evidence
+
+The final local acceptance covered the Evidence Console at 320, 375, 768,
+1024, and 1440 CSS pixels in Chromium and Firefox with reduced motion enabled.
+The governed checks covered semantic landmarks, axe accessibility checks,
+keyboard traversal, document overflow, loading, malformed, unavailable,
+offline, stale, `UNKNOWN / NOT OBSERVED`, `FAILED`, observed, and no-JavaScript
+fallback states. The Evidence Console route had no blocking findings in either
+browser at any required viewport. Production verification remains a separate
+claim from this source/browser acceptance.
 
 ## Model Promotion
 

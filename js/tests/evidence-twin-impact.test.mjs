@@ -199,6 +199,55 @@ test("invalid and lifecycle-strengthening projections fail closed", () => {
   assert.equal(isValidTwinImpactProjection(forbiddenField), false);
 });
 
+test("Twin accepts RFC3339 offsets and enforces public identifier maximums", () => {
+  const offsetProjection = projection({
+    generated_at: "2026-09-12T23:42:15+01:00",
+    analysis: {
+      ...projection().analysis,
+      passport_generated_at: "2026-09-12T23:40:00-02:00",
+    },
+  });
+  assert.equal(isValidTwinImpactProjection(offsetProjection), true);
+
+  const repositoryPrefix = "AtlasReaper311/";
+  const maxRepository = `${repositoryPrefix}${"r".repeat(128 - repositoryPrefix.length)}`;
+  const maxComponent = "c".repeat(96);
+  const atLimit = projection({
+    subject: { ...projection().subject, repository: maxRepository },
+    impact: {
+      ...projection().impact,
+      relationships: [
+        { ...projection().impact.relationships[0], id: maxRepository },
+        { ...projection().impact.relationships[1], id: maxComponent },
+      ],
+    },
+  });
+  assert.equal(isValidTwinImpactProjection(atLimit), true);
+
+  const overLimit = structuredClone(atLimit);
+  overLimit.impact.relationships[1].id = `${maxComponent}x`;
+  assert.equal(isValidTwinImpactProjection(overLimit), false);
+});
+
+test("Twin rejects malformed timestamps and incompatible offline values", () => {
+  assert.equal(isValidTwinImpactProjection(projection({ generated_at: "2026-09-12T22:42:15" })), false);
+  assert.equal(isValidTwinImpactProjection(projection({ generated_at: "not-a-date" })), false);
+  assert.equal(isValidTwinImpactProjection(projection({ impact: { ...projection().impact, relationships: [{ id: "broken" }] } })), false);
+
+  const dom = fakeDom();
+  const previousDocument = globalThis.document;
+  globalThis.document = dom.document;
+  try {
+    renderTwinImpactUnavailable("The public projection is offline.");
+    const text = textOf(dom.nodes.get("twin-impact-content"));
+    assert.match(text, /offline/);
+    assert.match(text, /UNKNOWN \/ NOT OBSERVED/);
+    assert.doesNotMatch(text, /FAILED/);
+  } finally {
+    globalThis.document = previousDocument;
+  }
+});
+
 test("valid rendering is impact-only, text-safe, and not green status", () => {
   const dom = fakeDom();
   const previousDocument = globalThis.document;
@@ -247,7 +296,7 @@ test("Change View keeps Twin inside the existing Console and preserves CSP/API b
   assert.match(page, /id="twin-impact-context"/);
   assert.match(page, /id="view-change"[\s\S]*id="twin-impact-context"/);
   assert.doesNotMatch(page, /data-evidence-view-tab="twin"/);
-  assert.match(page, /systems\/evidence\/twin-impact\.js\?v=20260913-phase24/);
+  assert.match(page, /systems\/evidence\/twin-impact\.js\?v=20260913-phase25/);
   assert.match(source, /const TWIN_IMPACT_ENDPOINT =/);
   assert.equal(TWIN_IMPACT_ENDPOINT, "https://api.atlas-systems.uk/v1/evidence/twin-impact");
   const connectSrc = (headers.match(/Content-Security-Policy:([^\n]*)/)?.[1] ?? "")

@@ -58,16 +58,20 @@ function noForbiddenKeys(value) {
   ));
 }
 
+const RFC3339_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/;
+
 function timestamp(value) {
   return typeof value === "string"
-    && value.endsWith("Z")
+    && RFC3339_DATE_TIME.test(value)
     && Number.isFinite(Date.parse(value));
 }
 
 function publicSubject(subject) {
   if (!exactKeys(subject, ["visibility", "repository", "base_oid", "head_oid"])) return false;
   if (subject.visibility === "public") {
-    return /^AtlasReaper311\/[A-Za-z0-9._-]+$/.test(subject.repository || "")
+    return typeof subject.repository === "string"
+      && subject.repository.length <= 128
+      && /^AtlasReaper311\/[A-Za-z0-9._-]+$/.test(subject.repository)
       && /^[0-9a-f]{40}$/.test(subject.base_oid || "")
       && /^[0-9a-f]{40}$/.test(subject.head_oid || "");
   }
@@ -83,8 +87,10 @@ function validRelationship(item) {
   const idPattern = item.kind === "repository"
     ? /^AtlasReaper311\/[A-Za-z0-9._-]+$/
     : /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+  const maxLength = item.kind === "repository" ? 128 : 96;
   return Boolean(authority)
     && typeof item.id === "string"
+    && item.id.length <= maxLength
     && idPattern.test(item.id)
     && item.evidence_class === "twin-impact"
     && item.identity_authority === authority

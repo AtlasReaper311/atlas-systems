@@ -1,4 +1,4 @@
-import { DELIVERY_STAGES, RESULT } from "./change-chain.js";
+import { DELIVERY_STAGES, RESULT, enforceLifecycleChronology } from "./change-chain.js";
 
 const KNOWN_RESULTS = new Set(Object.values(RESULT));
 
@@ -112,7 +112,7 @@ export function missingLifecycleGap(stage) {
 export function projectLifecycleStages(profileId, observations = {}, options = {}) {
   const presentation = presentLifecycleProfile(profileId, options);
   const records = asRecord(observations);
-  return Object.freeze(DELIVERY_STAGES.map((stage) => {
+  const stages = DELIVERY_STAGES.map((stage) => {
     if (presentation.notApplicableStages.includes(stage)) {
       return Object.freeze({
         stage,
@@ -133,8 +133,18 @@ export function projectLifecycleStages(profileId, observations = {}, options = {
         ? String(observation.gap ?? missingLifecycleGap(stage))
         : (observation.gap ? String(observation.gap) : null),
       scope: observation.scope ? String(observation.scope) : null,
+      identifier: observation.identifier ? String(observation.identifier) : null,
+      provenance: observation.provenance ? String(observation.provenance) : null,
+      observedAt: observation.observedAt ? String(observation.observedAt) : null,
+      sourceUrl: observation.sourceUrl ? String(observation.sourceUrl) : null,
+      supportingObservation: observation.supportingObservation
+        ? Object.freeze({ ...asRecord(observation.supportingObservation) })
+        : null,
     });
-  }));
+  });
+  return enforceLifecycleChronology(stages, {
+    startAt: options.chronologyStartStage ?? null,
+  });
 }
 
 export function projectProfileIdentity({

@@ -113,7 +113,7 @@ test("Topology and registry do not become deployment or deployed identity", () =
   assert.equal(reading["Expected deployed identity"].result, RESULT.UNKNOWN_NOT_OBSERVED);
 });
 
-test("Declared metadata version is not DEPLOYED, and _meta.status live is not LIVE VERIFIED by itself", () => {
+test("Declared metadata version is not DEPLOYED, and endpoint observations stay supporting without expected identity", () => {
   const liveMissing = publicSources({
     live: fulfilled({ ok: false, service: "other" }),
   });
@@ -123,15 +123,17 @@ test("Declared metadata version is not DEPLOYED, and _meta.status live is not LI
     NOW,
   );
   const facts = factMap(projection);
-  assert.equal(facts["RUNTIME VERIFIED"].result, RESULT.OBSERVED);
+  assert.equal(facts["RUNTIME VERIFIED"].result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.ok(facts["RUNTIME VERIFIED"].supportingObservation);
+  assert.match(facts["RUNTIME VERIFIED"].scope, /not promoted/i);
   assert.equal(facts["LIVE VERIFIED"].result, RESULT.UNKNOWN_NOT_OBSERVED);
   assert.match(facts["RUNTIME VERIFIED"].scope, /status field is ignored/);
   const versionLine = projection.reading.lines.find((line) => line.label === "Declared metadata version");
   assert.equal(versionLine.result, RESULT.OBSERVED);
   assert.match(versionLine.scope, /not the expected deployed identity/);
   assert.equal(facts.DEPLOYED.result, RESULT.UNKNOWN_NOT_OBSERVED);
-  assert.equal(serviceEvidenceMode(RESULT.OBSERVED, "2026-09-11T10:00:00Z", NOW), "measured");
-  assert.notEqual(serviceEvidenceMode(RESULT.OBSERVED, "2026-09-11T10:00:00Z", NOW), "recorded-replay");
+  assert.equal(serviceEvidenceMode(RESULT.UNKNOWN_NOT_OBSERVED, "2026-09-11T10:00:00Z", NOW), "unknown");
+  assert.notEqual(serviceEvidenceMode(RESULT.UNKNOWN_NOT_OBSERVED, "2026-09-11T10:00:00Z", NOW), "recorded-replay");
 });
 
 test("RUNTIME VERIFIED does not imply LIVE VERIFIED, and LIVE does not fill runtime", () => {
@@ -149,9 +151,11 @@ test("RUNTIME VERIFIED does not imply LIVE VERIFIED, and LIVE does not fill runt
     undefined,
     NOW,
   );
-  assert.equal(factMap(runtimeOnly)["RUNTIME VERIFIED"].result, RESULT.OBSERVED);
+  assert.equal(factMap(runtimeOnly)["RUNTIME VERIFIED"].result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.ok(factMap(runtimeOnly)["RUNTIME VERIFIED"].supportingObservation);
   assert.equal(factMap(runtimeOnly)["LIVE VERIFIED"].result, RESULT.FAILED);
-  assert.equal(factMap(liveOnly)["LIVE VERIFIED"].result, RESULT.OBSERVED);
+  assert.equal(factMap(liveOnly)["LIVE VERIFIED"].result, RESULT.UNKNOWN_NOT_OBSERVED);
+  assert.ok(factMap(liveOnly)["LIVE VERIFIED"].supportingObservation);
   assert.equal(factMap(liveOnly)["RUNTIME VERIFIED"].result, RESULT.FAILED);
   assert.equal(factMap(liveOnly)["EXPECTED CONTRACT"].result, RESULT.FAILED);
 });
@@ -186,7 +190,7 @@ test("Unmeasured reliability and stats probes cannot mint a healthy service badg
   assert.equal(reading["Estate component probes"].result, RESULT.NOT_APPLICABLE);
   assert.equal(serviceViewStatus(projection), "warning");
   assert.notEqual(serviceViewStatus(projection), "healthy");
-  assert.equal(factMap(projection)["RUNTIME VERIFIED"].evidenceMode, "measured");
+  assert.equal(factMap(projection)["RUNTIME VERIFIED"].evidenceMode, "unknown");
 });
 
 test("Stale topology keeps ownership observed without washing later unknown facts", () => {
@@ -203,7 +207,7 @@ test("Stale topology keeps ownership observed without washing later unknown fact
   assert.equal(serviceViewStatus(projection), "warning");
 });
 
-test("Compact reading keeps unknown later facts visible beside observed runtime", () => {
+test("Compact reading keeps unknown later facts visible beside supporting endpoint observations", () => {
   const projection = projectServiceView(
     observationsFromPublicSources(publicSources(), SERVICE_SPECIMEN, NOW),
     undefined,
@@ -211,8 +215,8 @@ test("Compact reading keeps unknown later facts visible beside observed runtime"
   );
   const labels = compactServiceReading(projection.facts, projection.extraGaps).lines
     .map((line) => `${line.label}: ${line.result}`);
-  assert.ok(labels.includes("Runtime verification: OBSERVED"));
-  assert.ok(labels.includes("Live verification: OBSERVED"));
+  assert.ok(labels.includes("Runtime verification: UNKNOWN / NOT OBSERVED"));
+  assert.ok(labels.includes("Live verification: UNKNOWN / NOT OBSERVED"));
   assert.ok(labels.includes("Deployment: UNKNOWN / NOT OBSERVED"));
   assert.ok(labels.includes("Expected deployed identity: UNKNOWN / NOT OBSERVED"));
 });
@@ -281,7 +285,7 @@ test("Service view renderer writes facts without innerHTML and without a healthy
       return node.textContent ?? "";
     };
     const readingText = nodes.get("service-reading").children.map(textOf).join("\n");
-    assert.match(readingText, /Runtime verification: OBSERVED/);
+    assert.match(readingText, /Runtime verification: UNKNOWN \/ NOT OBSERVED/);
     assert.match(readingText, /Deployment: UNKNOWN \/ NOT OBSERVED/);
     assert.match(readingText, /Expected deployed identity: UNKNOWN \/ NOT OBSERVED/);
     assert.equal(nodes.get("service-view-status").dataset.state, "warning");
@@ -321,9 +325,9 @@ test("Evidence Console keeps Phase 2.1 Change View and adds the Service View wit
   ]) {
     assert.match(page, new RegExp(`id="${id}"`));
   }
-  assert.match(page, /systems\/evidence\/change-view\.js\?v=20260912-article-subject/);
-  assert.match(page, /systems\/evidence\/service-view\.js\?v=20260912-profile/);
-  assert.match(page, /systems-evidence-truthfulness\.css\?v=20260912-profile/);
+  assert.match(page, /systems\/evidence\/change-view\.js\?v=20260913-phase25/);
+  assert.match(page, /systems\/evidence\/service-view\.js\?v=20260913-phase25/);
+  assert.match(page, /systems-evidence-truthfulness\.css\?v=20260913-phase25/);
   assert.match(page, /atlas-api-public/);
   assert.match(css, /prefers-reduced-motion: reduce/);
   assert.match(css, /systems-service-reading-scope/);

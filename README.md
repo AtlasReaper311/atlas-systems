@@ -125,6 +125,8 @@ Quick verification after changes:
 
 The Console does not invent estate-wide delivery, fleet health, or live-production state. Article Publication is inspectable in Change View because current public topology does not model published writing as an estate component.
 
+Phase 2.5 enforces lifecycle chronology and expected deployed identity: endpoint, runtime, and live observations remain supporting evidence while the required identity is unknown, and stale availability is warning/unknown with explanatory text. Twin `generated_at` remains generation time, and Twin impact remains separate from health, delivery, failure, and live verification.
+
 Architecture, profile mappings, and public-safe projection boundaries live in [`docs/EVIDENCE-CONSOLE.md`](docs/EVIDENCE-CONSOLE.md). Accepted lifecycle authority remains in `atlas-infra` [ADR-0013](https://github.com/AtlasReaper311/atlas-infra/blob/main/docs/adrs/ADR-0013-estate-wide-evidence-lifecycle.md) and [ADR-0014](https://github.com/AtlasReaper311/atlas-infra/blob/main/docs/adrs/ADR-0014-evidence-lifecycle-profiles.md).
 
 ## How it fits into Atlas Systems
