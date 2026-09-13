@@ -248,7 +248,7 @@ test("Change View keeps Twin inside the existing Console and preserves CSP/API b
   assert.match(page, /id="view-change"[\s\S]*id="twin-impact-context"/);
   assert.doesNotMatch(page, /data-evidence-view-tab="twin"/);
   assert.match(page, /systems\/evidence\/twin-impact\.js\?v=20260913-phase24/);
-  assert.match(source, /https:\/\/api\.atlas-systems\.uk\/v1\/evidence\/twin-impact/);
+  assert.equal(source.includes("https://api.atlas-systems.uk/v1/evidence/twin-impact"), true);
   assert.match(headers, /connect-src[^\n]*https:\/\/api\.atlas-systems\.uk/);
   assert.match(styles, /systems-evidence-twin-context/);
   assert.match(styles, /prefers-reduced-motion: reduce/);
