@@ -1,0 +1,2174 @@
+{
+  "schema": "atlas-systems/failure-laboratory-model/v1",
+  "version": 1,
+  "purpose": "A static, public-safe map of the Failure Laboratory journey, shared scenario vocabulary, and existing instrument boundaries.",
+  "authority": {
+    "architectureDocument": "docs/PHASE-3-FAILURE-LABORATORY-ARCHITECTURE.md",
+    "owner": "AtlasReaper311/atlas-systems",
+    "futureRoute": "/lab/failure-laboratory/",
+    "futureRouteStatus": "reserved-not-implemented"
+  },
+  "evidenceModes": [
+    "measured",
+    "stale-measured",
+    "recorded-replay",
+    "simulated",
+    "unavailable",
+    "unknown",
+    "not-applicable-unscored"
+  ],
+  "relationshipTypes": [
+    "direct",
+    "contextual",
+    "cross-cutting",
+    "unsupported"
+  ],
+  "journey": {
+    "id": "failure-laboratory",
+    "sequence": [
+      "request",
+      "dependencies",
+      "coordination",
+      "impact",
+      "incident-evidence",
+      "recovery"
+    ],
+    "stages": [
+      {
+        "id": "request",
+        "label": "Request",
+        "order": 1,
+        "question": "What happened to this request?",
+        "instrumentAssociations": [
+          {
+            "instrumentId": "request-xray",
+            "relationshipType": "direct",
+            "required": true
+          },
+          {
+            "instrumentId": "spectral-forge",
+            "relationshipType": "cross-cutting",
+            "required": false
+          },
+          {
+            "instrumentId": "system-symphony",
+            "relationshipType": "cross-cutting",
+            "required": false
+          }
+        ],
+        "nextStageId": "dependencies"
+      },
+      {
+        "id": "dependencies",
+        "label": "Dependencies",
+        "order": 2,
+        "question": "How did the problem propagate through dependencies?",
+        "instrumentAssociations": [
+          {
+            "instrumentId": "cascade",
+            "relationshipType": "direct",
+            "required": true
+          },
+          {
+            "instrumentId": "spectral-forge",
+            "relationshipType": "cross-cutting",
+            "required": false
+          },
+          {
+            "instrumentId": "system-symphony",
+            "relationshipType": "cross-cutting",
+            "required": false
+          }
+        ],
+        "nextStageId": "coordination"
+      },
+      {
+        "id": "coordination",
+        "label": "Coordination",
+        "order": 3,
+        "question": "How did replicated state, routing, isolation, and protection behave?",
+        "instrumentAssociations": [
+          {
+            "instrumentId": "consensus",
+            "relationshipType": "direct",
+            "required": true
+          },
+          {
+            "instrumentId": "neon-relay",
+            "relationshipType": "direct",
+            "required": true
+          },
+          {
+            "instrumentId": "spectral-forge",
+            "relationshipType": "cross-cutting",
+            "required": false
+          },
+          {
+            "instrumentId": "system-symphony",
+            "relationshipType": "cross-cutting",
+            "required": false
+          }
+        ],
+        "nextStageId": "impact"
+      },
+      {
+        "id": "impact",
+        "label": "Impact",
+        "order": 4,
+        "question": "Which public components or contracts could be affected?",
+        "instrumentAssociations": [
+          {
+            "instrumentId": "atlas-twin-context",
+            "relationshipType": "contextual",
+            "required": true
+          },
+          {
+            "instrumentId": "evidence-console",
+            "relationshipType": "contextual",
+            "required": true
+          },
+          {
+            "instrumentId": "spectral-forge",
+            "relationshipType": "cross-cutting",
+            "required": false
+          },
+          {
+            "instrumentId": "system-symphony",
+            "relationshipType": "cross-cutting",
+            "required": false
+          }
+        ],
+        "nextStageId": "incident-evidence"
+      },
+      {
+        "id": "incident-evidence",
+        "label": "Incident evidence",
+        "order": 5,
+        "question": "What incident evidence was actually recorded or proven?",
+        "instrumentAssociations": [
+          {
+            "instrumentId": "blackbox",
+            "relationshipType": "direct",
+            "required": true
+          },
+          {
+            "instrumentId": "evidence-console",
+            "relationshipType": "contextual",
+            "required": false
+          },
+          {
+            "instrumentId": "spectral-forge",
+            "relationshipType": "cross-cutting",
+            "required": false
+          },
+          {
+            "instrumentId": "system-symphony",
+            "relationshipType": "cross-cutting",
+            "required": false
+          }
+        ],
+        "nextStageId": "recovery"
+      },
+      {
+        "id": "recovery",
+        "label": "Recovery",
+        "order": 6,
+        "question": "What can be truthfully said about recovery?",
+        "instrumentAssociations": [
+          {
+            "instrumentId": "spectral-forge",
+            "relationshipType": "cross-cutting",
+            "required": false
+          },
+          {
+            "instrumentId": "system-symphony",
+            "relationshipType": "cross-cutting",
+            "required": false
+          },
+          {
+            "instrumentId": "cascade",
+            "relationshipType": "contextual",
+            "required": false
+          },
+          {
+            "instrumentId": "consensus",
+            "relationshipType": "contextual",
+            "required": false
+          },
+          {
+            "instrumentId": "neon-relay",
+            "relationshipType": "contextual",
+            "required": false
+          },
+          {
+            "instrumentId": "blackbox",
+            "relationshipType": "contextual",
+            "required": false
+          },
+          {
+            "instrumentId": "evidence-console",
+            "relationshipType": "contextual",
+            "required": false
+          }
+        ],
+        "nextStageId": null,
+        "evidenceGap": {
+          "status": "no-single-authority",
+          "summary": "There is no single current Phase 3 Recovery Evidence instrument.",
+          "allowedEvidenceModes": [
+            "simulated",
+            "recorded-replay",
+            "measured",
+            "stale-measured",
+            "unavailable",
+            "unknown"
+          ],
+          "nonClaim": "Recovery-like output, aftermath, or a named lifecycle fact does not prove universal current service recovery or root-cause resolution."
+        }
+      }
+    ]
+  },
+  "instruments": [
+    {
+      "id": "request-xray",
+      "label": "Request X-Ray",
+      "canonical": {
+        "repository": "AtlasReaper311/atlas-systems",
+        "sourcePath": "lab/xray/index.html",
+        "route": "/lab/xray/"
+      },
+      "journeyRole": "linear",
+      "phaseRole": "request",
+      "question": "What happened to this request?",
+      "nativeEvidenceModes": [
+        "simulated"
+      ],
+      "proofBoundary": "A deterministic browser model of a selected request path.",
+      "nonClaims": [
+        "It does not measure a real request.",
+        "It does not call a production dependency or prove a real cascade.",
+        "It does not prove recovery in the Atlas estate."
+      ]
+    },
+    {
+      "id": "cascade",
+      "label": "CASCADE",
+      "canonical": {
+        "repository": "AtlasReaper311/atlas-systems",
+        "sourcePath": "lab/cascade/index.html",
+        "route": "/lab/cascade/"
+      },
+      "journeyRole": "linear",
+      "phaseRole": "dependencies",
+      "question": "How did a bounded fault propagate through dependencies and how did containment alter the result?",
+      "nativeEvidenceModes": [
+        "simulated"
+      ],
+      "proofBoundary": "Propagation and containment inside CASCADE's deterministic synthetic graph.",
+      "nonClaims": [
+        "A displayed root fault is not an observed Atlas dependency failure.",
+        "The graph does not prove a production cascade or current service state.",
+        "A Twin relationship cannot upgrade the synthetic graph into incident evidence."
+      ]
+    },
+    {
+      "id": "consensus",
+      "label": "Consensus",
+      "canonical": {
+        "repository": "AtlasReaper311/atlas-systems",
+        "sourcePath": "lab/consensus/index.html",
+        "route": "/lab/consensus/"
+      },
+      "journeyRole": "linear",
+      "phaseRole": "coordination",
+      "question": "How did the bounded replicated-state and quorum teaching model behave?",
+      "nativeEvidenceModes": [
+        "simulated"
+      ],
+      "proofBoundary": "A fixed-leader three-replica teaching model for quorum, delay, isolation, and convergence.",
+      "nonClaims": [
+        "It does not name or prove a production consensus protocol.",
+        "It does not prove production replication, partition, consistency, or recovery."
+      ]
+    },
+    {
+      "id": "neon-relay",
+      "label": "Neon Relay",
+      "canonical": {
+        "repository": "AtlasReaper311/atlas-systems",
+        "sourcePath": "lab/neon-relay/index.html",
+        "route": "/lab/neon-relay/"
+      },
+      "journeyRole": "linear",
+      "phaseRole": "coordination",
+      "question": "How did bounded routing, isolation, protection, and repair behave?",
+      "nativeEvidenceModes": [
+        "simulated"
+      ],
+      "proofBoundary": "Bounded routing and protection mechanics inside a deterministic synthetic circuit.",
+      "nonClaims": [
+        "It does not observe production routing or a real network partition.",
+        "It does not prove a distributed cascade or recovery of an Atlas service."
+      ]
+    },
+    {
+      "id": "atlas-twin-context",
+      "label": "Atlas Twin context",
+      "canonical": {
+        "repository": "AtlasReaper311/atlas-systems",
+        "sourcePath": "systems/evidence/index.html",
+        "route": "/systems/evidence/"
+      },
+      "journeyRole": "impact-context",
+      "phaseRole": "impact",
+      "question": "Which public components or contracts could be affected?",
+      "claimLanguage": "could be affected",
+      "nativeEvidenceModes": [],
+      "proofBoundary": "Generated public relationship context rendered by the Evidence Console, separate from incident evidence.",
+      "nonClaims": [
+        "It does not prove was affected, failure, propagation, deployment, runtime, publication, or live state.",
+        "It does not expose the private Twin producer or a private Twin route.",
+        "It does not make known public coverage complete estate coverage."
+      ]
+    },
+    {
+      "id": "blackbox",
+      "label": "Blackbox",
+      "canonical": {
+        "repository": "AtlasReaper311/atlas-systems",
+        "sourcePath": "lab/blackbox/index.html",
+        "route": "/lab/blackbox/"
+      },
+      "journeyRole": "linear",
+      "phaseRole": "incident-evidence",
+      "question": "What incident evidence was actually recorded?",
+      "nativeEvidenceModes": [
+        "measured",
+        "recorded-replay"
+      ],
+      "proofBoundary": "What the public recorder captured and what a reviewed record says.",
+      "nonClaims": [
+        "A replay remains historical even when the recorder is currently reachable.",
+        "It does not by itself prove root cause, current live state, deployment identity, or recovery."
+      ]
+    },
+    {
+      "id": "spectral-forge",
+      "label": "Spectral Forge",
+      "canonical": {
+        "repository": "AtlasReaper311/atlas-systems",
+        "sourcePath": "lab/spectral-forge/index.html",
+        "route": "/lab/spectral-forge/"
+      },
+      "journeyRole": "cross-cutting",
+      "phaseRole": "cross-cutting",
+      "question": "What does selected synthetic telemetry sound like?",
+      "nativeEvidenceModes": [
+        "simulated"
+      ],
+      "proofBoundary": "A deterministic mapping from selected synthetic telemetry to sound and visual state.",
+      "nonClaims": [
+        "It does not measure current health.",
+        "It does not turn sound into incident evidence or prove a real cache collapse, cascade, or recovery."
+      ]
+    },
+    {
+      "id": "system-symphony",
+      "label": "System SYMPHONY",
+      "canonical": {
+        "repository": "AtlasReaper311/atlas-systems",
+        "sourcePath": "lab/system-symphony/index.html",
+        "route": "/lab/system-symphony/"
+      },
+      "journeyRole": "cross-cutting",
+      "phaseRole": "cross-cutting",
+      "question": "What does bounded changing telemetry sound like while uncertainty remains visible?",
+      "nativeEvidenceModes": [
+        "measured",
+        "stale-measured",
+        "recorded-replay",
+        "simulated",
+        "unknown"
+      ],
+      "proofBoundary": "A read-only sonification of the selected source state and its uncertainty.",
+      "nonClaims": [
+        "Musical state is not incident authority.",
+        "Declared topology does not prove propagation or current estate health."
+      ]
+    },
+    {
+      "id": "evidence-console",
+      "label": "Evidence Console",
+      "canonical": {
+        "repository": "AtlasReaper311/atlas-systems",
+        "sourcePath": "systems/evidence/index.html",
+        "route": "/systems/evidence/"
+      },
+      "journeyRole": "destination",
+      "phaseRole": "impact-and-incident-evidence",
+      "question": "What named public claim is supported, what is missing, and what remains unknown?",
+      "nativeEvidenceModes": [
+        "measured",
+        "stale-measured",
+        "recorded-replay",
+        "unknown",
+        "unavailable"
+      ],
+      "proofBoundary": "A reader for named public lifecycle, observation, and impact-context records.",
+      "nonClaims": [
+        "It is not a fleet-health dashboard.",
+        "It does not replace Blackbox replay or create a second incident store.",
+        "Twin context remains separate from lifecycle and observation evidence."
+      ]
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "normal-operation",
+      "label": "Normal operation",
+      "question": "What does a bounded baseline look like in the selected instrument?",
+      "interpretationBoundary": {
+        "neverMeans": [
+          "The current Atlas estate is healthy.",
+          "No incident occurred.",
+          "All production dependencies are operating normally."
+        ]
+      },
+      "relationships": [
+        {
+          "instrumentId": "request-xray",
+          "supportType": "direct",
+          "stageIds": [
+            "request"
+          ],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "Healthy baseline",
+              "demonstrates": "A deterministic baseline request moving through the seven-layer browser model.",
+              "doesNotProve": [
+                "A real request is healthy.",
+                "The current estate has no request failures."
+              ]
+            }
+          ],
+          "proofBoundary": "This is a bounded synthetic request baseline.",
+          "nonClaims": [
+            "It is not current estate health evidence."
+          ]
+        },
+        {
+          "instrumentId": "cascade",
+          "supportType": "direct",
+          "stageIds": [
+            "dependencies"
+          ],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "Baseline",
+              "demonstrates": "The declared CASCADE graph before a synthetic fault is introduced.",
+              "doesNotProve": [
+                "Production dependencies are healthy.",
+                "A real incident is absent."
+              ]
+            }
+          ],
+          "proofBoundary": "This is a baseline state in a deterministic synthetic graph.",
+          "nonClaims": [
+            "It is not an observed Atlas dependency state."
+          ]
+        },
+        {
+          "instrumentId": "consensus",
+          "supportType": "direct",
+          "stageIds": [
+            "coordination"
+          ],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "CLEAN",
+              "demonstrates": "A clean starting point for the fixed-leader three-replica teaching model.",
+              "doesNotProve": [
+                "A production cluster is healthy or converged."
+              ]
+            }
+          ],
+          "proofBoundary": "This is a clean state in a fixed teaching model.",
+          "nonClaims": [
+            "It does not establish a named production consensus protocol."
+          ]
+        },
+        {
+          "instrumentId": "neon-relay",
+          "supportType": "direct",
+          "stageIds": [
+            "coordination"
+          ],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "Prime board",
+              "demonstrates": "A powered starting state for the relay's synthetic circuit puzzles.",
+              "doesNotProve": [
+                "Production routes or infrastructure are healthy."
+              ]
+            }
+          ],
+          "proofBoundary": "This is a synthetic circuit baseline.",
+          "nonClaims": [
+            "It is not network or service health evidence."
+          ]
+        },
+        {
+          "instrumentId": "atlas-twin-context",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "Twin impact context is not a normal-operation scenario target.",
+          "nonClaims": [
+            "A normal-operation label cannot be used to assert current estate health."
+          ],
+          "unsupportedReason": "Twin describes bounded relationships that could be affected; it does not represent a normal-operation state."
+        },
+        {
+          "instrumentId": "blackbox",
+          "supportType": "contextual",
+          "stageIds": [
+            "incident-evidence"
+          ],
+          "evidenceModes": [
+            "recorded-replay"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "recorded-replay",
+              "sourceType": "recorded",
+              "nativeScenario": "Record-specific before-failure frames",
+              "demonstrates": "A named recorder record may provide historical baseline frames before its recorded incident.",
+              "doesNotProve": [
+                "The current estate is normal.",
+                "The replay is current live evidence."
+              ]
+            }
+          ],
+          "proofBoundary": "Only a named recorded Blackbox record can support this contextual reading.",
+          "nonClaims": [
+            "No record is selected or fetched by this static model."
+          ]
+        },
+        {
+          "instrumentId": "spectral-forge",
+          "supportType": "cross-cutting",
+          "stageIds": [],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "NORMAL LOAD",
+              "demonstrates": "How synthetic baseline telemetry can be mapped to sound and visual state.",
+              "doesNotProve": [
+                "Current Atlas health or production normality."
+              ]
+            }
+          ],
+          "proofBoundary": "Spectral Forge is an optional synthetic interpretation layer, not a linear stage.",
+          "nonClaims": [
+            "Its audio is not incident evidence."
+          ]
+        },
+        {
+          "instrumentId": "system-symphony",
+          "supportType": "cross-cutting",
+          "stageIds": [],
+          "evidenceModes": [
+            "simulated",
+            "measured",
+            "stale-measured",
+            "recorded-replay",
+            "unknown"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "DEMO",
+              "demonstrates": "A labelled synthetic telemetry frame for comparison.",
+              "doesNotProve": [
+                "Current estate health."
+              ]
+            },
+            {
+              "evidenceMode": "measured",
+              "sourceType": "live-public",
+              "nativeScenario": "Live source frame",
+              "demonstrates": "The bounded live source frame selected by System SYMPHONY.",
+              "doesNotProve": [
+                "That the whole estate is healthy or normal."
+              ]
+            },
+            {
+              "evidenceMode": "stale-measured",
+              "sourceType": "live-public",
+              "nativeScenario": "Stale source frame",
+              "demonstrates": "Previously measured source data retained with a stale marker.",
+              "doesNotProve": [
+                "Current normality or a fresh observation."
+              ]
+            },
+            {
+              "evidenceMode": "recorded-replay",
+              "sourceType": "recorded",
+              "nativeScenario": "Replay frame",
+              "demonstrates": "A labelled historical frame played back by the instrument.",
+              "doesNotProve": [
+                "The replay is currently live."
+              ]
+            },
+            {
+              "evidenceMode": "unknown",
+              "sourceType": "live-public",
+              "nativeScenario": "Unknown source state",
+              "demonstrates": "That the source meaning or state cannot be determined.",
+              "doesNotProve": [
+                "A normal or healthy estate state."
+              ]
+            }
+          ],
+          "proofBoundary": "System SYMPHONY preserves its source mode and uncertainty while providing optional interpretation.",
+          "nonClaims": [
+            "Musical state is not incident authority."
+          ]
+        },
+        {
+          "instrumentId": "evidence-console",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "The Evidence Console reads named claims and context; it does not provide a normal-operation scenario target.",
+          "nonClaims": [
+            "An empty or successful console view cannot prove estate-wide normality."
+          ],
+          "unsupportedReason": "The Console is a destination for named evidence, not a normal-operation simulator."
+        }
+      ]
+    },
+    {
+      "id": "latency-creep",
+      "label": "Latency creep",
+      "question": "How does the selected bounded model or named record change under delay?",
+      "interpretationBoundary": {
+        "neverMeans": [
+          "A real latency regression occurred.",
+          "All instruments share one latency cause.",
+          "Current production performance is represented."
+        ]
+      },
+      "relationships": [
+        {
+          "instrumentId": "request-xray",
+          "supportType": "contextual",
+          "stageIds": [
+            "request"
+          ],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "Latency and jitter controls",
+              "demonstrates": "How bounded request timing changes affect the synthetic trace.",
+              "doesNotProve": [
+                "A current request latency or shared production regression."
+              ]
+            }
+          ],
+          "proofBoundary": "Request X-Ray offers timing controls inside its synthetic request model.",
+          "nonClaims": [
+            "No live request timing is measured by the shared model."
+          ]
+        },
+        {
+          "instrumentId": "cascade",
+          "supportType": "direct",
+          "stageIds": [
+            "dependencies"
+          ],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "ADD LATENCY",
+              "demonstrates": "How added delay changes propagation and containment inside the synthetic CASCADE graph.",
+              "doesNotProve": [
+                "A real dependency latency regression or incident."
+              ]
+            }
+          ],
+          "proofBoundary": "CASCADE directly models bounded added latency in its synthetic graph.",
+          "nonClaims": [
+            "No production graph is being observed."
+          ]
+        },
+        {
+          "instrumentId": "consensus",
+          "supportType": "contextual",
+          "stageIds": [
+            "coordination"
+          ],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "SLOW B",
+              "demonstrates": "How a delayed replica affects the fixed teaching model's convergence.",
+              "doesNotProve": [
+                "A production quorum or network latency event."
+              ]
+            }
+          ],
+          "proofBoundary": "Consensus provides a bounded delay teaching model, not a production protocol reading.",
+          "nonClaims": [
+            "It does not establish a real shared latency cause."
+          ]
+        },
+        {
+          "instrumentId": "neon-relay",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "Neon Relay has no current latency scenario in the shared model.",
+          "nonClaims": [
+            "Circuit behaviour must not be renamed as latency evidence."
+          ],
+          "unsupportedReason": "Its native model is routing and protection, not latency."
+        },
+        {
+          "instrumentId": "atlas-twin-context",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "Twin impact context is not a latency measurement or scenario target.",
+          "nonClaims": [
+            "A relationship that could be affected is not a latency observation."
+          ],
+          "unsupportedReason": "The public Twin projection does not provide a Phase 3 latency target."
+        },
+        {
+          "instrumentId": "blackbox",
+          "supportType": "contextual",
+          "stageIds": [
+            "incident-evidence"
+          ],
+          "evidenceModes": [
+            "recorded-replay"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "recorded-replay",
+              "sourceType": "recorded",
+              "nativeScenario": "Record-specific latency trace",
+              "demonstrates": "A named recorded incident can show the latency frames that its recorder captured.",
+              "doesNotProve": [
+                "A shared cause or current production latency."
+              ]
+            }
+          ],
+          "proofBoundary": "Only a named recorded Blackbox record can support this reading.",
+          "nonClaims": [
+            "The shared model does not select or fetch a record."
+          ]
+        },
+        {
+          "instrumentId": "spectral-forge",
+          "supportType": "cross-cutting",
+          "stageIds": [],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "LATENCY CREEP",
+              "demonstrates": "How a synthetic latency curve can be translated into sound and visual state.",
+              "doesNotProve": [
+                "A real latency regression or incident."
+              ]
+            }
+          ],
+          "proofBoundary": "Spectral Forge is an optional synthetic interpretation layer.",
+          "nonClaims": [
+            "The sonification is not measured evidence."
+          ]
+        },
+        {
+          "instrumentId": "system-symphony",
+          "supportType": "cross-cutting",
+          "stageIds": [],
+          "evidenceModes": [
+            "simulated",
+            "measured",
+            "stale-measured",
+            "recorded-replay",
+            "unknown"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "DEMO latency frame",
+              "demonstrates": "A labelled synthetic latency-shaped frame for interpretation.",
+              "doesNotProve": [
+                "Current production performance."
+              ]
+            },
+            {
+              "evidenceMode": "measured",
+              "sourceType": "live-public",
+              "nativeScenario": "Live latency telemetry",
+              "demonstrates": "The bounded latency telemetry present in the selected live source frame.",
+              "doesNotProve": [
+                "A shared cause across Atlas instruments."
+              ]
+            },
+            {
+              "evidenceMode": "stale-measured",
+              "sourceType": "live-public",
+              "nativeScenario": "Stale latency telemetry",
+              "demonstrates": "Previously measured latency data retained with a stale marker.",
+              "doesNotProve": [
+                "A fresh current latency observation."
+              ]
+            },
+            {
+              "evidenceMode": "recorded-replay",
+              "sourceType": "recorded",
+              "nativeScenario": "Replay latency frame",
+              "demonstrates": "A historical latency frame played back by the instrument.",
+              "doesNotProve": [
+                "The replay is currently live."
+              ]
+            },
+            {
+              "evidenceMode": "unknown",
+              "sourceType": "live-public",
+              "nativeScenario": "Unknown latency source",
+              "demonstrates": "That the available source does not establish the latency meaning or state.",
+              "doesNotProve": [
+                "A current latency regression."
+              ]
+            }
+          ],
+          "proofBoundary": "System SYMPHONY preserves the selected source mode and uncertainty.",
+          "nonClaims": [
+            "Musical state is not incident authority."
+          ]
+        },
+        {
+          "instrumentId": "evidence-console",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "The Evidence Console has no generic latency-creep scenario target.",
+          "nonClaims": [
+            "Lifecycle or impact records cannot be renamed as a latency regression."
+          ],
+          "unsupportedReason": "Latency requires a named instrument source or recorded incident."
+        }
+      ]
+    },
+    {
+      "id": "cache-collapse",
+      "label": "Cache collapse",
+      "question": "What does bounded cache pressure or fallback look like in the selected instrument?",
+      "interpretationBoundary": {
+        "neverMeans": [
+          "A production cache collapsed.",
+          "An observed dependency cascade occurred.",
+          "Actual public impact was established."
+        ]
+      },
+      "relationships": [
+        {
+          "instrumentId": "request-xray",
+          "supportType": "contextual",
+          "stageIds": [
+            "request"
+          ],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "Cache stampede / miss / stale controls",
+              "demonstrates": "How cache-related choices affect the bounded request trace.",
+              "doesNotProve": [
+                "A production cache collapse or current cache health."
+              ]
+            }
+          ],
+          "proofBoundary": "Request X-Ray provides cache behaviour inside its synthetic request model.",
+          "nonClaims": [
+            "It does not observe a real cache."
+          ]
+        },
+        {
+          "instrumentId": "cascade",
+          "supportType": "contextual",
+          "stageIds": [
+            "dependencies"
+          ],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "Cache fault / fallback",
+              "demonstrates": "How a synthetic cache fault and resilience setting change graph propagation.",
+              "doesNotProve": [
+                "A real cache outage or cascade."
+              ]
+            }
+          ],
+          "proofBoundary": "CASCADE provides bounded cache fault and fallback behaviour.",
+          "nonClaims": [
+            "The graph is not production topology evidence."
+          ]
+        },
+        {
+          "instrumentId": "consensus",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "Consensus has no cache-collapse target.",
+          "nonClaims": [
+            "Quorum behaviour must not be relabelled as cache evidence."
+          ],
+          "unsupportedReason": "Its teaching model is replicated state and convergence, not caching."
+        },
+        {
+          "instrumentId": "neon-relay",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "Neon Relay has no cache-collapse target.",
+          "nonClaims": [
+            "Circuit protection must not be relabelled as cache evidence."
+          ],
+          "unsupportedReason": "Its native model is routing and protection."
+        },
+        {
+          "instrumentId": "atlas-twin-context",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "Twin impact context is not a cache observation.",
+          "nonClaims": [
+            "Could-be-affected context does not prove a cache collapse."
+          ],
+          "unsupportedReason": "The public Twin projection has no Phase 3 cache-collapse target."
+        },
+        {
+          "instrumentId": "blackbox",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "Blackbox is not assigned a generic cache-collapse scenario target.",
+          "nonClaims": [
+            "A future record-specific claim needs its own named evidence."
+          ],
+          "unsupportedReason": "No current shared cache-collapse mapping is established for Blackbox."
+        },
+        {
+          "instrumentId": "spectral-forge",
+          "supportType": "cross-cutting",
+          "stageIds": [],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "CACHE COLLAPSE",
+              "demonstrates": "How synthetic cache pressure is translated into sound and visual state.",
+              "doesNotProve": [
+                "A production cache collapse or observed impact."
+              ]
+            }
+          ],
+          "proofBoundary": "Spectral Forge is an optional synthetic interpretation layer.",
+          "nonClaims": [
+            "The audio is not cache incident evidence."
+          ]
+        },
+        {
+          "instrumentId": "system-symphony",
+          "supportType": "cross-cutting",
+          "stageIds": [],
+          "evidenceModes": [
+            "simulated",
+            "measured",
+            "stale-measured",
+            "recorded-replay",
+            "unknown"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "DEMO cache frame",
+              "demonstrates": "A labelled synthetic cache-shaped frame for interpretation.",
+              "doesNotProve": [
+                "A production cache collapse."
+              ]
+            },
+            {
+              "evidenceMode": "measured",
+              "sourceType": "live-public",
+              "nativeScenario": "Live cache telemetry",
+              "demonstrates": "The bounded cache-related telemetry present in the selected live source frame.",
+              "doesNotProve": [
+                "A causal cache collapse or shared incident."
+              ]
+            },
+            {
+              "evidenceMode": "stale-measured",
+              "sourceType": "live-public",
+              "nativeScenario": "Stale cache telemetry",
+              "demonstrates": "Previously measured cache-related data retained with a stale marker.",
+              "doesNotProve": [
+                "A fresh cache observation or current collapse."
+              ]
+            },
+            {
+              "evidenceMode": "recorded-replay",
+              "sourceType": "recorded",
+              "nativeScenario": "Replay cache frame",
+              "demonstrates": "A historical cache-related frame played back by the instrument.",
+              "doesNotProve": [
+                "The replay is currently live."
+              ]
+            },
+            {
+              "evidenceMode": "unknown",
+              "sourceType": "live-public",
+              "nativeScenario": "Unknown cache source",
+              "demonstrates": "That the available source does not establish the cache meaning or state.",
+              "doesNotProve": [
+                "A cache collapse."
+              ]
+            }
+          ],
+          "proofBoundary": "System SYMPHONY preserves source mode and uncertainty while offering optional interpretation.",
+          "nonClaims": [
+            "It does not turn sound into cache incident authority."
+          ]
+        },
+        {
+          "instrumentId": "evidence-console",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "The Evidence Console has no generic cache-collapse scenario target.",
+          "nonClaims": [
+            "A lifecycle or impact record cannot be relabelled as a cache collapse."
+          ],
+          "unsupportedReason": "A cache scenario requires a named instrument model or specific record."
+        }
+      ]
+    },
+    {
+      "id": "dependency-failure",
+      "label": "Dependency failure",
+      "question": "How does the selected bounded instrument respond to its own dependency fault model?",
+      "interpretationBoundary": {
+        "neverMeans": [
+          "The corresponding Atlas dependency failed.",
+          "The same failure crossed every instrument.",
+          "Twin relationships observed the failure."
+        ]
+      },
+      "relationships": [
+        {
+          "instrumentId": "request-xray",
+          "supportType": "contextual",
+          "stageIds": [
+            "request"
+          ],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "Service error / timeout",
+              "demonstrates": "How the synthetic request model responds to a bounded service error or timeout.",
+              "doesNotProve": [
+                "A real Atlas dependency failure."
+              ]
+            }
+          ],
+          "proofBoundary": "Request X-Ray provides a request-level synthetic response to a fault choice.",
+          "nonClaims": [
+            "It does not establish a production root cause."
+          ]
+        },
+        {
+          "instrumentId": "cascade",
+          "supportType": "direct",
+          "stageIds": [
+            "dependencies"
+          ],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "Database or cache root fault",
+              "demonstrates": "How a selected synthetic root fault propagates and how resilience contains it.",
+              "doesNotProve": [
+                "An observed Atlas dependency failure or production cascade."
+              ]
+            }
+          ],
+          "proofBoundary": "CASCADE directly models dependency-like faults in its declared synthetic graph.",
+          "nonClaims": [
+            "Twin topology or shared labels cannot upgrade this model to live evidence."
+          ]
+        },
+        {
+          "instrumentId": "consensus",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "Consensus has no generic dependency-failure target.",
+          "nonClaims": [
+            "Replica convergence is not dependency failure evidence."
+          ],
+          "unsupportedReason": "Its model starts from a coordination and quorum teaching question."
+        },
+        {
+          "instrumentId": "neon-relay",
+          "supportType": "contextual",
+          "stageIds": [
+            "coordination"
+          ],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "Branch / fuse / output fault",
+              "demonstrates": "How a bounded circuit fault changes routing and protection behaviour.",
+              "doesNotProve": [
+                "A production dependency failure or service recovery."
+              ]
+            }
+          ],
+          "proofBoundary": "Neon Relay is a contextual protection model, not a distributed service graph.",
+          "nonClaims": [
+            "Circuit isolation is not measured network evidence."
+          ]
+        },
+        {
+          "instrumentId": "atlas-twin-context",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "Twin impact context is not a dependency-failure observation.",
+          "nonClaims": [
+            "Could-be-affected context does not prove that a dependency failed."
+          ],
+          "unsupportedReason": "The public projection describes possible relationships, not observed fault execution."
+        },
+        {
+          "instrumentId": "blackbox",
+          "supportType": "contextual",
+          "stageIds": [
+            "incident-evidence"
+          ],
+          "evidenceModes": [
+            "recorded-replay"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "recorded-replay",
+              "sourceType": "recorded",
+              "nativeScenario": "Named incident record",
+              "demonstrates": "A named recorded incident can show what the public recorder captured around its failure trigger.",
+              "doesNotProve": [
+                "The recorded dependency was the root cause without reviewed support."
+              ]
+            }
+          ],
+          "proofBoundary": "Blackbox can provide incident evidence only for the exact record selected by its own route.",
+          "nonClaims": [
+            "The shared model does not select a record or infer causality."
+          ]
+        },
+        {
+          "instrumentId": "spectral-forge",
+          "supportType": "contextual",
+          "stageIds": [],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "SERVICE FLAPPING or related synthetic pressure",
+              "demonstrates": "How a selected synthetic service-pressure pattern can be interpreted sonically.",
+              "doesNotProve": [
+                "A real dependency failure or incident."
+              ]
+            }
+          ],
+          "proofBoundary": "Spectral Forge supplies optional synthetic interpretation of a bounded pressure pattern.",
+          "nonClaims": [
+            "Its output is not dependency evidence."
+          ]
+        },
+        {
+          "instrumentId": "system-symphony",
+          "supportType": "cross-cutting",
+          "stageIds": [],
+          "evidenceModes": [
+            "simulated",
+            "measured",
+            "stale-measured",
+            "recorded-replay",
+            "unknown"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "DEMO service-pressure frame",
+              "demonstrates": "A labelled synthetic service-pressure frame for interpretation.",
+              "doesNotProve": [
+                "An Atlas dependency failed."
+              ]
+            },
+            {
+              "evidenceMode": "measured",
+              "sourceType": "live-public",
+              "nativeScenario": "Live service status",
+              "demonstrates": "The bounded service status present in the selected live source frame.",
+              "doesNotProve": [
+                "Root cause or cross-instrument propagation."
+              ]
+            },
+            {
+              "evidenceMode": "stale-measured",
+              "sourceType": "live-public",
+              "nativeScenario": "Stale service status",
+              "demonstrates": "Previously measured service data retained with a stale marker.",
+              "doesNotProve": [
+                "A fresh dependency failure observation."
+              ]
+            },
+            {
+              "evidenceMode": "recorded-replay",
+              "sourceType": "recorded",
+              "nativeScenario": "Replay service frame",
+              "demonstrates": "A historical service frame played back by the instrument.",
+              "doesNotProve": [
+                "The replay is currently live or causally complete."
+              ]
+            },
+            {
+              "evidenceMode": "unknown",
+              "sourceType": "live-public",
+              "nativeScenario": "Unknown service status",
+              "demonstrates": "That the available source does not establish the service meaning or state.",
+              "doesNotProve": [
+                "A dependency failure."
+              ]
+            }
+          ],
+          "proofBoundary": "System SYMPHONY is optional interpretation and preserves the source mode.",
+          "nonClaims": [
+            "It is not dependency-failure authority."
+          ]
+        },
+        {
+          "instrumentId": "evidence-console",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "The Evidence Console has no generic dependency-failure target.",
+          "nonClaims": [
+            "Lifecycle or impact context cannot be relabelled as a dependency failure."
+          ],
+          "unsupportedReason": "A named delivery or impact record does not by itself establish a dependency fault."
+        }
+      ]
+    },
+    {
+      "id": "network-partition",
+      "label": "Network partition",
+      "question": "How do the closest bounded isolation models behave when a link or feed is separated?",
+      "interpretationBoundary": {
+        "neverMeans": [
+          "A real network partition was observed in Atlas.",
+          "Atlas traffic was lost.",
+          "A production coordination event occurred."
+        ]
+      },
+      "relationships": [
+        {
+          "instrumentId": "request-xray",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "Request X-Ray has no generic network-partition target.",
+          "nonClaims": [
+            "A request timeout is not a real Atlas network partition."
+          ],
+          "unsupportedReason": "Its request controls do not establish a partition model."
+        },
+        {
+          "instrumentId": "cascade",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "CASCADE has no generic network-partition target.",
+          "nonClaims": [
+            "Synthetic graph propagation is not partition evidence."
+          ],
+          "unsupportedReason": "Its graph fault model does not represent the coordination isolation question."
+        },
+        {
+          "instrumentId": "consensus",
+          "supportType": "contextual",
+          "stageIds": [
+            "coordination"
+          ],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "ISOLATE C / delayed-heal behaviour",
+              "demonstrates": "How a bounded replica isolation setting affects quorum and later convergence in the teaching model.",
+              "doesNotProve": [
+                "A real observed Atlas network partition or production quorum event."
+              ]
+            }
+          ],
+          "proofBoundary": "Consensus is a bounded isolation teaching model with native terminology kept visible.",
+          "nonClaims": [
+            "It does not name or prove a production protocol."
+          ]
+        },
+        {
+          "instrumentId": "neon-relay",
+          "supportType": "contextual",
+          "stageIds": [
+            "coordination"
+          ],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "Isolated feed / branch behaviour",
+              "demonstrates": "How a bounded circuit feed or branch isolation changes routing and protection.",
+              "doesNotProve": [
+                "A real Atlas network partition or distributed service failure."
+              ]
+            }
+          ],
+          "proofBoundary": "Neon Relay is the closest routing/protection context, not a measured network model.",
+          "nonClaims": [
+            "Circuit isolation is not network-incident evidence."
+          ]
+        },
+        {
+          "instrumentId": "atlas-twin-context",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "Twin impact context is not a partition observation.",
+          "nonClaims": [
+            "Could-be-affected relationships do not prove traffic loss or partition."
+          ],
+          "unsupportedReason": "The public projection contains relationship context, not observed coordination events."
+        },
+        {
+          "instrumentId": "blackbox",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "Blackbox is not assigned a generic partition scenario target.",
+          "nonClaims": [
+            "A recorded incident needs its own exact interpretation."
+          ],
+          "unsupportedReason": "No current shared partition mapping is established for the recorder."
+        },
+        {
+          "instrumentId": "spectral-forge",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "Spectral Forge has no native partition scenario.",
+          "nonClaims": [
+            "Sound cannot make a partition observed."
+          ],
+          "unsupportedReason": "Its synthetic domain does not provide a partition model."
+        },
+        {
+          "instrumentId": "system-symphony",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "System SYMPHONY has no generic partition scenario target.",
+          "nonClaims": [
+            "Telemetry or topology cannot prove a real observed Atlas partition."
+          ],
+          "unsupportedReason": "The instrument can interpret source state but does not own partition authority."
+        },
+        {
+          "instrumentId": "evidence-console",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "The Evidence Console has no generic network-partition target.",
+          "nonClaims": [
+            "Lifecycle and impact records cannot be relabelled as a partition."
+          ],
+          "unsupportedReason": "A partition requires a named instrument or incident record, not a generic console view."
+        }
+      ]
+    },
+    {
+      "id": "cascading-failure",
+      "label": "Cascading failure",
+      "question": "How can a bounded fault propagate or how was escalation represented in a named record?",
+      "interpretationBoundary": {
+        "neverMeans": [
+          "A real production cascade occurred.",
+          "Twin relationships prove propagation.",
+          "A sonification is incident evidence."
+        ]
+      },
+      "relationships": [
+        {
+          "instrumentId": "request-xray",
+          "supportType": "contextual",
+          "stageIds": [
+            "request"
+          ],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "Cascading timeout",
+              "demonstrates": "How the bounded request trace responds to a synthetic cascading-timeout preset.",
+              "doesNotProve": [
+                "A real request cascade or production incident."
+              ]
+            }
+          ],
+          "proofBoundary": "Request X-Ray gives a request-level synthetic escalation example.",
+          "nonClaims": [
+            "It does not establish estate-wide propagation."
+          ]
+        },
+        {
+          "instrumentId": "cascade",
+          "supportType": "direct",
+          "stageIds": [
+            "dependencies"
+          ],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "Fault propagation",
+              "demonstrates": "How a bounded root fault propagates through CASCADE's synthetic graph and how resilience alters the result.",
+              "doesNotProve": [
+                "A real Atlas cascade or observed production root cause."
+              ]
+            }
+          ],
+          "proofBoundary": "CASCADE directly models propagation and containment inside its declared graph.",
+          "nonClaims": [
+            "Synthetic propagation is not live incident evidence."
+          ]
+        },
+        {
+          "instrumentId": "consensus",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "Consensus has no cascading-failure target.",
+          "nonClaims": [
+            "Replica convergence is not a cascade observation."
+          ],
+          "unsupportedReason": "Its model explains coordination and convergence rather than dependency propagation."
+        },
+        {
+          "instrumentId": "neon-relay",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "Neon Relay has no cascading-failure target.",
+          "nonClaims": [
+            "Circuit protection is not distributed cascade evidence."
+          ],
+          "unsupportedReason": "Its native model is routing and protection."
+        },
+        {
+          "instrumentId": "atlas-twin-context",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "Twin impact context is not a cascade observation.",
+          "nonClaims": [
+            "Could-be-affected relationships do not prove observed propagation."
+          ],
+          "unsupportedReason": "Twin is relationship context, not incident authority."
+        },
+        {
+          "instrumentId": "blackbox",
+          "supportType": "contextual",
+          "stageIds": [
+            "incident-evidence"
+          ],
+          "evidenceModes": [
+            "recorded-replay"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "recorded-replay",
+              "sourceType": "recorded",
+              "nativeScenario": "Selected recorded incident",
+              "demonstrates": "What a named Blackbox record captured when escalation is explicitly supported by that record.",
+              "doesNotProve": [
+                "A real cascade without the record's own evidence and review."
+              ]
+            }
+          ],
+          "proofBoundary": "Blackbox owns the exact recorded frames and reviewed record content.",
+          "nonClaims": [
+            "A replay does not become current live state through this label."
+          ]
+        },
+        {
+          "instrumentId": "spectral-forge",
+          "supportType": "cross-cutting",
+          "stageIds": [],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "CASCADING FAILURE",
+              "demonstrates": "How synthetic escalating telemetry can be mapped to sound and visual state.",
+              "doesNotProve": [
+                "A real production cascade or incident."
+              ]
+            }
+          ],
+          "proofBoundary": "Spectral Forge is optional cross-cutting interpretation.",
+          "nonClaims": [
+            "Its sound is not cascade evidence."
+          ]
+        },
+        {
+          "instrumentId": "system-symphony",
+          "supportType": "cross-cutting",
+          "stageIds": [],
+          "evidenceModes": [
+            "simulated",
+            "measured",
+            "stale-measured",
+            "recorded-replay",
+            "unknown"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "DEMO escalation frame",
+              "demonstrates": "A labelled synthetic escalation frame for interpretation.",
+              "doesNotProve": [
+                "A real production cascade."
+              ]
+            },
+            {
+              "evidenceMode": "measured",
+              "sourceType": "live-public",
+              "nativeScenario": "Live source telemetry",
+              "demonstrates": "The bounded source telemetry present in the selected live frame when it supports a narrow statement.",
+              "doesNotProve": [
+                "Causal cascade propagation from music or topology."
+              ]
+            },
+            {
+              "evidenceMode": "stale-measured",
+              "sourceType": "live-public",
+              "nativeScenario": "Stale source telemetry",
+              "demonstrates": "Previously measured source data retained with a stale marker.",
+              "doesNotProve": [
+                "A current cascade or fresh observation."
+              ]
+            },
+            {
+              "evidenceMode": "recorded-replay",
+              "sourceType": "recorded",
+              "nativeScenario": "Incident arc replay",
+              "demonstrates": "A labelled historical incident arc or fixture played back by the instrument.",
+              "doesNotProve": [
+                "The replay is currently live or independently causal."
+              ]
+            },
+            {
+              "evidenceMode": "unknown",
+              "sourceType": "live-public",
+              "nativeScenario": "Unknown source state",
+              "demonstrates": "That the available source does not establish the incident meaning or state.",
+              "doesNotProve": [
+                "A cascade occurred."
+              ]
+            }
+          ],
+          "proofBoundary": "System SYMPHONY can interpret labelled source state but cannot own cascade authority.",
+          "nonClaims": [
+            "Musical escalation is not incident proof."
+          ]
+        },
+        {
+          "instrumentId": "evidence-console",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "The Evidence Console has no generic cascading-failure target.",
+          "nonClaims": [
+            "Impact or lifecycle context cannot prove a cascade."
+          ],
+          "unsupportedReason": "A cascade requires a named synthetic model or exact incident record."
+        }
+      ]
+    },
+    {
+      "id": "recovery",
+      "label": "Recovery",
+      "question": "What bounded recovery-like, aftermath, or lifecycle reading is actually available?",
+      "interpretationBoundary": {
+        "neverMeans": [
+          "Universal current service recovery.",
+          "Root-cause resolution.",
+          "A future Recovery Evidence product already exists."
+        ]
+      },
+      "relationships": [
+        {
+          "instrumentId": "request-xray",
+          "supportType": "contextual",
+          "stageIds": [
+            "recovery"
+          ],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "Reset / re-run",
+              "demonstrates": "A fresh run of the bounded request model after its synthetic experiment.",
+              "doesNotProve": [
+                "A service recovered in the Atlas estate."
+              ]
+            }
+          ],
+          "proofBoundary": "Request X-Ray supplies only a synthetic reset or re-run context.",
+          "nonClaims": [
+            "It is not recovery evidence for a real request path."
+          ]
+        },
+        {
+          "instrumentId": "cascade",
+          "supportType": "contextual",
+          "stageIds": [
+            "recovery"
+          ],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "Replay / resilience / reset",
+              "demonstrates": "How CASCADE's synthetic graph settles after a bounded fault or reset.",
+              "doesNotProve": [
+                "Universal service recovery or root-cause resolution."
+              ]
+            }
+          ],
+          "proofBoundary": "CASCADE offers a recovery-like synthetic transition only.",
+          "nonClaims": [
+            "There is no single Phase 3 recovery authority here."
+          ]
+        },
+        {
+          "instrumentId": "consensus",
+          "supportType": "contextual",
+          "stageIds": [
+            "recovery"
+          ],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "Heal / catch-up",
+              "demonstrates": "How the fixed teaching model catches up after bounded isolation.",
+              "doesNotProve": [
+                "Production recovery or a named consensus protocol's behaviour."
+              ]
+            }
+          ],
+          "proofBoundary": "Consensus supplies a bounded convergence context.",
+          "nonClaims": [
+            "Catch-up is not universal service recovery evidence."
+          ]
+        },
+        {
+          "instrumentId": "neon-relay",
+          "supportType": "contextual",
+          "stageIds": [
+            "recovery"
+          ],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "Reset / reroute",
+              "demonstrates": "How the synthetic circuit returns through its reset or alternate route mechanics.",
+              "doesNotProve": [
+                "Recovery of a real Atlas service or network."
+              ]
+            }
+          ],
+          "proofBoundary": "Neon Relay supplies a circuit repair context only.",
+          "nonClaims": [
+            "Circuit reset is not live recovery evidence."
+          ]
+        },
+        {
+          "instrumentId": "atlas-twin-context",
+          "supportType": "unsupported",
+          "stageIds": [],
+          "evidenceModes": [
+            "not-applicable-unscored"
+          ],
+          "readings": [],
+          "proofBoundary": "Twin impact context does not represent recovery.",
+          "nonClaims": [
+            "Could-be-affected wording cannot be strengthened into recovered or live."
+          ],
+          "unsupportedReason": "Twin is generated relationship context, not recovery or incident authority."
+        },
+        {
+          "instrumentId": "blackbox",
+          "supportType": "contextual",
+          "stageIds": [
+            "recovery"
+          ],
+          "evidenceModes": [
+            "recorded-replay"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "recorded-replay",
+              "sourceType": "recorded",
+              "nativeScenario": "Aftermath / postmortem",
+              "demonstrates": "What a named recorded incident and its reviewed aftermath say after the captured event.",
+              "doesNotProve": [
+                "Current recovery, root-cause resolution, or a universal outcome."
+              ]
+            }
+          ],
+          "proofBoundary": "Blackbox can provide exact recorded aftermath for a named record.",
+          "nonClaims": [
+            "A replay remains historical."
+          ]
+        },
+        {
+          "instrumentId": "spectral-forge",
+          "supportType": "cross-cutting",
+          "stageIds": [],
+          "evidenceModes": [
+            "simulated"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "DEPLOYMENT / RECOVERY",
+              "demonstrates": "How a synthetic recovery-like transition can be mapped to sound and visual state.",
+              "doesNotProve": [
+                "A deployment, current recovery, or root-cause resolution."
+              ]
+            }
+          ],
+          "proofBoundary": "Spectral Forge supplies optional synthetic recovery interpretation, not authority.",
+          "nonClaims": [
+            "Its audio is not recovery evidence."
+          ]
+        },
+        {
+          "instrumentId": "system-symphony",
+          "supportType": "cross-cutting",
+          "stageIds": [],
+          "evidenceModes": [
+            "simulated",
+            "measured",
+            "stale-measured",
+            "recorded-replay",
+            "unknown"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "simulated",
+              "sourceType": "synthetic",
+              "nativeScenario": "DEMO recovery frame",
+              "demonstrates": "A labelled synthetic recovery-like frame for interpretation.",
+              "doesNotProve": [
+                "Current service recovery."
+              ]
+            },
+            {
+              "evidenceMode": "measured",
+              "sourceType": "live-public",
+              "nativeScenario": "Current source frame",
+              "demonstrates": "The bounded live source state selected by the instrument when it supports a narrow recovery-related statement.",
+              "doesNotProve": [
+                "Universal recovery or root-cause resolution."
+              ]
+            },
+            {
+              "evidenceMode": "stale-measured",
+              "sourceType": "live-public",
+              "nativeScenario": "Stale source frame",
+              "demonstrates": "Previously measured source data retained with a stale marker.",
+              "doesNotProve": [
+                "Fresh current recovery."
+              ]
+            },
+            {
+              "evidenceMode": "recorded-replay",
+              "sourceType": "recorded",
+              "nativeScenario": "Recovery-like replay",
+              "demonstrates": "A labelled historical replay that contains a recovery-like transition.",
+              "doesNotProve": [
+                "The replay is currently live or universally representative."
+              ]
+            },
+            {
+              "evidenceMode": "unknown",
+              "sourceType": "live-public",
+              "nativeScenario": "Unknown recovery source",
+              "demonstrates": "That the available source does not establish a recovery meaning or state.",
+              "doesNotProve": [
+                "Recovery occurred."
+              ]
+            }
+          ],
+          "proofBoundary": "System SYMPHONY preserves source uncertainty and is not a Recovery Evidence authority.",
+          "nonClaims": [
+            "Musical resolution is not incident recovery proof."
+          ]
+        },
+        {
+          "instrumentId": "evidence-console",
+          "supportType": "contextual",
+          "stageIds": [
+            "recovery"
+          ],
+          "evidenceModes": [
+            "recorded-replay",
+            "unknown"
+          ],
+          "readings": [
+            {
+              "evidenceMode": "recorded-replay",
+              "sourceType": "lifecycle-record",
+              "nativeScenario": "Named lifecycle fact",
+              "demonstrates": "A named public lifecycle record when the Console has an exact supporting projection.",
+              "doesNotProve": [
+                "Universal service recovery or root-cause resolution."
+              ]
+            },
+            {
+              "evidenceMode": "unknown",
+              "sourceType": "lifecycle-record",
+              "nativeScenario": "No named recovery fact",
+              "demonstrates": "That the available public lifecycle records do not establish a recovery claim.",
+              "doesNotProve": [
+                "Recovery occurred or did not occur."
+              ]
+            }
+          ],
+          "proofBoundary": "The Evidence Console can expose a named lifecycle fact or an explicit unknown, not a universal recovery reading.",
+          "nonClaims": [
+            "A rendered lifecycle stage is not proof that recovery occurred."
+          ]
+        }
+      ]
+    }
+  ],
+  "narratives": [
+    {
+      "id": "dependency-to-recovery",
+      "label": "From dependency failure to recovery",
+      "description": "A beginner-readable bounded path from a synthetic request baseline through dependency failure and propagation to an explicitly limited recovery reading.",
+      "steps": [
+        {
+          "stageId": "request",
+          "scenarioId": "normal-operation",
+          "instrumentId": "request-xray",
+          "supportType": "direct",
+          "required": true
+        },
+        {
+          "stageId": "dependencies",
+          "scenarioId": "dependency-failure",
+          "instrumentId": "cascade",
+          "supportType": "direct",
+          "required": true
+        },
+        {
+          "stageId": "dependencies",
+          "scenarioId": "cascading-failure",
+          "instrumentId": "cascade",
+          "supportType": "direct",
+          "required": true
+        },
+        {
+          "stageId": "incident-evidence",
+          "scenarioId": "cascading-failure",
+          "instrumentId": "blackbox",
+          "supportType": "contextual",
+          "required": false,
+          "qualification": "Only use this step when a named Blackbox record supports the description."
+        },
+        {
+          "stageId": "recovery",
+          "scenarioId": "recovery",
+          "instrumentId": "cascade",
+          "supportType": "contextual",
+          "required": false,
+          "qualification": "This is a synthetic recovery-like reset or resilience reading, not universal recovery evidence."
+        }
+      ],
+      "omittedStageIds": [
+        "coordination",
+        "impact"
+      ],
+      "omissionReason": "The path does not invent coordination or impact evidence merely to fill the sequence."
+    },
+    {
+      "id": "partition-to-recovery",
+      "label": "From bounded isolation to recovery",
+      "description": "A distributed-systems path using the closest bounded coordination and routing models, with its missing stages kept explicit.",
+      "steps": [
+        {
+          "stageId": "request",
+          "scenarioId": "normal-operation",
+          "instrumentId": "request-xray",
+          "supportType": "direct",
+          "required": true
+        },
+        {
+          "stageId": "coordination",
+          "scenarioId": "network-partition",
+          "instrumentId": "consensus",
+          "supportType": "contextual",
+          "required": true,
+          "qualification": "The native ISOLATE C model remains visible; this is not a real observed partition."
+        },
+        {
+          "stageId": "coordination",
+          "scenarioId": "network-partition",
+          "instrumentId": "neon-relay",
+          "supportType": "contextual",
+          "required": false,
+          "qualification": "The native isolated-feed circuit model remains visible; it is not network evidence."
+        },
+        {
+          "stageId": "recovery",
+          "scenarioId": "recovery",
+          "instrumentId": "consensus",
+          "supportType": "contextual",
+          "required": false,
+          "qualification": "Heal and catch-up are bounded teaching-model outcomes, not production recovery."
+        }
+      ],
+      "omittedStageIds": [
+        "dependencies",
+        "impact",
+        "incident-evidence"
+      ],
+      "omissionReason": "No current instrument supplies those stages for this bounded partition-oriented narrative."
+    }
+  ],
+  "constraints": {
+    "scenarioLabelsAreContextOnly": true,
+    "crossCuttingInstrumentsAreNotLinearStages": true,
+    "twinImpactClaim": "could be affected",
+    "twinImpactIsNotIncidentEvidence": true,
+    "atlasMotion": {
+      "participation": "excluded",
+      "requiredJourneyInstrument": false,
+      "sharedScenarioTarget": false,
+      "dependency": false,
+      "reason": "Atlas Motion is a separate completion stream and is not a Phase 3 instrument by default."
+    },
+    "recovery": {
+      "singleAuthoritativeInstrument": null,
+      "gapStatus": "unknown-unavailable-contextual",
+      "reason": "Recovery remains a bounded gap; synthetic, recorded, measured, unavailable, or unknown readings must retain their own proof boundaries."
+    },
+    "prohibitedClaims": [
+      "normal-operation is current estate health",
+      "network-partition is a real observed Atlas partition",
+      "recorded-replay is currently measured state",
+      "could be affected is the same as was affected",
+      "rendered lifecycle order proves that the lifecycle stage occurred"
+    ]
+  }
+}
