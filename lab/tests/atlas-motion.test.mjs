@@ -136,6 +136,19 @@ test("Atlas Motion corrects the old EstateBoot release wording and keeps the she
   assert.match(shell, /label: "Atlas Motion", href: "\/lab\/atlas-motion\/"/);
 });
 
+test("Atlas Motion transcripts keep every chapter label readable without JavaScript", () => {
+  const chapterLabels = [...page.matchAll(/<a href="#(?:estateboot|evidencechain)-transcript"[^>]*>\d+ <span>([^<]+)<\/span>/g)]
+    .map((match) => match[1]);
+  assert.equal(chapterLabels.length, 18);
+  for (const label of chapterLabels) {
+    assert.match(
+      page,
+      new RegExp(`<strong>${label.replaceAll(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\.</strong>`),
+      `transcript should include chapter ${label}`,
+    );
+  }
+});
+
 test("Atlas Motion remains responsive and reduced-motion safe", () => {
   assert.match(css, /overflow-x:\s*hidden/);
   assert.match(css, /aspect-ratio:\s*16 \/ 9/);
@@ -145,6 +158,7 @@ test("Atlas Motion remains responsive and reduced-motion safe", () => {
   assert.match(css, /transition-duration: \.01ms/);
   assert.match(css, /animation-duration: \.01ms/);
   assert.match(css, /grid-template-columns: repeat\(6/);
+  assert.match(css, /\.atlas-motion-proof summary \{[\s\S]*min-height: 44px/);
 });
 
 test("Atlas Motion provenance records non-live release ownership boundaries", () => {

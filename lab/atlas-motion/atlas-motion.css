@@ -414,6 +414,10 @@ body[data-lab-route="atlas-motion"] .atlas-motion-page :where(code) {
 }
 
 .atlas-motion-proof summary {
+  display: flex;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
   padding: 18px 0;
   color: var(--text);
   cursor: pointer;
