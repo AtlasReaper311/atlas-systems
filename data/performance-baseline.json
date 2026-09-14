@@ -7,10 +7,10 @@
       "route": "/",
       "html_bytes": 22589,
       "first_party_request_count": 25,
-      "referenced_asset_bytes": 212569,
-      "total_static_bytes": 235158,
+      "referenced_asset_bytes": 212568,
+      "total_static_bytes": 235157,
       "largest_referenced_asset": "lab/index.html",
-      "largest_referenced_asset_bytes": 40148
+      "largest_referenced_asset_bytes": 40147
     },
     {
       "route": "/systems/",
@@ -23,10 +23,10 @@
     },
     {
       "route": "/lab/",
-      "html_bytes": 40148,
+      "html_bytes": 40147,
       "first_party_request_count": 23,
       "referenced_asset_bytes": 231366,
-      "total_static_bytes": 271514,
+      "total_static_bytes": 271513,
       "largest_referenced_asset": "lab/lab-card.js",
       "largest_referenced_asset_bytes": 45356
     },
@@ -67,5 +67,5 @@
       "largest_referenced_asset_bytes": 24744
     }
   ],
-  "sha256": "f6c1f73da32dc0178473fb21f3a4e56b3fe96729f36967288d528d839aa0b7e8"
+  "sha256": "42139ebcddd442a07b440c7fdb7df054c60a99cf14112f3c6c09cc00ffb6e348"
 }

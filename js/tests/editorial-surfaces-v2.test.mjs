@@ -143,10 +143,10 @@ test("primary source remains navigable, branded, and readable without JavaScript
 });
 
 test("Lab and Systems shared destinations cannot drift in visual, motif, or maturity", () => {
-  const lab = cardContracts(read("lab/index.html"));
+  const labSource = read("lab/index.html");
+  const lab = cardContracts(labSource);
   const systems = cardContracts(read("systems/index.html"));
-  const shared = [
-    "https://ramone.atlas-systems.uk/",
+  const sharedCards = [
     "https://status.atlas-systems.uk/",
     "https://api.atlas-systems.uk/v1/docs",
     "/lab/system-map/",
@@ -155,15 +155,22 @@ test("Lab and Systems shared destinations cannot drift in visual, motif, or matu
     "/systems/observability/",
     "/systems/reliability/",
     "/systems/evidence/",
-    "/lab/system-symphony/",
     "/lab/signal/",
     "/lab/anomaly/",
   ];
-  for (const href of shared) {
+  for (const href of sharedCards) {
     assert.ok(lab.has(href), `Lab must declare ${href}`);
     assert.ok(systems.has(href), `Systems must declare ${href}`);
     assert.deepEqual(systems.get(href), lab.get(href), `${href} card contract drifted`);
   }
+
+  assert.match(labSource, /href="https:\/\/ramone\.atlas-systems\.uk\/"/);
+  assert.match(labSource, /id="ramone-card"/);
+  assert.match(labSource, /class="lab-flagship-card lab-flagship-card--symphony" href="\/lab\/system-symphony\/"/);
+  assert.ok(systems.has("https://ramone.atlas-systems.uk/"));
+  assert.ok(systems.has("/lab/system-symphony/"));
+  assert.equal(systems.get("https://ramone.atlas-systems.uk/")?.visual, "ramone");
+  assert.equal(systems.get("/lab/system-symphony/")?.visual, "symphony");
 });
 
 test("About contains the accepted identity, priorities, principles, and reduced-motion topology", () => {

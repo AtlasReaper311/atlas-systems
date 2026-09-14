@@ -118,7 +118,9 @@ identity, and live behavior. Missing evidence remains `unknown` or
 
 - `/lab/failure-laboratory/` remains in the generator-owned sitemap as an
   indexed route with priority `0.7`.
-- Request X-Ray, CASCADE, Consensus, and Neon Relay remain noindex specialist
+- Request X-Ray remains reachable and outside the production sitemap. It does
+  not carry a page or `_headers` `noindex` rule on the current tree.
+- CASCADE, Consensus, and Neon Relay remain `noindex, follow` specialist
   routes and are not inserted into the production sitemap.
 - The Lab home, Failure Laboratory, specialist routes, and Atlas Motion retain
   canonical custom-domain identity and existing public-interface ownership.
@@ -173,6 +175,12 @@ The exact-head hosted preview workflow and its retained screenshots remain the
 authoritative non-production browser evidence for PR #293. This record does
 not substitute a local capture for that hosted check or for production
 verification after merge.
+
+A later commit on this branch reconciles directory-contract tests after the
+Lab home promoted Ramone and System Symphony into product-specific surfaces,
+and it restores the shared Evidence motif (`EVID`). Exact-head repository-native
+checks and hosted interface-preview evidence apply to that later head, not
+only to `a5c1213`.
 
 ## State boundaries and residual work
 

@@ -107,6 +107,21 @@ test("the Lab home rail makes the journey first-class without changing indexing"
   }
 });
 
+test("Phase 3 source closure record states the exact stop boundary", () => {
+  const closure = fs.readFileSync("docs/PHASE-3-FAILURE-LABORATORY-CLOSURE.md", "utf8");
+  assert.match(closure, /Phase 3 Failure Laboratory closure/);
+  assert.match(closure, /data\/failure-laboratory-model\.json/);
+  assert.match(closure, /\/lab\/failure-laboratory\//);
+  assert.match(closure, /Atlas Motion/);
+  assert.match(closure, /could be affected/);
+  assert.match(closure, /noindex, follow/);
+  assert.match(closure, /Request X-Ray remains reachable and outside the production sitemap/);
+  assert.match(closure, /Recovery remains intentionally open/);
+  assert.match(closure, /does not claim that[\s\S]*merged, deployed, or live-closed/);
+  assert.match(closure, /owner merge gate remains open/);
+  assert.match(closure, /do not imply[\s\S]*a scenario selection is a current production incident/);
+});
+
 test("route metadata and public declarations retain the accepted identity boundaries", () => {
   assert.match(landing, /<title>Lab \/\/ Atlas Systems<\/title>/);
   assert.match(landing, /href="https:\/\/atlas-systems\.uk\/lab\/"/);
