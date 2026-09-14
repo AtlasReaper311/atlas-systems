@@ -3,6 +3,10 @@
 const MODEL_URL = "/data/failure-laboratory-model.json";
 const main = document.querySelector("#failure-laboratory-main");
 const scenarioInputs = [...document.querySelectorAll('input[name="scenario"][data-scenario-id]')];
+const stageNavLinks = [...document.querySelectorAll("[data-stage-nav-link]")];
+const stageActionLinks = [...document.querySelectorAll("[data-stage-next], [data-stage-previous]")];
+const stageNodes = [...document.querySelectorAll(".failure-lab-stage[data-stage-id]")];
+const stageIds = new Set(stageNodes.map((stage) => stage.dataset.stageId));
 let activeModel = null;
 
 const EVIDENCE_LABELS = Object.freeze({
@@ -101,8 +105,9 @@ function scenarioIdFromUrl(model) {
 function updateUrl(scenarioId, push = true) {
   const url = new URL(window.location.href);
   url.searchParams.set("scenario", scenarioId);
-  if (push) window.history.pushState({ scenario: scenarioId }, "", url);
-  else window.history.replaceState({ scenario: scenarioId }, "", url);
+  const state = { ...(window.history.state || {}), scenario: scenarioId };
+  if (push) window.history.pushState(state, "", url);
+  else window.history.replaceState(state, "", url);
 }
 
 function updateScenarioControls(model, scenario) {
@@ -145,14 +150,20 @@ function createReadingCard(model, relationship, instrument, stageAssociation) {
 
   appendText(card, "p", "failure-lab-reading-question", instrument.question);
 
-  const facts = element("dl", "failure-lab-reading-facts");
   const readingNames = unique(relationship.readings.map((reading) => reading.nativeScenario));
   const sourceTypes = unique(relationship.readings.map((reading) => reading.sourceType));
   const demonstrations = unique(relationship.readings.map((reading) => reading.demonstrates));
+  const demonstrates = element("p", "failure-lab-reading-demonstrates");
+  appendText(demonstrates, "strong", "", "It demonstrates");
+  appendText(demonstrates, "span", "", demonstrations.join(" "));
+  card.appendChild(demonstrates);
+
+  const details = element("details", "failure-lab-more-details");
+  appendText(details, "summary", "", "More evidence detail +");
+  const facts = element("dl", "failure-lab-reading-facts");
   const factRows = [
     ["NATIVE SCENARIO", readingNames.join(" · ")],
     ["EVIDENCE SOURCE", sourceTypes.join(" · ")],
-    ["IT DEMONSTRATES", demonstrations.join(" ")],
   ];
   for (const [label, value] of factRows) {
     const row = element("div");
@@ -160,7 +171,8 @@ function createReadingCard(model, relationship, instrument, stageAssociation) {
     appendText(row, "dd", "", value);
     facts.appendChild(row);
   }
-  card.appendChild(facts);
+  details.appendChild(facts);
+  appendText(details, "p", "failure-lab-detail-label", "What it does not prove");
 
   const proof = element("div", "failure-lab-proof");
   appendText(proof, "strong", "", "Proof boundary");
@@ -172,9 +184,6 @@ function createReadingCard(model, relationship, instrument, stageAssociation) {
     ...relationship.nonClaims,
     ...relationship.readings.flatMap((reading) => reading.doesNotProve),
   ]);
-  const details = element("details");
-  details.open = true;
-  appendText(details, "summary", "", "What it does not prove");
   const list = element("ul");
   for (const claim of nonClaims) appendText(list, "li", "", claim);
   details.appendChild(list);
@@ -203,10 +212,14 @@ function createUnmappedStage(scenario, stage) {
 function createRecoveryGap(gap) {
   const block = element("div", "failure-lab-recovery-gap");
   block.dataset.recoveryGap = gap.status;
+  block.appendChild(element("span", "failure-lab-gap-flag", "EVIDENCE GAP / INTENTIONAL"));
   block.appendChild(element("span", "failure-lab-context-badge", "NO SINGLE AUTHORITY"));
   appendText(block, "h4", "", gap.summary);
   appendText(block, "p", "", gap.nonClaim);
-  appendText(block, "p", "failure-lab-proof-copy", `Allowed readings: ${gap.allowedEvidenceModes.map((mode) => EVIDENCE_LABELS[mode] || mode).join(", ")}.`);
+  const details = element("details", "failure-lab-more-details");
+  appendText(details, "summary", "", "More evidence detail +");
+  appendText(details, "p", "", `Allowed readings: ${gap.allowedEvidenceModes.map((mode) => EVIDENCE_LABELS[mode] || mode).join(", ")}.`);
+  block.appendChild(details);
   return block;
 }
 
@@ -253,9 +266,8 @@ function createSupportingCard(relationship, instrument) {
   const readings = relationship.readings.map((reading) => `${EVIDENCE_LABELS[reading.evidenceMode] || reading.evidenceMode}: ${reading.demonstrates}`);
   appendText(card, "p", "", readings.join(" "));
   appendText(card, "p", "failure-lab-proof-copy", relationship.proofBoundary);
-  const details = element("details");
-  details.open = true;
-  appendText(details, "summary", "", "What it does not prove");
+  const details = element("details", "failure-lab-more-details");
+  appendText(details, "summary", "", "More evidence detail +");
   const list = element("ul");
   for (const claim of unique([
     ...instrument.nonClaims,
@@ -304,9 +316,8 @@ function renderUnsupported(model, scenario) {
     item.appendChild(heading);
     appendText(item, "p", "", relationship.unsupportedReason || relationship.proofBoundary);
     appendText(item, "p", "failure-lab-proof-copy", relationship.proofBoundary);
-    const details = element("details");
-    details.open = true;
-    appendText(details, "summary", "", "Boundary carried forward");
+    const details = element("details", "failure-lab-more-details");
+    appendText(details, "summary", "", "More evidence detail +");
     const list = element("ul");
     for (const claim of unique([...instrument.nonClaims, ...relationship.nonClaims])) appendText(list, "li", "", claim);
     details.appendChild(list);
@@ -342,6 +353,95 @@ function renderNarratives(model) {
   }
 }
 
+function stageIdFromHash() {
+  if (!window.location.hash.startsWith("#stage-")) return null;
+  const stageId = window.location.hash.slice("#stage-".length);
+  return stageIds.has(stageId) ? stageId : null;
+}
+
+function stageIdFromLink(link) {
+  const href = link.getAttribute("href") || "";
+  if (!href.startsWith("#stage-")) return null;
+  const stageId = href.slice("#stage-".length);
+  return stageIds.has(stageId) ? stageId : null;
+}
+
+function currentScenarioId() {
+  return main?.dataset.selectedScenario
+    || scenarioInputs.find((input) => input.checked)?.dataset.scenarioId
+    || null;
+}
+
+function updateStageNavigation(stageId) {
+  for (const link of stageNavLinks) {
+    const active = stageIdFromLink(link) === stageId;
+    if (active) link.setAttribute("aria-current", "step");
+    else link.removeAttribute("aria-current");
+    link.closest("[data-stage-nav-item]")?.toggleAttribute("data-active", active);
+  }
+}
+
+function writeStageUrl(stageId, historyMethod) {
+  const url = new URL(window.location.href);
+  url.hash = `stage-${stageId}`;
+  const state = { ...(window.history.state || {}), scenario: currentScenarioId(), stage: stageId };
+  window.history[historyMethod](state, "", url);
+}
+
+function setActiveStage(stageId, { historyMethod = null, focus = false } = {}) {
+  if (!stageIds.has(stageId)) return false;
+  for (const stage of stageNodes) {
+    stage.toggleAttribute("data-active-stage", stage.dataset.stageId === stageId);
+  }
+  updateStageNavigation(stageId);
+  if (main) main.dataset.activeStage = stageId;
+  if (historyMethod) writeStageUrl(stageId, historyMethod);
+  if (focus) {
+    const stage = stageNodes.find((candidate) => candidate.dataset.stageId === stageId);
+    const heading = stage?.querySelector("h3");
+    stage?.scrollIntoView({
+      block: "start",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    });
+    window.requestAnimationFrame(() => heading?.focus({ preventScroll: true }));
+  }
+  return true;
+}
+
+function syncStageFromLocation({ focus = false } = {}) {
+  const stageId = stageIdFromHash();
+  if (window.location.hash.startsWith("#stage-") && !stageId) {
+    setActiveStage("request", { historyMethod: "replaceState", focus });
+    return;
+  }
+  if (stageId) setActiveStage(stageId, { focus });
+}
+
+function installStageNavigation() {
+  if (!main || !stageNavLinks.length || !stageNodes.length) return;
+  for (const link of [...stageNavLinks, ...stageActionLinks]) {
+    link.addEventListener("click", (event) => {
+      const stageId = stageIdFromLink(link);
+      if (!stageId) return;
+      event.preventDefault();
+      setActiveStage(stageId, { historyMethod: "pushState", focus: true });
+    });
+  }
+  window.addEventListener("hashchange", () => {
+    syncStageFromLocation({ focus: true });
+  });
+  window.addEventListener("popstate", () => {
+    syncStageFromLocation({ focus: true });
+    if (activeModel) renderModel(activeModel, scenarioIdFromUrl(activeModel));
+  });
+  const initialStage = stageIdFromHash();
+  const invalidStageHash = window.location.hash.startsWith("#stage-") && !initialStage;
+  setActiveStage(initialStage || "request", {
+    historyMethod: invalidStageHash || !window.location.hash ? "replaceState" : null,
+  });
+  main.dataset.stageEnhanced = "true";
+}
+
 function renderModel(model, scenarioId, updateUrlState = false) {
   const scenario = modelScenario(model, scenarioId);
   if (!scenario) return;
@@ -350,6 +450,7 @@ function renderModel(model, scenarioId, updateUrlState = false) {
   updateScenarioControls(model, scenario);
   setText("#selected-scenario-label", scenario.label);
   setText("#selected-scenario-question", scenario.question);
+  setText("#hero-selected-scenario", scenario.label);
   setText("#journey-scenario-label", scenario.label);
   setText("#journey-status", "Model-approved relationships only. No instrument has been executed by this corridor.");
   renderScenarioBoundary(scenario);
@@ -369,7 +470,6 @@ function installSelection(model) {
       renderModel(model, input.dataset.scenarioId, true);
     });
   }
-  window.addEventListener("popstate", () => renderModel(model, scenarioIdFromUrl(model)));
 }
 
 async function loadModel() {
@@ -388,6 +488,7 @@ async function loadModel() {
   }
 }
 
+installStageNavigation();
 if (main) void loadModel();
 
 export {
