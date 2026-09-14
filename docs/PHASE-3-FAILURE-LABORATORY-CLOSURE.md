@@ -153,7 +153,7 @@ identity, and live behavior. Missing evidence remains `unknown` or
 Local source validation at head `a5c1213`:
 
 - Focused Phase 3 and related route suite: 74 passing.
-- Main-site suite: 571 passing.
+- Main-site suite: 450 passing.
 - Lab suite: 347 passing.
 - System SYMPHONY suite: 571 passing.
 - OG suite: 7 passing.
