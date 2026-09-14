@@ -31,5 +31,15 @@ test("Request X-Ray route uses the governed Lab shell instead of standalone chro
   assert.match(page, /<nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">/);
   assert.match(page, /<nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">/);
   assert.match(page, /<nav class="lab-context-nav lab-context-nav--compact" aria-label="Lab navigation"/);
+  assert.match(page, /<div class="preset-row" id="preset-row" role="group" aria-labelledby="scenario-title"><\/div>/);
   assert.doesNotMatch(page, /class="xray-nav|class="xray-header/);
+});
+
+test("Request X-Ray keeps preset and empty inspector semantics valid", () => {
+  const page = fs.readFileSync("lab/xray/index.html", "utf8");
+  const source = fs.readFileSync("lab/xray/src/app.js", "utf8");
+  const styles = fs.readFileSync("lab/xray/xray.css", "utf8");
+  assert.doesNotMatch(page, /id="preset-row"[^>]*role="tablist"/);
+  assert.match(source, /function emptyRow\(text\) \{[\s\S]*?keyValue\("State", text\)/);
+  assert.match(styles, /\.preset-btn span \{[\s\S]*?color: var\(--text-dim\);/);
 });

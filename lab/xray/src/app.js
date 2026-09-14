@@ -270,13 +270,13 @@ function renderInspector() {
   const owned = LAYER_SWITCHES[layer] ?? [];
   const configRows = [];
   if (owned.length === 0) {
-    configRows.push(emptyRow(PASSIVE_NOTE[layer] ?? "No switches."));
+    configRows.push(...emptyRow(PASSIVE_NOTE[layer] ?? "No switches."));
   } else {
     for (const key of owned) {
       configRows.push(...keyValue(SWITCH_LABELS[key], formatSwitch(key, state.config[key])));
     }
     if (layer === "cache" && !state.config.cacheHit) {
-      configRows.push(emptyRow("Stale entry has no effect while the cache is missing."));
+      configRows.push(...emptyRow("Stale entry has no effect while the cache is missing."));
     }
   }
   el.inspectorConfig.replaceChildren(...configRows);
@@ -284,7 +284,7 @@ function renderInspector() {
   const outcomeRows = [];
   const hops = (state.trace?.hops ?? []).filter((hop) => hop.layer === layer);
   if (hops.length === 0) {
-    outcomeRows.push(emptyRow(state.trace ? "This layer was never reached in the last run." : "No run yet."));
+    outcomeRows.push(...emptyRow(state.trace ? "This layer was never reached in the last run." : "No run yet."));
   } else {
     for (const hop of hops) {
       outcomeRows.push(
@@ -310,10 +310,9 @@ function keyValue(term, value, stateName) {
 }
 
 function emptyRow(text) {
-  const p = document.createElement("dd");
-  p.className = "kv-empty";
-  p.textContent = text;
-  return p;
+  const [term, value] = keyValue("State", text);
+  value.className = "kv-empty";
+  return [term, value];
 }
 
 function formatSwitch(key, value) {
