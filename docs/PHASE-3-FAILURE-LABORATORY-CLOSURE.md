@@ -14,11 +14,12 @@ The Phase 3 source sequence is:
 3. [Issue #285](https://github.com/AtlasReaper311/atlas-systems/issues/285), Failure Laboratory route, closed by [PR #290](https://github.com/AtlasReaper311/atlas-systems/pull/290).
 4. [Issue #286](https://github.com/AtlasReaper311/atlas-systems/issues/286), bounded instrument handoffs, closed by [PR #291](https://github.com/AtlasReaper311/atlas-systems/pull/291).
 5. [PR #292](https://github.com/AtlasReaper311/atlas-systems/pull/292), final Failure Laboratory guided-workspace presentation remediation, merged into `main`.
-6. [Issue #287](https://github.com/AtlasReaper311/atlas-systems/issues/287), this directory, sitemap, metadata, cross-link, and closure pass, carried by [draft PR #293](https://github.com/AtlasReaper311/atlas-systems/pull/293) at source head `a5c1213da8f16f9c786cc3fc406cb1e43bb98396`.
+6. [Issue #287](https://github.com/AtlasReaper311/atlas-systems/issues/287), this directory, sitemap, metadata, cross-link, and closure pass, carried by [draft PR #293](https://github.com/AtlasReaper311/atlas-systems/pull/293). The bounded source changes were complete at `b54b28d` before this closure record update.
 
 The branch starts from current `origin/main` at
-`f34db1be839581e56c46c462203ecd2b755b8dd7`. The current PR is one source
-commit ahead of that base.
+`f34db1be839581e56c46c462203ecd2b755b8dd7`. The branch carries bounded source
+scope on top of that base. The final PR
+head is checked independently at the owner merge gate.
 
 ## Canonical journey contract
 
@@ -150,11 +151,11 @@ identity, and live behavior. Missing evidence remains `unknown` or
 
 ## Validation evidence
 
-Local source validation at head `a5c1213`:
+Local source validation at source head `b54b28d`:
 
-- Focused Phase 3 and related route suite: 74 passing.
+- Focused Phase 3 route, model, directory, handoff, and X-Ray suite: 37 passing.
 - Main-site suite: 450 passing.
-- Lab suite: 347 passing.
+- Lab suite: 349 passing.
 - System SYMPHONY suite: 571 passing.
 - OG suite: 7 passing.
 - HTML validation passed for the repository HTML source set.
@@ -166,27 +167,32 @@ Local source validation at head `a5c1213`:
   inspected at 375 and 1440 in both browsers. The changed Lab route reported
   no card-layout overlap, CTA overflow, serious or critical axe finding, or
   route failure. No-JavaScript and reduced-motion checks were included.
+- A separate governed Request X-Ray check ran in Chromium and Firefox at 320,
+  375, 768, 1024, and 1440. It found no serious or critical axe finding, no
+  page overflow, a visible Failure Laboratory handoff, valid reduced-motion
+  context, and readable no-JavaScript output. Screenshots were inspected at
+  375 and 1440 in both browsers.
 - The local capture retained separate known repository evidence gaps: local
   uncompressed browser-budget overages, the noindex console's unavailable
   local DORA endpoint, and third-party YouTube iframe findings. These are not
   attributed to the changed Lab directory route.
 
 The exact-head hosted preview workflow and its retained screenshots remain the
-authoritative non-production browser evidence for PR #293. This record does
-not substitute a local capture for that hosted check or for production
-verification after merge.
+authoritative non-production browser evidence for PR #293. The final gate
+checks that the hosted workflow, preview, artifacts, and GitHub checks all
+refer to the same PR head. This record does not substitute hosted evidence for
+production verification after merge.
 
-A later commit on this branch reconciles directory-contract tests after the
-Lab home promoted Ramone and System Symphony into product-specific surfaces,
-and it restores the shared Evidence motif (`EVID`). Exact-head repository-native
-checks and hosted interface-preview evidence apply to that later head, not
-only to `a5c1213`.
+The final source includes the directory-contract test reconciliation for the
+Ramone and System SYMPHONY product-specific surfaces, restores the shared
+Evidence motif (`EVID`), and keeps the Request X-Ray semantic accessibility
+corrections bounded to that route's existing markup and styles.
 
 ## State boundaries and residual work
 
 | State | Evidence for this closure pass |
 | --- | --- |
-| Source | Complete at `a5c1213`; local source and repository-native validation passed. |
+| Source | Complete at `b54b28d` before the closure-record update; local source and repository-native validation passed. |
 | Pull request | Draft PR #293 exists and carries `interface-preview-approved`. |
 | Merge | Not performed. The owner merge gate remains open. |
 | Deployment | No production deployment or rerun was performed by this task. |
