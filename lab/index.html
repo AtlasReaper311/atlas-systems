@@ -50,13 +50,14 @@
     .lab-ramone-section .ramone-hero-heading { font-size:clamp(2rem,3.6vw,3.05rem); }
     .lab-ramone-section .ramone-hero-suggestions { max-height:8rem; overflow:hidden; }
     .lab-failure-laboratory-entry { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr); gap:24px; padding:clamp(24px,4vw,48px); border:1px solid color-mix(in srgb,var(--accent) 58%,var(--border)); border-left:4px solid var(--accent); background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 9%,transparent),transparent 56%),var(--bg-1,#111118); }
+    .lab-failure-laboratory-entry > div, .lab-failure-laboratory-entry__stages { min-width:0; }
     .lab-failure-laboratory-entry .eyebrow { color:var(--accent); }
-    .lab-failure-laboratory-entry h2 { margin:0 0 12px; font-family:"DM Serif Display",Georgia,serif; font-size:clamp(2.2rem,5vw,4.4rem); font-weight:400; line-height:.98; letter-spacing:-.03em; }
+    .lab-failure-laboratory-entry h2 { margin:0 0 12px; font-family:"DM Serif Display",Georgia,serif; font-size:clamp(2.2rem,5vw,4.4rem); font-weight:400; line-height:.98; letter-spacing:-.03em; overflow-wrap:anywhere; }
     .lab-failure-laboratory-entry__lede { max-width:46rem; color:var(--text); font-size:clamp(1rem,1.5vw,1.18rem); line-height:1.65; }
     .lab-failure-laboratory-entry__boundary { margin:20px 0 0; color:var(--text-dim); font:500 .72rem/1.6 "IBM Plex Mono",monospace; letter-spacing:.08em; text-transform:uppercase; }
     .lab-failure-laboratory-entry__boundary strong { color:var(--accent); }
     .lab-failure-laboratory-entry__stages { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; align-content:start; margin:0; padding:0; list-style:none; }
-    .lab-failure-laboratory-entry__stages li { min-height:60px; padding:12px; border:1px solid var(--border); background:rgba(255,255,255,.018); }
+    .lab-failure-laboratory-entry__stages li { min-width:0; min-height:60px; padding:12px; border:1px solid var(--border); background:rgba(255,255,255,.018); overflow-wrap:anywhere; }
     .lab-failure-laboratory-entry__stages span { display:block; color:var(--accent); font:500 .68rem/1.4 "IBM Plex Mono",monospace; letter-spacing:.08em; }
     .lab-failure-laboratory-entry__stages strong { display:block; margin-top:6px; color:var(--text); font-size:.9rem; font-weight:500; }
     .lab-failure-laboratory-entry__note { grid-column:1 / -1; margin:0; color:var(--text-dim); font-size:.82rem; line-height:1.6; }

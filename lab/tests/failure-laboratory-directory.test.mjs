@@ -44,6 +44,12 @@ test("Failure Laboratory is the primary guided directory entry", () => {
   assert.doesNotMatch(landing, /simulated failure == observed failure/i);
 });
 
+test("Failure Laboratory directory copy wraps at high text zoom", () => {
+  assert.match(landing, /\.lab-failure-laboratory-entry > div, \.lab-failure-laboratory-entry__stages \{ min-width:0; \}/);
+  assert.match(landing, /\.lab-failure-laboratory-entry h2 \{[^}]*overflow-wrap:anywhere;/);
+  assert.match(landing, /\.lab-failure-laboratory-entry__stages li \{ min-width:0;[^}]*overflow-wrap:anywhere;/);
+});
+
 test("the directory records the six canonical journey stages in order", () => {
   const stageNames = [...landing.matchAll(/<li><span>\d{2}<\/span><strong>([^<]+)<\/strong><\/li>/g)]
     .map((match) => match[1]);
