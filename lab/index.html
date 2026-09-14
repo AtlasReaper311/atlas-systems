@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Lab // Atlas Systems. Interactive products, operational views, verification tools, and experiments.">
+  <meta name="description" content="The Atlas Systems Lab directory: enter the bounded Failure Laboratory journey, browse specialist instruments, and explore flagship and experimental surfaces.">
   <meta name="theme-color" content="#0a0a0f">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
@@ -14,7 +14,7 @@
   <link rel="canonical" href="https://atlas-systems.uk/lab/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Lab // Atlas Systems">
-  <meta property="og:description" content="Interactive products, operational views, verification tools, and experiments across Atlas Systems.">
+  <meta property="og:description" content="Enter the bounded Failure Laboratory journey, browse specialist instruments, and explore flagship and experimental surfaces across Atlas Systems.">
   <meta property="og:url" content="https://atlas-systems.uk/lab/">
   <meta property="og:site_name" content="Atlas Systems">
   <meta property="og:image" content="https://atlas-systems.uk/og/lab.png">
@@ -23,7 +23,7 @@
   <meta property="og:image:alt" content="Experience, observe, verify, explore. // Atlas Systems">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Lab // Atlas Systems">
-  <meta name="twitter:description" content="Interactive products, operational views, verification tools, and experiments.">
+  <meta name="twitter:description" content="Enter the bounded Failure Laboratory journey, browse specialist instruments, and explore flagship and experimental surfaces.">
   <meta name="twitter:image" content="https://atlas-systems.uk/og/lab.png">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/lab/lab-card.css?v=20260707-lab-cache">
@@ -49,6 +49,26 @@
     .lab-ramone-section .ramone-boot { max-height:9.75rem; overflow:hidden; }
     .lab-ramone-section .ramone-hero-heading { font-size:clamp(2rem,3.6vw,3.05rem); }
     .lab-ramone-section .ramone-hero-suggestions { max-height:8rem; overflow:hidden; }
+    .lab-failure-laboratory-entry { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr); gap:24px; padding:clamp(24px,4vw,48px); border:1px solid color-mix(in srgb,var(--accent) 58%,var(--border)); border-left:4px solid var(--accent); background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 9%,transparent),transparent 56%),var(--bg-1,#111118); }
+    .lab-failure-laboratory-entry > div, .lab-failure-laboratory-entry__stages { min-width:0; }
+    .lab-failure-laboratory-entry .eyebrow { color:var(--accent); }
+    .lab-failure-laboratory-entry h2 { margin:0 0 12px; font-family:"DM Serif Display",Georgia,serif; font-size:clamp(2.2rem,5vw,4.4rem); font-weight:400; line-height:.98; letter-spacing:-.03em; overflow-wrap:anywhere; }
+    .lab-failure-laboratory-entry__lede { max-width:46rem; color:var(--text); font-size:clamp(1rem,1.5vw,1.18rem); line-height:1.65; }
+    .lab-failure-laboratory-entry__boundary { margin:20px 0 0; color:var(--text-dim); font:500 .72rem/1.6 "IBM Plex Mono",monospace; letter-spacing:.08em; text-transform:uppercase; }
+    .lab-failure-laboratory-entry__boundary strong { color:var(--accent); }
+    .lab-failure-laboratory-entry__stages { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; align-content:start; margin:0; padding:0; list-style:none; }
+    .lab-failure-laboratory-entry__stages li { min-width:0; min-height:60px; padding:12px; border:1px solid var(--border); background:rgba(255,255,255,.018); overflow-wrap:anywhere; }
+    .lab-failure-laboratory-entry__stages span { display:block; color:var(--accent); font:500 .68rem/1.4 "IBM Plex Mono",monospace; letter-spacing:.08em; }
+    .lab-failure-laboratory-entry__stages strong { display:block; margin-top:6px; color:var(--text); font-size:.9rem; font-weight:500; }
+    .lab-failure-laboratory-entry__note { grid-column:1 / -1; margin:0; color:var(--text-dim); font-size:.82rem; line-height:1.6; }
+    .lab-participating-section, .lab-special-surfaces { border-top:1px solid var(--border); }
+    .lab-participating-section .section-head > p, .lab-special-surfaces .section-head > p { max-width:620px; }
+    .lab-participating-section .directory-card { min-height:0; }
+    .lab-special-surface-card { max-width:560px; }
+    @media(max-width:760px) {
+      .lab-failure-laboratory-entry { grid-template-columns:1fr; padding:24px; }
+      .lab-failure-laboratory-entry__stages { grid-template-columns:1fr 1fr; }
+    }
     @media(max-width:1050px) {
       .lab-landing-hero { padding-top:36px; }
       .lab-ramone-section .ramone-card { width:min(100%,760px); }
@@ -106,6 +126,7 @@
       <div class="lab-context-group" data-lab-context-group="verify" role="group" aria-labelledby="lab-context-group-2">
         <span class="lab-context-group-label" id="lab-context-group-2">Verify</span>
         <div class="lab-context-group-links">
+          <a href="/lab/failure-laboratory/">Failure Laboratory</a>
           <a href="/lab/proof-chain/">Proof Chain</a>
           <a href="/lab/conformance/">Estate Conformance</a>
           <a href="/lab/xray/">X-Ray</a>
@@ -130,9 +151,10 @@
       <header class="page-intro atlas-field-surface atlas-field-surface--ambient atlas-composition-host atlas-composition--signal-bloom">
         <p class="eyebrow">&mdash; Lab / directory</p>
         <h1>Experience, observe,<br>verify, explore.</h1>
-        <p class="lede">The Lab is the technical workspace of Atlas Systems. Ramone remains the flagship; every other destination carries a visual signature tied to its actual operation.</p>
+        <p class="lede">The Lab is the technical workspace of Atlas Systems. Ramone remains the flagship. Failure Laboratory is the primary guided systems-failure journey; every other destination keeps its own identity and evidence boundary.</p>
         <div class="page-actions">
           <a class="action primary" href="https://ramone.atlas-systems.uk/">Ask Ramone</a>
+          <a class="action" href="/lab/failure-laboratory/">Enter Failure Laboratory</a>
           <a class="action" href="#audio-flagships-title">Explore flagships</a>
         </div>
       </header>
@@ -160,6 +182,27 @@
           </div>
           <div class="ramone-hero-footer"><span>built &amp; maintained by atlas reaper</span><a class="ramone-hero-link" href="https://ramone.atlas-systems.uk/">open full interface →</a></div>
         </div>
+      </div>
+    </section>
+
+    <section class="content-section lab-failure-laboratory-section" aria-labelledby="failure-laboratory-entry-title">
+      <div class="lab-failure-laboratory-entry">
+        <div>
+          <p class="eyebrow">Primary systems-failure journey</p>
+          <h2 id="failure-laboratory-entry-title">Failure Laboratory.</h2>
+          <p class="lab-failure-laboratory-entry__lede">A guided path through six questions: what a request does, how a dependency problem moves, how coordination behaves, which public components could be affected, what evidence was recorded, and what can be said about recovery.</p>
+          <p class="lab-failure-laboratory-entry__boundary"><strong>Scenario context</strong> / not a live incident</p>
+          <p class="lab-failure-laboratory-entry__note">Seven scenario labels provide context only. The journey is a map of independent instruments, not a shared incident trace. Each specialist destination keeps its own controls, state, and evidence mode.</p>
+          <p class="page-actions"><a class="action primary" href="/lab/failure-laboratory/">Open the guided journey</a></p>
+        </div>
+        <ol class="lab-failure-laboratory-entry__stages">
+          <li><span>01</span><strong>Request</strong></li>
+          <li><span>02</span><strong>Dependencies</strong></li>
+          <li><span>03</span><strong>Coordination</strong></li>
+          <li><span>04</span><strong>Impact</strong></li>
+          <li><span>05</span><strong>Incident evidence</strong></li>
+          <li><span>06</span><strong>Recovery</strong></li>
+        </ol>
       </div>
     </section>
 
@@ -259,34 +302,64 @@
       </div>
     </section>
 
-    <section class="content-section" aria-labelledby="directory-title">
+    <section class="content-section lab-participating-section" aria-labelledby="participating-title">
       <div class="section-head">
-        <div><p class="eyebrow">Lab directory</p><h2 id="directory-title">Grouped by purpose.</h2></div>
-        <p>Maturity says what kind of commitment a surface has. The visual motif says what kind of system it is. Neither replaces operational truth.</p>
+        <div><p class="eyebrow">Failure Laboratory / connected surfaces</p><h2 id="participating-title">Participating specialist instruments.</h2></div>
+        <p>These are the individual rooms used by or connected to the journey. The links preserve each route's own controls and evidence boundary. Route-only specialist destinations remain outside the production sitemap when their current contract says noindex.</p>
+      </div>
+      <div class="card-grid directory-grid">
+        <a class="system-card directory-card" data-failure-laboratory-participant data-family="verify" data-visual="api" data-motif="XRAY" href="/lab/xray/">
+          <div class="card-top"><span class="type-label">Request / direct</span><span class="badge tool">Tool</span></div>
+          <h3>Request X-Ray</h3><p>Inspect retries, timeouts, caching, rate limits, and service errors in a simulated seven-layer request path.</p>
+          <span class="data-mode">Simulated</span><span class="card-route">Open X-Ray →</span>
+        </a>
+        <a class="system-card directory-card" data-failure-laboratory-participant data-family="verify" data-visual="conformance" data-motif="CASCADE" href="/lab/cascade/">
+          <div class="card-top"><span class="type-label">Dependencies / direct</span><span class="badge tool">Tool</span></div>
+          <h3>CASCADE</h3><p>Change one synthetic dependency fault and inspect containment, propagation, and graceful degradation.</p>
+          <span class="data-mode">Simulated</span><span class="card-route">Open CASCADE →</span>
+        </a>
+        <a class="system-card directory-card" data-failure-laboratory-participant data-family="verify" data-visual="signal" data-motif="QUORUM" href="/lab/consensus/">
+          <div class="card-top"><span class="type-label">Coordination / direct</span><span class="badge tool">Tool</span></div>
+          <h3>Consensus</h3><p>Watch a fixed-leader cluster propose, acknowledge, commit, and converge under synthetic delay or isolation.</p>
+          <span class="data-mode">Simulated</span><span class="card-route">Open Consensus →</span>
+        </a>
+        <a class="system-card directory-card" data-failure-laboratory-participant data-family="verify" data-visual="signal" data-motif="RELAY" href="/lab/neon-relay/">
+          <div class="card-top"><span class="type-label">Coordination / direct</span><span class="badge tool">Tool</span></div>
+          <h3>Neon Relay</h3><p>Configure bounded relay puzzles, test the circuit, and read the synthetic route that follows.</p>
+          <span class="data-mode">Simulated</span><span class="card-route">Open Neon Relay →</span>
+        </a>
+        <a class="system-card directory-card" data-failure-laboratory-participant data-family="verify" data-visual="proof" data-motif="EVID" href="/systems/evidence/">
+          <div class="card-top"><span class="type-label">Impact + incident evidence / contextual</span><span class="badge tool">Tool</span></div>
+          <h3>Evidence Console</h3><p>Read public claim provenance and Twin context while preserving the phrase “could be affected”.</p>
+          <span class="data-mode">Measured / stale-measured / recorded-replay / unknown / unavailable</span><span class="card-route">Open Evidence →</span>
+        </a>
+      </div>
+      <p class="lab-participating-section__context">Blackbox is the journey's incident-evidence participant. It remains in the Observe group below to preserve its established recorder placement. <a href="/lab/blackbox/">Open Blackbox</a>.</p>
+    </section>
+
+    <section class="content-section lab-special-surfaces" aria-labelledby="special-surfaces-title">
+      <div class="section-head">
+        <div><p class="eyebrow">Mini-flagship / special product surface</p><h2 id="special-surfaces-title">Atlas Motion stays separate.</h2></div>
+        <p>Atlas Motion is an adjacent product surface with its own approved hierarchy and released compositions. It is not a Failure Laboratory stage or participating instrument.</p>
+      </div>
+      <div class="card-grid directory-grid">
+        <a class="system-card directory-card lab-special-surface-card" data-family="experience" data-visual="signal" data-motif="BOOT" href="/lab/atlas-motion/">
+          <div class="card-top"><span class="type-label">Released motion / mini-flagship</span><span class="badge preview">Preview</span></div>
+          <h3>Atlas Motion</h3><p>Inspect the released EstateBoot composition and the exact evidence bound to its historical topology snapshot.</p>
+          <span class="data-mode">Recorded replay</span><span class="card-route">Open release replay →</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="content-section" data-directory-group="other-labs" aria-labelledby="directory-title">
+      <div class="section-head">
+        <div><p class="eyebrow">Other Labs and systems tools</p><h2 id="directory-title">Grouped by purpose.</h2></div>
+        <p>These remaining destinations stay independent of the Failure Laboratory journey. Maturity says what kind of commitment a surface has. The visual motif says what kind of system it is. Neither replaces operational truth.</p>
       </div>
       <div class="group-stack">
         <div class="group-block" data-family="experience">
           <div class="group-label">Experience</div>
           <div class="card-grid directory-grid">
-            <a class="system-card directory-card" data-family="experience" data-visual="ramone" data-motif="RAG" href="https://ramone.atlas-systems.uk/">
-              <div class="card-top"><span class="type-label">Grounded local AI</span><span class="badge production">Production</span></div>
-              <h3>Ramone</h3><p>The full public conversational interface.</p><span class="card-route">Open product →</span>
-            </a>
-            <a class="system-card directory-card" data-family="experience" data-visual="symphony" data-motif="WAVE" href="/lab/system-symphony/">
-              <div class="card-top"><span class="type-label">Telemetry music</span><span class="badge preview">Preview</span></div>
-              <h3>System Symphony</h3><p>Live estate telemetry and explicit simulation translated into a bounded musical state.</p>
-              <span class="data-mode">Live and simulated</span><span class="card-route">Open instrument →</span>
-            </a>
-            <a class="system-card directory-card" data-family="experience" data-visual="signal" data-motif="BOOT" href="/lab/atlas-motion/">
-              <div class="card-top"><span class="type-label">Deterministic motion</span><span class="badge preview">Preview</span></div>
-              <h3>Atlas Motion</h3><p>Inspect the released EstateBoot composition and the exact evidence bound to its historical topology snapshot.</p>
-              <span class="data-mode">Recorded replay</span><span class="card-route">Open release replay →</span>
-            </a>
-            <a class="system-card directory-card" data-family="experience" data-visual="signal" data-motif="MAP" href="/lab/spectral-forge/">
-              <div class="card-top"><span class="type-label">Telemetry sonification</span><span class="badge preview">Preview</span></div>
-              <h3>Spectral Forge</h3><p>Map deterministic synthetic telemetry into sound, then change the translation and inspect the consequence.</p>
-              <span class="data-mode">Simulated</span><span class="card-route">Open instrument →</span>
-            </a>
             <a class="system-card directory-card" data-family="experience" data-visual="signal" data-motif="DSP" href="/lab/signal/">
               <div class="card-top"><span class="type-label">Audio DSP</span><span class="badge experiment">Experiment</span></div>
               <h3>Signal Garden</h3><p>Interactive granular synthesis and long-form generative sound.</p>
@@ -301,6 +374,11 @@
             <a class="system-card directory-card" data-family="observe" data-visual="map" data-motif="TOPO" href="/lab/system-map/">
               <div class="card-top"><span class="type-label">Architecture</span><span class="badge tool">Tool</span></div>
               <h3>System Map</h3><p>Public topology and observed registry state.</p><span class="card-route">Open map →</span>
+            </a>
+            <a class="system-card directory-card" data-family="observe" data-visual="console" data-motif="REC" href="/lab/blackbox/">
+              <div class="card-top"><span class="type-label">Incident evidence</span><span class="badge tool">Tool</span></div>
+              <h3>Blackbox</h3><p>Replay the ten-minute evidence window before each sealed failure and open reviewed postmortems.</p>
+              <span class="data-mode">Recorded replay</span><span class="card-route">Open recorder →</span>
             </a>
             <a class="system-card directory-card" data-family="observe" data-visual="console" data-motif="OBS" href="/systems/observability/">
               <div class="card-top"><span class="type-label">Current observations</span><span class="badge tool">Tool</span></div>
@@ -331,15 +409,6 @@
             <a class="system-card directory-card" data-family="verify" data-visual="reliability" data-motif="RECOVER" href="/systems/reliability/">
               <div class="card-top"><span class="type-label">Reliability evaluation</span><span class="badge tool">Tool</span></div>
               <h3>Reliability</h3><p>Objectives, coverage, error budgets, burn states, DORA metrics, and bounded chaos evidence.</p><span class="card-route">Open reliability →</span>
-            </a>
-            <a class="system-card directory-card" data-family="verify" data-visual="proof" data-motif="EVID" href="/systems/evidence/">
-              <div class="card-top"><span class="type-label">Claim provenance</span><span class="badge tool">Tool</span></div>
-              <h3>Evidence</h3><p>Activity, deployments, pipeline records, timestamps, and report fingerprints supporting public claims.</p><span class="card-route">Open evidence →</span>
-            </a>
-            <a class="system-card directory-card" data-family="verify" data-visual="api" data-motif="XRAY" href="/lab/xray/">
-              <div class="card-top"><span class="type-label">Request path simulator</span><span class="badge tool">Tool</span></div>
-              <h3>Request X-Ray</h3><p>Break a simulated request path, then inspect retries, timeouts, caching, rate limits, and service errors.</p>
-              <span class="data-mode">Simulated</span><span class="card-route">Open X-Ray →</span>
             </a>
             <a class="system-card directory-card" data-family="verify" data-visual="api" data-motif="OPENAPI" href="https://api.atlas-systems.uk/v1/docs">
               <div class="card-top"><span class="type-label">OpenAPI</span><span class="badge tool">Tool</span></div>

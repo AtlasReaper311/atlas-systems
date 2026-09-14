@@ -35,11 +35,11 @@ test("Lab presents System Symphony and Spectral Forge as complementary audio fla
   assert.match(html, /Spectral Forge exposes the translation itself as a deterministic simulated instrument/);
 });
 
-test("Spectral Forge is discoverable from the Experience directory with an honest data mode", async () => {
+test("Spectral Forge is discoverable as an audio flagship with an honest data mode", async () => {
   const html = await source(labHtmlUrl);
-  assert.match(html, /data-motif="MAP" href="\/lab\/spectral-forge\/"/);
+  assert.match(html, /class="lab-flagship-card lab-flagship-card--forge" href="\/lab\/spectral-forge\/"/);
   assert.match(html, /<h3>Spectral Forge<\/h3>/);
-  assert.match(html, /<span class="data-mode">Simulated<\/span>/);
+  assert.match(html, /<div class="lab-flagship-card__footer"><span>Simulated<\/span>/);
   assert.match(html, /Three deeper ways into the estate/);
 });
 
