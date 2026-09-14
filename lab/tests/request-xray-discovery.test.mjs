@@ -5,11 +5,12 @@ import test from "node:test";
 const landing = fs.readFileSync("lab/index.html", "utf8");
 
 test("Request X-Ray is discoverable from the Lab Verify directory", () => {
-  assert.match(landing, /data-family="verify"[^>]*data-motif="XRAY"[^>]*href="\/lab\/xray\/"/);
+  assert.match(landing, /data-failure-laboratory-participant[^>]*data-family="verify"[^>]*data-motif="XRAY"[^>]*href="\/lab\/xray\/"/);
   assert.match(landing, /<h3>Request X-Ray<\/h3>/);
-  assert.match(landing, /Break a simulated request path/);
+  assert.match(landing, /simulated seven-layer request path/);
   assert.match(landing, /<span class="data-mode">Simulated<\/span><span class="card-route">Open X-Ray/);
   assert.doesNotMatch(landing, /href="\/lab\/xray\/"[^>]*target="_blank"/);
+  assert.doesNotMatch(landing, /data-directory-group="other-labs"[\s\S]*href="\/lab\/xray\/"/);
 });
 
 test("Request X-Ray is registered in the shared Lab Verify navigation", () => {
@@ -20,6 +21,9 @@ test("Request X-Ray is registered in the shared Lab Verify navigation", () => {
 
 test("Request X-Ray route uses the governed Lab shell instead of standalone chrome", () => {
   const page = fs.readFileSync("lab/xray/index.html", "utf8");
+  assert.match(page, /<title>Request X-Ray \/\/ Atlas Systems<\/title>/);
+  assert.match(page, /property="og:title" content="Request X-Ray \/\/ Atlas Systems"/);
+  assert.match(page, /name="twitter:title" content="Request X-Ray \/\/ Atlas Systems"/);
   assert.match(page, /<script type="module" src="\/lab\/shared\/shell\.js\?v=20260813-xray-route"><\/script>/);
   assert.match(page, /<script type="module" src="\/lab\/xray\/src\/app\.js\?v=20260813-lab-shell-parity"><\/script>/);
   // The chrome is the estate's, shipped in the document so first paint is

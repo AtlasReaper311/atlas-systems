@@ -3,7 +3,7 @@ import fs from "node:fs";
 import test from "node:test";
 import { CARD_SIGNATURES } from "../../static/js/card-signatures.js";
 
-const EXPECTED_LAB_CARD_COUNT = 23;
+const EXPECTED_LAB_CARD_COUNT = 24;
 const EXPECTED_SYSTEM_CARD_COUNT = 17;
 
 function cardRecords(markup) {
