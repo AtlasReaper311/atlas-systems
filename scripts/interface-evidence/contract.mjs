@@ -247,6 +247,13 @@ export function classifyChangedFiles({ changedFiles, routes }) {
       changedRoutes.add(prefix);
       continue;
     }
+    if (filePath.startsWith("lab/") && prefix) {
+      // Reachable Lab surfaces can exist outside the current evidence inventory
+      // (for example /lab/xray/). Bind those files to the Lab directory instead
+      // of treating them as a global visual change across the public estate.
+      changedRoutes.add("/lab/");
+      continue;
+    }
 
     globalVisualChange = true;
   }

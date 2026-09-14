@@ -104,6 +104,21 @@ test("changed-file classification binds route work and shared assets to evidence
   assert.equal(harness.visual_change, false);
   assert.equal(harness.evidence_contract_change, true);
   assert.equal(harness.evidence_required, true);
+
+  const xray = classifyChangedFiles({
+    changedFiles: ["lab/xray/index.html", "lab/xray/xray.css", "lab/xray/src/app.js"],
+    routes,
+  });
+  assert.equal(xray.visual_change, true);
+  assert.deepEqual(xray.changed_routes, ["/lab/"]);
+  assert.equal(xray.changed_routes.includes("/"), false);
+  assert.equal(xray.changed_routes.includes("/writing/"), false);
+
+  const directoryAndXray = classifyChangedFiles({
+    changedFiles: ["lab/index.html", "lab/xray/index.html", "js/tests/editorial-surfaces-v2.test.mjs"],
+    routes,
+  });
+  assert.deepEqual(new Set(directoryAndXray.changed_routes), new Set(["/lab/"]));
 });
 
 test("the reporting baseline is pinned to the reviewed Phase 15 evidence", () => {
