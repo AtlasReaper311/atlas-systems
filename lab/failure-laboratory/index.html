@@ -22,7 +22,7 @@
   <meta name="twitter:description" content="An editorial technical investigation across existing Atlas instruments.">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/lab/shared/systems.css">
-  <link rel="stylesheet" href="/lab/failure-laboratory/failure-laboratory.css?v=20260915-failure-trace-r2">
+  <link rel="stylesheet" href="/lab/failure-laboratory/failure-laboratory.css?v=20260915-failure-trace-r3">
   <link rel="stylesheet" href="/lab/shared/lab-context-navigation.css?v=20260806-lab-consistency-v2">
   <link rel="stylesheet" href="/lab/shared/lab-shell-layout.css?v=20260806-lab-consistency-v2">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
@@ -118,14 +118,14 @@
         </div>
         <div class="failure-trace-hero-context">
           <span class="failure-trace-truth">GUIDED MODEL / NOT LIVE</span>
-          <p>Choose a scenario, move through the real investigation order, and open the specialist instrument that can answer each question.</p>
+          <p>Choose a context, follow the investigation questions in order, and open the specialist instrument that can answer each one.</p>
         </div>
       </div>
     </header>
 
     <section class="failure-trace-scenario" aria-labelledby="scenario-heading">
       <div class="failure-trace-scenario-copy">
-        <p class="failure-trace-label">SCENARIO</p>
+        <p class="failure-trace-label">INVESTIGATION CONTEXT</p>
         <h2 id="scenario-heading"><span id="selected-scenario-label">Latency creep</span></h2>
         <p id="selected-scenario-question">How does the selected bounded model or named record change under delay?</p>
         <p class="failure-trace-scenario-boundary">Changes the investigation context only. Destination tools keep their own state and evidence.</p>
@@ -140,7 +140,7 @@
       </div>
 
       <fieldset class="failure-trace-scenario-options">
-        <legend class="failure-trace-visually-hidden">Choose a failure scenario</legend>
+        <legend class="failure-trace-visually-hidden">Choose an investigation context</legend>
         <label><input type="radio" name="scenario" value="normal-operation" data-scenario-id="normal-operation"><span>Normal operation</span></label>
         <label><input type="radio" name="scenario" value="latency-creep" data-scenario-id="latency-creep" checked><span>Latency creep</span></label>
         <label><input type="radio" name="scenario" value="cache-collapse" data-scenario-id="cache-collapse"><span>Cache collapse</span></label>
@@ -157,11 +157,18 @@
           <p class="failure-trace-label">INVESTIGATION PATH</p>
           <h2 id="workspace-heading">Follow the path. Jump when you need to.</h2>
         </div>
-        <p>The numbered rail shows the proper investigation order. Every stage remains directly addressable.</p>
+        <p>The rail shows the proper investigation order, what Failure Trace can map for this context, and where a question must stay open.</p>
       </div>
 
       <nav class="failure-trace-stage-nav" aria-label="Investigation stages">
-        <div class="failure-trace-stage-context"><span>Scenario</span><strong id="sticky-scenario-label">Latency creep</strong><span>Mapping only</span></div>
+        <div class="failure-trace-stage-context"><span>Context</span><strong id="sticky-scenario-label">Latency creep</strong><span>Guide, not live</span></div>
+        <div class="failure-trace-rail-key" aria-label="Investigation rail colour key">
+          <strong class="failure-trace-rail-key-title">RAIL KEY</strong>
+          <span class="failure-trace-rail-key-item"><i class="failure-trace-rail-key-mark" data-rail-state="active" aria-hidden="true"></i>Current stage</span>
+          <span class="failure-trace-rail-key-item"><i class="failure-trace-rail-key-mark" data-rail-state="supported" aria-hidden="true"></i>Mapped guidance</span>
+          <span class="failure-trace-rail-key-item"><i class="failure-trace-rail-key-mark" data-rail-state="unmapped" aria-hidden="true"></i>Open / no generic mapping</span>
+          <span class="failure-trace-rail-key-item"><i class="failure-trace-rail-key-mark" data-rail-state="gap" aria-hidden="true"></i>Composite assessment</span>
+        </div>
         <ol>
           <li data-stage-nav-item data-stage-support="supported"><a data-stage-nav-link href="#stage-request" aria-current="step"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 16h18m-5-6 6 6-6 6"></path><circle cx="7" cy="16" r="2"></circle></svg><span>01</span><strong>Request</strong></a></li>
           <li data-stage-nav-item data-stage-support="supported"><a data-stage-nav-link href="#stage-dependencies"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="8" cy="16" r="3"></circle><circle cx="24" cy="9" r="3"></circle><circle cx="24" cy="23" r="3"></circle><path d="M11 15l10-5m-10 7 10 5"></path></svg><span>02</span><strong>Dependencies</strong></a></li>
@@ -176,7 +183,7 @@
         <section class="failure-trace-stage" id="stage-request" data-stage-id="request" data-active-stage aria-labelledby="stage-request-heading">
           <header class="failure-trace-stage-header"><div><p class="failure-trace-stage-index">01 / REQUEST</p><h3 id="stage-request-heading" tabindex="-1">What happened to this request?</h3></div><span class="failure-trace-stage-state">START HERE</span></header>
           <div class="failure-trace-stage-content" data-stage-content="request"><article class="failure-trace-reading" data-instrument-id="request-xray" data-support-type="contextual"><div class="failure-trace-reading-heading"><div><p class="failure-trace-reading-type">CONTEXTUAL / REQUEST</p><h4>Request X-Ray</h4></div><span class="failure-trace-evidence" data-evidence-mode="simulated">Simulated</span></div><p class="failure-trace-demonstrates">How bounded request timing changes affect the synthetic trace.</p><div class="failure-trace-proof"><strong>Proof boundary</strong><p>Request X-Ray offers timing controls inside its synthetic request model.</p></div><details class="failure-trace-reading-details"><summary>Evidence detail</summary><p>No live request timing is measured by the shared model.</p></details><a class="failure-trace-reading-link" href="/lab/xray/">Open Request X-Ray <span aria-hidden="true">↗</span></a></article></div>
-          <nav class="failure-trace-stage-actions" aria-label="Request stage navigation"><a class="failure-trace-stage-action failure-trace-stage-action--previous" data-stage-previous href="#scenario-heading"><span aria-hidden="true">←</span> Scenario</a><a class="failure-trace-stage-action failure-trace-stage-action--next" data-stage-next href="#stage-dependencies">Dependencies <span aria-hidden="true">→</span></a></nav>
+          <nav class="failure-trace-stage-actions" aria-label="Request stage navigation"><a class="failure-trace-stage-action failure-trace-stage-action--previous" data-stage-previous href="#scenario-heading"><span aria-hidden="true">←</span> Context</a><a class="failure-trace-stage-action failure-trace-stage-action--next" data-stage-next href="#stage-dependencies">Dependencies <span aria-hidden="true">→</span></a></nav>
         </section>
 
         <section class="failure-trace-stage" id="stage-dependencies" data-stage-id="dependencies" aria-labelledby="stage-dependencies-heading">
@@ -193,7 +200,7 @@
 
         <section class="failure-trace-stage" id="stage-impact" data-stage-id="impact" aria-labelledby="stage-impact-heading">
           <header class="failure-trace-stage-header"><div><p class="failure-trace-stage-index">04 / IMPACT</p><h3 id="stage-impact-heading" tabindex="-1">Which public components or contracts could be affected?</h3></div></header>
-          <div class="failure-trace-stage-content" data-stage-content="impact"><div class="failure-trace-unmapped"><span class="failure-trace-evidence" data-evidence-mode="not-applicable-unscored">Not applicable / unscored</span><h4>No supported impact relationship is mapped for Latency creep.</h4><p>The model leaves the stage open rather than substituting a loosely related instrument.</p></div></div>
+          <div class="failure-trace-stage-content" data-stage-content="impact"><div class="failure-trace-unmapped"><span class="failure-trace-open-status">OPEN / NO GENERIC MAPPING</span><h4>The investigation question still matters.</h4><div class="failure-trace-open-grid"><section><p class="failure-trace-open-label">CURRENT MAPPING</p><p>Failure Trace has no scenario-safe impact instrument mapping for Latency creep. The stage stays visible instead of inventing an answer.</p></section><section><p class="failure-trace-open-label">HOW IT WOULD WORK</p><p>Use bounded Atlas Twin relationship context to identify components that could be affected, then require named evidence before any stronger impact claim.</p></section></div></div></div>
           <nav class="failure-trace-stage-actions" aria-label="Impact stage navigation"><a class="failure-trace-stage-action" data-stage-previous href="#stage-coordination"><span aria-hidden="true">←</span> Coordination</a><a class="failure-trace-stage-action failure-trace-stage-action--next" data-stage-next href="#stage-incident-evidence">Evidence <span aria-hidden="true">→</span></a></nav>
         </section>
 
@@ -204,15 +211,15 @@
         </section>
 
         <section class="failure-trace-stage" id="stage-recovery" data-stage-id="recovery" aria-labelledby="stage-recovery-heading">
-          <header class="failure-trace-stage-header"><div><p class="failure-trace-stage-index">06 / RECOVERY</p><h3 id="stage-recovery-heading" tabindex="-1">What can be truthfully said about recovery?</h3></div><span class="failure-trace-stage-state failure-trace-stage-state--open">GAP KEPT OPEN</span></header>
-          <div class="failure-trace-stage-content" data-stage-content="recovery"><div class="failure-trace-recovery-gap"><span class="failure-trace-gap-mark" aria-hidden="true"></span><div><p class="failure-trace-reading-type">EVIDENCE GAP / INTENTIONAL</p><h4>There is no single current Phase 3 Recovery Evidence instrument.</h4><p>Recovery-like output or aftermath does not prove universal current service recovery or root-cause resolution.</p></div></div></div>
+          <header class="failure-trace-stage-header"><div><p class="failure-trace-stage-index">06 / RECOVERY</p><h3 id="stage-recovery-heading" tabindex="-1">What can be truthfully said about recovery?</h3></div><span class="failure-trace-stage-state failure-trace-stage-state--open">COMPOSITE ASSESSMENT</span></header>
+          <div class="failure-trace-stage-content" data-stage-content="recovery"><div class="failure-trace-recovery-assessment"><div class="failure-trace-recovery-assessment-heading"><span class="failure-trace-gap-mark" aria-hidden="true"></span><div><p class="failure-trace-reading-type">COMPOSITE ASSESSMENT / NOT AN OBSERVATION</p><h4>Recovery has no single source of truth.</h4><p>Different instruments can show reset, convergence, recorded aftermath, or a named lifecycle fact. Failure Trace keeps those signals separate until they support the same bounded conclusion.</p></div></div><div class="failure-trace-recovery-conclusion"><strong>BOUNDARY</strong><p>Recovery-like output, aftermath, or a named lifecycle fact does not prove universal current service recovery or root-cause resolution.</p></div></div></div>
           <nav class="failure-trace-stage-actions" aria-label="Recovery stage navigation"><a class="failure-trace-stage-action" data-stage-previous href="#stage-incident-evidence"><span aria-hidden="true">←</span> Evidence</a><span class="failure-trace-stage-end">End of the canonical path. Unknowns remain open.</span></nav>
         </section>
       </div>
     </section>
 
     <section class="failure-trace-optional" aria-labelledby="optional-heading">
-      <div><p class="failure-trace-label">OPTIONAL INTERPRETATION</p><h2 id="optional-heading">Off the main rail.</h2><p>These layers can interpret a supported scenario without becoming investigation stages or incident authority.</p></div>
+      <div><p class="failure-trace-label">OPTIONAL INTERPRETATION</p><h2 id="optional-heading">Off the main rail.</h2><p>These layers can interpret a supported context without becoming investigation stages or incident authority.</p></div>
       <div class="failure-trace-optional-links"><a href="/lab/spectral-forge/"><span><strong>Spectral Forge</strong><small id="spectral-forge-summary">Synthetic telemetry interpretation</small></span><span aria-hidden="true">↗</span></a><a href="/lab/system-symphony/"><span><strong>System Symphony</strong><small id="system-symphony-summary">Source-aware telemetry sonification</small></span><span aria-hidden="true">↗</span></a></div>
     </section>
 
@@ -221,15 +228,15 @@
       <details><summary><span>Model-approved reading paths</span><span aria-hidden="true">+</span></summary><div class="failure-trace-reference-body failure-trace-reference-paths" id="narrative-content"><article><h3>From dependency failure to recovery</h3><ol><li>Request / Normal operation / Request X-Ray</li><li>Dependencies / Dependency failure / CASCADE</li><li>Dependencies / Cascading failure / CASCADE</li><li>Incident evidence / Cascading failure / Blackbox</li><li>Recovery / Recovery / CASCADE</li></ol><p>Coordination and Impact remain omitted rather than inferred.</p></article><article><h3>From bounded isolation to recovery</h3><ol><li>Request / Normal operation / Request X-Ray</li><li>Coordination / Network partition / Consensus</li><li>Coordination / Network partition / Neon Relay</li><li>Recovery / Recovery / Consensus</li></ol><p>Dependencies, Impact, and Incident evidence remain omitted where the model has no bounded relationship.</p></article></div></details>
       <details><summary><span>Evidence modes</span><span aria-hidden="true">+</span></summary><dl class="failure-trace-reference-body failure-trace-mode-list"><div><dt><span class="failure-trace-evidence" data-evidence-mode="measured">Measured</span></dt><dd>Current source-owned measurement with source and observation time owned by the destination.</dd></div><div><dt><span class="failure-trace-evidence" data-evidence-mode="stale-measured">Stale measured</span></dt><dd>A previous measurement whose freshness threshold has elapsed.</dd></div><div><dt><span class="failure-trace-evidence" data-evidence-mode="recorded-replay">Recorded replay</span></dt><dd>A named historical record. It is not current live state.</dd></div><div><dt><span class="failure-trace-evidence" data-evidence-mode="simulated">Simulated</span></dt><dd>Bounded synthetic behaviour created by an instrument.</dd></div><div><dt><span class="failure-trace-evidence" data-evidence-mode="unavailable">Unavailable</span></dt><dd>Expected evidence cannot currently be retrieved or served.</dd></div><div><dt><span class="failure-trace-evidence" data-evidence-mode="unknown">Unknown</span></dt><dd>The available record does not establish the meaning or state.</dd></div><div><dt><span class="failure-trace-evidence" data-evidence-mode="not-applicable-unscored">Not applicable / unscored</span></dt><dd>The relationship is intentionally unsupported. No score is inferred.</dd></div></dl></details>
       <details><summary><span>Participating instruments</span><span aria-hidden="true">+</span></summary><ul class="failure-trace-reference-body failure-trace-destinations"><li><a href="/lab/xray/"><strong>Request X-Ray</strong><span>Request-path simulation</span></a></li><li><a href="/lab/cascade/"><strong>CASCADE</strong><span>Propagation and containment</span></a></li><li><a href="/lab/consensus/"><strong>Consensus</strong><span>Replicated-state teaching model</span></a></li><li><a href="/lab/neon-relay/"><strong>Neon Relay</strong><span>Routing and protection circuit</span></a></li><li><a href="/systems/evidence/"><strong>Evidence Console</strong><span>Named lifecycle and impact-context records</span></a></li><li><a href="/lab/blackbox/"><strong>Blackbox</strong><span>Recorder and incident replay</span></a></li><li><a href="/lab/spectral-forge/"><strong>Spectral Forge</strong><span>Optional synthetic interpretation</span></a></li><li><a href="/lab/system-symphony/"><strong>System Symphony</strong><span>Optional source-aware sonification</span></a></li></ul></details>
-      <details><summary><span>Unsupported relationships for selected scenario</span><span aria-hidden="true">+</span></summary><div class="failure-trace-reference-body failure-trace-unsupported-list" id="unsupported-content"><p class="failure-trace-reference-empty">Scenario-specific unsupported relationships load from the shared model. Unmapped stages remain visible above without JavaScript.</p></div></details>
-      <details><summary><span>Proof and interpretation rules</span><span aria-hidden="true">+</span></summary><ul class="failure-trace-reference-body failure-trace-rules"><li>A selected scenario is context only. It does not mean a real incident occurred.</li><li>Simulated behaviour is not production failure.</li><li>A topology relationship does not prove propagation.</li><li>Atlas Twin says only what <em>could be affected</em>, never what was affected.</li><li>Recorded replay is historical, not current live state.</li><li>Sonification is interpretation, not incident authority.</li><li>Source or merge state does not prove deployment, runtime, or live state.</li><li>Recovery-like output does not create one universal recovery authority.</li></ul></details>
+      <details><summary><span>Unsupported relationships for selected context</span><span aria-hidden="true">+</span></summary><div class="failure-trace-reference-body failure-trace-unsupported-list" id="unsupported-content"><p class="failure-trace-reference-empty">Context-specific unsupported relationships load from the shared model. Open stages remain visible above without JavaScript.</p></div></details>
+      <details><summary><span>Proof and interpretation rules</span><span aria-hidden="true">+</span></summary><ul class="failure-trace-reference-body failure-trace-rules"><li>A selected context is a guide only. It does not mean a real incident occurred.</li><li>Simulated behaviour is not production failure.</li><li>A topology relationship does not prove propagation.</li><li>Atlas Twin says only what <em>could be affected</em>, never what was affected.</li><li>Recorded replay is historical, not current live state.</li><li>Sonification is interpretation, not incident authority.</li><li>Source or merge state does not prove deployment, runtime, or live state.</li><li>Recovery-like output does not create one universal recovery authority.</li></ul></details>
     </section>
 
-    <noscript><p class="failure-trace-noscript">JavaScript is optional. The default Latency creep context, all six stages, the evidence vocabulary, reading paths, and every participating destination remain available on this page.</p></noscript>
+    <noscript><p class="failure-trace-noscript">JavaScript is optional. The default Latency creep context, all six investigation questions, evidence vocabulary, reading paths, and every participating destination remain available on this page.</p></noscript>
   </main>
 
   <script type="module" src="/lab/shared/shell.js?v=20260813-xray-route"></script>
-  <script type="module" src="/lab/failure-laboratory/failure-laboratory.js?v=20260915-failure-trace-r2"></script>
+  <script type="module" src="/lab/failure-laboratory/failure-laboratory.js?v=20260915-failure-trace-r3"></script>
   <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation"><div class="mobile-nav-inner atlas-mobile-nav__inner"><a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><span>Work</span></a><a class="mobile-nav-item atlas-mobile-nav__item" href="/writing/"><span>Writing</span></a><a class="mobile-nav-item atlas-mobile-nav__item active" href="/lab/" aria-current="page"><span>Lab</span></a><a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><span>Systems</span></a><a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><span>About</span></a></div></nav>
 </body>
 </html>
