@@ -165,14 +165,42 @@
 
 .failure-trace-stage-nav {
   position: sticky;
-  z-index: 5;
-  top: calc(var(--lab-shell-stack-height, 112px) + 8px);
+  z-index: 40;
+  top: var(--lab-shell-stack-height, 112px);
   margin-top: 1.8rem;
   border: 1px solid var(--failure-trace-line);
-  background: rgba(10, 10, 15, 0.94);
-  backdrop-filter: blur(12px);
+  background: var(--failure-trace-bg);
+  box-shadow: 0 16px 28px -18px rgba(10, 10, 15, 0.98);
 }
-.failure-trace-stage-nav ol { position: relative; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; }
+.failure-trace-stage-nav::after {
+  position: absolute;
+  z-index: 0;
+  right: -1px;
+  bottom: -24px;
+  left: -1px;
+  height: 24px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(10, 10, 15, 0.98), rgba(10, 10, 15, 0));
+  content: "";
+}
+.failure-trace-stage-context {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  min-height: 28px;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.34rem 0.7rem;
+  border-bottom: 1px solid var(--failure-trace-line);
+  color: var(--failure-trace-dim);
+  background: #0a0a0f;
+  font: 500 0.56rem/1.2 "IBM Plex Mono", monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.failure-trace-stage-context strong { color: var(--failure-trace-cyan); font: inherit; letter-spacing: 0.08em; }
+.failure-trace-stage-context span:last-child { margin-left: auto; }
+.failure-trace-stage-nav ol { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; }
 .failure-trace-stage-nav ol::before { position: absolute; top: 1.65rem; right: 8%; left: 8%; height: 1px; background: rgba(255, 255, 255, 0.15); content: ""; }
 .failure-trace-stage-nav li { position: relative; min-width: 0; }
 .failure-trace-stage-nav a {
@@ -186,17 +214,26 @@
   padding: 0.7rem 0.35rem;
   color: var(--failure-trace-dim);
   text-decoration: none;
-  transition: color 160ms ease, background-color 160ms ease;
+  transition: color 160ms ease, background-color 160ms ease, opacity 160ms ease;
 }
 .failure-trace-stage-nav a:hover { color: var(--failure-trace-ink); background: rgba(255, 255, 255, 0.025); }
-.failure-trace-stage-nav svg { width: 24px; height: 24px; margin-bottom: 0.15rem; padding: 4px; border-radius: 50%; background: var(--failure-trace-surface-deep); fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.4; }
+.failure-trace-stage-nav svg { width: 24px; height: 24px; margin-bottom: 0.15rem; padding: 4px; border: 1px solid transparent; border-radius: 50%; background: var(--failure-trace-surface-deep); fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.4; }
 .failure-trace-stage-nav a span { color: var(--failure-trace-amber); font: 500 0.58rem/1.2 "IBM Plex Mono", monospace; letter-spacing: 0.08em; }
 .failure-trace-stage-nav a strong { color: inherit; font: 500 0.67rem/1.2 "IBM Plex Mono", monospace; text-align: center; }
-.failure-trace-stage-nav a[aria-current="step"] { color: var(--failure-trace-ink); background: rgba(245, 166, 35, 0.055); }
-.failure-trace-stage-nav a[aria-current="step"] svg { color: #0a0a0f; background: var(--failure-trace-amber); }
+.failure-trace-stage-nav li[data-stage-support="supported"] a { color: #9c9ba5; }
+.failure-trace-stage-nav li[data-stage-support="supported"] svg { border-color: rgba(137, 198, 201, 0.34); color: var(--failure-trace-cyan); }
+.failure-trace-stage-nav li[data-stage-support="unmapped"] a { color: #5c5b65; opacity: 0.58; }
+.failure-trace-stage-nav li[data-stage-support="unmapped"] svg { border-color: rgba(255, 255, 255, 0.15); border-style: dashed; }
+.failure-trace-stage-nav li[data-stage-support="unmapped"] a span { color: var(--failure-trace-dim); }
+.failure-trace-stage-nav li[data-stage-support="gap"] a { color: var(--failure-trace-cyan); }
+.failure-trace-stage-nav li[data-stage-support="gap"] svg { border-color: rgba(176, 161, 213, 0.46); color: var(--failure-trace-violet); }
+.failure-trace-stage-nav li[data-stage-support="gap"] a span { color: var(--failure-trace-cyan); }
+.failure-trace-stage-nav a[aria-current="step"] { color: var(--failure-trace-ink) !important; background: rgba(245, 166, 35, 0.055); opacity: 1 !important; }
+.failure-trace-stage-nav a[aria-current="step"] svg { border-color: var(--failure-trace-amber) !important; color: #0a0a0f !important; background: var(--failure-trace-amber); }
+.failure-trace-stage-nav a[aria-current="step"] span { color: var(--failure-trace-amber) !important; }
 
 .failure-trace-stage-stack { position: relative; }
-.failure-trace-stage { scroll-margin-top: calc(var(--lab-shell-stack-height, 112px) + 112px); padding: clamp(2.5rem, 5vw, 4.5rem) 0 0; }
+.failure-trace-stage { scroll-margin-top: calc(var(--lab-shell-stack-height, 112px) + 136px); padding: clamp(2.5rem, 5vw, 4.5rem) 0 0; }
 #failure-laboratory-main[data-stage-enhanced="true"] .failure-trace-stage:not([data-active-stage]) { display: none; }
 .failure-trace-stage-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1.5rem; align-items: start; padding-bottom: clamp(1.75rem, 3vw, 2.5rem); border-bottom: 1px solid var(--failure-trace-line); }
 .failure-trace-stage-header h3 {
@@ -246,6 +283,11 @@
 .failure-trace-reading-details p,
 .failure-trace-reading-details li { color: var(--failure-trace-muted); font-size: 0.84rem; line-height: 1.6; }
 .failure-trace-reading-details ul { margin: 0.5rem 0 0; padding-left: 1.15rem; }
+.failure-trace-reading-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; max-width: 48rem; margin: 0 0 1rem; background: var(--failure-trace-line); }
+.failure-trace-reading-facts > div { padding: 0.8rem 0.9rem; background: rgba(10, 10, 15, 0.78); }
+.failure-trace-reading-facts dt { color: var(--failure-trace-dim); font: 500 0.58rem/1.3 "IBM Plex Mono", monospace; letter-spacing: 0.1em; text-transform: uppercase; }
+.failure-trace-reading-facts dd { margin: 0.35rem 0 0; color: var(--failure-trace-muted); font-size: 0.78rem; line-height: 1.5; }
+.failure-trace-detail-label { margin: 0.9rem 0 0; color: var(--failure-trace-cyan) !important; font: 500 0.6rem/1.3 "IBM Plex Mono", monospace !important; letter-spacing: 0.1em; text-transform: uppercase; }
 .failure-trace-reading-link { display: inline-flex; min-height: 44px; align-items: center; gap: 0.65rem; margin-top: 1.75rem; color: var(--failure-trace-ink); font: 500 0.78rem/1.3 "IBM Plex Mono", monospace; text-decoration: none; }
 .failure-trace-reading-link span { color: var(--failure-trace-amber); }
 .failure-trace-reading-link:hover { color: var(--failure-trace-amber); }
@@ -297,6 +339,13 @@
 .failure-trace-destinations span { display: block; }
 .failure-trace-destinations strong { font: 500 0.85rem/1.35 "IBM Plex Mono", monospace; }
 .failure-trace-destinations span { margin-top: 0.35rem; color: var(--failure-trace-muted); font-size: 0.76rem; }
+.failure-trace-unsupported-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--failure-trace-line); }
+.failure-trace-unsupported-item { padding: 1rem; background: var(--failure-trace-surface-deep); }
+.failure-trace-unsupported-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.failure-trace-unsupported-heading h3 { margin: 0; color: var(--failure-trace-ink); font: 500 0.88rem/1.4 "IBM Plex Mono", monospace; }
+.failure-trace-unsupported-item > p { margin: 0.8rem 0 0; color: var(--failure-trace-muted); font-size: 0.8rem; line-height: 1.55; }
+.failure-trace-unsupported-item .failure-trace-unsupported-proof { color: var(--failure-trace-dim); }
+.failure-trace-reference-empty { grid-column: 1 / -1; margin: 0; padding: 1rem; color: var(--failure-trace-muted); background: var(--failure-trace-surface-deep); font-size: 0.8rem; line-height: 1.55; }
 .failure-trace-rules { columns: 2; column-gap: 3rem; padding-left: 1.2rem; color: var(--failure-trace-muted); font-size: 0.84rem; line-height: 1.65; }
 .failure-trace-rules li { break-inside: avoid; margin-bottom: 0.7rem; }
 .failure-trace-noscript { margin: 2rem 0 0; padding: 1rem; border-left: 2px solid var(--failure-trace-amber); color: var(--failure-trace-muted); background: rgba(245, 166, 35, 0.045); font-size: 0.82rem; line-height: 1.6; }
@@ -309,10 +358,12 @@
   .failure-trace-hero-context { max-width: 40rem; }
   .failure-trace-scenario { align-items: start; }
   .failure-trace-stage-nav { overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: thin; }
+  .failure-trace-stage-nav::after { display: none; }
   .failure-trace-stage-nav ol { min-width: 720px; }
   .failure-trace-reference-paths,
   .failure-trace-mode-list,
-  .failure-trace-destinations { grid-template-columns: 1fr; }
+  .failure-trace-destinations,
+  .failure-trace-unsupported-list { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 620px) {
@@ -322,7 +373,9 @@
   .failure-trace-deck { font-size: 1.45rem; }
   .failure-trace-scenario-options { flex-wrap: nowrap; overflow-x: auto; padding: 0.15rem 0 0.4rem; overscroll-behavior-inline: contain; scrollbar-width: thin; }
   .failure-trace-scenario-options label { flex: 0 0 auto; }
-  .failure-trace-stage-nav { top: calc(var(--lab-shell-stack-height, 104px) + 4px); margin-right: -16px; margin-left: -16px; border-right: 0; border-left: 0; overflow-x: auto; }
+  .failure-trace-stage-nav { top: var(--lab-shell-stack-height, 104px); margin-right: -16px; margin-left: -16px; border-right: 0; border-left: 0; overflow-x: auto; }
+  .failure-trace-stage-context { position: sticky; left: 0; min-width: min(100vw, 600px); }
+  .failure-trace-stage-context span:last-child { display: none; }
   .failure-trace-stage-nav ol { min-width: 600px; }
   .failure-trace-stage-nav a { min-height: 74px; }
   .failure-trace-stage-header { grid-template-columns: 1fr; }
@@ -330,6 +383,7 @@
   .failure-trace-reading-heading { display: block; }
   .failure-trace-reading-heading .failure-trace-evidence { margin-top: 1rem; }
   .failure-trace-evidence-list { justify-content: flex-start; margin-top: 1rem; }
+  .failure-trace-reading-facts { grid-template-columns: 1fr; }
   .failure-trace-recovery-gap { grid-template-columns: 1fr; }
   .failure-trace-gap-mark { width: 3.5rem; height: 3.5rem; }
   .failure-trace-stage-actions { align-items: flex-start; padding: 0.85rem 0; }
