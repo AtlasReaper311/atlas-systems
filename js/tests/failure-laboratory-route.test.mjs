@@ -47,6 +47,7 @@ test("the editorial workspace is concise at first level and keeps secondary mate
   assert.match(html, /Model-approved reading paths/);
   assert.match(html, /Evidence modes/);
   assert.match(html, /Participating instruments/);
+  assert.match(html, /Unsupported relationships for selected scenario/);
   assert.match(html, /Proof and interpretation rules/);
   assert.match(html, /Spectral Forge/);
   assert.match(html, /System Symphony/);
@@ -56,6 +57,7 @@ test("Latency creep is the clean default scenario without changing model orderin
   assert.match(script, /const DEFAULT_SCENARIO_ID = "latency-creep"/);
   assert.match(html, /data-scenario-id="latency-creep" checked/);
   assert.match(html, /id="selected-scenario-label">Latency creep/);
+  assert.match(html, /id="sticky-scenario-label">Latency creep/);
   assert.deepEqual(model.scenarios.map(({ id }) => id), [
     "normal-operation",
     "latency-creep",
@@ -86,10 +88,26 @@ test("the investigation rail keeps all six stages directly addressable in canoni
   assert.match(html, /href="#stage-impact"/);
   assert.match(html, /href="#stage-incident-evidence"/);
   assert.match(html, /href="#stage-recovery"/);
-  assert.match(css, /\.failure-trace-stage-nav\s*\{[\s\S]*position:\s*sticky/);
+  assert.match(css, /\.failure-trace-stage-nav\s*\{[\s\S]*position:\s*sticky[\s\S]*top:\s*var\(--lab-shell-stack-height/);
+  assert.doesNotMatch(css, /top:\s*calc\(var\(--lab-shell-stack-height[^;]+\+\s*[48]px\)/);
+  assert.match(css, /\.failure-trace-stage-nav::after/);
   assert.match(css, /\.failure-trace-stage-nav ol::before/);
   assert.match(css, /scroll-margin-top:\s*calc\(var\(--lab-shell-stack-height/);
   assert.match(css, /@media \(max-width: 620px\)[\s\S]*\.failure-trace-stage-nav[\s\S]*overflow-x:\s*auto/);
+});
+
+test("the sticky rail keeps selected scenario context and reflects mapped, unmapped, and recovery-gap states", () => {
+  assert.match(html, /class="failure-trace-stage-context"/);
+  assert.match(html, /id="sticky-scenario-label"/);
+  assert.match(html, /data-stage-support="supported"/);
+  assert.match(html, /data-stage-support="unmapped"/);
+  assert.match(html, /data-stage-support="gap"/);
+  assert.match(script, /function renderStageRail\(model, scenario\)/);
+  assert.match(script, /item\.dataset\.stageSupport = supportState/);
+  assert.match(script, /stage\.id === "recovery" && stage\.evidenceGap/);
+  assert.match(css, /li\[data-stage-support="supported"\]/);
+  assert.match(css, /li\[data-stage-support="unmapped"\]/);
+  assert.match(css, /li\[data-stage-support="gap"\]/);
 });
 
 test("progressive enhancement shows one active stage while no-JS keeps the complete path", () => {
@@ -115,14 +133,21 @@ test("the no-JS route keeps every participating destination reachable", () => {
   assert.doesNotMatch(html, /\/lab\/atlas-motion\//);
 });
 
-test("scenario rendering preserves unsupported, cross-cutting, and evidence boundaries", () => {
+test("scenario rendering preserves unsupported, cross-cutting, provenance, and evidence boundaries", () => {
   assert.match(script, /relationship\.supportType === "unsupported" \|\| relationship\.supportType === "cross-cutting"/);
   assert.match(script, /relationship\.stageIds\.includes\(stage\.id\)/);
   assert.match(script, /not-applicable-unscored/);
   assert.match(script, /candidate\.instrumentId === instrumentId && candidate\.supportType === "cross-cutting"/);
+  assert.match(script, /function createReadingFacts\(relationship\)/);
+  assert.match(script, /reading\.nativeScenario/);
+  assert.match(script, /reading\.sourceType/);
+  assert.match(script, /function renderUnsupportedReference\(model, scenario\)/);
+  assert.match(script, /relationship\.unsupportedReason \|\| relationship\.proofBoundary/);
   assert.match(script, /displayInstrumentLabel/);
   assert.match(script, /System SYMPHONY/);
   assert.match(script, /System Symphony/);
+  assert.match(css, /\.failure-trace-reading-facts/);
+  assert.match(css, /\.failure-trace-unsupported-list/);
 });
 
 test("route-local interaction targets and reduced-motion behaviour remain governed", () => {
