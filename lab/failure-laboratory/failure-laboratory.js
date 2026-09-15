@@ -6,6 +6,7 @@ const DEFAULT_SCENARIO_ID = "latency-creep";
 const main = document.querySelector("#failure-laboratory-main");
 const scenarioInputs = [...document.querySelectorAll('input[name="scenario"][data-scenario-id]')];
 const stageNavLinks = [...document.querySelectorAll("[data-stage-nav-link]")];
+const stageNavItems = [...document.querySelectorAll("[data-stage-nav-item]")];
 const stageActionLinks = [...document.querySelectorAll("[data-stage-next], [data-stage-previous]")];
 const stageNodes = [...document.querySelectorAll(".failure-trace-stage[data-stage-id]")];
 const stageIds = new Set(stageNodes.map((stage) => stage.dataset.stageId));
@@ -208,15 +209,39 @@ function updateScenarioControls(model, scenario) {
 
 function renderScenarioSummary(scenario) {
   const label = document.querySelector("#selected-scenario-label");
+  const stickyLabel = document.querySelector("#sticky-scenario-label");
   const question = document.querySelector("#selected-scenario-question");
   const boundary = clear(document.querySelector("#selected-scenario-boundary"));
 
   if (label) label.textContent = scenario.label;
+  if (stickyLabel) stickyLabel.textContent = scenario.label;
   if (question) question.textContent = scenario.question;
 
   for (const claim of scenario.interpretationBoundary?.neverMeans || []) {
     appendText(boundary, "li", "", claim);
   }
+}
+
+function createReadingFacts(relationship) {
+  const readings = relationship.readings || [];
+  const nativeScenarios = unique(readings.map((reading) => reading.nativeScenario).filter(Boolean));
+  const sourceTypes = unique(readings.map((reading) => reading.sourceType).filter(Boolean));
+  if (!nativeScenarios.length && !sourceTypes.length) return null;
+
+  const facts = element("dl", "failure-trace-reading-facts");
+  const rows = [
+    ["Native scenario", nativeScenarios.join(" · ")],
+    ["Evidence source", sourceTypes.join(" · ")],
+  ].filter(([, value]) => value);
+
+  for (const [term, value] of rows) {
+    const row = element("div");
+    appendText(row, "dt", "", term);
+    appendText(row, "dd", "", value);
+    facts.appendChild(row);
+  }
+
+  return facts;
 }
 
 function createReading(relationship, instrument, stage) {
@@ -252,13 +277,18 @@ function createReading(relationship, instrument, stage) {
     ...(relationship.nonClaims || []),
     ...(relationship.readings || []).flatMap((reading) => reading.doesNotProve || []),
   ]);
+  const facts = createReadingFacts(relationship);
 
-  if (nonClaims.length) {
+  if (facts || nonClaims.length) {
     const details = element("details", "failure-trace-reading-details");
     appendText(details, "summary", "", "Evidence detail");
-    const list = element("ul");
-    nonClaims.forEach((claim) => appendText(list, "li", "", claim));
-    details.appendChild(list);
+    if (facts) details.appendChild(facts);
+    if (nonClaims.length) {
+      appendText(details, "p", "failure-trace-detail-label", "Does not prove");
+      const list = element("ul");
+      nonClaims.forEach((claim) => appendText(list, "li", "", claim));
+      details.appendChild(list);
+    }
     article.appendChild(details);
   }
 
@@ -291,6 +321,33 @@ function createRecoveryGap(gap) {
 
   block.append(mark, copy);
   return block;
+}
+
+function relationshipSupportsStage(relationship, stageId) {
+  if (!relationship || relationship.supportType === "unsupported" || relationship.supportType === "cross-cutting") return false;
+  return relationship.stageIds.includes(stageId);
+}
+
+function renderStageRail(model, scenario) {
+  const relationshipMap = new Map(scenario.relationships.map((relationship) => [relationship.instrumentId, relationship]));
+  const stageMap = new Map(model.journey.stages.map((stage) => [stage.id, stage]));
+
+  for (const item of stageNavItems) {
+    const link = item.querySelector("[data-stage-nav-link]");
+    const stageId = link ? stageIdFromLink(link) : null;
+    const stage = stageMap.get(stageId);
+    if (!stage) continue;
+
+    const supported = stage.instrumentAssociations.some((association) =>
+      relationshipSupportsStage(relationshipMap.get(association.instrumentId), stage.id)
+    );
+
+    const supportState = stage.id === "recovery" && stage.evidenceGap
+      ? "gap"
+      : supported ? "supported" : "unmapped";
+
+    item.dataset.stageSupport = supportState;
+  }
 }
 
 function renderStages(model, scenario) {
@@ -335,14 +392,47 @@ function renderOptional(model, scenario) {
   }
 }
 
+function renderUnsupportedReference(model, scenario) {
+  const target = clear(document.querySelector("#unsupported-content"));
+  if (!target) return;
+
+  const instrumentMap = new Map(model.instruments.map((instrument) => [instrument.id, instrument]));
+  const unsupported = scenario.relationships.filter((relationship) => relationship.supportType === "unsupported");
+
+  if (!unsupported.length) {
+    appendText(target, "p", "failure-trace-reference-empty", `No explicitly unsupported instrument relationships are recorded for ${scenario.label}. Unmapped stages still remain visible in the investigation rail.`);
+    return;
+  }
+
+  for (const relationship of unsupported) {
+    const instrument = instrumentMap.get(relationship.instrumentId);
+    if (!instrument) continue;
+
+    const article = element("article", "failure-trace-unsupported-item");
+    const heading = element("div", "failure-trace-unsupported-heading");
+    appendText(heading, "h3", "", displayInstrumentLabel(instrument.label));
+    heading.appendChild(evidenceBadge("not-applicable-unscored"));
+    article.appendChild(heading);
+
+    appendText(article, "p", "", relationship.unsupportedReason || relationship.proofBoundary || "The shared model does not define a supported relationship for this scenario.");
+    if (relationship.proofBoundary && relationship.proofBoundary !== relationship.unsupportedReason) {
+      appendText(article, "p", "failure-trace-unsupported-proof", relationship.proofBoundary);
+    }
+    target.appendChild(article);
+  }
+}
+
 function renderModel(model, scenarioId, { updateHistory = false } = {}) {
   const scenario = modelScenario(model, scenarioId);
   updateScenarioControls(model, scenario);
   renderScenarioSummary(scenario);
+  renderStageRail(model, scenario);
   renderStages(model, scenario);
   renderOptional(model, scenario);
+  renderUnsupportedReference(model, scenario);
   if (updateHistory) writeScenarioUrl(scenario.id);
   main.dataset.modelState = "ready";
+  main.dataset.selectedScenario = scenario.id;
 }
 
 function installInteractions(model) {
