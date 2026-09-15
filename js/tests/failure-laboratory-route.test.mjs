@@ -47,7 +47,7 @@ test("the editorial workspace is concise at first level and keeps secondary mate
   assert.match(html, /Model-approved reading paths/);
   assert.match(html, /Evidence modes/);
   assert.match(html, /Participating instruments/);
-  assert.match(html, /Unsupported relationships for selected scenario/);
+  assert.match(html, /Unsupported relationships for selected context/);
   assert.match(html, /Proof and interpretation rules/);
   assert.match(html, /Spectral Forge/);
   assert.match(html, /System Symphony/);
@@ -97,12 +97,13 @@ test("the investigation rail keeps all six stages directly addressable in canoni
 });
 
 test("the rail explains its colours and distinguishes current, mapped, open, and composite states", () => {
+  assert.match(html, /class="failure-trace-rail-key"/);
+  assert.match(html, /Current stage/);
+  assert.match(html, /Mapped guidance/);
+  assert.match(html, /Open \/ no generic mapping/);
+  assert.match(html, /Composite assessment/);
   assert.match(script, /function installRailLegend\(\)/);
   assert.match(script, /Investigation rail colour key/);
-  assert.match(script, /Current stage/);
-  assert.match(script, /Mapped guidance/);
-  assert.match(script, /Open \/ no generic mapping/);
-  assert.match(script, /Composite assessment/);
   assert.match(css, /\.failure-trace-rail-key/);
   assert.match(css, /data-rail-state="active"/);
   assert.match(css, /data-rail-state="supported"/);
@@ -139,6 +140,7 @@ test("every investigation stage teaches its intended job before showing current 
 });
 
 test("open stages explain the missing mapping and the evidence-safe intended workflow", () => {
+  assert.match(html, /OPEN \/ NO GENERIC MAPPING/);
   assert.match(script, /function createUnmappedStage\(scenario, stage\)/);
   assert.match(script, /OPEN \/ NO GENERIC MAPPING/);
   assert.match(script, /The investigation question still matters\./);
@@ -151,6 +153,8 @@ test("open stages explain the missing mapping and the evidence-safe intended wor
 
 test("Recovery is presented as a composite assessment instead of an unfinished instrument", () => {
   assert.equal(model.constraints.recovery.singleAuthoritativeInstrument, null);
+  assert.match(html, /Recovery has no single source of truth\./);
+  assert.doesNotMatch(html, /There is no single current Phase 3 Recovery Evidence instrument/);
   assert.match(script, /function createRecoveryAssessment\(model, gap\)/);
   assert.match(script, /COMPOSITE ASSESSMENT \/ NOT AN OBSERVATION/);
   assert.match(script, /Recovery has no single source of truth\./);
@@ -164,10 +168,11 @@ test("Recovery is presented as a composite assessment instead of an unfinished i
 });
 
 test("the interface calls scenario selection an investigation context without changing model vocabulary", () => {
+  assert.match(html, /INVESTIGATION CONTEXT/);
+  assert.match(html, /Choose an investigation context/);
+  assert.match(html, /Guide, not live/);
   assert.match(script, /INVESTIGATION CONTEXT/);
   assert.match(script, /Choose an investigation context/);
-  assert.match(script, /Context/);
-  assert.match(script, /Guide, not live/);
   assert.equal(model.scenarios[0].id, "normal-operation");
 });
 
@@ -190,7 +195,7 @@ test("the no-JS route keeps every participating destination reachable", () => {
   }
   assert.match(html, /Not applicable \/ unscored/);
   assert.match(html, /could be affected/);
-  assert.match(html, /There is no single current Phase 3 Recovery Evidence instrument/);
+  assert.match(html, /Recovery has no single source of truth/);
   assert.doesNotMatch(html, /\/lab\/atlas-motion\//);
 });
 
