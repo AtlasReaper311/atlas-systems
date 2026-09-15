@@ -30,6 +30,54 @@ const RELATIONSHIP_LABELS = Object.freeze({
   unsupported: "Unsupported",
 });
 
+const RAIL_STATE_LABELS = Object.freeze({
+  supported: "Mapped",
+  unmapped: "Open",
+  gap: "Composite",
+});
+
+const STAGE_GUIDANCE = Object.freeze({
+  request: Object.freeze({
+    purpose: "Establish what the request experienced before assigning a cause.",
+    flow: Object.freeze(["Request", "timing / cache / service response", "bounded request reading"]),
+    how: "Use a request-scoped instrument to inspect the selected request model before moving outward to dependencies.",
+  }),
+  dependencies: Object.freeze({
+    purpose: "Trace where a dependency fault could propagate and where containment changes the result.",
+    flow: Object.freeze(["Root fault", "propagation", "containment"]),
+    how: "Use a dependency model to follow the fault through declared relationships without treating the synthetic graph as production topology evidence.",
+  }),
+  coordination: Object.freeze({
+    purpose: "Check whether replication, routing, isolation, or convergence changes the investigation.",
+    flow: Object.freeze(["Replicas / routes", "isolation", "convergence"]),
+    how: "Use bounded coordination models only where the selected context maps cleanly to their native mechanics.",
+  }),
+  impact: Object.freeze({
+    purpose: "Identify which public components or contracts could plausibly be affected without claiming observed impact.",
+    flow: Object.freeze(["Failure context", "Atlas Twin relationships", "could-be-affected candidates"]),
+    how: "Use bounded Atlas Twin relationship context to identify components that could be affected, then require named evidence before any stronger impact claim.",
+  }),
+  "incident-evidence": Object.freeze({
+    purpose: "Separate what was actually recorded or named from what the explanatory models merely demonstrate.",
+    flow: Object.freeze(["Named record", "observed facts", "bounded claim"]),
+    how: "Use Blackbox or Evidence Console only when a named record or source supports the statement being made.",
+  }),
+  recovery: Object.freeze({
+    purpose: "Reconcile reset, convergence, aftermath, and lifecycle facts into the narrowest supportable recovery statement.",
+    flow: Object.freeze(["Local recovery signals", "reconcile evidence", "bounded recovery statement"]),
+    how: "Compare source-specific recovery signals. One reset, replay, lifecycle stage, or healthy-looking frame cannot establish end-to-end recovery on its own.",
+  }),
+});
+
+const RECOVERY_SOURCE_ROLES = Object.freeze({
+  "request-xray": "reset / re-run",
+  cascade: "settling / containment",
+  consensus: "heal / catch-up",
+  "neon-relay": "reset / reroute",
+  blackbox: "recorded aftermath",
+  "evidence-console": "named lifecycle fact / unknown",
+});
+
 function element(tagName, className = "", textContent) {
   const node = document.createElement(tagName);
   if (className) node.className = className;
@@ -194,6 +242,49 @@ function syncStageFromLocation({ focus = false } = {}) {
   setActiveStage(explicitStage || "request", { focus });
 }
 
+function installContextLanguage() {
+  const sectionLabel = document.querySelector(".failure-trace-scenario-copy > .failure-trace-label");
+  const legend = document.querySelector(".failure-trace-scenario-options legend");
+  const heroCopy = document.querySelector(".failure-trace-hero-context p");
+  const stageContext = document.querySelector(".failure-trace-stage-context");
+  const contextParts = stageContext ? [...stageContext.querySelectorAll("span")] : [];
+
+  if (sectionLabel) sectionLabel.textContent = "INVESTIGATION CONTEXT";
+  if (legend) legend.textContent = "Choose an investigation context";
+  if (heroCopy) heroCopy.textContent = "Choose a context, follow the investigation questions in order, and open the specialist instrument that can answer each one.";
+  if (contextParts[0]) contextParts[0].textContent = "Context";
+  if (contextParts.at(-1)) contextParts.at(-1).textContent = "Guide, not live";
+}
+
+function installRailLegend() {
+  const nav = document.querySelector(".failure-trace-stage-nav");
+  if (!nav || nav.querySelector(".failure-trace-rail-key")) return;
+
+  const key = element("div", "failure-trace-rail-key");
+  key.setAttribute("aria-label", "Investigation rail colour key");
+  appendText(key, "strong", "failure-trace-rail-key-title", "RAIL KEY");
+
+  const entries = [
+    ["active", "Current stage"],
+    ["supported", "Mapped guidance"],
+    ["unmapped", "Open / no generic mapping"],
+    ["gap", "Composite assessment"],
+  ];
+
+  for (const [state, label] of entries) {
+    const item = element("span", "failure-trace-rail-key-item");
+    const mark = element("i", "failure-trace-rail-key-mark");
+    mark.dataset.railState = state;
+    mark.setAttribute("aria-hidden", "true");
+    item.append(mark, document.createTextNode(label));
+    key.appendChild(item);
+  }
+
+  const list = nav.querySelector("ol");
+  if (list) nav.insertBefore(key, list);
+  else nav.appendChild(key);
+}
+
 function updateScenarioControls(model, scenario) {
   const scenarioMap = new Map(model.scenarios.map((candidate) => [candidate.id, candidate]));
 
@@ -220,6 +311,30 @@ function renderScenarioSummary(scenario) {
   for (const claim of scenario.interpretationBoundary?.neverMeans || []) {
     appendText(boundary, "li", "", claim);
   }
+}
+
+function createStagePurpose(stage) {
+  const guidance = STAGE_GUIDANCE[stage.id];
+  if (!guidance) return null;
+
+  const block = element("aside", "failure-trace-stage-purpose");
+  const copy = element("div", "failure-trace-stage-purpose-copy");
+  appendText(copy, "p", "failure-trace-stage-purpose-label", "WHAT THIS STAGE DOES");
+  appendText(copy, "p", "failure-trace-stage-purpose-text", guidance.purpose);
+
+  const flow = element("div", "failure-trace-stage-flow");
+  flow.setAttribute("aria-label", `${stage.label} conceptual flow`);
+  guidance.flow.forEach((step, index) => {
+    appendText(flow, "span", "", step);
+    if (index < guidance.flow.length - 1) {
+      const arrow = element("b", "", "→");
+      arrow.setAttribute("aria-hidden", "true");
+      flow.appendChild(arrow);
+    }
+  });
+
+  block.append(copy, flow);
+  return block;
 }
 
 function createReadingFacts(relationship) {
@@ -302,30 +417,66 @@ function createReading(relationship, instrument, stage) {
 }
 
 function createUnmappedStage(scenario, stage) {
+  const guidance = STAGE_GUIDANCE[stage.id];
   const block = element("div", "failure-trace-unmapped");
-  block.appendChild(evidenceBadge("not-applicable-unscored"));
-  appendText(block, "h4", "", `No supported ${stage.label.toLowerCase()} relationship is mapped for ${scenario.label}.`);
-  appendText(block, "p", "", "The model leaves this stage open rather than substituting a loosely related instrument.");
-  return block;
-}
+  const status = element("span", "failure-trace-open-status", "OPEN / NO GENERIC MAPPING");
+  block.appendChild(status);
+  appendText(block, "h4", "", "The investigation question still matters.");
 
-function createRecoveryGap(gap) {
-  const block = element("div", "failure-trace-recovery-gap");
-  const mark = element("span", "failure-trace-gap-mark");
-  mark.setAttribute("aria-hidden", "true");
+  const grid = element("div", "failure-trace-open-grid");
+  const current = element("section");
+  appendText(current, "p", "failure-trace-open-label", "CURRENT MAPPING");
+  appendText(current, "p", "", `Failure Trace has no scenario-safe ${stage.label.toLowerCase()} instrument mapping for ${scenario.label}. The stage stays visible instead of inventing an answer.`);
 
-  const copy = element("div");
-  appendText(copy, "p", "failure-trace-reading-type", "EVIDENCE GAP / INTENTIONAL");
-  appendText(copy, "h4", "", gap.summary);
-  appendText(copy, "p", "", gap.nonClaim);
+  const future = element("section");
+  appendText(future, "p", "failure-trace-open-label", "HOW IT WOULD WORK");
+  appendText(future, "p", "", guidance?.how || "A named source would need to support this stage before Failure Trace could make a stronger statement.");
 
-  block.append(mark, copy);
+  grid.append(current, future);
+  block.appendChild(grid);
   return block;
 }
 
 function relationshipSupportsStage(relationship, stageId) {
   if (!relationship || relationship.supportType === "unsupported" || relationship.supportType === "cross-cutting") return false;
   return relationship.stageIds.includes(stageId);
+}
+
+function createRecoveryAssessment(model, gap) {
+  const block = element("div", "failure-trace-recovery-assessment");
+  const heading = element("div", "failure-trace-recovery-assessment-heading");
+  const mark = element("span", "failure-trace-gap-mark");
+  mark.setAttribute("aria-hidden", "true");
+
+  const copy = element("div");
+  appendText(copy, "p", "failure-trace-reading-type", "COMPOSITE ASSESSMENT / NOT AN OBSERVATION");
+  appendText(copy, "h4", "", "Recovery has no single source of truth.");
+  appendText(copy, "p", "", "Different instruments can show reset, convergence, recorded aftermath, or a named lifecycle fact. Failure Trace keeps those signals separate until they support the same bounded conclusion.");
+  heading.append(mark, copy);
+
+  const recoveryScenario = modelScenario(model, "recovery");
+  const instrumentMap = new Map(model.instruments.map((instrument) => [instrument.id, instrument]));
+  const relationships = new Map(recoveryScenario.relationships.map((relationship) => [relationship.instrumentId, relationship]));
+  const sources = element("div", "failure-trace-recovery-sources");
+
+  for (const [instrumentId, role] of Object.entries(RECOVERY_SOURCE_ROLES)) {
+    const instrument = instrumentMap.get(instrumentId);
+    const relationship = relationships.get(instrumentId);
+    if (!instrument || !relationshipSupportsStage(relationship, "recovery")) continue;
+
+    const link = element("a", "failure-trace-recovery-source");
+    link.href = instrument.canonical.route;
+    appendText(link, "strong", "", displayInstrumentLabel(instrument.label));
+    appendText(link, "span", "", role);
+    sources.appendChild(link);
+  }
+
+  const conclusion = element("div", "failure-trace-recovery-conclusion");
+  appendText(conclusion, "strong", "", "BOUNDARY");
+  appendText(conclusion, "p", "", gap?.nonClaim || "No single local signal establishes end-to-end recovery or root-cause resolution.");
+
+  block.append(heading, sources, conclusion);
+  return block;
 }
 
 function renderStageRail(model, scenario) {
@@ -336,7 +487,7 @@ function renderStageRail(model, scenario) {
     const link = item.querySelector("[data-stage-nav-link]");
     const stageId = link ? stageIdFromLink(link) : null;
     const stage = stageMap.get(stageId);
-    if (!stage) continue;
+    if (!stage || !link) continue;
 
     const supported = stage.instrumentAssociations.some((association) =>
       relationshipSupportsStage(relationshipMap.get(association.instrumentId), stage.id)
@@ -347,6 +498,14 @@ function renderStageRail(model, scenario) {
       : supported ? "supported" : "unmapped";
 
     item.dataset.stageSupport = supportState;
+    let status = link.querySelector("[data-stage-support-label]");
+    if (!status) {
+      status = element("small", "failure-trace-stage-support-label");
+      status.dataset.stageSupportLabel = "";
+      link.appendChild(status);
+    }
+    status.textContent = RAIL_STATE_LABELS[supportState];
+    link.setAttribute("aria-label", `${stage.label}: ${RAIL_STATE_LABELS[supportState].toLowerCase()}`);
   }
 }
 
@@ -361,8 +520,17 @@ function renderStages(model, scenario) {
     if (!stageNode || !content) continue;
 
     if (heading) heading.textContent = stage.question;
-    const readings = [];
+    const blocks = [];
+    const purpose = createStagePurpose(stage);
+    if (purpose) blocks.push(purpose);
 
+    if (stage.id === "recovery" && stage.evidenceGap) {
+      blocks.push(createRecoveryAssessment(model, stage.evidenceGap));
+      content.replaceChildren(...blocks);
+      continue;
+    }
+
+    const readings = [];
     for (const association of stage.instrumentAssociations) {
       const relationship = relationshipMap.get(association.instrumentId);
       const instrument = instrumentMap.get(association.instrumentId);
@@ -372,9 +540,8 @@ function renderStages(model, scenario) {
       readings.push(createReading(relationship, instrument, stage));
     }
 
-    if (stage.id === "recovery" && stage.evidenceGap) readings.unshift(createRecoveryGap(stage.evidenceGap));
     if (!readings.length) readings.push(createUnmappedStage(scenario, stage));
-    content.replaceChildren(...readings);
+    content.replaceChildren(...blocks, ...readings);
   }
 }
 
@@ -400,7 +567,7 @@ function renderUnsupportedReference(model, scenario) {
   const unsupported = scenario.relationships.filter((relationship) => relationship.supportType === "unsupported");
 
   if (!unsupported.length) {
-    appendText(target, "p", "failure-trace-reference-empty", `No explicitly unsupported instrument relationships are recorded for ${scenario.label}. Unmapped stages still remain visible in the investigation rail.`);
+    appendText(target, "p", "failure-trace-reference-empty", `No explicitly unsupported instrument relationships are recorded for ${scenario.label}. Open stages still remain visible in the investigation rail.`);
     return;
   }
 
@@ -414,7 +581,7 @@ function renderUnsupportedReference(model, scenario) {
     heading.appendChild(evidenceBadge("not-applicable-unscored"));
     article.appendChild(heading);
 
-    appendText(article, "p", "", relationship.unsupportedReason || relationship.proofBoundary || "The shared model does not define a supported relationship for this scenario.");
+    appendText(article, "p", "", relationship.unsupportedReason || relationship.proofBoundary || "The shared model does not define a supported relationship for this context.");
     if (relationship.proofBoundary && relationship.proofBoundary !== relationship.unsupportedReason) {
       appendText(article, "p", "failure-trace-unsupported-proof", relationship.proofBoundary);
     }
@@ -475,6 +642,8 @@ async function init() {
     if (!isUsableModel(model)) throw new Error("model does not match the route shell");
 
     activeModel = model;
+    installContextLanguage();
+    installRailLegend();
     installInteractions(model);
     renderModel(model, scenarioIdFromUrl(model));
     syncStageFromLocation();
