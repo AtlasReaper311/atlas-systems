@@ -96,7 +96,21 @@ test("the investigation rail keeps all six stages directly addressable in canoni
   assert.match(css, /@media \(max-width: 620px\)[\s\S]*\.failure-trace-stage-nav[\s\S]*overflow-x:\s*auto/);
 });
 
-test("the sticky rail keeps selected scenario context and reflects mapped, unmapped, and recovery-gap states", () => {
+test("the rail explains its colours and distinguishes current, mapped, open, and composite states", () => {
+  assert.match(script, /function installRailLegend\(\)/);
+  assert.match(script, /Investigation rail colour key/);
+  assert.match(script, /Current stage/);
+  assert.match(script, /Mapped guidance/);
+  assert.match(script, /Open \/ no generic mapping/);
+  assert.match(script, /Composite assessment/);
+  assert.match(css, /\.failure-trace-rail-key/);
+  assert.match(css, /data-rail-state="active"/);
+  assert.match(css, /data-rail-state="supported"/);
+  assert.match(css, /data-rail-state="unmapped"/);
+  assert.match(css, /data-rail-state="gap"/);
+});
+
+test("the sticky rail keeps selected context and reflects mapped, open, and recovery-composite states", () => {
   assert.match(html, /class="failure-trace-stage-context"/);
   assert.match(html, /id="sticky-scenario-label"/);
   assert.match(html, /data-stage-support="supported"/);
@@ -105,9 +119,56 @@ test("the sticky rail keeps selected scenario context and reflects mapped, unmap
   assert.match(script, /function renderStageRail\(model, scenario\)/);
   assert.match(script, /item\.dataset\.stageSupport = supportState/);
   assert.match(script, /stage\.id === "recovery" && stage\.evidenceGap/);
+  assert.match(script, /failure-trace-stage-support-label/);
+  assert.match(script, /RAIL_STATE_LABELS\[supportState\]/);
   assert.match(css, /li\[data-stage-support="supported"\]/);
   assert.match(css, /li\[data-stage-support="unmapped"\]/);
   assert.match(css, /li\[data-stage-support="gap"\]/);
+  assert.doesNotMatch(css, /li\[data-stage-support="unmapped"\][^}]*opacity:\s*0\.58/s);
+});
+
+test("every investigation stage teaches its intended job before showing current mappings", () => {
+  assert.match(script, /const STAGE_GUIDANCE = Object\.freeze/);
+  assert.match(script, /function createStagePurpose\(stage\)/);
+  assert.match(script, /WHAT THIS STAGE DOES/);
+  assert.match(script, /Failure context/);
+  assert.match(script, /Atlas Twin relationships/);
+  assert.match(script, /could-be-affected candidates/);
+  assert.match(css, /\.failure-trace-stage-purpose/);
+  assert.match(css, /\.failure-trace-stage-flow/);
+});
+
+test("open stages explain the missing mapping and the evidence-safe intended workflow", () => {
+  assert.match(script, /function createUnmappedStage\(scenario, stage\)/);
+  assert.match(script, /OPEN \/ NO GENERIC MAPPING/);
+  assert.match(script, /The investigation question still matters\./);
+  assert.match(script, /CURRENT MAPPING/);
+  assert.match(script, /HOW IT WOULD WORK/);
+  assert.match(script, /Use bounded Atlas Twin relationship context/);
+  assert.match(css, /\.failure-trace-open-grid/);
+  assert.match(css, /\.failure-trace-open-status/);
+});
+
+test("Recovery is presented as a composite assessment instead of an unfinished instrument", () => {
+  assert.equal(model.constraints.recovery.singleAuthoritativeInstrument, null);
+  assert.match(script, /function createRecoveryAssessment\(model, gap\)/);
+  assert.match(script, /COMPOSITE ASSESSMENT \/ NOT AN OBSERVATION/);
+  assert.match(script, /Recovery has no single source of truth\./);
+  assert.match(script, /reset \/ re-run/);
+  assert.match(script, /settling \/ containment/);
+  assert.match(script, /heal \/ catch-up/);
+  assert.match(script, /recorded aftermath/);
+  assert.match(script, /named lifecycle fact \/ unknown/);
+  assert.match(css, /\.failure-trace-recovery-assessment/);
+  assert.match(css, /\.failure-trace-recovery-sources/);
+});
+
+test("the interface calls scenario selection an investigation context without changing model vocabulary", () => {
+  assert.match(script, /INVESTIGATION CONTEXT/);
+  assert.match(script, /Choose an investigation context/);
+  assert.match(script, /Context/);
+  assert.match(script, /Guide, not live/);
+  assert.equal(model.scenarios[0].id, "normal-operation");
 });
 
 test("progressive enhancement shows one active stage while no-JS keeps the complete path", () => {
