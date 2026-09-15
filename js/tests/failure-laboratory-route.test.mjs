@@ -97,12 +97,13 @@ test("the investigation rail keeps all six stages directly addressable in canoni
 });
 
 test("the rail explains its colours and distinguishes current, mapped, open, and composite states", () => {
-  assert.match(html, /class="failure-trace-rail-key"/);
+  assert.match(html, /class="failure-trace-rail-key" role="group" aria-label="Investigation rail colour key"/);
   assert.match(html, /Current stage/);
   assert.match(html, /Mapped guidance/);
   assert.match(html, /Open \/ no generic mapping/);
   assert.match(html, /Composite assessment/);
   assert.match(script, /function installRailLegend\(\)/);
+  assert.match(script, /key\.setAttribute\("role", "group"\)/);
   assert.match(script, /Investigation rail colour key/);
   assert.match(css, /\.failure-trace-rail-key/);
   assert.match(css, /data-rail-state="active"/);
@@ -132,6 +133,7 @@ test("every investigation stage teaches its intended job before showing current 
   assert.match(script, /const STAGE_GUIDANCE = Object\.freeze/);
   assert.match(script, /function createStagePurpose\(stage\)/);
   assert.match(script, /WHAT THIS STAGE DOES/);
+  assert.match(script, /flow\.setAttribute\("role", "group"\)/);
   assert.match(script, /Failure context/);
   assert.match(script, /Atlas Twin relationships/);
   assert.match(script, /could-be-affected candidates/);
