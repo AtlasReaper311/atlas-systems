@@ -1,0 +1,1575 @@
+{
+  "schema_version": "atlas-motion/release-bundle/v3",
+  "repository": "AtlasReaper311/atlas-motion",
+  "release": {
+    "kind": "candidate",
+    "version": "0.3.0",
+    "tag": "v0.3.0",
+    "source_commit": "4894209b1fde44847e89a2c3f5dafa9d97153f16",
+    "source_tree": "6f7a28d58da1f601f2eaec9e9005ee56b8c17a35",
+    "tag_status": "not-created"
+  },
+  "compositions": [
+    {
+      "id": "EstateBoot",
+      "slug": "estate-boot",
+      "video_path": "out/estate-boot.mp4",
+      "sidecar_path": "out/estate-boot.render.json",
+      "still_paths": [
+        "out/validation/frame-000.png",
+        "out/validation/frame-225.png",
+        "out/validation/frame-449.png"
+      ],
+      "frame_md5_path": "reports/determinism/estate-boot.framemd5",
+      "ffprobe_path": "reports/render/estate-boot.ffprobe.json"
+    },
+    {
+      "id": "EvidenceChain",
+      "slug": "evidence-chain",
+      "video_path": "out/evidence-chain.mp4",
+      "sidecar_path": "out/evidence-chain.render.json",
+      "still_paths": [
+        "out/validation/evidence-chain/frame-000.png",
+        "out/validation/evidence-chain/frame-300.png",
+        "out/validation/evidence-chain/frame-599.png"
+      ],
+      "frame_md5_path": "reports/determinism/evidence-chain.framemd5",
+      "ffprobe_path": "reports/render/evidence-chain.ffprobe.json"
+    }
+  ],
+  "twin_impact": {
+    "composition": "TwinImpact",
+    "input_path": "input/twin-impact.motion-export.json",
+    "synthetic_fixture": {
+      "path": "source/data/twin/motion-export-v1.json",
+      "sha256": "1901eb8eeda61338edba8666c35cc8890e2cf770a454a60d195c1d8867264763"
+    },
+    "twin_export": {
+      "contract": "atlas-twin-motion-export/v1",
+      "twin_version": "1.1.0",
+      "producer": {
+        "repository": "AtlasReaper311/atlas-twin",
+        "contract": "atlas-twin-motion-export/v1",
+        "sourceCommit": "937ac6ab929085f8e8f162dd2344802d2617f3d9"
+      },
+      "input_sha256": "0ab51eb5a7ad1a7ff20188b5e6569e3620941c41ca46a05b753b2da863c55314",
+      "passport_fingerprint": "48b61a17e77f04b738dc4947e08f9f8eb70099ddd0b0420beb68262d623d65da",
+      "authority_pins": {
+        "atlas_api_public_commit": "8ff638f92cfc3a3ec5e2243ecb6464c964bd8e65",
+        "atlas_infra_commit": "de3b182eae9effe06753affa5dcff1945d87c1eb"
+      },
+      "subject": {
+        "base": "8ff638f92cfc3a3ec5e2243ecb6464c964bd8e65",
+        "changed_files_path": null,
+        "head": "02a0e6a7bfac66ea85cff536d0c89e6406abee5f",
+        "kind": "git_range",
+        "repository": "AtlasReaper311/atlas-api-public"
+      },
+      "selection": {
+        "edges": [
+          {
+            "confidence": "declared",
+            "edge_kind": "adr_affects",
+            "from": "adr:ADR-0002",
+            "to": "repo:AtlasReaper311/atlas-api-public"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "adr_affects",
+            "from": "adr:ADR-0003",
+            "to": "repo:AtlasReaper311/atlas-api-public"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "adr_affects",
+            "from": "adr:ADR-0004",
+            "to": "repo:AtlasReaper311/atlas-api-public"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "adr_affects",
+            "from": "adr:ADR-0007",
+            "to": "repo:AtlasReaper311/atlas-api-public"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "adr_affects",
+            "from": "adr:ADR-0008",
+            "to": "repo:AtlasReaper311/atlas-api-public"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "adr_affects",
+            "from": "adr:ADR-0009",
+            "to": "repo:AtlasReaper311/atlas-api-public"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "adr_affects",
+            "from": "adr:ADR-0010",
+            "to": "repo:AtlasReaper311/atlas-api-public"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "adr_affects",
+            "from": "adr:ADR-0012",
+            "to": "repo:AtlasReaper311/atlas-api-public"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:atlas-api-public",
+            "to": "component:atlas-api-index"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:atlas-api-public",
+            "to": "component:atlas-corpus"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:atlas-api-public",
+            "to": "component:github-pulse"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:atlas-api-public",
+            "to": "component:specular-sentinel"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:atlas-api-public",
+            "to": "component:specular-telemetry"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_feeds",
+            "from": "component:atlas-api-public",
+            "to": "feed:lab"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_feeds",
+            "from": "component:atlas-api-public",
+            "to": "feed:profile badge"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_feeds",
+            "from": "component:atlas-api-public",
+            "to": "feed:public API"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_feeds",
+            "from": "component:atlas-api-public",
+            "to": "feed:status"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:atlas-dep-audit",
+            "to": "component:atlas-api-public"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:atlas-dep-audit",
+            "to": "component:github"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:atlas-dep-audit",
+            "to": "component:osv"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_feeds",
+            "from": "component:atlas-dep-audit",
+            "to": "feed:supply-chain assurance"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:atlas-dora",
+            "to": "component:atlas-api-public"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:atlas-dora",
+            "to": "component:atlas-blackbox"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:atlas-dora",
+            "to": "component:atlas-notify"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:atlas-dora",
+            "to": "component:deploy-watch"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_feeds",
+            "from": "component:atlas-dora",
+            "to": "feed:delivery metrics"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_feeds",
+            "from": "component:atlas-dora",
+            "to": "feed:lab"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:atlas-journey-watch",
+            "to": "component:atlas-api-index"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:atlas-journey-watch",
+            "to": "component:atlas-api-public"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:atlas-journey-watch",
+            "to": "component:atlas-systems"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:atlas-journey-watch",
+            "to": "component:status"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_feeds",
+            "from": "component:atlas-journey-watch",
+            "to": "feed:synthetic journey evidence"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:atlas-systems",
+            "to": "component:atlas-api-public"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:atlas-systems",
+            "to": "component:deploy-watch"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:atlas-systems",
+            "to": "component:github-pulse"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:atlas-systems",
+            "to": "component:site-pulse"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_feeds",
+            "from": "component:atlas-systems",
+            "to": "feed:corpus"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_feeds",
+            "from": "component:atlas-systems",
+            "to": "feed:lab"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_feeds",
+            "from": "component:atlas-systems",
+            "to": "feed:portfolio"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_feeds",
+            "from": "component:atlas-systems",
+            "to": "feed:writing"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:status",
+            "to": "component:atlas-api-index"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "component:status",
+            "to": "component:atlas-api-public"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_feeds",
+            "from": "component:status",
+            "to": "feed:public status"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "manifest_depends_on",
+            "from": "repo:AtlasReaper311/atlas-api-public",
+            "to": "component:atlas-api-public"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "service_dependency",
+            "from": "service:atlas-api-public",
+            "to": "service:atlas-api-index"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "service_dependency",
+            "from": "service:atlas-api-public",
+            "to": "service:atlas-corpus"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "service_dependency",
+            "from": "service:atlas-api-public",
+            "to": "service:github-pulse"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "service_dependency",
+            "from": "service:atlas-api-public",
+            "to": "service:specular-sentinel"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "service_dependency",
+            "from": "service:atlas-api-public",
+            "to": "service:specular-telemetry"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "service_dependency",
+            "from": "service:atlas-dora",
+            "to": "service:atlas-blackbox"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "service_dependency",
+            "from": "service:atlas-dora",
+            "to": "service:atlas-notify"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "service_dependency",
+            "from": "service:atlas-dora",
+            "to": "service:deploy-watch"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "service_dependency",
+            "from": "service:atlas-systems",
+            "to": "service:atlas-api-public"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "service_dependency",
+            "from": "service:atlas-systems",
+            "to": "service:deploy-watch"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "service_dependency",
+            "from": "service:atlas-systems",
+            "to": "service:github-pulse"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "service_dependency",
+            "from": "service:atlas-systems",
+            "to": "service:site-pulse"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "service_dependency",
+            "from": "service:specular-sentinel",
+            "to": "service:atlas-api-public"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "service_dependency",
+            "from": "service:specular-sonify",
+            "to": "service:atlas-api-public"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "service_dependency",
+            "from": "service:status",
+            "to": "service:atlas-api-index"
+          },
+          {
+            "confidence": "declared",
+            "edge_kind": "service_dependency",
+            "from": "service:status",
+            "to": "service:atlas-api-public"
+          }
+        ],
+        "nodes": [
+          {
+            "id": "adr:ADR-0002",
+            "kind": "adr",
+            "label": "ADR-0002"
+          },
+          {
+            "id": "adr:ADR-0003",
+            "kind": "adr",
+            "label": "ADR-0003"
+          },
+          {
+            "id": "adr:ADR-0004",
+            "kind": "adr",
+            "label": "ADR-0004"
+          },
+          {
+            "id": "adr:ADR-0007",
+            "kind": "adr",
+            "label": "ADR-0007"
+          },
+          {
+            "id": "adr:ADR-0008",
+            "kind": "adr",
+            "label": "ADR-0008"
+          },
+          {
+            "id": "adr:ADR-0009",
+            "kind": "adr",
+            "label": "ADR-0009"
+          },
+          {
+            "id": "adr:ADR-0010",
+            "kind": "adr",
+            "label": "ADR-0010"
+          },
+          {
+            "id": "adr:ADR-0012",
+            "kind": "adr",
+            "label": "ADR-0012"
+          },
+          {
+            "id": "component:atlas-api-index",
+            "kind": "component",
+            "label": "atlas-api-index"
+          },
+          {
+            "id": "component:atlas-api-public",
+            "kind": "component",
+            "label": "atlas-api-public"
+          },
+          {
+            "id": "component:atlas-blackbox",
+            "kind": "component",
+            "label": "atlas-blackbox"
+          },
+          {
+            "id": "component:atlas-corpus",
+            "kind": "component",
+            "label": "atlas-corpus"
+          },
+          {
+            "id": "component:atlas-dep-audit",
+            "kind": "component",
+            "label": "atlas-dep-audit"
+          },
+          {
+            "id": "component:atlas-dora",
+            "kind": "component",
+            "label": "atlas-dora"
+          },
+          {
+            "id": "component:atlas-journey-watch",
+            "kind": "component",
+            "label": "atlas-journey-watch"
+          },
+          {
+            "id": "component:atlas-notify",
+            "kind": "component",
+            "label": "atlas-notify"
+          },
+          {
+            "id": "component:atlas-systems",
+            "kind": "component",
+            "label": "atlas-systems"
+          },
+          {
+            "id": "component:deploy-watch",
+            "kind": "component",
+            "label": "deploy-watch"
+          },
+          {
+            "id": "component:github",
+            "kind": "component",
+            "label": "github"
+          },
+          {
+            "id": "component:github-pulse",
+            "kind": "component",
+            "label": "github-pulse"
+          },
+          {
+            "id": "component:osv",
+            "kind": "component",
+            "label": "osv"
+          },
+          {
+            "id": "component:site-pulse",
+            "kind": "component",
+            "label": "site-pulse"
+          },
+          {
+            "id": "component:specular-sentinel",
+            "kind": "component",
+            "label": "specular-sentinel"
+          },
+          {
+            "id": "component:specular-telemetry",
+            "kind": "component",
+            "label": "specular-telemetry"
+          },
+          {
+            "id": "component:status",
+            "kind": "component",
+            "label": "status"
+          },
+          {
+            "id": "feed:corpus",
+            "kind": "component",
+            "label": "corpus"
+          },
+          {
+            "id": "feed:delivery metrics",
+            "kind": "component",
+            "label": "delivery metrics"
+          },
+          {
+            "id": "feed:lab",
+            "kind": "component",
+            "label": "lab"
+          },
+          {
+            "id": "feed:portfolio",
+            "kind": "component",
+            "label": "portfolio"
+          },
+          {
+            "id": "feed:profile badge",
+            "kind": "component",
+            "label": "profile badge"
+          },
+          {
+            "id": "feed:public API",
+            "kind": "component",
+            "label": "public API"
+          },
+          {
+            "id": "feed:public status",
+            "kind": "component",
+            "label": "public status"
+          },
+          {
+            "id": "feed:status",
+            "kind": "component",
+            "label": "status"
+          },
+          {
+            "id": "feed:supply-chain assurance",
+            "kind": "component",
+            "label": "supply-chain assurance"
+          },
+          {
+            "id": "feed:synthetic journey evidence",
+            "kind": "component",
+            "label": "synthetic journey evidence"
+          },
+          {
+            "id": "feed:writing",
+            "kind": "component",
+            "label": "writing"
+          },
+          {
+            "id": "repo:AtlasReaper311/atlas-api-public",
+            "kind": "repository",
+            "label": "AtlasReaper311/atlas-api-public"
+          },
+          {
+            "id": "service:atlas-api-index",
+            "kind": "service",
+            "label": "atlas-api-index"
+          },
+          {
+            "id": "service:atlas-api-public",
+            "kind": "service",
+            "label": "atlas-api-public"
+          },
+          {
+            "id": "service:atlas-blackbox",
+            "kind": "service",
+            "label": "atlas-blackbox"
+          },
+          {
+            "id": "service:atlas-corpus",
+            "kind": "service",
+            "label": "atlas-corpus"
+          },
+          {
+            "id": "service:atlas-dora",
+            "kind": "service",
+            "label": "atlas-dora"
+          },
+          {
+            "id": "service:atlas-notify",
+            "kind": "service",
+            "label": "atlas-notify"
+          },
+          {
+            "id": "service:atlas-systems",
+            "kind": "service",
+            "label": "atlas-systems"
+          },
+          {
+            "id": "service:deploy-watch",
+            "kind": "service",
+            "label": "deploy-watch"
+          },
+          {
+            "id": "service:github-pulse",
+            "kind": "service",
+            "label": "github-pulse"
+          },
+          {
+            "id": "service:site-pulse",
+            "kind": "service",
+            "label": "site-pulse"
+          },
+          {
+            "id": "service:specular-sentinel",
+            "kind": "service",
+            "label": "specular-sentinel"
+          },
+          {
+            "id": "service:specular-sonify",
+            "kind": "service",
+            "label": "specular-sonify"
+          },
+          {
+            "id": "service:specular-telemetry",
+            "kind": "service",
+            "label": "specular-telemetry"
+          },
+          {
+            "id": "service:status",
+            "kind": "service",
+            "label": "status"
+          }
+        ]
+      },
+      "evidence_summary": [
+        "matched 8 ADR relationship(s)",
+        "change classes: contract, documentation, runtime",
+        "resolved 5 changed path(s)",
+        "change_impact risk level is high",
+        "matched 4 service contract(s)",
+        "Deployment boundary remains unknown because Stage 1 cannot observe deployment state",
+        "Live rollout boundary remains unknown because Stage 1 offline mode cannot determine whether the subject change requires live rollout",
+        "GitHub pull-request metadata is unavailable in Stage 1 offline mode",
+        "Live rollout observation is unavailable in Stage 1 offline mode",
+        "Private repository overlays are disabled by public_plane_only"
+      ],
+      "limitations": [
+        "Source review of the subject repository remains required",
+        "GitHub PR/check state is unavailable offline",
+        "Deployment necessity is not observed in Stage 1",
+        "Stage 1 offline mode cannot determine whether the subject change requires live rollout"
+      ],
+      "does_not_claim": [
+        "GitHub pull-request metadata is unavailable in Stage 1 offline mode",
+        "Live rollout observation is unavailable in Stage 1 offline mode",
+        "Private repository overlays are disabled by public_plane_only"
+      ]
+    },
+    "selected_presets": [
+      "landscape",
+      "poster-social"
+    ],
+    "targets": [
+      {
+        "composition": "TwinImpact",
+        "preset": "landscape",
+        "preset_identity": "atlas-motion/preset/landscape/v1",
+        "layout": "twin-impact/landscape",
+        "render_identity": "atlas-motion/render/twin-impact/landscape/v1",
+        "output_kind": "video",
+        "video_path": "out/twin-impact/landscape.mp4",
+        "sidecar_path": "out/twin-impact/landscape.render.json",
+        "ffprobe_path": "out/twin-impact/landscape.ffprobe.json",
+        "frame_md5_path": "out/twin-impact/landscape.framemd5"
+      },
+      {
+        "composition": "TwinImpact",
+        "preset": "poster-social",
+        "preset_identity": "atlas-motion/preset/poster-social/v1",
+        "layout": "twin-impact/poster-social",
+        "render_identity": "atlas-motion/render/twin-impact/poster-social/v1",
+        "output_kind": "still",
+        "still_path": "out/twin-impact/poster-social.png",
+        "sidecar_path": "out/twin-impact/poster-social.render.json"
+      }
+    ]
+  },
+  "member_count": 137,
+  "members": [
+    {
+      "path": "input/twin-impact.motion-export.json",
+      "kind": "twin-input",
+      "bytes": 18145,
+      "sha256": "0ab51eb5a7ad1a7ff20188b5e6569e3620941c41ca46a05b753b2da863c55314"
+    },
+    {
+      "path": "out/estate-boot.mp4",
+      "kind": "render-evidence",
+      "bytes": 1118108,
+      "sha256": "1e5bddcb588a3da64ead8080013dd803702ccba70b02fc55ef1ae57aef9a10ae"
+    },
+    {
+      "path": "out/estate-boot.render.json",
+      "kind": "render-evidence",
+      "bytes": 7088,
+      "sha256": "5665dbf9e2e5f2ae7c99133ee97c65c022bfd0afdfdd865a6fbf44d129172236"
+    },
+    {
+      "path": "out/evidence-chain.mp4",
+      "kind": "render-evidence",
+      "bytes": 862713,
+      "sha256": "818018bafafb1319fc9a98d34412d40d5ffa3ad6deb7780e608be00a654a91f8"
+    },
+    {
+      "path": "out/evidence-chain.render.json",
+      "kind": "render-evidence",
+      "bytes": 6845,
+      "sha256": "36369e881628a8bc4c324c3a949e604e95da38fd35c0961b5b84b0fa20707e0b"
+    },
+    {
+      "path": "out/twin-impact/landscape.ffprobe.json",
+      "kind": "render-evidence",
+      "bytes": 2197,
+      "sha256": "76d288f0e88ea63ade697427433b18ecfd121f599e4cbe0c936dce1a269f1b68"
+    },
+    {
+      "path": "out/twin-impact/landscape.framemd5",
+      "kind": "render-evidence",
+      "bytes": 43417,
+      "sha256": "8ea723cc8340c2ce9e1765360d2c55020ed8d33373fef0f1c73efee86affa542"
+    },
+    {
+      "path": "out/twin-impact/landscape.mp4",
+      "kind": "render-evidence",
+      "bytes": 1708031,
+      "sha256": "dd916eddd91b8ef9979024ca13d3538082fe067aad20635f3525a773cdecc2ab"
+    },
+    {
+      "path": "out/twin-impact/landscape.render.json",
+      "kind": "render-evidence",
+      "bytes": 26105,
+      "sha256": "4758a086cd2f3ac346c7c4335266dc3f59ad2cfb1477811b9228ff1746927aa3"
+    },
+    {
+      "path": "out/twin-impact/poster-social.png",
+      "kind": "render-evidence",
+      "bytes": 277570,
+      "sha256": "ec1c5fa23688681a517fe3e9cdef4a56f535759e3dbcb1916adef0f5bd5e9ae3"
+    },
+    {
+      "path": "out/twin-impact/poster-social.render.json",
+      "kind": "render-evidence",
+      "bytes": 23133,
+      "sha256": "a8f1b63ec5166b8509f99396dd80f2da83d7d9550757d69f7b9e4b6c2a250672"
+    },
+    {
+      "path": "out/validation/evidence-chain/frame-000.png",
+      "kind": "render-evidence",
+      "bytes": 1082836,
+      "sha256": "4bfc4e5963f78bf265ce3377e1e6f56ea69cdf9852b5033d517ba61ed34399ee"
+    },
+    {
+      "path": "out/validation/evidence-chain/frame-300.png",
+      "kind": "render-evidence",
+      "bytes": 985962,
+      "sha256": "1090b03ea35d43109a052a030d78ecf905c57d57de8b84eb025fc0a1c513df42"
+    },
+    {
+      "path": "out/validation/evidence-chain/frame-599.png",
+      "kind": "render-evidence",
+      "bytes": 868170,
+      "sha256": "96075e7360fed46d0549108d31ca8671cf8644f6e09d64bd1e93ffc757da9b90"
+    },
+    {
+      "path": "out/validation/frame-000.png",
+      "kind": "render-evidence",
+      "bytes": 1009596,
+      "sha256": "bedbe655157ed8cf34d3bcaee521ca837d8b1738898cd46ed0f92bf775a4e0e9"
+    },
+    {
+      "path": "out/validation/frame-225.png",
+      "kind": "render-evidence",
+      "bytes": 926745,
+      "sha256": "abacab495e33d0e4ae13e46fd762b49a0354540005ad4dc2398e39a1c8211b15"
+    },
+    {
+      "path": "out/validation/frame-449.png",
+      "kind": "render-evidence",
+      "bytes": 1127185,
+      "sha256": "1a5a7fa5ffa3ce4a4bdad46a40992baa50b357e46e618c5af37fef6f32c93159"
+    },
+    {
+      "path": "reports/determinism/estate-boot.framemd5",
+      "kind": "render-evidence",
+      "bytes": 36217,
+      "sha256": "2a6b335163b70ae54f7184b1b8b3b5740ca147bf3b055d23940f2192ecae1de5"
+    },
+    {
+      "path": "reports/determinism/evidence-chain.framemd5",
+      "kind": "render-evidence",
+      "bytes": 48217,
+      "sha256": "326add8182723359dac2e57b7e08c70141ce42318ab057ca078356ab9bf5a748"
+    },
+    {
+      "path": "reports/render/estate-boot.ffprobe.json",
+      "kind": "render-evidence",
+      "bytes": 2187,
+      "sha256": "55672e08af1eb77cb8589abf6ee93bff7ab811eb60fe4824f1726f941dc635f5"
+    },
+    {
+      "path": "reports/render/evidence-chain.ffprobe.json",
+      "kind": "render-evidence",
+      "bytes": 2189,
+      "sha256": "9b55ee517e41404fffb7b9e355b186a40c2105e96cb9f22ebad02f2362243ed3"
+    },
+    {
+      "path": "source/.atlas/governance.json",
+      "kind": "source",
+      "bytes": 344,
+      "sha256": "7309a9c97cb5465015d64168d66cc80cd0c6d5d8c0e30ec4005532f213cf57ad"
+    },
+    {
+      "path": "source/.github/workflows/ci.yml",
+      "kind": "source",
+      "bytes": 2845,
+      "sha256": "3a30701c40cded32e90a5e26a7da10d582e27d93573d2afa952ee82f2513b52f"
+    },
+    {
+      "path": "source/.nvmrc",
+      "kind": "source",
+      "bytes": 8,
+      "sha256": "9c579c4eab1d526e689fe7cda201a0ab2f39070304043bb55c459a3d90954250"
+    },
+    {
+      "path": "source/LICENSE",
+      "kind": "source",
+      "bytes": 1069,
+      "sha256": "7aa46253891e42b4d1abe7ed4bfe2759560b7645c6d09ffad142ab8d7e7d6391"
+    },
+    {
+      "path": "source/README.md",
+      "kind": "source",
+      "bytes": 11038,
+      "sha256": "f93b1f88268d6895225c2957b6fb1575326adda52c6dfc46795cc9999886c6d4"
+    },
+    {
+      "path": "source/config/composition.json",
+      "kind": "source",
+      "bytes": 5031,
+      "sha256": "1ac920c6e1189b820913bef435b3388428802a684145970fb6411ce4dcbe1886"
+    },
+    {
+      "path": "source/config/debug-props.json",
+      "kind": "source",
+      "bytes": 81,
+      "sha256": "e7becb83ea6ba8f25704a4dc4f519272d172bf1a2bcefa0e447baca2b7455c47"
+    },
+    {
+      "path": "source/config/preset-registry.json",
+      "kind": "source",
+      "bytes": 10837,
+      "sha256": "9093203f9b0a3da3ecddb85bee540317671ff2e6f8f5d30ff6206e7c7e7f9029"
+    },
+    {
+      "path": "source/config/production-props.json",
+      "kind": "source",
+      "bytes": 82,
+      "sha256": "ec0b2736a042fb529323243c90ee159607460e6ecc1501526af461c2bc73858f"
+    },
+    {
+      "path": "source/data/evidence/evidence-chain-v0.json",
+      "kind": "source",
+      "bytes": 3776,
+      "sha256": "80a5956d16ad513c2292f3ef60fba035c2edfa41488b5753be12d6655d5bbb14"
+    },
+    {
+      "path": "source/data/schema/atlas-twin-motion-export.v1.schema.json",
+      "kind": "source",
+      "bytes": 2806,
+      "sha256": "392caf2e3ca9914590cc6f25be37a0d866596a1fb0e0c6f4f1952cafde9163e3"
+    },
+    {
+      "path": "source/data/schema/composition-registry.schema.json",
+      "kind": "source",
+      "bytes": 5375,
+      "sha256": "b34d81170b23f7f79f048de8332fd35c6bee590db822e3738e91e1a2cd00c2dd"
+    },
+    {
+      "path": "source/data/schema/estate-boot-snapshot.schema.json",
+      "kind": "source",
+      "bytes": 2660,
+      "sha256": "f0094c82d2f48edec8ab93290f18a6bc2632ec8c4aa613cdb47f7388eabcff7f"
+    },
+    {
+      "path": "source/data/schema/evidence-chain-input.schema.json",
+      "kind": "source",
+      "bytes": 3543,
+      "sha256": "5cb9568cc622f852ec5db76c85e9b361837a4901c15a7398e137654b12bda00e"
+    },
+    {
+      "path": "source/data/schema/motion-release-bundle.schema.json",
+      "kind": "source",
+      "bytes": 7318,
+      "sha256": "5e5569ab82bcc0e89e8f92c4b9dd2070094db6e93a973955a54741e7e9b6456a"
+    },
+    {
+      "path": "source/data/schema/motion-release-bundle.v2.schema.json",
+      "kind": "source",
+      "bytes": 3052,
+      "sha256": "045e74a8f950bddc3bd37558a9d427feaae95ac724827b7efca0f95a5c0f819f"
+    },
+    {
+      "path": "source/data/schema/preset-registry.schema.json",
+      "kind": "source",
+      "bytes": 4974,
+      "sha256": "2545cda1d09ce547fce3e369c6e32931a184194990cbf762696c31fbc7ea51b0"
+    },
+    {
+      "path": "source/data/snapshots/estate-boot-v0.json",
+      "kind": "source",
+      "bytes": 6057,
+      "sha256": "3f7ed747a9ea19cfcb24cb6765ea1e68d1401cc19f1824c1c5e5180060c16f60"
+    },
+    {
+      "path": "source/data/twin/motion-export-v1.json",
+      "kind": "source",
+      "bytes": 1046,
+      "sha256": "1901eb8eeda61338edba8666c35cc8890e2cf770a454a60d195c1d8867264763"
+    },
+    {
+      "path": "source/docs/DATA-CONTRACT.md",
+      "kind": "source",
+      "bytes": 5157,
+      "sha256": "3113f4e9ffe7bfae65afccb1931addcacd305d5b11477e62dc9ceba5d91a0990"
+    },
+    {
+      "path": "source/docs/DEPENDENCY-DECISIONS.md",
+      "kind": "source",
+      "bytes": 1148,
+      "sha256": "8481c61afc3bc9a49e0cbba7abe9109acedd4033c09472ebf113f9fca0f86c71"
+    },
+    {
+      "path": "source/docs/MOTION-BRIEF.md",
+      "kind": "source",
+      "bytes": 1143,
+      "sha256": "928b60cd68ef4cb1730ec204c8b4581f6c644eb8f325f05d26a72ad6977fca34"
+    },
+    {
+      "path": "source/docs/NARRATIVE-CONTRACT.md",
+      "kind": "source",
+      "bytes": 2239,
+      "sha256": "89f97e0bfecd9d3046976be7ad87cb172a5467cacc61288ffa4ff93661a9d84d"
+    },
+    {
+      "path": "source/docs/RELEASE-CONTRACT.md",
+      "kind": "source",
+      "bytes": 4462,
+      "sha256": "ca245b6bbbd68659ab265e39d01bf701925191bb4ca0837dd8c38b51b74b4bf3"
+    },
+    {
+      "path": "source/docs/RENDER-CONTRACT.md",
+      "kind": "source",
+      "bytes": 5360,
+      "sha256": "d0bb26628165d672e406e6ac1bc2c3064e40f68b60e83c1fa12aad2f9b2318c0"
+    },
+    {
+      "path": "source/docs/TWIN-MOTION-CONTRACT.md",
+      "kind": "source",
+      "bytes": 2723,
+      "sha256": "a0e668b04dfe024563d0ab67bd64c2e8fbcb6f5de9beefd0a04775701a828c7b"
+    },
+    {
+      "path": "source/docs/VISUAL-MOTION-CONTRACT.md",
+      "kind": "source",
+      "bytes": 2100,
+      "sha256": "a777f9d4ff4f0ce4f0f52f5829b2247a0344cbcae514a9fe7d89919a3f490b29"
+    },
+    {
+      "path": "source/eslint.config.mjs",
+      "kind": "source",
+      "bytes": 813,
+      "sha256": "9ec6ef372db831b8802c1be1f345ea4b7072ad5fc15cb431c15b94b620d5a4a2"
+    },
+    {
+      "path": "source/package-lock.json",
+      "kind": "source",
+      "bytes": 216603,
+      "sha256": "8f2c3038cbd54619f7355a520418abe62a54bc7496e83303230fdca7723b18d3"
+    },
+    {
+      "path": "source/package.json",
+      "kind": "source",
+      "bytes": 1856,
+      "sha256": "40ce32a9e128101aa6c729b2cf750a73cc151c4a08c90de395400a533381bb0e"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/atlas-fonts.css",
+      "kind": "source",
+      "bytes": 1555,
+      "sha256": "1539e39908d5ffd447c4f976a36dc5aa0085f5daf15b967734fb24ec1a7251ce"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/atlas-interface-kit.css",
+      "kind": "source",
+      "bytes": 14978,
+      "sha256": "bfe09e432d87595bbc39d68f493882677e127512ce0d41993296481ea6969cce"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/components.json",
+      "kind": "source",
+      "bytes": 2958,
+      "sha256": "f009e7c42510ff7c3dd700afc636439c1b9bfd80a552c1d8d8c116ae7b95b7d2"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/fonts/dm-serif-display-400-italic.woff2",
+      "kind": "source",
+      "bytes": 24572,
+      "sha256": "ed8b291611e32fa2d2900488dd48fc95faf0957b2ef7ddf1527e8d21dd9cf2df"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/fonts/dm-serif-display-400.woff2",
+      "kind": "source",
+      "bytes": 24744,
+      "sha256": "fdf61e20fd2c0108e0ea28da4daca0035205b4b7fc031a3974b865b704de160a"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/fonts/ibm-plex-mono-400.woff2",
+      "kind": "source",
+      "bytes": 14708,
+      "sha256": "08949f728dc52d528e69b1667d15c89a5686a4ee9a296ff90983985f99c380f7"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/fonts/ibm-plex-mono-500.woff2",
+      "kind": "source",
+      "bytes": 14888,
+      "sha256": "01d285447409c8a588692162439a038b8cbd7871309ee20267b0d2d91c6e8e22"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/licenses/DM-Serif-Display-OFL.txt",
+      "kind": "source",
+      "bytes": 4605,
+      "sha256": "a3e5cdd67d4571dd0a24fcc968de0efde7ae97ef752daf0906e4767619dd7231"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/licenses/IBM-Plex-Mono-OFL.txt",
+      "kind": "source",
+      "bytes": 4456,
+      "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/manifest.json",
+      "kind": "source",
+      "bytes": 1931,
+      "sha256": "b809197182dab4fb531bc6be269daef4f63fbb46fd97554ad0906a700226f4f0"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/semantics.json",
+      "kind": "source",
+      "bytes": 5999,
+      "sha256": "c7233973fbd06b02809acb9269df1b9e313de20e1fbe179cc511c3ddac381ead"
+    },
+    {
+      "path": "source/public/vendor/atlas-interface-kit/0.4.0/dist/tokens.json",
+      "kind": "source",
+      "bytes": 1735,
+      "sha256": "10f0a9a8b151b9c6e8a85db01e3b2421e25ca79713c0198f6ccd36d350b2ed02"
+    },
+    {
+      "path": "source/remotion.config.ts",
+      "kind": "source",
+      "bytes": 114,
+      "sha256": "736c150a9bf154ddce17520b7c24ee5c60c8d3dd387a58c206b43a37f3c14869"
+    },
+    {
+      "path": "source/scripts/build-release-bundle.mjs",
+      "kind": "source",
+      "bytes": 1815,
+      "sha256": "71a2c0a4ed0860e2bbc8cbd7c32cfeee91353da8b82cadf1d22afecf4c9b84d8"
+    },
+    {
+      "path": "source/scripts/capture-estate-snapshot.mjs",
+      "kind": "source",
+      "bytes": 712,
+      "sha256": "18a61cd7e8db5f511b1681c49042ee9952d022dc338e3fe7c9c767e85a5392e1"
+    },
+    {
+      "path": "source/scripts/check-composition-metadata.mjs",
+      "kind": "source",
+      "bytes": 643,
+      "sha256": "0d37d404b0b236d177be367fd80982c9b5168b9cc70acb0250e1a0b0103a4203"
+    },
+    {
+      "path": "source/scripts/check-remotion-versions.mjs",
+      "kind": "source",
+      "bytes": 1154,
+      "sha256": "a30d19bbb71cb9a5f85cad30b9959ff357ebb517f2f24b67adc7a6fc2bcd7b94"
+    },
+    {
+      "path": "source/scripts/check-source-network.mjs",
+      "kind": "source",
+      "bytes": 1149,
+      "sha256": "ab665055de8108785d0a98609519f7087e4912f7629133993fa4f8f28de0ce9e"
+    },
+    {
+      "path": "source/scripts/composition-values.mjs",
+      "kind": "source",
+      "bytes": 1087,
+      "sha256": "cc7366f949ac4377a83053326b02827a945054af4a02b83f3dfbb1fe5a62494d"
+    },
+    {
+      "path": "source/scripts/lib/capture-estate-snapshot.mjs",
+      "kind": "source",
+      "bytes": 6117,
+      "sha256": "85a2bf2c33491cf52e9c975d573416315d3a810718ce2967bedaae2e37ef237f"
+    },
+    {
+      "path": "source/scripts/lib/composition-registry.mjs",
+      "kind": "source",
+      "bytes": 8670,
+      "sha256": "3e7423635ff55344ab671ce79fea647b7225efe9e2b010b466ca77fef6272440"
+    },
+    {
+      "path": "source/scripts/lib/evidence-chain.mjs",
+      "kind": "source",
+      "bytes": 1628,
+      "sha256": "1d5853db693cd6f5255d2ffafc2711eb31504d5f415616852dbe4a9b25b65392"
+    },
+    {
+      "path": "source/scripts/lib/preset-registry.mjs",
+      "kind": "source",
+      "bytes": 4951,
+      "sha256": "08f48d1e26c0bbb26a9bf722978e01c0fc1d90ae2726bcb57edaac0c5ff667fa"
+    },
+    {
+      "path": "source/scripts/lib/release-bundle.mjs",
+      "kind": "source",
+      "bytes": 36543,
+      "sha256": "da5500e7ea9b6dc7a90ac99df3f47a9c49193bab30ff2268f07e175593c10ca5"
+    },
+    {
+      "path": "source/scripts/lib/render-sidecar.mjs",
+      "kind": "source",
+      "bytes": 16753,
+      "sha256": "7b674ea528146f2e3a1dbce7f3ef99767dd08bf7246d90dd64567f97355660dc"
+    },
+    {
+      "path": "source/scripts/lib/targeted-render.mjs",
+      "kind": "source",
+      "bytes": 14314,
+      "sha256": "bce8aafc5c1b26c6755859b27c6cc8509050cf7962ae51d8450076e9d7ec3ac2"
+    },
+    {
+      "path": "source/scripts/lib/twin-motion-export.mjs",
+      "kind": "source",
+      "bytes": 3248,
+      "sha256": "6eb16abea7ee2f6567a888208bae9abd419ce5c7fee3bdc9183c90a39480d244"
+    },
+    {
+      "path": "source/scripts/list-compositions.mjs",
+      "kind": "source",
+      "bytes": 247,
+      "sha256": "ce14eda34180ae64485049795ca03ed00c91935eafb48027dcd3d1cd8bac42da"
+    },
+    {
+      "path": "source/scripts/list-render-targets.mjs",
+      "kind": "source",
+      "bytes": 239,
+      "sha256": "a2b47d395bf9f6a35361df83497ad0d922de34871b752b4fae511cb625ff5260"
+    },
+    {
+      "path": "source/scripts/print-render-digests.mjs",
+      "kind": "source",
+      "bytes": 612,
+      "sha256": "f6415d96402357c06e55a0b1e3f48786eca7dbbd1e1c442a436c4f9b75e05d76"
+    },
+    {
+      "path": "source/scripts/render-twin-impact.mjs",
+      "kind": "source",
+      "bytes": 7808,
+      "sha256": "54cd68e1076ce29056c67d1d478fabca92e537e5f224b743692ba4da721f5b50"
+    },
+    {
+      "path": "source/scripts/render-validation.sh",
+      "kind": "source",
+      "bytes": 5684,
+      "sha256": "8e03a40e19070a6b76e7eb9c8f891a358b5609b7ba8383e2876f38f7472c1e34"
+    },
+    {
+      "path": "source/scripts/validate-format-matrix.mjs",
+      "kind": "source",
+      "bytes": 6032,
+      "sha256": "015bea0f7aaaa19eea54ad28dbc1d88868ab6635384ae23ee7a4f4c5dff6cb38"
+    },
+    {
+      "path": "source/scripts/validate-governance.mjs",
+      "kind": "source",
+      "bytes": 707,
+      "sha256": "11e57f30444b56571498ac6784ea9968d604e0149e0110eed215a2ae4e442183"
+    },
+    {
+      "path": "source/scripts/validate-media.mjs",
+      "kind": "source",
+      "bytes": 2068,
+      "sha256": "d63cea04d7b5588e7f702a60ee7c3e6bafc9e44c26b9e639e1b93fbdcf318e0b"
+    },
+    {
+      "path": "source/scripts/validate-release-bundle.mjs",
+      "kind": "source",
+      "bytes": 1644,
+      "sha256": "781023ccd5da882903bf5e2d3c6e4a6b5b384d8ae1e588d52f73176312c50a32"
+    },
+    {
+      "path": "source/scripts/validate-render-sidecar.mjs",
+      "kind": "source",
+      "bytes": 1168,
+      "sha256": "2bf441ee6c9fc6afbc2c99455f18d2d41a527a4877921c78fe34ed2e6ae7ff04"
+    },
+    {
+      "path": "source/scripts/validate-snapshot.mjs",
+      "kind": "source",
+      "bytes": 2781,
+      "sha256": "be5b663a524078d37b1dc2b60e39829c99554c1d67645d6afa490d4f6f50a9d0"
+    },
+    {
+      "path": "source/scripts/validate.sh",
+      "kind": "source",
+      "bytes": 340,
+      "sha256": "36516d7dc472bba6b46ca79441e3fc16f50a456ece446ea43aff8461ccb51c52"
+    },
+    {
+      "path": "source/scripts/verify-interface-kit.mjs",
+      "kind": "source",
+      "bytes": 3375,
+      "sha256": "f6dbd324c58447c320832f762bc6d5805fe3229a2805079fe0230db9a61431f7"
+    },
+    {
+      "path": "source/scripts/write-render-sidecar.mjs",
+      "kind": "source",
+      "bytes": 1630,
+      "sha256": "91dcb0cb3e4b705c5d07ec228762cf530e3b075f28a8320fae2fc8a06b415f5b"
+    },
+    {
+      "path": "source/src/Root.tsx",
+      "kind": "source",
+      "bytes": 780,
+      "sha256": "94c3e6850bbdc3b7da807cbf48ac9f0c7029432d3dce32af75258eeaeb2fcfce"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/DebugOverlay.tsx",
+      "kind": "source",
+      "bytes": 3029,
+      "sha256": "fdceead162d4328917056f216f965559c70f374c56c376a53d37673d8c602eb9"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/EstateBoot.tsx",
+      "kind": "source",
+      "bytes": 7135,
+      "sha256": "44e6294482d56e969f606f23fadecdc382a7c08aa807db1f25c65ad20e812908"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/EvidencePanel.tsx",
+      "kind": "source",
+      "bytes": 2504,
+      "sha256": "4cc0da324f891c44be00438e9f338ff30e8c58b61ef6c35dc1e334f59bc6b8f8"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/OrthogonalEdge.tsx",
+      "kind": "source",
+      "bytes": 2039,
+      "sha256": "9bff89888c3e0bf4a493735d7fb2b0e7c614617d8c6091c97f4346ea944c2303"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/TerminalPrompt.tsx",
+      "kind": "source",
+      "bytes": 1151,
+      "sha256": "375507f974574acb04b59562e42d39825fbe56101150a5f3fdb86d9a51d9cd98"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/TopologyNode.tsx",
+      "kind": "source",
+      "bytes": 3524,
+      "sha256": "a2b1beed4d088cca8451a860772ee362d8039c74fadbd359c471950441c143e3"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/Wordmark.tsx",
+      "kind": "source",
+      "bytes": 467,
+      "sha256": "d4cb8db3a297bc47b783cb5973e5ef45face9f56f6929ae6d15c8b1313e0d879"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/contracts.ts",
+      "kind": "source",
+      "bytes": 1387,
+      "sha256": "db037e8235bbd343d7328aed3f4f997a99feadea62a0b4320719b0c31f00f951"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/fonts-data.generated.ts",
+      "kind": "source",
+      "bytes": 72826,
+      "sha256": "2f5bb7d9dadb88d317581ca82924e643f22646296ab88c875a43df20cd5cbfe7"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/fonts.ts",
+      "kind": "source",
+      "bytes": 1143,
+      "sha256": "32df295ec5f21f12e74903387c837789088d37568b175826a8873522cc43b10d"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/layout.ts",
+      "kind": "source",
+      "bytes": 9367,
+      "sha256": "bbf241469f2162f489f6d71af4219b3c7e178c758b7d5d69a350c5264fd2ce7f"
+    },
+    {
+      "path": "source/src/compositions/estate-boot/timing.ts",
+      "kind": "source",
+      "bytes": 912,
+      "sha256": "d60efe8fe7f226117b63cb072d7e36232880e70e2fba48b54f30d2b8efa6aa30"
+    },
+    {
+      "path": "source/src/compositions/evidence-chain/EvidenceChain.tsx",
+      "kind": "source",
+      "bytes": 10766,
+      "sha256": "62dc88fdad8940b31662771150877b6d29b70c8d4d6ab2b38aa080c0ef7efe93"
+    },
+    {
+      "path": "source/src/compositions/evidence-chain/contracts.ts",
+      "kind": "source",
+      "bytes": 973,
+      "sha256": "86a112c0a57882a892befc0242ff4291fb29afda3aa31b4514c43ed64b527861"
+    },
+    {
+      "path": "source/src/compositions/evidence-chain/layout.ts",
+      "kind": "source",
+      "bytes": 7938,
+      "sha256": "1f768db00228995e11a5f5cafc3ad8ffef7fc46b65ae9fee00777a693c629102"
+    },
+    {
+      "path": "source/src/compositions/evidence-chain/timing.ts",
+      "kind": "source",
+      "bytes": 462,
+      "sha256": "aa9ca1a71dc0f88042dd2c628b62df9d34d27663e8581eec77c497922bb4c275"
+    },
+    {
+      "path": "source/src/compositions/registry.ts",
+      "kind": "source",
+      "bytes": 2302,
+      "sha256": "f529d3de961d2abe15d9e52d290bff39c3281b62592bccc62840861c4838178e"
+    },
+    {
+      "path": "source/src/compositions/twin-impact/TwinImpact.tsx",
+      "kind": "source",
+      "bytes": 28863,
+      "sha256": "ac50d2716a44edcd87a8efc699e6be6274b5268692826d2e4324c817d92246d2"
+    },
+    {
+      "path": "source/src/compositions/twin-impact/contracts.ts",
+      "kind": "source",
+      "bytes": 783,
+      "sha256": "f22ab842feaff83e5ea5c99790c8bb483b328c7c646bda37ef3753e8b2e84903"
+    },
+    {
+      "path": "source/src/compositions/twin-impact/layout.ts",
+      "kind": "source",
+      "bytes": 4445,
+      "sha256": "53379747a435b296418352221704fa0a5f1e7dd6afcf2a0f70b11ab6f2875ec2"
+    },
+    {
+      "path": "source/src/compositions/twin-impact/presentation.ts",
+      "kind": "source",
+      "bytes": 7603,
+      "sha256": "edf0a6bb4b856762b223a914765cb5016bbcd4ad90535f29b3f31aa9e59a007b"
+    },
+    {
+      "path": "source/src/compositions/twin-impact/timing.ts",
+      "kind": "source",
+      "bytes": 523,
+      "sha256": "14f0d0960dc06dd31e9744f9fbbdd37a352e68331eb7da79a69ef5df01360467"
+    },
+    {
+      "path": "source/src/compositions/types.ts",
+      "kind": "source",
+      "bytes": 297,
+      "sha256": "ae61d0d4c2f0c6a2b6c6d30403b7ed0359b9d2437e0c1eac8965cc409f8abaeb"
+    },
+    {
+      "path": "source/src/design/tokens.generated.ts",
+      "kind": "source",
+      "bytes": 1833,
+      "sha256": "cfe95fd21cd4f8339d8a864e18ef3c0381fe304239f01afb616cc8204006cabf"
+    },
+    {
+      "path": "source/src/index.ts",
+      "kind": "source",
+      "bytes": 105,
+      "sha256": "855e23f5a7473a90b919295047a8b2a81e9634b68a9893dbb3b7dae377e4687d"
+    },
+    {
+      "path": "source/tests/capture-refusal.test.ts",
+      "kind": "source",
+      "bytes": 2849,
+      "sha256": "26a5270f3a9e3a69b94fbe17400fd9dc42d716ec2c0d9c77c3fda40262478749"
+    },
+    {
+      "path": "source/tests/composition-contract.test.ts",
+      "kind": "source",
+      "bytes": 2698,
+      "sha256": "6881533cdde232f58f30c84e0f393826c1c1ca21ac532ecd747b35056150da38"
+    },
+    {
+      "path": "source/tests/composition-registry.test.ts",
+      "kind": "source",
+      "bytes": 4799,
+      "sha256": "72c7478648c634fc8fe7701a4a6586bcb2476326e532863c8972db4a2b640d8b"
+    },
+    {
+      "path": "source/tests/fixtures/minimal-estate.manifest.json",
+      "kind": "source",
+      "bytes": 63,
+      "sha256": "087e168640c6304668d7c471238729186587639679e0da0ff667d64dd1e047f9"
+    },
+    {
+      "path": "source/tests/fixtures/twin-impact.motion-export.real.json",
+      "kind": "source",
+      "bytes": 18145,
+      "sha256": "0ab51eb5a7ad1a7ff20188b5e6569e3620941c41ca46a05b753b2da863c55314"
+    },
+    {
+      "path": "source/tests/interface-kit.test.ts",
+      "kind": "source",
+      "bytes": 516,
+      "sha256": "a20071d0ec886fbb6ab3192bf267adeaf5782342e67c1d7fc37c04fc7fc7f91a"
+    },
+    {
+      "path": "source/tests/preset-registry.test.ts",
+      "kind": "source",
+      "bytes": 2942,
+      "sha256": "ada34de2d0f604a7f11874c48cce3cfcfe577f4cc4738297c52fe293d220a7fe"
+    },
+    {
+      "path": "source/tests/release-bundle.test.ts",
+      "kind": "source",
+      "bytes": 33064,
+      "sha256": "2d03ca7dfca0d23e2d9e1a9eb0b7eb8a2b6175268fe58451f55a2831225fa7a1"
+    },
+    {
+      "path": "source/tests/remotion-versions.test.ts",
+      "kind": "source",
+      "bytes": 792,
+      "sha256": "1d58228050f3986c79ebac87fd7b2a78575ab36f88e3be288fc8af4ab8d0623c"
+    },
+    {
+      "path": "source/tests/render-sidecar.test.ts",
+      "kind": "source",
+      "bytes": 7546,
+      "sha256": "a7ed709343fb241318e2ebfc0de76c01d30ce25862087ed7b1cd47c3b09b68b1"
+    },
+    {
+      "path": "source/tests/snapshot-schema.test.ts",
+      "kind": "source",
+      "bytes": 716,
+      "sha256": "0063cf12fcce47fa3770a2fdf15571d8e2ba0a6af97ffba4a900e621a94476c1"
+    },
+    {
+      "path": "source/tests/snapshot-selection.test.ts",
+      "kind": "source",
+      "bytes": 3021,
+      "sha256": "c00bc3b1257c9107603c794d934b5c6b79632feed723bbabf37d784c4525761e"
+    },
+    {
+      "path": "source/tests/targeted-render.test.ts",
+      "kind": "source",
+      "bytes": 7869,
+      "sha256": "151a3a0aad9114ffe9f577feb75167252ff02c08e460aeda236a6fe97f3ade55"
+    },
+    {
+      "path": "source/tests/twin-impact-presentation.test.ts",
+      "kind": "source",
+      "bytes": 4983,
+      "sha256": "dae108c343974a9def11f96ea2c2fbc4756f4c1655ec49dc16705372d1044de9"
+    },
+    {
+      "path": "source/tests/twin-motion-export.test.ts",
+      "kind": "source",
+      "bytes": 6431,
+      "sha256": "0776a6c2d28c5e7aaeffb77817628dab8ff09b7140411006916bca182b21f9f1"
+    },
+    {
+      "path": "source/tsconfig.json",
+      "kind": "source",
+      "bytes": 599,
+      "sha256": "39c751d25ed30efc513b475f91c1fd7c531382dae21e927cc06e9077b26adc5b"
+    },
+    {
+      "path": "source/vendor/atlas-interface-kit/0.4.0/atlas-interface-kit-0.4.0.release-manifest.json",
+      "kind": "source",
+      "bytes": 3260,
+      "sha256": "86fcd399a451f99175cffc8e44abf4f404495f409fc1bfd751d95dfd1b86bbb3"
+    },
+    {
+      "path": "source/vendor/atlas-interface-kit/0.4.0/provenance.json",
+      "kind": "source",
+      "bytes": 604,
+      "sha256": "d1a6b5e916a77439a173fe67424734ca090219955c6dbac4f230f632c3510544"
+    },
+    {
+      "path": "source/vitest.config.ts",
+      "kind": "source",
+      "bytes": 186,
+      "sha256": "12d33b23a91fd103fd07e3b27e7d84055701c0e3979c075e90cf41dfee5ac7a1"
+    }
+  ],
+  "evidence_boundary": {
+    "deployed": false,
+    "published": false,
+    "embedded": false,
+    "live_health_claimed": false,
+    "cloud_rendered": false,
+    "atlas_integrated": false
+  }
+}
