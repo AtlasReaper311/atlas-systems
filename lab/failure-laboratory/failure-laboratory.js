@@ -261,6 +261,7 @@ function installRailLegend() {
   if (!nav || nav.querySelector(".failure-trace-rail-key")) return;
 
   const key = element("div", "failure-trace-rail-key");
+  key.setAttribute("role", "group");
   key.setAttribute("aria-label", "Investigation rail colour key");
   appendText(key, "strong", "failure-trace-rail-key-title", "RAIL KEY");
 
@@ -323,6 +324,7 @@ function createStagePurpose(stage) {
   appendText(copy, "p", "failure-trace-stage-purpose-text", guidance.purpose);
 
   const flow = element("div", "failure-trace-stage-flow");
+  flow.setAttribute("role", "group");
   flow.setAttribute("aria-label", `${stage.label} conceptual flow`);
   guidance.flow.forEach((step, index) => {
     appendText(flow, "span", "", step);
