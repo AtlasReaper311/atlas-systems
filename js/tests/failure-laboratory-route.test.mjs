@@ -14,15 +14,17 @@ const manifest = JSON.parse(fs.readFileSync(".atlas/public-interface.json", "utf
 const sitemap = fs.readFileSync("sitemap.xml", "utf8");
 const sitemapGenerator = fs.readFileSync("scripts/generate_sitemap.py", "utf8");
 
-test("Failure Laboratory is the implemented route named by the shared model", () => {
+test("Failure Trace keeps the implemented Failure Laboratory route contract", () => {
   assert.doesNotThrow(() => validateFailureLaboratoryModel(model));
   assert.equal(model.authority.futureRoute, ROUTE);
   assert.equal(model.authority.futureRouteStatus, "implemented");
   assert.equal(descriptorForPath(ROUTE)?.mode, "standard");
-  assert.equal(descriptorForPath(ROUTE)?.eyebrow, "LAB / VERIFY / FAILURE INVESTIGATION");
+  assert.match(html, /<title>Failure Trace \/\/ Atlas Systems<\/title>/);
+  assert.match(html, /<link rel="canonical" href="https:\/\/atlas-systems\.uk\/lab\/failure-laboratory\/">/);
+  assert.match(html, /<h1 id="failure-trace-title">Failure Trace<span>\.<\/span><\/h1>/);
 });
 
-test("the route is registered as an indexed governed Lab surface", () => {
+test("the route remains an indexed governed Lab surface", () => {
   const surface = manifest.surfaces.find((candidate) => candidate.url === `https://atlas-systems.uk${ROUTE}`);
   assert.ok(surface);
   assert.equal(surface.source, "lab/failure-laboratory/index.html");
@@ -35,76 +37,98 @@ test("the route is registered as an indexed governed Lab surface", () => {
   assert.match(sitemapGenerator, /\("\/lab\/failure-laboratory\/", "monthly", "0\.7"\)/);
 });
 
-test("the no-JS route keeps the complete sequence and every participating destination reachable", () => {
-  assert.match(html, /<noscript>[\s\S]*JavaScript is optional/);
+test("the editorial workspace is concise at first level and keeps secondary material in Reference", () => {
+  assert.match(html, /Trace a distributed-system failure from request to recovery\./);
+  assert.match(html, /GUIDED MODEL \/ NOT LIVE/);
+  assert.doesNotMatch(html, /failure-lab-hero-boundary/);
+  assert.doesNotMatch(html, /failure-lab-truth-strip/);
+  assert.doesNotMatch(html, /PUBLIC ROUTE/);
+  assert.match(html, /<section class="failure-trace-reference"/);
+  assert.match(html, /Model-approved reading paths/);
+  assert.match(html, /Evidence modes/);
+  assert.match(html, /Participating instruments/);
+  assert.match(html, /Proof and interpretation rules/);
+  assert.match(html, /Spectral Forge/);
+  assert.match(html, /System Symphony/);
+});
+
+test("Latency creep is the clean default scenario without changing model ordering", () => {
+  assert.match(script, /const DEFAULT_SCENARIO_ID = "latency-creep"/);
+  assert.match(html, /data-scenario-id="latency-creep" checked/);
+  assert.match(html, /id="selected-scenario-label">Latency creep/);
+  assert.deepEqual(model.scenarios.map(({ id }) => id), [
+    "normal-operation",
+    "latency-creep",
+    "cache-collapse",
+    "dependency-failure",
+    "network-partition",
+    "cascading-failure",
+    "recovery",
+  ]);
+  assert.match(script, /if \(scenarioId === DEFAULT_SCENARIO_ID\) url\.searchParams\.delete\("scenario"\)/);
+});
+
+test("the clean route activates Request without serialising #stage-request on initial load", () => {
+  assert.match(script, /setActiveStage\(initialStage \|\| "request", \{ focus: false \}\)/);
+  assert.doesNotMatch(script, /historyMethod:\s*invalidStageHash \|\| !window\.location\.hash/);
+  assert.match(script, /if \(stageId === "request"\) url\.hash = ""/);
+  assert.match(script, /else url\.hash = `stage-\$\{stageId\}`/);
+  assert.match(script, /historyMethod: "pushState"/);
+  assert.match(script, /addEventListener\("hashchange"/);
+  assert.match(script, /addEventListener\("popstate"/);
+});
+
+test("the investigation rail keeps all six stages directly addressable in canonical order", () => {
+  assert.equal((html.match(/data-stage-nav-link/g) || []).length, model.journey.sequence.length);
+  assert.match(html, /href="#stage-request" aria-current="step"/);
+  assert.match(html, /href="#stage-dependencies"/);
+  assert.match(html, /href="#stage-coordination"/);
+  assert.match(html, /href="#stage-impact"/);
+  assert.match(html, /href="#stage-incident-evidence"/);
+  assert.match(html, /href="#stage-recovery"/);
+  assert.match(css, /\.failure-trace-stage-nav\s*\{[\s\S]*position:\s*sticky/);
+  assert.match(css, /\.failure-trace-stage-nav ol::before/);
+  assert.match(css, /scroll-margin-top:\s*calc\(var\(--lab-shell-stack-height/);
+  assert.match(css, /@media \(max-width: 620px\)[\s\S]*\.failure-trace-stage-nav[\s\S]*overflow-x:\s*auto/);
+});
+
+test("progressive enhancement shows one active stage while no-JS keeps the complete path", () => {
+  assert.equal((html.match(/class="failure-trace-stage"/g) || []).length, model.journey.sequence.length);
   assert.match(html, /REQUEST[\s\S]*DEPENDENCIES[\s\S]*COORDINATION[\s\S]*IMPACT[\s\S]*INCIDENT EVIDENCE[\s\S]*RECOVERY/);
-  assert.equal((html.match(/class="failure-lab-stage(?:\s|")/g) || []).length, model.journey.sequence.length);
-  assert.doesNotMatch(html, /data-stage-enhanced/);
-  for (const scenario of model.scenarios) {
-    assert.match(html, new RegExp(`data-scenario-id="${scenario.id}"`));
-    assert.match(html, new RegExp(`<strong>${scenario.label}</strong>`));
-  }
+  assert.match(css, /#failure-laboratory-main\[data-stage-enhanced="true"\][\s\S]*\.failure-trace-stage:not\(\[data-active-stage\]\)[\s\S]*display:\s*none/);
+  assert.match(script, /main\.dataset\.stageEnhanced = "true"/);
+  assert.match(script, /toggleAttribute\("data-active-stage"/);
+  assert.match(html, /<noscript>[\s\S]*default Latency creep context/);
+});
+
+test("the no-JS route keeps every participating destination reachable", () => {
   for (const instrument of model.instruments) {
-    assert.match(html, new RegExp(`href="${instrument.canonical.route.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"`), instrument.id);
+    assert.match(
+      html,
+      new RegExp(`href="${instrument.canonical.route.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"`),
+      instrument.id,
+    );
   }
   assert.match(html, /Not applicable \/ unscored/);
   assert.match(html, /could be affected/);
   assert.match(html, /There is no single current Phase 3 Recovery Evidence instrument/);
-  assert.doesNotMatch(html, /atlas-motion/);
+  assert.doesNotMatch(html, /\/lab\/atlas-motion\//);
 });
 
-test("route-local controls keep governed 44px targets and reduced-motion coverage", () => {
-  assert.match(css, /\.failure-lab-scenario-option input\s*\{[^}]*min-width:\s*44px;[^}]*min-height:\s*44px;/s);
-  assert.match(css, /\.failure-lab-page summary\s*\{[^}]*min-width:\s*44px;[^}]*min-height:\s*44px;/s);
-  assert.match(css, /\.failure-lab-actions \.action,\s*\.failure-lab-reading-link\s*\{[^}]*min-height:\s*44px;/s);
-  assert.match(css, /\.failure-lab-stage-action\s*\{[^}]*min-height:\s*44px;/s);
-  assert.match(css, /@media \(prefers-reduced-motion:\s*reduce\)/);
-});
-
-test("guided workspace keeps the static fallback and enhanced state separate", () => {
-  assert.match(html, /A guided systems-failure investigation/);
-  assert.match(html, /failure-lab-hero-path[\s\S]*Scenario[\s\S]*Six-stage corridor[\s\S]*Specialist evidence/);
-  assert.match(html, /failure-lab-hero-path-label[^>]*>READ IN THIS ORDER \/ GUIDED, NOT LIVE/);
-  assert.match(html, /id="hero-selected-scenario">Normal operation/);
-  assert.match(html, /GUIDED, NOT LIVE[\s\S]*SIX STAGES[\s\S]*SEPARATE PROOF BOUNDARIES[\s\S]*CANONICAL HANDOFFS/);
-  assert.match(html, /<summary id="boundary-heading">Why these boundaries matter \+<\/summary>/);
-  assert.doesNotMatch(html, /One corridor\. Separate proof boundaries\./);
-  assert.equal((html.match(/<small>/g) || []).length, 0);
-  assert.doesNotMatch(css, /min-height:\s*8\.7rem/);
-  assert.match(css, /\.failure-lab-scenario-option\s*\{[\s\S]*min-height:\s*4\.25rem/);
-  assert.equal((html.match(/data-stage-nav-link/g) || []).length, model.journey.sequence.length);
-  assert.match(html, /data-stage-nav-link href="#stage-request" aria-current="step"/);
-  assert.match(html, /data-stage-previous href="#scenario-heading"/);
-  assert.match(html, /data-stage-next href="#stage-dependencies"/);
-  assert.match(html, /Next: Dependencies/);
-  assert.match(html, /End of corridor\. No universal recovery claim is added\./);
-  assert.match(html, /More evidence detail \+/);
-  assert.match(html, /EVIDENCE GAP \/ INTENTIONAL/);
-  assert.match(html, /OFF-RAIL \/ OPTIONAL \/ NOT A STAGE/);
-  assert.match(css, /\.failure-lab-stage-nav ol::before/);
-  assert.match(css, /scroll-margin-top:\s*calc\(var\(--lab-shell-stack-height/);
-  assert.match(css, /#failure-laboratory-main\[data-stage-enhanced="true"\][\s\S]*\.failure-lab-stage:not\(\[data-active-stage\]\)[\s\S]*display: none/);
-  assert.match(script, /const stageIds = new Set/);
-  assert.match(script, /setActiveStage\(initialStage \|\| "request"/);
-  assert.match(script, /main\.dataset\.stageEnhanced = "true"/);
-  assert.match(script, /toggleAttribute\("data-active-stage"/);
-  assert.match(script, /historyMethod: "pushState"/);
-  assert.match(script, /historyMethod: "replaceState"/);
-  assert.match(script, /historyMethod: invalidStageHash \|\| !window\.location\.hash \? "replaceState"/);
-  assert.match(script, /addEventListener\("hashchange"/);
-  assert.match(script, /addEventListener\("popstate"/);
-  assert.match(script, /setText\("#hero-selected-scenario", scenario\.label\)/);
-  assert.match(script, /EVIDENCE GAP \/ INTENTIONAL/);
-  assert.doesNotMatch(script, /details\.open\s*=\s*true/);
-});
-
-test("scenario selection consumes model relationships without inferring unsupported pairs", () => {
-  assert.match(script, /fetch\(MODEL_URL/);
-  assert.match(script, /relationship\.supportType === "unsupported"/);
+test("scenario rendering preserves unsupported, cross-cutting, and evidence boundaries", () => {
+  assert.match(script, /relationship\.supportType === "unsupported" \|\| relationship\.supportType === "cross-cutting"/);
   assert.match(script, /relationship\.stageIds\.includes\(stage\.id\)/);
   assert.match(script, /not-applicable-unscored/);
-  assert.match(script, /history\.pushState/);
-  assert.match(script, /addEventListener\("popstate"/);
-  assert.match(script, /scenario\.relationships\.filter\(\(candidate\) => candidate\.supportType === "unsupported"\)/);
-  assert.doesNotMatch(script, /atlas-motion/);
+  assert.match(script, /candidate\.instrumentId === instrumentId && candidate\.supportType === "cross-cutting"/);
+  assert.match(script, /displayInstrumentLabel/);
+  assert.match(script, /System SYMPHONY/);
+  assert.match(script, /System Symphony/);
+});
+
+test("route-local interaction targets and reduced-motion behaviour remain governed", () => {
+  assert.match(css, /\.failure-trace-scenario-options label\s*\{[^}]*min-height:\s*44px/s);
+  assert.match(css, /\.failure-trace-reading-link\s*\{[^}]*min-height:\s*44px/s);
+  assert.match(css, /\.failure-trace-stage-action\s*\{[^}]*min-height:\s*44px/s);
+  assert.match(css, /\.failure-trace-reference > details > summary\s*\{[^}]*min-height:\s*64px/s);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
 });
