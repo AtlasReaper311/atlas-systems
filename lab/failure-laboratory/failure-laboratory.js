@@ -171,7 +171,8 @@ function setActiveStage(stageId, { historyMethod = null, focus = false } = {}) {
   if (focus) {
     const stage = stageNodes.find((candidate) => candidate.dataset.stageId === stageId);
     const heading = stage?.querySelector("h3");
-    stage?.scrollIntoView({ block: "start", behavior: "smooth" });
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    stage?.scrollIntoView({ block: "start", behavior: reduceMotion ? "auto" : "smooth" });
     window.requestAnimationFrame(() => heading?.focus({ preventScroll: true }));
   }
 
