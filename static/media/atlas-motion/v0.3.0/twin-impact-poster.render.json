@@ -1,0 +1,765 @@
+{
+  "schema_version": "atlas-motion/targeted-render-evidence/v1",
+  "generated_at": "2026-09-14T01:34:09.235Z",
+  "repository": "AtlasReaper311/atlas-motion",
+  "source_commit": "4894209b1fde44847e89a2c3f5dafa9d97153f16",
+  "mode": "targeted-operational",
+  "execution": {
+    "selected_target": "TwinImpact/poster-social",
+    "selected_target_count": 1,
+    "remotion_id": "TwinImpact-poster-social",
+    "render_invocations": 2,
+    "unrelated_targets_executed": false,
+    "full_matrix_executed": false
+  },
+  "composition": {
+    "id": "TwinImpact",
+    "slug": "twin-impact",
+    "preset": "poster-social",
+    "preset_identity": "atlas-motion/preset/poster-social/v1",
+    "layout": "twin-impact/poster-social",
+    "render_identity": "atlas-motion/render/twin-impact/poster-social/v1",
+    "output_kind": "still",
+    "width": 1200,
+    "height": 630,
+    "fps": 30,
+    "duration_in_frames": 540,
+    "codec": "h264",
+    "pixel_format": "yuv420p",
+    "audio": false
+  },
+  "provenance": {
+    "identity": "atlas-motion/twin-impact/v1",
+    "kind": "twin-change-impact-export",
+    "source_repository": "AtlasReaper311/atlas-twin",
+    "input_contract": "twin-motion-export",
+    "input_path": "input/twin-impact.motion-export.json",
+    "input_sha256": "0ab51eb5a7ad1a7ff20188b5e6569e3620941c41ca46a05b753b2da863c55314",
+    "preset_identity": "atlas-motion/preset/poster-social/v1",
+    "layout": "twin-impact/poster-social",
+    "render_identity": "atlas-motion/render/twin-impact/poster-social/v1",
+    "limitations": [
+      "Experimental Twin export; Motion renders the supplied selection only.",
+      "The export has no separate Twin unknowns field; Motion does not derive one.",
+      "Rendering does not claim failure, deployment, runtime verification, live verification, or current health."
+    ]
+  },
+  "input_evidence": {
+    "contract": "twin-motion-export",
+    "path": "input/twin-impact.motion-export.json",
+    "identity": "48b61a17e77f04b738dc4947e08f9f8eb70099ddd0b0420beb68262d623d65da",
+    "sha256": "0ab51eb5a7ad1a7ff20188b5e6569e3620941c41ca46a05b753b2da863c55314",
+    "validated": true,
+    "offline": true
+  },
+  "twin_export": {
+    "contract": "atlas-twin-motion-export/v1",
+    "twin_version": "1.1.0",
+    "producer": {
+      "repository": "AtlasReaper311/atlas-twin",
+      "contract": "atlas-twin-motion-export/v1",
+      "sourceCommit": "937ac6ab929085f8e8f162dd2344802d2617f3d9"
+    },
+    "input_sha256": "0ab51eb5a7ad1a7ff20188b5e6569e3620941c41ca46a05b753b2da863c55314",
+    "passport_fingerprint": "48b61a17e77f04b738dc4947e08f9f8eb70099ddd0b0420beb68262d623d65da",
+    "authority_pins": {
+      "atlas_api_public_commit": "8ff638f92cfc3a3ec5e2243ecb6464c964bd8e65",
+      "atlas_infra_commit": "de3b182eae9effe06753affa5dcff1945d87c1eb"
+    },
+    "subject": {
+      "base": "8ff638f92cfc3a3ec5e2243ecb6464c964bd8e65",
+      "changed_files_path": null,
+      "head": "02a0e6a7bfac66ea85cff536d0c89e6406abee5f",
+      "kind": "git_range",
+      "repository": "AtlasReaper311/atlas-api-public"
+    },
+    "selection": {
+      "edges": [
+        {
+          "confidence": "declared",
+          "edge_kind": "adr_affects",
+          "from": "adr:ADR-0002",
+          "to": "repo:AtlasReaper311/atlas-api-public"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "adr_affects",
+          "from": "adr:ADR-0003",
+          "to": "repo:AtlasReaper311/atlas-api-public"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "adr_affects",
+          "from": "adr:ADR-0004",
+          "to": "repo:AtlasReaper311/atlas-api-public"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "adr_affects",
+          "from": "adr:ADR-0007",
+          "to": "repo:AtlasReaper311/atlas-api-public"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "adr_affects",
+          "from": "adr:ADR-0008",
+          "to": "repo:AtlasReaper311/atlas-api-public"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "adr_affects",
+          "from": "adr:ADR-0009",
+          "to": "repo:AtlasReaper311/atlas-api-public"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "adr_affects",
+          "from": "adr:ADR-0010",
+          "to": "repo:AtlasReaper311/atlas-api-public"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "adr_affects",
+          "from": "adr:ADR-0012",
+          "to": "repo:AtlasReaper311/atlas-api-public"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:atlas-api-public",
+          "to": "component:atlas-api-index"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:atlas-api-public",
+          "to": "component:atlas-corpus"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:atlas-api-public",
+          "to": "component:github-pulse"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:atlas-api-public",
+          "to": "component:specular-sentinel"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:atlas-api-public",
+          "to": "component:specular-telemetry"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_feeds",
+          "from": "component:atlas-api-public",
+          "to": "feed:lab"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_feeds",
+          "from": "component:atlas-api-public",
+          "to": "feed:profile badge"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_feeds",
+          "from": "component:atlas-api-public",
+          "to": "feed:public API"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_feeds",
+          "from": "component:atlas-api-public",
+          "to": "feed:status"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:atlas-dep-audit",
+          "to": "component:atlas-api-public"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:atlas-dep-audit",
+          "to": "component:github"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:atlas-dep-audit",
+          "to": "component:osv"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_feeds",
+          "from": "component:atlas-dep-audit",
+          "to": "feed:supply-chain assurance"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:atlas-dora",
+          "to": "component:atlas-api-public"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:atlas-dora",
+          "to": "component:atlas-blackbox"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:atlas-dora",
+          "to": "component:atlas-notify"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:atlas-dora",
+          "to": "component:deploy-watch"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_feeds",
+          "from": "component:atlas-dora",
+          "to": "feed:delivery metrics"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_feeds",
+          "from": "component:atlas-dora",
+          "to": "feed:lab"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:atlas-journey-watch",
+          "to": "component:atlas-api-index"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:atlas-journey-watch",
+          "to": "component:atlas-api-public"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:atlas-journey-watch",
+          "to": "component:atlas-systems"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:atlas-journey-watch",
+          "to": "component:status"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_feeds",
+          "from": "component:atlas-journey-watch",
+          "to": "feed:synthetic journey evidence"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:atlas-systems",
+          "to": "component:atlas-api-public"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:atlas-systems",
+          "to": "component:deploy-watch"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:atlas-systems",
+          "to": "component:github-pulse"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:atlas-systems",
+          "to": "component:site-pulse"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_feeds",
+          "from": "component:atlas-systems",
+          "to": "feed:corpus"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_feeds",
+          "from": "component:atlas-systems",
+          "to": "feed:lab"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_feeds",
+          "from": "component:atlas-systems",
+          "to": "feed:portfolio"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_feeds",
+          "from": "component:atlas-systems",
+          "to": "feed:writing"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:status",
+          "to": "component:atlas-api-index"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "component:status",
+          "to": "component:atlas-api-public"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_feeds",
+          "from": "component:status",
+          "to": "feed:public status"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "manifest_depends_on",
+          "from": "repo:AtlasReaper311/atlas-api-public",
+          "to": "component:atlas-api-public"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "service_dependency",
+          "from": "service:atlas-api-public",
+          "to": "service:atlas-api-index"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "service_dependency",
+          "from": "service:atlas-api-public",
+          "to": "service:atlas-corpus"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "service_dependency",
+          "from": "service:atlas-api-public",
+          "to": "service:github-pulse"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "service_dependency",
+          "from": "service:atlas-api-public",
+          "to": "service:specular-sentinel"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "service_dependency",
+          "from": "service:atlas-api-public",
+          "to": "service:specular-telemetry"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "service_dependency",
+          "from": "service:atlas-dora",
+          "to": "service:atlas-blackbox"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "service_dependency",
+          "from": "service:atlas-dora",
+          "to": "service:atlas-notify"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "service_dependency",
+          "from": "service:atlas-dora",
+          "to": "service:deploy-watch"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "service_dependency",
+          "from": "service:atlas-systems",
+          "to": "service:atlas-api-public"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "service_dependency",
+          "from": "service:atlas-systems",
+          "to": "service:deploy-watch"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "service_dependency",
+          "from": "service:atlas-systems",
+          "to": "service:github-pulse"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "service_dependency",
+          "from": "service:atlas-systems",
+          "to": "service:site-pulse"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "service_dependency",
+          "from": "service:specular-sentinel",
+          "to": "service:atlas-api-public"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "service_dependency",
+          "from": "service:specular-sonify",
+          "to": "service:atlas-api-public"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "service_dependency",
+          "from": "service:status",
+          "to": "service:atlas-api-index"
+        },
+        {
+          "confidence": "declared",
+          "edge_kind": "service_dependency",
+          "from": "service:status",
+          "to": "service:atlas-api-public"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "adr:ADR-0002",
+          "kind": "adr",
+          "label": "ADR-0002"
+        },
+        {
+          "id": "adr:ADR-0003",
+          "kind": "adr",
+          "label": "ADR-0003"
+        },
+        {
+          "id": "adr:ADR-0004",
+          "kind": "adr",
+          "label": "ADR-0004"
+        },
+        {
+          "id": "adr:ADR-0007",
+          "kind": "adr",
+          "label": "ADR-0007"
+        },
+        {
+          "id": "adr:ADR-0008",
+          "kind": "adr",
+          "label": "ADR-0008"
+        },
+        {
+          "id": "adr:ADR-0009",
+          "kind": "adr",
+          "label": "ADR-0009"
+        },
+        {
+          "id": "adr:ADR-0010",
+          "kind": "adr",
+          "label": "ADR-0010"
+        },
+        {
+          "id": "adr:ADR-0012",
+          "kind": "adr",
+          "label": "ADR-0012"
+        },
+        {
+          "id": "component:atlas-api-index",
+          "kind": "component",
+          "label": "atlas-api-index"
+        },
+        {
+          "id": "component:atlas-api-public",
+          "kind": "component",
+          "label": "atlas-api-public"
+        },
+        {
+          "id": "component:atlas-blackbox",
+          "kind": "component",
+          "label": "atlas-blackbox"
+        },
+        {
+          "id": "component:atlas-corpus",
+          "kind": "component",
+          "label": "atlas-corpus"
+        },
+        {
+          "id": "component:atlas-dep-audit",
+          "kind": "component",
+          "label": "atlas-dep-audit"
+        },
+        {
+          "id": "component:atlas-dora",
+          "kind": "component",
+          "label": "atlas-dora"
+        },
+        {
+          "id": "component:atlas-journey-watch",
+          "kind": "component",
+          "label": "atlas-journey-watch"
+        },
+        {
+          "id": "component:atlas-notify",
+          "kind": "component",
+          "label": "atlas-notify"
+        },
+        {
+          "id": "component:atlas-systems",
+          "kind": "component",
+          "label": "atlas-systems"
+        },
+        {
+          "id": "component:deploy-watch",
+          "kind": "component",
+          "label": "deploy-watch"
+        },
+        {
+          "id": "component:github",
+          "kind": "component",
+          "label": "github"
+        },
+        {
+          "id": "component:github-pulse",
+          "kind": "component",
+          "label": "github-pulse"
+        },
+        {
+          "id": "component:osv",
+          "kind": "component",
+          "label": "osv"
+        },
+        {
+          "id": "component:site-pulse",
+          "kind": "component",
+          "label": "site-pulse"
+        },
+        {
+          "id": "component:specular-sentinel",
+          "kind": "component",
+          "label": "specular-sentinel"
+        },
+        {
+          "id": "component:specular-telemetry",
+          "kind": "component",
+          "label": "specular-telemetry"
+        },
+        {
+          "id": "component:status",
+          "kind": "component",
+          "label": "status"
+        },
+        {
+          "id": "feed:corpus",
+          "kind": "component",
+          "label": "corpus"
+        },
+        {
+          "id": "feed:delivery metrics",
+          "kind": "component",
+          "label": "delivery metrics"
+        },
+        {
+          "id": "feed:lab",
+          "kind": "component",
+          "label": "lab"
+        },
+        {
+          "id": "feed:portfolio",
+          "kind": "component",
+          "label": "portfolio"
+        },
+        {
+          "id": "feed:profile badge",
+          "kind": "component",
+          "label": "profile badge"
+        },
+        {
+          "id": "feed:public API",
+          "kind": "component",
+          "label": "public API"
+        },
+        {
+          "id": "feed:public status",
+          "kind": "component",
+          "label": "public status"
+        },
+        {
+          "id": "feed:status",
+          "kind": "component",
+          "label": "status"
+        },
+        {
+          "id": "feed:supply-chain assurance",
+          "kind": "component",
+          "label": "supply-chain assurance"
+        },
+        {
+          "id": "feed:synthetic journey evidence",
+          "kind": "component",
+          "label": "synthetic journey evidence"
+        },
+        {
+          "id": "feed:writing",
+          "kind": "component",
+          "label": "writing"
+        },
+        {
+          "id": "repo:AtlasReaper311/atlas-api-public",
+          "kind": "repository",
+          "label": "AtlasReaper311/atlas-api-public"
+        },
+        {
+          "id": "service:atlas-api-index",
+          "kind": "service",
+          "label": "atlas-api-index"
+        },
+        {
+          "id": "service:atlas-api-public",
+          "kind": "service",
+          "label": "atlas-api-public"
+        },
+        {
+          "id": "service:atlas-blackbox",
+          "kind": "service",
+          "label": "atlas-blackbox"
+        },
+        {
+          "id": "service:atlas-corpus",
+          "kind": "service",
+          "label": "atlas-corpus"
+        },
+        {
+          "id": "service:atlas-dora",
+          "kind": "service",
+          "label": "atlas-dora"
+        },
+        {
+          "id": "service:atlas-notify",
+          "kind": "service",
+          "label": "atlas-notify"
+        },
+        {
+          "id": "service:atlas-systems",
+          "kind": "service",
+          "label": "atlas-systems"
+        },
+        {
+          "id": "service:deploy-watch",
+          "kind": "service",
+          "label": "deploy-watch"
+        },
+        {
+          "id": "service:github-pulse",
+          "kind": "service",
+          "label": "github-pulse"
+        },
+        {
+          "id": "service:site-pulse",
+          "kind": "service",
+          "label": "site-pulse"
+        },
+        {
+          "id": "service:specular-sentinel",
+          "kind": "service",
+          "label": "specular-sentinel"
+        },
+        {
+          "id": "service:specular-sonify",
+          "kind": "service",
+          "label": "specular-sonify"
+        },
+        {
+          "id": "service:specular-telemetry",
+          "kind": "service",
+          "label": "specular-telemetry"
+        },
+        {
+          "id": "service:status",
+          "kind": "service",
+          "label": "status"
+        }
+      ]
+    },
+    "evidence_summary": [
+      "matched 8 ADR relationship(s)",
+      "change classes: contract, documentation, runtime",
+      "resolved 5 changed path(s)",
+      "change_impact risk level is high",
+      "matched 4 service contract(s)",
+      "Deployment boundary remains unknown because Stage 1 cannot observe deployment state",
+      "Live rollout boundary remains unknown because Stage 1 offline mode cannot determine whether the subject change requires live rollout",
+      "GitHub pull-request metadata is unavailable in Stage 1 offline mode",
+      "Live rollout observation is unavailable in Stage 1 offline mode",
+      "Private repository overlays are disabled by public_plane_only"
+    ],
+    "limitations": [
+      "Source review of the subject repository remains required",
+      "GitHub PR/check state is unavailable offline",
+      "Deployment necessity is not observed in Stage 1",
+      "Stage 1 offline mode cannot determine whether the subject change requires live rollout"
+    ],
+    "does_not_claim": [
+      "GitHub pull-request metadata is unavailable in Stage 1 offline mode",
+      "Live rollout observation is unavailable in Stage 1 offline mode",
+      "Private repository overlays are disabled by public_plane_only"
+    ]
+  },
+  "interface_kit": {
+    "release_tag": "v0.4.0",
+    "source_commit": "c38b5b3edd631999dfad838c4fb70e505a9860cf",
+    "archive_sha256": "6b72d8acb07230f0b25d4b78b5c5b081ab09a296f11ad3ac1b1f5cb493cac9b9",
+    "external_manifest_sha256": "86fcd399a451f99175cffc8e44abf4f404495f409fc1bfd751d95dfd1b86bbb3"
+  },
+  "dependencies": {
+    "remotion": "4.0.502",
+    "remotion_cli": "4.0.502",
+    "react": "19.2.3",
+    "react_dom": "19.2.3"
+  },
+  "selection": {
+    "kind": "explicit-composition-frame",
+    "frame": 539,
+    "rule": "final-hold-frame",
+    "state": "final-hold"
+  },
+  "determinism": {
+    "repeated_render": true,
+    "comparison": "sha256",
+    "checksum_stable": true
+  },
+  "outputs": {
+    "still": {
+      "path": "out/twin-impact/poster-social.png",
+      "frame": 539,
+      "rule": "final-hold-frame",
+      "bytes": 277570,
+      "sha256": "ec1c5fa23688681a517fe3e9cdef4a56f535759e3dbcb1916adef0f5bd5e9ae3"
+    }
+  },
+  "boundaries": {
+    "deployed": false,
+    "published": false,
+    "embedded": false,
+    "live_health_claimed": false,
+    "cloud_rendered": false,
+    "atlas_integrated": false,
+    "network_calls": false,
+    "provider_calls": false,
+    "runtime_calls": false
+  },
+  "release_path_scope": "bundle-relative"
+}

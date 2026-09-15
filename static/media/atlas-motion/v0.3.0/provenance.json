@@ -1,0 +1,139 @@
+{
+  "schema_version": "atlas-systems/atlas-motion-release-asset/v1",
+  "owner": "AtlasReaper311/atlas-systems",
+  "release_repository": "AtlasReaper311/atlas-motion",
+  "chain": [
+    "validated Atlas Twin export",
+    "Atlas Motion TwinImpact",
+    "v0.3.0 released evidence",
+    "repository-local public presentation"
+  ],
+  "release": {
+    "version": "0.3.0",
+    "tag": "v0.3.0",
+    "github_release_published": true,
+    "source_commit": "4894209b1fde44847e89a2c3f5dafa9d97153f16",
+    "source_tree": "6f7a28d58da1f601f2eaec9e9005ee56b8c17a35",
+    "manifest_sha256": "dde9d27c7f6828204884ccae167b39046a7a868fd866a2c7abd54ec080dd2c6b",
+    "archive_sha256": "10e272c5a0e1b010c664f76b35ed0b066c043f90c17fe317f80aef2190380771",
+    "bundle_schema_version": "atlas-motion/release-bundle/v3",
+    "bundle_kind": "candidate",
+    "bundle_tag_status": "not-created"
+  },
+  "composition": {
+    "id": "TwinImpact",
+    "slug": "twin-impact",
+    "preset": "landscape",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "duration_seconds": 18,
+    "frames": 540,
+    "codec": "h264",
+    "pixel_format": "yuv420p",
+    "audio": false,
+    "poster": {
+      "preset": "poster-social",
+      "width": 1200,
+      "height": 630,
+      "frame": 539,
+      "rule": "final-hold-frame"
+    }
+  },
+  "assets": {
+    "video": {
+      "path": "static/media/atlas-motion/v0.3.0/twin-impact.mp4",
+      "release_path": "out/twin-impact/landscape.mp4",
+      "bytes": 1708031,
+      "sha256": "dd916eddd91b8ef9979024ca13d3538082fe067aad20635f3525a773cdecc2ab"
+    },
+    "poster": {
+      "path": "static/media/atlas-motion/v0.3.0/twin-impact-poster.png",
+      "release_path": "out/twin-impact/poster-social.png",
+      "bytes": 277570,
+      "sha256": "ec1c5fa23688681a517fe3e9cdef4a56f535759e3dbcb1916adef0f5bd5e9ae3"
+    },
+    "render_sidecar": {
+      "path": "static/media/atlas-motion/v0.3.0/twin-impact.render.json",
+      "release_path": "out/twin-impact/landscape.render.json",
+      "bytes": 26105,
+      "sha256": "4758a086cd2f3ac346c7c4335266dc3f59ad2cfb1477811b9228ff1746927aa3"
+    },
+    "poster_render_sidecar": {
+      "path": "static/media/atlas-motion/v0.3.0/twin-impact-poster.render.json",
+      "release_path": "out/twin-impact/poster-social.render.json",
+      "bytes": 23133,
+      "sha256": "a8f1b63ec5166b8509f99396dd80f2da83d7d9550757d69f7b9e4b6c2a250672"
+    },
+    "ffprobe": {
+      "path": "static/media/atlas-motion/v0.3.0/twin-impact.ffprobe.json",
+      "release_path": "out/twin-impact/landscape.ffprobe.json",
+      "bytes": 2197,
+      "sha256": "76d288f0e88ea63ade697427433b18ecfd121f599e4cbe0c936dce1a269f1b68"
+    },
+    "frame_md5": {
+      "path": "static/media/atlas-motion/v0.3.0/twin-impact.framemd5",
+      "release_path": "out/twin-impact/landscape.framemd5",
+      "bytes": 43417,
+      "sha256": "8ea723cc8340c2ce9e1765360d2c55020ed8d33373fef0f1c73efee86affa542"
+    },
+    "twin_input": {
+      "path": "static/media/atlas-motion/v0.3.0/twin-impact.motion-export.json",
+      "release_path": "input/twin-impact.motion-export.json",
+      "bytes": 18145,
+      "sha256": "0ab51eb5a7ad1a7ff20188b5e6569e3620941c41ca46a05b753b2da863c55314"
+    },
+    "release_manifest": {
+      "path": "static/media/atlas-motion/v0.3.0/atlas-motion-0.3.0.release-manifest.json",
+      "release_path": "atlas-motion-0.3.0.release-manifest.json",
+      "bytes": 51731,
+      "sha256": "dde9d27c7f6828204884ccae167b39046a7a868fd866a2c7abd54ec080dd2c6b"
+    }
+  },
+  "twin_export": {
+    "schema_version": "atlas-twin-motion-export/v1",
+    "experimental": true,
+    "twin_version": "1.1.0",
+    "input_sha256": "0ab51eb5a7ad1a7ff20188b5e6569e3620941c41ca46a05b753b2da863c55314",
+    "passport_fingerprint": "48b61a17e77f04b738dc4947e08f9f8eb70099ddd0b0420beb68262d623d65da",
+    "producer": {
+      "repository": "AtlasReaper311/atlas-twin",
+      "contract": "atlas-twin-motion-export/v1",
+      "source_commit": "937ac6ab929085f8e8f162dd2344802d2617f3d9"
+    },
+    "authority_pins": {
+      "atlas_api_public_commit": "8ff638f92cfc3a3ec5e2243ecb6464c964bd8e65",
+      "atlas_infra_commit": "de3b182eae9effe06753affa5dcff1945d87c1eb"
+    },
+    "subject": {
+      "repository": "AtlasReaper311/atlas-api-public",
+      "kind": "git_range",
+      "base": "8ff638f92cfc3a3ec5e2243ecb6464c964bd8e65",
+      "head": "02a0e6a7bfac66ea85cff536d0c89e6406abee5f",
+      "changed_files_path": null
+    },
+    "selection": {
+      "node_count": 51,
+      "relationship_count": 60,
+      "visible_relationship_capacity": 7
+    }
+  },
+  "boundaries": {
+    "deterministic_relationship_subset": true,
+    "relationship_subset_is_importance_ranking": false,
+    "relationship_subset_is_causal_claim": false,
+    "observed_impact_claimed": false,
+    "deployment_claimed": false,
+    "runtime_impact_claimed": false,
+    "runtime_health_claimed": false,
+    "current_live_state_claimed": false,
+    "current_service_health_claimed": false,
+    "current_estate_health_claimed": false,
+    "provider_state_claimed": false,
+    "production_correctness_claimed": false,
+    "runtime_dependency_on_motion": false,
+    "network_calls": false,
+    "provider_calls": false,
+    "runtime_calls": false
+  }
+}
