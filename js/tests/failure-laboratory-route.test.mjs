@@ -137,6 +137,7 @@ test("mobile Failure Trace keeps scenario controls and the investigation rail wi
   assert.match(css, /@media \(max-width: 620px\)[\s\S]*\.failure-trace-scenario-options\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(css, /@media \(max-width: 620px\)[\s\S]*\.failure-trace-stage-context\s*\{[^}]*min-width:\s*0/);
   assert.match(css, /@media \(max-width: 620px\)[\s\S]*\.failure-trace-rail-key\s*\{[^}]*min-width:\s*0/);
+  assert.match(css, /@media \(max-width: 360px\)[\s\S]*\.failure-trace-stage-nav\s*\{[^}]*margin-right:\s*-12px;[^}]*margin-left:\s*-12px/);
 });
 
 test("rail, open-stage, and recovery semantics remain explicit", () => {
