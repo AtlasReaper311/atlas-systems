@@ -21,6 +21,7 @@ STATIC_ROUTES: list[tuple[str, str, str]] = [
     ("/lab/", "monthly", "0.7"),
     ("/lab/failure-laboratory/", "monthly", "0.7"),
     ("/systems/", "monthly", "0.7"),
+    ("/systems/model-promotion/", "monthly", "0.7"),
     ("/systems/observability/", "monthly", "0.7"),
     ("/systems/reliability/", "monthly", "0.7"),
     ("/systems/evidence/", "monthly", "0.7"),

@@ -66,6 +66,17 @@
       "tagline": "Every public service in the estate, catalogued."
     },
     {
+      "file": "model-promotion",
+      "html": "systems/model-promotion/index.html",
+      "route": "/systems/model-promotion/",
+      "kicker": "Verify / Capability certification",
+      "title": [
+        "Why this model,",
+        "for this [capability?]"
+      ],
+      "tagline": "Capability-specific evaluation and promotion evidence, presented as public certification receipts."
+    },
+    {
       "file": "observability",
       "html": "systems/observability/index.html",
       "route": "/systems/observability/",

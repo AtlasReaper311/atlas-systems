@@ -21,6 +21,7 @@ const SURFACE_ROUTES = Object.freeze({
   "/systems/observability/": Object.freeze({ surface: "systems", mode: "standard", eyebrow: "SYSTEMS / OBSERVE / ESTATE TELEMETRY" }),
   "/systems/reliability/": Object.freeze({ surface: "systems", mode: "standard", eyebrow: "SYSTEMS / RELIABILITY / SERVICE EVIDENCE" }),
   "/systems/evidence/": Object.freeze({ surface: "systems", mode: "standard", eyebrow: "SYSTEMS / VERIFY / CLAIM PROVENANCE" }),
+  "/systems/model-promotion/": Object.freeze({ surface: "systems", mode: "standard", eyebrow: "SYSTEMS / VERIFY / MODEL PROMOTION" }),
 });
 
 function normalizePath(pathname) {

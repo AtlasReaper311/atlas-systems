@@ -4,7 +4,7 @@ import test from "node:test";
 import { CARD_SIGNATURES } from "../../static/js/card-signatures.js";
 
 const EXPECTED_LAB_CARD_COUNT = 24;
-const EXPECTED_SYSTEM_CARD_COUNT = 17;
+const EXPECTED_SYSTEM_CARD_COUNT = 18;
 
 function cardRecords(markup) {
   return [...markup.matchAll(/<a\b[^>]*class="[^"]*\bsystem-card\b[^"]*"[^>]*>/g)].map(([tag]) => ({
