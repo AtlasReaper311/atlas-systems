@@ -2,6 +2,8 @@
 
 const MODEL_URL = "/data/failure-laboratory-model.json";
 const DEFAULT_SCENARIO_ID = "latency-creep";
+const MODEL_AUTHORITY_ROUTE = "/lab/failure-laboratory/";
+const CANONICAL_ROUTE = "/lab/failure-trace/";
 
 const main = document.querySelector("#failure-laboratory-main");
 const scenarioInputs = [...document.querySelectorAll('input[name="scenario"][data-scenario-id]')];
@@ -118,7 +120,8 @@ function normalizedPath(pathname) {
 function isUsableModel(model) {
   if (!model || typeof model !== "object") return false;
   if (model.schema !== "atlas-systems/failure-laboratory-model/v1" || model.version !== 1) return false;
-  if (model.authority?.futureRoute !== normalizedPath(window.location.pathname)) return false;
+  if (model.authority?.futureRoute !== MODEL_AUTHORITY_ROUTE) return false;
+  if (normalizedPath(window.location.pathname) !== CANONICAL_ROUTE) return false;
   if (model.authority?.futureRouteStatus !== "implemented") return false;
   if (!Array.isArray(model.instruments) || !Array.isArray(model.scenarios)) return false;
   if (!Array.isArray(model.journey?.sequence) || !Array.isArray(model.journey?.stages)) return false;

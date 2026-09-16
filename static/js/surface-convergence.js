@@ -1,8 +1,11 @@
 "use strict";
 
+const FAILURE_TRACE_ROUTE = "/lab/failure-trace/";
+const LEGACY_FAILURE_TRACE_ROUTE = "/lab/failure-laboratory/";
+
 const SURFACE_ROUTES = Object.freeze({
   "/lab/": Object.freeze({ surface: "lab", mode: "directory", eyebrow: "LAB / DIRECTORY / TECHNICAL WORKSPACE" }),
-  "/lab/failure-laboratory/": Object.freeze({ surface: "lab", mode: "standard", eyebrow: "LAB / VERIFY / FAILURE INVESTIGATION" }),
+  [FAILURE_TRACE_ROUTE]: Object.freeze({ surface: "lab", mode: "standard", eyebrow: "LAB / VERIFY / FAILURE INVESTIGATION" }),
   "/lab/system-map/": Object.freeze({ surface: "lab", mode: "standard", eyebrow: "LAB / OBSERVE / ARCHITECTURE EVIDENCE" }),
   "/lab/atlas-motion/": Object.freeze({ surface: "lab", mode: "standard", eyebrow: "LAB / EXPERIENCE / RELEASED MOTION" }),
   "/lab/blackbox/": Object.freeze({ surface: "lab", mode: "standard", eyebrow: "LAB / OBSERVE / INCIDENT REPLAY" }),
@@ -124,6 +127,27 @@ function createSecondaryDirectoryRoutes(documentNode) {
   return details;
 }
 
+function replaceLegacyFailureTraceText(root, documentNode) {
+  const view = documentNode.defaultView;
+  const nodeFilter = view?.NodeFilter || globalThis.NodeFilter;
+  if (!nodeFilter) return;
+  const walker = documentNode.createTreeWalker(root, nodeFilter.SHOW_TEXT);
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    if (node.nodeValue?.includes("Failure Laboratory")) {
+      node.nodeValue = node.nodeValue.replaceAll("Failure Laboratory", "Failure Trace");
+    }
+  }
+}
+
+function normalizeFailureTraceHandoffs(documentNode) {
+  for (const link of documentNode.querySelectorAll(`a[href="${LEGACY_FAILURE_TRACE_ROUTE}"]`)) {
+    link.setAttribute("href", FAILURE_TRACE_ROUTE);
+    replaceLegacyFailureTraceText(link, documentNode);
+    const context = link.closest('[class*="failure-lab-context"]');
+    if (context) replaceLegacyFailureTraceText(context, documentNode);
+  }
+}
+
 function normalizeLabDirectory(documentNode, hero) {
   const main = documentNode.querySelector("main");
   const directory = main?.querySelector('section[aria-labelledby="directory-title"]');
@@ -202,6 +226,7 @@ function installSurfaceConvergence(root = document) {
     eyebrow.textContent = descriptor.eyebrow;
   }
   lede?.classList.add("atlas-surface-lede");
+  normalizeFailureTraceHandoffs(documentNode);
   normalizeDirectory(pathname, documentNode, hero);
 
   documentNode.documentElement.dataset.atlasSurfaceConvergence = "ready";
@@ -209,8 +234,11 @@ function installSurfaceConvergence(root = document) {
 }
 
 export {
+  FAILURE_TRACE_ROUTE,
+  LEGACY_FAILURE_TRACE_ROUTE,
   SURFACE_ROUTES,
   descriptorForPath,
   installSurfaceConvergence,
+  normalizeFailureTraceHandoffs,
   normalizePath,
 };

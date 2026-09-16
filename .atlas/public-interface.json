@@ -403,8 +403,8 @@
       ]
     },
     {
-      "url": "https://atlas-systems.uk/lab/failure-laboratory/",
-      "source": "lab/failure-laboratory/index.html",
+      "url": "https://atlas-systems.uk/lab/failure-trace/",
+      "source": "lab/failure-trace/index.html",
       "kind": "lab-tool",
       "indexing": "index",
       "global_header": true,
@@ -440,13 +440,13 @@
         "twitter:description",
         "twitter:image"
       ],
-      "footer": "Failure Laboratory corridor and Atlas estate escape",
+      "footer": "Failure Trace investigation path and Atlas estate escape",
       "link_policy": "atlas-owned-same-tab-external-safe-new-tab",
       "generated_owner": null,
       "notes": [
-        "The corridor explains model-approved relationships across existing instruments; it does not execute a shared incident or redesign its destinations.",
+        "Failure Trace explains model-approved relationships across existing instruments; it does not execute a shared incident or redesign its destinations.",
         "Scenario labels are context only. Evidence mode, source, freshness, deployment, runtime, and live-state boundaries remain destination-owned.",
-        "Atlas Motion is excluded from the Failure Laboratory participation model."
+        "Atlas Motion is excluded from the Failure Trace participation model."
       ]
     },
     {
