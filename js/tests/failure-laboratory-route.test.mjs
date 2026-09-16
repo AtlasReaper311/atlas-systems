@@ -40,7 +40,7 @@ test("canonical browser identity is Failure Trace and the legacy route permanent
   assert.match(html, /<title>Failure Trace \/\/ Atlas Systems<\/title>/);
   assert.match(html, /<link rel="canonical" href="https:\/\/atlas-systems\.uk\/lab\/failure-trace\/">/);
   assert.match(html, /<meta property="og:url" content="https:\/\/atlas-systems\.uk\/lab\/failure-trace\/">/);
-  assert.match(html, /https:\/\/atlas-systems\.uk\/og\/failure-trace\.png/);
+  assert.ok(html.includes("https://atlas-systems.uk/og/failure-trace.png"));
   assert.match(html, /Failure Trace\. Trace the bounded path\. \/\/ Atlas Systems/);
   assert.match(html, /<h1 id="failure-trace-title">Failure Trace<span>\.<\/span><\/h1>/);
   assert.match(legacyHtml, /<meta name="robots" content="noindex, follow">/);
