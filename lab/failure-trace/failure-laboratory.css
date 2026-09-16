@@ -485,6 +485,7 @@
 
 @media (max-width: 360px) {
   .failure-lab-page main { width: min(calc(100% - 24px), 1180px); }
+  .failure-trace-stage-nav { margin-right: -12px; margin-left: -12px; }
   .failure-trace-hero h1 { font-size: 3.35rem; }
   .failure-trace-stage-actions { display: grid; grid-template-columns: 1fr; }
   .failure-trace-stage-action--next,
