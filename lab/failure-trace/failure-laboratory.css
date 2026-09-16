@@ -6,18 +6,20 @@
   --failure-trace-line-strong: rgba(255, 255, 255, 0.19);
   --failure-trace-ink: #f0eee7;
   --failure-trace-muted: #aaa9a0;
-  --failure-trace-dim: #696873;
+  --failure-trace-dim: #8a8992;
   --failure-trace-amber: #f5a623;
   --failure-trace-cyan: #89c6c9;
   --failure-trace-violet: #b0a1d5;
   color: var(--failure-trace-ink);
-  background:
+  background-color: var(--failure-trace-bg);
+  background-image:
     radial-gradient(circle at 73% 8%, rgba(137, 198, 201, 0.07), transparent 31rem),
     linear-gradient(180deg, #0d0d13 0%, var(--failure-trace-bg) 42%, #0c0c11 100%);
 }
 
 .failure-lab-page main {
   width: min(calc(100% - 48px), 1180px);
+  min-width: 0;
   margin: 0 auto;
   padding: 0 0 7rem;
 }
@@ -101,6 +103,14 @@
   align-items: end;
   padding: clamp(2.75rem, 5vw, 4.5rem) 0;
   border-bottom: 1px solid var(--failure-trace-line);
+  background-color: var(--failure-trace-bg);
+}
+.failure-trace-scenario > *,
+.failure-trace-scenario-copy,
+.failure-trace-scenario-options {
+  min-width: 0;
+  min-inline-size: 0;
+  max-width: 100%;
 }
 
 .failure-trace-scenario-copy h2 {
@@ -127,7 +137,7 @@
 .failure-trace-context-details ul { margin: 0.45rem 0 0; padding-left: 1.25rem; color: var(--failure-trace-muted); font-size: 0.84rem; line-height: 1.65; }
 
 .failure-trace-scenario-options { display: flex; flex-wrap: wrap; gap: 0.55rem; margin: 0; padding: 0; border: 0; }
-.failure-trace-scenario-options label { position: relative; display: inline-flex; min-height: 44px; cursor: pointer; }
+.failure-trace-scenario-options label { position: relative; display: inline-flex; min-width: 0; min-height: 44px; cursor: pointer; }
 .failure-trace-scenario-options input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .failure-trace-scenario-options span {
   display: inline-flex;
@@ -137,7 +147,7 @@
   border: 1px solid var(--failure-trace-line);
   border-radius: 4px;
   color: var(--failure-trace-muted);
-  background: rgba(17, 17, 24, 0.62);
+  background: var(--failure-trace-surface);
   font: 500 0.74rem/1.3 "IBM Plex Mono", monospace;
   transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
 }
@@ -211,7 +221,7 @@
   padding: 0.38rem 0.7rem;
   border-bottom: 1px solid var(--failure-trace-line);
   color: var(--failure-trace-muted);
-  background: rgba(13, 13, 19, 0.98);
+  background: var(--failure-trace-surface-deep);
   font: 500 0.55rem/1.25 "IBM Plex Mono", monospace;
 }
 .failure-trace-rail-key-title { margin-right: 0.15rem; color: var(--failure-trace-dim); font: inherit; letter-spacing: 0.1em; }
@@ -438,14 +448,24 @@
   .failure-trace-hero { padding-top: 2.75rem; }
   .failure-trace-hero h1 { font-size: clamp(3.5rem, 17vw, 5.1rem); }
   .failure-trace-deck { font-size: 1.45rem; }
-  .failure-trace-scenario-options { flex-wrap: nowrap; overflow-x: auto; padding: 0.15rem 0 0.4rem; overscroll-behavior-inline: contain; scrollbar-width: thin; }
-  .failure-trace-scenario-options label { flex: 0 0 auto; }
-  .failure-trace-stage-nav { top: var(--lab-shell-stack-height, 104px); margin-right: -16px; margin-left: -16px; border-right: 0; border-left: 0; overflow-x: auto; }
-  .failure-trace-stage-context { position: sticky; left: 0; min-width: min(100vw, 600px); }
+  .failure-trace-scenario-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    min-width: 0;
+    min-inline-size: 0;
+    overflow: visible;
+    padding: 0.15rem 0 0.4rem;
+  }
+  .failure-trace-scenario-options label { min-width: 0; }
+  .failure-trace-scenario-options span { width: 100%; justify-content: center; text-align: center; }
+  .failure-trace-stage-nav { top: var(--lab-shell-stack-height, 104px); margin-right: -16px; margin-left: -16px; border-right: 0; border-left: 0; overflow: visible; }
+  .failure-trace-stage-context { position: relative; left: auto; width: 100%; min-width: 0; }
   .failure-trace-stage-context span:last-child { display: none; }
-  .failure-trace-rail-key { min-width: min(100vw, 600px); gap: 0.55rem 0.8rem; }
+  .failure-trace-rail-key { position: relative; left: auto; width: 100%; min-width: 0; gap: 0.55rem 0.8rem; }
   .failure-trace-rail-key-title { width: 100%; }
-  .failure-trace-stage-nav ol { min-width: 600px; }
+  .failure-trace-stage-nav ol { min-width: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .failure-trace-stage-nav ol::before { display: none; }
   .failure-trace-stage-nav a { min-height: 86px; }
   .failure-trace-stage-header { grid-template-columns: 1fr; }
   .failure-trace-stage-header h3 { font-size: clamp(2.45rem, 12vw, 3.5rem); }
