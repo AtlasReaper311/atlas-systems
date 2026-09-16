@@ -125,7 +125,18 @@ test("the investigation rail keeps all six stages directly addressable in canoni
   assert.match(css, /\.failure-trace-stage-nav::after/);
   assert.match(css, /\.failure-trace-stage-nav ol::before/);
   assert.match(css, /scroll-margin-top:\s*calc\(var\(--lab-shell-stack-height/);
-  assert.match(css, /@media \(max-width: 620px\)[\s\S]*\.failure-trace-stage-nav[\s\S]*overflow-x:\s*auto/);
+  assert.match(css, /@media \(max-width: 620px\)[\s\S]*\.failure-trace-stage-nav ol\s*\{[^}]*min-width:\s*0;[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.doesNotMatch(css, /@media \(max-width: 620px\)[\s\S]*\.failure-trace-stage-nav ol\s*\{[^}]*min-width:\s*600px/);
+});
+
+test("mobile Failure Trace keeps scenario controls and the investigation rail within the viewport", () => {
+  assert.match(css, /--failure-trace-dim:\s*#8a8992/);
+  assert.match(css, /background-color:\s*var\(--failure-trace-bg\)/);
+  assert.match(css, /\.failure-trace-scenario-options\s*\{[^}]*min-inline-size:\s*0/s);
+  assert.match(css, /\.failure-trace-scenario-options span\s*\{[^}]*background:\s*var\(--failure-trace-surface\)/s);
+  assert.match(css, /@media \(max-width: 620px\)[\s\S]*\.failure-trace-scenario-options\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(css, /@media \(max-width: 620px\)[\s\S]*\.failure-trace-stage-context\s*\{[^}]*min-width:\s*0/);
+  assert.match(css, /@media \(max-width: 620px\)[\s\S]*\.failure-trace-rail-key\s*\{[^}]*min-width:\s*0/);
 });
 
 test("rail, open-stage, and recovery semantics remain explicit", () => {
