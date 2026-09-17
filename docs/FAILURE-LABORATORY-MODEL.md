@@ -1,10 +1,15 @@
-# Failure Laboratory shared model
+# Failure Trace shared model
 
 `data/failure-laboratory-model.json` is the repository-owned static contract
-for the Failure Laboratory. It gives `/lab/failure-laboratory/` a stable
-journey sequence, scenario vocabulary, instrument identities, safe
-destinations, evidence modes, and proof boundaries without creating a runtime
-or changing any existing instrument.
+behind Failure Trace. The `failure-laboratory` filename, schema, journey ID,
+Node module name, and v1 `authority.futureRoute` value are retained as
+compatibility identifiers for the original model contract. They are not the
+public experience name or canonical browser route.
+
+Failure Trace is canonical at `/lab/failure-trace/`. The old
+`/lab/failure-laboratory/` route is a permanent compatibility redirect to the
+canonical route. `.atlas/public-interface.json`, the sitemap, route metadata,
+and the social-preview manifest own the current public identity.
 
 ## What this file means
 
@@ -33,21 +38,27 @@ Evidence Console destination and preserves the exact `could be affected`
 boundary. Atlas Motion is deliberately absent from the model because its
 completion stream is separate.
 
-Recovery records the current gap: there is no single authoritative Phase 3
-Recovery Evidence instrument. Synthetic recovery-like transitions, named
-recorded aftermath, measured/stale source readings, unavailable evidence, and
-unknown evidence must keep their own boundaries.
+Recovery has no single authoritative source of truth. Synthetic recovery-like
+transitions, named recorded aftermath, measured/stale source readings,
+unavailable evidence, and unknown evidence must keep their own boundaries.
+Failure Trace presents those inputs as a composite assessment rather than
+inventing a universal recovery observation.
 
-## Ownership and use
+## Ownership and compatibility
 
 This JSON is source-owned by `atlas-systems`; it is not generated output and it
-does not fetch live state. Its route authority was `reserved-not-implemented`
-for #284 and is now `implemented` because the Phase 3.2 route exists on the
-same exact source tree. `js/failure-laboratory-model.mjs` provides the
-Node-native loader, deterministic serializer, and offline validation used by
-the focused tests in `js/tests/failure-laboratory-model.test.mjs`.
+does not fetch live state. `js/failure-laboratory-model.mjs` remains the
+compatibility loader, deterministic serializer, and offline validator for the
+v1 model schema and the focused tests in
+`js/tests/failure-laboratory-model.test.mjs`.
 
-The future #285 renderer may read the JSON locally, including for a no-JS
+The model's legacy `authority.futureRoute` field is intentionally frozen at
+`/lab/failure-laboratory/` because changing that value would mutate the v1 model
+contract for a presentation-route rename. Tests require that legacy value to be
+covered by the permanent redirect while the canonical public declarations
+require `/lab/failure-trace/`.
+
+The browser renderer reads the JSON locally, including for a no-JS
 representation. It must not use this model to select native faults, mutate
 instrument state, autoplay audio, or turn a scenario label into incident,
 health, deployment, runtime, or live evidence.

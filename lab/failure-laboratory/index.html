@@ -3,39 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Failure Trace // Atlas Systems. Trace a bounded distributed-system failure from request to recovery across existing Atlas instruments.">
+  <meta name="description" content="Failure Trace has moved to its canonical Lab route.">
+  <meta name="robots" content="noindex, follow">
   <meta name="theme-color" content="#0a0a0f">
   <title>Failure Trace // Atlas Systems</title>
-  <link rel="canonical" href="https://atlas-systems.uk/lab/failure-laboratory/">
+  <link rel="canonical" href="https://atlas-systems.uk/lab/failure-trace/">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
   <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
   <link rel="manifest" href="/site.webmanifest">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Failure Trace // Atlas Systems">
-  <meta property="og:description" content="Trace a bounded system failure from request to recovery across existing Atlas instruments.">
-  <meta property="og:url" content="https://atlas-systems.uk/lab/failure-laboratory/">
-  <meta property="og:site_name" content="Atlas Systems">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Failure Trace // Atlas Systems">
-  <meta name="twitter:description" content="An editorial technical investigation across existing Atlas instruments.">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
-  <link rel="stylesheet" href="/lab/shared/systems.css">
-  <link rel="stylesheet" href="/lab/failure-laboratory/failure-laboratory.css?v=20260915-failure-trace-clarity-final">
-  <link rel="stylesheet" href="/lab/shared/lab-context-navigation.css?v=20260806-lab-consistency-v2">
-  <link rel="stylesheet" href="/lab/shared/lab-shell-layout.css?v=20260806-lab-consistency-v2">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.3.0/atlas-interface-kit.css">
   <link rel="stylesheet" href="/static/css/estate-search.css">
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260724-source-hardening">
-  <meta property="og:image" content="https://atlas-systems.uk/og/failure-laboratory.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Failure Laboratory. Trace the bounded path. // Atlas Systems">
-  <meta name="twitter:image" content="https://atlas-systems.uk/og/failure-laboratory.png">
-  <meta name="twitter:image:alt" content="Failure Laboratory. Trace the bounded path. // Atlas Systems">
+  <link rel="stylesheet" href="/lab/shared/lab-context-navigation.css?v=20260806-lab-consistency-v2">
+  <link rel="stylesheet" href="/lab/shared/lab-shell-layout.css?v=20260806-lab-consistency-v2">
+  <script>location.replace("/lab/failure-trace/" + location.search + location.hash);</script>
 </head>
-<body class="failure-lab-page" data-atlas-bottom-nav="true" data-lab-shell data-lab-layout="standard" data-lab-route="failure-laboratory">
+<body data-atlas-bottom-nav="true" data-lab-shell data-lab-layout="standard" data-lab-route="failure-trace-legacy">
   <nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
     <div class="atlas-header__inner">
       <div class="atlas-header__brand atlas-global-header__identity">
@@ -50,193 +36,24 @@
         <a class="atlas-global-header__link" href="/about/">About</a>
       </div>
       <div class="atlas-header__actions atlas-global-header__actions">
-        <button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button>
+        <button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button>
       </div>
     </div>
   </nav>
 
   <nav class="lab-context-nav lab-context-nav--compact" aria-label="Lab navigation" data-lab-context-mode="compact" data-current-lab-route="Failure Trace">
     <div class="lab-context-compact">
-      <div class="lab-context-compact__crumbs" role="group" aria-label="Current Lab location">
-        <a href="/lab/">Lab</a>
-        <span class="lab-context-compact__separator" aria-hidden="true">/</span>
-        <span class="lab-context-compact__current" aria-current="page">Failure Trace</span>
-      </div>
-      <details class="lab-context-tools">
-        <summary>All Lab tools</summary>
-        <div class="lab-context-tools__menu" role="group" aria-label="All Lab tools">
-          <div class="lab-context-tools__group" data-lab-context-group="experience" role="group" aria-labelledby="failure-trace-tools-group-0">
-            <span class="lab-context-tools__group-label" id="failure-trace-tools-group-0">Experience</span>
-            <div class="lab-context-tools__links">
-              <a href="/lab/system-symphony/">System Symphony</a>
-              <a href="/lab/spectral-forge/">Spectral Forge</a>
-              <a href="/lab/signal/">Signal Garden</a>
-            </div>
-          </div>
-          <div class="lab-context-tools__group" data-lab-context-group="observe" role="group" aria-labelledby="failure-trace-tools-group-1">
-            <span class="lab-context-tools__group-label" id="failure-trace-tools-group-1">Observe</span>
-            <div class="lab-context-tools__links">
-              <a href="/lab/system-map/">System Map</a>
-              <a href="/lab/blackbox/">Blackbox</a>
-              <a href="/systems/observability/">Observability</a>
-              <a href="/lab/console/">Operations</a>
-            </div>
-          </div>
-          <div class="lab-context-tools__group" data-lab-context-group="verify" role="group" aria-labelledby="failure-trace-tools-group-2">
-            <span class="lab-context-tools__group-label" id="failure-trace-tools-group-2">Verify</span>
-            <div class="lab-context-tools__links">
-              <a href="/lab/failure-laboratory/" aria-current="page">Failure Trace</a>
-              <a href="/lab/proof-chain/">Proof Chain</a>
-              <a href="/lab/conformance/">Estate Conformance</a>
-              <a href="/lab/xray/">X-Ray</a>
-              <a href="/systems/reliability/">Reliability</a>
-              <a href="/systems/evidence/">Evidence</a>
-            </div>
-          </div>
-          <div class="lab-context-tools__group" data-lab-context-group="explore" role="group" aria-labelledby="failure-trace-tools-group-3">
-            <span class="lab-context-tools__group-label" id="failure-trace-tools-group-3">Explore</span>
-            <div class="lab-context-tools__links">
-              <a href="/lab/speculum/">Speculum</a>
-              <a href="/lab/almost/">Almost</a>
-              <a href="/lab/drift/">Drift</a>
-              <a href="/lab/bearing/">The Bearing</a>
-              <a href="/lab/anomaly/">Shape Detector</a>
-            </div>
-          </div>
-        </div>
-      </details>
+      <div class="lab-context-compact__crumbs" role="group" aria-label="Current Lab location"><a href="/lab/">Lab</a><span class="lab-context-compact__separator" aria-hidden="true">/</span><span class="lab-context-compact__current" aria-current="page">Failure Trace</span></div>
+      <details class="lab-context-tools"><summary>All Lab tools</summary><div class="lab-context-tools__menu" role="group" aria-label="All Lab tools">
+        <div class="lab-context-tools__group" data-lab-context-group="experience" role="group" aria-label="Experience"><span class="lab-context-tools__group-label">Experience</span><div class="lab-context-tools__links"><a href="/lab/system-symphony/">System Symphony</a><a href="/lab/spectral-forge/">Spectral Forge</a><a href="/lab/signal/">Signal Garden</a></div></div>
+        <div class="lab-context-tools__group" data-lab-context-group="observe" role="group" aria-label="Observe"><span class="lab-context-tools__group-label">Observe</span><div class="lab-context-tools__links"><a href="/lab/system-map/">System Map</a><a href="/lab/blackbox/">Blackbox</a><a href="/systems/observability/">Observability</a><a href="/lab/console/">Operations</a></div></div>
+        <div class="lab-context-tools__group" data-lab-context-group="verify" role="group" aria-label="Verify"><span class="lab-context-tools__group-label">Verify</span><div class="lab-context-tools__links"><a href="/lab/failure-trace/" aria-current="page">Failure Trace</a><a href="/lab/proof-chain/">Proof Chain</a><a href="/lab/conformance/">Estate Conformance</a><a href="/lab/xray/">X-Ray</a><a href="/systems/reliability/">Reliability</a><a href="/systems/evidence/">Evidence</a></div></div>
+        <div class="lab-context-tools__group" data-lab-context-group="explore" role="group" aria-label="Explore"><span class="lab-context-tools__group-label">Explore</span><div class="lab-context-tools__links"><a href="/lab/speculum/">Speculum</a><a href="/lab/almost/">Almost</a><a href="/lab/drift/">Drift</a><a href="/lab/bearing/">The Bearing</a><a href="/lab/anomaly/">Shape Detector</a></div></div>
+      </div></details>
     </div>
   </nav>
 
-  <main id="failure-laboratory-main">
-    <header class="failure-trace-hero" aria-labelledby="failure-trace-title">
-      <p class="failure-trace-eyebrow">LAB / VERIFY</p>
-      <div class="failure-trace-hero-grid">
-        <div>
-          <h1 id="failure-trace-title">Failure Trace<span>.</span></h1>
-          <p class="failure-trace-deck">Trace a distributed-system failure from request to recovery.</p>
-        </div>
-        <div class="failure-trace-hero-context">
-          <span class="failure-trace-truth">GUIDED MODEL / NOT LIVE</span>
-          <p>Choose a context, follow the investigation questions in order, and open the specialist instrument that can answer each one.</p>
-        </div>
-      </div>
-    </header>
-
-    <section class="failure-trace-scenario" aria-labelledby="scenario-heading">
-      <div class="failure-trace-scenario-copy">
-        <p class="failure-trace-label">INVESTIGATION CONTEXT</p>
-        <h2 id="scenario-heading"><span id="selected-scenario-label">Latency creep</span></h2>
-        <p id="selected-scenario-question">How does the selected bounded model or named record change under delay?</p>
-        <p class="failure-trace-scenario-boundary">Changes the investigation context only. Destination tools keep their own state and evidence.</p>
-        <details class="failure-trace-context-details">
-          <summary>Context boundary</summary>
-          <ul id="selected-scenario-boundary">
-            <li>A real latency regression occurred.</li>
-            <li>All instruments share one latency cause.</li>
-            <li>Current production performance is represented.</li>
-          </ul>
-        </details>
-      </div>
-
-      <fieldset class="failure-trace-scenario-options">
-        <legend class="failure-trace-visually-hidden">Choose an investigation context</legend>
-        <label><input type="radio" name="scenario" value="normal-operation" data-scenario-id="normal-operation"><span>Normal operation</span></label>
-        <label><input type="radio" name="scenario" value="latency-creep" data-scenario-id="latency-creep" checked><span>Latency creep</span></label>
-        <label><input type="radio" name="scenario" value="cache-collapse" data-scenario-id="cache-collapse"><span>Cache collapse</span></label>
-        <label><input type="radio" name="scenario" value="dependency-failure" data-scenario-id="dependency-failure"><span>Dependency failure</span></label>
-        <label><input type="radio" name="scenario" value="network-partition" data-scenario-id="network-partition"><span>Network partition</span></label>
-        <label><input type="radio" name="scenario" value="cascading-failure" data-scenario-id="cascading-failure"><span>Cascading failure</span></label>
-        <label><input type="radio" name="scenario" value="recovery" data-scenario-id="recovery"><span>Recovery</span></label>
-      </fieldset>
-    </section>
-
-    <section class="failure-trace-workspace" aria-labelledby="workspace-heading">
-      <div class="failure-trace-workspace-heading">
-        <div>
-          <p class="failure-trace-label">INVESTIGATION PATH</p>
-          <h2 id="workspace-heading">Follow the path. Jump when you need to.</h2>
-        </div>
-        <p>The rail shows the proper investigation order, what Failure Trace can map for this context, and where a question must stay open.</p>
-      </div>
-
-      <nav class="failure-trace-stage-nav" aria-label="Investigation stages">
-        <div class="failure-trace-stage-context"><span>Context</span><strong id="sticky-scenario-label">Latency creep</strong><span>Guide, not live</span></div>
-        <div class="failure-trace-rail-key" role="group" aria-label="Investigation rail colour key">
-          <strong class="failure-trace-rail-key-title">RAIL KEY</strong>
-          <span class="failure-trace-rail-key-item"><i class="failure-trace-rail-key-mark" data-rail-state="active" aria-hidden="true"></i>Current stage</span>
-          <span class="failure-trace-rail-key-item"><i class="failure-trace-rail-key-mark" data-rail-state="supported" aria-hidden="true"></i>Mapped guidance</span>
-          <span class="failure-trace-rail-key-item"><i class="failure-trace-rail-key-mark" data-rail-state="unmapped" aria-hidden="true"></i>Open / no generic mapping</span>
-          <span class="failure-trace-rail-key-item"><i class="failure-trace-rail-key-mark" data-rail-state="gap" aria-hidden="true"></i>Composite assessment</span>
-        </div>
-        <ol>
-          <li data-stage-nav-item data-stage-support="supported"><a data-stage-nav-link href="#stage-request" aria-current="step"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 16h18m-5-6 6 6-6 6"></path><circle cx="7" cy="16" r="2"></circle></svg><span>01</span><strong>Request</strong></a></li>
-          <li data-stage-nav-item data-stage-support="supported"><a data-stage-nav-link href="#stage-dependencies"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="8" cy="16" r="3"></circle><circle cx="24" cy="9" r="3"></circle><circle cx="24" cy="23" r="3"></circle><path d="M11 15l10-5m-10 7 10 5"></path></svg><span>02</span><strong>Dependencies</strong></a></li>
-          <li data-stage-nav-item data-stage-support="supported"><a data-stage-nav-link href="#stage-coordination"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="7" cy="9" r="3"></circle><circle cx="7" cy="23" r="3"></circle><circle cx="25" cy="16" r="3"></circle><path d="M10 10l12 5M10 22l12-5"></path></svg><span>03</span><strong>Coordination</strong></a></li>
-          <li data-stage-nav-item data-stage-support="unmapped"><a data-stage-nav-link href="#stage-impact"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="4"></circle><circle cx="16" cy="16" r="10"></circle></svg><span>04</span><strong>Impact</strong></a></li>
-          <li data-stage-nav-item data-stage-support="supported"><a data-stage-nav-link href="#stage-incident-evidence"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="7" y="6" width="18" height="20" rx="1"></rect><path d="M11 12h10m-10 5h10m-10 5h7"></path></svg><span>05</span><strong>Evidence</strong></a></li>
-          <li data-stage-nav-item data-stage-support="gap"><a data-stage-nav-link href="#stage-recovery"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M23 9a10 10 0 1 0 2 11M23 9v7h-7"></path></svg><span>06</span><strong>Recovery</strong></a></li>
-        </ol>
-      </nav>
-
-      <div class="failure-trace-stage-stack">
-        <section class="failure-trace-stage" id="stage-request" data-stage-id="request" data-active-stage aria-labelledby="stage-request-heading">
-          <header class="failure-trace-stage-header"><div><p class="failure-trace-stage-index">01 / REQUEST</p><h3 id="stage-request-heading" tabindex="-1">What happened to this request?</h3></div><span class="failure-trace-stage-state">START HERE</span></header>
-          <div class="failure-trace-stage-content" data-stage-content="request"><article class="failure-trace-reading" data-instrument-id="request-xray" data-support-type="contextual"><div class="failure-trace-reading-heading"><div><p class="failure-trace-reading-type">CONTEXTUAL / REQUEST</p><h4>Request X-Ray</h4></div><span class="failure-trace-evidence" data-evidence-mode="simulated">Simulated</span></div><p class="failure-trace-demonstrates">How bounded request timing changes affect the synthetic trace.</p><div class="failure-trace-proof"><strong>Proof boundary</strong><p>Request X-Ray offers timing controls inside its synthetic request model.</p></div><details class="failure-trace-reading-details"><summary>Evidence detail</summary><p>No live request timing is measured by the shared model.</p></details><a class="failure-trace-reading-link" href="/lab/xray/">Open Request X-Ray <span aria-hidden="true">↗</span></a></article></div>
-          <nav class="failure-trace-stage-actions" aria-label="Request stage navigation"><a class="failure-trace-stage-action failure-trace-stage-action--previous" data-stage-previous href="#scenario-heading"><span aria-hidden="true">←</span> Context</a><a class="failure-trace-stage-action failure-trace-stage-action--next" data-stage-next href="#stage-dependencies">Dependencies <span aria-hidden="true">→</span></a></nav>
-        </section>
-
-        <section class="failure-trace-stage" id="stage-dependencies" data-stage-id="dependencies" aria-labelledby="stage-dependencies-heading">
-          <header class="failure-trace-stage-header"><div><p class="failure-trace-stage-index">02 / DEPENDENCIES</p><h3 id="stage-dependencies-heading" tabindex="-1">How did the problem propagate through dependencies?</h3></div></header>
-          <div class="failure-trace-stage-content" data-stage-content="dependencies"><article class="failure-trace-reading" data-instrument-id="cascade" data-support-type="direct"><div class="failure-trace-reading-heading"><div><p class="failure-trace-reading-type">DIRECT / DEPENDENCIES</p><h4>CASCADE</h4></div><span class="failure-trace-evidence" data-evidence-mode="simulated">Simulated</span></div><p class="failure-trace-demonstrates">How added delay changes propagation and containment inside the synthetic CASCADE graph.</p><div class="failure-trace-proof"><strong>Proof boundary</strong><p>CASCADE directly models bounded added latency in its synthetic graph.</p></div><a class="failure-trace-reading-link" href="/lab/cascade/">Open CASCADE <span aria-hidden="true">↗</span></a></article></div>
-          <nav class="failure-trace-stage-actions" aria-label="Dependencies stage navigation"><a class="failure-trace-stage-action" data-stage-previous href="#stage-request"><span aria-hidden="true">←</span> Request</a><a class="failure-trace-stage-action failure-trace-stage-action--next" data-stage-next href="#stage-coordination">Coordination <span aria-hidden="true">→</span></a></nav>
-        </section>
-
-        <section class="failure-trace-stage" id="stage-coordination" data-stage-id="coordination" aria-labelledby="stage-coordination-heading">
-          <header class="failure-trace-stage-header"><div><p class="failure-trace-stage-index">03 / COORDINATION</p><h3 id="stage-coordination-heading" tabindex="-1">How did replicated state, routing, isolation, and protection behave?</h3></div></header>
-          <div class="failure-trace-stage-content" data-stage-content="coordination"><article class="failure-trace-reading" data-instrument-id="consensus" data-support-type="contextual"><div class="failure-trace-reading-heading"><div><p class="failure-trace-reading-type">CONTEXTUAL / COORDINATION</p><h4>Consensus</h4></div><span class="failure-trace-evidence" data-evidence-mode="simulated">Simulated</span></div><p class="failure-trace-demonstrates">How a delayed replica affects the fixed teaching model's convergence.</p><div class="failure-trace-proof"><strong>Proof boundary</strong><p>Consensus provides a bounded delay teaching model, not a production protocol reading.</p></div><a class="failure-trace-reading-link" href="/lab/consensus/">Open Consensus <span aria-hidden="true">↗</span></a></article></div>
-          <nav class="failure-trace-stage-actions" aria-label="Coordination stage navigation"><a class="failure-trace-stage-action" data-stage-previous href="#stage-dependencies"><span aria-hidden="true">←</span> Dependencies</a><a class="failure-trace-stage-action failure-trace-stage-action--next" data-stage-next href="#stage-impact">Impact <span aria-hidden="true">→</span></a></nav>
-        </section>
-
-        <section class="failure-trace-stage" id="stage-impact" data-stage-id="impact" aria-labelledby="stage-impact-heading">
-          <header class="failure-trace-stage-header"><div><p class="failure-trace-stage-index">04 / IMPACT</p><h3 id="stage-impact-heading" tabindex="-1">Which public components or contracts could be affected?</h3></div></header>
-          <div class="failure-trace-stage-content" data-stage-content="impact"><div class="failure-trace-unmapped"><span class="failure-trace-open-status">OPEN / NO GENERIC MAPPING</span><h4>The investigation question still matters.</h4><div class="failure-trace-open-grid"><section><p class="failure-trace-open-label">CURRENT MAPPING</p><p>Failure Trace has no scenario-safe impact instrument mapping for Latency creep. The stage stays visible instead of inventing an answer.</p></section><section><p class="failure-trace-open-label">HOW IT WOULD WORK</p><p>Use bounded Atlas Twin relationship context to identify components that could be affected, then require named evidence before any stronger impact claim.</p></section></div></div></div>
-          <nav class="failure-trace-stage-actions" aria-label="Impact stage navigation"><a class="failure-trace-stage-action" data-stage-previous href="#stage-coordination"><span aria-hidden="true">←</span> Coordination</a><a class="failure-trace-stage-action failure-trace-stage-action--next" data-stage-next href="#stage-incident-evidence">Evidence <span aria-hidden="true">→</span></a></nav>
-        </section>
-
-        <section class="failure-trace-stage" id="stage-incident-evidence" data-stage-id="incident-evidence" aria-labelledby="stage-incident-evidence-heading">
-          <header class="failure-trace-stage-header"><div><p class="failure-trace-stage-index">05 / INCIDENT EVIDENCE</p><h3 id="stage-incident-evidence-heading" tabindex="-1">What incident evidence was actually recorded or proven?</h3></div></header>
-          <div class="failure-trace-stage-content" data-stage-content="incident-evidence"><article class="failure-trace-reading" data-instrument-id="blackbox" data-support-type="contextual"><div class="failure-trace-reading-heading"><div><p class="failure-trace-reading-type">CONTEXTUAL / INCIDENT EVIDENCE</p><h4>Blackbox</h4></div><span class="failure-trace-evidence" data-evidence-mode="recorded-replay">Recorded replay</span></div><p class="failure-trace-demonstrates">A named recorded incident can show the latency frames that its recorder captured.</p><div class="failure-trace-proof"><strong>Proof boundary</strong><p>Only a named recorded Blackbox record can support this reading.</p></div><a class="failure-trace-reading-link" href="/lab/blackbox/">Open Blackbox <span aria-hidden="true">↗</span></a></article></div>
-          <nav class="failure-trace-stage-actions" aria-label="Incident evidence stage navigation"><a class="failure-trace-stage-action" data-stage-previous href="#stage-impact"><span aria-hidden="true">←</span> Impact</a><a class="failure-trace-stage-action failure-trace-stage-action--next" data-stage-next href="#stage-recovery">Recovery <span aria-hidden="true">→</span></a></nav>
-        </section>
-
-        <section class="failure-trace-stage" id="stage-recovery" data-stage-id="recovery" aria-labelledby="stage-recovery-heading">
-          <header class="failure-trace-stage-header"><div><p class="failure-trace-stage-index">06 / RECOVERY</p><h3 id="stage-recovery-heading" tabindex="-1">What can be truthfully said about recovery?</h3></div><span class="failure-trace-stage-state failure-trace-stage-state--open">COMPOSITE ASSESSMENT</span></header>
-          <div class="failure-trace-stage-content" data-stage-content="recovery"><div class="failure-trace-recovery-assessment"><div class="failure-trace-recovery-assessment-heading"><span class="failure-trace-gap-mark" aria-hidden="true"></span><div><p class="failure-trace-reading-type">COMPOSITE ASSESSMENT / NOT AN OBSERVATION</p><h4>Recovery has no single source of truth.</h4><p>Different instruments can show reset, convergence, recorded aftermath, or a named lifecycle fact. Failure Trace keeps those signals separate until they support the same bounded conclusion.</p></div></div><div class="failure-trace-recovery-conclusion"><strong>BOUNDARY</strong><p>Recovery-like output, aftermath, or a named lifecycle fact does not prove universal current service recovery or root-cause resolution.</p></div></div></div>
-          <nav class="failure-trace-stage-actions" aria-label="Recovery stage navigation"><a class="failure-trace-stage-action" data-stage-previous href="#stage-incident-evidence"><span aria-hidden="true">←</span> Evidence</a><span class="failure-trace-stage-end">End of the canonical path. Unknowns remain open.</span></nav>
-        </section>
-      </div>
-    </section>
-
-    <section class="failure-trace-optional" aria-labelledby="optional-heading">
-      <div><p class="failure-trace-label">OPTIONAL INTERPRETATION</p><h2 id="optional-heading">Off the main rail.</h2><p>These layers can interpret a supported context without becoming investigation stages or incident authority.</p></div>
-      <div class="failure-trace-optional-links"><a href="/lab/spectral-forge/"><span><strong>Spectral Forge</strong><small id="spectral-forge-summary">Synthetic telemetry interpretation</small></span><span aria-hidden="true">↗</span></a><a href="/lab/system-symphony/"><span><strong>System Symphony</strong><small id="system-symphony-summary">Source-aware telemetry sonification</small></span><span aria-hidden="true">↗</span></a></div>
-    </section>
-
-    <section class="failure-trace-reference" aria-labelledby="reference-heading">
-      <div class="failure-trace-reference-heading"><p class="failure-trace-label">REFERENCE</p><h2 id="reference-heading">Technical detail, when you need it.</h2></div>
-      <details><summary><span>Model-approved reading paths</span><span aria-hidden="true">+</span></summary><div class="failure-trace-reference-body failure-trace-reference-paths" id="narrative-content"><article><h3>From dependency failure to recovery</h3><ol><li>Request / Normal operation / Request X-Ray</li><li>Dependencies / Dependency failure / CASCADE</li><li>Dependencies / Cascading failure / CASCADE</li><li>Incident evidence / Cascading failure / Blackbox</li><li>Recovery / Recovery / CASCADE</li></ol><p>Coordination and Impact remain omitted rather than inferred.</p></article><article><h3>From bounded isolation to recovery</h3><ol><li>Request / Normal operation / Request X-Ray</li><li>Coordination / Network partition / Consensus</li><li>Coordination / Network partition / Neon Relay</li><li>Recovery / Recovery / Consensus</li></ol><p>Dependencies, Impact, and Incident evidence remain omitted where the model has no bounded relationship.</p></article></div></details>
-      <details><summary><span>Evidence modes</span><span aria-hidden="true">+</span></summary><dl class="failure-trace-reference-body failure-trace-mode-list"><div><dt><span class="failure-trace-evidence" data-evidence-mode="measured">Measured</span></dt><dd>Current source-owned measurement with source and observation time owned by the destination.</dd></div><div><dt><span class="failure-trace-evidence" data-evidence-mode="stale-measured">Stale measured</span></dt><dd>A previous measurement whose freshness threshold has elapsed.</dd></div><div><dt><span class="failure-trace-evidence" data-evidence-mode="recorded-replay">Recorded replay</span></dt><dd>A named historical record. It is not current live state.</dd></div><div><dt><span class="failure-trace-evidence" data-evidence-mode="simulated">Simulated</span></dt><dd>Bounded synthetic behaviour created by an instrument.</dd></div><div><dt><span class="failure-trace-evidence" data-evidence-mode="unavailable">Unavailable</span></dt><dd>Expected evidence cannot currently be retrieved or served.</dd></div><div><dt><span class="failure-trace-evidence" data-evidence-mode="unknown">Unknown</span></dt><dd>The available record does not establish the meaning or state.</dd></div><div><dt><span class="failure-trace-evidence" data-evidence-mode="not-applicable-unscored">Not applicable / unscored</span></dt><dd>The relationship is intentionally unsupported. No score is inferred.</dd></div></dl></details>
-      <details><summary><span>Participating instruments</span><span aria-hidden="true">+</span></summary><ul class="failure-trace-reference-body failure-trace-destinations"><li><a href="/lab/xray/"><strong>Request X-Ray</strong><span>Request-path simulation</span></a></li><li><a href="/lab/cascade/"><strong>CASCADE</strong><span>Propagation and containment</span></a></li><li><a href="/lab/consensus/"><strong>Consensus</strong><span>Replicated-state teaching model</span></a></li><li><a href="/lab/neon-relay/"><strong>Neon Relay</strong><span>Routing and protection circuit</span></a></li><li><a href="/systems/evidence/"><strong>Evidence Console</strong><span>Named lifecycle and impact-context records</span></a></li><li><a href="/lab/blackbox/"><strong>Blackbox</strong><span>Recorder and incident replay</span></a></li><li><a href="/lab/spectral-forge/"><strong>Spectral Forge</strong><span>Optional synthetic interpretation</span></a></li><li><a href="/lab/system-symphony/"><strong>System Symphony</strong><span>Optional source-aware sonification</span></a></li></ul></details>
-      <details><summary><span>Unsupported relationships for selected context</span><span aria-hidden="true">+</span></summary><div class="failure-trace-reference-body failure-trace-unsupported-list" id="unsupported-content"><p class="failure-trace-reference-empty">Context-specific unsupported relationships load from the shared model. Open stages remain visible above without JavaScript.</p></div></details>
-      <details><summary><span>Proof and interpretation rules</span><span aria-hidden="true">+</span></summary><ul class="failure-trace-reference-body failure-trace-rules"><li>A selected context is a guide only. It does not mean a real incident occurred.</li><li>Simulated behaviour is not production failure.</li><li>A topology relationship does not prove propagation.</li><li>Atlas Twin says only what <em>could be affected</em>, never what was affected.</li><li>Recorded replay is historical, not current live state.</li><li>Sonification is interpretation, not incident authority.</li><li>Source or merge state does not prove deployment, runtime, or live state.</li><li>Recovery-like output does not create one universal recovery authority.</li></ul></details>
-    </section>
-
-    <noscript><p class="failure-trace-noscript">JavaScript is optional. The default Latency creep context, all six investigation questions, evidence vocabulary, reading paths, and every participating destination remain available on this page.</p></noscript>
-  </main>
-
+  <main><section class="atlas-state atlas-state--unknown" aria-labelledby="failure-trace-moved"><p class="atlas-eyebrow">LAB / VERIFY</p><h1 id="failure-trace-moved">Failure Trace has moved.</h1><p>The canonical route is now <a href="/lab/failure-trace/">/lab/failure-trace/</a>.</p></section></main>
   <script type="module" src="/lab/shared/shell.js?v=20260813-xray-route"></script>
-  <script type="module" src="/lab/failure-laboratory/failure-laboratory.js?v=20260915-failure-trace-clarity-final"></script>
-  <nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation"><div class="mobile-nav-inner atlas-mobile-nav__inner"><a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><span>Work</span></a><a class="mobile-nav-item atlas-mobile-nav__item" href="/writing/"><span>Writing</span></a><a class="mobile-nav-item atlas-mobile-nav__item active" href="/lab/" aria-current="page"><span>Lab</span></a><a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><span>Systems</span></a><a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><span>About</span></a></div></nav>
 </body>
 </html>

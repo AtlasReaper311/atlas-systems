@@ -7,6 +7,14 @@
 /about   /about/   301
 /systems /systems/ 301
 
+# Failure Trace replaced the original Failure Laboratory public route.
+# Preserve the old entry points as permanent compatibility redirects while the
+# canonical document, sitemap, social preview, and interface declaration use the
+# new public identity and route.
+/lab/failure-laboratory  /lab/failure-trace/ 301
+/lab/failure-laboratory/ /lab/failure-trace/ 301
+/lab/failure-laboratory/* /lab/failure-trace/:splat 301
+
 # Retired Lab reliability route, superseded by the focused Systems destination.
 # Exact-match only. Cloudflare Pages follows redirects even when a static asset
 # matches, so a splat here would also shadow reliability-core.js, reliability.js,
