@@ -41,7 +41,9 @@ test("the primary guided directory entry retains its source structure during the
   assert.ok(ramonePosition >= 0 && failurePosition > ramonePosition);
   assert.ok(audioPosition > failurePosition);
   assert.match(landing, /<p class="eyebrow">Primary systems-failure journey<\/p>/);
-  assert.match(landing, /href="\/lab\/failure-laboratory\/">Enter Failure Laboratory<\/a>/);
+  assert.match(landing, /href="\/lab\/failure-trace\/">Enter Failure Trace<\/a>/);
+  assert.match(landing, /<h2 id="failure-laboratory-entry-title">Failure Trace\.<\/h2>/);
+  assert.doesNotMatch(landing, /href="\/lab\/failure-laboratory\/"/);
   assert.match(convergence, /const FAILURE_TRACE_ROUTE = "\/lab\/failure-trace\/"/);
   assert.match(convergence, /const LEGACY_FAILURE_TRACE_ROUTE = "\/lab\/failure-laboratory\/"/);
   assert.match(convergence, /function normalizeFailureTraceHandoffs\(documentNode\)/);

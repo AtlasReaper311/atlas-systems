@@ -36,7 +36,7 @@ const LAB_SHELL_ROUTES = Object.freeze([
   "lab/almost/index.html", "lab/anomaly/index.html", "lab/bearing/index.html",
   "lab/blackbox/index.html", "lab/conformance/index.html", "lab/consensus/index.html",
   "lab/console/index.html",
-  "lab/drift/index.html", "lab/failure-laboratory/index.html", "lab/index.html", "lab/proof-chain/index.html",
+  "lab/drift/index.html", "lab/failure-laboratory/index.html", "lab/failure-trace/index.html", "lab/index.html", "lab/proof-chain/index.html",
   "lab/signal/index.html", "lab/spectral-forge/index.html", "lab/speculum/index.html",
   "lab/system-map/index.html", "lab/atlas-motion/index.html", "lab/system-symphony/build-log/index.html",
   "lab/system-symphony/index.html", "lab/system-symphony/radio/index.html",
@@ -108,7 +108,7 @@ test("v2 shell exposes the accepted route order and v0.3.0 foundations", () => {
   assert.match(shell, /installSharedFoundationSemantics/);
   assert.match(shell, /aria-live", "off"/);
   assert.match(shell, /normalizeLegacySemantics/);
-  assert.match(shellCss, /grid-template-columns:\s*repeat\(5,\s*1fr\)/);
+  assert.match(shellCss, /grid-template-columns:\s*repeat\(5,\s*minmax\(0,\s*1fr\)\)/);
 });
 
 test("first paint ships the governed header rather than a JavaScript rewrite of it", () => {

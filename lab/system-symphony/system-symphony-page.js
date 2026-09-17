@@ -18,7 +18,6 @@ import {
 } from "../../static/js/sonify/atlas-apu-incident-arc.js?v=20260726-atlas-apu-incident-arc-v1";
 
 const OBJECTIVES_URL = "https://api.atlas-systems.uk/v1/reliability/objectives";
-const SHELL_FIX_STYLESHEET = "/static/css/batch-h-shell-fixes.css?v=20260725-browser-evidence";
 const FLIGHT_RECORDER_ARCHIVE_URL = "/lab/system-symphony/black-box/archive.json?v=20260726-phase9-flight-recorder";
 const INCIDENT_ARC_ARCHIVE_URL = "/lab/system-symphony/black-box/incident-arcs.json?v=20260726-phase10-incident-boss-track";
 const HOST_ID = "system-symphony-widget";
@@ -56,14 +55,6 @@ let activeProofPanel = "cartridge";
 let traceRoleControlsHome = null;
 
 const byId = (id) => document.getElementById(id);
-
-function ensureStylesheet(href) {
-  if (document.head.querySelector(`link[href="${href}"]`)) return;
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = href;
-  document.head.appendChild(link);
-}
 
 function setText(id, value) {
   const node = byId(id);
@@ -1200,7 +1191,6 @@ async function loadObjectiveCount() {
 async function initialisePage() {
   const pageHost = document.querySelector("[data-symphony-page-host]");
   if (!pageHost) return;
-  ensureStylesheet(SHELL_FIX_STYLESHEET);
   try {
     const host = await waitForInstrumentHost();
     convertConsoleToRegion(host, pageHost);

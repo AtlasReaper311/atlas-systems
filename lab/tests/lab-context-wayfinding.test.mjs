@@ -31,6 +31,7 @@ test("Lab context inventory uses current canonical destinations", () => {
     "/lab/blackbox/",
     "/systems/observability/",
     "/lab/console/",
+    "/lab/failure-trace/",
     "/lab/proof-chain/",
     "/lab/conformance/",
     "/lab/xray/",

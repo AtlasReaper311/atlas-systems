@@ -104,10 +104,10 @@ test("the page is capability-first and keeps all five stories in the no-JS docum
   assert.match(SCRIPT, /receipt\.hidden = !active/);
 });
 
-test("the Observatory aligns the 768px shell boundary with governed navigation semantics", () => {
-  assert.match(CSS, /@media \(min-width: 768px\) and \(max-width: 768px\)/);
-  assert.match(CSS, /\.model-promotion-page \.atlas-header__nav \{ display: flex; \}/);
-  assert.match(CSS, /\.model-promotion-page \.atlas-mobile-nav \{ display: none; \}/);
+test("the Observatory relies on the shared 768px shell boundary", () => {
+  assert.doesNotMatch(CSS, /@media \(min-width: 768px\) and \(max-width: 768px\)/);
+  assert.doesNotMatch(CSS, /\.model-promotion-page \.atlas-header__nav \{ display: flex; \}/);
+  assert.doesNotMatch(CSS, /\.model-promotion-page \.atlas-mobile-nav \{ display: none; \}/);
 });
 
 test("every aggregate has capability, case count, passed result, and threshold context", () => {

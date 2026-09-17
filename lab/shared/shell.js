@@ -31,6 +31,7 @@ const LAB_ROUTE_GROUPS = Object.freeze([
   Object.freeze({
     label: "Verify",
     routes: Object.freeze([
+      Object.freeze({ label: "Failure Trace", href: "/lab/failure-trace/" }),
       Object.freeze({ label: "Proof Chain", href: "/lab/proof-chain/" }),
       Object.freeze({ label: "Estate Conformance", href: "/lab/conformance/" }),
       Object.freeze({ label: "X-Ray", href: "/lab/xray/" }),
@@ -316,14 +317,24 @@ function ensureGovernedHeader(primary) {
  */
 function contextNavigationIsComplete(context, pathname = currentPath()) {
   if (!context) return false;
+  const groupSelector = pathname === LAB_HOME_ROUTE ? ".lab-context-group" : ".lab-context-tools__group";
+  const groups = [...context.querySelectorAll(groupSelector)];
+  const inventoryComplete = LAB_ROUTE_GROUPS.every((routeGroup) => {
+    const group = groups.find((candidate) => candidate.dataset.labContextGroup === routeGroup.label.toLowerCase());
+    return Boolean(group) && routeGroup.routes.every(({ href }) => (
+      [...group.querySelectorAll("a[href]")].some((link) => routePath(link.getAttribute("href")) === routePath(href))
+    ));
+  });
   if (pathname === LAB_HOME_ROUTE) {
     return context.dataset.labContextMode === "directory"
-      && context.querySelectorAll(".lab-context-group").length === LAB_ROUTE_GROUPS.length;
+      && groups.length === LAB_ROUTE_GROUPS.length
+      && inventoryComplete;
   }
   return context.dataset.labContextMode === "compact"
     && Boolean(context.querySelector(".lab-context-compact__crumbs"))
     && Boolean(context.querySelector(".lab-context-tools > summary"))
-    && context.querySelectorAll(".lab-context-tools__group").length === LAB_ROUTE_GROUPS.length;
+    && groups.length === LAB_ROUTE_GROUPS.length
+    && inventoryComplete;
 }
 
 function installContextNavigation(primary) {
