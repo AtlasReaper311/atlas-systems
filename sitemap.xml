@@ -37,6 +37,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://atlas-systems.uk/systems/model-promotion/</loc>
+    <lastmod>2026-09-16T21:44:22+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://atlas-systems.uk/systems/observability/</loc>
     <lastmod>2026-08-13T19:26:08+01:00</lastmod>
     <changefreq>monthly</changefreq>

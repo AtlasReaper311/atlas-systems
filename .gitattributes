@@ -12,3 +12,7 @@
 *.woff2 binary
 *.ttf binary
 *.eot binary
+
+# Public model-promotion receipts are evidence artifacts. Preserve their exact
+# bytes across Windows and Linux checkouts so fingerprints remain portable.
+systems/model-promotion/evidence/*.json -text

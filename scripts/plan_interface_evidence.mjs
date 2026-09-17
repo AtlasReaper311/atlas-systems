@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import process from "node:process";
 
@@ -5,6 +6,7 @@ import {
   allEvidenceRoutes,
   buildEvidencePlan,
   classifyChangedFiles,
+  surfaceConvergenceRouteHints,
 } from "./interface-evidence/contract.mjs";
 
 function option(name, fallback = null) {
@@ -13,6 +15,28 @@ function option(name, fallback = null) {
   const value = process.argv[index + 1];
   if (!value || value.startsWith("--")) throw new Error(`${name} requires a value`);
   return value;
+}
+
+function deriveChangedRouteHints(changedFiles, routes) {
+  const filePath = "static/js/surface-convergence.js";
+  if (!changedFiles.includes(filePath)) return {};
+
+  const baseSha = process.env.BASE_SHA;
+  const headSha = process.env.HEAD_SHA;
+  if (!baseSha || !headSha) return {};
+
+  try {
+    const diffText = execFileSync(
+      "git",
+      ["diff", "--unified=0", baseSha, headSha, "--", filePath],
+      { encoding: "utf8" },
+    );
+    const routesForFile = surfaceConvergenceRouteHints(diffText, routes);
+    return routesForFile.length ? { [filePath]: routesForFile } : {};
+  } catch (error) {
+    console.warn(`Unable to derive route hints for ${filePath}; falling back to estate-wide evidence: ${error.message}`);
+    return {};
+  }
 }
 
 const sitemapPath = option("--sitemap", "sitemap.xml");
@@ -25,11 +49,13 @@ const routes = allEvidenceRoutes(sitemapXml);
 const changedFiles = changedFilesPath
   ? fs.readFileSync(changedFilesPath, "utf8").split(/\r?\n/).filter(Boolean)
   : [];
-const classification = classifyChangedFiles({ changedFiles, routes });
+const changedRouteHints = deriveChangedRouteHints(changedFiles, routes);
+const classification = classifyChangedFiles({ changedFiles, routes, changedRouteHints });
 const plan = buildEvidencePlan({ sitemapXml, changedRoutes: classification.changed_routes });
 const payload = {
   ...plan,
   changed_files: changedFiles,
+  changed_route_hints: changedRouteHints,
   classification,
 };
 

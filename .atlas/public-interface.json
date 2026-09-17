@@ -312,6 +312,51 @@
       ]
     },
     {
+      "url": "https://atlas-systems.uk/systems/model-promotion/",
+      "source": "systems/model-promotion/index.html",
+      "kind": "product",
+      "indexing": "index",
+      "global_header": true,
+      "search": true,
+      "status_indicator": "aggregate-link",
+      "icons": [
+        "favicon.ico",
+        "favicon-16x16.png",
+        "favicon-32x32.png",
+        "apple-touch-icon.png",
+        "android-chrome-192x192.png",
+        "android-chrome-512x512.png",
+        "site.webmanifest"
+      ],
+      "metadata": [
+        "title",
+        "description",
+        "canonical",
+        "theme-color",
+        "icons",
+        "og:type",
+        "og:title",
+        "og:description",
+        "og:url",
+        "og:site_name",
+        "og:image",
+        "og:image:width",
+        "og:image:height",
+        "og:image:alt",
+        "twitter:card",
+        "twitter:title",
+        "twitter:description",
+        "twitter:image"
+      ],
+      "footer": "Model Promotion Observatory and Atlas estate escape",
+      "link_policy": "atlas-owned-same-tab-external-safe-new-tab",
+      "generated_owner": null,
+      "notes": [
+        "Capability-specific public model evaluation and promotion evidence remains read-only and separate from deployment or runtime state.",
+        "The five accepted receipts are static public projections; private evaluation material is not consumed by this surface."
+      ]
+    },
+    {
       "url": "https://atlas-systems.uk/lab/system-map/",
       "source": "lab/system-map/index.html",
       "kind": "lab-tool",

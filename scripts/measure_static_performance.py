@@ -31,6 +31,11 @@ def local_asset(root: Path, value: str) -> Path | None:
     return candidate if candidate.is_file() else None
 
 
+def canonical_size(path: Path) -> int:
+    """Measure repository bytes consistently when a checkout changes newlines."""
+    return len(path.read_bytes().replace(b"\r\n", b"\n"))
+
+
 def measure(root: Path) -> dict:
     routes = []
     for route in ROUTES:
@@ -41,8 +46,8 @@ def measure(root: Path) -> dict:
             asset = local_asset(root, value)
             if asset is None:
                 continue
-            assets[asset.relative_to(root).as_posix()] = asset.stat().st_size
-        html_bytes = html_path.stat().st_size
+            assets[asset.relative_to(root).as_posix()] = canonical_size(asset)
+        html_bytes = canonical_size(html_path)
         asset_bytes = sum(assets.values())
         largest = max(assets.items(), key=lambda item: item[1], default=(None, 0))
         routes.append({
