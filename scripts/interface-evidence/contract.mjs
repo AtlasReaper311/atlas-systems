@@ -53,6 +53,7 @@ const GLOBAL_VISUAL_PATHS = Object.freeze([
 ]);
 
 const VISUAL_EXTENSIONS = new Set([".html", ".css", ".js", ".svg"]);
+const SURFACE_CONVERGENCE_PATH = "static/js/surface-convergence.js";
 
 function unique(values) {
   return [...new Set(values)];
@@ -193,6 +194,31 @@ function routePrefixFromPath(filePath) {
   return null;
 }
 
+function routeFromScopedStaticAsset(filePath, routeSet) {
+  const match = filePath.match(/^static\/(?:css|js)\/(systems|lab|writing)-(.+)\.(?:css|js|svg)$/);
+  if (!match) return null;
+  const route = `/${match[1]}/${match[2]}/`;
+  return routeSet.has(route) ? route : null;
+}
+
+export function surfaceConvergenceRouteHints(diffText, routes) {
+  const routeSet = new Set(routes);
+  const changedLines = diffText
+    .split(/\r?\n/)
+    .filter((line) => (line.startsWith("+") || line.startsWith("-"))
+      && !line.startsWith("+++")
+      && !line.startsWith("---"));
+  if (!changedLines.length) return [];
+
+  const hints = new Set();
+  for (const line of changedLines) {
+    const match = line.match(/^[+-]\s*"(\/[^\"]+)":\s*Object\.freeze\(/);
+    if (!match || !routeSet.has(match[1])) return [];
+    hints.add(match[1]);
+  }
+  return [...hints];
+}
+
 function visualPath(filePath) {
   if (GLOBAL_VISUAL_PATHS.includes(filePath)) return true;
   if (filePath.startsWith("static/vendor/atlas-interface/")) return true;
@@ -203,7 +229,7 @@ function visualPath(filePath) {
   return VISUAL_EXTENSIONS.has(path.extname(filePath));
 }
 
-export function classifyChangedFiles({ changedFiles, routes }) {
+export function classifyChangedFiles({ changedFiles, routes, changedRouteHints = {} }) {
   const allRoutes = unique(routes);
   const routeSet = new Set(allRoutes);
   const changedRoutes = new Set();
@@ -234,6 +260,21 @@ export function classifyChangedFiles({ changedFiles, routes }) {
     }
     if (filePath.includes("card-signatures")) {
       for (const route of allRoutes.filter((candidate) => candidate === "/lab/" || candidate === "/systems/")) changedRoutes.add(route);
+      continue;
+    }
+    if (filePath === SURFACE_CONVERGENCE_PATH) {
+      const hints = changedRouteHints[filePath] || [];
+      if (hints.length && hints.every((route) => routeSet.has(route))) {
+        for (const route of hints) changedRoutes.add(route);
+      } else {
+        globalVisualChange = true;
+      }
+      continue;
+    }
+
+    const scopedStaticRoute = routeFromScopedStaticAsset(filePath, routeSet);
+    if (scopedStaticRoute) {
+      changedRoutes.add(scopedStaticRoute);
       continue;
     }
 
