@@ -108,7 +108,7 @@ test("v2 shell exposes the accepted route order and v0.3.0 foundations", () => {
   assert.match(shell, /installSharedFoundationSemantics/);
   assert.match(shell, /aria-live", "off"/);
   assert.match(shell, /normalizeLegacySemantics/);
-  assert.match(shellCss, /grid-template-columns:\s*repeat\(5,\s*1fr\)/);
+  assert.match(shellCss, /grid-template-columns:\s*repeat\(5,\s*minmax\(0,\s*1fr\)\)/);
 });
 
 test("first paint ships the governed header rather than a JavaScript rewrite of it", () => {
