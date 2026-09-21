@@ -33,7 +33,7 @@ const participantRoutes = [
   "/systems/evidence/",
 ];
 
-test("the primary guided directory entry retains its source structure during the route migration", () => {
+test("the primary guided directory entry uses the canonical Failure Trace identity", () => {
   const ramonePosition = landing.indexOf("lab-ramone-section");
   const failurePosition = landing.indexOf('class="content-section lab-failure-laboratory-section"');
   const audioPosition = landing.indexOf('class="lab-audio-flagships"');
@@ -41,7 +41,10 @@ test("the primary guided directory entry retains its source structure during the
   assert.ok(ramonePosition >= 0 && failurePosition > ramonePosition);
   assert.ok(audioPosition > failurePosition);
   assert.match(landing, /<p class="eyebrow">Primary systems-failure journey<\/p>/);
-  assert.match(landing, /href="\/lab\/failure-laboratory\/">Enter Failure Laboratory<\/a>/);
+  assert.match(landing, /<h2 id="failure-laboratory-entry-title">Failure Trace\.<\/h2>/);
+  assert.match(landing, /href="\/lab\/failure-trace\/">Enter Failure Trace<\/a>/);
+  assert.doesNotMatch(landing, /href="\/lab\/failure-laboratory\/"/);
+  assert.doesNotMatch(landing, />Failure Laboratory(?:\.|<)/);
   assert.match(convergence, /const FAILURE_TRACE_ROUTE = "\/lab\/failure-trace\/"/);
   assert.match(convergence, /const LEGACY_FAILURE_TRACE_ROUTE = "\/lab\/failure-laboratory\/"/);
   assert.match(convergence, /function normalizeFailureTraceHandoffs\(documentNode\)/);
@@ -95,7 +98,14 @@ test("participating specialist instruments remain separated from other Lab desti
 
 test("the canonical Failure Trace route is first-class without changing specialist indexing", () => {
   const verify = shell.slice(shell.indexOf('label: "Verify"'), shell.indexOf('label: "Explore"'));
-  assert.doesNotMatch(verify, /Failure Laboratory/);
+  assert.match(verify, /Object\.freeze\(\{ label: "Failure Trace", href: "\/lab\/failure-trace\/" \}\)/);
+  assert.doesNotMatch(verify, /href: "\/lab\/failure-laboratory\/"/);
+  const landingVerify = landing.slice(
+    landing.indexOf('data-lab-context-group="verify"'),
+    landing.indexOf('data-lab-context-group="explore"'),
+  );
+  assert.match(landingVerify, /<a href="\/lab\/failure-trace\/">Failure Trace<\/a>/);
+  assert.equal((landingVerify.match(/href="\/lab\/failure-trace\/"/g) || []).length, 1);
   assert.match(sitemapSource, /\("\/lab\/failure-trace\/", "monthly", "0\.7"\)/);
   assert.doesNotMatch(sitemapSource, /\("\/lab\/failure-laboratory\/",/);
   assert.match(sitemap, /<loc>https:\/\/atlas-systems\.uk\/lab\/failure-trace\/<\/loc>/);

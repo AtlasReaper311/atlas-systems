@@ -496,15 +496,6 @@
   .promotion-trail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-/* The governed shell treats 768px as desktop. The shared shell keeps its
-   compact navigation at max-width: 768px, so close that one-pixel boundary
-   locally to keep navigation semantics and visible controls in agreement. */
-@media (min-width: 768px) and (max-width: 768px) {
-  .model-promotion-page .atlas-header__nav { display: flex; }
-  .model-promotion-page .atlas-mobile-nav { display: none; }
-  body.model-promotion-page { padding-bottom: 0 !important; }
-}
-
 @media (max-width: 620px) {
   .model-promotion-capability-nav { grid-template-columns: 1fr; }
   .promotion-trail { grid-template-columns: 1fr; }

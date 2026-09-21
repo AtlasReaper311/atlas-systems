@@ -105,9 +105,8 @@ test("the page is capability-first and keeps all five stories in the no-JS docum
 });
 
 test("the Observatory aligns the 768px shell boundary with governed navigation semantics", () => {
-  assert.match(CSS, /@media \(min-width: 768px\) and \(max-width: 768px\)/);
-  assert.match(CSS, /\.model-promotion-page \.atlas-header__nav \{ display: flex; \}/);
-  assert.match(CSS, /\.model-promotion-page \.atlas-mobile-nav \{ display: none; \}/);
+  assert.doesNotMatch(CSS, /@media \(min-width: 768px\) and \(max-width: 768px\)/);
+  assert.match(readFileSync("static/css/estate-shell.css", "utf8"), /@media \(max-width: 767px\) \{/);
 });
 
 test("every aggregate has capability, case count, passed result, and threshold context", () => {
