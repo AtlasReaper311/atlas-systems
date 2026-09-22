@@ -95,6 +95,36 @@ test("shared article layer carries the long-form accessibility contract", () => 
   assert.match(css, /focus-visible/);
 });
 
+test("shared article layer orders legacy mobile headers around article identity", () => {
+  const css = fs.readFileSync(
+    "static/css/article-interface-v2.css",
+    "utf8",
+  );
+  assert.match(
+    css,
+    /\.article-header--ordered[\s\S]*grid-template-areas:[\s\S]*"navigation content"[\s\S]*"meta content"/,
+  );
+  assert.match(
+    css,
+    /\.article-header:not\(\.article-header--ordered\)[\s\S]*"back back back"[\s\S]*"content content content"[\s\S]*"index date read"[\s\S]*"tags tags tags"/,
+  );
+  assert.match(
+    css,
+    /\.header-tags\s*\{[\s\S]*flex-direction:\s*row[\s\S]*flex-wrap:\s*wrap/,
+  );
+  for (const [slug, number] of articles) {
+    const html = fs.readFileSync(`writing/${slug}/index.html`, "utf8");
+    const header = html.slice(
+      html.indexOf('<header class="article-header"'),
+      html.indexOf("</header>") + "</header>".length,
+    );
+    assert.equal((header.match(/<h1\b/g) || []).length, 1, `${number} must have one header h1`);
+    assert.equal((header.match(/class="back-link"/g) || []).length, 1, `${number} must keep one Writing back link`);
+    assert.equal((header.match(/class="header-meta"/g) || []).length, 1, `${number} must keep one metadata block`);
+    assert.equal((header.match(/class="header-tags"/g) || []).length, 1, `${number} must keep one tag block`);
+  }
+});
+
 test("SPECULAR-CORE uses a colon in titles and an em dash in subheaders", () => {
   const titleEvidence = JSON.parse(
     fs.readFileSync(
