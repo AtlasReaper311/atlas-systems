@@ -80,6 +80,14 @@ function remoteOriginTokens(tokens) {
   });
 }
 
+function hasWildcardHost(token) {
+  try {
+    return /[*]/u.test(new URL(token).hostname);
+  } catch {
+    return false;
+  }
+}
+
 function redirectRules() {
   return redirects
     .split("\n")
@@ -111,12 +119,12 @@ test("frame-src is an exact allowlist for shipped remote iframe origins", () => 
 test("frame-src remains restrictive and unrelated CSP directives stay unchanged", () => {
   const frame = directiveSources("frame-src");
   assert.ok(frame);
-  assert.ok(!frame.includes("*"), "frame-src must not allow every origin");
-  assert.ok(!frame.includes("https:"), "frame-src must not allow every HTTPS origin");
-  assert.ok(!frame.some((token) => token.includes("*")), "frame-src must not contain wildcard hosts");
-  assert.equal(frame.includes("https://example.com"), false, "arbitrary external frames must remain blocked");
-  assert.equal(frame.includes("https://www.youtube-nocookie.com"), false, "unused YouTube origins must not be added");
-  assert.equal(frame.includes("https://www.google.com"), false, "unrelated Google origins must not be added");
+  assert.equal(hasExactToken(frame, "*"), false, "frame-src must not allow every origin");
+  assert.equal(hasExactToken(frame, "https:"), false, "frame-src must not allow every HTTPS origin");
+  assert.ok(!frame.some(hasWildcardHost), "frame-src must not contain wildcard hosts");
+  assert.equal(hasExactToken(frame, "https://example.com"), false, "arbitrary external frames must remain blocked");
+  assert.equal(hasExactToken(frame, "https://www.youtube-nocookie.com"), false, "unused YouTube origins must not be added");
+  assert.equal(hasExactToken(frame, "https://www.google.com"), false, "unrelated Google origins must not be added");
 
   assert.deepEqual(directiveSources("default-src"), ["'self'"], "default-src must remain same-origin only");
   assert.deepEqual(directiveSources("script-src"), [
