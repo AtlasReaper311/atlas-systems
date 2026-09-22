@@ -1,0 +1,79 @@
+{
+  "capability": {
+    "id": "daily-digest-synthesis"
+  },
+  "current_model_observation": {
+    "observed_at": null,
+    "observed_model_id": null,
+    "state": "not-represented",
+    "subject": "runtime-model-identity"
+  },
+  "deployment_boundary": {
+    "deployed": "not-applicable",
+    "deployment_observed": "not-applicable",
+    "live_verified": "not-applicable",
+    "promotion_is_not_deployment": true,
+    "runtime_verified": "not-applicable"
+  },
+  "evaluation": {
+    "categories": [
+      "abstention",
+      "grounding"
+    ],
+    "evaluated_at": "2026-09-22T01:14:35.109345Z",
+    "known_regressions": {
+      "categories": [],
+      "state": "unknown-not-observed",
+      "vocabulary_version": "atlas-control-plane/model-promotion-regression-vocabulary/v1"
+    },
+    "prepared_at": "2026-09-22T01:10:21.877434Z",
+    "result": {
+      "case_count": 3,
+      "failed_count": 2,
+      "minimum_pass_rate": 1.0,
+      "pass_rate": 0.3333333333333333,
+      "passed_count": 1
+    },
+    "state": "evaluated-failed",
+    "suite": {
+      "revision": "suite:sha256:c0f96b4d820250a97104478fc072db0e7096d408525730715d47d054df93067a",
+      "version": "1.0.0"
+    }
+  },
+  "freshness": {
+    "evidence_observed_at": "2026-09-22T01:14:35.109345Z",
+    "max_age_days": 30,
+    "state": "current"
+  },
+  "gaps": [
+    "deployment-not-applicable",
+    "evaluation-failed",
+    "promotion-not-observed",
+    "runtime-model-not-represented"
+  ],
+  "generated_at": "2026-09-22T01:14:35.109345Z",
+  "human_review": {
+    "reviewed_at": null,
+    "state": "not-required"
+  },
+  "model": {
+    "public_id": "qwen3:14b"
+  },
+  "privacy": {
+    "mode": "public-safe-allowlist",
+    "private_evidence_uris_excluded": true,
+    "private_inputs_excluded": true,
+    "raw_answers_excluded": true,
+    "runtime_configuration_excluded": true,
+    "unknown_fields_rejected": true
+  },
+  "projection_fingerprint": "sha256:9756936d47899afab0a2718ef4eb34d2a0239cb56da3675ad19a368e1950cb14",
+  "promotion": {
+    "approved_at": null,
+    "state": "not-approved",
+    "superseded_by_projection_fingerprint": null,
+    "supersedes_projection_fingerprint": null
+  },
+  "schema_version": "atlas-control-plane/public-model-promotion-projection/v1",
+  "state": "evaluated-failed"
+}

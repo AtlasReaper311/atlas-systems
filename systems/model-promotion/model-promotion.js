@@ -1,34 +1,73 @@
 "use strict";
 
-const EXPECTED_MODEL_ID = "qwen3.5-mtp";
 const PUBLIC_SCHEMA_VERSION = "atlas-control-plane/public-model-promotion-projection/v1";
 const REGRESSION_VOCABULARY = "atlas-control-plane/model-promotion-regression-vocabulary/v1";
+
+export const COMPARISON_CANDIDATES = Object.freeze(["qwen3.5-mtp", "qwen3:14b"]);
+export const SUPPORTED_MODEL_IDS = COMPARISON_CANDIDATES;
+
+const CANDIDATE_FINGERPRINTS = Object.freeze({
+  "qwen3.5-mtp": Object.freeze({
+    "ramone-rag-generation": "b92b3faa8d75a6869dbf72b0b9cf80c214cba272e23b3a12f859ed32c4deeba5",
+    "ramone-live-chat": "9d8d70d7577eb4e307852ca5b552370d02754d5d27205097b1393277a61c074e",
+    "corpus-retrieval": "8b6ffc407bc02af7cc01596c99856dba03112c1345d2875feb587fa3c87503aa",
+    "daily-digest-synthesis": "3e1dbfba5a3c9c643791b91b608810651f42212a019962275895f25eba21bdf3",
+    "postmortem-drafting": "b049801c77b15a8efccf7a59bac0aaf41bae63f12bd4bb460bf5de662223053f",
+  }),
+  "qwen3:14b": Object.freeze({
+    "ramone-rag-generation": "78eac8ff3e2e0aedc4ad6c8442c9d17d2d73890f06e914481d6d4e577ed9d83f",
+    "ramone-live-chat": "ae8fd23f04ae11f8d617aabc981a955180384e06f901d090bf64d7eed799e665",
+    "corpus-retrieval": "79c2b00ce3c3ab2c6759481f63b1a3bf9b6eef1194bd72d715f0b40a318d79c3",
+    "daily-digest-synthesis": "9756936d47899afab0a2718ef4eb34d2a0239cb56da3675ad19a368e1950cb14",
+    "postmortem-drafting": "acfce7f868020a9c0b633b92494f1825bcd52f2eddb1f429481da56ecf69837a",
+  }),
+});
 
 export const CAPABILITIES = Object.freeze([
   Object.freeze({
     id: "ramone-rag-generation",
     label: "Ramone RAG generation",
-    fingerprint: "b92b3faa8d75a6869dbf72b0b9cf80c214cba272e23b3a12f859ed32c4deeba5",
+    fingerprint: CANDIDATE_FINGERPRINTS["qwen3.5-mtp"]["ramone-rag-generation"],
+    candidates: Object.freeze({
+      "qwen3.5-mtp": Object.freeze({ model: "qwen3.5-mtp", fingerprint: CANDIDATE_FINGERPRINTS["qwen3.5-mtp"]["ramone-rag-generation"] }),
+      "qwen3:14b": Object.freeze({ model: "qwen3:14b", fingerprint: CANDIDATE_FINGERPRINTS["qwen3:14b"]["ramone-rag-generation"] }),
+    }),
   }),
   Object.freeze({
     id: "ramone-live-chat",
     label: "Ramone live chat",
-    fingerprint: "9d8d70d7577eb4e307852ca5b552370d02754d5d27205097b1393277a61c074e",
+    fingerprint: CANDIDATE_FINGERPRINTS["qwen3.5-mtp"]["ramone-live-chat"],
+    candidates: Object.freeze({
+      "qwen3.5-mtp": Object.freeze({ model: "qwen3.5-mtp", fingerprint: CANDIDATE_FINGERPRINTS["qwen3.5-mtp"]["ramone-live-chat"] }),
+      "qwen3:14b": Object.freeze({ model: "qwen3:14b", fingerprint: CANDIDATE_FINGERPRINTS["qwen3:14b"]["ramone-live-chat"] }),
+    }),
   }),
   Object.freeze({
     id: "corpus-retrieval",
     label: "Corpus retrieval",
-    fingerprint: "8b6ffc407bc02af7cc01596c99856dba03112c1345d2875feb587fa3c87503aa",
+    fingerprint: CANDIDATE_FINGERPRINTS["qwen3.5-mtp"]["corpus-retrieval"],
+    candidates: Object.freeze({
+      "qwen3.5-mtp": Object.freeze({ model: "qwen3.5-mtp", fingerprint: CANDIDATE_FINGERPRINTS["qwen3.5-mtp"]["corpus-retrieval"] }),
+      "qwen3:14b": Object.freeze({ model: "qwen3:14b", fingerprint: CANDIDATE_FINGERPRINTS["qwen3:14b"]["corpus-retrieval"] }),
+    }),
   }),
   Object.freeze({
     id: "daily-digest-synthesis",
     label: "Daily Digest synthesis",
-    fingerprint: "3e1dbfba5a3c9c643791b91b608810651f42212a019962275895f25eba21bdf3",
+    fingerprint: CANDIDATE_FINGERPRINTS["qwen3.5-mtp"]["daily-digest-synthesis"],
+    candidates: Object.freeze({
+      "qwen3.5-mtp": Object.freeze({ model: "qwen3.5-mtp", fingerprint: CANDIDATE_FINGERPRINTS["qwen3.5-mtp"]["daily-digest-synthesis"] }),
+      "qwen3:14b": Object.freeze({ model: "qwen3:14b", fingerprint: CANDIDATE_FINGERPRINTS["qwen3:14b"]["daily-digest-synthesis"] }),
+    }),
   }),
   Object.freeze({
     id: "postmortem-drafting",
     label: "Postmortem drafting",
-    fingerprint: "b049801c77b15a8efccf7a59bac0aaf41bae63f12bd4bb460bf5de662223053f",
+    fingerprint: CANDIDATE_FINGERPRINTS["qwen3.5-mtp"]["postmortem-drafting"],
+    candidates: Object.freeze({
+      "qwen3.5-mtp": Object.freeze({ model: "qwen3.5-mtp", fingerprint: CANDIDATE_FINGERPRINTS["qwen3.5-mtp"]["postmortem-drafting"] }),
+      "qwen3:14b": Object.freeze({ model: "qwen3:14b", fingerprint: CANDIDATE_FINGERPRINTS["qwen3:14b"]["postmortem-drafting"] }),
+    }),
   }),
 ]);
 
@@ -50,7 +89,7 @@ const OBSERVATION_KEYS = ["observed_at", "observed_model_id", "state", "subject"
 const BOUNDARY_KEYS = ["deployed", "deployment_observed", "live_verified", "promotion_is_not_deployment", "runtime_verified"];
 const PRIVACY_KEYS = ["mode", "private_evidence_uris_excluded", "private_inputs_excluded", "raw_answers_excluded", "runtime_configuration_excluded", "unknown_fields_rejected"];
 
-const CAPABILITY_CATEGORY_LABELS = Object.freeze({
+export const CAPABILITY_CATEGORY_LABELS = Object.freeze({
   abstention: "Abstention",
   "causal-claim": "Causal claim",
   fabrication: "Fabrication",
@@ -58,12 +97,19 @@ const CAPABILITY_CATEGORY_LABELS = Object.freeze({
   grounding: "Grounding",
 });
 
-const REGRESSION_LABELS = Object.freeze({
+export const REGRESSION_LABELS = Object.freeze({
   "failed-abstention": "Failed abstention",
   "format-contract-failure": "Format contract failure",
   "grounding-failure": "Grounding failure",
   "unsupported-causal-claim": "Unsupported causal claim",
   "unsupported-fabrication": "Unsupported fabrication",
+});
+
+const REGRESSION_STATE_LABELS = Object.freeze({
+  known: "Known regression",
+  none: "None recorded",
+  "unknown-not-observed": "UNKNOWN / NOT OBSERVED",
+  "not-applicable": "NOT APPLICABLE",
 });
 
 const GAP_LABELS = Object.freeze({
@@ -179,7 +225,11 @@ function validateResult(result) {
   return pass(result);
 }
 
-export function validateProjection(value, expectedFingerprint, expectedCapabilityId = null) {
+export function candidateFor(capability, model) {
+  return capability?.candidates?.[model] || null;
+}
+
+export function validateProjection(value, expectedFingerprint, expectedCapabilityId = null, expectedModelId = null) {
   if (!hasExactKeys(value, ROOT_KEYS)) return fail("root shape is not supported");
   if (value.schema_version !== PUBLIC_SCHEMA_VERSION) return fail("schema version is not supported");
   if (!["evaluation-prepared", "evaluated-passed", "evaluated-failed", "review-pending", "promotion-approved", "no-accepted-evaluation", "stale-evidence", "superseded-promotion", "promoted-current-model-mismatch", "exempt-not-applicable", "unknown-not-observed"].includes(value.state)) return fail("root state is not supported");
@@ -194,8 +244,11 @@ export function validateProjection(value, expectedFingerprint, expectedCapabilit
   if (expectedCapabilityId !== null && value.capability.id !== expectedCapabilityId) {
     return fail("capability does not match the receipt identity");
   }
-  if (!hasExactKeys(value.model, MODEL_KEYS) || value.model.public_id !== EXPECTED_MODEL_ID) {
+  if (!hasExactKeys(value.model, MODEL_KEYS) || !SUPPORTED_MODEL_IDS.includes(value.model.public_id)) {
     return fail("model identity is not accepted for this observatory");
+  }
+  if (expectedModelId !== null && value.model.public_id !== expectedModelId) {
+    return fail("model identity does not match the candidate binding");
   }
 
   if (!hasExactKeys(value.evaluation, EVALUATION_KEYS)) return fail("evaluation shape is not supported");
@@ -205,7 +258,7 @@ export function validateProjection(value, expectedFingerprint, expectedCapabilit
   if (!isNullableIsoDate(value.evaluation.prepared_at) || !isNullableIsoDate(value.evaluation.evaluated_at)) {
     return fail("evaluation timestamp is not valid");
   }
-  if (!isUniqueArray(value.evaluation.categories, (item) => ["grounding", "abstention", "fabrication", "causal-claim", "format-contract"].includes(item), 5)) {
+  if (!isUniqueArray(value.evaluation.categories, (item) => Object.hasOwn(CAPABILITY_CATEGORY_LABELS, item), 5)) {
     return fail("evaluation categories are not supported");
   }
   if (!hasExactKeys(value.evaluation.suite, SUITE_KEYS)) return fail("suite shape is not supported");
@@ -213,8 +266,10 @@ export function validateProjection(value, expectedFingerprint, expectedCapabilit
   if (!isSha256(value.evaluation.suite.revision, "suite:sha256:")) return fail("suite fingerprint is not supported");
   if (!hasExactKeys(value.evaluation.known_regressions, REGRESSION_KEYS)) return fail("regression shape is not supported");
   if (value.evaluation.known_regressions.vocabulary_version !== REGRESSION_VOCABULARY) return fail("regression vocabulary is not supported");
-  if (!["none", "known", "unknown-not-observed", "not-applicable"].includes(value.evaluation.known_regressions.state)) return fail("regression state is not supported");
+  if (!Object.hasOwn(REGRESSION_STATE_LABELS, value.evaluation.known_regressions.state)) return fail("regression state is not supported");
   if (!isUniqueArray(value.evaluation.known_regressions.categories, (item) => Object.hasOwn(REGRESSION_LABELS, item), 5)) return fail("regression categories are not supported");
+  if (value.evaluation.known_regressions.state === "known" && value.evaluation.known_regressions.categories.length === 0) return fail("known regression state has no public category");
+  if (value.evaluation.known_regressions.state !== "known" && value.evaluation.known_regressions.categories.length !== 0) return fail("non-known regression state has categories");
   const resultCheck = validateResult(value.evaluation.result);
   if (!resultCheck.ok) return resultCheck;
   if (["evaluated-passed", "evaluated-failed"].includes(value.evaluation.state) && value.evaluation.result === null) return fail("evaluated state has no aggregate result");
@@ -248,6 +303,12 @@ export function validateProjection(value, expectedFingerprint, expectedCapabilit
   return pass(value);
 }
 
+export function validateCandidateProjection(value, capability, model) {
+  const candidate = candidateFor(capability, model);
+  if (!candidate) return fail("candidate is not configured for this capability");
+  return validateProjection(value, candidate.fingerprint, capability.id, candidate.model);
+}
+
 function formatTimestamp(value) {
   if (!value) return "Not observed";
   return value.replace("T", " ").replace(/\.\d+Z$/, " UTC").replace(/Z$/, " UTC");
@@ -263,19 +324,19 @@ function thresholdText(result) {
   return `${required} / ${result.case_count}`;
 }
 
-function field(receipt, name) {
-  return receipt.querySelector(`[data-field="${name}"]`);
+function field(card, name) {
+  return card.querySelector(`[data-field="${name}"]`);
 }
 
-function setField(receipt, name, value, datetime = null) {
-  const target = field(receipt, name);
+function setField(card, name, value, datetime = null) {
+  const target = field(card, name);
   if (!target) return;
   target.textContent = value;
   if (datetime !== null) target.setAttribute("datetime", datetime);
 }
 
-function renderList(receipt, name, values, emptyText, labels = {}) {
-  const target = receipt.querySelector(`[data-list="${name}"]`);
+function renderList(card, name, values, emptyText, labels = {}) {
+  const target = card.querySelector(`[data-list="${name}"]`);
   if (!target) return;
   target.replaceChildren();
   const items = values.length ? values : [emptyText];
@@ -286,122 +347,102 @@ function renderList(receipt, name, values, emptyText, labels = {}) {
   });
 }
 
-function trailStep(receipt, name, state, label, detail) {
-  const step = receipt.querySelector(`[data-trail="${name}"]`);
+function trailStep(card, name, state, label, detail) {
+  const step = card.querySelector(`[data-trail="${name}"]`);
   if (!step) return;
   step.dataset.trailState = state;
   step.querySelector("strong").textContent = label;
   step.querySelector("small").textContent = detail;
 }
 
-function renderTrail(receipt, projection) {
+function renderTrail(card, projection) {
   const evaluation = projection.evaluation;
-  trailStep(
-    receipt,
-    "prepared",
-    evaluation.prepared_at ? "observed" : "unknown",
-    evaluation.prepared_at ? "EVAL PREPARED" : "EVAL PREPARED UNKNOWN",
-    evaluation.prepared_at ? `Observed · ${formatTimestamp(evaluation.prepared_at)}` : "Unknown / not observed",
-  );
-  if (evaluation.state === "evaluated-passed" || evaluation.state === "evaluated-failed") {
-    const passed = evaluation.result?.passed_count ?? 0;
-    const cases = evaluation.result?.case_count ?? 0;
-    const threshold = evaluation.result ? thresholdText(evaluation.result) : "unknown";
+  trailStep(card, "prepared", evaluation.prepared_at ? "observed" : "unknown", evaluation.prepared_at ? "EVAL PREPARED" : "EVAL PREPARED UNKNOWN", evaluation.prepared_at ? `Observed · ${formatTimestamp(evaluation.prepared_at)}` : "Unknown / not observed");
+  if (["evaluated-passed", "evaluated-failed"].includes(evaluation.state)) {
+    const result = evaluation.result;
     const failed = evaluation.state === "evaluated-failed";
-    trailStep(receipt, "evaluated", failed ? "failed" : "observed", failed ? "EVALUATION FAILED" : "EVALUATION PASSED", `${passed} / ${cases} passed · required threshold ${threshold}`);
+    trailStep(card, "evaluated", failed ? "failed" : "observed", failed ? "EVALUATION FAILED" : "EVALUATION PASSED", `${result.passed_count} / ${result.case_count} passed · required threshold ${thresholdText(result)}`);
   } else {
-    trailStep(receipt, "evaluated", "unknown", EVALUATION_STATE_LABELS[evaluation.state], "Unknown / not observed");
+    trailStep(card, "evaluated", "unknown", EVALUATION_STATE_LABELS[evaluation.state], "Unknown / not observed");
   }
   const review = projection.human_review;
   const reviewDetail = review.state === "reviewed" && review.reviewed_at
     ? `Observed · ${formatTimestamp(review.reviewed_at)}`
     : review.state === "pending" ? "No accepted review recorded" : review.state === "not-required" ? "Downstream promotion is not approved" : "Unknown / not observed";
-  trailStep(receipt, "review", review.state === "reviewed" ? "observed" : review.state === "pending" ? "pending" : review.state === "not-required" ? "terminal" : "unknown", REVIEW_STATE_LABELS[review.state], reviewDetail);
+  trailStep(card, "review", review.state === "reviewed" ? "observed" : review.state === "pending" ? "pending" : review.state === "not-required" ? "terminal" : "unknown", REVIEW_STATE_LABELS[review.state], reviewDetail);
   const promotion = projection.promotion;
   const promotionState = promotion.state === "approved" ? "observed" : projection.evaluation.state === "evaluated-failed" ? "terminal" : promotion.state === "not-approved" ? "pending" : "unknown";
   const promotionDetail = promotion.state === "approved" && promotion.approved_at
     ? `Observed · ${formatTimestamp(promotion.approved_at)}`
     : promotion.state === "not-approved" ? "No approved promotion record" : "Unknown / not observed";
-  trailStep(receipt, "promotion", promotionState, PROMOTION_STATE_LABELS[promotion.state], promotionDetail);
-  const note = receipt.querySelector("[data-trail-note]");
-  if (note) note.textContent = projection.evaluation.state === "evaluated-failed"
-    ? "Trail terminates at the failed evaluation. This is not a service outage or a pending deployment path."
-    : projection.human_review.state === "pending"
-      ? "The review gate is visibly pending. A passing evaluation does not imply review or promotion."
-      : "The recorded lifecycle ends at the accepted promotion decision. Deployment remains a separate authority.";
+  trailStep(card, "promotion", promotionState, PROMOTION_STATE_LABELS[promotion.state], promotionDetail);
 }
 
-function renderProjection(receipt, projection) {
+function renderProjection(card, projection) {
   const result = projection.evaluation.result;
-  receipt.dataset.evidenceState = projection.freshness.state;
-  receipt.dataset.evaluation = projection.evaluation.state === "evaluated-failed" ? "failed" : "passed";
-  receipt.querySelectorAll(".receipt-known-content").forEach((node) => { node.hidden = false; });
-  receipt.querySelector(".promotion-receipt__fail-closed").hidden = true;
-  setField(receipt, "model", projection.model.public_id);
-  setField(receipt, "root-state", ROOT_STATE_LABELS[projection.state] || projection.state);
-  setField(receipt, "evaluation-state", EVALUATION_STATE_LABELS[projection.evaluation.state]);
-  setField(receipt, "human-review-state", REVIEW_STATE_LABELS[projection.human_review.state]);
-  setField(receipt, "promotion-state", PROMOTION_STATE_LABELS[projection.promotion.state]);
-  setField(receipt, "freshness-state", FRESHNESS_STATE_LABELS[projection.freshness.state]);
-  setField(receipt, "regression-state", projection.evaluation.known_regressions.state === "none" ? "None recorded" : projection.evaluation.known_regressions.state === "known" ? "Known categories recorded" : "Unknown / not observed");
-  setField(receipt, "current-model-state", projection.current_model_observation.state === "not-represented" ? "Not represented in this receipt" : projection.current_model_observation.state);
-  setField(receipt, "generated-at", formatTimestamp(projection.generated_at), projection.generated_at);
-  setField(receipt, "prepared-at", formatTimestamp(projection.evaluation.prepared_at), projection.evaluation.prepared_at);
-  setField(receipt, "evaluated-at", formatTimestamp(projection.evaluation.evaluated_at), projection.evaluation.evaluated_at);
-  setField(receipt, "reviewed-at", formatTimestamp(projection.human_review.reviewed_at), projection.human_review.reviewed_at);
-  setField(receipt, "promotion-at", formatTimestamp(projection.promotion.approved_at), projection.promotion.approved_at);
-  setField(receipt, "observed-at", formatTimestamp(projection.freshness.evidence_observed_at), projection.freshness.evidence_observed_at);
-  setField(receipt, "suite-version", projection.evaluation.suite.version);
-  setField(receipt, "suite-revision", projection.evaluation.suite.revision);
-  setField(receipt, "projection-fingerprint", projection.projection_fingerprint);
+  card.dataset.evidenceState = projection.freshness.state;
+  card.dataset.evaluation = projection.evaluation.state === "evaluated-failed" ? "failed" : "passed";
+  card.querySelectorAll(".candidate-known-content").forEach((node) => { node.hidden = false; });
+  card.querySelector(".candidate-fail-closed").hidden = true;
+  setField(card, "model", projection.model.public_id);
+  setField(card, "evaluation-state", EVALUATION_STATE_LABELS[projection.evaluation.state]);
+  setField(card, "human-review-state", REVIEW_STATE_LABELS[projection.human_review.state]);
+  setField(card, "promotion-state", PROMOTION_STATE_LABELS[projection.promotion.state]);
+  setField(card, "freshness-state", FRESHNESS_STATE_LABELS[projection.freshness.state]);
+  setField(card, "regression-state", REGRESSION_STATE_LABELS[projection.evaluation.known_regressions.state]);
+  setField(card, "runtime-state", projection.current_model_observation.state === "not-represented" ? "Not represented in this receipt" : projection.current_model_observation.state);
+  setField(card, "generated-at", formatTimestamp(projection.generated_at), projection.generated_at);
+  setField(card, "prepared-at", formatTimestamp(projection.evaluation.prepared_at), projection.evaluation.prepared_at);
+  setField(card, "evaluated-at", formatTimestamp(projection.evaluation.evaluated_at), projection.evaluation.evaluated_at);
+  setField(card, "reviewed-at", formatTimestamp(projection.human_review.reviewed_at), projection.human_review.reviewed_at);
+  setField(card, "promotion-at", formatTimestamp(projection.promotion.approved_at), projection.promotion.approved_at);
+  setField(card, "observed-at", formatTimestamp(projection.freshness.evidence_observed_at), projection.freshness.evidence_observed_at);
+  setField(card, "suite-version", projection.evaluation.suite.version);
+  setField(card, "suite-revision", projection.evaluation.suite.revision);
+  setField(card, "projection-fingerprint", projection.projection_fingerprint);
   if (result) {
-    setField(receipt, "case-result", `${result.passed_count} / ${result.case_count} passed`);
-    setField(receipt, "threshold", `Required threshold ${thresholdText(result)}`);
-    setField(receipt, "pass-rate", `${formatPercent(result.pass_rate)} (${result.passed_count} / ${result.case_count} cases)`);
-    setField(receipt, "interpretation", projection.evaluation.state === "evaluated-failed"
-      ? `This model did not meet the required threshold for ${projection.capability.id}. The result is an evaluation failure, not a service failure.`
-      : `This model met the required threshold for ${projection.capability.id}. Suitability remains specific to this capability and evidence set.`);
+    setField(card, "case-result", `${result.passed_count} / ${result.case_count} passed`);
+    setField(card, "threshold", `Required threshold ${thresholdText(result)}`);
+    setField(card, "pass-rate", `${formatPercent(result.pass_rate)} (${result.passed_count} / ${result.case_count} cases)`);
+    setField(card, "interpretation", projection.evaluation.state === "evaluated-failed"
+      ? `This candidate did not meet the required threshold for ${projection.capability.id}. The result is an evaluation failure, not a service failure.`
+      : `This candidate met the required threshold for ${projection.capability.id}. Suitability remains specific to this capability and evidence set.`);
   } else {
-    setField(receipt, "case-result", "Unknown / not observed");
-    setField(receipt, "threshold", "Required threshold unknown");
-    setField(receipt, "pass-rate", "Unknown / not observed");
-    setField(receipt, "interpretation", "The accepted public projection does not contain a usable aggregate result.");
+    setField(card, "case-result", "UNKNOWN / NOT OBSERVED");
+    setField(card, "threshold", "Required threshold unknown");
+    setField(card, "pass-rate", "UNKNOWN / NOT OBSERVED");
+    setField(card, "interpretation", "The accepted public projection does not contain a usable aggregate result.");
   }
-  renderList(receipt, "categories", projection.evaluation.categories, "None recorded", CAPABILITY_CATEGORY_LABELS);
-  renderList(receipt, "regressions", projection.evaluation.known_regressions.categories, projection.evaluation.known_regressions.state === "none" ? "None recorded" : "Unknown / not observed", REGRESSION_LABELS);
-  renderList(receipt, "gaps", projection.gaps, "Unknown / not observed", GAP_LABELS);
-  renderTrail(receipt, projection);
-  const lineage = receipt.querySelector("[data-lineage]");
-  if (lineage) {
-    const supersedes = projection.promotion.supersedes_projection_fingerprint;
-    lineage.hidden = !supersedes;
-    if (supersedes) lineage.querySelector("[data-field=previous-fingerprint]").textContent = supersedes;
-  }
-  const runtimeStatus = receipt.querySelector(".promotion-receipt__runtime-status");
+  renderList(card, "categories", projection.evaluation.categories, "None recorded", CAPABILITY_CATEGORY_LABELS);
+  renderList(card, "regressions", projection.evaluation.known_regressions.categories, REGRESSION_STATE_LABELS[projection.evaluation.known_regressions.state], REGRESSION_LABELS);
+  renderList(card, "gaps", projection.gaps, "UNKNOWN / NOT OBSERVED", GAP_LABELS);
+  renderTrail(card, projection);
+  const runtimeStatus = card.querySelector(".candidate-runtime-status");
   const stale = projection.freshness.state !== "current";
   runtimeStatus.hidden = !stale;
   runtimeStatus.dataset.state = projection.freshness.state;
   runtimeStatus.textContent = stale
-    ? `${FRESHNESS_STATE_LABELS[projection.freshness.state]}. This receipt is not presented as current promotion evidence.`
-    : "Receipt verified against its public-safe shape and filename fingerprint.";
+    ? `${FRESHNESS_STATE_LABELS[projection.freshness.state]}. This receipt is not presented as current comparison evidence.`
+    : "Receipt verified against its public-safe shape and candidate fingerprint.";
 }
 
-function renderUnavailable(receipt) {
-  receipt.dataset.evidenceState = "unavailable";
-  receipt.querySelectorAll(".receipt-known-content").forEach((node) => { node.hidden = true; });
-  const fallback = receipt.querySelector(".promotion-receipt__fail-closed");
+function renderUnavailable(card) {
+  card.dataset.evidenceState = "unavailable";
+  card.querySelectorAll(".candidate-known-content").forEach((node) => { node.hidden = true; });
+  const fallback = card.querySelector(".candidate-fail-closed");
   fallback.hidden = false;
-  fallback.querySelector("span").textContent = "This public receipt could not be verified. Evaluation, review, promotion, and deployment claims are UNKNOWN / UNAVAILABLE.";
-  const runtimeStatus = receipt.querySelector(".promotion-receipt__runtime-status");
-  runtimeStatus.hidden = true;
+  fallback.querySelector("span").textContent = "This public receipt could not be verified. Evaluation, review, promotion, regression, and deployment claims are UNKNOWN / UNAVAILABLE.";
+  card.querySelector(".candidate-runtime-status").hidden = true;
 }
 
-async function loadProjection(capability) {
+async function loadProjection(capability, model) {
+  const candidate = candidateFor(capability, model);
+  if (!candidate) return null;
   try {
-    const response = await fetch(new URL(`evidence/${capability.fingerprint}.json`, import.meta.url), { cache: "no-store" });
+    const response = await fetch(new URL(`evidence/${candidate.fingerprint}.json`, import.meta.url), { cache: "no-store" });
     if (!response.ok) throw new Error("receipt unavailable");
     const value = await response.json();
-    const checked = validateProjection(value, capability.fingerprint, capability.id);
+    const checked = validateCandidateProjection(value, capability, model);
     if (!checked.ok) throw new Error(checked.reason);
     return checked.value;
   } catch {
@@ -411,9 +452,9 @@ async function loadProjection(capability) {
 
 function installSelector() {
   const buttons = [...document.querySelectorAll("[data-capability-switch]")];
-  const receipts = [...document.querySelectorAll("[data-capability-receipt]")];
+  const comparisons = [...document.querySelectorAll("[data-capability-comparison]")];
+  const microscopeEntries = [...document.querySelectorAll("[data-microscope-entry]")];
   const status = document.querySelector("[data-capability-status]");
-  const byId = new Map(receipts.map((receipt) => [receipt.dataset.capabilityReceipt, receipt]));
   const activate = (id, focus = false) => {
     buttons.forEach((button) => {
       const active = button.dataset.capabilitySwitch === id;
@@ -421,13 +462,16 @@ function installSelector() {
       button.dataset.active = String(active);
       if (active && focus) button.focus();
     });
-    receipts.forEach((receipt) => {
-      const active = receipt.dataset.capabilityReceipt === id;
-      receipt.dataset.active = String(active);
-      receipt.hidden = !active;
+    comparisons.forEach((comparison) => {
+      const active = comparison.dataset.capabilityComparison === id;
+      comparison.dataset.active = String(active);
+      comparison.hidden = !active;
+    });
+    microscopeEntries.forEach((entry) => {
+      entry.hidden = entry.dataset.microscopeCapability !== id;
     });
     const activeButton = buttons.find((button) => button.dataset.capabilitySwitch === id);
-    if (status && activeButton) status.textContent = `Showing ${activeButton.dataset.capabilityLabel} evidence receipt.`;
+    if (status && activeButton) status.textContent = `Showing ${activeButton.dataset.capabilityLabel} comparison evidence.`;
   };
   buttons.forEach((button, index) => {
     button.addEventListener("click", () => activate(button.dataset.capabilitySwitch));
@@ -439,21 +483,30 @@ function installSelector() {
     });
   });
   activate(buttons[0]?.dataset.capabilitySwitch || CAPABILITIES[0].id);
-  return { buttons, receipts, byId };
+  return { comparisons, microscopeEntries };
 }
 
 async function init() {
   const selector = installSelector();
   document.body.dataset.modelPromotionEnhanced = "true";
-  await Promise.all(CAPABILITIES.map(async (capability) => {
-    const receipt = selector.byId.get(capability.id);
-    if (!receipt) return;
-    const projection = await loadProjection(capability);
-    if (projection) renderProjection(receipt, projection);
-    else renderUnavailable(receipt);
-  }));
+  await Promise.all(CAPABILITIES.flatMap((capability) => COMPARISON_CANDIDATES.map(async (model) => {
+    const card = document.querySelector(`[data-candidate-certificate="${model}"][data-capability-id="${capability.id}"]`);
+    if (!card) return;
+    const projection = await loadProjection(capability, model);
+    if (projection) renderProjection(card, projection);
+    else renderUnavailable(card);
+  })));
+  selector.microscopeEntries.forEach((entry) => {
+    const capability = CAPABILITIES.find(({ id }) => id === entry.dataset.microscopeCapability);
+    const model = entry.dataset.microscopeModel;
+    const candidate = candidateFor(capability, model);
+    if (!candidate) return;
+    const card = document.querySelector(`[data-candidate-certificate="${model}"][data-capability-id="${capability.id}"]`);
+    const state = card?.dataset.evidenceState === "unavailable" ? "unknown-not-observed" : card?.querySelector('[data-field="regression-state"]')?.textContent;
+    if (state) entry.dataset.microscopeRenderedState = state;
+  });
   const status = document.querySelector("[data-capability-status]");
-  if (status) status.textContent = "Capability selector enhanced. Every receipt remains available from the page source.";
+  if (status) status.textContent = "Capability comparison enhanced. Every candidate certificate remains available from the page source.";
 }
 
 if (typeof window !== "undefined" && typeof document !== "undefined") {
