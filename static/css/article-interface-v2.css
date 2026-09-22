@@ -26,6 +26,27 @@ main {
   padding-bottom: clamp(48px, 7vw, 80px);
 }
 
+/* New generator output is source-ordered for narrow screens. */
+.article-header--ordered {
+  grid-template-areas:
+    "navigation content"
+    "meta content";
+  grid-template-rows: auto 1fr;
+}
+
+.article-header--ordered > .back-link {
+  grid-area: navigation;
+}
+
+.article-header--ordered > .header-content {
+  grid-area: content;
+}
+
+.article-header--ordered > .header-meta {
+  grid-area: meta;
+  align-self: start;
+}
+
 .header-meta {
   gap: 12px;
 }
@@ -170,8 +191,71 @@ main {
 }
 
 @media (max-width: 900px) {
-  .article-header {
-    grid-template-columns: 1fr;
+  .article-header:not(.article-header--ordered) {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "back back back"
+      "content content content"
+      "index date read"
+      "tags tags tags";
+    column-gap: 12px;
+    row-gap: 16px;
+  }
+
+  .article-header:not(.article-header--ordered) > .header-meta {
+    display: contents;
+  }
+
+  .article-header:not(.article-header--ordered) > .header-content {
+    grid-area: content;
+  }
+
+  .article-header:not(.article-header--ordered) .back-link {
+    grid-area: back;
+    margin-bottom: 0;
+  }
+
+  .article-header:not(.article-header--ordered) .article-index {
+    grid-area: index;
+  }
+
+  .article-header:not(.article-header--ordered) .article-date {
+    grid-area: date;
+  }
+
+  .article-header:not(.article-header--ordered) .article-read-time {
+    grid-area: read;
+  }
+
+  .article-header:not(.article-header--ordered) .header-tags {
+    grid-area: tags;
+  }
+
+  .article-header--ordered {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "navigation"
+      "content"
+      "meta";
+    grid-template-rows: auto auto auto;
+  }
+
+  .article-header--ordered .header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 16px;
+  }
+
+  .article-header--ordered .header-tags {
+    flex-basis: 100%;
+  }
+
+  .article-header .header-tags {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 0;
   }
 
   .article-title {
