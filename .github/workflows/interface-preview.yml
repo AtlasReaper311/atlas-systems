@@ -24,6 +24,7 @@ on:
       - "data/performance-baseline.json"
       - "og/**"
       - "scripts/capture_interface_evidence.mjs"
+      - "scripts/capture_sonin_evidence.mjs"
       - "scripts/capture_batch_h_evidence.mjs"
       - "scripts/interface-evidence/**"
       - "scripts/plan_interface_evidence.mjs"
@@ -80,6 +81,7 @@ jobs:
           set -euo pipefail
           npx --yes html-validate@9.7.1 "**/*.html"
           node --check scripts/capture_interface_evidence.mjs
+          node --check scripts/capture_sonin_evidence.mjs
           node --check scripts/capture_batch_h_evidence.mjs
           node --check scripts/interface-evidence/contract.mjs
           node --check scripts/interface-evidence/browser-core.mjs
@@ -236,6 +238,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           sparse-checkout: |
             scripts/capture_interface_evidence.mjs
+            scripts/capture_sonin_evidence.mjs
             scripts/capture_batch_h_evidence.mjs
             scripts/interface-evidence
             scripts/smoke_system_map_card_field_preview.mjs
@@ -251,6 +254,7 @@ jobs:
           set -euo pipefail
           mkdir -p "${RUNNER_TEMP}/interface-evidence"
           cp scripts/capture_interface_evidence.mjs "${RUNNER_TEMP}/interface-evidence/"
+          cp scripts/capture_sonin_evidence.mjs "${RUNNER_TEMP}/interface-evidence/"
           cp scripts/capture_batch_h_evidence.mjs "${RUNNER_TEMP}/interface-evidence/"
           cp scripts/smoke_system_map_card_field_preview.mjs "${RUNNER_TEMP}/interface-evidence/"
           cp scripts/smoke_directory_header_fields_preview.mjs "${RUNNER_TEMP}/interface-evidence/"
@@ -289,6 +293,24 @@ jobs:
         continue-on-error: true
         working-directory: ${{ runner.temp }}/interface-evidence
         run: node capture_batch_h_evidence.mjs
+      - name: Capture explicit SONIN YouTube frame evidence
+        id: sonin-capture
+        if: always()
+        continue-on-error: true
+        working-directory: ${{ runner.temp }}/interface-evidence
+        env:
+          SONIN_EVIDENCE_OUTPUT_DIR: ${{ runner.temp }}/interface-evidence/sonin
+        run: node capture_sonin_evidence.mjs
+      - name: Upload explicit SONIN frame evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0 # v7.0.1, Node 24
+        with:
+          name: sonin-youtube-evidence-${{ github.event.pull_request.head.sha }}
+          path: |
+            ${{ runner.temp }}/interface-evidence/sonin/sonin-evidence.json
+            ${{ runner.temp }}/interface-evidence/sonin/sonin-capture-error.txt
+          if-no-files-found: error
+          retention-days: 14
       - name: Upload route-derived visual and accessibility evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
@@ -320,6 +342,7 @@ jobs:
         env:
           ROUTE_CAPTURE_OUTCOME: ${{ steps.route-capture.outcome }}
           BATCH_H_CAPTURE_OUTCOME: ${{ steps.batch-h-capture.outcome }}
+          SONIN_CAPTURE_OUTCOME: ${{ steps.sonin-capture.outcome }}
         run: |
           set -euo pipefail
           failed=0
@@ -329,6 +352,10 @@ jobs:
           fi
           if [ "${BATCH_H_CAPTURE_OUTCOME}" != "success" ]; then
             echo "::error::Batch H browser evidence capture failed. Inspect the uploaded Batch H evidence artifact for the primary findings."
+            failed=1
+          fi
+          if [ "${SONIN_CAPTURE_OUTCOME}" != "success" ]; then
+            echo "::error::Explicit SONIN YouTube frame evidence capture failed. Inspect the uploaded SONIN evidence artifact for the primary findings."
             failed=1
           fi
           exit "${failed}"

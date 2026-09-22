@@ -164,6 +164,23 @@ test("retired Firefox SONIN CSP family is absent", () => {
   }), null);
 });
 
+test("SONIN frame evidence is route-scoped and covers both browsers and all required widths", () => {
+  const workflow = readFileSync(".github/workflows/interface-preview.yml", "utf8");
+  const runner = readFileSync("scripts/capture_sonin_evidence.mjs", "utf8");
+  assert.match(workflow, /capture_sonin_evidence\.mjs/);
+  assert.match(workflow, /sonin-youtube-evidence-\$\{\{ github\.event\.pull_request\.head\.sha \}\}/);
+  assert.match(workflow, /SONIN_CAPTURE_OUTCOME/);
+  assert.match(runner, /const ROUTE = "\/writing\/sonin-generative-system\/"/);
+  assert.match(runner, /https:\/\/www\.youtube\.com\/embed\/O5f1tB5bdyE/);
+  for (const width of [320, 375, 768, 1024, 1440, 1920]) {
+    assert.match(runner, new RegExp(`name: "${width}"`));
+  }
+  assert.match(runner, /BROWSERS/);
+  assert.match(runner, /atlasCspFrameBlockingViolations/);
+  assert.match(runner, /atlasAccessibilityBlockingViolations/);
+  assert.match(runner, /content-security-policy/);
+});
+
 test("reconciliation retains retired SONIN findings and unknown blockers", () => {
   const directory = mkdtempSync(path.join(os.tmpdir(), "atlas-interface-baseline-"));
   const reportPath = path.join(directory, "evidence.json");
