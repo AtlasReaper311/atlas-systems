@@ -71,8 +71,11 @@ test("System Symphony keeps its original instrument composition and receives tit
   assert.doesNotMatch(module, /installSymphonyArchitecture|data-symphony-score-architecture|__ATLAS_APU_CARTRIDGE__/);
   assert.doesNotMatch(css, /symphony-score-architecture|LIVE SCORE ARCHITECTURE/);
   assert.match(css, /atlas-audio-title--listen \.atlas-audio-title__prefix/);
-  assert.match(css, /letter-spacing:\s*\.28em/);
+  assert.match(css, /atlas-audio-title--listen \.atlas-audio-title__prefix[\s\S]*letter-spacing:\s*inherit/);
+  assert.doesNotMatch(css, /atlas-audio-title--listen \.atlas-audio-title__prefix[\s\S]*letter-spacing:\s*\.28em/);
+  assert.doesNotMatch(css, /atlas-audio-title--listen \.atlas-audio-title__prefix[\s\S]*letter-spacing:\s*\.22em/);
   assert.match(css, /atlas-audio-title--listen \.atlas-audio-title__signature/);
+  assert.match(css, /atlas-audio-title--listen \.atlas-audio-title__signature[\s\S]*letter-spacing:\s*inherit/);
   assert.match(css, /clamp\(3\.2rem, 5\.6vw, 5\.9rem\)/);
   assert.match(css, /atlas-audio-title--listen \.atlas-audio-title__signature::before/);
   assert.match(css, /atlas-audio-title--listen \.atlas-audio-title__signature::after/);

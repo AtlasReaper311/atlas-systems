@@ -90,6 +90,10 @@ body[data-atlas-surface-mode="product"] .atlas-surface-lede {
   max-width: var(--atlas-surface-copy-immersive) !important;
 }
 
+body[data-lab-route="system-symphony"] .atlas-surface-lede {
+  max-width: 760px !important;
+}
+
 /* Systems directory and evidence surfaces share one editorial frame. */
 body[data-atlas-surface="systems"][data-atlas-surface-mode="directory"] main {
   padding-top: 0 !important;

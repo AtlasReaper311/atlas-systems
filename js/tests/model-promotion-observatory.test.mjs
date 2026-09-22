@@ -184,6 +184,7 @@ test("selector semantics provide labelled controls, focus movement, and reduced-
 
 test("the public surface is registered, discoverable, metadata-complete, and linked from Evidence Console", () => {
   const route = "https://atlas-systems.uk/systems/model-promotion/";
+  const systemsDirectory = readFileSync("systems/index.html", "utf8");
   const surface = MANIFEST.surfaces.find((candidate) => candidate.url === route);
   assert.ok(surface);
   assert.equal(surface.source, "systems/model-promotion/index.html");
@@ -195,7 +196,9 @@ test("the public surface is registered, discoverable, metadata-complete, and lin
   assert.match(SITEMAP_GENERATOR, /\("\/systems\/model-promotion\/", "monthly", "0\.7"\)/);
   assert.match(HTML, /<link rel="canonical" href="https:\/\/atlas-systems\.uk\/systems\/model-promotion\/">/);
   assert.match(HTML, /og\/model-promotion\.png/);
-  assert.match(readFileSync("systems/index.html", "utf8"), /href="\/systems\/model-promotion\/"/);
+  assert.match(systemsDirectory, /<div class="page-actions">[\s\S]*<a class="action" href="\/systems\/model-promotion\/">Open Model Promotion<\/a>/);
+  assert.match(systemsDirectory, /<h2[^>]*>Inspect, verify, and experiment\.<\/h2>[\s\S]*href="\/systems\/model-promotion\/"/);
+  assert.equal((systemsDirectory.match(/href="\/systems\/model-promotion\/"/g) || []).length, 2);
   assert.match(readFileSync("systems/evidence/index.html", "utf8"), /href="\/systems\/model-promotion\/">Model Promotion Observatory/);
 });
 
