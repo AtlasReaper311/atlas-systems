@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
@@ -14,6 +14,8 @@ import {
 const HTML = readFileSync("systems/model-promotion/index.html", "utf8");
 const CSS = readFileSync("static/css/systems-model-promotion.css", "utf8");
 const SCRIPT = readFileSync("systems/model-promotion/model-promotion.js", "utf8");
+const EVIDENCE_DIR = "systems/model-promotion/evidence";
+const EVIDENCE_FILES = readdirSync(EVIDENCE_DIR).filter((name) => name.endsWith(".json")).sort();
 const MANIFEST = JSON.parse(readFileSync(".atlas/public-interface.json", "utf8"));
 const SITEMAP = readFileSync("sitemap.xml", "utf8");
 const SITEMAP_GENERATOR = readFileSync("scripts/generate_sitemap.py", "utf8");
@@ -203,10 +205,34 @@ test("public surface remains registered and discoverable", () => {
   assert.match(readFileSync("systems/evidence/index.html", "utf8"), /href="\/systems\/model-promotion\/">Model Promotion Observatory/);
 });
 
-test("public output and every current fixture contain no private or deployment evidence", () => {
-  const output = `${HTML}\n${SCRIPT}`;
-  for (const forbidden of ["eval-harness", "chain-of-thought", "raw answer", "127.0.0.1", "localhost", "C:\\\\", "L:\\\\", "private/evidence", "api.atlas-systems.uk"]) {
-    assert.equal(output.toLowerCase().includes(forbidden.toLowerCase()), false, forbidden);
+test("closure wording keeps the two Systems surfaces distinct and deployment claims separate", () => {
+  const evidencePage = readFileSync("systems/evidence/index.html", "utf8");
+  const evidenceDocs = readFileSync("docs/EVIDENCE-CONSOLE.md", "utf8");
+  assert.match(HTML, /Phase 4 \/\/ Closure/);
+  assert.doesNotMatch(HTML, /Phase 4\.5/);
+  assert.match(HTML, /The Evidence Console answers what proves an operational or public claim/);
+  assert.match(HTML, /A website deployment is separate from model deployment/);
+  assert.match(evidencePage, /href="\/systems\/model-promotion\/">Model Promotion Observatory/);
+  assert.match(evidencePage, /It is not a fourth Console view/);
+  assert.match(evidenceDocs, /PROMOTION APPROVED != DEPLOYED/);
+});
+
+test("all shipped Observatory source and evidence files contain no private or deployment evidence", () => {
+  const shipped = [HTML, CSS, SCRIPT, ...EVIDENCE_FILES.map((name) => readFileSync(`${EVIDENCE_DIR}/${name}`, "utf8"))].join("\n");
+  for (const forbidden of ["eval-harness", "chain-of-thought", "raw answer", "127.0.0.1", "localhost", "C:\\\\", "L:\\\\", "/mnt/", "/home/", "private/evidence", "api.atlas-systems.uk"]) {
+    assert.equal(shipped.toLowerCase().includes(forbidden.toLowerCase()), false, forbidden);
+  }
+  assert.ok(EVIDENCE_FILES.length >= 11, "historical and current public receipts are present");
+  for (const name of EVIDENCE_FILES) {
+    const projection = JSON.parse(readFileSync(`${EVIDENCE_DIR}/${name}`, "utf8"));
+    assert.deepEqual(Object.keys(projection).sort(), [
+      "capability", "current_model_observation", "deployment_boundary", "evaluation", "freshness", "generated_at", "gaps", "human_review", "model", "privacy", "projection_fingerprint", "promotion", "schema_version", "state",
+    ].sort(), `${name} has an unexpected public field`);
+    assert.equal(projection.deployment_boundary.promotion_is_not_deployment, true, `${name} loses deployment boundary`);
+    assert.equal(projection.current_model_observation.state, "not-represented", `${name} exposes runtime identity`);
+    assert.equal(Object.hasOwn(projection, "prompt"), false, `${name} exposes prompt`);
+    assert.equal(Object.hasOwn(projection, "answer"), false, `${name} exposes answer`);
+    assert.equal(Object.hasOwn(projection, "reasoning"), false, `${name} exposes reasoning`);
   }
   for (const capability of CAPABILITIES) {
     for (const model of COMPARISON_CANDIDATES) {

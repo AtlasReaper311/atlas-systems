@@ -220,5 +220,14 @@ claim from this source/browser acceptance.
 
 ## Model Promotion
 
-Model Promotion remains Phase 4 Observatory work. It is not a Phase 2.3
-archetype and is not implemented in this Console.
+Model Promotion is the separate Phase 4 Observatory at
+[/systems/model-promotion/](/systems/model-promotion/). The Evidence Console
+answers what proves an operational or public claim. The Observatory answers
+why a model was considered suitable for a named capability. It is not a
+fourth Console view or a replacement for the Console's Change / Service /
+Estate evidence modes.
+
+Its public receipts keep evaluation, human review, promotion, freshness, and
+runtime observation separate. `PROMOTION APPROVED != DEPLOYED`: neither a
+promotion receipt nor a website deployment proves model installation, routing,
+provider state, runtime health, or live verification.

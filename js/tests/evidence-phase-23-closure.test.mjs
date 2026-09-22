@@ -241,7 +241,8 @@ test("No-JS fallbacks and public-safe hrefs remain available for all four archet
   assert.match(page, /href="#change-article-fallback"/);
   assert.match(page, /data-archetype="article-publication"/);
   assert.match(page, /Phase 2.3 archetypes/);
-  assert.match(page, /Model Promotion remains Phase 4/);
+  assert.match(page, /Model Promotion is a separate Phase 4 Observatory surface/);
+  assert.match(page, /It is not a fourth Console view/);
   assert.doesNotMatch(page, /href="\/systems\/evidence\/\?view=/);
   assert.equal(isPublicSafeHref("https://github.com/AtlasReaper311/atlas-systems"), true);
   assert.equal(isPublicSafeHref("https://atlas-systems.uk/writing/specular-core-architectural-recovery/"), true);
@@ -270,9 +271,12 @@ test("Documentation closure describes the implemented Console without rewriting 
     "classification",
     "Model Promotion",
     "Phase 4",
+    "answers what proves an operational or public claim",
+    "why a model was considered suitable for a named capability",
   ]) {
     assert.ok(docs.includes(needle), `docs missing ${needle}`);
   }
+  assert.doesNotMatch(docs, /Model Promotion remains Phase 4 Observatory work/);
   assert.match(docs, /atlas-infra\/blob\/main\/docs\/adrs\/ADR-0013-estate-wide-evidence-lifecycle\.md/);
   assert.match(docs, /atlas-infra\/blob\/main\/docs\/adrs\/ADR-0014-evidence-lifecycle-profiles\.md/);
   assert.doesNotMatch(docs, /this ADR now says|ADR-0013 now requires/i);
