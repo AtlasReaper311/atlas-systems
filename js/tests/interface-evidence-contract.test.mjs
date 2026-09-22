@@ -171,7 +171,7 @@ test("SONIN frame evidence is route-scoped and covers both browsers and all requ
   assert.match(workflow, /sonin-youtube-evidence-\$\{\{ github\.event\.pull_request\.head\.sha \}\}/);
   assert.match(workflow, /SONIN_CAPTURE_OUTCOME/);
   assert.match(runner, /const ROUTE = "\/writing\/sonin-generative-system\/"/);
-  assert.match(runner, /https:\/\/www\.youtube\.com\/embed\/O5f1tB5bdyE/);
+  assert.ok(runner.includes('const EXPECTED_IFRAME = "https://www.youtube.com/embed/O5f1tB5bdyE";'));
   for (const width of [320, 375, 768, 1024, 1440, 1920]) {
     assert.match(runner, new RegExp(`name: "${width}"`));
   }
