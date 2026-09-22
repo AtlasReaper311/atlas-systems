@@ -7,6 +7,8 @@ const headers = readFileSync("_headers", "utf8");
 const redirects = readFileSync("_redirects", "utf8");
 
 const CLOUDINARY = "https://res.cloudinary.com";
+const YOUTUBE = "https://www.youtube.com";
+const SITE_ORIGIN = "https://atlas-systems.uk";
 
 const SOURCE_EXTENSIONS = new Set([".html", ".js", ".mjs"]);
 const SKIP_DIRECTORIES = new Set(["node_modules", ".git", "tests", "scripts"]);
@@ -45,6 +47,47 @@ function hasExactToken(tokens, expected) {
   return tokens.some((token) => token === expected);
 }
 
+function shippedFrameOrigins(sources = shippedSources()) {
+  const origins = new Set();
+  const frameUrlPatterns = [
+    /<iframe\b[^>]*\bsrc\s*=\s*["']([^"']+)["']/gi,
+    /\b(?:iframe|frame|[A-Za-z_$][\w$]*Iframe)\s*\.src\s*=\s*["'`](https?:\/\/[^"'`]+)["'`]/gi,
+    /\b(?:iframe|frame|[A-Za-z_$][\w$]*Iframe)\s*\.setAttribute\(\s*["'`]src["'`]\s*,\s*["'`](https?:\/\/[^"'`]+)["'`]\s*\)/gi,
+  ];
+
+  for (const file of sources) {
+    const text = readFileSync(file, "utf8");
+    for (const pattern of frameUrlPatterns) {
+      for (const match of text.matchAll(pattern)) {
+        const url = new URL(match[1], SITE_ORIGIN);
+        if (["http:", "https:"].includes(url.protocol) && url.origin !== SITE_ORIGIN) {
+          origins.add(url.origin);
+        }
+      }
+    }
+  }
+  return origins;
+}
+
+function remoteOriginTokens(tokens) {
+  return tokens.filter((token) => {
+    try {
+      const url = new URL(token);
+      return ["http:", "https:"].includes(url.protocol) && url.origin === token;
+    } catch {
+      return false;
+    }
+  });
+}
+
+function hasWildcardHost(token) {
+  try {
+    return /[*]/u.test(new URL(token).hostname);
+  } catch {
+    return false;
+  }
+}
+
 function redirectRules() {
   return redirects
     .split("\n")
@@ -54,6 +97,54 @@ function redirectRules() {
     .filter((parts) => parts.length >= 2)
     .map(([source, destination, code = "302"]) => ({ source, destination, code }));
 }
+
+test("frame-src is an exact allowlist for shipped remote iframe origins", () => {
+  const frame = directiveSources("frame-src");
+  assert.ok(frame, "frame-src must be explicit; frame navigation must not fall back to default-src");
+  assert.ok(hasExactToken(frame, "'self'"), "frame-src must preserve same-origin frames");
+
+  const shipped = shippedFrameOrigins();
+  const permitted = remoteOriginTokens(frame);
+  assert.deepEqual([...shipped].sort(), [YOUTUBE], "SONIN is the only shipped remote iframe consumer");
+  assert.deepEqual(permitted.sort(), [...shipped].sort(), "frame-src must match shipped remote iframe origins exactly");
+
+  for (const origin of shipped) {
+    assert.ok(hasExactToken(frame, origin), `${origin} is shipped but absent from frame-src`);
+  }
+  for (const origin of permitted) {
+    assert.ok(shipped.has(origin), `${origin} is permitted by frame-src without a shipped iframe consumer`);
+  }
+});
+
+test("frame-src remains restrictive and unrelated CSP directives stay unchanged", () => {
+  const frame = directiveSources("frame-src");
+  assert.ok(frame);
+  assert.equal(hasExactToken(frame, "*"), false, "frame-src must not allow every origin");
+  assert.equal(hasExactToken(frame, "https:"), false, "frame-src must not allow every HTTPS origin");
+  assert.ok(!frame.some(hasWildcardHost), "frame-src must not contain wildcard hosts");
+  assert.equal(hasExactToken(frame, "https://example.com"), false, "arbitrary external frames must remain blocked");
+  assert.equal(hasExactToken(frame, "https://www.youtube-nocookie.com"), false, "unused YouTube origins must not be added");
+  assert.equal(hasExactToken(frame, "https://www.google.com"), false, "unrelated Google origins must not be added");
+
+  assert.deepEqual(directiveSources("default-src"), ["'self'"], "default-src must remain same-origin only");
+  assert.deepEqual(directiveSources("script-src"), [
+    "'self'",
+    "blob:",
+    "'unsafe-inline'",
+    "https://static.cloudflareinsights.com",
+  ], "script-src restrictions must remain unchanged");
+  assert.deepEqual(directiveSources("connect-src"), [
+    "'self'",
+    "blob:",
+    "https://api.atlas-systems.uk",
+    "https://ramone.atlas-systems.uk",
+    "https://corpus.atlas-systems.uk",
+    "https://static.cloudflareinsights.com",
+  ], "connect-src restrictions must remain unchanged");
+  assert.deepEqual(directiveSources("img-src"), ["'self'", "data:", CLOUDINARY], "img-src must remain unchanged");
+  assert.deepEqual(directiveSources("media-src"), ["'self'", CLOUDINARY], "media-src must remain unchanged");
+  assert.ok(!directiveSources("script-src").includes("'unsafe-eval'"), "'unsafe-eval' must remain absent");
+});
 
 test("media-src covers local Symphony audio and the Cloudinary demo host", () => {
   const media = directiveSources("media-src");
