@@ -130,14 +130,15 @@ test("the reporting baseline is pinned to the reviewed Phase 15 evidence", () =>
   assert.equal(REPORTING_BASELINE.source.reviewed_finding_count, 12);
 });
 
-test("baseline matching is route, browser, viewport, issue, and target specific", () => {
+test("retired SONIN CSP findings are no longer accepted by the reporting baseline", () => {
   const accepted = acceptedReportingFinding({
     routeName: "writing-sonin-generative-system",
     browser: "chrome",
     viewport: "375",
     message: 'writing-sonin-generative-system/375: console errors [{"type":"error","text":"Framing \'https://www.youtube.com/\' violates the following Content Security Policy directive: \\"default-src \'self\'\\"."}]',
   });
-  assert.ok(accepted);
+  assert.equal(accepted, null);
+  assert.deepEqual(REPORTING_BASELINE.families, []);
 
   assert.equal(acceptedReportingFinding({
     routeName: "lab-speculum",
@@ -154,7 +155,16 @@ test("baseline matching is route, browser, viewport, issue, and target specific"
   }), null);
 });
 
-test("reconciliation preserves reviewed findings and retains unknown blockers", () => {
+test("retired Firefox SONIN CSP family is absent", () => {
+  assert.equal(acceptedReportingFinding({
+    routeName: "writing-sonin-generative-system",
+    browser: "firefox",
+    viewport: "375",
+    message: "writing-sonin-generative-system/375: console errors Content-Security-Policy youtube.com/embed/O5f1tB5bdyE default-src 'self'",
+  }), null);
+});
+
+test("reconciliation retains retired SONIN findings and unknown blockers", () => {
   const directory = mkdtempSync(path.join(os.tmpdir(), "atlas-interface-baseline-"));
   const reportPath = path.join(directory, "evidence.json");
   const errorPath = path.join(directory, "capture-error.txt");
@@ -184,11 +194,12 @@ test("reconciliation preserves reviewed findings and retains unknown blockers", 
   const result = reconcileEvidenceReport({ reportPath, errorPath });
   const report = JSON.parse(readFileSync(reportPath, "utf8"));
   assert.equal(result.reconciled, false);
-  assert.equal(result.acceptedCount, 1);
-  assert.equal(result.blockingCount, 1);
-  assert.equal(report.reportingBaseline.accepted_count, 1);
-  assert.deepEqual(report.blockingFailures, [unknownMessage]);
-  assert.match(report.findings[0], /accepted Phase 2 reporting baseline/);
+  assert.equal(result.acceptedCount, 0);
+  assert.equal(result.blockingCount, 2);
+  assert.equal(report.reportingBaseline.accepted_count, 0);
+  assert.deepEqual(report.blockingFailures, [acceptedMessage, unknownMessage]);
+  assert.deepEqual(report.findings, []);
+  assert.match(readFileSync(errorPath, "utf8"), /writing-sonin-generative-system/);
   assert.match(readFileSync(errorPath, "utf8"), /lab-speculum/);
   rmSync(directory, { recursive: true, force: true });
 });
