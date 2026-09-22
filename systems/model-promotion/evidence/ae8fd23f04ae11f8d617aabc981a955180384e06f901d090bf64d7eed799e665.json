@@ -1,0 +1,79 @@
+{
+  "capability": {
+    "id": "ramone-live-chat"
+  },
+  "current_model_observation": {
+    "observed_at": null,
+    "observed_model_id": null,
+    "state": "not-represented",
+    "subject": "runtime-model-identity"
+  },
+  "deployment_boundary": {
+    "deployed": "not-applicable",
+    "deployment_observed": "not-applicable",
+    "live_verified": "not-applicable",
+    "promotion_is_not_deployment": true,
+    "runtime_verified": "not-applicable"
+  },
+  "evaluation": {
+    "categories": [
+      "abstention",
+      "grounding"
+    ],
+    "evaluated_at": "2026-09-22T01:14:35.109345Z",
+    "known_regressions": {
+      "categories": [],
+      "state": "unknown-not-observed",
+      "vocabulary_version": "atlas-control-plane/model-promotion-regression-vocabulary/v1"
+    },
+    "prepared_at": "2026-09-22T01:10:21.877434Z",
+    "result": {
+      "case_count": 3,
+      "failed_count": 0,
+      "minimum_pass_rate": 1.0,
+      "pass_rate": 1.0,
+      "passed_count": 3
+    },
+    "state": "evaluated-passed",
+    "suite": {
+      "revision": "suite:sha256:a06cbe278ac92d58e4588fa464642608fd55f6c068dd07b2a5cee0c116b32f90",
+      "version": "1.0.0"
+    }
+  },
+  "freshness": {
+    "evidence_observed_at": "2026-09-22T01:14:35.109345Z",
+    "max_age_days": 30,
+    "state": "current"
+  },
+  "gaps": [
+    "deployment-not-applicable",
+    "human-review-pending",
+    "promotion-not-observed",
+    "runtime-model-not-represented"
+  ],
+  "generated_at": "2026-09-22T01:14:35.109345Z",
+  "human_review": {
+    "reviewed_at": null,
+    "state": "pending"
+  },
+  "model": {
+    "public_id": "qwen3:14b"
+  },
+  "privacy": {
+    "mode": "public-safe-allowlist",
+    "private_evidence_uris_excluded": true,
+    "private_inputs_excluded": true,
+    "raw_answers_excluded": true,
+    "runtime_configuration_excluded": true,
+    "unknown_fields_rejected": true
+  },
+  "projection_fingerprint": "sha256:ae8fd23f04ae11f8d617aabc981a955180384e06f901d090bf64d7eed799e665",
+  "promotion": {
+    "approved_at": null,
+    "state": "not-approved",
+    "superseded_by_projection_fingerprint": null,
+    "supersedes_projection_fingerprint": null
+  },
+  "schema_version": "atlas-control-plane/public-model-promotion-projection/v1",
+  "state": "review-pending"
+}

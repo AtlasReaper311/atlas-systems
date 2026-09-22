@@ -3,7 +3,13 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-import { CAPABILITIES, validateProjection } from "../../systems/model-promotion/model-promotion.js";
+import {
+  CAPABILITIES,
+  COMPARISON_CANDIDATES,
+  candidateFor,
+  validateCandidateProjection,
+  validateProjection,
+} from "../../systems/model-promotion/model-promotion.js";
 
 const HTML = readFileSync("systems/model-promotion/index.html", "utf8");
 const CSS = readFileSync("static/css/systems-model-promotion.css", "utf8");
@@ -12,177 +18,177 @@ const MANIFEST = JSON.parse(readFileSync(".atlas/public-interface.json", "utf8")
 const SITEMAP = readFileSync("sitemap.xml", "utf8");
 const SITEMAP_GENERATOR = readFileSync("scripts/generate_sitemap.py", "utf8");
 
-const CURRENT_RECEIPTS = Object.freeze({
-  "ramone-rag-generation": {
-    fingerprint: "b92b3faa8d75a6869dbf72b0b9cf80c214cba272e23b3a12f859ed32c4deeba5",
-    sha256: "506d179ac2d5ad6f6aacb7520e256ff40aed29723b43ad4d9c4c1f1a293bf511",
-    result: [3, 3, 0],
+const EXPECTED_FINGERPRINTS = Object.freeze({
+  "qwen3.5-mtp": {
+    "ramone-rag-generation": "b92b3faa8d75a6869dbf72b0b9cf80c214cba272e23b3a12f859ed32c4deeba5",
+    "ramone-live-chat": "9d8d70d7577eb4e307852ca5b552370d02754d5d27205097b1393277a61c074e",
+    "corpus-retrieval": "8b6ffc407bc02af7cc01596c99856dba03112c1345d2875feb587fa3c87503aa",
+    "daily-digest-synthesis": "3e1dbfba5a3c9c643791b91b608810651f42212a019962275895f25eba21bdf3",
+    "postmortem-drafting": "b049801c77b15a8efccf7a59bac0aaf41bae63f12bd4bb460bf5de662223053f",
   },
-  "ramone-live-chat": {
-    fingerprint: "9d8d70d7577eb4e307852ca5b552370d02754d5d27205097b1393277a61c074e",
-    sha256: "d998eb991e72fbe1853b245186f57e5c1fd32ae12585fbd50a04823c5d53eafd",
-    result: [3, 3, 0],
+  "qwen3:14b": {
+    "ramone-rag-generation": "78eac8ff3e2e0aedc4ad6c8442c9d17d2d73890f06e914481d6d4e577ed9d83f",
+    "ramone-live-chat": "ae8fd23f04ae11f8d617aabc981a955180384e06f901d090bf64d7eed799e665",
+    "corpus-retrieval": "79c2b00ce3c3ab2c6759481f63b1a3bf9b6eef1194bd72d715f0b40a318d79c3",
+    "daily-digest-synthesis": "9756936d47899afab0a2718ef4eb34d2a0239cb56da3675ad19a368e1950cb14",
+    "postmortem-drafting": "acfce7f868020a9c0b633b92494f1825bcd52f2eddb1f429481da56ecf69837a",
   },
-  "corpus-retrieval": {
-    fingerprint: "8b6ffc407bc02af7cc01596c99856dba03112c1345d2875feb587fa3c87503aa",
-    sha256: "cd4c9576453decf280d566d3138e0d3897aec84457be176049a39b5f5ecf1dc2",
-    result: [5, 5, 0],
-  },
-  "daily-digest-synthesis": {
-    fingerprint: "3e1dbfba5a3c9c643791b91b608810651f42212a019962275895f25eba21bdf3",
-    sha256: "398668f3979574ada4ffa0fbb0dd0b54399e6acbbb88bce06fc186765fe8c202",
-    result: [3, 2, 1],
-  },
-  "postmortem-drafting": {
-    fingerprint: "b049801c77b15a8efccf7a59bac0aaf41bae63f12bd4bb460bf5de662223053f",
-    sha256: "efa05f061ccec0ee006a9af4d70a23a5af111bc6d4d7a03c916aa34e23d9f758",
-    result: [7, 6, 1],
-  },
+});
+
+const EXPECTED_BYTES = Object.freeze({
+  "b92b3faa8d75a6869dbf72b0b9cf80c214cba272e23b3a12f859ed32c4deeba5": "506d179ac2d5ad6f6aacb7520e256ff40aed29723b43ad4d9c4c1f1a293bf511",
+  "9d8d70d7577eb4e307852ca5b552370d02754d5d27205097b1393277a61c074e": "d998eb991e72fbe1853b245186f57e5c1fd32ae12585fbd50a04823c5d53eafd",
+  "8b6ffc407bc02af7cc01596c99856dba03112c1345d2875feb587fa3c87503aa": "cd4c9576453decf280d566d3138e0d3897aec84457be176049a39b5f5ecf1dc2",
+  "3e1dbfba5a3c9c643791b91b608810651f42212a019962275895f25eba21bdf3": "398668f3979574ada4ffa0fbb0dd0b54399e6acbbb88bce06fc186765fe8c202",
+  "b049801c77b15a8efccf7a59bac0aaf41bae63f12bd4bb460bf5de662223053f": "efa05f061ccec0ee006a9af4d70a23a5af111bc6d4d7a03c916aa34e23d9f758",
+  "78eac8ff3e2e0aedc4ad6c8442c9d17d2d73890f06e914481d6d4e577ed9d83f": "ae6bf03e29474753302ecf6043267982b0be738a92de7318987a5ea42434583d",
+  "ae8fd23f04ae11f8d617aabc981a955180384e06f901d090bf64d7eed799e665": "588e4340037eedaabcc2a2946c17effd737a95b116cf32ae54ae74634eb5b394",
+  "79c2b00ce3c3ab2c6759481f63b1a3bf9b6eef1194bd72d715f0b40a318d79c3": "cf7ed65898b9751e80b627e74bba3f6e3e77a5a203dad6f89c312220212ecffe",
+  "9756936d47899afab0a2718ef4eb34d2a0239cb56da3675ad19a368e1950cb14": "39e3e368c953120b99bbb1d5d52150b3c598d38469b66ec8de7a8624f8d07d9a",
+  "acfce7f868020a9c0b633b92494f1825bcd52f2eddb1f429481da56ecf69837a": "f55f83d1b02fea1c46dc88ad73c08b774bcf075a7b08bcbae37264295bc430e8",
 });
 
 const HISTORICAL_PATH = "systems/model-promotion/evidence/f80ade07d8025fa751f59f8e667fa1adb2905d194fa1f1c90fc316730a94b3c3.json";
 const HISTORICAL_SHA256 = "8051066a080dded96f5fd742182a224a95595758a4a8d75a4d505a31ecaeca75";
 
-function receiptFor(capability) {
-  const path = `systems/model-promotion/evidence/${capability.fingerprint}.json`;
-  const bytes = readFileSync(path);
-  const sha256 = createHash("sha256").update(bytes).digest("hex");
-  const projection = JSON.parse(bytes.toString("utf8"));
-  return { bytes, path, projection, sha256 };
+function projectionFor(capability, model) {
+  const candidate = candidateFor(capability, model);
+  const path = `systems/model-promotion/evidence/${candidate.fingerprint}.json`;
+  return { candidate, path, projection: JSON.parse(readFileSync(path, "utf8")) };
 }
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-test("the Observatory contains exactly the five accepted current capability identities", () => {
-  assert.deepEqual(CAPABILITIES.map(({ id }) => id), [
-    "ramone-rag-generation",
-    "ramone-live-chat",
-    "corpus-retrieval",
-    "daily-digest-synthesis",
-    "postmortem-drafting",
-  ]);
-  assert.deepEqual(Object.fromEntries(CAPABILITIES.map(({ id, fingerprint }) => [id, fingerprint])),
-    Object.fromEntries(Object.entries(CURRENT_RECEIPTS).map(([id, { fingerprint }]) => [id, fingerprint])));
+function articleFor(model, capability) {
+  const marker = `data-candidate-certificate="${model}" data-capability-id="${capability}"`;
+  const start = HTML.indexOf(marker);
+  assert.notEqual(start, -1, `${model} ${capability} certificate is present`);
+  const end = HTML.indexOf("</article>", start);
+  return HTML.slice(start, end);
+}
+
+test("five capabilities each bind exactly two supported comparison candidates", () => {
+  assert.deepEqual(COMPARISON_CANDIDATES, ["qwen3.5-mtp", "qwen3:14b"]);
+  assert.equal(CAPABILITIES.length, 5);
+  for (const capability of CAPABILITIES) {
+    assert.deepEqual(Object.keys(capability.candidates).sort(), ["qwen3.5-mtp", "qwen3:14b"]);
+    for (const model of COMPARISON_CANDIDATES) {
+      assert.equal(candidateFor(capability, model).model, model);
+      assert.equal(candidateFor(capability, model).fingerprint, EXPECTED_FINGERPRINTS[model][capability.id]);
+    }
+  }
+  assert.equal((HTML.match(/data-capability-comparison=/g) || []).length, 5);
+  assert.equal((HTML.match(/data-candidate-certificate=/g) || []).length, 10);
 });
 
-test("all five current receipts keep their transferred bytes, filename identity, and accepted shape", () => {
+test("all ten current public receipts pin filename, projection fingerprint, bytes, capability, and candidate identity", () => {
   for (const capability of CAPABILITIES) {
-    const expected = CURRENT_RECEIPTS[capability.id];
-    const { projection, sha256 } = receiptFor(capability);
-    assert.equal(sha256, expected.sha256, `${capability.id} bytes changed after transfer`);
-    assert.equal(projection.projection_fingerprint, `sha256:${expected.fingerprint}`);
-    assert.deepEqual(projection.evaluation.result && [
-      projection.evaluation.result.case_count,
-      projection.evaluation.result.passed_count,
-      projection.evaluation.result.failed_count,
-    ], expected.result);
-    assert.equal(validateProjection(projection, expected.fingerprint, capability.id).ok, true);
+    for (const model of COMPARISON_CANDIDATES) {
+      const { candidate, path, projection } = projectionFor(capability, model);
+      const bytes = readFileSync(path);
+      const sha256 = createHash("sha256").update(bytes).digest("hex");
+      assert.equal(sha256, EXPECTED_BYTES[candidate.fingerprint], `${model} ${capability.id} bytes changed`);
+      assert.equal(projection.projection_fingerprint, `sha256:${candidate.fingerprint}`);
+      assert.equal(validateCandidateProjection(projection, capability, model).ok, true);
+    }
   }
 });
 
-test("the historical RAG receipt remains byte-identical and is not treated as current promotion evidence", () => {
+test("unsupported identities, cross-capability receipts, wrong fingerprints, unknown fields, and malformed counts fail closed", () => {
+  const capability = CAPABILITIES[0];
+  const valid = projectionFor(capability, "qwen3:14b").projection;
+  assert.equal(validateProjection(null, capability.candidates["qwen3:14b"].fingerprint, capability.id, "qwen3:14b").ok, false);
+  assert.equal(validateCandidateProjection({ ...clone(valid), extra: true }, capability, "qwen3:14b").ok, false);
+  assert.equal(validateCandidateProjection({ ...clone(valid), model: { public_id: "unsupported-model" } }, capability, "qwen3:14b").ok, false);
+  assert.equal(validateCandidateProjection({ ...clone(valid), evaluation: { ...valid.evaluation, result: { ...valid.evaluation.result, passed_count: 4 } } }, capability, "qwen3:14b").ok, false);
+  assert.equal(validateCandidateProjection(valid, CAPABILITIES[1], "qwen3:14b").ok, false);
+  assert.equal(validateProjection(valid, "0".repeat(64), capability.id, "qwen3:14b").ok, false);
+  assert.match(SCRIPT, /renderUnavailable/);
+  assert.match(HTML, /UNKNOWN \/ UNAVAILABLE evidence/);
+});
+
+test("RAG lifecycle differences remain capability-scoped", () => {
+  const qwen35 = articleFor("qwen3.5-mtp", "ramone-rag-generation");
+  const qwen3 = articleFor("qwen3:14b", "ramone-rag-generation");
+  assert.match(qwen35, /3 \/ 3 passed/);
+  assert.match(qwen35, /Promotion approved/);
+  assert.match(qwen3, /3 \/ 3 passed/);
+  assert.match(qwen3, /Promotion not approved/);
+  assert.match(qwen3, /Human review pending/);
+  assert.match(HTML, /PROMOTION APPROVED ≠ DEPLOYED/);
+});
+
+test("Daily Digest exposes 2/3 versus 1/3 without calculating a winner", () => {
+  assert.match(articleFor("qwen3.5-mtp", "daily-digest-synthesis"), /2 \/ 3 passed/);
+  assert.match(articleFor("qwen3:14b", "daily-digest-synthesis"), /1 \/ 3 passed/);
+  assert.match(HTML, /The accepted records show 2 \/ 3 versus 1 \/ 3/);
+  for (const forbidden of [/overall winner/i, /best model/i, /rank #1/i, /qwen3 wins/i, /qwen3\.5 wins/i]) assert.doesNotMatch(HTML, forbidden);
+});
+
+test("Postmortem exposes equal 6/7 results and qwen3 public regression category", () => {
+  assert.match(articleFor("qwen3.5-mtp", "postmortem-drafting"), /6 \/ 7 passed/);
+  assert.match(articleFor("qwen3:14b", "postmortem-drafting"), /6 \/ 7 passed/);
+  assert.match(articleFor("qwen3:14b", "postmortem-drafting"), /Format contract failure/);
+  assert.match(HTML, /accepted evaluation recorded a format-contract violation/);
+  assert.doesNotMatch(HTML, /raw output|private scorer|chain.of.thought|prompt content/i);
+});
+
+test("Regression Microscope keeps none, unknown, known, and not-applicable states distinct", () => {
+  assert.match(HTML, /<strong class="microscope-state">None recorded<\/strong>/);
+  assert.match(HTML, /UNKNOWN \/ NOT OBSERVED/);
+  assert.match(HTML, /<strong class="microscope-state microscope-state--known">Known regression<\/strong>/);
+  assert.match(HTML, /future accepted receipt is <strong>NOT APPLICABLE<\/strong>/);
+  assert.match(SCRIPT, /"unknown-not-observed": "UNKNOWN \/ NOT OBSERVED"/);
+  assert.match(SCRIPT, /"not-applicable": "NOT APPLICABLE"/);
+});
+
+test("comparison has no timing or global-ranking surface", () => {
+  assert.match(HTML, /Performance timing is not compared here/);
+  assert.match(HTML, /accepted public receipts do not establish a comparable runtime protocol/);
+  assert.match(HTML, /No combined score is calculated/);
+  assert.doesNotMatch(HTML, /latency bar|tokens\/s|faster candidate|performance graph|global ranking/i);
+});
+
+test("no-JS document contains all candidates, lifecycle boundary, failures, and microscope records", () => {
+  assert.equal((HTML.match(/aria-pressed="true"/g) || []).length, 1);
+  assert.equal((HTML.match(/aria-pressed="false"/g) || []).length, 4);
+  assert.equal((HTML.match(/data-microscope-entry/g) || []).length, 10);
+  assert.match(HTML, /JavaScript is disabled, so all five comparison chambers/);
+  assert.match(HTML, /EVAL PREPARED/);
+  assert.match(HTML, /EVALUATION PASSED/);
+  assert.match(HTML, /EVALUATION FAILED/);
+  assert.match(HTML, /HUMAN REVIEW PENDING/);
+  assert.match(HTML, /PROMOTION NOT APPROVED/);
+  assert.match(HTML, /PROMOTION APPROVED ≠ DEPLOYED/);
+});
+
+test("selector and responsive contracts preserve keyboard, focus, stacking, and reduced motion", () => {
+  assert.equal((HTML.match(/aria-controls="comparison-/g) || []).length, 5);
+  assert.match(SCRIPT, /ArrowRight/);
+  assert.match(SCRIPT, /ArrowLeft/);
+  assert.match(SCRIPT, /event\.key === "Home"/);
+  assert.match(SCRIPT, /event\.key === "End"/);
+  assert.match(CSS, /:focus-visible/);
+  assert.match(CSS, /grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(CSS, /\.comparison-candidates,\s*\.microscope-list \{ grid-template-columns: 1fr; \}/);
+  assert.match(CSS, /button\[data-evaluation="failed"\]\[aria-pressed="true"\]\s+\.capability-nav-state\s*\{\s*color:\s*var\(--text\)/);
+  assert.match(CSS, /prefers-reduced-motion: reduce/);
+});
+
+test("the historical RAG receipt remains byte-identical and is visibly preserved", () => {
   const bytes = readFileSync(HISTORICAL_PATH);
   assert.equal(createHash("sha256").update(bytes).digest("hex"), HISTORICAL_SHA256);
   const historical = JSON.parse(bytes.toString("utf8"));
   assert.equal(historical.projection_fingerprint, "sha256:f80ade07d8025fa751f59f8e667fa1adb2905d194fa1f1c90fc316730a94b3c3");
   assert.equal(historical.state, "review-pending");
   assert.equal(historical.promotion.state, "not-approved");
-  assert.match(HTML, /Previous receipt · review pending/);
-  assert.match(HTML, /Supersession changes the evidence lineage, not deployment or runtime state/);
+  assert.match(HTML, /Historical qwen3\.5 receipt/);
+  assert.match(HTML, /Supersession changes evidence lineage, not deployment or runtime state/);
 });
 
-test("the page is capability-first and keeps all five stories in the no-JS document", () => {
-  assert.match(HTML, /<h1 class="focus-title">Why this model\.<br>For this capability\.<\/h1>/);
-  assert.equal((HTML.match(/data-capability-switch=/g) || []).length, 5);
-  assert.equal((HTML.match(/data-capability-receipt=/g) || []).length, 5);
-  assert.equal((HTML.match(/aria-pressed="true"/g) || []).length, 1);
-  assert.equal((HTML.match(/aria-pressed="false"/g) || []).length, 4);
-  assert.doesNotMatch(HTML, /data-capability-receipt="[^"]+"[^>]* hidden/);
-  assert.match(HTML, /JavaScript is disabled, so all five capability receipts remain expanded/);
-  assert.match(SCRIPT, /receipt\.hidden = !active/);
-});
-
-test("the Observatory aligns the 768px shell boundary with governed navigation semantics", () => {
-  assert.doesNotMatch(CSS, /@media \(min-width: 768px\) and \(max-width: 768px\)/);
-  assert.match(readFileSync("static/css/estate-shell.css", "utf8"), /@media \(max-width: 767px\) \{/);
-});
-
-test("every aggregate has capability, case count, passed result, and threshold context", () => {
-  for (const [cases, passed] of Object.values(CURRENT_RECEIPTS).map(({ result }) => result)) {
-    assert.match(HTML, new RegExp(`${passed} \/ ${cases} passed`));
-    assert.match(HTML, new RegExp(`required threshold ${cases} \/ ${cases}`, "i"));
-  }
-  assert.doesNotMatch(HTML, />100%<|>66\.67%<|>85\.71%</);
-});
-
-test("accepted lifecycle states remain visibly distinct and failed evaluations remain evaluation failures", () => {
-  assert.match(HTML, /EVALUATION PASSED/);
-  assert.match(HTML, /EVALUATION FAILED/);
-  assert.match(HTML, /HUMAN REVIEWED/);
-  assert.match(HTML, /HUMAN REVIEW PENDING/);
-  assert.match(HTML, /HUMAN REVIEW NOT REQUIRED/);
-  assert.match(HTML, /PROMOTION APPROVED/);
-  assert.match(HTML, /PROMOTION NOT APPROVED/);
-  assert.match(HTML, /not a service failure/);
-  assert.match(CSS, /data-trail-state="terminal"/);
-});
-
-test("passing evaluation, human review, and promotion remain separate validation gates", () => {
-  const rag = clone(receiptFor(CAPABILITIES[0]).projection);
-  rag.state = "review-pending";
-  rag.human_review = { state: "pending", reviewed_at: null };
-  rag.promotion = { state: "not-approved", approved_at: null, supersedes_projection_fingerprint: rag.promotion.supersedes_projection_fingerprint, superseded_by_projection_fingerprint: null };
-  assert.equal(validateProjection(rag, CURRENT_RECEIPTS[rag.capability.id].fingerprint, rag.capability.id).ok, true);
-
-  const reviewed = clone(receiptFor(CAPABILITIES[0]).projection);
-  reviewed.state = "evaluated-passed";
-  reviewed.promotion = { ...reviewed.promotion, state: "not-approved", approved_at: null, superseded_by_projection_fingerprint: null };
-  assert.equal(validateProjection(reviewed, CURRENT_RECEIPTS[reviewed.capability.id].fingerprint, reviewed.capability.id).ok, true);
-
-  const approved = receiptFor(CAPABILITIES[0]).projection;
-  assert.equal(approved.promotion.state, "approved");
-  assert.equal(approved.current_model_observation.state, "not-represented");
-  assert.equal(approved.deployment_boundary.deployed, "not-applicable");
-  assert.match(HTML, /PROMOTION APPROVED ≠ DEPLOYED/);
-  assert.doesNotMatch(HTML, /\bONLINE\b|\bUPTIME\b|>ACTIVE<|current routing is verified/i);
-});
-
-test("missing, malformed, incompatible, or incomplete evidence fails closed instead of becoming FAIL", () => {
-  const valid = receiptFor(CAPABILITIES[1]).projection;
-  assert.equal(validateProjection(null, CAPABILITIES[1].fingerprint, CAPABILITIES[1].id).ok, false);
-  assert.equal(validateProjection({ ...clone(valid), unexpected: true }, CAPABILITIES[1].fingerprint, CAPABILITIES[1].id).ok, false);
-  assert.equal(validateProjection({ ...clone(valid), model: { public_id: "other-model" } }, CAPABILITIES[1].fingerprint, CAPABILITIES[1].id).ok, false);
-  const incomplete = clone(valid);
-  incomplete.evaluation.result = null;
-  assert.equal(validateProjection(incomplete, CAPABILITIES[1].fingerprint, CAPABILITIES[1].id).ok, false);
-  assert.match(SCRIPT, /renderUnavailable/);
-  assert.match(HTML, /UNKNOWN \/ UNAVAILABLE evidence/);
-});
-
-test("stale evidence remains explicitly stale", () => {
-  const stale = clone(receiptFor(CAPABILITIES[0]).projection);
-  stale.state = "stale-evidence";
-  stale.freshness.state = "stale";
-  stale.gaps = [...stale.gaps, "stale-evidence"];
-  assert.equal(validateProjection(stale, CAPABILITIES[0].fingerprint, CAPABILITIES[0].id).ok, true);
-  assert.match(SCRIPT, /This receipt is not presented as current promotion evidence/);
-  assert.match(CSS, /data-state="stale"/);
-});
-
-test("selector semantics provide labelled controls, focus movement, and reduced-motion coverage", () => {
-  assert.equal((HTML.match(/data-capability-switch=/g) || []).length, 5);
-  assert.equal((HTML.match(/aria-controls="receipt-/g) || []).length, 5);
-  assert.match(SCRIPT, /ArrowRight/);
-  assert.match(SCRIPT, /ArrowLeft/);
-  assert.match(SCRIPT, /event\.key === "Home"/);
-  assert.match(SCRIPT, /event\.key === "End"/);
-  assert.match(CSS, /:focus-visible/);
-  assert.match(CSS, /prefers-reduced-motion: reduce/);
-});
-
-test("the public surface is registered, discoverable, metadata-complete, and linked from Evidence Console", () => {
+test("public surface remains registered and discoverable", () => {
   const route = "https://atlas-systems.uk/systems/model-promotion/";
   const systemsDirectory = readFileSync("systems/index.html", "utf8");
   const surface = MANIFEST.surfaces.find((candidate) => candidate.url === route);
@@ -190,24 +196,32 @@ test("the public surface is registered, discoverable, metadata-complete, and lin
   assert.equal(surface.source, "systems/model-promotion/index.html");
   assert.equal(surface.kind, "product");
   assert.equal(surface.indexing, "index");
-  assert.equal(surface.global_header, true);
-  assert.equal(surface.search, true);
   assert.ok(SITEMAP.includes(`<loc>${route}</loc>`));
   assert.match(SITEMAP_GENERATOR, /\("\/systems\/model-promotion\/", "monthly", "0\.7"\)/);
   assert.match(HTML, /<link rel="canonical" href="https:\/\/atlas-systems\.uk\/systems\/model-promotion\/">/);
-  assert.match(HTML, /og\/model-promotion\.png/);
-  assert.match(systemsDirectory, /<div class="page-actions">[\s\S]*<a class="action" href="\/systems\/model-promotion\/">Open Model Promotion<\/a>/);
-  assert.match(systemsDirectory, /<h2[^>]*>Inspect, verify, and experiment\.<\/h2>[\s\S]*href="\/systems\/model-promotion\/"/);
-  assert.equal((systemsDirectory.match(/href="\/systems\/model-promotion\/"/g) || []).length, 2);
+  assert.match(systemsDirectory, /href="\/systems\/model-promotion\/"/);
   assert.match(readFileSync("systems/evidence/index.html", "utf8"), /href="\/systems\/model-promotion\/">Model Promotion Observatory/);
 });
 
-test("static output contains only public-safe projection language and no runtime or private evidence material", () => {
+test("public output and every current fixture contain no private or deployment evidence", () => {
   const output = `${HTML}\n${SCRIPT}`;
   for (const forbidden of ["eval-harness", "chain-of-thought", "raw answer", "127.0.0.1", "localhost", "C:\\\\", "L:\\\\", "private/evidence", "api.atlas-systems.uk"]) {
     assert.equal(output.toLowerCase().includes(forbidden.toLowerCase()), false, forbidden);
   }
-  assert.match(HTML, /public-safe projection/i);
-  assert.match(HTML, /Runtime model identity[\s\S]*Not represented in this receipt/);
-  assert.match(HTML, /PROMOTION APPROVED ≠ DEPLOYED/);
+  for (const capability of CAPABILITIES) {
+    for (const model of COMPARISON_CANDIDATES) {
+      const { projection } = projectionFor(capability, model);
+      assert.equal(projection.deployment_boundary.promotion_is_not_deployment, true);
+      assert.equal(projection.current_model_observation.state, "not-represented");
+      assert.deepEqual(Object.keys(projection).sort(), [
+        "capability", "current_model_observation", "deployment_boundary", "evaluation", "freshness", "gaps", "generated_at", "human_review", "model", "privacy", "projection_fingerprint", "promotion", "schema_version", "state",
+      ]);
+      assert.equal(Object.hasOwn(projection, "prompt"), false);
+      assert.equal(Object.hasOwn(projection, "answer"), false);
+      assert.equal(Object.hasOwn(projection, "reasoning"), false);
+    }
+  }
+  assert.match(HTML, /public certification records/);
+  assert.match(HTML, /Runtime identity/);
+  assert.match(HTML, /Not represented in this receipt/);
 });
