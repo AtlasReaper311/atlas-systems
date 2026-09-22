@@ -57,8 +57,8 @@
 .atlas-audio-title--listen .atlas-audio-title__prefix {
   color: #aaa9a0;
   font: 650 clamp(1rem, 1.45vw, 1.35rem)/1 "IBM Plex Mono", monospace;
-  letter-spacing: .28em;
-  text-transform: uppercase;
+  letter-spacing: inherit;
+  text-transform: inherit;
 }
 
 .atlas-audio-title--listen .atlas-audio-title__signature {
@@ -66,8 +66,8 @@
   margin-top: .22em;
   color: #e8e8e0;
   font: 400 clamp(3.2rem, 5.6vw, 5.9rem)/.78 "DM Serif Display", Georgia, serif;
-  letter-spacing: -.055em;
-  text-transform: uppercase;
+  letter-spacing: inherit;
+  text-transform: inherit;
 }
 
 .atlas-audio-title--listen .atlas-audio-title__signature::before {
@@ -265,7 +265,7 @@ body[data-lab-route="spectral-forge"] .lab-flagship-counterpart,
 @media (max-width: 560px) {
   .atlas-audio-title--listen .atlas-audio-title__prefix {
     font-size: .9rem;
-    letter-spacing: .22em;
+    letter-spacing: inherit;
   }
   .atlas-audio-title--listen .atlas-audio-title__signature {
     font-size: clamp(2.8rem, 15vw, 4.1rem);

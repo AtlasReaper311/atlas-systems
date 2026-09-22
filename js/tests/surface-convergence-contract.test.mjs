@@ -72,6 +72,7 @@ test("shared tokens enforce the approved spacing, type, title, and directory tie
   assert.match(css, /--atlas-surface-title-standard:\s*clamp\(3rem, 6vw, 5rem\)/);
   assert.match(css, /--atlas-surface-title-immersive:\s*clamp\(4rem, 8vw, 7rem\)/);
   assert.match(css, /font-family:\s*var\(--serif, "DM Serif Display"/);
+  assert.match(css, /body\[data-lab-route="system-symphony"\] \.atlas-surface-lede[\s\S]*max-width:\s*760px\s*!important/);
   assert.match(css, /data-lab-route="bearing"[\s\S]*--f-display:\s*"DM Serif Display"/);
   assert.match(css, /data-atlas-title-accent="punctuation"[\s\S]*span/);
   assert.match(css, /data-lab-route="speculum"[\s\S]*atlas-surface-title span/);
