@@ -1,9 +1,54 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import {
+  applyCurrentEventState,
+  describeAudioState,
+} from "../system-symphony/replay/recorded-replay.js";
 
 const root = new URL("../../", import.meta.url);
 const read = (relative) => readFileSync(new URL(relative, root), "utf8");
+
+function createEventButtons(count = 4) {
+  return Array.from({ length: count }, (_, index) => {
+    const attributes = new Map();
+    const classes = new Set();
+    return {
+      dataset: { replayPosition: String(index) },
+      classList: {
+        toggle(name, enabled) {
+          if (enabled) classes.add(name);
+          else classes.delete(name);
+        },
+        contains(name) {
+          return classes.has(name);
+        },
+      },
+      setAttribute(name, value) {
+        attributes.set(name, value);
+      },
+      removeAttribute(name) {
+        attributes.delete(name);
+      },
+      getAttribute(name) {
+        return attributes.get(name) ?? null;
+      },
+    };
+  });
+}
+
+function assertCurrentEvent(buttons, position) {
+  const current = buttons.filter((button) => button.classList.contains("is-current"));
+  assert.equal(current.length, 1);
+  assert.equal(current[0].dataset.replayPosition, String(position));
+  assert.equal(current[0].getAttribute("aria-current"), "step");
+  for (const button of buttons) {
+    if (button !== current[0]) {
+      assert.equal(button.getAttribute("aria-current"), null);
+      assert.equal(button.classList.contains("is-current"), false);
+    }
+  }
+}
 
 test("historical replay route is visibly recorded, historical, and not live", () => {
   const page = read("lab/system-symphony/replay/index.html");
@@ -48,6 +93,65 @@ test("controls preserve explicit audio consent, pause/reset/mute state, focus, a
   assert.doesNotMatch(ui, /blackbox\/incidents/);
   assert.doesNotMatch(ui.slice(0, ui.indexOf("function ensureAudio")), /new AudioContextClass/);
   assert.match(ui, /startAudio\);/);
+});
+
+test("current event marker survives list rebuilds across replay controls and keyboard movement", () => {
+  const ui = read("lab/system-symphony/replay/recorded-replay.js");
+  assert.ok(ui.indexOf("renderEventList();") < ui.indexOf("applyCurrentEventState(document.querySelectorAll"));
+
+  let position = 0;
+  let buttons = createEventButtons();
+  applyCurrentEventState(buttons, position);
+  assertCurrentEvent(buttons, 0);
+
+  position = 1;
+  buttons = createEventButtons();
+  applyCurrentEventState(buttons, position);
+  assertCurrentEvent(buttons, 1);
+
+  buttons = createEventButtons();
+  applyCurrentEventState(buttons, position);
+  assertCurrentEvent(buttons, 1);
+
+  position = 0;
+  buttons = createEventButtons();
+  applyCurrentEventState(buttons, position);
+  assertCurrentEvent(buttons, 0);
+
+  position = 2;
+  buttons = createEventButtons();
+  applyCurrentEventState(buttons, position);
+  assertCurrentEvent(buttons, 2);
+
+  position = 1;
+  buttons = createEventButtons();
+  applyCurrentEventState(buttons, position);
+  assertCurrentEvent(buttons, 1);
+
+  position = 2;
+  buttons = createEventButtons();
+  applyCurrentEventState(buttons, position);
+  assertCurrentEvent(buttons, 2);
+
+  position = 0;
+  buttons = createEventButtons();
+  applyCurrentEventState(buttons, position);
+  assertCurrentEvent(buttons, 0);
+
+  position = 3;
+  buttons = createEventButtons();
+  applyCurrentEventState(buttons, position);
+  assertCurrentEvent(buttons, 3);
+});
+
+test("audio consent copy stays truthful while the interpretation remains muted", () => {
+  const ui = read("lab/system-symphony/replay/recorded-replay.js");
+  assert.doesNotMatch(ui, /Audio is unlocked\. Press Play to hear/);
+  assert.match(describeAudioState({ audioConsent: true, muted: true }), /unlocked and remains muted/);
+  assert.match(describeAudioState({ audioConsent: true, muted: true }), /Unmute, then Play/);
+  assert.doesNotMatch(describeAudioState({ audioConsent: true, muted: true }), /unmuted/);
+  assert.match(describeAudioState({ audioConsent: true, muted: false }), /unlocked and unmuted/);
+  assert.match(describeAudioState({ audioConsent: true, muted: false }), /Select Play/);
 });
 
 test("System SYMPHONY links the historical replay without changing the synthetic fixture", () => {

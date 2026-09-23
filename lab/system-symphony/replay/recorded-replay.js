@@ -22,6 +22,21 @@ const state = {
   audio: null,
 };
 
+export function applyCurrentEventState(buttons, position) {
+  for (const button of buttons) {
+    const selected = Number(button.dataset.replayPosition) === position;
+    button.classList.toggle("is-current", selected);
+    if (selected) button.setAttribute("aria-current", "step");
+    else button.removeAttribute("aria-current");
+  }
+}
+
+export function describeAudioState({ audioConsent, muted }) {
+  if (!audioConsent) return "Audio remains locked until explicit Start Audio consent.";
+  if (muted) return "Audio is unlocked and remains muted. Select Unmute, then Play, to hear the bounded interpretation.";
+  return "Audio is unlocked and unmuted. Select Play to hear the bounded interpretation.";
+}
+
 const bySelector = (selector) => document.querySelector(selector);
 
 function setText(selector, value) {
@@ -113,12 +128,8 @@ function render() {
     ? `Playing event ${presentation.position + 1} of ${presentation.eventCount}; presentation timing is fixed and historical elapsed time is not represented.`
     : `Event ${presentation.position + 1} of ${presentation.eventCount} selected. Audio is interpretation only.`
   );
-  for (const button of document.querySelectorAll("[data-replay-position]")) {
-    const selected = Number(button.dataset.replayPosition) === presentation.position;
-    button.setAttribute("aria-current", selected ? "step" : "false");
-    button.classList.toggle("is-current", selected);
-  }
   renderEventList();
+  applyCurrentEventState(document.querySelectorAll("[data-replay-position]"), presentation.position);
   updateButtons();
 }
 
@@ -172,7 +183,7 @@ async function startAudio() {
     const audio = ensureAudio();
     if (audio.context.state === "suspended") await audio.context.resume();
     state.audioConsent = true;
-    setText("[data-recorded-replay-audio-note]", "Audio is unlocked. Press Play to hear the bounded interpretation.");
+    setText("[data-recorded-replay-audio-note]", describeAudioState(state));
   } catch (error) {
     setText("[data-recorded-replay-audio-note]", `Audio unavailable: ${error instanceof Error ? error.message : String(error)}`);
   }
@@ -205,8 +216,8 @@ function toggleMute() {
   state.muted = !state.muted;
   if (state.audio) state.audio.output.gain.value = state.muted ? 0 : 0.18;
   setText("[data-recorded-replay-audio-note]", state.muted
-    ? "Muted. Text and current replay position remain available."
-    : "Unmuted. Audio remains a bounded interpretation, not incident authority.");
+    ? `${describeAudioState(state)} Text and current replay position remain available.`
+    : `${describeAudioState(state)} Audio remains a bounded interpretation, not incident authority.`);
   updateButtons();
 }
 
