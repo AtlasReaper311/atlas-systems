@@ -5,41 +5,113 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#0a0a0f">
-  <title>System Symphony Replay // Atlas Systems</title>
+  <title>Recorded Incident Replay // System Symphony</title>
   <link rel="canonical" href="https://atlas-systems.uk/lab/system-symphony/replay/">
   <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.2.0/atlas-fonts.css">
   <link rel="stylesheet" href="/static/css/v2-directory-pages.css?v=20260728-lab-context-nav-wrap">
   <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
   <link rel="stylesheet" href="/static/css/systems-focus.css?v=20260725-batch-h-fixes">
   <link rel="stylesheet" href="/lab/system-symphony/system-symphony-page.css?v=20260728-system-symphony-trace-pr160-v1">
+  <link rel="stylesheet" href="/static/css/system-symphony-recorded-replay.css?v=20260923-phase5-recorded-replay-v1">
 </head>
 <body class="symphony-page">
   <main class="focus-main symphony-page-main">
-    <section class="symphony-flagship symphony-replay-entry" aria-labelledby="replay-title">
-      <p class="focus-breadcrumb">Lab / Atlas APU cartridge / replay link</p>
-      <h1 id="replay-title" class="focus-title">System Symphony Replay</h1>
-      <p class="focus-lede">Resolving deterministic replay parameters into the Atlas APU instrument.</p>
-      <p class="focus-status-line" data-state="unknown">If this page does not move automatically, use the replay link below.</p>
-      <p><a class="focus-action primary" href="/lab/system-symphony/?symphonyMode=replay" data-replay-entry-link>Open replay</a></p>
+    <section class="recorded-replay" data-recorded-replay aria-labelledby="recorded-replay-title" data-audio-consent="false" data-playing="false" data-muted="true">
+      <p class="focus-breadcrumb">Lab / System Symphony / historical evidence</p>
+      <div class="recorded-replay__banner" data-evidence-mode="recorded-replay">
+        <span>RECORDED REPLAY</span><span>HISTORICAL</span><span>NOT LIVE</span>
+      </div>
+      <h1 id="recorded-replay-title" class="focus-title">Historical Incident Replay</h1>
+      <p class="focus-lede">A deterministic, public-safe presentation of one recorded Blackbox incident. Sonification is interpretation, never incident authority.</p>
+      <p class="recorded-replay__incident" data-recorded-replay-incident>Loading the bounded incident identity…</p>
+      <p class="focus-status-line" data-state="unknown" data-recorded-replay-status aria-live="polite">Loading the recorded replay artifact. Missing evidence is not success.</p>
+
+      <section class="recorded-replay__notice" aria-labelledby="recorded-replay-reading-title">
+        <p class="systems-detail-kicker">Public reading</p>
+        <h2 id="recorded-replay-reading-title">What the available record says</h2>
+        <p>A public validation path reported an HTML or link failure. Blackbox captured the incident. A later recorded event reported that atlas-systems.uk was validated and published. The available record does not establish root cause, visitor impact, incident duration or live recovery.</p>
+        <p class="recorded-replay__claims" data-recorded-replay-claims>Root cause, impact, and live health remain unknown / not observed.</p>
+      </section>
+
+      <section class="recorded-replay__controls" aria-labelledby="recorded-replay-controls-title">
+        <div class="recorded-replay__section-head">
+          <div><p class="systems-detail-kicker">Transport</p><h2 id="recorded-replay-controls-title">Replay controls</h2></div>
+          <p class="recorded-replay__timing">Fixed presentation timing · historical elapsed time not represented</p>
+        </div>
+        <div class="recorded-replay__button-row">
+          <button class="focus-action primary" type="button" data-recorded-replay-start-audio disabled>Start Audio</button>
+          <button class="focus-action" type="button" data-recorded-replay-play disabled>Play</button>
+          <button class="focus-action" type="button" data-recorded-replay-pause disabled>Pause</button>
+          <button class="focus-action" type="button" data-recorded-replay-reset disabled>Reset</button>
+          <button class="focus-action" type="button" data-recorded-replay-mute disabled aria-pressed="true">Unmute</button>
+        </div>
+        <p class="recorded-replay__audio-note" data-recorded-replay-audio-note>Audio is muted until explicit Start Audio consent, then remains muted until Unmute.</p>
+        <p class="recorded-replay__position" aria-live="polite">Current replay position: <strong data-recorded-replay-position>0 / 4</strong> · <span data-recorded-replay-historical-time>waiting</span></p>
+      </section>
+
+      <section class="recorded-replay__event-section" aria-labelledby="recorded-replay-event-title">
+        <div class="recorded-replay__section-head">
+          <div><p class="systems-detail-kicker">Normalized event sequence</p><h2 id="recorded-replay-event-title">Four observed record entries</h2></div>
+          <p class="recorded-replay__source" data-recorded-replay-source>atlas-blackbox / public-sealed-incident</p>
+        </div>
+        <ol class="recorded-replay__events" data-recorded-replay-events></ol>
+        <div class="recorded-replay__current" aria-live="polite">
+          <p class="systems-detail-kicker">Selected event</p>
+          <h3 data-recorded-replay-current-label>Loading</h3>
+          <p data-recorded-replay-current-text>Text equivalent will appear here with audio muted.</p>
+          <p class="recorded-replay__role">APU interpretation: <strong data-recorded-replay-role>waiting</strong></p>
+        </div>
+      </section>
+
+      <section class="recorded-replay__limits" aria-labelledby="recorded-replay-limits-title">
+        <div class="recorded-replay__section-head"><div><p class="systems-detail-kicker">Evidence boundary</p><h2 id="recorded-replay-limits-title">What is not claimed</h2></div></div>
+        <ul>
+          <li>Root cause, visitor impact, live health, incident duration, and historical metrics are unknown / not observed.</li>
+          <li>The public push is adjacent context only; causality is not established.</li>
+          <li>The later validation/publication event is follow-up success observed, not verified live recovery.</li>
+          <li>No raw telemetry, private runtime detail, or Blackbox payload is imported into this page.</li>
+        </ul>
+        <p>Authority: <a data-recorded-replay-source-link href="https://api.atlas-systems.uk/blackbox/incidents/inc-20260705-234935" target="_blank" rel="noopener">bounded public Blackbox incident reference</a>. The artifact remains an atlas-systems-owned sanitized presentation.</p>
+      </section>
+
+      <nav class="recorded-replay__links" aria-label="Related System Symphony evidence">
+        <a class="focus-action" href="/lab/system-symphony/">System Symphony</a>
+        <a class="focus-action" href="/lab/system-symphony/?symphonyMode=replay&amp;symphonyIncident=INC-APU-20260726-001&amp;symphonyIncidentStep=1">Existing synthetic fixture</a>
+        <a class="focus-action" href="/systems/evidence/#supporting-records">Evidence Console supporting record</a>
+      </nav>
+
+      <noscript>
+        <section class="recorded-replay__noscript" aria-labelledby="recorded-replay-noscript-title">
+          <h2 id="recorded-replay-noscript-title">Historical event sequence</h2>
+          <p>A public validation path reported an HTML or link failure. Blackbox captured the incident. A later recorded event reported that atlas-systems.uk was validated and published. The available record does not establish root cause, visitor impact, incident duration or live recovery.</p>
+          <ol>
+            <li><time datetime="2026-07-05T23:48:50.649Z">2026-07-05 23:48:50.649 UTC</time> — Public push observed. Causality is not established.</li>
+            <li><time datetime="2026-07-05T23:49:08.770Z">2026-07-05 23:49:08.770 UTC</time> — HTML or link validation failure reported.</li>
+            <li><time datetime="2026-07-05T23:49:35.670Z">2026-07-05 23:49:35.670 UTC</time> — Blackbox captured the incident.</li>
+            <li><time datetime="2026-07-05T23:51:03.675Z">2026-07-05 23:51:03.675 UTC</time> — Validation and publication success reported; this does not verify live recovery.</li>
+          </ol>
+        </section>
+      </noscript>
     </section>
   </main>
   <script>
     (() => {
       const params = new URLSearchParams(window.location.search);
-      const target = new URL("/lab/system-symphony/", window.location.origin);
-      target.searchParams.set("symphonyMode", "replay");
-      target.searchParams.set("symphonyScene", params.get("scene") || params.get("state") || "custom");
-      target.searchParams.set("symphonySeed", params.get("seed") || "A7A5");
-      if (params.has("frame")) target.searchParams.set("symphonyFrame", params.get("frame"));
-      if (params.has("cartridge")) target.searchParams.set("symphonyCartridge", params.get("cartridge"));
-      if (params.has("incident")) target.searchParams.set("symphonyIncident", params.get("incident"));
-      if (params.has("step")) target.searchParams.set("symphonyIncidentStep", params.get("step"));
-      if (params.has("source")) target.searchParams.set("symphonySource", params.get("source"));
-      if (params.has("symphonyPreviewData")) target.searchParams.set("symphonyPreviewData", params.get("symphonyPreviewData"));
-      const link = document.querySelector("[data-replay-entry-link]");
-      if (link) link.href = target.href;
-      window.location.replace(target.href);
+      const incident = params.get("incident");
+      if (incident && incident !== "inc-20260705-234935") {
+        const target = new URL("/lab/system-symphony/", window.location.origin);
+        target.searchParams.set("symphonyMode", "replay");
+        target.searchParams.set("symphonyScene", params.get("scene") || params.get("state") || "custom");
+        target.searchParams.set("symphonySeed", params.get("seed") || "A7A5");
+        if (params.has("frame")) target.searchParams.set("symphonyFrame", params.get("frame"));
+        if (params.has("cartridge")) target.searchParams.set("symphonyCartridge", params.get("cartridge"));
+        target.searchParams.set("symphonyIncident", incident);
+        if (params.has("step")) target.searchParams.set("symphonyIncidentStep", params.get("step"));
+        if (params.has("source")) target.searchParams.set("symphonySource", params.get("source"));
+        window.location.replace(target.href);
+      }
     })();
   </script>
+  <script type="module" src="/lab/system-symphony/replay/recorded-replay.js?v=20260923-phase5-recorded-replay-v1"></script>
 </body>
 </html>
