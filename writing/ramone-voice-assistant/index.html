@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en" data-atlas-interface>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Wake detection, transcription, speech, and room control each fail differently, and a voice assistant only works once every one of those boundaries is">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Building a Private Room-Scale Voice Assistant from Local Parts // Atlas Systems</title>
+  <link rel="canonical" href="https://atlas-systems.uk/writing/ramone-voice-assistant/">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Building a Private Room-Scale Voice Assistant from Local Parts // Atlas Systems">
+  <meta property="og:description" content="Wake detection, transcription, speech, and room control each fail differently, and a voice assistant only works once every one of those boundaries is">
+  <meta property="og:url" content="https://atlas-systems.uk/writing/ramone-voice-assistant/">
+  <meta property="og:site_name" content="Atlas Systems">
+  <meta property="og:image" content="https://atlas-systems.uk/og/ramone-voice-assistant.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Building a Private Room-Scale Voice Assistant from Local Parts // Atlas Systems">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Building a Private Room-Scale Voice Assistant from Local Parts // Atlas Systems">
+  <meta name="twitter:description" content="Wake detection, transcription, speech, and room control each fail differently, and a voice assistant only works once every one of those boundaries is">
+  <meta name="twitter:image" content="https://atlas-systems.uk/og/ramone-voice-assistant.png">
+  <meta name="twitter:image:alt" content="Building a Private Room-Scale Voice Assistant from Local Parts // Atlas Systems">
+  <meta property="article:published_time" content="2026-09-24">
+  <meta property="article:author" content="Atlas Reaper">
+  <script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Building a Private Room-Scale Voice Assistant from Local Parts",
+    "description": "Wake detection, transcription, speech, and room control each fail differently, and a voice assistant only works once every one of those boundaries is",
+    "datePublished": "2026-09-24",
+    "mainEntityOfPage": "https://atlas-systems.uk/writing/ramone-voice-assistant/",
+    "author": {
+        "@type": "Person",
+        "name": "Atlas Reaper",
+        "url": "https://atlas-systems.uk/about/"
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Atlas Systems",
+        "url": "https://atlas-systems.uk/"
+    },
+    "image": "https://atlas-systems.uk/og/ramone-voice-assistant.png",
+    "inLanguage": "en-GB"
+}
+  </script>
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.4.0/atlas-fonts.css">
+  <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;
+      --border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);
+      --text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;
+      --accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);
+      --mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px;
+      --content-w:720px
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
+    nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(10,10,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem,5vw,3rem);z-index:100}
+    .nav-wordmark{font-family:var(--mono);font-weight:500;font-size:13px;letter-spacing:0.12em;color:var(--text);text-decoration:none;text-transform:uppercase}
+    .nav-wordmark span{color:var(--accent)}
+    .nav-links{display:flex;list-style:none}
+    .nav-links a{display:block;padding:0.35rem 1rem;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color 0.15s;position:relative}
+    .nav-links a::after{content:'';position:absolute;bottom:-1px;left:50%;right:50%;height:1px;background:var(--accent);transition:left 0.2s,right 0.2s}
+    .nav-links a:hover{color:var(--text)}
+    .nav-links a:hover::after,.nav-links a.active::after{left:1rem;right:1rem}
+    .nav-links a.active{color:var(--text)}
+    main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);position:relative;z-index:1}
+    .article-header{padding-top:calc(var(--nav-h) + 5rem);padding-bottom:4rem;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr 2fr;gap:3rem}
+    .header-meta{display:flex;flex-direction:column;gap:1rem}
+    .back-link{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s;margin-bottom:0.5rem}
+    .back-link:hover{color:var(--accent)}
+    .back-link svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .article-index{font-size:11px;color:var(--text-faint);letter-spacing:0.1em}
+    .article-date{font-size:11px;color:var(--text-dim)}
+    .article-read-time{font-size:11px;color:var(--text-faint)}
+    .header-tags{display:flex;flex-direction:column;gap:0.4rem;margin-top:0.5rem}
+    .tag{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:0.2rem 0.5rem;border:1px solid var(--border);color:var(--text-dim);display:inline-block}
+    .tag.highlight{border-color:rgba(245,166,35,0.4);color:rgba(245,166,35,0.8)}
+    .section-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem}
+    .section-label::before{content:'';display:inline-block;width:24px;height:1px;background:var(--accent)}
+    .article-title{font-family:var(--serif);font-size:clamp(2rem,4vw,3.2rem);line-height:1.05;color:var(--text);margin-bottom:0.75rem}
+    .article-subtitle{font-size:12px;color:var(--accent);letter-spacing:0.06em;margin-bottom:1.5rem}
+    .article-lede{font-size:14px;color:var(--text-dim);line-height:1.9;max-width:560px}
+    .spec-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin:3rem 0}
+    .spec-cell{background:var(--bg);padding:1rem 1.25rem}
+    .spec-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.3rem}
+    .spec-value{font-size:12px;color:var(--text)}
+    .article-body{display:grid;grid-template-columns:200px 1fr;gap:4rem;padding:4rem 0}
+    .toc{position:sticky;top:calc(var(--nav-h) + 2rem);align-self:start;height:fit-content}
+    .toc-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-faint);margin-bottom:1rem}
+    .toc-list{list-style:none;display:flex;flex-direction:column;gap:0.1rem}
+    .toc-item a{font-size:11px;color:var(--text-faint);text-decoration:none;display:block;padding:0.35rem 0.75rem;border-left:1px solid var(--border);transition:all 0.15s;line-height:1.4}
+    .toc-item a:hover{color:var(--text-dim);border-left-color:var(--border-hi)}
+    .toc-item a.active{color:var(--accent);border-left-color:var(--accent)}
+    .prose{max-width:var(--content-w)}
+    .prose h2{font-family:var(--serif);font-size:1.8rem;line-height:1.1;color:var(--text);margin:3rem 0 1.25rem;padding-top:1rem}
+    .prose h2:first-child{margin-top:0}
+    .prose h3{font-size:13px;font-weight:500;color:var(--text);letter-spacing:0.06em;text-transform:uppercase;margin:2rem 0 0.75rem;display:flex;align-items:center;gap:0.6rem}
+    .prose h3::before{content:'';display:inline-block;width:16px;height:1px;background:var(--accent);flex-shrink:0}
+    .prose p{font-size:13px;color:var(--text-dim);line-height:1.9;margin-bottom:1.25rem}
+    .prose p:last-child{margin-bottom:0}
+    .prose strong{color:var(--text);font-weight:500}
+    .prose a,.prose a:visited{color:var(--accent);text-decoration-color:rgba(245,166,35,0.45);text-decoration-thickness:1px;text-underline-offset:0.18em;transition:color 0.15s,text-decoration-color 0.15s}
+    .prose a:hover{color:var(--text);text-decoration-color:var(--accent)}
+    .prose a:focus-visible{color:var(--text);outline:2px solid var(--accent);outline-offset:3px;text-decoration-color:var(--accent)}
+    .prose code{font-family:var(--mono);font-size:12px;background:var(--bg-1);border:1px solid var(--border);padding:0.15rem 0.4rem;color:var(--accent)}
+    .prose pre{background:var(--bg-1);border:1px solid var(--border);border-left:2px solid var(--accent);padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto}
+    .prose pre code{background:none;border:none;padding:0;font-size:12px;color:var(--text-dim);line-height:1.7}
+    .prose ul{margin:1rem 0 1.25rem 0;display:flex;flex-direction:column;gap:0.5rem}
+    .prose ul li{font-size:13px;color:var(--text-dim);line-height:1.7;display:flex;gap:0.75rem;align-items:flex-start}
+    .prose ul li::before{content:'→';color:var(--accent);flex-shrink:0;margin-top:0.1rem}
+    .callout{border:1px solid var(--border);border-left:2px solid var(--accent);background:var(--bg-1);padding:1.25rem 1.5rem;margin:1.5rem 0}
+    .callout-label{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem}
+    .callout p{margin-bottom:0;font-size:12px}
+    .callout.error{border-left-color:#e24b4a}
+    .callout.error .callout-label{color:#e24b4a}
+    .callout.success{border-left-color:#4ade80}
+    .callout.success .callout-label{color:#4ade80}
+    .callout.warning{border-left-color:var(--accent)}
+    .phase-marker{display:flex;align-items:center;gap:1rem;margin:2.5rem 0 1.5rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border)}
+    .phase-num{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap}
+    .phase-title{font-size:13px;font-weight:500;color:var(--text)}
+    .section-break{height:1px;background:var(--border);margin:3rem 0}
+    .outcomes-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin:1.5rem 0}
+    .outcome-cell{background:var(--bg);padding:1.25rem 1.5rem}
+    .outcome-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.4rem}
+    .outcome-value{font-size:13px;color:var(--text)}
+    .article-footer{padding:3rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+    .footer-back{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s}
+    .footer-back:hover{color:var(--accent)}
+    .footer-back svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .footer-next{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);display:flex;align-items:center;gap:0.4rem}
+    .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
+    .mobile-nav-inner{display:flex;align-items:stretch;height:100%}
+    .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.15s}
+    .mobile-nav-item:hover,.mobile-nav-item.active{color:var(--accent)}
+    .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    @media(max-width:900px){.article-body{grid-template-columns:1fr}.toc{display:none}.article-header{grid-template-columns:1fr}}
+    @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}.outcomes-grid{grid-template-columns:1fr}}
+
+    /* data tables (generated from markdown | a | b | ) */
+    .table-wrap{overflow-x:auto;margin:1.75rem 0;border:1px solid var(--border)}
+    .data-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+    .data-table th{background:var(--bg-1);color:var(--accent);text-align:left;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;font-size:10px;padding:0.6rem 0.85rem;border-bottom:1px solid var(--border-hi);white-space:nowrap}
+    .data-table td{color:var(--text-dim);padding:0.55rem 0.85rem;border-bottom:1px solid var(--border);line-height:1.5;vertical-align:top}
+    .data-table tbody tr:last-child td{border-bottom:none}
+    .data-table tbody tr:hover td{background:var(--bg-1)}
+    .data-table strong{color:var(--text);font-weight:500}
+    .data-table code{background:var(--bg-2);padding:0.1rem 0.35rem;font-size:11px;color:var(--accent)}
+
+/* Route-level readability and interaction guarantees for generated Writing pages. */
+.es-nav-search{display:inline-flex;align-items:center;gap:.45rem;min-height:36px;padding:.35rem .65rem;border:1px solid var(--border);background:transparent;color:var(--text-dim);font:inherit;font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.es-nav-search:hover,.es-nav-search:focus-visible{color:var(--text);border-color:var(--border-hi)}
+.es-nav-search svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.5}
+.es-nav-search kbd{color:var(--text-faint);font:inherit;font-size:8px}
+.article-lede{font-size:16px;line-height:1.8;max-width:620px}
+.article-header--ordered{grid-template-areas:"navigation content" "meta content";grid-template-rows:auto 1fr}
+.article-header--ordered>.back-link{grid-area:navigation}
+.article-header--ordered>.header-content{grid-area:content}
+.article-header--ordered>.header-meta{grid-area:meta;align-self:start}
+.article-header--ordered .header-tags{margin-top:.5rem}
+.prose p{font-size:16px;line-height:1.8}
+.prose ul li{font-size:16px;line-height:1.8}
+.callout p{font-size:14px;line-height:1.75}
+.table-wrap{max-width:100%;overscroll-behavior-inline:contain}
+:where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+/* Keep the canonical bottom navigation visible through the shell breakpoint. */
+.mobile-nav.atlas-mobile-nav.atlas-bottom-nav{display:none}
+@media(max-width:768px){
+  .article-header--ordered{grid-template-columns:1fr;grid-template-areas:"navigation" "content" "meta";grid-template-rows:auto auto auto}
+  .article-header--ordered>.back-link{margin-bottom:0}
+  .article-header--ordered .header-meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:.5rem 1rem}
+  .article-header--ordered .header-tags{flex-basis:100%;flex-direction:row;flex-wrap:wrap;gap:.5rem;margin-top:0}
+  .mobile-nav.atlas-mobile-nav.atlas-bottom-nav{display:block}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto!important}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+  </style>
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.4.0/atlas-interface-kit.css">
+  <link rel="stylesheet" href="/static/css/estate-search.css">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
+  <link rel="stylesheet" href="/static/css/article-interface-v2.css?v=20260724-phase-b-v1">
+  <link rel="stylesheet" href="/writing/series-article.css?v=20260722-cluster">
+</head>
+<body data-atlas-bottom-nav="true">
+
+<nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
+  <div class="atlas-header__inner">
+    <div class="atlas-header__brand atlas-global-header__identity">
+      <a class="nav-wordmark atlas-wordmark" href="/" data-atlas-wordmark>Atlas<span class="atlas-wordmark__cursor">_</span>Systems</a>
+      <a class="nav-status atlas-status atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" data-atlas-status aria-label="Atlas Systems status: Checking" aria-live="off"><span class="status-dot atlas-status__dot" aria-hidden="true"></span><span class="atlas-estate-status-label" data-atlas-status-label>Checking</span></a>
+    </div>
+    <div class="atlas-header__nav atlas-global-header__nav" role="group" aria-label="Atlas Systems sections">
+      <a class="atlas-global-header__link" href="/work/">Work</a>
+      <a class="atlas-global-header__link" href="/writing/" aria-current="page">Writing</a>
+      <a class="atlas-global-header__link" href="/lab/">Lab</a>
+      <a class="atlas-global-header__link" href="/systems/">Systems</a>
+      <a class="atlas-global-header__link" href="/about/">About</a>
+    </div>
+    <div class="atlas-header__actions atlas-global-header__actions">
+      <button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+  <header class="article-header article-header--ordered">
+    <a href="/writing/" class="back-link">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Writing
+    </a>
+    <div class="header-content">
+      <div class="section-label">Case Study</div>
+      <h1 class="article-title">Building a Private Room-Scale Voice Assistant from Local Parts</h1>
+      <div class="article-subtitle">Ramone — Local Voice Loop, Wake &amp; Audio Boundaries // Case Study</div>
+      <p class="article-lede">Wake detection, transcription, speech, and room control each fail differently, and a voice assistant only works once every one of those boundaries is explicit. This first part records the June 2026 build of a local Home Assistant satellite, from a custom wake model through Whisper, Kokoro, deterministic intents, and a bounded Ollama fallback.</p>
+    </div>
+    <div class="header-meta">
+      <div class="article-index">W-09</div>
+      <div class="article-date">20 September 2026</div>
+      <div class="article-read-time">~16 min read</div>
+      <div class="header-tags">
+        <span class="tag highlight">AI / LLMs</span>
+        <span class="tag">Audio Systems</span>
+        <span class="tag">Docker</span>
+        <span class="tag">Home Assistant</span>
+        <span class="tag">OpenWakeWord</span>
+      </div>
+    </div>
+  </header>
+
+<!-- AUTO-SERIES-NAV-START -->
+<nav class="article-series-nav" aria-label="Ramone Voice Assistant series">
+  <div class="article-series-heading">
+    <span class="article-series-kicker">Writing series · Part 1 of 2</span>
+    <a class="article-series-title" href="/writing/index.html#series-ramone-voice-assistant">Ramone Voice Assistant</a>
+  </div>
+  <ol class="article-series-parts">
+      <li class="article-series-part is-current"><span class="series-part-link" aria-current="page"><span class="series-part-number">Part 1</span><span class="series-part-title">Building a Private Room-Scale Voice Assistant from Local Parts</span><span class="series-part-state">Current</span></span></li>
+      <li class="article-series-part is-next is-scheduled"><span class="series-part-link" aria-disabled="true"><span class="series-part-number">Part 2</span><span class="series-part-title">When the Assistant Reported Work It Had Not Done</span><span class="series-part-state">Next · 26 Sep 2026</span></span></li>
+  </ol>
+</nav>
+<!-- AUTO-SERIES-NAV-END -->
+
+<div class="spec-strip">
+    <div class="spec-cell"><div class="spec-label">Series</div><div class="spec-value">Ramone Voice Assistant · Part 1 of 2</div></div>
+    <div class="spec-cell"><div class="spec-label">Timeline</div><div class="spec-value">June 2026</div></div>
+    <div class="spec-cell"><div class="spec-label">Platform</div><div class="spec-value">Windows 11 / WSL2</div></div>
+    <div class="spec-cell"><div class="spec-label">Wake</div><div class="spec-value">OpenWakeWord ramone</div></div>
+    <div class="spec-cell"><div class="spec-label">Voice</div><div class="spec-value">Kokoro bm_daniel</div></div>
+    <div class="spec-cell"><div class="spec-label">Model at capture</div><div class="spec-value">llama3.1:8b</div></div>
+    <div class="spec-cell"><div class="spec-label">Evidence</div><div class="spec-value">June 2026 snapshot</div></div>
+  </div>
+
+  <div class="article-body">
+    <aside class="toc">
+      <div class="toc-label">Contents</div>
+      <ul class="toc-list">
+        <li class="toc-item"><a href="#overview">Overview</a></li>
+        <li class="toc-item"><a href="#system-architecture">System Architecture</a></li>
+        <li class="toc-item"><a href="#phase-i-service-boundaries-and-tunnels">Phase I — Service Boundaries And Tunnels</a></li>
+        <li class="toc-item"><a href="#phase-ii-wyoming-disconnect-loop">Phase II — Wyoming Disconnect Loop</a></li>
+        <li class="toc-item"><a href="#speech-pipeline">Speech Pipeline</a></li>
+        <li class="toc-item"><a href="#phase-iii-wake-word-training">Phase III — Wake Word Training</a></li>
+        <li class="toc-item"><a href="#phase-iv-audio-routing-and-self-triggering">Phase IV — Audio Routing And Self Triggering</a></li>
+        <li class="toc-item"><a href="#home-control-and-routine-layer">Home Control And Routine Layer</a></li>
+        <li class="toc-item"><a href="#phase-v-personality-and-model-behavior">Phase V — Personality And Model Behavior</a></li>
+        <li class="toc-item"><a href="#calibration-and-portability">Calibration And Portability</a></li>
+        <li class="toc-item"><a href="#outcomes">Outcomes</a></li>
+      </ul>
+    </aside>
+
+    <article class="prose">
+      <section id="overview">
+        <h2>Overview</h2>
+        <p>I built Ramone Voice Assistant to turn SPECULAR-CORE into a room-scale spoken system rather than another browser tab waiting for input. The goal was simple on paper: say <code>Ramone</code>, have the machine hear me through the Focusrite microphone, route speech through Home Assistant, answer in the <code>bm_daniel</code> Kokoro voice, and control the room without sending the core voice loop to a cloud assistant.</p>
+        <p>The actual work was a chain of boundary problems. Docker lived in WSL2. The microphone and speaker lived on Windows. Home Assistant lived in a container. Ollama lived on the host. Wake detection needed <code>.tflite</code> models, not spelling changes. The satellite needed to speak Wyoming cleanly enough for Home Assistant to trust it. Every piece worked alone before the whole system worked as a voice assistant.</p>
+        <p>The recorded June 2026 stack ran from <code>L:\ramone-voice</code>. That was deliberate. I wanted the project state off the C drive so Windows updates, reinstalls, or OS experiments would not scatter the assistant across user-profile folders. The remaining machine-local dependencies are explicit: Python, <code>pyaudio</code>, <code>wyoming-satellite</code>, Docker, WSL2, Focusrite device ordering, and the startup script that launches the Windows satellite.</p>
+        <div class="callout"><div class="callout-label">Design Decision</div><p>Ramone is not a cloud smart speaker. The core loop is a local voice satellite: wake detection, STT, TTS, home control, and LLM fallback all run through local services, with external integrations treated as optional edges.</p></div>
+        <div class="callout warning"><div class="callout-label">Snapshot Boundary</div><p>This part records the June 2026 voice build, when Home Assistant used the direct Ollama conversation path described below. Part 2 records what replaced it in August: an agent layer, cross-surface memory, a different model on different hardware, and a verification layer written after the assistant began reporting room changes that had not happened. Those are follow-ups, not capabilities claimed by this build record. Separate System Symphony and APU work is not part of either.</p></div>
+        <p>The working path captured at the end of the June build was:</p>
+        <pre><code class="language-text">You say "Ramone"
+-&gt; Focusrite microphone captured by Windows Python helper
+-&gt; OpenWakeWord detects the custom ramone model
+-&gt; Wyoming satellite streams speech to Home Assistant
+-&gt; Faster Whisper transcribes the command
+-&gt; Local intents, scripts, or Ollama handle the request
+-&gt; Kokoro generates speech as bm_daniel
+-&gt; Windows speaker helper plays the response</code></pre>
+        <p>This case study is the build record for that path: what ran, what failed, what fixed it, and why the captured shape was stable enough for repeated local use at the end of the build.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="system-architecture">
+        <h2>System Architecture</h2>
+        <p>In the June 2026 snapshot, Ramone was split across Docker, Windows, WSL2, Home Assistant, and local model serving. The split followed the hardware boundary: Docker hosted Home Assistant, Whisper, OpenWakeWord, MQTT, and Kokoro; Windows owned the Focusrite interface and speaker routing; and Home Assistant used a direct host-reachable Ollama endpoint for conversational fallback.</p>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>Layer</th><th>Component</th><th>Role</th></tr></thead><tbody><tr><td>Home automation</td><td><code>homeassistant</code></td><td>Assist pipeline, intents, scripts, entity control</td></tr><tr><td>Messaging</td><td><code>mosquitto</code></td><td>MQTT bridge for HA-side sensors and agents</td></tr><tr><td>STT</td><td><code>wyoming-whisper</code></td><td>Local Faster Whisper transcription on port <code>10300</code></td></tr><tr><td>Wake</td><td><code>wyoming-openwakeword</code></td><td>OpenWakeWord service on port <code>10400</code></td></tr><tr><td>TTS</td><td><code>kokoro-tts</code></td><td>Kokoro FastAPI speech service on port <code>8880</code></td></tr><tr><td>TTS bridge</td><td><code>wyoming-kokoro-bridge</code></td><td>Wyoming-compatible TTS service on port <code>10200</code></td></tr><tr><td>Satellite</td><td><code>wyoming_satellite_compat.py</code></td><td>Windows audio bridge on port <code>10700</code></td></tr><tr><td>Conversation</td><td><code>llama3.1:8b</code></td><td>Ollama fallback model with Ramone personality</td></tr></tbody></table></div>
+        <p>The Docker services sit on the <code>ramone-net</code> bridge network. Home Assistant calls <code>whisper:10300</code>, <code>openwakeword:10400</code>, and <code>wyoming-kokoro:10200</code> by service name. The Windows satellite advertises itself back to Home Assistant over the WSL gateway, the Windows-side address detected by <code>wsl ip -4 route show</code>.</p>
+        <p>That split across two operating systems is the recurring theme of this build. No single hostname reaches everything, so every boundary has to be crossed deliberately.</p>
+        <h3>Container boundary</h3>
+        <p>The Docker stack is defined in <code>L:\ramone-voice\docker-compose.yml</code>. It exposes the operational ports directly because I wanted every service to be testable from PowerShell while the pipeline was still unstable. That mattered during debugging; I could query Docker logs, probe individual ports, and restart one service without dismantling the entire voice path.</p>
+        <p>The OpenWakeWord command loads custom models from <code>L:\ramone-voice\custom-wake-words</code>:</p>
+        <pre><code class="language-text">--custom-model-dir /custom
+--preload-model okay_nabu
+--threshold 0.07
+--trigger-level 1
+--refractory-seconds 4.0</code></pre>
+        <p>The low threshold is intentional but not final dogma. It made the custom Ramone model usable from more than one position in the room. The mic gain later moved back to <code>1.4x</code> because reach and false wake risk are the same control surface wearing different hats.</p>
+        <h3>Windows boundary</h3>
+        <p>The satellite starts from <code>L:\ramone-voice\windows\start-ramone-satellite.ps1</code>. It launches a hidden PowerShell process, redirects logs into <code>L:\ramone-voice\logs</code>, and runs <code>run-ramone.ps1</code>, which assembles the actual Python command.</p>
+        <p>The microphone helper, <code>ramone-mic.py</code>, captures:</p>
+        <pre><code class="language-text">16000 Hz
+16-bit PCM
+mono
+1024-frame chunks
+input_device_index = 1</code></pre>
+        <p>The speaker helper, <code>ramone-snd.py</code>, plays:</p>
+        <pre><code class="language-text">22050 Hz
+16-bit PCM
+mono
+device-index -1</code></pre>
+        <p><code>-1</code> matters. It routes to the Windows default output device, which is the only consistently audible target across speakers and headphones. A named device can open cleanly and still be silent if Windows routes the audio elsewhere.</p>
+        <h3>Assistant boundary</h3>
+        <p>The Home Assistant Assist pipeline captured for this build was named <code>Ramone</code>. It used <code>stt.faster_whisper</code>, <code>tts.openai</code> backed by Kokoro, <code>tts_voice = bm_daniel</code>, <code>wake_word_id = ramone</code>, and <code>conversation.ramone</code> for fallback reasoning.</p>
+        <p>The conversation layer in this snapshot was intentionally smaller than the wider SPECULAR-CORE model fleet. The recorded conversation model was <code>llama3.1:8b</code> with:</p>
+        <pre><code class="language-text">keep_alive = 3600
+max_history = 8
+num_ctx = 4096
+think = false</code></pre>
+        <p>That is enough context to talk without turning a light command into a lecture. It also keeps the model warm after startup, which avoids the first-turn cold load that made larger models feel broken in a voice interface. It was also the ceiling that eventually forced the rebuild in Part 2.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="phase-i-service-boundaries-and-tunnels">
+        <h2>Phase I — Service Boundaries And Tunnels</h2>
+        <div class="phase-marker"><span class="phase-num">Phase I</span><span class="phase-title">Service Boundaries And Tunnels</span></div>
+        <p>The first external symptom was not an audio problem. It was Cloudflare Error <code>1033</code> on <code>ha.atlas-systems.uk</code>, while a separate tunnel named <code>ramone</code> was already running for the website. The names were close enough to invite the wrong fix: repointing or merging tunnels.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p>The Home Assistant tunnel and the Ramone website tunnel represented separate services. Treating them as interchangeable would have broken the website path while failing to prove that Home Assistant was reachable.</p></div>
+        <p>The fix was architectural rather than clever. The <code>homeassistant</code> tunnel stayed responsible for <code>ha.atlas-systems.uk</code>. The <code>ramone</code> tunnel stayed responsible for the website. Tunnel health was checked by name and UUID, not by guesswork.</p>
+        <p>The same boundary rule carried into the Windows service work. A helper script attempted to install a dedicated <code>CloudflaredHomeAssistant</code> service, but Windows <code>sc</code> syntax failed and left only the generic <code>Cloudflared</code> service running. I did not route the website tunnel through the Home Assistant tunnel as a shortcut. I kept the deployment boundary intact and debugged each service on its own terms.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>The tunnel names became an operational invariant: <code>homeassistant</code> is for HA, <code>ramone</code> is for the website, and they are never merged to make a temporary error disappear.</p></div>
+        <h3>Windows Satellite</h3>
+        <p>The satellite is the most important custom piece in the build because it owns the real audio hardware. Home Assistant can discover Wyoming services and Docker can host speech engines, but the room hears and speaks through Windows. The bridge had to be stable enough to run continuously, survive HA reconnects, and recover after failed speech recognition.</p>
+        <p>The launcher stack is split into small files:</p>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>File</th><th>Responsibility</th></tr></thead><tbody><tr><td><code>start-ramone-satellite.ps1</code></td><td>Starts the hidden satellite process and writes logs</td></tr><tr><td><code>run-ramone.ps1</code></td><td>Detects WSL networking and builds the Python satellite command</td></tr><tr><td><code>wyoming_satellite_compat.py</code></td><td>Patches satellite behavior without editing site-packages</td></tr><tr><td><code>ramone-mic.py</code></td><td>Streams raw Focusrite microphone audio</td></tr><tr><td><code>ramone-snd.py</code></td><td>Plays raw PCM output to the Windows default device</td></tr><tr><td><code>test-ramone-wake.ps1</code></td><td>Stops the satellite, tests wake detection, saves a WAV, restarts</td></tr><tr><td><code>test-ramone-room-position.ps1</code></td><td>Tests couch, bed, and back-wall pickup at different mic gains</td></tr></tbody></table></div>
+        <h3>Dynamic WSL networking</h3>
+        <p>WSL2 can change its internal address after restart. Hard-coding the gateway would make the assistant brittle after a reboot, so <code>run-ramone.ps1</code> reads the active WSL route table and advertises the current Windows gateway to Home Assistant through zeroconf.</p>
+        <p>That detail is easy to miss because the assistant feels like one device. It is not. It is a Windows process pretending to be a network satellite for a Linux container. If the advertised host is wrong, the satellite looks healthy while Home Assistant talks to nothing.</p>
+        <h3>Log-first operation</h3>
+        <p>The satellite writes an output and an error log into <code>L:\ramone-voice\logs</code>, and the error log was the primary truth source for the whole build. Its most valuable property was not visibility but sequencing: a healthy standby shows <code>Waiting for wake word</code>, and a good interaction shows <code>Streaming audio</code>, a <code>transcript</code> event, a <code>synthesize</code> event, and the output device opening. When one of those is missing, the failing stage names itself. That stopped a lot of guesswork.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="phase-ii-wyoming-disconnect-loop">
+        <h2>Phase II — Wyoming Disconnect Loop</h2>
+        <div class="phase-marker"><span class="phase-num">Phase II</span><span class="phase-title">Wyoming Disconnect Loop</span></div>
+        <p>The first version of the satellite reached Home Assistant, then disconnected repeatedly. The log loop was clean enough to be deceptive:</p>
+        <pre><code class="language-text">INFO:root:Waiting for wake word
+DEBUG:root:Server disconnected
+DEBUG:root:Server set: ...
+INFO:root:Waiting for wake word</code></pre>
+        <p>The assistant looked alive, but HA did not keep a stable session with it. Wake detection could work in isolated tests while the full voice loop still failed.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p>The installed <code>wyoming-satellite</code> entrypoint did not handle the newer Home Assistant Wyoming client behavior cleanly. HA expected lightweight connection health events, and the satellite process did not answer them in the shape HA expected.</p></div>
+        <p>I fixed it by wrapping the installed package instead of modifying Python site-packages. <code>wyoming_satellite_compat.py</code> imports <code>wyoming_satellite.__main__</code>, patches selected handlers, and runs the original <code>main()</code> entrypoint. The wrapper adds <code>ping</code> to <code>pong</code> support, which stopped the repeated disconnect loop.</p>
+        <p>The same file also fixed a second state problem. If STT returned <code>stt-no-text-recognized</code>, the satellite could remain in a streaming state and fail to rearm wake detection cleanly. The wrapper now catches that error, stops streaming, sends wake detection again, and logs <code>Waiting for wake word</code>.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>A compatibility wrapper preserved the upstream package while adding HA-compatible ping/pong handling and explicit rearming after no-text STT failures.</p></div>
+        <p>This became the pattern for the rest of the build: do not patch dependency internals when a controlled wrapper can isolate the local behavior. The assistant is easier to rebuild because the custom behavior lives in <code>L:\ramone-voice\windows</code>, not inside a mutable Python install.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="speech-pipeline">
+        <h2>Speech Pipeline</h2>
+        <p>The speech pipeline has three independent jobs: detect wake, transcribe speech, and synthesize the answer. Keeping them independent made the system debuggable. A failure in one service did not require rebuilding the others.</p>
+        <h3>Faster Whisper STT</h3>
+        <p>The STT service uses <code>rhasspy/wyoming-whisper</code> with <code>base-int8</code> and English forced:</p>
+        <pre><code class="language-text">--model base-int8
+--language en
+--initial-prompt "Ramone is spelled R-A-M-O-N-E and pronounced ruh-MOHN."</code></pre>
+        <p>The initial prompt exists because the wake word and the assistant name are phonetically awkward. Whisper heard <code>Ramon</code>, <code>Rah-mone</code>, and other variants during testing. The prompt does not improve wake detection, but it improves the text after wake once audio is already flowing into STT.</p>
+        <h3>Kokoro TTS</h3>
+        <p>The TTS path uses Kokoro FastAPI behind a Wyoming bridge that exposes an OpenAI-style TTS interface to Home Assistant. That is why the HA integration reports <code>tts.openai</code> even though the speech engine is local Kokoro.</p>
+        <p>The voice used in this snapshot was <code>bm_daniel</code>. Earlier testing used OpenAI-style names such as <code>onyx</code> because the TTS route was still being proven. Once the Kokoro bridge advertised <code>bm_daniel</code> correctly, the Assist pipeline moved back to the intended voice.</p>
+        <h3>Conversation fallback</h3>
+        <p>The first goal was not to make Ramone chatty. It was to stop Ramone from being absurd. When the fallback model saw too much generic Home Assistant context, it explained logs, APIs, Alexa-like devices, and fictional associations instead of acting like a voice system.</p>
+        <p>In June the answer was a small model and a narrow prompt. <code>llama3.2:3b</code> moved to <code>llama3.1:8b</code> once timing tests showed the difference was acceptable warm: about <code>32s</code> cold, which is unusable in a room, against about <code>0.79s</code> warm, which is fine. The rest of that story — why an 8B model in a 4096-token window stopped being enough, and what replaced it — is Part 2.</p>
+        <div class="callout"><div class="callout-label">Design Decision</div><p>Commands belong to local intents. Conversation belongs to the LLM. Mixing those roles made Ramone slower, less predictable, and more likely to narrate internals instead of controlling the room. It is the one decision from this build that the later rebuild did not revisit.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="phase-iii-wake-word-training">
+        <h2>Phase III — Wake Word Training</h2>
+        <div class="phase-marker"><span class="phase-num">Phase III</span><span class="phase-title">Wake Word Training</span></div>
+        <p>The wake-word problem looked like a spelling problem until it was tested properly. <code>okay_nabu</code> detected reliably. <code>ramone</code> did not, even when STT and the prompt understood <code>Rah-mone</code>, <code>ruh moan</code>, and <code>ruh-MOHN</code>.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p>OpenWakeWord listens to a trained audio model. Text variants in Home Assistant, Whisper prompts, or the LLM prompt do not change what the wake detector hears before the assistant wakes.</p></div>
+        <p>The first training config used broad target phrases:</p>
+        <pre><code class="language-text">Ramone
+ruh moan
+rah moan
+ruh mone
+rah mone
+ray moan</code></pre>
+        <p>The local pipeline generated synthetic positives, adversarial negatives, augmented data, trained a classifier, and exported ONNX. The RTX 5070 accelerated the positive clip generation well, but the adversarial negative generation hit <code>CUDA error: device not ready</code>. Once PyTorch poisoned the CUDA context, the pipeline slowed dramatically and could not be trusted.</p>
+        <p>The CPU fallback was reliable but slow:</p>
+        <pre><code class="language-text">CUDA_VISIBLE_DEVICES=</code></pre>
+        <p>The GPU retry used:</p>
+        <pre><code class="language-text">CUDA_VISIBLE_DEVICES=0
+CUDA_LAUNCH_BLOCKING=1</code></pre>
+        <p>That made the failure surface synchronously, but the practical fix came from a cleaner model source. A downloaded <code>ruh_mown</code> <code>.tflite</code> and <code>.onnx</code> pair was installed into <code>L:\ramone-voice\custom-wake-words</code> and renamed into the shape Home Assistant expected:</p>
+        <pre><code class="language-text">ramone.tflite
+ramone.onnx</code></pre>
+        <p>Direct testing then proved the model:</p>
+        <pre><code class="language-text">WAKE DETECTED: ramone
+Detected wake words: ramone</code></pre>
+        <p>The wake stack still keeps <code>okay_nabu</code> in the Docker preload list for service readiness, but the active satellite listens for <code>ramone</code>.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>The custom wake path became a real OpenWakeWord model problem, not a text problem. The final <code>ramone.tflite</code> model wakes reliably enough for daily testing, with <code>okay_nabu</code> kept only as a fallback concept.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="phase-iv-audio-routing-and-self-triggering">
+        <h2>Phase IV — Audio Routing And Self Triggering</h2>
+        <div class="phase-marker"><span class="phase-num">Phase IV</span><span class="phase-title">Audio Routing And Self Triggering</span></div>
+        <p>Once wake detection worked, the assistant still failed in a more irritating way: it heard, transcribed, and synthesized, but the room stayed silent. The logs showed audio opening and closing, so the TTS service was not the cause.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p>A Windows output device could open successfully while producing no audible sound. Device <code>9</code> looked valid to PyAudio, but the actual audible path was the Windows default output.</p></div>
+        <p>The fix was to standardize on <code>-SoundDeviceIndex -1</code>. That routes output through the active Windows default device, which made the wake tone and spoken response audible through speakers and headphones.</p>
+        <p>Then the assistant started hearing itself. Kokoro speech through the room speakers could retrigger OpenWakeWord or leak into the next STT capture. The logs made this visible through unexpected transcripts such as wake phrase fragments and responses being interpreted as new user input.</p>
+        <p>The compatibility wrapper now guards three periods:</p>
+        <pre><code class="language-python">POST_TTS_WAKE_SUPPRESS_SECONDS = 3.0
+POST_TRANSCRIPT_WAKE_SUPPRESS_SECONDS = 3.0
+TTS_MAX_WAKE_SUPPRESS_SECONDS = 20.0
+POST_WAKE_AUDIO_DROP_SECONDS = 0.75</code></pre>
+        <p><code>POST_WAKE_AUDIO_DROP_SECONDS</code> drops the first <code>0.75s</code> of microphone audio after wake detection. That stops the wake phrase itself from becoming the user request. The TTS suppression windows ignore wake detections while the assistant is speaking or while audio is still settling in the room.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>The output path moved to Windows default audio, and the satellite gained wake suppression plus a short post-wake audio drop to stop self-triggering and wake phrase leakage.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="home-control-and-routine-layer">
+        <h2>Home Control And Routine Layer</h2>
+        <p>The assistant became useful when common actions moved out of the LLM and into Home Assistant intents. Local intents are faster, more reliable, and easier to test than asking a model to infer every device action from natural language.</p>
+        <p>The phrase grammar lives in:</p>
+        <pre><code class="language-text">L:\ramone-voice\config\custom_sentences\en\ramone.yaml</code></pre>
+        <p>The intent responses live in:</p>
+        <pre><code class="language-text">L:\ramone-voice\config\intents.yaml</code></pre>
+        <p>The actual actions live in:</p>
+        <pre><code class="language-text">L:\ramone-voice\config\scripts.yaml</code></pre>
+        <p>That gives the system a clean path:</p>
+        <pre><code class="language-text">spoken phrase -&gt; custom sentence -&gt; intent_script -&gt; script -&gt; spoken response</code></pre>
+        <h3>Lighting routines</h3>
+        <p>The core routines control three main light entities:</p>
+        <pre><code class="language-text">light.floor_lamp
+light.smart_led_bulb
+light.tv_backlight_3_lite</code></pre>
+        <p>The named scenes are intentionally human:</p>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>Phrase</th><th>Behavior</th></tr></thead><tbody><tr><td><code>freaky time</code></td><td>Red lights at 50 percent, with Spotify attempt guarded</td></tr><tr><td><code>work mode</code></td><td>Cool white lamps at 80 percent, TV backlight off</td></tr><tr><td><code>movie time</code></td><td>Main lights off, blue TV backlight at 25 percent</td></tr><tr><td><code>relaxing mode</code></td><td>Warm amber room at 35 percent</td></tr><tr><td><code>lights out</code></td><td>All main lights off, media pause attempt guarded</td></tr><tr><td><code>bright mode</code></td><td>Bright white lighting at 100 percent</td></tr><tr><td><code>dim mode</code></td><td>Warm orange at 18 percent</td></tr><tr><td><code>gaming mode</code></td><td>Purple-blue room at 55 percent</td></tr><tr><td><code>reading mode</code></td><td>Warm white reading lamps at 70 percent</td></tr></tbody></table></div>
+        <p>The intent responses carry Ramone&#x27;s voice without asking the LLM to improvise:</p>
+        <pre><code class="language-text">Work mode set. The room is pretending discipline exists.
+Bright mode set. Subtle as a dental lamp.
+Reading mode set. Very scholarly. Suspiciously so.</code></pre>
+        <p>Those lines matter more than they look. They make the system feel like the same character whether the response came from a deterministic Home Assistant intent or from the Ollama fallback.</p>
+        <h3>Spotify guards</h3>
+        <p>Spotify became a separate integration problem. OAuth, account restrictions, developer app settings, and device availability all created failure modes that were outside the core voice loop. The scripts captured in this build did not assume Spotify could always play. They inspect <code>media_player.spotify_atlas</code> supported features before calling play, pause, skip, previous track, or volume changes.</p>
+        <p>That means the spoken response can be honest:</p>
+        <pre><code class="language-text">Spotify is connected, but Home Assistant cannot start playback right now.
+Open Spotify on your PC or phone and start one song first.</code></pre>
+        <p>The important decision was not to block the whole assistant on Spotify. Lights, weather, system status, TTS, STT, and chat all work without it. Spotify is a controlled edge, not a dependency for the voice core.</p>
+        <h3>System and weather</h3>
+        <p>System status reads HASS.Agent sensors for SPECULAR-CORE CPU and RAM. Weather reads <code>weather.forecast_home</code>. Both were moved into local intents because they are simple factual queries that should not wake a model unless the user asks for a broader conversation.</p>
+        <p>The system status response is deliberately short:</p>
+        <pre><code class="language-text">CPU 42%, RAM 61% - busy, but not on fire.</code></pre>
+        <p>The result is a voice interface that can answer fast for operational queries and still talk when the request is actually conversational.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="phase-v-personality-and-model-behavior">
+        <h2>Phase V — Personality And Model Behavior</h2>
+        <div class="phase-marker"><span class="phase-num">Phase V</span><span class="phase-title">Personality And Model Behavior</span></div>
+        <p>The first Ramone prompt solved latency by making the assistant terse. It also made him dull. The next attempt made him more open, but that exposed a different problem: models like to explain the wrong thing when they are given ambiguous transcript debris.</p>
+        <p>The failure mode was obvious in spoken output. Ramone explained Alexa-like devices, fictional associations, logs, APIs, and even scolded rough language as if the room were a corporate demo.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p>The fallback model was doing unconstrained interpretation of messy STT output. It needed a character boundary, a home-control boundary, and explicit rules for profanity, garbled transcripts, and internal tooling.</p></div>
+        <p>The canonical prompt moved into <code>L:\ramone-voice\RAMONE_VOICE_PROMPT.md</code>. The Home Assistant Ollama entry used for this snapshot copied that text into <code>core.config_entries</code>, with HA stopped before storage edits so it did not overwrite the change.</p>
+        <p>The recorded prompt kept several constraints:</p>
+        <ul><li>write the spoken name as <code>Rah-mone</code> for TTS pronunciation</li><li>answer smart-home commands in one or two short sentences</li><li>answer real conversation in two to five short sentences</li><li>ask one follow-up when it helps</li><li>never scold profanity in a private environment</li><li>never explain logs, API tools, Alexa, Echo, Disney, Cars, musicians, or hidden functions</li><li>treat <code>freaky time</code>, <code>relaxing mode</code>, <code>gaming mode</code>, and <code>reading mode</code> as scene names</li></ul>
+        <p>The model then moved to <code>llama3.1:8b</code>. A warm local test returned in about <code>0.79s</code>, which was acceptable for a voice fallback. The cold load was much slower, so the Home Assistant config keeps the model alive for <code>3600</code> seconds.</p>
+        <p>A single prompt file was the right size for this build and the wrong size for the next one. It can hold a character for one surface; it cannot hold one across several, and it cannot be argued with when the character drifts, because there is nothing to compare the drift against. Part 2 covers where the character went.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>Ramone became a split system: deterministic intents handle control, while <code>llama3.1:8b</code> handles bounded conversation through a prompt that protects the assistant&#x27;s identity and stops transcript tangents.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="calibration-and-portability">
+        <h2>Calibration And Portability</h2>
+        <h3>Wake Range And Room Calibration</h3>
+        <p>Wake range had to be measured in the room, not imagined from the desk. The assistant detected well at close range, but couch and bed pickup changed the audio level enough to require a test harness.</p>
+        <p>I added <code>test-ramone-room-position.ps1</code>. It stops the satellite, asks for a physical position, tests multiple mic multipliers, saves one WAV per attempt, and restarts the satellite afterwards. The couch test produced:</p>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>Position</th><th>Multiplier</th><th>Result</th><th>Raw RMS</th><th>Sent RMS</th></tr></thead><tbody><tr><td>couch</td><td><code>1.4x</code></td><td>detected</td><td><code>80.7</code></td><td><code>112.7</code></td></tr><tr><td>couch</td><td><code>1.8x</code></td><td>detected</td><td><code>84.1</code></td><td><code>151.2</code></td></tr><tr><td>couch</td><td><code>2.2x</code></td><td>not detected</td><td><code>102.6</code></td><td><code>225.5</code></td></tr><tr><td>bed</td><td><code>2.2x</code></td><td>detected</td><td><code>114.9</code></td><td><code>252.6</code></td></tr></tbody></table></div>
+        <p>The strange result is the useful one. More gain did not always mean better detection. At <code>2.2x</code>, the model became less predictable from the couch. The live default moved to <code>1.4x</code> because it detected from the couch without pushing the wake pipeline into the odd behavior seen at higher amplification.</p>
+        <div class="callout warning"><div class="callout-label">Caught Late</div><p>The Wyoming <code>--vad</code> flag is not a clean fix here. The installed satellite warns that VAD is not used with local wake word detection, so wake sensitivity has to be tuned through mic gain, model quality, threshold, and room placement instead.</p></div>
+        <p>The satellite state recorded during the room tests was:</p>
+        <pre><code class="language-text">mic_volume_multiplier = 1.4
+wake_word_name = ['ramone']
+sound device = default</code></pre>
+        <p>If false wakes continue, the next clean adjustment is raising the OpenWakeWord threshold from <code>0.07</code> toward <code>0.10</code>. I did not make that move first because lowering mic gain solved the immediate sensitivity problem without reducing legitimate couch pickup.</p>
+        <h3>Startup And Portability</h3>
+        <p>The project now lives under <code>L:\ramone-voice</code>, which makes the build more portable than a typical Windows voice experiment. The Docker services, custom wake models, prompt, Home Assistant config, logs, scripts, and training notes live together. That matters because the assistant crosses OS boundaries. If the files are scattered, rebuild time becomes archaeology.</p>
+        <p>Boot startup came through the existing <code>SPECULAR_BOOT.bat</code>, which gained a block for the Docker stack and the Windows satellite. Adding it exposed an old Windows batch problem worth one sentence: unescaped <code>&gt;&gt;</code> inside display text is a redirection, not a decoration, and it had been quietly creating a junk file named <code>]</code> on every boot.</p>
+        <p>The assistant still depends on machine-local pieces the repo cannot carry — Python and <code>pyaudio</code>, the Wyoming packages, the Focusrite driver and its USB device ordering, Docker inside WSL2, the Cloudflared credentials, and Spotify&#x27;s OAuth state. The difference is that the boundaries are documented. A reinstall does not require rediscovering why <code>ramone-snd.py</code> uses <code>-1</code>, why Home Assistant sees a satellite at a WSL gateway address, or why <code>.storage</code> backups must not be published.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="outcomes">
+        <h2>Outcomes</h2>
+        <div class="outcomes-grid"><div class="outcome-cell"><div class="outcome-label">Voice loop</div><div class="outcome-value">Custom <code>ramone</code> wake, Faster Whisper STT, Kokoro <code>bm_daniel</code> TTS, and a Windows audio bridge working end to end</div></div><div class="outcome-cell"><div class="outcome-label">Control layer</div><div class="outcome-value">17 local Home Assistant intents across lights, scenes, weather, system status, and guarded media control</div></div><div class="outcome-cell"><div class="outcome-label">Latency profile</div><div class="outcome-value"><code>llama3.1:8b</code> warm response around <code>0.79s</code> against a <code>32s</code> cold load, kept alive for <code>3600</code> seconds</div></div><div class="outcome-cell"><div class="outcome-label">Portability</div><div class="outcome-value">Project state consolidated under <code>L:\ramone-voice</code> with Docker, prompts, wake models, scripts, logs, and runbooks</div></div></div>
+        <p>At the end of the June 2026 build, Ramone worked as a private voice surface for SPECULAR-CORE. The system wakes by name, hears speech through the Focusrite input, routes requests through Home Assistant, controls room lighting and media scripts, answers through a local Kokoro voice, and falls back to a bounded Ollama personality when the request is conversational rather than operational.</p>
+        <p>The lesson from this half is that useful voice assistants are not one model. They are boundaries. Wake detection, STT, intent routing, TTS, playback, personality, and device control each need their own failure model; once those boundaries are explicit, the assistant stops being a novelty and becomes another local system service. Part 2 is about what that conclusion missed.</p>
+      </section>
+    </article>
+  </div>
+
+  <div class="article-footer">
+    <a href="/writing/specular-core-architectural-recovery/" class="footer-back">
+    <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    ← W-08 — SPECULAR-CORE
+  </a>
+  <span class="footer-next">Latest article</span>
+  </div>
+
+</main>
+
+<nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
+  <div class="mobile-nav-inner atlas-mobile-nav__inner">
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>
+    <a class="mobile-nav-item atlas-mobile-nav__item active" href="/writing/" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="16" y2="13"></line></svg><span>Writing</span></a>
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/lab/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V9"></path><path d="M14 3h7v7"></path></svg><span>Lab</span></a>
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg><span>Systems</span></a>
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M20 21a8 8 0 10-16 0"></path></svg><span>About</span></a>
+  </div>
+</nav>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-item a');
+  const sections = document.querySelectorAll('section[id]');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        tocLinks.forEach(a => a.classList.remove('active'));
+        const active = document.querySelector(`.toc-item a[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+<script src="/js/transitions.js?v=20260814-terminal-swipe"></script>
+<script type="module" src="/static/js/estate-shell.js?v=20260723-interface-v2"></script>
+<script type="module" src="/static/js/estate-search/global-search.js"></script>
+
+</body>
+</html>

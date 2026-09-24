@@ -612,6 +612,89 @@
         </div>
       </article>
 
+      <!-- P-06: Building a Private Room-Scale Voice Assistant from Local Parts -->
+      <article class="project-entry" id="ramone-voice-assistant" data-project-id="ramone-voice-assistant" data-project-section="all" data-tags="ai audio devops">
+        <div class="project-media">
+          <div class="gallery" id="ramone-voice-assistant-gallery" onclick="openLightbox(getCurrentGalleryImg('ramone-voice-assistant-gallery'),'ramone-voice-assistant-gallery')">
+            <img class="gallery-img active" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1788815426/ramonevoicearchitecturev2_f3bfzv.png" alt="Ramone voice architecture as a five-stage flow from OpenWakeWord through Faster Whisper, Home Assistant intent routing, a Windows llama.cpp reasoning model, and Kokoro speech, with a verification stage that polls light state and returns a failure on an unchanged room">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1788815426/Wake_Word_sz0yfh.png" alt="Wake detection test confirming the custom model with WAKE DETECTED ramone, the saved WAV, raw and sent audio levels, and Detected wake words ramone">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1788815495/Audit_Record_k2cbqd.png" alt="Audit record for a room scene that ran without changing the lights, showing script ran true beside ran false, a verification result of unchanged light state, and the observed state of all three bedroom lights">
+            <img class="gallery-img" src="https://res.cloudinary.com/dqebqmyf7/image/upload/v1788815426/Health_Probe_vkhejj.png" alt="Ramone health probe reporting all ten services up across Home Assistant, Whisper, wake word, Kokoro, Hermes, the voice proxy, SMS, Honcho, llama.cpp, and the bedroom satellite">
+            <div class="gallery-nav" onclick="event.stopPropagation()">
+              <div class="gallery-arrows">
+                <button type="button" class="gallery-arrow" onclick="galleryPrev('ramone-voice-assistant-gallery')">← prev</button>
+                <button type="button" class="gallery-arrow" onclick="galleryNext('ramone-voice-assistant-gallery')">next →</button>
+              </div>
+              <div class="gallery-dots" id="ramone-voice-assistant-gallery-dots">
+                <button type="button" class="gallery-dot active" onclick="galleryGoto('ramone-voice-assistant-gallery',0)" aria-label="View image 1"></button>
+                <button type="button" class="gallery-dot" onclick="galleryGoto('ramone-voice-assistant-gallery',1)" aria-label="View image 2"></button>
+                <button type="button" class="gallery-dot" onclick="galleryGoto('ramone-voice-assistant-gallery',2)" aria-label="View image 3"></button>
+                <button type="button" class="gallery-dot" onclick="galleryGoto('ramone-voice-assistant-gallery',3)" aria-label="View image 4"></button>
+              </div>
+              <span class="gallery-counter" id="ramone-voice-assistant-gallery-counter">1 / 4</span>
+            </div>
+          </div>
+        </div>
+        <div class="project-info">
+          <div class="project-meta">
+            <span class="project-index">P-06</span>
+            <div class="project-tags">
+              <span class="tag highlight">AI / LLMs</span>
+              <span class="tag">Audio Systems</span>
+              <span class="tag">Docker</span>
+              <span class="tag">Home Assistant</span>
+              <span class="tag">OpenWakeWord</span>
+            </div>
+          </div>
+          <h2 class="project-title">Ramone — Local Voice Loop, Wake &amp; Audio Boundaries</h2>
+          <a class="project-series" href="/writing/index.html#series-ramone-voice-assistant"><span>Writing series</span><strong>Ramone Voice Assistant</strong><span>Part 1 of 2</span></a>
+          <div class="project-role">Architect &amp; Systems Engineer</div>
+          <p class="project-desc">A June 2026 build snapshot of a local Home Assistant voice system that gave SPECULAR-CORE a room-scale spoken interface, and the first part of a two-article record. The captured stack joined Windows audio hardware, WSL2 Docker services, Wyoming satellite transport, OpenWakeWord, Faster Whisper, Kokoro TTS, and a bounded Ollama fallback into one private assistant named Ramone. The work covered wake-word retraining, TTS routing, ping/pong compatibility, mic gain calibration, smart-home routines, Spotify guards, and a personality prompt that makes the assistant feel present instead of corporate.
+</p>
+          <div class="project-result">
+            <span class="project-result-label">Result</span>
+            <p>Custom Ramone wake flow replaced the temporary okay_nabu fallback after wake model testing and TFLite installation</p>
+          </div>
+          <details class="project-disclosure">
+            <summary><span>Technical detail</span><span aria-hidden="true">expand</span></summary>
+            <div class="project-disclosure-body">
+              <div class="spec-grid">
+            <div class="spec-cell"><div class="spec-label">WAKE</div><div class="spec-value">OpenWakeWord custom model</div></div>
+            <div class="spec-cell"><div class="spec-label">STT</div><div class="spec-value">Faster Whisper base-int8</div></div>
+            <div class="spec-cell"><div class="spec-label">TTS</div><div class="spec-value">Kokoro bm_daniel</div></div>
+            <div class="spec-cell"><div class="spec-label">LLM</div><div class="spec-value">llama3.1:8b at capture</div></div>
+            <div class="spec-cell"><div class="spec-label">AUDIO</div><div class="spec-value">Focusrite input, Windows output</div></div>
+            <div class="spec-cell"><div class="spec-label">CONTROL</div><div class="spec-value">Home Assistant intents</div></div>
+              </div>
+              <div class="tech-stack">
+            <span class="tech-pill">Home Assistant</span>
+            <span class="tech-pill">Wyoming</span>
+            <span class="tech-pill">OpenWakeWord</span>
+            <span class="tech-pill">Faster Whisper</span>
+            <span class="tech-pill">Kokoro TTS</span>
+            <span class="tech-pill">Ollama</span>
+            <span class="tech-pill">Docker</span>
+            <span class="tech-pill">WSL2</span>
+              </div>
+              <div class="achievements">
+                <div class="achievement">At capture, the Windows audio bridge handled Focusrite input, Kokoro playback, and satellite event logging</div>
+                <div class="achievement">At capture, Home Assistant intents handled lighting, Spotify guards, weather, and system status without forcing every request through an LLM</div>
+                <div class="achievement">Compatibility wrapper fixed Wyoming ping/pong disconnects, wake rearming, TTS self-triggering, and wake phrase leakage into speech-to-text</div>
+                <div class="achievement">The captured conversation path used a scoped prompt, llama3.1:8b, and short-term Home Assistant history</div>
+              </div>
+            </div>
+          </details>
+          <div class="project-links">
+            <a href="/writing/ramone-voice-assistant/" class="proj-link primary">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Case Study
+            </a>
+            <a href="https://github.com/AtlasReaper311" class="proj-link" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>GitHub
+            </a>
+          </div>
+        </div>
+      </article>
+
       <!-- WORK_CARDS_INSERT_POINT -->
 
       </div>

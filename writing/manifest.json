@@ -1,5 +1,11 @@
 [
   {
+    "slug": "ramone-voice-assistant",
+    "title": "Building a Private Room-Scale Voice Assistant from Local Parts",
+    "date": "2026-09-24",
+    "w_number": "W-09"
+  },
+  {
     "slug": "specular-core-architectural-recovery",
     "title": "SPECULAR-CORE: Architectural Recovery",
     "date": "2026-08-23",
