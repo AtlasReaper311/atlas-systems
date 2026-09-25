@@ -1,0 +1,65 @@
+{
+  "schema": "atlas-system-symphony/recorded-replay/v1",
+  "evidenceMode": "recorded-replay",
+  "replayId": "recorded-inc-20260705-234935",
+  "incident": {
+    "id": "inc-20260705-234935",
+    "title": "Blocked: atlas-systems.uk",
+    "component": "atlas-systems.uk"
+  },
+  "source": {
+    "authority": "atlas-blackbox",
+    "reference": "https://api.atlas-systems.uk/blackbox/incidents/inc-20260705-234935",
+    "classification": "public-sealed-incident"
+  },
+  "time": {
+    "basis": "absolute-utc",
+    "incidentDuration": "unknown-not-observed",
+    "recordingWindow": "observed-blackbox-window-only"
+  },
+  "events": [
+    {
+      "timestamp": "2026-07-05T23:48:50.649Z",
+      "class": "adjacent-public-event",
+      "label": "Public push observed",
+      "text": "A public push was observed near the incident record; whether it caused the later validation failure is not established.",
+      "causalRelation": "not-established"
+    },
+    {
+      "timestamp": "2026-07-05T23:49:08.770Z",
+      "class": "validation-failure-reported",
+      "label": "HTML or link validation failure reported",
+      "text": "An HTML or link validation failure was reported for atlas-systems.uk.",
+      "causalRelation": "observed-reported"
+    },
+    {
+      "timestamp": "2026-07-05T23:49:35.670Z",
+      "class": "blackbox-capture",
+      "label": "Blackbox captured the incident",
+      "text": "Blackbox captured the incident record.",
+      "causalRelation": "observed"
+    },
+    {
+      "timestamp": "2026-07-05T23:51:03.675Z",
+      "class": "validation-publication-success-reported",
+      "label": "Validation and publication success reported",
+      "text": "A later recorded event reported atlas-systems.uk validated and published; this does not verify live recovery.",
+      "causalRelation": "follow-up-success-observed-not-live-verified"
+    }
+  ],
+  "claims": {
+    "rootCause": "unknown-not-observed",
+    "impact": "unknown-not-observed",
+    "liveHealth": "unknown-not-observed",
+    "recovery": "follow-up-success-observed-not-live-verified"
+  },
+  "metrics": {
+    "status": "unknown-not-observed",
+    "values": {}
+  },
+  "presentation": {
+    "seed": "phase5-inc-20260705-234935",
+    "timing": "fixed-presentation-timing",
+    "audioIsInterpretation": true
+  }
+}
