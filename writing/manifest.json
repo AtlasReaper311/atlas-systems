@@ -1,5 +1,11 @@
 [
   {
+    "slug": "ramone-voice-verified-actions",
+    "title": "When the Assistant Reported Work It Had Not Done",
+    "date": "2026-09-26",
+    "w_number": "W-10"
+  },
+  {
     "slug": "ramone-voice-assistant",
     "title": "Building a Private Room-Scale Voice Assistant from Local Parts",
     "date": "2026-09-24",

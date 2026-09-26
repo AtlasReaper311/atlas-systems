@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en" data-atlas-interface>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A voice assistant that can act on a room can also describe a room it never produced. This second part records the August 2026 rebuild: a Windows llama.cpp">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>When the Assistant Reported Work It Had Not Done // Atlas Systems</title>
+  <link rel="canonical" href="https://atlas-systems.uk/writing/ramone-voice-verified-actions/">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="When the Assistant Reported Work It Had Not Done // Atlas Systems">
+  <meta property="og:description" content="A voice assistant that can act on a room can also describe a room it never produced. This second part records the August 2026 rebuild: a Windows llama.cpp">
+  <meta property="og:url" content="https://atlas-systems.uk/writing/ramone-voice-verified-actions/">
+  <meta property="og:site_name" content="Atlas Systems">
+  <meta property="og:image" content="https://atlas-systems.uk/og/ramone-voice-verified-actions.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="When the Assistant Reported Work It Had Not Done // Atlas Systems">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="When the Assistant Reported Work It Had Not Done // Atlas Systems">
+  <meta name="twitter:description" content="A voice assistant that can act on a room can also describe a room it never produced. This second part records the August 2026 rebuild: a Windows llama.cpp">
+  <meta name="twitter:image" content="https://atlas-systems.uk/og/ramone-voice-verified-actions.png">
+  <meta name="twitter:image:alt" content="When the Assistant Reported Work It Had Not Done // Atlas Systems">
+  <meta property="article:published_time" content="2026-09-26">
+  <meta property="article:author" content="Atlas Reaper">
+  <script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "When the Assistant Reported Work It Had Not Done",
+    "description": "A voice assistant that can act on a room can also describe a room it never produced. This second part records the August 2026 rebuild: a Windows llama.cpp",
+    "datePublished": "2026-09-26",
+    "mainEntityOfPage": "https://atlas-systems.uk/writing/ramone-voice-verified-actions/",
+    "author": {
+        "@type": "Person",
+        "name": "Atlas Reaper",
+        "url": "https://atlas-systems.uk/about/"
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Atlas Systems",
+        "url": "https://atlas-systems.uk/"
+    },
+    "image": "https://atlas-systems.uk/og/ramone-voice-verified-actions.png",
+    "inLanguage": "en-GB"
+}
+  </script>
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.4.0/atlas-fonts.css">
+  <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;
+      --border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);
+      --text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;
+      --accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);
+      --mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px;
+      --content-w:720px
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
+    nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(10,10,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem,5vw,3rem);z-index:100}
+    .nav-wordmark{font-family:var(--mono);font-weight:500;font-size:13px;letter-spacing:0.12em;color:var(--text);text-decoration:none;text-transform:uppercase}
+    .nav-wordmark span{color:var(--accent)}
+    .nav-links{display:flex;list-style:none}
+    .nav-links a{display:block;padding:0.35rem 1rem;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color 0.15s;position:relative}
+    .nav-links a::after{content:'';position:absolute;bottom:-1px;left:50%;right:50%;height:1px;background:var(--accent);transition:left 0.2s,right 0.2s}
+    .nav-links a:hover{color:var(--text)}
+    .nav-links a:hover::after,.nav-links a.active::after{left:1rem;right:1rem}
+    .nav-links a.active{color:var(--text)}
+    main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);position:relative;z-index:1}
+    .article-header{padding-top:calc(var(--nav-h) + 5rem);padding-bottom:4rem;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr 2fr;gap:3rem}
+    .header-meta{display:flex;flex-direction:column;gap:1rem}
+    .back-link{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s;margin-bottom:0.5rem}
+    .back-link:hover{color:var(--accent)}
+    .back-link svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .article-index{font-size:11px;color:var(--text-faint);letter-spacing:0.1em}
+    .article-date{font-size:11px;color:var(--text-dim)}
+    .article-read-time{font-size:11px;color:var(--text-faint)}
+    .header-tags{display:flex;flex-direction:column;gap:0.4rem;margin-top:0.5rem}
+    .tag{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:0.2rem 0.5rem;border:1px solid var(--border);color:var(--text-dim);display:inline-block}
+    .tag.highlight{border-color:rgba(245,166,35,0.4);color:rgba(245,166,35,0.8)}
+    .section-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem}
+    .section-label::before{content:'';display:inline-block;width:24px;height:1px;background:var(--accent)}
+    .article-title{font-family:var(--serif);font-size:clamp(2rem,4vw,3.2rem);line-height:1.05;color:var(--text);margin-bottom:0.75rem}
+    .article-subtitle{font-size:12px;color:var(--accent);letter-spacing:0.06em;margin-bottom:1.5rem}
+    .article-lede{font-size:14px;color:var(--text-dim);line-height:1.9;max-width:560px}
+    .spec-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin:3rem 0}
+    .spec-cell{background:var(--bg);padding:1rem 1.25rem}
+    .spec-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.3rem}
+    .spec-value{font-size:12px;color:var(--text)}
+    .article-body{display:grid;grid-template-columns:200px 1fr;gap:4rem;padding:4rem 0}
+    .toc{position:sticky;top:calc(var(--nav-h) + 2rem);align-self:start;height:fit-content}
+    .toc-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-faint);margin-bottom:1rem}
+    .toc-list{list-style:none;display:flex;flex-direction:column;gap:0.1rem}
+    .toc-item a{font-size:11px;color:var(--text-faint);text-decoration:none;display:block;padding:0.35rem 0.75rem;border-left:1px solid var(--border);transition:all 0.15s;line-height:1.4}
+    .toc-item a:hover{color:var(--text-dim);border-left-color:var(--border-hi)}
+    .toc-item a.active{color:var(--accent);border-left-color:var(--accent)}
+    .prose{max-width:var(--content-w)}
+    .prose h2{font-family:var(--serif);font-size:1.8rem;line-height:1.1;color:var(--text);margin:3rem 0 1.25rem;padding-top:1rem}
+    .prose h2:first-child{margin-top:0}
+    .prose h3{font-size:13px;font-weight:500;color:var(--text);letter-spacing:0.06em;text-transform:uppercase;margin:2rem 0 0.75rem;display:flex;align-items:center;gap:0.6rem}
+    .prose h3::before{content:'';display:inline-block;width:16px;height:1px;background:var(--accent);flex-shrink:0}
+    .prose p{font-size:13px;color:var(--text-dim);line-height:1.9;margin-bottom:1.25rem}
+    .prose p:last-child{margin-bottom:0}
+    .prose strong{color:var(--text);font-weight:500}
+    .prose a,.prose a:visited{color:var(--accent);text-decoration-color:rgba(245,166,35,0.45);text-decoration-thickness:1px;text-underline-offset:0.18em;transition:color 0.15s,text-decoration-color 0.15s}
+    .prose a:hover{color:var(--text);text-decoration-color:var(--accent)}
+    .prose a:focus-visible{color:var(--text);outline:2px solid var(--accent);outline-offset:3px;text-decoration-color:var(--accent)}
+    .prose code{font-family:var(--mono);font-size:12px;background:var(--bg-1);border:1px solid var(--border);padding:0.15rem 0.4rem;color:var(--accent)}
+    .prose pre{background:var(--bg-1);border:1px solid var(--border);border-left:2px solid var(--accent);padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto}
+    .prose pre code{background:none;border:none;padding:0;font-size:12px;color:var(--text-dim);line-height:1.7}
+    .prose ul{margin:1rem 0 1.25rem 0;display:flex;flex-direction:column;gap:0.5rem}
+    .prose ul li{font-size:13px;color:var(--text-dim);line-height:1.7;display:flex;gap:0.75rem;align-items:flex-start}
+    .prose ul li::before{content:'→';color:var(--accent);flex-shrink:0;margin-top:0.1rem}
+    .callout{border:1px solid var(--border);border-left:2px solid var(--accent);background:var(--bg-1);padding:1.25rem 1.5rem;margin:1.5rem 0}
+    .callout-label{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem}
+    .callout p{margin-bottom:0;font-size:12px}
+    .callout.error{border-left-color:#e24b4a}
+    .callout.error .callout-label{color:#e24b4a}
+    .callout.success{border-left-color:#4ade80}
+    .callout.success .callout-label{color:#4ade80}
+    .callout.warning{border-left-color:var(--accent)}
+    .phase-marker{display:flex;align-items:center;gap:1rem;margin:2.5rem 0 1.5rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border)}
+    .phase-num{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap}
+    .phase-title{font-size:13px;font-weight:500;color:var(--text)}
+    .section-break{height:1px;background:var(--border);margin:3rem 0}
+    .outcomes-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin:1.5rem 0}
+    .outcome-cell{background:var(--bg);padding:1.25rem 1.5rem}
+    .outcome-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.4rem}
+    .outcome-value{font-size:13px;color:var(--text)}
+    .article-footer{padding:3rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+    .footer-back{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s}
+    .footer-back:hover{color:var(--accent)}
+    .footer-back svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .footer-next{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);display:flex;align-items:center;gap:0.4rem}
+    .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
+    .mobile-nav-inner{display:flex;align-items:stretch;height:100%}
+    .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.15s}
+    .mobile-nav-item:hover,.mobile-nav-item.active{color:var(--accent)}
+    .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    @media(max-width:900px){.article-body{grid-template-columns:1fr}.toc{display:none}.article-header{grid-template-columns:1fr}}
+    @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}.outcomes-grid{grid-template-columns:1fr}}
+
+    /* data tables (generated from markdown | a | b | ) */
+    .table-wrap{overflow-x:auto;margin:1.75rem 0;border:1px solid var(--border)}
+    .data-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+    .data-table th{background:var(--bg-1);color:var(--accent);text-align:left;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;font-size:10px;padding:0.6rem 0.85rem;border-bottom:1px solid var(--border-hi);white-space:nowrap}
+    .data-table td{color:var(--text-dim);padding:0.55rem 0.85rem;border-bottom:1px solid var(--border);line-height:1.5;vertical-align:top}
+    .data-table tbody tr:last-child td{border-bottom:none}
+    .data-table tbody tr:hover td{background:var(--bg-1)}
+    .data-table strong{color:var(--text);font-weight:500}
+    .data-table code{background:var(--bg-2);padding:0.1rem 0.35rem;font-size:11px;color:var(--accent)}
+
+/* Route-level readability and interaction guarantees for generated Writing pages. */
+.es-nav-search{display:inline-flex;align-items:center;gap:.45rem;min-height:36px;padding:.35rem .65rem;border:1px solid var(--border);background:transparent;color:var(--text-dim);font:inherit;font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.es-nav-search:hover,.es-nav-search:focus-visible{color:var(--text);border-color:var(--border-hi)}
+.es-nav-search svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.5}
+.es-nav-search kbd{color:var(--text-faint);font:inherit;font-size:8px}
+.article-lede{font-size:16px;line-height:1.8;max-width:620px}
+.article-header--ordered{grid-template-areas:"navigation content" "meta content";grid-template-rows:auto 1fr}
+.article-header--ordered>.back-link{grid-area:navigation}
+.article-header--ordered>.header-content{grid-area:content}
+.article-header--ordered>.header-meta{grid-area:meta;align-self:start}
+.article-header--ordered .header-tags{margin-top:.5rem}
+.prose p{font-size:16px;line-height:1.8}
+.prose ul li{font-size:16px;line-height:1.8}
+.callout p{font-size:14px;line-height:1.75}
+.table-wrap{max-width:100%;overscroll-behavior-inline:contain}
+:where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+/* Keep the canonical bottom navigation visible through the shell breakpoint. */
+.mobile-nav.atlas-mobile-nav.atlas-bottom-nav{display:none}
+@media(max-width:768px){
+  .article-header--ordered{grid-template-columns:1fr;grid-template-areas:"navigation" "content" "meta";grid-template-rows:auto auto auto}
+  .article-header--ordered>.back-link{margin-bottom:0}
+  .article-header--ordered .header-meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:.5rem 1rem}
+  .article-header--ordered .header-tags{flex-basis:100%;flex-direction:row;flex-wrap:wrap;gap:.5rem;margin-top:0}
+  .mobile-nav.atlas-mobile-nav.atlas-bottom-nav{display:block}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto!important}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+  </style>
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.4.0/atlas-interface-kit.css">
+  <link rel="stylesheet" href="/static/css/estate-search.css">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
+  <link rel="stylesheet" href="/static/css/article-interface-v2.css?v=20260724-phase-b-v1">
+  <link rel="stylesheet" href="/writing/series-article.css?v=20260722-cluster">
+</head>
+<body data-atlas-bottom-nav="true">
+
+<nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
+  <div class="atlas-header__inner">
+    <div class="atlas-header__brand atlas-global-header__identity">
+      <a class="nav-wordmark atlas-wordmark" href="/" data-atlas-wordmark>Atlas<span class="atlas-wordmark__cursor">_</span>Systems</a>
+      <a class="nav-status atlas-status atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" data-atlas-status aria-label="Atlas Systems status: Checking" aria-live="off"><span class="status-dot atlas-status__dot" aria-hidden="true"></span><span class="atlas-estate-status-label" data-atlas-status-label>Checking</span></a>
+    </div>
+    <div class="atlas-header__nav atlas-global-header__nav" role="group" aria-label="Atlas Systems sections">
+      <a class="atlas-global-header__link" href="/work/">Work</a>
+      <a class="atlas-global-header__link" href="/writing/" aria-current="page">Writing</a>
+      <a class="atlas-global-header__link" href="/lab/">Lab</a>
+      <a class="atlas-global-header__link" href="/systems/">Systems</a>
+      <a class="atlas-global-header__link" href="/about/">About</a>
+    </div>
+    <div class="atlas-header__actions atlas-global-header__actions">
+      <button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+  <header class="article-header article-header--ordered">
+    <a href="/writing/" class="back-link">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Writing
+    </a>
+    <div class="header-content">
+      <div class="section-label">Case Study</div>
+      <h1 class="article-title">When the Assistant Reported Work It Had Not Done</h1>
+      <div class="article-subtitle">Ramone — Agent Layer, Memory &amp; Verified Room Actions // Case Study</div>
+      <p class="article-lede">A voice assistant that can act on a room can also describe a room it never produced. This second part records the August 2026 rebuild: a Windows llama.cpp brain, an agent layer with cross-surface memory, and the verification work that followed a confident report of lights that had not moved.</p>
+    </div>
+    <div class="header-meta">
+      <div class="article-index">W-10</div>
+      <div class="article-date">23 September 2026</div>
+      <div class="article-read-time">~14 min read</div>
+      <div class="header-tags">
+        <span class="tag highlight">AI / LLMs</span>
+        <span class="tag">Audio Systems</span>
+        <span class="tag">Home Assistant</span>
+        <span class="tag">llama.cpp</span>
+        <span class="tag">Observability</span>
+      </div>
+    </div>
+  </header>
+
+<!-- AUTO-SERIES-NAV-START -->
+<nav class="article-series-nav" aria-label="Ramone Voice Assistant series">
+  <div class="article-series-heading">
+    <span class="article-series-kicker">Writing series · Part 2 of 2</span>
+    <a class="article-series-title" href="/writing/index.html#series-ramone-voice-assistant">Ramone Voice Assistant</a>
+  </div>
+  <ol class="article-series-parts">
+      <li class="article-series-part is-live"><a class="series-part-link" href="/writing/ramone-voice-assistant/"><span class="series-part-number">Part 1</span><span class="series-part-title">Building a Private Room-Scale Voice Assistant from Local Parts</span><span class="series-part-state">Live</span></a></li>
+      <li class="article-series-part is-current"><span class="series-part-link" aria-current="page"><span class="series-part-number">Part 2</span><span class="series-part-title">When the Assistant Reported Work It Had Not Done</span><span class="series-part-state">Current</span></span></li>
+  </ol>
+</nav>
+<!-- AUTO-SERIES-NAV-END -->
+
+<div class="spec-strip">
+    <div class="spec-cell"><div class="spec-label">Series</div><div class="spec-value">Ramone Voice Assistant · Part 2 of 2</div></div>
+    <div class="spec-cell"><div class="spec-label">Timeline</div><div class="spec-value">August 2026</div></div>
+    <div class="spec-cell"><div class="spec-label">Model</div><div class="spec-value">Qwen3.5-9B via llama.cpp</div></div>
+    <div class="spec-cell"><div class="spec-label">Context</div><div class="spec-value">65536 tokens</div></div>
+    <div class="spec-cell"><div class="spec-label">Surfaces</div><div class="spec-value">5 with shared memory</div></div>
+    <div class="spec-cell"><div class="spec-label">Suite</div><div class="spec-value">42 room-plugin tests</div></div>
+    <div class="spec-cell"><div class="spec-label">Evidence</div><div class="spec-value">30 August 2026 capture</div></div>
+  </div>
+
+  <div class="article-body">
+    <aside class="toc">
+      <div class="toc-label">Contents</div>
+      <ul class="toc-list">
+        <li class="toc-item"><a href="#overview">Overview</a></li>
+        <li class="toc-item"><a href="#what-changed-underneath">What Changed Underneath</a></li>
+        <li class="toc-item"><a href="#moving-the-brain-off-ollama">Moving The Brain Off Ollama</a></li>
+        <li class="toc-item"><a href="#the-assistant-that-reported-work-it-had-not-done">The Assistant That Reported Work It Had Not Done</a></li>
+        <li class="toc-item"><a href="#continuity-and-surfaces">Continuity And Surfaces</a></li>
+        <li class="toc-item"><a href="#personality-as-a-specification">Personality As A Specification</a></li>
+        <li class="toc-item"><a href="#rebuilding-the-music-path">Rebuilding The Music Path</a></li>
+        <li class="toc-item"><a href="#operating-it">Operating It</a></li>
+        <li class="toc-item"><a href="#outcomes">Outcomes</a></li>
+      </ul>
+    </aside>
+
+    <article class="prose">
+      <section id="overview">
+        <h2>Overview</h2>
+        <p>Part 1 ended with a working voice loop and a conclusion I still think is right: a voice assistant is not one model, it is a set of boundaries. Wake detection, transcription, intent routing, speech, and playback each had their own failure mode, and making those explicit is what turned a novelty into something usable.</p>
+        <p>What that conclusion missed is that boundaries make a system debuggable, not honest.</p>
+        <p>By late August, Ramone had a larger brain on different hardware, persistent memory, tools, and five surfaces to speak through. The first thing the new stack did with all of that was tell me the room was at full brightness while the floor lamp sat red at ten percent. Nothing had errored. Every component had reported the truth about itself, and the assembled system had still produced a confident lie.</p>
+        <p>This part is the record of that rebuild and the verification layer written in response.</p>
+        <div class="callout warning"><div class="callout-label">Snapshot Boundary</div><p>This part records the state captured on 30 August 2026. It supersedes the conversation path in Part 1 but not the wake, speech, or playback layers, which are unchanged. Work that was still unproven at capture is named in Outcomes rather than implied to be finished, and the temporary transcript logging described below was still enabled when this was written.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="what-changed-underneath">
+        <h2>What Changed Underneath</h2>
+        <p>The June stack reached a host-local Ollama endpoint for conversational fallback. That single hop is now an agent layer, and the model itself moved off WSL2 entirely.</p>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>Layer</th><th>June 2026</th><th>30 August 2026</th></tr></thead><tbody><tr><td>Conversation model</td><td>Ollama <code>llama3.1:8b</code>, <code>4096</code> context</td><td><code>Qwen3.5-9B</code> on Windows llama.cpp, <code>65536</code> context</td></tr><tr><td>Path</td><td>Assist to Ollama</td><td>Assist to voice proxy <code>8643</code>, to agent <code>8642</code>, to model <code>8095</code></td></tr><tr><td>Memory</td><td>8 turns of Home Assistant history</td><td>Honcho on <code>8010</code>, shared across surfaces</td></tr><tr><td>Character</td><td>One prompt file</td><td><code>SOUL.md</code> plus a written specification</td></tr><tr><td>Surfaces</td><td>Voice</td><td>Voice, Discord, SMS, email, terminal</td></tr><tr><td>Room actions</td><td>Reported from the service call</td><td>Verified against observed light state</td></tr></tbody></table></div>
+        <p>Wake detection, transcription, speech synthesis, and playback are untouched. Everything between the transcript and the answer is new.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="moving-the-brain-off-ollama">
+        <h2>Moving The Brain Off Ollama</h2>
+        <p>June&#x27;s conversation path was <code>llama3.1:8b</code> served by Ollama inside WSL2, with a 4096-token context and a keep-alive that hid the cold-load cost. It was good enough to talk. It was not good enough to hold a character, a tool contract, and a room catalogue in the same window.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p>The conversation model had been chosen for latency inside a 4096-token window. Once Ramone needed a character file, a tool contract, standing reminders, and live room state in the same prompt, the window itself became the constraint. Raising the context on an 8B model inside WSL2 gave the latency back and still left the character truncated.</p></div>
+        <p>The replacement runs on Windows rather than in WSL2, because the GPU is a Windows device and the container boundary was costing more than it returned:</p>
+        <pre><code class="language-text">llama-server.exe (b10621-cuda13)
+-m Qwen3.5-9B-Q4_K_M.gguf
+--host 172.23.16.1 --port 8095
+--ctx-size 65536
+--n-gpu-layers 999
+--flash-attn on
+--reasoning off --reasoning-budget 0
+--spec-type draft-mtp --spec-draft-n-max 4 --spec-draft-p-min 0.5
+--parallel 1</code></pre>
+        <p>Three of those flags are voice decisions rather than model decisions. <code>--reasoning off</code> with a zero budget stops the model spending its first second thinking out loud into a room that is waiting for a sentence. <code>--spec-type draft-mtp</code> uses the model&#x27;s own multi-token prediction head as its draft, which buys speed without a second set of weights competing for VRAM. <code>--parallel 1</code> is an admission: there is one GPU slot, so anything that holds it holds the room.</p>
+        <p>Home Assistant could not call that server directly, because Assist speaks the Ollama API and the agent layer speaks OpenAI. The translation lives in <code>hermes-voice-proxy/app.py</code>. Two details in it are the room talking back. It strips reasoning blocks before they reach Kokoro, because a model that emits its thinking inline will otherwise have that thinking read aloud at half past eleven at night.</p>
+        <p>And it enforces a deadline. The inherited timeout was 180 seconds, which is reasonable in a text interface where a slow answer is still an answer, and wrong in a bedroom: a satellite silent for three minutes has already lost the room, and with one GPU slot the stuck request holds the whole system while it fails. The proxy now works to a 45-second chat timeout under a hard 50-second spoken ceiling, emitting keepalives while it waits. If the deadline passes it says an honest sentence instead of continuing to wait on something that is not coming.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>The conversation model moved to a Windows-side llama.cpp server running Qwen3.5-9B at a 65536-token context, with reasoning disabled and multi-token speculative decoding. Ollama stayed on the machine for embeddings and unrelated models; it is no longer on the voice path.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="the-assistant-that-reported-work-it-had-not-done">
+        <h2>The Assistant That Reported Work It Had Not Done</h2>
+        <p>On 28 August I said <code>bright mode</code>. Hermes called the room tool, the tool called the Home Assistant script, the script reported success, and Ramone told me the room was at full-brightness 5000K white. The floor lamp was red at brightness 10. The smart bulb and the TV backlight were off.</p>
+        <p>Nothing had gone wrong in the way failures normally go wrong. There was no exception, no timeout, no error in any log. The system had simply described a room that did not exist.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p>Every layer reported the truth about itself. The script ran, so Home Assistant returned success. The tool saw a successful service call, so it returned <code>ran: true</code>. The model saw <code>ran: true</code>, so it described the scene it had asked for. Nothing in the chain compared the request against the room. An assistant that can act on a room and cannot observe it will narrate the room it intended.</p></div>
+        <p>The fix was not a better prompt. Asking a model to be more careful about a fact it cannot see is not a control. The layer that acts had to be the layer that checks.</p>
+        <p>The room tool now derives target values from the script&#x27;s own YAML, reads the lights back afterwards, and treats brightness as its real <code>0</code>–<code>255</code> state value with both colour and an upper bound checked — so a scene cannot pass by being merely brighter than before. When the room does not match, it returns <code>ran: false</code>, <code>verification: unchanged_light_state</code>, and an explicit instruction not to claim success. It keeps <code>script_ran: true</code> alongside that, because the difference between *the script did not run* and *the script ran and changed nothing* is the whole diagnosis.</p>
+        <p>Two supporting rules closed the routes around it: direct <code>ha_call_service</code> calls to <code>script.ramone_*</code> are blocked, and any service call reporting zero affected entities is rewritten as a failure rather than a success.</p>
+        <p>The first verifier was then too strict in an interesting way. It read the lights immediately, caught them mid-transition, and reported completed scenes as partial. It polls for up to five seconds now — the honesty rule had to learn that real hardware takes time, or it would have replaced one class of false report with another.</p>
+        <p>With the check in place, the model could be removed from the risky part of the job entirely. Exact room-scene phrases now bypass it for both selection and execution; it is allowed to word the reply only *after* a verified complete scene, behind a structural safety check, with deterministic copy as the fallback. Its prompt for that job deliberately contains no positive examples, because a quotable line in a prompt is a line that gets recited into an unrelated moment later.</p>
+        <p>None of this is trusted on the basis that it was written. Every scene attempt appends an audit record — phrase, script, verification result, light state, and whether the reply came from the model or the fallback — and the room catalogue is pinned by a checked-in snapshot, so a drifting intent-to-script mapping fails the suite instead of the room. That suite has grown from seven tests to forty-two.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>Room actions are verified against observed light state before they are reported, with the bypass routes closed and a settle window that tolerates real transitions. The model no longer selects or executes room scenes; it words the confirmation after the facts are established, or the deterministic reply is used instead.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="continuity-and-surfaces">
+        <h2>Continuity And Surfaces</h2>
+        <p>The June assistant remembered nothing. Home Assistant kept eight turns of history and that was the whole of it, which is defensible for a light switch and useless for anything that sounds like a person.</p>
+        <p>Ramone now runs on Honcho, with Atlas as a single user peer across every surface, so the same conversation continues whether it started in the bedroom, in Discord, over SMS, or by email. Getting there needed one unglamorous fix: the voice proxy had been building its session identifier with a timestamp suffix, so every wake word started a fresh session. The room had no continuity at all, even though the memory layer underneath was working perfectly.</p>
+        <p>Not everything belongs in a memory model, though, and deciding what does not turned out to matter more. Standing reminders live in a plain text file, and the instruction is explicit: read the file, list every line, do not substitute anything the memory layer has inferred. A reminder Atlas asked for is a fact with an owner, and a system that paraphrases it from context will eventually drop one and never know. Timed check-backs are a third mechanism again — Home Assistant scripts, where a dated reminder becomes a real scheduled job rather than a note.</p>
+        <p>That distinction exposed a genuine capability bug. Ramone had been saying he could not schedule anything, which I assumed was character drift. It was not. The scheduling tool existed in the catalogue of tools that *exist* but had never been added to the per-surface allowlist of tools that are *active*. He was right and I was wrong, which is the better direction for that particular failure.</p>
+        <p>Running bits — the callbacks and recurring complaints that actually landed — get their own file again, dated, read before use and appended to when a new one earns it. Continuity of character, kept deliberately separate from continuity of fact.</p>
+        <div class="callout"><div class="callout-label">Design Decision</div><p>Memory is not one store. Inferred context, owned facts, scheduled actions, and running jokes have different failure modes, so they get different homes. The only one Ramone is allowed to paraphrase is the jokes.</p></div>
+        <p>One last trap is worth recording, because it failed silently for days. Character files are truncated to a configured character limit, and <code>SOUL.md</code> had grown past the default. The cap is normally computed from the context window, but for a 65536-token window that calculation produced a smaller number than the floor, so the floor applied — and the file was being cut off mid-document, quietly dropping the Spotify instructions and the default stance from every prompt. Nothing errored. Ramone just got slightly worse at two specific things, for a reason that was invisible until the file was measured against the limit.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="personality-as-a-specification">
+        <h2>Personality As A Specification</h2>
+        <p>That prompt did its job and then stopped scaling. A single file can hold a character for one surface. It cannot hold a character across five, and it cannot be argued with when the character drifts, because there is nothing to compare the drift against.</p>
+        <p>So the character moved out of the prompt and into two files with different jobs. <code>~/.hermes/SOUL.md</code> is what Ramone actually reads, on every surface. <code>docs/ramone_personality_bible.md</code> is the written specification the prompts are edited *against* — a target definition rather than a description of current behaviour, with the explicit rule that where the bible and a live prompt disagree, the prompt is out of date.</p>
+        <p>The bible is more useful than it sounds, because it forced decisions that a prompt lets you avoid. The reference point is a juiced-up mate version of Jarvis: the competence and the dry understatement, with the deference removed entirely. Five rules are defined as defects rather than preferences, the first being that attitude is free and compliance is mandatory — he can have as much opinion about a request as he likes, before, during, or after, but the opinion never gates the action.</p>
+        <p><code>RAMONE_VOICE_PROMPT.md</code> still exists, but it has been demoted. It now opens by saying what it is: a speech overlay, not a second personality.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="rebuilding-the-music-path">
+        <h2>Rebuilding The Music Path</h2>
+        <p>Keeping Spotify as an optional edge paid off in August, when the edge broke. A controlled Home Assistant Core update from <code>2026.6.4</code> to <code>2026.8.3</code> left the native Spotify integration unable to parse playlist responses, which took scene music down without touching anything else. The scenes moved onto the SpotifyPlus custom integration instead, calling it with an explicit device, shuffle, and then volume.</p>
+        <p>The migration carried one bug worth naming, because it was caught by reading rather than by testing. The old integration took volume as a <code>0.0</code>–<code>1.0</code> fraction and the scenes passed <code>1</code>. The new one takes a percentage. Passing the old value straight through would have started every scene playlist at one percent volume and looked, from the room, exactly like a playback failure.</p>
+        <p>Proving it worked also meant deciding what &quot;worked&quot; means. Confirming that music started is a weak claim; five scenes could all start the same playlist and pass. The check compared each scene&#x27;s configured playlist against the recorded history of what actually played, in order — so the evidence is that <code>bright</code> started Jazz for Cows and <code>work</code> started 404 ERNO, not merely that noise came out of the correct machine. The scene helper was corrected in the same pass to stop logging a successful start unconditionally: it now reports playback as confirmed only when the player actually reports playing on the target device.</p>
+        <p>Two smaller controls came out of living with it. The playback target is now selectable between the desktop and the Xbox, rather than hardcoded. And every scene that starts music gained a lights-only twin, because &quot;reading mode&quot; and &quot;reading mode but leave the music alone&quot; are genuinely different requests, and the second one should not have to be a manual undo of the first.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="operating-it">
+        <h2>Operating It</h2>
+        <h3>Hearing The Room Reliably</h3>
+        <p>Two smaller fixes came out of the same period, both in the part of the stack Part 1 described as settled.</p>
+        <p>The microphone helper had hard-coded <code>input_device_index = 1</code>, which is stable right up until Windows renumbers the audio devices after a driver update or a USB re-enumeration — at which point the assistant listens to the wrong input and reports nothing wrong. It now searches for a device whose name contains <code>Analogue 1 + 2</code>, falls back to an explicit index when one is supplied, and reopens the stream after a run of read errors instead of dying quietly.</p>
+        <p>Whisper&#x27;s initial prompt also grew from a spelling hint into a vocabulary bias, carrying the command phrases the room actually uses and the artist names that get mangled most often. The cheapest way to fix a misheard command is to tell the transcriber the phrase exists before it guesses. Getting there needed a duller fix first: the container logs every transcript, but with no rotation policy that history died on every restart. On 28 August only nine lines had survived, which made any attempt to add phrase aliases guesswork.</p>
+        <h3>Knowing Whether It Is Alive</h3>
+        <p>A ten-service voice assistant fails partially, and it fails quietly. The room sounds identical whether the wake word service is down, the model is unloaded, or Atlas simply has not said anything yet.</p>
+        <p><code>tests/ramone_health.py</code> answers that in one command. It probes all ten services, reports which host actually answered — the <code>host.docker.internal</code> trap from earlier is exactly why it has to record that — and resolves to one of four states. It restarts nothing, redacts tokens on the way out, and checks the model with a <code>GET</code> rather than a chat request, so the probe can never take the single GPU slot it is asking about.</p>
+        <p>The interesting state is the second one:</p>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>State</th><th>Meaning</th></tr></thead><tbody><tr><td><code>up</code></td><td>every required service answered</td></tr><tr><td><code>ewan_parked</code></td><td>the model is down deliberately, and that is correct</td></tr><tr><td><code>brain_down</code></td><td>the model is down and nothing asked for it to be</td></tr><tr><td><code>degraded</code></td><td>something else required is missing</td></tr></tbody></table></div>
+        <p><code>ewan_parked</code> exists because the conversation model and Unreal Engine want the same GPU. When heavy 3D work is running, llama.cpp is supposed to be stopped, and a monitor that pages about it is worse than no monitor at all. A lock file marks the difference between *absent* and *broken*, and the probe exits successfully in both healthy cases.</p>
+        <p>Recovery is a Windows scheduled task on a five-minute tick. It rediscovers the WSL gateway address on every run rather than trusting a stored value, because that address can change across a reboot and a satellite advertising the wrong host looks perfectly healthy from the inside while Home Assistant talks to nothing.</p>
+        <p>The Home Assistant sensor that would surface all of this in the morning briefing is drafted and deliberately not loaded. Wiring it needs a restart, and a briefing that reports a stale <code>unknown</code> every morning would be worse than the silence it replaces.</p>
+        <h3>Sharing The Machine</h3>
+        <p>The satellite is a long-lived Python process on a workstation that also plays games, renders, and compiles. Left alone, it lands wherever Windows puts it, which occasionally meant the cache-sensitive cores that everything else wanted.</p>
+        <p>It is now pinned to the second core complex — the non-V-Cache die — so the cache cores stay free for the work that benefits from them. The pin is set inside the launcher rather than through a process-manager rule, and that choice is the actual engineering decision. A rule keyed on <code>python.exe</code> would have matched every unrelated Python process on the machine and quietly pinned all of them to half the CPU. Setting the affinity in-process affects exactly one process tree, and the microphone and speaker helpers inherit it because they are children.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="outcomes">
+        <h2>Outcomes</h2>
+        <div class="outcomes-grid"><div class="outcome-cell"><div class="outcome-label">Conversation brain</div><div class="outcome-value"><code>Qwen3.5-9B</code> on a Windows llama.cpp server at a <code>65536</code>-token context, reasoning disabled, multi-token speculative decoding, reached across the WSL gateway</div></div><div class="outcome-cell"><div class="outcome-label">Verification layer</div><div class="outcome-value">Room actions checked against observed light state before they are reported, returning an explicit failure on an unchanged room, with the direct service-call bypass blocked and a 42-test suite behind it</div></div><div class="outcome-cell"><div class="outcome-label">Continuity</div><div class="outcome-value">One Ramone across voice, Discord, SMS, email, and terminal, with shared memory, an owned-facts reminder file, and a running-bits file kept deliberately separate from it</div></div><div class="outcome-cell"><div class="outcome-label">Unproven at capture</div><div class="outcome-value">The <code>dim</code>, <code>gaming</code>, and <code>movie</code> scenes on the current build, the model-versus-fallback reply ratio, and the drafted Home Assistant health sensor</div></div></div>
+        <p>At the 30 August 2026 capture, Ramone worked as a private voice surface for SPECULAR-CORE and as the same character on four other surfaces. It wakes by name, matches deterministic intents where it can, hands the rest to a local agent with memory and tools, verifies anything it does to the room before it says it did it, and answers through a local Kokoro voice. The temporary transcript logging enabled for phrase-matching work is still on and still needs turning off.</p>
+        <p>The lesson has moved since June. Boundaries are a diagnostic property rather than an honesty one: a system that can turn on a light and cannot see the light will eventually tell you that it did, and no amount of prompt discipline fixes that, because the model is not the component that is wrong. The fix was giving the layer that acts a way to observe, and the standing to contradict itself.</p>
+      </section>
+    </article>
+  </div>
+
+  <div class="article-footer">
+    <a href="/writing/ramone-voice-assistant/" class="footer-back">
+    <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    ← W-09 — Ramone
+  </a>
+  <span class="footer-next">Latest article</span>
+  </div>
+
+</main>
+
+<nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
+  <div class="mobile-nav-inner atlas-mobile-nav__inner">
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>
+    <a class="mobile-nav-item atlas-mobile-nav__item active" href="/writing/" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="16" y2="13"></line></svg><span>Writing</span></a>
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/lab/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V9"></path><path d="M14 3h7v7"></path></svg><span>Lab</span></a>
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg><span>Systems</span></a>
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M20 21a8 8 0 10-16 0"></path></svg><span>About</span></a>
+  </div>
+</nav>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-item a');
+  const sections = document.querySelectorAll('section[id]');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        tocLinks.forEach(a => a.classList.remove('active'));
+        const active = document.querySelector(`.toc-item a[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+<script src="/js/transitions.js?v=20260814-terminal-swipe"></script>
+<script type="module" src="/static/js/estate-shell.js?v=20260723-interface-v2"></script>
+<script type="module" src="/static/js/estate-search/global-search.js"></script>
+
+</body>
+</html>
