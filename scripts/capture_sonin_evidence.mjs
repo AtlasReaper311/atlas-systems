@@ -43,22 +43,6 @@ function isCspFrameBlock(text) {
   return /content security policy|frame-src|refused to frame|blocked.*csp|refused to display/i.test(text || "");
 }
 
-function isFrameTarget(target) {
-  return target === "iframe" || target.startsWith("iframe ");
-}
-
-function classifyAccessibility(report) {
-  const atlasBlocking = [];
-  const youtubeOwned = [];
-  for (const violation of report.violations) {
-    const frameOnly = violation.nodes.length > 0
-      && violation.nodes.every((node) => node.target.some(isFrameTarget));
-    if (frameOnly) youtubeOwned.push(violation);
-    else if (["serious", "critical"].includes(violation.impact)) atlasBlocking.push(violation);
-  }
-  return { atlasBlocking, youtubeOwned };
-}
-
 async function inspectLayout(page) {
   return page.evaluate(() => {
     const iframeNodes = [...document.querySelectorAll("iframe")];
@@ -217,9 +201,8 @@ async function captureBrowser(browserDefinition) {
         result.articleHierarchy = layout.articleHierarchy;
         result.mobileNavigation = layout.mobileNavigation;
         const accessibility = await accessibilityReport(page);
-        const classifiedAccessibility = classifyAccessibility(accessibility);
-        result.atlasAccessibilityBlockingViolations = classifiedAccessibility.atlasBlocking;
-        result.youtubeOwnedAccessibilityFindings = classifiedAccessibility.youtubeOwned;
+        result.atlasAccessibilityBlockingViolations = accessibility.blocking;
+        result.youtubeOwnedAccessibilityFindings = accessibility.thirdParty;
       } catch (error) {
         result.captureError = error?.stack || String(error);
       }

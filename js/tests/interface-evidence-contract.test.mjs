@@ -17,10 +17,15 @@ import {
   acceptedReportingFinding,
   reconcileEvidenceReport,
 } from "../../scripts/interface-evidence/reporting-baseline.mjs";
+import {
+  classifyAccessibilityViolations,
+  classifyConsoleErrors,
+} from "../../scripts/interface-evidence/browser-core.mjs";
 
 const sitemapXml = readFileSync("sitemap.xml", "utf8");
 const sitemapRoutes = parseSitemapRoutes(sitemapXml);
 const routes = allEvidenceRoutes(sitemapXml);
+const browserCore = readFileSync("scripts/interface-evidence/browser-core.mjs", "utf8");
 
 function descriptor(plan, route) {
   return plan.routes.find((candidate) => candidate.path === route);
@@ -161,6 +166,80 @@ test("retired Firefox SONIN CSP family is absent", () => {
     browser: "firefox",
     viewport: "375",
     message: "writing-sonin-generative-system/375: console errors Content-Security-Policy youtube.com/embed/O5f1tB5bdyE default-src 'self'",
+  }), null);
+});
+
+function axeViolation(impact, target) {
+  return { id: `${impact}-${target.join("-")}`, impact, nodes: [{ target }] };
+}
+
+test("Atlas-owned serious and critical axe findings remain blocking", () => {
+  const result = classifyAccessibilityViolations([
+    axeViolation("serious", ["main", "button"]),
+    axeViolation("critical", ["main", "input"]),
+  ], { pageOrigin: "https://preview.example" });
+  assert.equal(result.atlasBlocking.length, 2);
+  assert.deepEqual(result.thirdParty, []);
+});
+
+test("same-origin iframe findings and the iframe element itself remain Atlas-owned", () => {
+  const result = classifyAccessibilityViolations([
+    axeViolation("serious", ["iframe", "button"]),
+    axeViolation("critical", ["iframe"]),
+  ], {
+    pageOrigin: "https://preview.example",
+    iframeOriginsByTarget: new Map([["iframe", ["https://preview.example"]]]),
+  });
+  assert.equal(result.atlasBlocking.length, 2);
+  assert.deepEqual(result.thirdParty, []);
+});
+
+test("cross-origin iframe-owned findings are classified as visible third-party diagnostics", () => {
+  const finding = axeViolation("critical", ["iframe", ".external-button"]);
+  const result = classifyAccessibilityViolations([finding], {
+    pageOrigin: "https://preview.example",
+    iframeOriginsByTarget: new Map([["iframe", ["https://embed.example"]]]),
+  });
+  assert.deepEqual(result.atlasBlocking, []);
+  assert.deepEqual(result.thirdParty, [finding]);
+  assert.doesNotMatch(browserCore, /youtube\.com/i, "generic ownership policy must not be a YouTube allowlist");
+});
+
+test("console ownership distinguishes embedded-player diagnostics from Atlas errors", () => {
+  const cookie = {
+    type: "error",
+    text: "Cookie rejected in a cross-site context",
+    origin: "https://www.youtube.com",
+  };
+  const atlas = { type: "error", text: "Atlas integration failed", origin: "https://preview.example" };
+  const externalIntegration = { type: "error", text: "External integration failed", origin: "https://api.example" };
+  const result = classifyConsoleErrors([cookie, atlas, externalIntegration], {
+    pageOrigin: "https://preview.example",
+    childFrameOrigins: new Set(["https://www.youtube.com"]),
+  });
+  assert.deepEqual(result.thirdParty, [cookie]);
+  assert.deepEqual(result.atlasBlocking, [atlas, externalIntegration]);
+});
+
+test("dedicated SONIN evidence keeps its exact external-frame and CSP contracts", () => {
+  const genericRunner = readFileSync("scripts/capture_interface_evidence.mjs", "utf8");
+  const runner = readFileSync("scripts/capture_sonin_evidence.mjs", "utf8");
+  assert.match(genericRunner, /thirdPartyDiagnostics/);
+  assert.match(runner, /youtubeOwnedAccessibilityFindings/);
+  assert.match(runner, /atlasCspFrameBlockingViolations/);
+  assert.match(runner, /!result\.atlasCspFrameBlockingViolations\.length/);
+  assert.match(runner, /!result\.atlasAccessibilityBlockingViolations\.length/);
+  assert.match(runner, /youtubeChildFrame/);
+  assert.match(runner, /expectedIframePresent/);
+});
+
+test("the reporting baseline remains empty and does not accept ownership exceptions", () => {
+  assert.deepEqual(REPORTING_BASELINE.families, []);
+  assert.equal(acceptedReportingFinding({
+    routeName: "writing-sonin-generative-system",
+    browser: "firefox",
+    viewport: "375",
+    message: "writing-sonin-generative-system/375: serious accessibility findings third-party iframe",
   }), null);
 });
 
