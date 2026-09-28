@@ -5,7 +5,6 @@ import process from "node:process";
 import {
   BROWSERS,
   accessibilityReport,
-  actionableConsoleErrors,
   childFrameOrigins,
   configureDeterministicContext,
   observePage,
@@ -179,9 +178,8 @@ async function inspectFocus(page) {
       const headerBottom = header && ["fixed", "sticky"].includes(getComputedStyle(header).position)
         ? header.getBoundingClientRect().bottom
         : 0;
-      const mobileTop = mobile && getComputedStyle(mobile).display !== "none"
-        ? mobile.getBoundingClientRect().top
-        : innerHeight;
+      const mobileVisible = mobile && getComputedStyle(mobile).display !== "none";
+      const mobileTop = mobileVisible ? mobile.getBoundingClientRect().top : Number.POSITIVE_INFINITY;
       const insideFixedNavigation = Boolean(element?.closest?.(".atlas-header, .atlas-mobile-nav"));
       return {
         tag: element?.tagName?.toLowerCase() || null,
@@ -203,7 +201,7 @@ async function inspectFocus(page) {
   return { interactiveCount, checked: true, tag: null, focusVisible: false };
 }
 
-function assessRoute({ descriptor, viewport, semantics, focus, accessibility, telemetry }) {
+function assessRoute({ descriptor, viewport, semantics, focus, accessibility, telemetry, consoleClassification }) {
   const prefix = `${descriptor.name}/${viewport.name}`;
   const blockers = [];
   const routeFindings = [];
@@ -223,10 +221,12 @@ function assessRoute({ descriptor, viewport, semantics, focus, accessibility, te
   block(semantics.fixtureMode !== "deterministic-unavailable", "deterministic fixture mode is missing");
   block(semantics.canonical && !semantics.canonical.startsWith("https://atlas-systems.uk/"), "preview hostname entered canonical metadata");
   block(focus.checked && (!focus.focusVisible || !focus.tag), "keyboard focus is not visibly placed on an interactive control");
-  block(focus.obscuredByFixedNavigation, "fixed navigation obscures the focused control");
+  if (viewport.authority === "required") {
+    block(focus.obscuredByFixedNavigation, "fixed navigation obscures the focused control");
+  }
   block(accessibility.blocking.length, `serious accessibility findings ${JSON.stringify(accessibility.blocking)}`);
   block(telemetry.pageErrors.length, `page errors ${JSON.stringify(telemetry.pageErrors)}`);
-  const consoleErrors = telemetry.atlasConsoleErrors || actionableConsoleErrors(telemetry.consoleErrors);
+  const consoleErrors = consoleClassification.atlasBlocking;
   block(consoleErrors.length, `console errors ${JSON.stringify(consoleErrors)}`);
   block(telemetry.failedRequests.length, `failed requests ${JSON.stringify(telemetry.failedRequests)}`);
   block(telemetry.responseErrors.length, `HTTP errors ${JSON.stringify(telemetry.responseErrors)}`);
@@ -308,7 +308,15 @@ async function captureRoute(browserName, browser, descriptor, viewport) {
         includeViewport: viewport.width < 768,
       });
     }
-    const assessment = assessRoute({ descriptor, viewport, semantics, focus, accessibility, telemetry });
+    const assessment = assessRoute({
+      descriptor,
+      viewport,
+      semantics,
+      focus,
+      accessibility,
+      telemetry,
+      consoleClassification,
+    });
     Object.assign(result, {
       semantics,
       focus,

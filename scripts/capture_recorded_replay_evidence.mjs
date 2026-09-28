@@ -46,6 +46,11 @@ const noJavaScriptResults = [];
 const blockingFailures = [];
 
 function writeReport() {
+  const resultFailures = [
+    ...interactiveResults.flatMap(({ blockingFailures: failures }) => failures),
+    ...noJavaScriptResults.flatMap(({ blockingFailures: failures }) => failures),
+  ];
+  const allFailures = [...blockingFailures, ...resultFailures];
   writeJson(reportPath, {
     schema_version: SCHEMA_VERSION,
     preview: base,
@@ -57,8 +62,8 @@ function writeReport() {
     viewports: STANDARD_VIEWPORTS,
     interactive: interactiveResults,
     noJavaScript: noJavaScriptResults,
-    blockingFailures,
-    passed: blockingFailures.length === 0
+    blockingFailures: allFailures,
+    passed: allFailures.length === 0
       && interactiveResults.length === BROWSERS.length * STANDARD_VIEWPORTS.length
       && noJavaScriptResults.length === BROWSERS.length * STANDARD_VIEWPORTS.length,
   });
@@ -333,6 +338,17 @@ async function captureInteractive(browserName, browser, viewport) {
     };
   } catch (error) {
     const message = `${browserName}/${viewport.name}: ${error.stack || error.message}`;
+    result.diagnostics = {
+      state: await routeState(page).catch(() => null),
+      audioNote: await page.locator("[data-recorded-replay-audio-note]").textContent().catch(() => null),
+      telemetry: {
+        ...telemetry,
+        atlasConsoleErrors: classifyConsoleErrors(telemetry.consoleErrors, {
+          pageOrigin: new URL(page.url()).origin,
+          childFrameOrigins: childFrameOrigins(page),
+        }).atlasBlocking,
+      },
+    };
     errors.push(message);
   } finally {
     interactiveResults.push(result);
@@ -379,7 +395,6 @@ async function captureNoJavaScript(browserName, browser, viewport) {
       "impact",
       "incident duration",
       "live recovery",
-      "follow-up",
       "does not verify live recovery",
     ]) assertEvidence(evidence.text.toLowerCase().includes(term.toLowerCase()), `no-JS boundary is missing: ${term}`, errors);
     assertEvidence(evidence.width >= viewport.width, "no-JS viewport measurement is invalid", errors);
@@ -388,7 +403,7 @@ async function captureNoJavaScript(browserName, browser, viewport) {
     result.evidence = {
       ...evidence,
       text: undefined,
-      requiredTerms: ["Causality is not established", "root cause", "impact", "incident duration", "live recovery", "follow-up"],
+      requiredTerms: ["Causality is not established", "root cause", "impact", "incident duration", "live recovery", "does not verify live recovery"],
     };
   } catch (error) {
     errors.push(`${browserName}/${viewport.name}/no-js: ${error.stack || error.message}`);

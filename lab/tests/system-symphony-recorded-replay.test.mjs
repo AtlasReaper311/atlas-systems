@@ -98,6 +98,8 @@ test("controls preserve explicit audio consent, pause/reset/mute state, focus, a
 test("current event marker survives list rebuilds across replay controls and keyboard movement", () => {
   const ui = read("lab/system-symphony/replay/recorded-replay.js");
   assert.ok(ui.indexOf("renderEventList();") < ui.indexOf("applyCurrentEventState(document.querySelectorAll"));
+  assert.match(ui, /focusedEvent/);
+  assert.match(ui, /querySelector\(`\[data-replay-position=/);
 
   let position = 0;
   let buttons = createEventButtons();

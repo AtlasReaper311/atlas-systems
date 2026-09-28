@@ -83,15 +83,17 @@ export async function installAudioContextTracking(context) {
     const NativeAudioContext = window.AudioContext || window.webkitAudioContext;
     const states = [];
     if (NativeAudioContext) {
-      const TrackedAudioContext = new Proxy(NativeAudioContext, {
-        construct(target, args, newTarget) {
-          const instance = Reflect.construct(target, args, newTarget);
-          const index = states.push(instance.state) - 1;
-          const update = () => { states[index] = instance.state; };
-          instance.addEventListener?.("statechange", update);
-          return instance;
-        },
-      });
+      // Firefox does not reliably construct its native AudioContext through a
+      // Proxy. A small callable wrapper keeps the native instance intact while
+      // recording the state changes the evidence runner needs.
+      const TrackedAudioContext = function (...args) {
+        const instance = new NativeAudioContext(...args);
+        const index = states.push(instance.state) - 1;
+        const update = () => { states[index] = instance.state; };
+        instance.addEventListener?.("statechange", update);
+        return instance;
+      };
+      TrackedAudioContext.prototype = NativeAudioContext.prototype;
       if (window.AudioContext) window.AudioContext = TrackedAudioContext;
       if (window.webkitAudioContext) window.webkitAudioContext = TrackedAudioContext;
     }

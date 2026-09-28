@@ -88,6 +88,9 @@ function updateButtons() {
 function renderEventList() {
   const list = bySelector("[data-recorded-replay-events]");
   if (!list || !state.artifact) return;
+  const focusedEvent = document.activeElement?.matches?.("[data-replay-position]")
+    ? document.activeElement.dataset.replayPosition
+    : null;
   list.replaceChildren();
   state.artifact.events.forEach((event, index) => {
     const item = document.createElement("li");
@@ -113,6 +116,9 @@ function renderEventList() {
     item.appendChild(button);
     list.appendChild(item);
   });
+  if (focusedEvent !== null) {
+    list.querySelector(`[data-replay-position="${focusedEvent}"]`)?.focus();
+  }
 }
 
 function render() {
