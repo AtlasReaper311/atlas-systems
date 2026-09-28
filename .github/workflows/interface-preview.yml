@@ -26,6 +26,7 @@ on:
       - "scripts/capture_interface_evidence.mjs"
       - "scripts/capture_sonin_evidence.mjs"
       - "scripts/capture_batch_h_evidence.mjs"
+      - "scripts/capture_recorded_replay_evidence.mjs"
       - "scripts/interface-evidence/**"
       - "scripts/plan_interface_evidence.mjs"
       - "scripts/smoke_system_map_card_field_preview.mjs"
@@ -83,8 +84,10 @@ jobs:
           node --check scripts/capture_interface_evidence.mjs
           node --check scripts/capture_sonin_evidence.mjs
           node --check scripts/capture_batch_h_evidence.mjs
+          node --check scripts/capture_recorded_replay_evidence.mjs
           node --check scripts/interface-evidence/contract.mjs
           node --check scripts/interface-evidence/browser-core.mjs
+          node --check scripts/interface-evidence/screenshot-capture.mjs
           node --check scripts/plan_interface_evidence.mjs
           node --check scripts/smoke_system_map_card_field_preview.mjs
           node --check scripts/smoke_directory_header_fields_preview.mjs
@@ -240,6 +243,7 @@ jobs:
             scripts/capture_interface_evidence.mjs
             scripts/capture_sonin_evidence.mjs
             scripts/capture_batch_h_evidence.mjs
+            scripts/capture_recorded_replay_evidence.mjs
             scripts/interface-evidence
             scripts/smoke_system_map_card_field_preview.mjs
             scripts/smoke_directory_header_fields_preview.mjs
@@ -256,6 +260,7 @@ jobs:
           cp scripts/capture_interface_evidence.mjs "${RUNNER_TEMP}/interface-evidence/"
           cp scripts/capture_sonin_evidence.mjs "${RUNNER_TEMP}/interface-evidence/"
           cp scripts/capture_batch_h_evidence.mjs "${RUNNER_TEMP}/interface-evidence/"
+          cp scripts/capture_recorded_replay_evidence.mjs "${RUNNER_TEMP}/interface-evidence/"
           cp scripts/smoke_system_map_card_field_preview.mjs "${RUNNER_TEMP}/interface-evidence/"
           cp scripts/smoke_directory_header_fields_preview.mjs "${RUNNER_TEMP}/interface-evidence/"
           cp scripts/smoke_spectral_forge_preview.mjs "${RUNNER_TEMP}/interface-evidence/"
@@ -301,6 +306,14 @@ jobs:
         env:
           SONIN_EVIDENCE_OUTPUT_DIR: ${{ runner.temp }}/interface-evidence/sonin
         run: node capture_sonin_evidence.mjs
+      - name: Capture recorded-replay browser evidence
+        id: recorded-replay-capture
+        if: always()
+        continue-on-error: true
+        working-directory: ${{ runner.temp }}/interface-evidence
+        env:
+          RECORDED_REPLAY_EVIDENCE_OUTPUT_DIR: ${{ runner.temp }}/interface-evidence/recorded-replay
+        run: node capture_recorded_replay_evidence.mjs
       - name: Upload explicit SONIN frame evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
@@ -309,6 +322,17 @@ jobs:
           path: |
             ${{ runner.temp }}/interface-evidence/sonin/sonin-evidence.json
             ${{ runner.temp }}/interface-evidence/sonin/sonin-capture-error.txt
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload recorded-replay browser evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        with:
+          name: recorded-replay-browser-evidence-${{ github.event.pull_request.head.sha }}
+          path: |
+            ${{ runner.temp }}/interface-evidence/recorded-replay/recorded-replay-evidence.json
+            ${{ runner.temp }}/interface-evidence/recorded-replay/capture-error.txt
+            ${{ runner.temp }}/interface-evidence/recorded-replay/screenshots/*.png
           if-no-files-found: error
           retention-days: 14
       - name: Upload route-derived visual and accessibility evidence
@@ -343,6 +367,7 @@ jobs:
           ROUTE_CAPTURE_OUTCOME: ${{ steps.route-capture.outcome }}
           BATCH_H_CAPTURE_OUTCOME: ${{ steps.batch-h-capture.outcome }}
           SONIN_CAPTURE_OUTCOME: ${{ steps.sonin-capture.outcome }}
+          RECORDED_REPLAY_CAPTURE_OUTCOME: ${{ steps.recorded-replay-capture.outcome }}
         run: |
           set -euo pipefail
           failed=0
@@ -356,6 +381,10 @@ jobs:
           fi
           if [ "${SONIN_CAPTURE_OUTCOME}" != "success" ]; then
             echo "::error::Explicit SONIN YouTube frame evidence capture failed. Inspect the uploaded SONIN evidence artifact for the primary findings."
+            failed=1
+          fi
+          if [ "${RECORDED_REPLAY_CAPTURE_OUTCOME}" != "success" ]; then
+            echo "::error::Dedicated recorded-replay browser evidence capture failed. Inspect the uploaded recorded-replay evidence artifact for the primary findings."
             failed=1
           fi
           exit "${failed}"

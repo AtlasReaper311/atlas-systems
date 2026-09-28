@@ -14,6 +14,7 @@ import {
   writeJson,
 } from "./interface-evidence/browser-core.mjs";
 import { classifyConsoleErrors } from "./interface-evidence/ownership.mjs";
+import { captureDeterministicScreenshots } from "./interface-evidence/screenshot-capture.mjs";
 import {
   EVIDENCE_SCHEMA_VERSION,
   STANDARD_VIEWPORTS,
@@ -208,7 +209,14 @@ function assessRoute({ descriptor, viewport, semantics, focus, accessibility, te
   const routeFindings = [];
   const block = (condition, message) => { if (condition) blockers.push(`${prefix}: ${message}`); };
   const find = (condition, message) => { if (condition) routeFindings.push(`${prefix}: ${message}`); };
-  block(!semantics.title.includes("Atlas Systems"), "title omits Atlas Systems");
+  block(
+    descriptor.profile !== "recorded-replay" && !semantics.title.includes("Atlas Systems"),
+    "title omits Atlas Systems",
+  );
+  block(
+    descriptor.profile === "recorded-replay" && !semantics.title.includes("Recorded Incident Replay"),
+    "recorded replay title is missing",
+  );
   block(semantics.h1Count !== 1, `expected one h1, found ${semantics.h1Count}`);
   block(semantics.mainCount !== 1, `expected one main landmark, found ${semantics.mainCount}`);
   block(semantics.scrollWidth > semantics.width + 1, `horizontal overflow ${semantics.scrollWidth} > ${semantics.width}; ${JSON.stringify(semantics.overflow)}`);
@@ -290,16 +298,15 @@ async function captureRoute(browserName, browser, descriptor, viewport) {
       childFrameOrigins: childFrameOrigins(page),
     });
     const resources = await resourceMetrics(page);
-    const screenshots = { fullPage: null, viewport: null };
+    let screenshots = { fullPage: null, viewport: null, segments: [], captureMode: "none" };
     if (descriptor.screenshotViewportNames.includes(viewport.name)) {
-      const fullName = `${browserName}-${viewport.name}-${descriptor.name}-full.png`;
-      await page.screenshot({ path: path.join(screenshotDirectory, fullName), fullPage: true });
-      screenshots.fullPage = `screenshots/${fullName}`;
-      if (viewport.width < 768) {
-        const viewportName = `${browserName}-${viewport.name}-${descriptor.name}-viewport.png`;
-        await page.screenshot({ path: path.join(screenshotDirectory, viewportName), fullPage: false });
-        screenshots.viewport = `screenshots/${viewportName}`;
-      }
+      screenshots = await captureDeterministicScreenshots(page, {
+        directory: screenshotDirectory,
+        browserName,
+        viewportName: viewport.name,
+        routeName: descriptor.name,
+        includeViewport: viewport.width < 768,
+      });
     }
     const assessment = assessRoute({ descriptor, viewport, semantics, focus, accessibility, telemetry });
     Object.assign(result, {

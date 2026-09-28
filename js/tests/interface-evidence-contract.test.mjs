@@ -45,6 +45,7 @@ test("the evidence inventory is derived from every current sitemap route plus re
     "/lab/system-symphony/roms/",
     "/lab/system-symphony/build-log/",
     "/lab/system-symphony/radio/",
+    "/lab/system-symphony/replay/",
     "/404.html",
   ]) {
     assert.ok(NON_INDEXED_ROUTES.includes(route), `missing reviewed override ${route}`);
@@ -72,7 +73,8 @@ test("the plan gives every route semantic coverage and expands representative ro
 
 test("every Lab route requires the governed header, search, and mobile shell", () => {
   const plan = buildEvidencePlan({ sitemapXml });
-  const labRoutes = plan.routes.filter(({ path: route }) => route === "/lab/" || route.startsWith("/lab/"));
+  const labRoutes = plan.routes.filter(({ path: route, profile }) =>
+    (route === "/lab/" || route.startsWith("/lab/")) && profile !== "recorded-replay");
   assert.ok(labRoutes.length >= 16, `expected complete Lab inventory, found ${labRoutes.length}`);
   for (const route of labRoutes) {
     assert.equal(route.requiresStandardShell, true, `${route.path} does not require the governed shell`);
@@ -82,6 +84,15 @@ test("every Lab route requires the governed header, search, and mobile shell", (
   assert.equal(descriptor(plan, "/lab/system-symphony/roms/").profile, "system-symphony");
   assert.equal(descriptor(plan, "/lab/system-symphony/build-log/").profile, "system-symphony");
   assert.equal(descriptor(plan, "/lab/system-symphony/radio/").profile, "system-symphony");
+});
+
+test("recorded replay has an explicit no-shell evidence profile", () => {
+  const plan = buildEvidencePlan({ sitemapXml });
+  const replay = descriptor(plan, "/lab/system-symphony/replay/");
+  assert.ok(replay);
+  assert.equal(replay.profile, "recorded-replay");
+  assert.equal(replay.requiresStandardShell, false);
+  assert.deepEqual(replay.viewportNames, ["375", "1440"]);
 });
 
 test("changed routes receive the complete screenshot matrix", () => {
@@ -124,6 +135,13 @@ test("changed-file classification binds route work and shared assets to evidence
     routes,
   });
   assert.deepEqual(new Set(directoryAndXray.changed_routes), new Set(["/lab/"]));
+
+  const replay = classifyChangedFiles({
+    changedFiles: ["lab/system-symphony/replay/index.html", "lab/system-symphony/replay/recorded-replay.js"],
+    routes,
+  });
+  assert.deepEqual(replay.changed_routes, ["/lab/system-symphony/replay/"]);
+  assert.equal(replay.evidence_required, true);
 });
 
 test("the reporting baseline is pinned to the reviewed Phase 15 evidence", () => {
