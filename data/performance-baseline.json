@@ -59,13 +59,13 @@
     },
     {
       "route": "/writing/",
-      "html_bytes": 34886,
+      "html_bytes": 36804,
       "first_party_request_count": 27,
       "referenced_asset_bytes": 215005,
-      "total_static_bytes": 249891,
+      "total_static_bytes": 251809,
       "largest_referenced_asset": "static/vendor/atlas-interface/v0.2.0/fonts/dm-serif-display-400.woff2",
       "largest_referenced_asset_bytes": 24744
     }
   ],
-  "sha256": "dfee6f9fb7d03b29b1bf364ac274f5b2b660b3152281f043717fbd9997596e9f"
+  "sha256": "dea5d42892815f921e202792922d92df1286fb10b63a1d2deb50ee95e9036336"
 }
