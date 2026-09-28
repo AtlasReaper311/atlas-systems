@@ -207,7 +207,7 @@ test("cross-origin iframe-owned findings are classified as visible third-party d
   });
   assert.deepEqual(result.atlasBlocking, []);
   assert.deepEqual(result.thirdParty, [finding]);
-  assert.doesNotMatch(browserCore, /youtube\.com/i, "generic ownership policy must not be a YouTube allowlist");
+  assert.equal(browserCore.toLowerCase().includes("youtube.com"), false, "generic ownership policy must not be a YouTube allowlist");
 });
 
 test("console ownership distinguishes embedded-player diagnostics from Atlas errors", () => {
