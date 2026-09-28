@@ -21,8 +21,8 @@ test("recorded replay evidence is a dedicated exact-route Chrome and Firefox cap
   assert.match(runner, /STANDARD_VIEWPORTS/);
   assert.match(browserCore, /media\.autoplay\.block-webaudio/);
   assert.match(browserCore, /media\.block-autoplay-until-in-foreground/);
-  assert.match(browserCore, /nativeResume\.apply/);
-  assert.doesNotMatch(browserCore, /TrackedAudioContext/);
+  assert.match(browserCore, /TrackedAudioContext/);
+  assert.match(browserCore, /instance\.addEventListener/);
 });
 
 test("recorded replay browser evidence covers identity, transport, consent, ownership, and no-JS boundaries", () => {

@@ -98,36 +98,18 @@ export async function installAudioContextTracking(context) {
     const NativeAudioContext = window.AudioContext || window.webkitAudioContext;
     const states = [];
     if (NativeAudioContext) {
-      // Observe the native resume method instead of replacing the constructor.
-      // Firefox can leave a wrapped AudioContext suspended even after an
-      // explicit user gesture, while the native instance resumes correctly.
-      const trackedContexts = new WeakMap();
-      const track = (instance) => {
-        let index = trackedContexts.get(instance);
-        if (index === undefined) {
-          index = states.push(instance.state) - 1;
-          trackedContexts.set(instance, index);
-          const update = () => { states[index] = instance.state; };
-          instance.addEventListener?.("statechange", update);
-        }
-        return index;
+      // Return the native instance so browser audio keeps its normal brand and
+      // gesture handling, while recording state changes for the evidence probe.
+      const TrackedAudioContext = function (...args) {
+        const instance = new NativeAudioContext(...args);
+        const index = states.push(instance.state) - 1;
+        const update = () => { states[index] = instance.state; };
+        instance.addEventListener?.("statechange", update);
+        return instance;
       };
-      const nativeResume = NativeAudioContext.prototype.resume;
-      if (typeof nativeResume === "function") {
-        const resumeDescriptor = Object.getOwnPropertyDescriptor(NativeAudioContext.prototype, "resume");
-        const trackedResume = function (...args) {
-          const index = track(this);
-          const update = () => { states[index] = this.state; };
-          const result = nativeResume.apply(this, args);
-          if (result && typeof result.then === "function") result.then(update, update);
-          else update();
-          return result;
-        };
-        Object.defineProperty(NativeAudioContext.prototype, "resume", {
-          ...resumeDescriptor,
-          value: trackedResume,
-        });
-      }
+      TrackedAudioContext.prototype = NativeAudioContext.prototype;
+      if (window.AudioContext) window.AudioContext = TrackedAudioContext;
+      if (window.webkitAudioContext) window.webkitAudioContext = TrackedAudioContext;
     }
     Object.defineProperty(window, "__ATLAS_AUDIO_CONTEXT_STATES__", {
       get: () => [...states],
