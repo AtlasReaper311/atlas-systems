@@ -14,8 +14,21 @@ import { GLOBAL_ROUTES, normalizeAtlasTitle } from "../../static/js/estate-shell
 import { SHARED_FOUNDATION_CONTRACT } from "../../static/js/shared-foundation-semantics.js";
 
 const NOW = Date.parse("2026-07-23T08:00:00Z");
-const ACTIVE_BUNDLE_ROOT = "static/vendor/atlas-interface/v0.3.0";
+const ESTATE_INTERFACE_KIT_VERSION = "v0.3.0";
+const ACTIVE_BUNDLE_ROOT = `static/vendor/atlas-interface/${ESTATE_INTERFACE_KIT_VERSION}`;
 const LEGACY_BUNDLE_ROOT = "static/vendor/atlas-interface/v0.2.0";
+// The estate shell stays on v0.3.0. Writing article shells are a bounded
+// compatibility profile: legacy published shells may use v0.3.0, while
+// generated article shells use the accepted v0.4.0 contract.
+const WRITING_ARTICLE_INTERFACE_KIT_VERSIONS = new Set(["v0.3.0", "v0.4.0"]);
+const BOUNDED_V0_5_ROUTES = new Set([
+  "systems/evidence/index.html",
+  "systems/model-promotion/index.html",
+  "systems/observability/index.html",
+  "systems/reliability/index.html",
+]);
+const BOUNDED_V0_5_INTERFACE_KIT_VERSIONS = new Set(["v0.3.0", "v0.5.0"]);
+const INTERFACE_KIT_LINK_PATTERN = /<link rel="stylesheet" href="\/static\/vendor\/atlas-interface\/(v\d+\.\d+\.\d+)\/atlas-interface-kit\.css">/g;
 const FONT_FILES = new Set([
   "fonts/dm-serif-display-400-italic.woff2",
   "fonts/dm-serif-display-400.woff2",
@@ -57,6 +70,39 @@ function headerBlock(source) {
   return source.match(
     /<nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">[\s\S]*?<\/nav>/,
   )?.[0] ?? "";
+}
+
+function interfaceKitProfile(path) {
+  if (/^writing\/[^/]+\/index\.html$/.test(path)) {
+    return {
+      name: "Writing article",
+      acceptedVersions: WRITING_ARTICLE_INTERFACE_KIT_VERSIONS,
+    };
+  }
+  if (BOUNDED_V0_5_ROUTES.has(path)) {
+    return {
+      name: "bounded evidence surface",
+      acceptedVersions: BOUNDED_V0_5_INTERFACE_KIT_VERSIONS,
+    };
+  }
+  return {
+    name: "estate route",
+    acceptedVersions: new Set([ESTATE_INTERFACE_KIT_VERSION]),
+  };
+}
+
+function assertBlockingInterfaceKit(path, source) {
+  const head = source.split("</head>")[0];
+  const kitLinks = [...head.matchAll(INTERFACE_KIT_LINK_PATTERN)];
+  assert.ok(kitLinks.length > 0, `${path} must ship a blocking interface-kit link in head`);
+
+  const profile = interfaceKitProfile(path);
+  for (const [, version] of kitLinks) {
+    assert.ok(
+      profile.acceptedVersions.has(version),
+      `${path} has unsupported ${profile.name} interface kit ${version}; accepted: ${[...profile.acceptedVersions].join(", ")}`,
+    );
+  }
 }
 
 function sha256(path) {
@@ -145,11 +191,7 @@ test("first paint ships the governed header rather than a JavaScript rewrite of 
 test("header stylesheets are blocking links in head, never runtime appends", () => {
   for (const path of governedRoutes()) {
     const head = fs.readFileSync(path, "utf8").split("</head>")[0];
-    assert.match(
-      head,
-      /<link rel="stylesheet" href="\/static\/vendor\/atlas-interface\/v0\.3\.0\/atlas-interface-kit\.css">/,
-      `${path} must link the kit at first paint`,
-    );
+    assertBlockingInterfaceKit(path, head);
     assert.match(head, /<link rel="stylesheet" href="\/static\/css\/estate-shell\.css/, path);
     assert.equal(
       (head.match(/\/static\/css\/estate-shell\.css/g) || []).length,
@@ -157,6 +199,25 @@ test("header stylesheets are blocking links in head, never runtime appends", () 
       `${path} must link exactly one shell stylesheet`,
     );
   }
+});
+
+test("first-paint kit profiles cover estate routes and both Writing article contracts", () => {
+  const page = (kitVersion) => `<head><link rel="stylesheet" href="/static/vendor/atlas-interface/${kitVersion}/atlas-interface-kit.css"></head>`;
+
+  assert.doesNotThrow(() => assertBlockingInterfaceKit("systems/index.html", page("v0.3.0")));
+  assert.doesNotThrow(() => assertBlockingInterfaceKit("writing/legacy-article/index.html", page("v0.3.0")));
+  assert.doesNotThrow(() => assertBlockingInterfaceKit("writing/generated-article/index.html", page("v0.4.0")));
+  assert.throws(
+    () => assertBlockingInterfaceKit("writing/missing-kit/index.html", "<head></head>"),
+    /must ship a blocking interface-kit link in head/,
+  );
+  assert.throws(
+    () => assertBlockingInterfaceKit("writing/unsupported-kit/index.html", page("v0.5.0")),
+    /unsupported Writing article interface kit v0\.5\.0/,
+  );
+
+  const shell = fs.readFileSync("static/js/estate-shell.js", "utf8");
+  assert.match(shell, /\/static\/vendor\/atlas-interface\/v0\.3\.0\/atlas-interface-kit\.css/);
 });
 
 test("Lab routes ship the context strip beneath the header", () => {
