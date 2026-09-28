@@ -5,13 +5,15 @@ import process from "node:process";
 import {
   BROWSERS,
   accessibilityReport,
-  actionableConsoleErrors,
+  childFrameOrigins,
   configureDeterministicContext,
   observePage,
   openWithRetry,
   resourceMetrics,
   writeJson,
 } from "./interface-evidence/browser-core.mjs";
+import { classifyConsoleErrors } from "./interface-evidence/ownership.mjs";
+import { captureDeterministicScreenshots } from "./interface-evidence/screenshot-capture.mjs";
 import {
   EVIDENCE_SCHEMA_VERSION,
   STANDARD_VIEWPORTS,
@@ -35,6 +37,7 @@ const plan = buildEvidencePlan({
 const viewportByName = new Map(STANDARD_VIEWPORTS.map((viewport) => [viewport.name, viewport]));
 const routeResults = [];
 const findings = [];
+const diagnostics = [];
 const blockingFailures = [];
 
 function writeReport() {
@@ -48,6 +51,7 @@ function writeReport() {
     plan,
     routes: routeResults,
     findings,
+    diagnostics,
     blockingFailures,
   });
 }
@@ -174,9 +178,8 @@ async function inspectFocus(page) {
       const headerBottom = header && ["fixed", "sticky"].includes(getComputedStyle(header).position)
         ? header.getBoundingClientRect().bottom
         : 0;
-      const mobileTop = mobile && getComputedStyle(mobile).display !== "none"
-        ? mobile.getBoundingClientRect().top
-        : innerHeight;
+      const mobileVisible = mobile && getComputedStyle(mobile).display !== "none";
+      const mobileTop = mobileVisible ? mobile.getBoundingClientRect().top : Number.POSITIVE_INFINITY;
       const insideFixedNavigation = Boolean(element?.closest?.(".atlas-header, .atlas-mobile-nav"));
       return {
         tag: element?.tagName?.toLowerCase() || null,
@@ -198,23 +201,32 @@ async function inspectFocus(page) {
   return { interactiveCount, checked: true, tag: null, focusVisible: false };
 }
 
-function assessRoute({ descriptor, viewport, semantics, focus, accessibility, telemetry }) {
+function assessRoute({ descriptor, viewport, semantics, focus, accessibility, telemetry, consoleClassification }) {
   const prefix = `${descriptor.name}/${viewport.name}`;
   const blockers = [];
   const routeFindings = [];
   const block = (condition, message) => { if (condition) blockers.push(`${prefix}: ${message}`); };
   const find = (condition, message) => { if (condition) routeFindings.push(`${prefix}: ${message}`); };
-  block(!semantics.title.includes("Atlas Systems"), "title omits Atlas Systems");
+  block(
+    descriptor.profile !== "recorded-replay" && !semantics.title.includes("Atlas Systems"),
+    "title omits Atlas Systems",
+  );
+  block(
+    descriptor.profile === "recorded-replay" && !semantics.title.includes("Recorded Incident Replay"),
+    "recorded replay title is missing",
+  );
   block(semantics.h1Count !== 1, `expected one h1, found ${semantics.h1Count}`);
   block(semantics.mainCount !== 1, `expected one main landmark, found ${semantics.mainCount}`);
   block(semantics.scrollWidth > semantics.width + 1, `horizontal overflow ${semantics.scrollWidth} > ${semantics.width}; ${JSON.stringify(semantics.overflow)}`);
   block(semantics.fixtureMode !== "deterministic-unavailable", "deterministic fixture mode is missing");
   block(semantics.canonical && !semantics.canonical.startsWith("https://atlas-systems.uk/"), "preview hostname entered canonical metadata");
   block(focus.checked && (!focus.focusVisible || !focus.tag), "keyboard focus is not visibly placed on an interactive control");
-  block(focus.obscuredByFixedNavigation, "fixed navigation obscures the focused control");
+  if (viewport.authority === "required") {
+    block(focus.obscuredByFixedNavigation, "fixed navigation obscures the focused control");
+  }
   block(accessibility.blocking.length, `serious accessibility findings ${JSON.stringify(accessibility.blocking)}`);
   block(telemetry.pageErrors.length, `page errors ${JSON.stringify(telemetry.pageErrors)}`);
-  const consoleErrors = actionableConsoleErrors(telemetry.consoleErrors);
+  const consoleErrors = consoleClassification.atlasBlocking;
   block(consoleErrors.length, `console errors ${JSON.stringify(consoleErrors)}`);
   block(telemetry.failedRequests.length, `failed requests ${JSON.stringify(telemetry.failedRequests)}`);
   block(telemetry.responseErrors.length, `HTTP errors ${JSON.stringify(telemetry.responseErrors)}`);
@@ -281,24 +293,43 @@ async function captureRoute(browserName, browser, descriptor, viewport) {
     const semantics = await inspectPage(page, descriptor.profile);
     const focus = await inspectFocus(page);
     const accessibility = await accessibilityReport(page);
+    const consoleClassification = classifyConsoleErrors(telemetry.consoleErrors, {
+      pageOrigin: new URL(page.url()).origin,
+      childFrameOrigins: childFrameOrigins(page),
+    });
     const resources = await resourceMetrics(page);
-    const screenshots = { fullPage: null, viewport: null };
+    let screenshots = { fullPage: null, viewport: null, segments: [], captureMode: "none" };
     if (descriptor.screenshotViewportNames.includes(viewport.name)) {
-      const fullName = `${browserName}-${viewport.name}-${descriptor.name}-full.png`;
-      await page.screenshot({ path: path.join(screenshotDirectory, fullName), fullPage: true });
-      screenshots.fullPage = `screenshots/${fullName}`;
-      if (viewport.width < 768) {
-        const viewportName = `${browserName}-${viewport.name}-${descriptor.name}-viewport.png`;
-        await page.screenshot({ path: path.join(screenshotDirectory, viewportName), fullPage: false });
-        screenshots.viewport = `screenshots/${viewportName}`;
-      }
+      screenshots = await captureDeterministicScreenshots(page, {
+        directory: screenshotDirectory,
+        browserName,
+        viewportName: viewport.name,
+        routeName: descriptor.name,
+        includeViewport: viewport.width < 768,
+      });
     }
-    const assessment = assessRoute({ descriptor, viewport, semantics, focus, accessibility, telemetry });
+    const assessment = assessRoute({
+      descriptor,
+      viewport,
+      semantics,
+      focus,
+      accessibility,
+      telemetry,
+      consoleClassification,
+    });
     Object.assign(result, {
       semantics,
       focus,
       accessibilityViolations: accessibility.violations,
-      telemetry,
+      thirdPartyDiagnostics: {
+        accessibility: accessibility.thirdParty,
+        console: consoleClassification.thirdParty,
+      },
+      telemetry: {
+        ...telemetry,
+        atlasConsoleErrors: consoleClassification.atlasBlocking,
+        thirdPartyConsoleErrors: consoleClassification.thirdParty,
+      },
       resources,
       screenshots,
       acceptanceMode: descriptor.changed ? "blocking-changed-route" : "reporting-baseline",
@@ -308,9 +339,21 @@ async function captureRoute(browserName, browser, descriptor, viewport) {
       result.blockingFailures = assessment.blockers;
       findings.push(...assessment.findings);
       blockingFailures.push(...assessment.blockers);
+      diagnostics.push({
+        browser: browserName,
+        viewport: viewport.name,
+        route: descriptor.path,
+        thirdParty: result.thirdPartyDiagnostics,
+      });
     } else {
       result.findings = [...assessment.findings, ...assessment.blockers];
       findings.push(...result.findings);
+      diagnostics.push({
+        browser: browserName,
+        viewport: viewport.name,
+        route: descriptor.path,
+        thirdParty: result.thirdPartyDiagnostics,
+      });
     }
   } catch (error) {
     const message = `${browserName}/${viewport.name}/${descriptor.name}: ${error.stack || error.message}`;

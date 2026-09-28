@@ -21,6 +21,7 @@ export const NON_INDEXED_ROUTES = Object.freeze([
   "/lab/system-symphony/roms/",
   "/lab/system-symphony/build-log/",
   "/lab/system-symphony/radio/",
+  "/lab/system-symphony/replay/",
   "/404.html",
 ]);
 
@@ -31,10 +32,14 @@ const EVIDENCE_CONTRACT_PATHS = Object.freeze([
   "scripts/capture_interface_evidence.mjs",
   "scripts/capture_batch_h_evidence.mjs",
   "scripts/capture_speculum_evidence.mjs",
+  "scripts/capture_recorded_replay_evidence.mjs",
+  "scripts/interface-evidence/screenshot-capture.mjs",
   "scripts/plan_interface_evidence.mjs",
   "scripts/generate_sitemap.py",
   "js/tests/interface-evidence-contract.test.mjs",
   "js/tests/batch-h-browser-evidence.test.mjs",
+  "js/tests/recorded-replay-browser-evidence.test.mjs",
+  "js/tests/screenshot-capture.test.mjs",
 ]);
 
 const GLOBAL_VISUAL_PATHS = Object.freeze([
@@ -82,6 +87,7 @@ function routeKind(route) {
 function routeProfile(route) {
   if (route === "/lab/bearing/") return "bearing";
   if (route === "/lab/speculum/") return "speculum";
+  if (route === "/lab/system-symphony/replay/") return "recorded-replay";
   if (route.startsWith("/lab/system-symphony/")) return "system-symphony";
   if (route === "/404.html") return "error";
   return "standard-shell";
@@ -142,11 +148,12 @@ export function routeDescriptor(route, { representative = false, changed = false
     profile,
     activeSection: activeSection(route),
     requiresStandardShell:
-      kind === "lab"
+      profile !== "recorded-replay"
+      && (kind === "lab"
       || kind === "lab-tool"
       || profile === "standard-shell"
       || profile === "system-symphony"
-      || profile === "error",
+      || profile === "error"),
     representative,
     changed,
     viewportNames,
@@ -186,6 +193,7 @@ function routeFromIndexPath(filePath) {
 
 function routePrefixFromPath(filePath) {
   const parts = filePath.split("/");
+  if (filePath.startsWith("lab/system-symphony/replay/")) return "/lab/system-symphony/replay/";
   if (parts[0] === "lab" && parts.length >= 2) return `/lab/${parts[1]}/`;
   if (parts[0] === "systems" && parts.length >= 2 && parts[1] !== "index.html") return `/systems/${parts[1]}/`;
   if (parts[0] === "writing" && parts.length >= 2 && parts[1] !== "index.html") return `/writing/${parts[1]}/`;

@@ -6,6 +6,11 @@ import AxeBuilder from "@axe-core/playwright";
 import { chromium, firefox } from "playwright";
 
 import { reconcileBrowserPerformanceBudgets } from "./performance-budget.mjs";
+import {
+  classifyAccessibilityViolations,
+  classifyConsoleErrors,
+  originOf,
+} from "./ownership.mjs";
 import { reconcileEvidenceReport } from "./reporting-baseline.mjs";
 
 export const FIXTURE_HOSTS = new Set([
@@ -16,7 +21,22 @@ export const FIXTURE_HOSTS = new Set([
 
 export const BROWSERS = Object.freeze([
   Object.freeze({ name: "chrome", launch: () => chromium.launch({ channel: "chrome", headless: true }) }),
-  Object.freeze({ name: "firefox", launch: () => firefox.launch({ headless: true }) }),
+  Object.freeze({
+    name: "firefox",
+    launch: () => firefox.launch({
+      headless: true,
+      // Match the repository's APU Firefox harness so an explicit user gesture
+      // can resume Web Audio without allowing the replay to create it early.
+      firefoxUserPrefs: {
+        "media.autoplay.default": 0,
+        "media.autoplay.ask-permission": false,
+        "media.autoplay.blocking_policy": 0,
+        "media.autoplay.block-webaudio": false,
+        "media.allowed-to-play.enabled": true,
+        "media.block-autoplay-until-in-foreground": false,
+      },
+    }),
+  }),
 ]);
 
 function installEvidenceReconciliation() {
@@ -63,20 +83,31 @@ export function isFixtureUrl(value) {
   return FIXTURE_HOSTS.has(normalHostname(value));
 }
 
+export function childFrameOrigins(page) {
+  const pageOrigin = originOf(page.url());
+  return new Set(
+    page.frames()
+      .slice(1)
+      .map((frame) => originOf(frame.url()))
+      .filter((origin) => origin && origin !== pageOrigin),
+  );
+}
+
 export async function installAudioContextTracking(context) {
   await context.addInitScript(() => {
     const NativeAudioContext = window.AudioContext || window.webkitAudioContext;
     const states = [];
     if (NativeAudioContext) {
-      const TrackedAudioContext = new Proxy(NativeAudioContext, {
-        construct(target, args, newTarget) {
-          const instance = Reflect.construct(target, args, newTarget);
-          const index = states.push(instance.state) - 1;
-          const update = () => { states[index] = instance.state; };
-          instance.addEventListener?.("statechange", update);
-          return instance;
-        },
-      });
+      // Return the native instance so browser audio keeps its normal brand and
+      // gesture handling, while recording state changes for the evidence probe.
+      const TrackedAudioContext = function (...args) {
+        const instance = new NativeAudioContext(...args);
+        const index = states.push(instance.state) - 1;
+        const update = () => { states[index] = instance.state; };
+        instance.addEventListener?.("statechange", update);
+        return instance;
+      };
+      TrackedAudioContext.prototype = NativeAudioContext.prototype;
       if (window.AudioContext) window.AudioContext = TrackedAudioContext;
       if (window.webkitAudioContext) window.webkitAudioContext = TrackedAudioContext;
     }
@@ -115,7 +146,7 @@ export async function configureDeterministicContext(context, {
 }
 
 export function actionableConsoleErrors(records = []) {
-  return records.filter(({ text = "" }) => !/\b503\b/.test(text));
+  return classifyConsoleErrors(records).atlasBlocking;
 }
 
 export function observePage(page) {
@@ -129,7 +160,13 @@ export function observePage(page) {
 
   page.on("pageerror", (error) => state.pageErrors.push(error.message));
   page.on("console", (message) => {
-    const record = { type: message.type(), text: message.text() };
+    const location = message.location();
+    const record = {
+      type: message.type(),
+      text: message.text(),
+      locationUrl: location.url || null,
+      origin: originOf(location.url || ""),
+    };
     if (message.type() === "error") state.consoleErrors.push(record);
     if (message.type() === "warning") state.consoleWarnings.push(record);
   });
@@ -236,9 +273,37 @@ export async function accessibilityReport(page) {
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
   const violations = result.violations.map(summarizeViolation);
+  const iframeSelectors = [...new Set(
+    violations.flatMap((violation) => violation.nodes.flatMap((node) => {
+      const target = Array.isArray(node.target) ? node.target : [];
+      return target.length > 1 ? [target[0]] : [];
+    })),
+  )];
+  const iframeOriginsByTarget = await page.evaluate((selectors) => Object.fromEntries(
+    selectors.map((selector) => {
+      try {
+        const frames = [...document.querySelectorAll(selector)]
+          .filter((element) => element.tagName.toLowerCase() === "iframe");
+        return [selector, frames.map((frame) => {
+          try {
+            return new URL(frame.getAttribute("src") || "", document.baseURI).origin;
+          } catch {
+            return null;
+          }
+        }).filter(Boolean)];
+      } catch {
+        return [selector, []];
+      }
+    }),
+  ), iframeSelectors);
+  const classification = classifyAccessibilityViolations(violations, {
+    pageOrigin: originOf(page.url()),
+    iframeOriginsByTarget,
+  });
   return {
     violations,
-    blocking: violations.filter(({ impact }) => impact === "serious" || impact === "critical"),
+    blocking: classification.atlasBlocking,
+    thirdParty: classification.thirdParty,
   };
 }
 

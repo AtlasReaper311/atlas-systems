@@ -41,9 +41,10 @@ const NON_INDEXED_LAB_ROUTES = [
   "/lab/system-symphony/build-log/",
   "/lab/system-symphony/radio/",
 ];
+const RECORDED_REPLAY_ROUTE = "/lab/system-symphony/replay/";
 
 test("every canonical and reviewed Lab route is in browser evidence", () => {
-  for (const route of [...CANONICAL_LAB_ROUTES, ...NON_INDEXED_LAB_ROUTES]) {
+  for (const route of [...CANONICAL_LAB_ROUTES, ...NON_INDEXED_LAB_ROUTES, RECORDED_REPLAY_ROUTE]) {
     assert.ok(evidenceRoutes.includes(route), `missing Lab evidence route ${route}`);
   }
   for (const route of NON_INDEXED_LAB_ROUTES) {
@@ -51,11 +52,16 @@ test("every canonical and reviewed Lab route is in browser evidence", () => {
   }
 
   const plan = buildEvidencePlan({ sitemapXml });
-  for (const descriptor of plan.routes.filter(({ path }) => path === "/lab/" || path.startsWith("/lab/"))) {
+  for (const descriptor of plan.routes.filter(({ path, profile }) =>
+    (path === "/lab/" || path.startsWith("/lab/")) && profile !== "recorded-replay")) {
     assert.equal(descriptor.requiresStandardShell, true, `${descriptor.path} must require the governed shell`);
     assert.ok(descriptor.viewportNames.includes("375"), `${descriptor.path} lacks mobile evidence`);
     assert.ok(descriptor.viewportNames.includes("1440"), `${descriptor.path} lacks desktop evidence`);
   }
+  const replay = plan.routes.find(({ path }) => path === RECORDED_REPLAY_ROUTE);
+  assert.equal(replay.profile, "recorded-replay");
+  assert.equal(replay.requiresStandardShell, false);
+  assert.ok(NON_INDEXED_ROUTES.includes(RECORDED_REPLAY_ROUTE));
 });
 
 test("one shell owns header, search, context, measured layout, targets, and footer", () => {
