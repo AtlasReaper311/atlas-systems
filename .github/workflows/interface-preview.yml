@@ -87,6 +87,7 @@ jobs:
           node --check scripts/capture_recorded_replay_evidence.mjs
           node --check scripts/interface-evidence/contract.mjs
           node --check scripts/interface-evidence/browser-core.mjs
+          node --check scripts/interface-evidence/audio-capability.mjs
           node --check scripts/interface-evidence/screenshot-capture.mjs
           node --check scripts/plan_interface_evidence.mjs
           node --check scripts/smoke_system_map_card_field_preview.mjs

@@ -11,6 +11,7 @@ const AUDIO_FREQUENCIES = Object.freeze({
   "record-marker": 220,
   "follow-up-success": 174.61,
 });
+const AUDIO_RESUME_SETTLE_TIMEOUT_MS = 1_000;
 
 const state = {
   artifact: null,
@@ -187,7 +188,16 @@ function scheduleNext() {
 async function startAudio() {
   try {
     const audio = ensureAudio();
-    if (audio.context.state === "suspended") await audio.context.resume();
+    if (audio.context.state === "suspended") {
+      // Some hosted browsers leave resume() pending when no audio backend is
+      // available. Consent is still a completed user action, so bound the
+      // wait and let the replay controls remain usable while evidence records
+      // the context's actual suspended state separately.
+      await Promise.race([
+        Promise.resolve(audio.context.resume()).catch(() => undefined),
+        new Promise((resolve) => window.setTimeout(resolve, AUDIO_RESUME_SETTLE_TIMEOUT_MS)),
+      ]);
+    }
     state.audioConsent = true;
     setText("[data-recorded-replay-audio-note]", describeAudioState(state));
   } catch (error) {

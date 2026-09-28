@@ -14,6 +14,10 @@ import {
 import { classifyConsoleErrors } from "./interface-evidence/ownership.mjs";
 import { STANDARD_VIEWPORTS } from "./interface-evidence/contract.mjs";
 import { captureDeterministicScreenshots } from "./interface-evidence/screenshot-capture.mjs";
+import {
+  buildAudioRuntimeEvidence,
+  runIndependentWebAudioCapabilityProbe,
+} from "./interface-evidence/audio-capability.mjs";
 
 const SCHEMA_VERSION = "atlas-systems/recorded-replay-browser-evidence/v1";
 const INCIDENT = "inc-20260705-234935";
@@ -62,6 +66,12 @@ function writeReport() {
     viewports: STANDARD_VIEWPORTS,
     interactive: interactiveResults,
     noJavaScript: noJavaScriptResults,
+    audioRuntime: Object.fromEntries(BROWSERS.map(({ name }) => [
+      name,
+      interactiveResults
+        .filter((entry) => entry.browser === name)
+        .map(({ viewport, audioRuntime }) => ({ viewport, ...audioRuntime })),
+    ])),
     blockingFailures: allFailures,
     passed: allFailures.length === 0
       && interactiveResults.length === BROWSERS.length * STANDARD_VIEWPORTS.length
@@ -238,14 +248,35 @@ async function captureInteractive(browserName, browser, viewport) {
     });
 
     await page.locator("[data-recorded-replay-start-audio]").click();
-    await page.waitForFunction(() => document.querySelector("[data-recorded-replay]")?.dataset.audioConsent === "true");
+    await page.waitForFunction(
+      () => document.querySelector("[data-recorded-replay]")?.dataset.audioConsent === "true",
+      null,
+      { timeout: 5_000 },
+    );
     const consent = await routeState(page);
-    assertEvidence(consent.audioStates.includes("running"), "AudioContext did not enter running state after Start Audio", errors);
+    const replayInitialState = initial.audioStates.at(-1) || null;
+    const replayPostConsentState = consent.audioStates.at(-1) || null;
+    const environmentProbe = replayPostConsentState === "running"
+      ? null
+      : await runIndependentWebAudioCapabilityProbe(page);
+    const audioRuntime = buildAudioRuntimeEvidence({
+      replayInitialState,
+      replayPostConsentState,
+      environmentProbe,
+    });
+    assertEvidence(consent.root?.audioConsent === "true", "Start Audio handler did not complete explicit consent", errors);
+    if (audioRuntime.status === "fail") {
+      errors.push("Replay audio remained unavailable despite an independently available Web Audio runtime");
+    }
+    if (browserName === "chrome") {
+      assertEvidence(audioRuntime.status === "pass", "Chromium did not prove a running replay AudioContext", errors);
+    }
     assertEvidence(consent.root?.muted === "true", "Start Audio unmuted the replay", errors);
     assertEvidence(consent.controls.mute?.text === "Unmute", "post-consent copy does not keep audio muted", errors);
     assertEvidence(consent.audioCopy.toLowerCase().includes("remains muted"), "post-consent audio copy is not truthful", errors);
     assertEvidence(consent.controls.play?.disabled === false, "Play did not become enabled after consent", errors);
     assertEvidence(consent.controls.pause?.disabled === true, "Pause became enabled before playback", errors);
+    result.audioRuntime = audioRuntime;
     result.audioConsent = consent;
 
     await page.locator("[data-recorded-replay-play]").click();
@@ -268,6 +299,16 @@ async function captureInteractive(browserName, browser, viewport) {
     const unmuted = await routeState(page);
     assertEvidence(unmuted.root?.muted === "false", "Unmute action did not unmute", errors);
     assertEvidence(unmuted.controls.mute?.text === "Mute", "Unmute action did not update its label", errors);
+    if (audioRuntime.status === "pass") {
+      await page.locator("[data-recorded-replay-play]").click();
+      await page.waitForTimeout(100);
+      const audioPlayback = await routeState(page);
+      assertEvidence(audioPlayback.root?.playing === "true", "Play did not start while the audio runtime was available", errors);
+      assertEvidence(audioPlayback.audioStates.includes("running"), "audio playback ran without a running AudioContext", errors);
+      await page.locator("[data-recorded-replay-pause]").click();
+      await page.locator("[data-recorded-replay-reset]").click();
+      result.audioPlayback = audioPlayback;
+    }
     await page.locator("[data-recorded-replay-mute]").click();
     const mutedAgain = await routeState(page);
     assertEvidence(mutedAgain.root?.muted === "true", "muting again did not work", errors);

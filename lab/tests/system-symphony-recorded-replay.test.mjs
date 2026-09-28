@@ -88,6 +88,7 @@ test("controls preserve explicit audio consent, pause/reset/mute state, focus, a
   assert.match(ui, /state\.position = 0/);
   assert.match(ui, /state\.muted = !state\.muted/);
   assert.match(ui, /RECORDED_REPLAY_PRESENTATION_STEP_MS/);
+  assert.match(ui, /AUDIO_RESUME_SETTLE_TIMEOUT_MS/);
   assert.match(css, /prefers-reduced-motion/);
   assert.match(css, /focus-visible/);
   assert.doesNotMatch(ui, /blackbox\/incidents/);
