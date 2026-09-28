@@ -20,12 +20,13 @@ import {
 import {
   classifyAccessibilityViolations,
   classifyConsoleErrors,
-} from "../../scripts/interface-evidence/browser-core.mjs";
+} from "../../scripts/interface-evidence/ownership.mjs";
 
 const sitemapXml = readFileSync("sitemap.xml", "utf8");
 const sitemapRoutes = parseSitemapRoutes(sitemapXml);
 const routes = allEvidenceRoutes(sitemapXml);
 const browserCore = readFileSync("scripts/interface-evidence/browser-core.mjs", "utf8");
+const ownership = readFileSync("scripts/interface-evidence/ownership.mjs", "utf8");
 
 function descriptor(plan, route) {
   return plan.routes.find((candidate) => candidate.path === route);
@@ -172,6 +173,10 @@ test("retired Firefox SONIN CSP family is absent", () => {
 function axeViolation(impact, target) {
   return { id: `${impact}-${target.join("-")}`, impact, nodes: [{ target }] };
 }
+
+test("ownership classifiers are dependency-free and do not load browser tooling", () => {
+  assert.doesNotMatch(ownership, /@axe-core\/playwright|from ["']playwright["']/);
+});
 
 test("Atlas-owned serious and critical axe findings remain blocking", () => {
   const result = classifyAccessibilityViolations([

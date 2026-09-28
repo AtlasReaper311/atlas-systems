@@ -7,13 +7,13 @@ import {
   accessibilityReport,
   actionableConsoleErrors,
   childFrameOrigins,
-  classifyConsoleErrors,
   configureDeterministicContext,
   observePage,
   openWithRetry,
   resourceMetrics,
   writeJson,
 } from "./interface-evidence/browser-core.mjs";
+import { classifyConsoleErrors } from "./interface-evidence/ownership.mjs";
 import {
   EVIDENCE_SCHEMA_VERSION,
   STANDARD_VIEWPORTS,
