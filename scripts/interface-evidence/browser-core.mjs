@@ -21,7 +21,22 @@ export const FIXTURE_HOSTS = new Set([
 
 export const BROWSERS = Object.freeze([
   Object.freeze({ name: "chrome", launch: () => chromium.launch({ channel: "chrome", headless: true }) }),
-  Object.freeze({ name: "firefox", launch: () => firefox.launch({ headless: true }) }),
+  Object.freeze({
+    name: "firefox",
+    launch: () => firefox.launch({
+      headless: true,
+      // Match the repository's APU Firefox harness so an explicit user gesture
+      // can resume Web Audio without allowing the replay to create it early.
+      firefoxUserPrefs: {
+        "media.autoplay.default": 0,
+        "media.autoplay.ask-permission": false,
+        "media.autoplay.blocking_policy": 0,
+        "media.autoplay.block-webaudio": false,
+        "media.allowed-to-play.enabled": true,
+        "media.block-autoplay-until-in-foreground": false,
+      },
+    }),
+  }),
 ]);
 
 function installEvidenceReconciliation() {

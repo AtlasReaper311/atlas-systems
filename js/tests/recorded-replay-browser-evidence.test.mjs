@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const runner = readFileSync("scripts/capture_recorded_replay_evidence.mjs", "utf8");
+const browserCore = readFileSync("scripts/interface-evidence/browser-core.mjs", "utf8");
 const workflow = readFileSync(".github/workflows/interface-preview.yml", "utf8");
 const replay = readFileSync("lab/system-symphony/replay/index.html", "utf8");
 const publicInterface = readFileSync("js/tests/public-interface-contract.test.mjs", "utf8");
@@ -18,6 +19,8 @@ test("recorded replay evidence is a dedicated exact-route Chrome and Firefox cap
   assert.match(runner, /reducedMotion: "reduce"/);
   assert.match(runner, /captureDeterministicScreenshots/);
   assert.match(runner, /STANDARD_VIEWPORTS/);
+  assert.match(browserCore, /media\.autoplay\.block-webaudio/);
+  assert.match(browserCore, /media\.block-autoplay-until-in-foreground/);
 });
 
 test("recorded replay browser evidence covers identity, transport, consent, ownership, and no-JS boundaries", () => {
