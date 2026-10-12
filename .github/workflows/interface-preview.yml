@@ -60,7 +60,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.0.0, Node 24
         with:
           node-version: "22"
       - name: Plan route-derived browser evidence
@@ -115,7 +115,7 @@ jobs:
           fail: true
       - name: Upload interface validation records
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.1, Node 24
         with:
           name: interface-validation-${{ github.event.pull_request.head.sha }}
           path: |
@@ -251,7 +251,7 @@ jobs:
             scripts/smoke_spectral_forge_preview.mjs
             sitemap.xml
           sparse-checkout-cone-mode: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, Node 24
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.0.0, Node 24
         with:
           node-version: "22"
       - name: Install pinned browser and accessibility tooling
@@ -317,7 +317,7 @@ jobs:
         run: node capture_recorded_replay_evidence.mjs
       - name: Upload explicit SONIN frame evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.1, Node 24
         with:
           name: sonin-youtube-evidence-${{ github.event.pull_request.head.sha }}
           path: |
@@ -327,7 +327,7 @@ jobs:
           retention-days: 14
       - name: Upload recorded-replay browser evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.1, Node 24
         with:
           name: recorded-replay-browser-evidence-${{ github.event.pull_request.head.sha }}
           path: |
@@ -338,7 +338,7 @@ jobs:
           retention-days: 14
       - name: Upload route-derived visual and accessibility evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.1, Node 24
         with:
           name: public-interface-preview-evidence-${{ github.event.pull_request.head.sha }}
           path: |
@@ -353,7 +353,7 @@ jobs:
           retention-days: 14
       - name: Upload Batch H visual and accessibility evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.1, Node 24
         with:
           name: batch-h-preview-evidence-${{ github.event.pull_request.head.sha }}
           path: |

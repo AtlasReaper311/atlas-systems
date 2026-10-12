@@ -44,7 +44,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
 
@@ -73,7 +73,7 @@ jobs:
 
       - name: Upload preview main-site test report
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.1, Node 24
         with:
           name: preview-main-site-test-report
           path: preview-main-site-test-report.txt
@@ -138,7 +138,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
 
@@ -226,7 +226,7 @@ jobs:
 
       - name: Upload current System Symphony smoke evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.1, Node 24
         with:
           name: system-symphony-preview-smoke
           path: ${{ runner.temp }}/system-symphony-smoke
@@ -235,7 +235,7 @@ jobs:
 
       - name: Upload hybrid Atlas APU smoke evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.1, Node 24
         with:
           name: system-symphony-apu-hybrid-smoke
           path: ${{ runner.temp }}/system-symphony-apu-smoke
@@ -244,7 +244,7 @@ jobs:
 
       - name: Upload aligned production loudness preview evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1, Node 24
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.1, Node 24
         with:
           name: system-symphony-production-loudness-preview
           path: ${{ runner.temp }}/system-symphony-production-loudness-preview
