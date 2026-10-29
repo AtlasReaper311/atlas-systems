@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en" data-atlas-interface>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="This July 2026 programme snapshot follows how Atlas Systems separated duplicated repository facts, operational evidence, remediation proposals">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Building the Atlas Systems Control Plane // Atlas Systems</title>
+  <link rel="canonical" href="https://atlas-systems.uk/writing/atlas-control-plane-waves-0-3/">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Building the Atlas Systems Control Plane // Atlas Systems">
+  <meta property="og:description" content="This July 2026 programme snapshot follows how Atlas Systems separated duplicated repository facts, operational evidence, remediation proposals">
+  <meta property="og:url" content="https://atlas-systems.uk/writing/atlas-control-plane-waves-0-3/">
+  <meta property="og:site_name" content="Atlas Systems">
+  <meta property="og:image" content="https://atlas-systems.uk/og/atlas-control-plane-waves-0-3.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Building the Atlas Systems Control Plane // Atlas Systems">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Building the Atlas Systems Control Plane // Atlas Systems">
+  <meta name="twitter:description" content="This July 2026 programme snapshot follows how Atlas Systems separated duplicated repository facts, operational evidence, remediation proposals">
+  <meta name="twitter:image" content="https://atlas-systems.uk/og/atlas-control-plane-waves-0-3.png">
+  <meta name="twitter:image:alt" content="Building the Atlas Systems Control Plane // Atlas Systems">
+  <meta property="article:published_time" content="2026-10-29">
+  <meta property="article:author" content="Atlas Reaper">
+  <script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Building the Atlas Systems Control Plane",
+    "description": "This July 2026 programme snapshot follows how Atlas Systems separated duplicated repository facts, operational evidence, remediation proposals",
+    "datePublished": "2026-10-29",
+    "mainEntityOfPage": "https://atlas-systems.uk/writing/atlas-control-plane-waves-0-3/",
+    "author": {
+        "@type": "Person",
+        "name": "Atlas Reaper",
+        "url": "https://atlas-systems.uk/about/"
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Atlas Systems",
+        "url": "https://atlas-systems.uk/"
+    },
+    "image": "https://atlas-systems.uk/og/atlas-control-plane-waves-0-3.png",
+    "inLanguage": "en-GB"
+}
+  </script>
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.4.0/atlas-fonts.css">
+  <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;
+      --border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);
+      --text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;
+      --accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);
+      --mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px;
+      --content-w:720px
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
+    nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(10,10,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem,5vw,3rem);z-index:100}
+    .nav-wordmark{font-family:var(--mono);font-weight:500;font-size:13px;letter-spacing:0.12em;color:var(--text);text-decoration:none;text-transform:uppercase}
+    .nav-wordmark span{color:var(--accent)}
+    .nav-links{display:flex;list-style:none}
+    .nav-links a{display:block;padding:0.35rem 1rem;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color 0.15s;position:relative}
+    .nav-links a::after{content:'';position:absolute;bottom:-1px;left:50%;right:50%;height:1px;background:var(--accent);transition:left 0.2s,right 0.2s}
+    .nav-links a:hover{color:var(--text)}
+    .nav-links a:hover::after,.nav-links a.active::after{left:1rem;right:1rem}
+    .nav-links a.active{color:var(--text)}
+    main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);position:relative;z-index:1}
+    .article-header{padding-top:calc(var(--nav-h) + 5rem);padding-bottom:4rem;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr 2fr;gap:3rem}
+    .header-meta{display:flex;flex-direction:column;gap:1rem}
+    .back-link{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s;margin-bottom:0.5rem}
+    .back-link:hover{color:var(--accent)}
+    .back-link svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .article-index{font-size:11px;color:var(--text-faint);letter-spacing:0.1em}
+    .article-date{font-size:11px;color:var(--text-dim)}
+    .article-read-time{font-size:11px;color:var(--text-faint)}
+    .header-tags{display:flex;flex-direction:column;gap:0.4rem;margin-top:0.5rem}
+    .tag{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:0.2rem 0.5rem;border:1px solid var(--border);color:var(--text-dim);display:inline-block}
+    .tag.highlight{border-color:rgba(245,166,35,0.4);color:rgba(245,166,35,0.8)}
+    .section-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem}
+    .section-label::before{content:'';display:inline-block;width:24px;height:1px;background:var(--accent)}
+    .article-title{font-family:var(--serif);font-size:clamp(2rem,4vw,3.2rem);line-height:1.05;color:var(--text);margin-bottom:0.75rem}
+    .article-subtitle{font-size:12px;color:var(--accent);letter-spacing:0.06em;margin-bottom:1.5rem}
+    .article-lede{font-size:14px;color:var(--text-dim);line-height:1.9;max-width:560px}
+    .spec-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin:3rem 0}
+    .spec-cell{background:var(--bg);padding:1rem 1.25rem}
+    .spec-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.3rem}
+    .spec-value{font-size:12px;color:var(--text)}
+    .article-body{display:grid;grid-template-columns:200px 1fr;gap:4rem;padding:4rem 0}
+    .toc{position:sticky;top:calc(var(--nav-h) + 2rem);align-self:start;height:fit-content}
+    .toc-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-faint);margin-bottom:1rem}
+    .toc-list{list-style:none;display:flex;flex-direction:column;gap:0.1rem}
+    .toc-item a{font-size:11px;color:var(--text-faint);text-decoration:none;display:block;padding:0.35rem 0.75rem;border-left:1px solid var(--border);transition:all 0.15s;line-height:1.4}
+    .toc-item a:hover{color:var(--text-dim);border-left-color:var(--border-hi)}
+    .toc-item a.active{color:var(--accent);border-left-color:var(--accent)}
+    .prose{max-width:var(--content-w)}
+    .prose h2{font-family:var(--serif);font-size:1.8rem;line-height:1.1;color:var(--text);margin:3rem 0 1.25rem;padding-top:1rem}
+    .prose h2:first-child{margin-top:0}
+    .prose h3{font-size:13px;font-weight:500;color:var(--text);letter-spacing:0.06em;text-transform:uppercase;margin:2rem 0 0.75rem;display:flex;align-items:center;gap:0.6rem}
+    .prose h3::before{content:'';display:inline-block;width:16px;height:1px;background:var(--accent);flex-shrink:0}
+    .prose p{font-size:13px;color:var(--text-dim);line-height:1.9;margin-bottom:1.25rem}
+    .prose p:last-child{margin-bottom:0}
+    .prose strong{color:var(--text);font-weight:500}
+    .prose a,.prose a:visited{color:var(--accent);text-decoration-color:rgba(245,166,35,0.45);text-decoration-thickness:1px;text-underline-offset:0.18em;transition:color 0.15s,text-decoration-color 0.15s}
+    .prose a:hover{color:var(--text);text-decoration-color:var(--accent)}
+    .prose a:focus-visible{color:var(--text);outline:2px solid var(--accent);outline-offset:3px;text-decoration-color:var(--accent)}
+    .prose code{font-family:var(--mono);font-size:12px;background:var(--bg-1);border:1px solid var(--border);padding:0.15rem 0.4rem;color:var(--accent)}
+    .prose pre{background:var(--bg-1);border:1px solid var(--border);border-left:2px solid var(--accent);padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto}
+    .prose pre code{background:none;border:none;padding:0;font-size:12px;color:var(--text-dim);line-height:1.7}
+    .prose ul{margin:1rem 0 1.25rem 0;display:flex;flex-direction:column;gap:0.5rem}
+    .prose ul li{font-size:13px;color:var(--text-dim);line-height:1.7;display:flex;gap:0.75rem;align-items:flex-start}
+    .prose ul li::before{content:'→';color:var(--accent);flex-shrink:0;margin-top:0.1rem}
+    .callout{border:1px solid var(--border);border-left:2px solid var(--accent);background:var(--bg-1);padding:1.25rem 1.5rem;margin:1.5rem 0}
+    .callout-label{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem}
+    .callout p{margin-bottom:0;font-size:12px}
+    .callout.error{border-left-color:#e24b4a}
+    .callout.error .callout-label{color:#e24b4a}
+    .callout.success{border-left-color:#4ade80}
+    .callout.success .callout-label{color:#4ade80}
+    .callout.warning{border-left-color:var(--accent)}
+    .phase-marker{display:flex;align-items:center;gap:1rem;margin:2.5rem 0 1.5rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border)}
+    .phase-num{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap}
+    .phase-title{font-size:13px;font-weight:500;color:var(--text)}
+    .section-break{height:1px;background:var(--border);margin:3rem 0}
+    .outcomes-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin:1.5rem 0}
+    .outcome-cell{background:var(--bg);padding:1.25rem 1.5rem}
+    .outcome-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.4rem}
+    .outcome-value{font-size:13px;color:var(--text)}
+    .article-footer{padding:3rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+    .footer-back{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s}
+    .footer-back:hover{color:var(--accent)}
+    .footer-back svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .footer-next{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);display:flex;align-items:center;gap:0.4rem}
+    .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
+    .mobile-nav-inner{display:flex;align-items:stretch;height:100%}
+    .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.15s}
+    .mobile-nav-item:hover,.mobile-nav-item.active{color:var(--accent)}
+    .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    @media(max-width:900px){.article-body{grid-template-columns:1fr}.toc{display:none}.article-header{grid-template-columns:1fr}}
+    @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}.outcomes-grid{grid-template-columns:1fr}}
+
+    /* data tables (generated from markdown | a | b | ) */
+    .table-wrap{overflow-x:auto;margin:1.75rem 0;border:1px solid var(--border)}
+    .data-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+    .data-table th{background:var(--bg-1);color:var(--accent);text-align:left;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;font-size:10px;padding:0.6rem 0.85rem;border-bottom:1px solid var(--border-hi);white-space:nowrap}
+    .data-table td{color:var(--text-dim);padding:0.55rem 0.85rem;border-bottom:1px solid var(--border);line-height:1.5;vertical-align:top}
+    .data-table tbody tr:last-child td{border-bottom:none}
+    .data-table tbody tr:hover td{background:var(--bg-1)}
+    .data-table strong{color:var(--text);font-weight:500}
+    .data-table code{background:var(--bg-2);padding:0.1rem 0.35rem;font-size:11px;color:var(--accent)}
+
+/* Route-level readability and interaction guarantees for generated Writing pages. */
+.es-nav-search{display:inline-flex;align-items:center;gap:.45rem;min-height:36px;padding:.35rem .65rem;border:1px solid var(--border);background:transparent;color:var(--text-dim);font:inherit;font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.es-nav-search:hover,.es-nav-search:focus-visible{color:var(--text);border-color:var(--border-hi)}
+.es-nav-search svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.5}
+.es-nav-search kbd{color:var(--text-faint);font:inherit;font-size:8px}
+.article-lede{font-size:16px;line-height:1.8;max-width:620px}
+.article-header--ordered{grid-template-areas:"navigation content" "meta content";grid-template-rows:auto 1fr}
+.article-header--ordered>.back-link{grid-area:navigation}
+.article-header--ordered>.header-content{grid-area:content}
+.article-header--ordered>.header-meta{grid-area:meta;align-self:start}
+.article-header--ordered .header-tags{margin-top:.5rem}
+.prose p{font-size:16px;line-height:1.8}
+.prose ul li{font-size:16px;line-height:1.8}
+.callout p{font-size:14px;line-height:1.75}
+.table-wrap{max-width:100%;overscroll-behavior-inline:contain}
+:where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+/* Keep the canonical bottom navigation visible through the shell breakpoint. */
+.mobile-nav.atlas-mobile-nav.atlas-bottom-nav{display:none}
+@media(max-width:768px){
+  .article-header--ordered{grid-template-columns:1fr;grid-template-areas:"navigation" "content" "meta";grid-template-rows:auto auto auto}
+  .article-header--ordered>.back-link{margin-bottom:0}
+  .article-header--ordered .header-meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:.5rem 1rem}
+  .article-header--ordered .header-tags{flex-basis:100%;flex-direction:row;flex-wrap:wrap;gap:.5rem;margin-top:0}
+  .mobile-nav.atlas-mobile-nav.atlas-bottom-nav{display:block}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto!important}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+  </style>
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.4.0/atlas-interface-kit.css">
+  <link rel="stylesheet" href="/static/css/estate-search.css">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
+  <link rel="stylesheet" href="/static/css/article-interface-v2.css?v=20260724-phase-b-v1">
+</head>
+<body data-atlas-bottom-nav="true">
+
+<nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
+  <div class="atlas-header__inner">
+    <div class="atlas-header__brand atlas-global-header__identity">
+      <a class="nav-wordmark atlas-wordmark" href="/" data-atlas-wordmark>Atlas<span class="atlas-wordmark__cursor">_</span>Systems</a>
+      <a class="nav-status atlas-status atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" data-atlas-status aria-label="Atlas Systems status: Checking" aria-live="off"><span class="status-dot atlas-status__dot" aria-hidden="true"></span><span class="atlas-estate-status-label" data-atlas-status-label>Checking</span></a>
+    </div>
+    <div class="atlas-header__nav atlas-global-header__nav" role="group" aria-label="Atlas Systems sections">
+      <a class="atlas-global-header__link" href="/work/">Work</a>
+      <a class="atlas-global-header__link" href="/writing/" aria-current="page">Writing</a>
+      <a class="atlas-global-header__link" href="/lab/">Lab</a>
+      <a class="atlas-global-header__link" href="/systems/">Systems</a>
+      <a class="atlas-global-header__link" href="/about/">About</a>
+    </div>
+    <div class="atlas-header__actions atlas-global-header__actions">
+      <button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+  <header class="article-header article-header--ordered">
+    <a href="/writing/" class="back-link">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Writing
+    </a>
+    <div class="header-content">
+      <div class="section-label">Case Study</div>
+      <h1 class="article-title">Building the Atlas Systems Control Plane</h1>
+      <div class="article-subtitle">Atlas Systems — Governance, Evidence &amp; Remediation // Case Study</div>
+      <p class="article-lede">This July 2026 programme snapshot follows how Atlas Systems separated duplicated repository facts, operational evidence, remediation proposals, publication, and live verification. It records the Waves 0 to 3 boundary rather than claiming that later Gardener canaries, rulesets, or provider rollouts were already complete.</p>
+    </div>
+    <div class="header-meta">
+      <div class="article-index">W-11</div>
+      <div class="article-date">25 October 2026</div>
+      <div class="article-read-time">~16 min read</div>
+      <div class="header-tags">
+        <span class="tag highlight">DevOps</span>
+        <span class="tag">Infrastructure</span>
+        <span class="tag">GitHub Actions</span>
+        <span class="tag">Cloudflare</span>
+        <span class="tag">Governance</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="spec-strip">
+    <div class="spec-cell"><div class="spec-label">Timeline</div><div class="spec-value">July 2026</div></div>
+    <div class="spec-cell"><div class="spec-label">Public projection</div><div class="spec-value">33 repositories</div></div>
+    <div class="spec-cell"><div class="spec-label">Runtime estate</div><div class="spec-value">20 repositories</div></div>
+    <div class="spec-cell"><div class="spec-label">Platform</div><div class="spec-value">GitHub Actions and Cloudflare</div></div>
+    <div class="spec-cell"><div class="spec-label">Control plane</div><div class="spec-value">Policy, evidence, remediation</div></div>
+    <div class="spec-cell"><div class="spec-label">Snapshot</div><div class="spec-value">26 July 2026</div></div>
+  </div>
+
+  <div class="article-body">
+    <aside class="toc">
+      <div class="toc-label">Contents</div>
+      <ul class="toc-list">
+        <li class="toc-item"><a href="#overview">Overview</a></li>
+        <li class="toc-item"><a href="#control-plane-boundary">Control-Plane Boundary</a></li>
+        <li class="toc-item"><a href="#wave-0-public-and-private-authority">Wave 0: Public and Private Authority</a></li>
+        <li class="toc-item"><a href="#phase-i-duplicate-classification-authority">Phase I — Duplicate Classification Authority</a></li>
+        <li class="toc-item"><a href="#wave-1-operational-proof">Wave 1: Operational Proof</a></li>
+        <li class="toc-item"><a href="#phase-ii-the-stale-reliability-fingerprint">Phase II — The Stale Reliability Fingerprint</a></li>
+        <li class="toc-item"><a href="#wave-2-repository-policy">Wave 2: Repository Policy</a></li>
+        <li class="toc-item"><a href="#wave-3-deployable-evidence-and-bounded-remediation">Wave 3: Deployable Evidence and Bounded Remediation</a></li>
+        <li class="toc-item"><a href="#phase-iii-the-corrupted-receipt">Phase III — The Corrupted Receipt</a></li>
+        <li class="toc-item"><a href="#validation-limits-and-evidence-map">Validation, Limits, and Evidence Map</a></li>
+        <li class="toc-item"><a href="#outcomes">Outcomes</a></li>
+      </ul>
+    </aside>
+
+    <article class="prose">
+      <section id="overview">
+        <h2>Overview</h2>
+        <p>Atlas Systems began as a collection of useful systems rather than one planned platform. Cloudflare Workers exposed public APIs and observability data. GitHub Actions deployed services and checked repository policy. Local services on SPECULAR-CORE provided telemetry, search, AI inference, and voice control. Smaller tools handled dependency findings, quota checks, synthetic journeys, deployment outcomes, incident evidence, and notifications.</p>
+        <p>Each repository solved a real problem. The estate around them developed a different problem: important facts existed in more than one place, and those copies did not all carry the same authority.</p>
+        <p>Lifecycle appeared in manifests, repository metadata, README language, policy files, and memory. Public and private systems were sometimes described in the same planning material. A service could be reachable without having an approved reliability objective. A fixture could prove that a backup adapter worked without proving that a current backup existed. A merged workflow change could be mistaken for a live deployment. A detector could identify a repair without having any legitimate right to apply it.</p>
+        <p>I treated those as control-plane failures. The applications were not necessarily broken. The failure was that declaration, observation, evidence, proposal, publication, and live verification could be collapsed into one plausible-looking status.</p>
+        <p>The July 2026 Waves 0 to 3 programme rebuilt that boundary in stages. Wave 0 established who owns each kind of fact. Wave 1 defined operational evidence without inventing certainty. Wave 2 made repository presentation and GitHub state executable policy. Wave 3 connected those policies to deployable artefacts, evidence graphs, retirement records, model-promotion decisions, and bounded remediation.</p>
+        <div class="callout"><div class="callout-label">Governing Rule</div><p>A component may inspect, validate, score, correlate, or propose a change without automatically gaining permission to publish private data, merge code, deploy services, mutate a provider, restore data, or alter a production model.</p></div>
+        <div class="callout warning"><div class="callout-label">Snapshot Boundary</div><p>This article records the Waves 0 to 3 programme as evidenced in July 2026. The Wave 2 rollout cohort contained 31 public repositories; the authoritative projection contained 33 repositories and 20 runtime repositories at the 26 July editorial snapshot. Later Gardener canaries, ruleset work, and provider rollouts are separate stages.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="control-plane-boundary">
+        <h2>Control-Plane Boundary</h2>
+        <p>The control plane is not one service. It is a set of authority boundaries distributed across repositories.</p>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>Layer</th><th>Authority</th><th>Deliberate limitation</th></tr></thead><tbody><tr><td><code>atlas-infra</code></td><td>Public contracts, policy, schemas, ADRs, reusable workflows, validation, evidence conventions</td><td>Does not become an account-wide inventory or a production mutation service</td></tr><tr><td>Specialist repositories</td><td>Domain-specific detection for dependencies, journeys, deployments, quotas, resources, and topology</td><td>Detection output does not grant repair authority</td></tr><tr><td><code>atlas-gardener</code></td><td>Deterministic remediation proposals and bounded draft pull requests</td><td>Cannot approve, merge, deploy, modify settings, or call production providers</td></tr><tr><td><code>atlas-api-public</code></td><td>Sanitised public projection of approved estate facts</td><td>Cannot publish raw account discovery or private identities</td></tr><tr><td><code>atlas-systems</code></td><td>Portfolio presentation of approved public evidence</td><td>Does not infer live state from repository state</td></tr></tbody></table></div>
+        <p>I modelled the lifecycle of a fact as five separate states:</p>
+        <pre><code class="language-text">declared
+  -&gt; observed
+  -&gt; proposed
+  -&gt; published
+  -&gt; live verified</code></pre>
+        <p>A declaration says what should exist. Observation says what a collector saw. A proposal says what should change. Publication says an approved projection or artefact was written. Live verification says the deployed or provider-side state was checked after the write.</p>
+        <p>The system is designed to preserve the gaps between those states. Missing observation does not invalidate a declaration, but it prevents an observed-health claim. A successful source merge does not imply publication. A successful publication does not imply the expected endpoint is live until that endpoint is checked. A valid remediation plan does not imply the plan is safe to merge.</p>
+        <div class="callout"><div class="callout-label">Design Decision</div><p>I separated declaration, observation, proposal, publication, and verification because most dangerous automation errors begin by treating two of those states as equivalent.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="wave-0-public-and-private-authority">
+        <h2>Wave 0: Public and Private Authority</h2>
+        <p>Wave 0 answered the question every later automation depended on: which source is allowed to say what is true?</p>
+        <p>The first correction was the public/private estate boundary. Atlas Systems contains intentionally public portfolio infrastructure and private owner-operated systems. Repository visibility and estate membership are different concerns. A private component can require dependency checks, CI, monitoring, backups, metadata validation, and aggregate engineering metrics without becoming public documentation.</p>
+        <p>The accepted model uses two governance planes with a one-way publication boundary.</p>
+        <p>Public runtime classification lives in <code>atlas-infra/policy/estate-registry.json</code>. Public non-runtime repositories use a separate assurance declaration. A generated <code>public-repository-classifications.json</code> projection combines those non-overlapping authorities for consumers. Private repositories own <code>.atlas/governance.json</code> inside their authenticated source repository and validate it through reusable source-local workflows. No central public policy file lists private repository identities.</p>
+        <p>Cloudflare discovery follows the same rule. Account-level observation may see more Workers than the public estate declares. <code>atlas-api-index</code> publishes only an explicit public allowlist, and <code>atlas-api-public</code> independently filters its output against the approved manifest. Unknown repositories and Workers are private by default.</p>
+        <p>The public manifest remains useful, but its responsibility is narrower. It maps topology, surfaces, feeds, and dependencies for things Atlas Systems intentionally publishes. It does not own lifecycle, scope, provenance, or private membership. That distinction matters because topology answers how approved systems connect, while classification answers what those systems are and how they should be governed.</p>
+        <p>Wave 0 also removed volatility from the public repository inventory. Activity timestamps had made the generated file and its fingerprint change even when membership did not. I replaced that with sorted canonical classification material and a SHA-256 fingerprint. A consumer can now distinguish a real classification change from ordinary repository activity.</p>
+        <p>The result was a smaller set of facts with named owners:</p>
+        <ul><li>Atlas Infra owns public classification;</li><li>public manifests own public topology and presentation;</li><li>private governance stays private and source-owned;</li><li>generated projections are evidence, not editing surfaces;</li><li>unknown or conflicting classification fails closed;</li><li>public consumers never depend directly on raw account-wide discovery.</li></ul>
+      </section>
+      <div class="section-break"></div>
+      <section id="phase-i-duplicate-classification-authority">
+        <h2>Phase I — Duplicate Classification Authority</h2>
+        <div class="phase-marker"><span class="phase-num">Phase I</span><span class="phase-title">Duplicate Classification Authority</span></div>
+        <p>Before the authority split, the same repository could carry lifecycle, scope, or provenance in more than one source. A downstream manifest could remain internally valid after the canonical registry changed. Two files could disagree without either one looking obviously malformed.</p>
+        <p>The drift was not theoretical. Public topology still carried stale lifecycle values for repositories whose authoritative classification had changed. A consumer reading the manifest alone would receive a plausible answer, just not the current one.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p>Classification and topology had been combined in downstream data. The presentation manifest had enough authority to preserve stale governance facts after the actual classification source changed.</p></div>
+        <p>I moved runtime classification into the estate registry, added an explicit source for public non-runtime repositories, made the two authority sets non-overlapping, and generated one deterministic consumer projection. Schema validation rejects overlap, missing classifications, duplicate repositories, unsorted output, stale fingerprints, and attempts to treat the generated projection as an independent source.</p>
+        <p>The manifest then consumed classification rather than restating it. Private repositories retained equivalent source-local governance without entering the public projection.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>One public authority now owns lifecycle, scope, provenance, and runtime membership. Downstream systems consume a deterministic projection and fail when the authority is missing, contradictory, or stale.</p></div>
+        <p>The important part was not reducing the number of JSON files. It was making every remaining file answer one bounded question.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="wave-1-operational-proof">
+        <h2>Wave 1: Operational Proof</h2>
+        <p>Once authority was clear, Wave 1 addressed evidence. The goal was to distinguish desired state, observed state, fixture proof, and unknown state rather than flattening them into one green result.</p>
+        <h3>Provider resource ownership</h3>
+        <p>Atlas Infra gained an explicit declaration for approved public Cloudflare KV, D1, and R2 resources. Version one records nine public KV namespaces by provider identity, exactly one owner for each resource, and explicit consumers where sharing is intentional. <code>TELEMETRY_KV</code>, for example, is owned by <code>specular-edge</code> and consumed read-only by <code>specular-sonify</code>.</p>
+        <p>The declaration is deliberately not an account inventory. A live audit may observe private or undeclared resources, but the public result can expose only approved names and relationships. Unknown resources contribute redacted drift counts by kind. Their names, IDs, metadata, and inferred owners do not cross the publication membrane.</p>
+        <pre><code class="language-text">declared public resource
+  -&gt; identity and ownership may be checked publicly
+
+observed but undeclared resource
+  -&gt; counted as drift
+  -&gt; identity withheld</code></pre>
+        <h3>Backup and recovery intent</h3>
+        <p>Every runtime received either an explicit recovery target or an explicit no-backup decision. <code>atlas-notify</code> gained a KV recovery target with six-hour RPO intent, four-hour RTO intent, and 30-day retention intent. <code>ramone-memory</code> gained a Chroma recovery target with 24-hour RPO intent, eight-hour RTO intent, and 30-day retention intent.</p>
+        <p>Derived, stateless, cache-like, and bounded-relearnable systems received reviewed no-backup rationales instead of remaining unclassified. That distinction prevents a missing backup from becoming an accidental policy decision.</p>
+        <p>The first phase remained fixture-only. Synthetic data and temporary restore destinations proved that schemas, adapters, checksums, and restore logic were internally consistent. They did not prove that a current provider backup had been observed, that retention was active, or that production data had been restored.</p>
+        <div class="callout warning"><div class="callout-label">Recovery Evidence</div><p>A passing fixture drill proves the recovery contract and adapter. It does not prove that a current production backup exists. Live backup observation and destructive restore testing require separate evidence and approval.</p></div>
+        <h3>Reliability without invented certainty</h3>
+        <p>Reachability was separated from reliability. An HTTP response can prove that one route answered at one moment. It does not automatically prove an availability objective, scheduled delivery, data freshness, inference readiness, or correctness.</p>
+        <p>Eight active runtime services remained explicitly unmeasured after owner review. Each has a service-specific reason. <code>atlas-api-public</code> cannot independently prove itself by self-probing. <code>atlas-daily-digest</code> can be reachable while scheduled delivery fails. <code>atlas-dora</code> can serve a health route while producing incorrect metrics. <code>ramone-edge</code> intentionally treats a sleeping local machine as healthy but has no approved availability target. Other services lacked an independent probe or approved objective.</p>
+        <p>The policy therefore uses three meaningful states:</p>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>State</th><th>Meaning</th></tr></thead><tbody><tr><td>Measured</td><td>An approved objective and evidence path exist</td></tr><tr><td>Unmeasured</td><td>The active service is intentionally without an objective, with a reviewed reason</td></tr><tr><td>Excluded</td><td>Lifecycle or service role makes runtime measurement not applicable</td></tr></tbody></table></div>
+        <p>Unknown is preserved instead of being translated into healthy.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="phase-ii-the-stale-reliability-fingerprint">
+        <h2>Phase II — The Stale Reliability Fingerprint</h2>
+        <div class="phase-marker"><span class="phase-num">Phase II</span><span class="phase-title">The Stale Reliability Fingerprint</span></div>
+        <p>The explicit unmeasured policy exposed a second control-plane problem. The status projection contained a fingerprint from an older runtime set. It predated the Wave 0 narrowing of the public registry, when three services still appeared in runtime reliability coverage even though they were no longer part of the current public runtime authority.</p>
+        <p>The status file was valid JSON. Its embedded fingerprint was well formed. The problem was provenance: it represented a historical policy shape rather than the current one.</p>
+        <p>I reconstructed the previous objective and unmeasured sets and regenerated the historical canonical material. That produced the exact fingerprint already embedded in status:</p>
+        <pre><code class="language-text">a279dca1767367f78d91d185f6902dcbdd77b3d64c6b7c3ddbf4e671834e5b3e</code></pre>
+        <p>That result proved the drift was pre-existing rather than introduced by the new policy. It also demonstrated why a fingerprint is useful only when its source material and publication path are explicit.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p>The reliability projection and the public runtime authority had changed on different timelines. A deterministic fingerprint faithfully represented stale source material because no gate required the published projection to match the current authority before rollout.</p></div>
+        <p>I made active runtime coverage exact: services with objective files must be measured, active services without objectives must appear once in the reviewed unmeasured declaration, and deprecated or archived services are excluded by lifecycle. The publication workflow remains the only write path for the public reliability policy, and the status projection must carry the same resulting fingerprint.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>Reliability publication now requires one exact measured/unmeasured partition over the current active runtime set, with a shared deterministic fingerprint across policy and status projections.</p></div>
+        <p>The lesson was not that fingerprints prevent drift. They make drift diagnosable. Preventing it requires a gate that compares the fingerprinted source and every published consumer.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="wave-2-repository-policy">
+        <h2>Wave 2: Repository Policy</h2>
+        <p>Wave 2 moved public repository presentation and GitHub configuration out of informal convention. Its original rollout cohort covered 31 intentionally public repositories. By the 26 July editorial snapshot, the authoritative public projection had grown to 33 repositories; the same three independent contracts still applied rather than one oversized compliance score.</p>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>Contract</th><th>Checks</th><th>Why it is separate</th></tr></thead><tbody><tr><td>README</td><td>Canonical icon, exact H1 identity, Atlas banner, factual badges, final integration section, final portfolio footer, ordering and voice rules</td><td>Source change reviewed through pull requests</td></tr><tr><td>Repository metadata</td><td>Visibility, <code>main</code> default branch, bounded description, Atlas homepage, controlled topics, lifecycle/archive consistency</td><td>Provider state changed through explicit GitHub actions</td></tr><tr><td>Atlas status labels</td><td>Five canonical names, colours, and descriptions</td><td>Provider taxonomy without duplicating native GitHub state</td></tr></tbody></table></div>
+        <p>The controlled topic vocabulary requires the <code>atlas-systems</code> topic and allows one to eight approved topics. Archive state must match lifecycle. Descriptions and homepages are bounded so portfolio links remain intentional rather than accumulating arbitrary provider metadata.</p>
+        <p>The five Atlas-specific labels are:</p>
+        <ul><li><code>status:blocked</code>;</li><li><code>status:live-verified</code>;</li><li><code>status:owner-review</code>;</li><li><code>status:rollout-pending</code>;</li><li><code>status:superseded</code>.</li></ul>
+        <p>Draft state, CI state, approval, merge state, and deployment checks remain native GitHub facts. Recreating them as labels would introduce a second status system that could drift from the platform.</p>
+        <p>Public audits are allowlist-driven from the public classification projection. They do not enumerate account membership. Private repositories call reusable validators from their own authenticated context, where <code>.atlas/governance.json</code> must match <code>github.repository</code>, declare private visibility, and keep public projection disabled. Evidence stays in the private caller repository.</p>
+        <p>The rollout also separated read-only audit from provider remediation. Adding the policy did not silently rewrite README files, descriptions, topics, labels, archive state, or default branches. Source fixes moved through ordinary pull requests. Provider metadata changes remained explicit owner actions followed by enforcement evidence.</p>
+        <div class="callout success"><div class="callout-label">Result</div><p>Repository consistency became executable policy while preserving the difference between source-owned content, GitHub provider state, public allowlists, and private source-local governance.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="wave-3-deployable-evidence-and-bounded-remediation">
+        <h2>Wave 3: Deployable Evidence and Bounded Remediation</h2>
+        <p>Wave 3 connected policy to built artefacts, evidence relationships, removal planning, model decisions, and controlled repository writes.</p>
+        <h3>Validate the deploy bundle, not the source claim</h3>
+        <p>The reusable Worker deployment workflow gained optional <code>require_meta</code> and <code>require_openapi</code> gates. Validation runs after Wrangler produces the exact dry-run bundle and before the deployment step.</p>
+        <p><code>require_meta</code> checks that the bundle retains <code>/_meta</code> and the fixed Atlas metadata shape: <code>name</code>, <code>description</code>, <code>version</code>, <code>endpoints</code>, <code>status</code>, and <code>source</code>. <code>require_openapi</code> checks for <code>/v1/openapi.json</code>, an OpenAPI 3.0 or 3.1 marker, <code>paths</code>, and the expected route/document material.</p>
+        <p>This moves the contract boundary from source convention to deployable evidence. Source code can contain a route that tree shaking, bundling, or a stale build path removes. The deploy gate checks the artefact Cloudflare would actually receive.</p>
+        <h3>Atlas Trace</h3>
+        <p>Atlas Trace introduced versioned node, edge, and graph contracts with deterministic identities and canonical bytes. The offline assembler consumes saved JSON evidence only. Every relationship requires explicit evidence references and a named basis.</p>
+        <p>Timestamp proximity is not a valid basis. <code>CORRELATED_WITH</code> may use <code>correlation-with-explicit-evidence</code>; stronger relationships require exact identity, verified runtime identity, release-watch identity, signed provenance, declared governance, or manual attestation. This prevents a release and an incident occurring near each other from being presented as causally related without evidence.</p>
+        <p>Visibility is part of the contract. Nodes and edges may be public, internal, or restricted metadata, and a graph cannot expose evidence more restrictive than its own visibility. Public Trace and Proof Chain surfaces consume bounded projections rather than a raw graph of every system I operate.</p>
+        <h3>Retirement and model promotion</h3>
+        <p>Retirement became a reviewable evidence state rather than a deletion. A tombstone preserves previous identity, reason, replacement, references, and expected downstream effects. Final archived evidence fails closed unless dependency, route, binding, manifest, Worker allowlist, production pull request, historical evidence, and recovery implications are verified or explicitly not applicable.</p>
+        <p>The model-promotion contract follows the same pattern. It binds one capability to exact model and configuration identity, exact evaluation-suite revision, evidence fingerprint, threshold result, human approval, and optional supersession. The contract cannot pull or delete a model, change Open WebUI, alter Home Assistant, restart services, or change routing by itself.</p>
+        <h3>Atlas Gardener</h3>
+        <p>Gardener consumes schema-valid findings and emits deterministic remediation proposals. The general engine hard-codes a narrow envelope:</p>
+        <ul><li>one allowlisted fixer type;</li><li>at most five files;</li><li>at most 200 changed lines;</li><li>repository-relative UTF-8 text changes;</li><li>exact preimage and postimage hashes;</li><li>no arbitrary shell or HTTP capability;</li><li>no deprecated, archived, external-derived, unknown, dirty, or stale target;</li><li>no direct <code>main</code>, merge, deploy, secret, billing, environment, branch-protection, or Cloudflare change.</li></ul>
+        <p>The GitHub App adapter binds one reviewed proposal to the exact target classification fingerprint, base commit, blob identities, file modes, patch digest, plan digest, risk class, expiry, rollback, and validation evidence. It rechecks the remote base before writing, creates reviewed blobs, creates one tree and commit, creates one deterministic branch, opens one draft pull request, and stops.</p>
+        <p>Version one refuses workflow files rather than silently requesting wider App permissions. The App has no endpoint for approval, merge, deployment, workflow dispatch, repository settings, secrets, environments, branch deletion, or provider mutation.</p>
+        <div class="callout"><div class="callout-label">Authority Reduction</div><p>Gardener is useful because it can perform one exact repository write. It is safe only because proposal generation, plan review, provider authentication, draft creation, repository validation, merge, and live rollout remain separate states.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="phase-iii-the-corrupted-receipt">
+        <h2>Phase III — The Corrupted Receipt</h2>
+        <div class="phase-marker"><span class="phase-num">Phase III</span><span class="phase-title">The Corrupted Receipt</span></div>
+        <p>The first real Gardener canary produced an awkward result. The GitHub App transaction succeeded: it created the commit, branch, and draft pull request. The local wrapper then reported failure because <code>jq</code> could not parse the recorded receipt.</p>
+        <p>Repeating the provider action would have been the wrong response. The write had already happened. The failed component was the evidence path used to describe it.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p>Human-readable prompts, progress messages, and the machine JSON receipt were redirected into the same file. The provider transaction succeeded, but the evidence parser received mixed terminal prose and JSON.</p></div>
+        <p>I separated operator output from machine evidence and added an explicit <code>--result-output</code> path. The provider adapter now writes a dedicated JSON receipt that can be schema-checked and fingerprinted independently from prompts and progress text.</p>
+        <p>The recovery procedure preserved the successful transaction and repaired only the receipt path. That distinction matters for any non-idempotent provider action. A failed report is not evidence that the underlying action failed.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>Provider writes now emit one dedicated machine receipt, while terminal guidance remains on the operator channel. The transaction can be verified without repeating the write.</p></div>
+        <p>The canary exposed a failure after the write boundary, which is exactly where evidence quality matters most. Before a provider mutation, a bad receipt is inconvenient. After a provider mutation, it can cause duplicate branches, repeated writes, or incorrect rollback decisions.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="validation-limits-and-evidence-map">
+        <h2>Validation, Limits, and Evidence Map</h2>
+        <p>Every wave used repository-native CI, strict schemas, deterministic fixtures, canonical fingerprints, fail-closed negative tests, pinned actions, bounded workflow permissions, and explicit timeouts. Public audits consumed approved allowlists. Private checks executed in authenticated source-local context. Provider writes remained separate from source merges.</p>
+        <p>The evidence model intentionally distinguishes what was proved:</p>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>Evidence</th><th>What it proves</th><th>What it does not prove</th></tr></thead><tbody><tr><td>Schema and fixture test</td><td>Contract shape, adapter behaviour, deterministic output</td><td>Current provider state</td></tr><tr><td>Read-only provider audit</td><td>Observed account state at one time</td><td>Desired state or permission to mutate</td></tr><tr><td>Merged source change</td><td>Repository code and policy accepted</td><td>Deployment or live endpoint state</td></tr><tr><td>Dry-run bundle validation</td><td>Built artefact contains required contract markers</td><td>Successful production deployment</td></tr><tr><td>Draft PR receipt</td><td>Exact repository write completed</td><td>Correctness, approval, merge, or rollout</td></tr><tr><td>Live endpoint verification</td><td>Deployed public surface answered with expected evidence</td><td>Future availability</td></tr></tbody></table></div>
+        <p>The programme did not claim every automation possibility was complete. The real-model benchmark for the model-promotion contract remained deferred until SPECULAR-CORE was available. I kept the contract and evaluation path without substituting synthetic evidence for a reviewed GPU-backed run.</p>
+        <p>Gardener also remained owner-triggered at the Waves 0 to 3 boundary. It could prepare a bounded repair across an eligible repository, but it was not yet an unattended finding-to-merge controller. Automatic execution requires its own scheduling, deduplication, expiry, notification, approval, and failure-recovery design.</p>
+        <div class="callout warning"><div class="callout-label">Authority Boundary</div><p>App installation proves that a restricted identity can operate in an approved repository. It does not prove that every future finding is safe to repair, that generated code is correct, or that a draft should be merged.</p></div>
+        <p>The programme spans many commits, but the article does not need to become a pull-request index. Current evidence is grouped by repository responsibility:</p>
+        <ul><li><a href="https://github.com/AtlasReaper311/atlas-infra"><code>atlas-infra</code></a> owns policy, ADRs, reusable workflows, validation, evidence contracts, and public projections;</li><li><a href="https://github.com/AtlasReaper311/atlas-gardener"><code>atlas-gardener</code></a> owns deterministic remediation planning and the bounded GitHub App transport;</li><li><a href="https://github.com/AtlasReaper311/atlas-api-public"><code>atlas-api-public</code></a> owns the declared public estate map and bounded public API projection.</li></ul>
+        <p>Current repository files and accepted ADRs are the authority for the system described here. Publication and deployment claims require separate scheduler, provider, and live-endpoint evidence.</p>
+      </section>
+      <div class="section-break"></div>
+      <section id="outcomes">
+        <h2>Outcomes</h2>
+        <div class="outcomes-grid"><div class="outcome-cell"><div class="outcome-label">Authority</div><div class="outcome-value">Public classification, topology, private governance, provider observation, and publication now have distinct owners</div></div><div class="outcome-cell"><div class="outcome-label">Evidence</div><div class="outcome-value">Resources, backups, reliability, deploy bundles, trace relationships, retirements, and model decisions retain explicit proof boundaries</div></div><div class="outcome-cell"><div class="outcome-label">Repository policy</div><div class="outcome-value">The 31-repository Wave 2 cohort adopted executable README, metadata, topic, lifecycle, and Atlas-label contracts; the public projection contained 33 repositories at the editorial snapshot</div></div><div class="outcome-cell"><div class="outcome-label">Remediation</div><div class="outcome-value">Gardener can prepare one digest-bound draft pull request and stop before approval, merge, deployment, or provider rollout</div></div></div>
+        <p>The control plane replaced implied trust with explicit contracts. Important facts now have named authorities, deterministic projections, bounded public views, and separate declaration, observation, proposal, publication, and verification states. The remediation path can produce one exact draft change without inheriting authority to decide that the change is correct or safe to ship.</p>
+        <p>The transferable principle is that automation should gain authority only when the evidence, contract, and rollback boundary for that authority are explicit. A system becomes safer when each new capability arrives with a narrower statement of what it can do, what it cannot infer, and where a human or independent verifier must take over.</p>
+      </section>
+    </article>
+  </div>
+
+  <div class="article-footer">
+    <a href="/writing/ramone-voice-verified-actions/" class="footer-back">
+    <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    ← W-10 — Ramone
+  </a>
+  <span class="footer-next">Latest article</span>
+  </div>
+
+</main>
+
+<nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
+  <div class="mobile-nav-inner atlas-mobile-nav__inner">
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>
+    <a class="mobile-nav-item atlas-mobile-nav__item active" href="/writing/" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="16" y2="13"></line></svg><span>Writing</span></a>
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/lab/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V9"></path><path d="M14 3h7v7"></path></svg><span>Lab</span></a>
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg><span>Systems</span></a>
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M20 21a8 8 0 10-16 0"></path></svg><span>About</span></a>
+  </div>
+</nav>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-item a');
+  const sections = document.querySelectorAll('section[id]');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        tocLinks.forEach(a => a.classList.remove('active'));
+        const active = document.querySelector(`.toc-item a[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+<script src="/js/transitions.js?v=20260814-terminal-swipe"></script>
+<script type="module" src="/static/js/estate-shell.js?v=20260723-interface-v2"></script>
+<script type="module" src="/static/js/estate-search/global-search.js"></script>
+
+</body>
+</html>
