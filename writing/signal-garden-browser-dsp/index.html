@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en" data-atlas-interface>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="The July 2026 Signal Garden rebuild began with a technically correct granular synthesiser whose low-frequency source collapsed into indistinct rumble. The">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Building Signal Garden as a Real-Time Browser DSP Instrument // Atlas Systems</title>
+  <link rel="canonical" href="https://atlas-systems.uk/writing/signal-garden-browser-dsp/">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Building Signal Garden as a Real-Time Browser DSP Instrument // Atlas Systems">
+  <meta property="og:description" content="The July 2026 Signal Garden rebuild began with a technically correct granular synthesiser whose low-frequency source collapsed into indistinct rumble. The">
+  <meta property="og:url" content="https://atlas-systems.uk/writing/signal-garden-browser-dsp/">
+  <meta property="og:site_name" content="Atlas Systems">
+  <meta property="og:image" content="https://atlas-systems.uk/og/signal-garden-browser-dsp.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Building Signal Garden as a Real-Time Browser DSP Instrument // Atlas Systems">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Building Signal Garden as a Real-Time Browser DSP Instrument // Atlas Systems">
+  <meta name="twitter:description" content="The July 2026 Signal Garden rebuild began with a technically correct granular synthesiser whose low-frequency source collapsed into indistinct rumble. The">
+  <meta name="twitter:image" content="https://atlas-systems.uk/og/signal-garden-browser-dsp.png">
+  <meta name="twitter:image:alt" content="Building Signal Garden as a Real-Time Browser DSP Instrument // Atlas Systems">
+  <meta property="article:published_time" content="2026-11-26">
+  <meta property="article:author" content="Atlas Reaper">
+  <script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Building Signal Garden as a Real-Time Browser DSP Instrument",
+    "description": "The July 2026 Signal Garden rebuild began with a technically correct granular synthesiser whose low-frequency source collapsed into indistinct rumble. The",
+    "datePublished": "2026-11-26",
+    "mainEntityOfPage": "https://atlas-systems.uk/writing/signal-garden-browser-dsp/",
+    "author": {
+        "@type": "Person",
+        "name": "Atlas Reaper",
+        "url": "https://atlas-systems.uk/about/"
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Atlas Systems",
+        "url": "https://atlas-systems.uk/"
+    },
+    "image": "https://atlas-systems.uk/og/signal-garden-browser-dsp.png",
+    "inLanguage": "en-GB"
+}
+  </script>
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.4.0/atlas-fonts.css">
+  <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0a0f;--bg-1:#111118;--bg-2:#1a1a24;
+      --border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);
+      --text:#e8e8e0;--text-dim:#aaa9a0;--text-faint:#555560;
+      --accent:#f5a623;--accent-dim:rgba(245,166,35,0.12);
+      --mono:'IBM Plex Mono',monospace;--serif:'DM Serif Display',Georgia,serif;--nav-h:56px;
+      --content-w:720px
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
+    nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(10,10,15,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem,5vw,3rem);z-index:100}
+    .nav-wordmark{font-family:var(--mono);font-weight:500;font-size:13px;letter-spacing:0.12em;color:var(--text);text-decoration:none;text-transform:uppercase}
+    .nav-wordmark span{color:var(--accent)}
+    .nav-links{display:flex;list-style:none}
+    .nav-links a{display:block;padding:0.35rem 1rem;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color 0.15s;position:relative}
+    .nav-links a::after{content:'';position:absolute;bottom:-1px;left:50%;right:50%;height:1px;background:var(--accent);transition:left 0.2s,right 0.2s}
+    .nav-links a:hover{color:var(--text)}
+    .nav-links a:hover::after,.nav-links a.active::after{left:1rem;right:1rem}
+    .nav-links a.active{color:var(--text)}
+    main{max-width:1100px;margin:0 auto;padding:0 clamp(1.5rem,5vw,3rem);position:relative;z-index:1}
+    .article-header{padding-top:calc(var(--nav-h) + 5rem);padding-bottom:4rem;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr 2fr;gap:3rem}
+    .header-meta{display:flex;flex-direction:column;gap:1rem}
+    .back-link{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s;margin-bottom:0.5rem}
+    .back-link:hover{color:var(--accent)}
+    .back-link svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .article-index{font-size:11px;color:var(--text-faint);letter-spacing:0.1em}
+    .article-date{font-size:11px;color:var(--text-dim)}
+    .article-read-time{font-size:11px;color:var(--text-faint)}
+    .header-tags{display:flex;flex-direction:column;gap:0.4rem;margin-top:0.5rem}
+    .tag{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:0.2rem 0.5rem;border:1px solid var(--border);color:var(--text-dim);display:inline-block}
+    .tag.highlight{border-color:rgba(245,166,35,0.4);color:rgba(245,166,35,0.8)}
+    .section-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem}
+    .section-label::before{content:'';display:inline-block;width:24px;height:1px;background:var(--accent)}
+    .article-title{font-family:var(--serif);font-size:clamp(2rem,4vw,3.2rem);line-height:1.05;color:var(--text);margin-bottom:0.75rem}
+    .article-subtitle{font-size:12px;color:var(--accent);letter-spacing:0.06em;margin-bottom:1.5rem}
+    .article-lede{font-size:14px;color:var(--text-dim);line-height:1.9;max-width:560px}
+    .spec-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin:3rem 0}
+    .spec-cell{background:var(--bg);padding:1rem 1.25rem}
+    .spec-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.3rem}
+    .spec-value{font-size:12px;color:var(--text)}
+    .article-body{display:grid;grid-template-columns:200px 1fr;gap:4rem;padding:4rem 0}
+    .toc{position:sticky;top:calc(var(--nav-h) + 2rem);align-self:start;height:fit-content}
+    .toc-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-faint);margin-bottom:1rem}
+    .toc-list{list-style:none;display:flex;flex-direction:column;gap:0.1rem}
+    .toc-item a{font-size:11px;color:var(--text-faint);text-decoration:none;display:block;padding:0.35rem 0.75rem;border-left:1px solid var(--border);transition:all 0.15s;line-height:1.4}
+    .toc-item a:hover{color:var(--text-dim);border-left-color:var(--border-hi)}
+    .toc-item a.active{color:var(--accent);border-left-color:var(--accent)}
+    .prose{max-width:var(--content-w)}
+    .prose h2{font-family:var(--serif);font-size:1.8rem;line-height:1.1;color:var(--text);margin:3rem 0 1.25rem;padding-top:1rem}
+    .prose h2:first-child{margin-top:0}
+    .prose h3{font-size:13px;font-weight:500;color:var(--text);letter-spacing:0.06em;text-transform:uppercase;margin:2rem 0 0.75rem;display:flex;align-items:center;gap:0.6rem}
+    .prose h3::before{content:'';display:inline-block;width:16px;height:1px;background:var(--accent);flex-shrink:0}
+    .prose p{font-size:13px;color:var(--text-dim);line-height:1.9;margin-bottom:1.25rem}
+    .prose p:last-child{margin-bottom:0}
+    .prose strong{color:var(--text);font-weight:500}
+    .prose a,.prose a:visited{color:var(--accent);text-decoration-color:rgba(245,166,35,0.45);text-decoration-thickness:1px;text-underline-offset:0.18em;transition:color 0.15s,text-decoration-color 0.15s}
+    .prose a:hover{color:var(--text);text-decoration-color:var(--accent)}
+    .prose a:focus-visible{color:var(--text);outline:2px solid var(--accent);outline-offset:3px;text-decoration-color:var(--accent)}
+    .prose code{font-family:var(--mono);font-size:12px;background:var(--bg-1);border:1px solid var(--border);padding:0.15rem 0.4rem;color:var(--accent)}
+    .prose pre{background:var(--bg-1);border:1px solid var(--border);border-left:2px solid var(--accent);padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto}
+    .prose pre code{background:none;border:none;padding:0;font-size:12px;color:var(--text-dim);line-height:1.7}
+    .prose ul{margin:1rem 0 1.25rem 0;display:flex;flex-direction:column;gap:0.5rem}
+    .prose ul li{font-size:13px;color:var(--text-dim);line-height:1.7;display:flex;gap:0.75rem;align-items:flex-start}
+    .prose ul li::before{content:'→';color:var(--accent);flex-shrink:0;margin-top:0.1rem}
+    .callout{border:1px solid var(--border);border-left:2px solid var(--accent);background:var(--bg-1);padding:1.25rem 1.5rem;margin:1.5rem 0}
+    .callout-label{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem}
+    .callout p{margin-bottom:0;font-size:12px}
+    .callout.error{border-left-color:#e24b4a}
+    .callout.error .callout-label{color:#e24b4a}
+    .callout.success{border-left-color:#4ade80}
+    .callout.success .callout-label{color:#4ade80}
+    .callout.warning{border-left-color:var(--accent)}
+    .phase-marker{display:flex;align-items:center;gap:1rem;margin:2.5rem 0 1.5rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border)}
+    .phase-num{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap}
+    .phase-title{font-size:13px;font-weight:500;color:var(--text)}
+    .section-break{height:1px;background:var(--border);margin:3rem 0}
+    .outcomes-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin:1.5rem 0}
+    .outcome-cell{background:var(--bg);padding:1.25rem 1.5rem}
+    .outcome-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:0.4rem}
+    .outcome-value{font-size:13px;color:var(--text)}
+    .article-footer{padding:3rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+    .footer-back{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.15s}
+    .footer-back:hover{color:var(--accent)}
+    .footer-back svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .footer-next{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);display:flex;align-items:center;gap:0.4rem}
+    .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:100}
+    .mobile-nav-inner{display:flex;align-items:stretch;height:100%}
+    .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.15s}
+    .mobile-nav-item:hover,.mobile-nav-item.active{color:var(--accent)}
+    .mobile-nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    @media(max-width:900px){.article-body{grid-template-columns:1fr}.toc{display:none}.article-header{grid-template-columns:1fr}}
+    @media(max-width:680px){.nav-links{display:none}.mobile-nav{display:block}main{padding-bottom:56px}.outcomes-grid{grid-template-columns:1fr}}
+
+    /* data tables (generated from markdown | a | b | ) */
+    .table-wrap{overflow-x:auto;margin:1.75rem 0;border:1px solid var(--border)}
+    .data-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+    .data-table th{background:var(--bg-1);color:var(--accent);text-align:left;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;font-size:10px;padding:0.6rem 0.85rem;border-bottom:1px solid var(--border-hi);white-space:nowrap}
+    .data-table td{color:var(--text-dim);padding:0.55rem 0.85rem;border-bottom:1px solid var(--border);line-height:1.5;vertical-align:top}
+    .data-table tbody tr:last-child td{border-bottom:none}
+    .data-table tbody tr:hover td{background:var(--bg-1)}
+    .data-table strong{color:var(--text);font-weight:500}
+    .data-table code{background:var(--bg-2);padding:0.1rem 0.35rem;font-size:11px;color:var(--accent)}
+
+/* Route-level readability and interaction guarantees for generated Writing pages. */
+.es-nav-search{display:inline-flex;align-items:center;gap:.45rem;min-height:36px;padding:.35rem .65rem;border:1px solid var(--border);background:transparent;color:var(--text-dim);font:inherit;font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.es-nav-search:hover,.es-nav-search:focus-visible{color:var(--text);border-color:var(--border-hi)}
+.es-nav-search svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.5}
+.es-nav-search kbd{color:var(--text-faint);font:inherit;font-size:8px}
+.article-lede{font-size:16px;line-height:1.8;max-width:620px}
+.article-header--ordered{grid-template-areas:"navigation content" "meta content";grid-template-rows:auto 1fr}
+.article-header--ordered>.back-link{grid-area:navigation}
+.article-header--ordered>.header-content{grid-area:content}
+.article-header--ordered>.header-meta{grid-area:meta;align-self:start}
+.article-header--ordered .header-tags{margin-top:.5rem}
+.prose p{font-size:16px;line-height:1.8}
+.prose ul li{font-size:16px;line-height:1.8}
+.callout p{font-size:14px;line-height:1.75}
+.table-wrap{max-width:100%;overscroll-behavior-inline:contain}
+:where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+/* Keep the canonical bottom navigation visible through the shell breakpoint. */
+.mobile-nav.atlas-mobile-nav.atlas-bottom-nav{display:none}
+@media(max-width:768px){
+  .article-header--ordered{grid-template-columns:1fr;grid-template-areas:"navigation" "content" "meta";grid-template-rows:auto auto auto}
+  .article-header--ordered>.back-link{margin-bottom:0}
+  .article-header--ordered .header-meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:.5rem 1rem}
+  .article-header--ordered .header-tags{flex-basis:100%;flex-direction:row;flex-wrap:wrap;gap:.5rem;margin-top:0}
+  .mobile-nav.atlas-mobile-nav.atlas-bottom-nav{display:block}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto!important}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+  </style>
+  <link rel="stylesheet" href="/static/vendor/atlas-interface/v0.4.0/atlas-interface-kit.css">
+  <link rel="stylesheet" href="/static/css/estate-search.css">
+  <link rel="stylesheet" href="/static/css/estate-shell.css?v=20260723-interface-v2">
+  <link rel="stylesheet" href="/static/css/article-interface-v2.css?v=20260724-phase-b-v1">
+</head>
+<body data-atlas-bottom-nav="true">
+
+<nav class="atlas-header atlas-nav-shell atlas-global-header" aria-label="Primary navigation">
+  <div class="atlas-header__inner">
+    <div class="atlas-header__brand atlas-global-header__identity">
+      <a class="nav-wordmark atlas-wordmark" href="/" data-atlas-wordmark>Atlas<span class="atlas-wordmark__cursor">_</span>Systems</a>
+      <a class="nav-status atlas-status atlas-estate-status" href="https://status.atlas-systems.uk/" data-state="checking" data-atlas-status aria-label="Atlas Systems status: Checking" aria-live="off"><span class="status-dot atlas-status__dot" aria-hidden="true"></span><span class="atlas-estate-status-label" data-atlas-status-label>Checking</span></a>
+    </div>
+    <div class="atlas-header__nav atlas-global-header__nav" role="group" aria-label="Atlas Systems sections">
+      <a class="atlas-global-header__link" href="/work/">Work</a>
+      <a class="atlas-global-header__link" href="/writing/" aria-current="page">Writing</a>
+      <a class="atlas-global-header__link" href="/lab/">Lab</a>
+      <a class="atlas-global-header__link" href="/systems/">Systems</a>
+      <a class="atlas-global-header__link" href="/about/">About</a>
+    </div>
+    <div class="atlas-header__actions atlas-global-header__actions">
+      <button type="button" class="es-nav-search atlas-search-control" data-estate-search-open aria-label="Search the estate" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.2" y2="16.2"></line></svg><span class="atlas-search-control__label">Search</span><kbd data-estate-search-kbd>ctrl k</kbd></button>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+  <header class="article-header article-header--ordered">
+    <a href="/writing/" class="back-link">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Writing
+    </a>
+    <div class="header-content">
+      <div class="section-label">Case Study</div>
+      <h1 class="article-title">Building Signal Garden as a Real-Time Browser DSP Instrument</h1>
+      <div class="article-subtitle">Signal Garden — Browser Audio and Generative DSP // Case Study</div>
+      <p class="article-lede">The July 2026 Signal Garden rebuild began with a technically correct granular synthesiser whose low-frequency source collapsed into indistinct rumble. The captured version became a bounded browser instrument with seven procedural layers, deterministic evolution, and separate automated and listening-based validation.</p>
+    </div>
+    <div class="header-meta">
+      <div class="article-index">W-12</div>
+      <div class="article-date">22 November 2026</div>
+      <div class="article-read-time">~17 min read</div>
+      <div class="header-tags">
+        <span class="tag highlight">Audio Systems</span>
+        <span class="tag">Generative Audio</span>
+        <span class="tag">DSP</span>
+        <span class="tag">AudioWorklet</span>
+        <span class="tag">JavaScript</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="spec-strip">
+    <div class="spec-cell"><div class="spec-label">Timeline</div><div class="spec-value">July 2026</div></div>
+    <div class="spec-cell"><div class="spec-label">Runtime</div><div class="spec-value">Browser AudioWorklet</div></div>
+    <div class="spec-cell"><div class="spec-label">Voice budget</div><div class="spec-value">24 to 48 grains</div></div>
+    <div class="spec-cell"><div class="spec-label">Source memory</div><div class="spec-value">8 seconds / 7 layers</div></div>
+    <div class="spec-cell"><div class="spec-label">Evolution</div><div class="spec-value">4 timescales / 7 states</div></div>
+    <div class="spec-cell"><div class="spec-label">Validation</div><div class="spec-value">macOS, Windows, Android</div></div>
+  </div>
+
+  <div class="article-body">
+    <aside class="toc">
+      <div class="toc-label">Contents</div>
+      <ul class="toc-list">
+        <li class="toc-item"><a href="#overview">Overview</a></li>
+        <li class="toc-item"><a href="#system-architecture">System Architecture</a></li>
+        <li class="toc-item"><a href="#phase-i-the-low-frequency-rumble">Phase I — The Low-Frequency Rumble</a></li>
+        <li class="toc-item"><a href="#procedural-source-and-ecosystems">Procedural Source and Ecosystems</a></li>
+        <li class="toc-item"><a href="#phase-ii-silent-startup-and-gain-staging">Phase II — Silent Startup and Gain Staging</a></li>
+        <li class="toc-item"><a href="#bounded-grain-and-feedback-engine">Bounded Grain and Feedback Engine</a></li>
+        <li class="toc-item"><a href="#phase-iii-shared-memory-without-isolation">Phase III — Shared Memory Without Isolation</a></li>
+        <li class="toc-item"><a href="#deterministic-long-form-evolution">Deterministic Long-Form Evolution</a></li>
+        <li class="toc-item"><a href="#performance-interface-and-local-tools">Performance Interface and Local Tools</a></li>
+        <li class="toc-item"><a href="#validation">Validation</a></li>
+        <li class="toc-item"><a href="#outcomes">Outcomes</a></li>
+      </ul>
+    </aside>
+
+    <article class="prose">
+      <section id="overview">
+        <h2>Overview</h2>
+        <p>I built Signal Garden to test whether a browser page could behave like a real generative instrument rather than a visual demo with audio attached. The operating constraint was strict from the beginning: synthesis, grain scheduling, filtering, feedback, metering, and per-grain motion had to execute inside an <code>AudioWorkletProcessor</code>. The main thread could describe intent and draw the interface, but it could not own the sample-by-sample signal path.</p>
+        <p>That boundary worked earlier than the instrument did. The first implementation produced finite stereo audio, moved particles across a canvas, accepted parameter changes, and remained inside its output ceiling. It was technically correct and musically weak. Most of the audible material sat in the low end, so laptop speakers and phone playback reduced the result to an indistinct rumble. Raising the level made the rumble louder without making it clearer.</p>
+        <p>The failure changed the project. I stopped treating Signal Garden as a granular synthesis exercise and started treating it as a long-form composition system. The revised design draws on the logic of generative ambient work associated with Brian Eno: define a bounded set of interacting rules, give those rules enough musical material to recombine, then allow the system to develop without replaying a fixed timeline. The result still supports direct performance, but it does not depend on constant input to remain alive.</p>
+        <p>The July 2026 build ran publicly on the <a href="https://atlas-systems.uk/lab/signal/">Signal Garden page</a>. The captured instrument used a seven-layer procedural source, six ecosystem profiles, a fixed grain pool, adaptive voice budgeting, optional spectral processing, a modulated feedback network, deterministic lifecycle evolution, local audio replacement, browser-native recording, and a particle field derived from the actual grain state.</p>
+        <div class="callout warning"><div class="callout-label">Snapshot Boundary</div><p>July 2026 build; later live revisions are separate.</p></div>
+        <div class="callout"><div class="callout-label">Design Intent</div><p>The page prioritised musical use while keeping its DSP controls inspectable.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="system-architecture">
+        <h2>System Architecture</h2>
+        <p>Signal Garden is split across two execution domains. The audio thread owns anything that must remain sample-accurate or allocation-bounded. The main thread owns browser capabilities, interface state, file decoding, recording, and low-rate control messages.</p>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>Component</th><th>Execution domain</th><th>Responsibility</th></tr></thead><tbody><tr><td><code>SignalGardenProcessorV2</code></td><td>AudioWorklet thread</td><td>Source synthesis, grain creation, filtering, spectral processing, feedback, lifecycle evolution, metering</td></tr><tr><td><code>signal-v2.js</code> controller</td><td>Main thread</td><td>Audio graph creation, ecosystem selection, parameter changes, pointer gestures, file decoding, recording</td></tr><tr><td>Canvas renderer</td><td>Main thread</td><td>Visualises active grains from transferred <code>active</code>, <code>pan</code>, <code>ratio</code>, and <code>phase</code> values</td></tr><tr><td>Web Audio output graph</td><td>Browser audio graph</td><td>Makeup gain, safety compression, user master level, speakers and recording destination</td></tr></tbody></table></div>
+        <p>The worklet exposes 12 <code>k-rate</code> parameters: <code>density</code>, <code>grainSize</code>, <code>spread</code>, <code>tone</code>, <code>tension</code>, <code>texture</code>, <code>width</code>, <code>feedback</code>, <code>evolution</code>, <code>quantize</code>, <code>lushness</code>, and <code>shape</code>. Parameter automation remains at control rate because none of these values needs a fresh array for every sample. Seed changes, ecosystem profiles, lifecycle mode, pointer attraction, feedback weather, spectral mode, adaptive quality, and local source changes travel as explicit port messages.</p>
+        <p>The procedural source writes continuously into an eight-second circular <code>Float32Array</code>. Grains read from that memory at independent positions and rates. This separates the material generator from the granular renderer: one system decides what information enters memory, while another decides how fragments of that information move through pitch, time, stereo space, and envelope shape.</p>
+        <p>The complete signal path is:</p>
+        <pre><code class="language-text">seven procedural source layers
+  -&gt; 8-second circular source memory
+  -&gt; fixed 48-grain pool
+  -&gt; state-variable tone filter
+  -&gt; optional 256-point spectral veil
+  -&gt; four-line modulated feedback network
+  -&gt; DC blocker and worklet soft clipping
+  -&gt; 1.75x makeup gain
+  -&gt; -7 dB / 20:1 safety compressor
+  -&gt; user master gain
+  -&gt; browser output and recording destination</code></pre>
+        <div class="callout"><div class="callout-label">Audio-Thread Ownership</div><p>Pointer motion may change density pressure, pitch gravity, stereo attraction, and dispersion, but it never moves grain DSP onto the main thread. The interface sends a bounded control message; the processor performs the per-sample work.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="phase-i-the-low-frequency-rumble">
+        <h2>Phase I — The Low-Frequency Rumble</h2>
+        <div class="phase-marker"><span class="phase-num">Phase I</span><span class="phase-title">The Low-Frequency Rumble</span></div>
+        <p>The original source memory used three low oscillators plus noise. That was enough to prove scheduling, envelopes, feedback, and stereo rendering, but it was poor material for a finished granular instrument. Most grains sampled related low-frequency waveforms, so changes in density and duration produced new textures without creating new spectral information.</p>
+        <p>The problem became obvious outside the development setup. On headphones the low field was present, but on laptop speakers and a phone it became difficult to hear. Increasing gain exposed more signal, yet the result still behaved like a single mass. Shorter grains made it rougher. Wider pitch dispersion made it less stable. More feedback made it larger. None of those changes gave the listener distinct events, resonances, or harmonic movement to follow.</p>
+        <p>Granular synthesis can redistribute time and pitch, but it cannot manufacture detail that does not exist in the source. A grain engine reading a narrow low-frequency buffer is effectively excavating the same small patch of ground from different angles.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p>The circular source memory contained too little harmonic and temporal information. Output gain was a separate problem; making the signal louder could not give the grain engine material that had never been written into the buffer.</p></div>
+        <p>I changed the diagnostic question from “why is this quiet?” to “what information is available for the grains to redistribute?” That reframed the fix around source design rather than another layer of controls.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>I replaced the three-oscillator source with seven interacting procedural layers, then rebuilt each ecosystem around a different balance of harmonic, modal, transient, noisy, and spatial behaviour.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="procedural-source-and-ecosystems">
+        <h2>Procedural Source and Ecosystems</h2>
+        <p>The revised source generator writes seven layers into the same circular memory. Each layer solves a different part of the original information deficit.</p>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>Layer</th><th>Implementation</th><th>Musical role</th></tr></thead><tbody><tr><td>Harmonic partials</td><td>Seven oscillators driven by ecosystem ratios and a slowly slewed root</td><td>Stable pitch identity and changing upper structure</td></tr><tr><td>Modal resonators</td><td>Six second-order resonators excited by events and noise</td><td>Bell, body, formant, and decaying acoustic behaviour</td></tr><tr><td>Sparse events</td><td>Five event types with short impulses and longer swells</td><td>Temporal landmarks that stop the texture becoming continuous fog</td></tr><tr><td>Filtered noise</td><td>Low-pass and brown-noise components</td><td>Surface texture and resonator excitation</td></tr><tr><td>FM colour</td><td>Carrier and modulator tied to the current harmonic root</td><td>Controlled inharmonic movement on the experimental side</td></tr><tr><td>Subharmonics</td><td>Root at half frequency plus a lower component</td><td>Weight without making the entire source a bass drone</td></tr><tr><td>Air</td><td>Differenced noise</td><td>High-frequency edge that survives small speakers</td></tr></tbody></table></div>
+        <p>The harmonic bank begins from a 55Hz centre and uses seven ratios. A separate target root slews slowly enough to avoid discontinuities when the lifecycle changes harmonic centre. Six modal resonators use profile-specific ratios and decay times; their coefficients are recalculated when the selected ecosystem changes. Sparse events choose between pitched droplets, lower impacts, longer noisy swells, impulses, and metallic combinations. Event lengths range from short transients to several-second gestures, and the Character control changes both their strength and frequency range.</p>
+        <p>The source is bounded before it reaches the grain engine. The combined layer value passes through <code>Math.tanh</code>, which keeps sudden event and resonance combinations from writing unbounded values into memory. The source buffer is not the final output, so this is not used as a mastering stage. It is a guard around the material that later grain voices will sample repeatedly.</p>
+        <p>Six ecosystem profiles define the higher-level musical identity:</p>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>Ecosystem</th><th>Harmonic field</th><th>Defining behaviour</th></tr></thead><tbody><tr><td>Glass Rain</td><td>Pentatonic-weighted ratios</td><td>Bright resonant droplets, high air content, widening stereo movement</td></tr><tr><td>Tidal Memory</td><td>Suspended fifth relationships</td><td>Long grains, lower event rate, reverse-feeling swells, broad feedback memory</td></tr><tr><td>Lichen Choir</td><td>Just-ratio cluster</td><td>Slow beating, formant-like resonance, restrained transients</td></tr><tr><td>Choral</td><td>Consonant formant field</td><td>Harmonic and modal emphasis that suggests voices without synthesising speech</td></tr><tr><td>Deep Drone</td><td>Subharmonic fifths</td><td>Deliberate low weight balanced by sparse higher events</td></tr><tr><td>Anxious Swarm</td><td>Unstable tritone cluster</td><td>Short grains, high tension, FM colour, rapid migration, denser events</td></tr></tbody></table></div>
+        <p>An ecosystem is not a preset that replaces the engine. It supplies weighted pitch ratios, modal ratios, layer gains, event rate, motion genetics, and starting parameter values. Genome A and Genome B can be blended and mutated deterministically. <code>quantize</code> controls attraction to the weighted pitch field, while <code>tension</code> dissolves that gravity into continuous and microtonal movement. Those controls have different meanings; keeping them separate avoids using “randomness” as a single vague parameter.</p>
+        <p>Visitor audio uses the same grain path. The browser decodes a selected file locally, downmixes all channels to mono, caps the material at 120 seconds, and transfers one <code>Float32Array</code> into the worklet. There is no upload endpoint and no server storage. Restoring the procedural source clears the external buffer and returns the same bounded grain objects to the generated memory.</p>
+        <div class="callout"><div class="callout-label">Source Before Control</div><p>The largest improvement came from increasing the quality of information entering the granular system. Extra knobs became useful only after the source could produce contrast worth controlling.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="phase-ii-silent-startup-and-gain-staging">
+        <h2>Phase II — Silent Startup and Gain Staging</h2>
+        <div class="phase-marker"><span class="phase-num">Phase II</span><span class="phase-title">Silent Startup and Gain Staging</span></div>
+        <p>The multi-layer source improved the eventual sound, but startup remained misleadingly quiet. The source buffer is eight seconds long and begins filled with zeros. Early grains were allowed to choose positions across unwritten regions, so a large proportion of the first render window sampled silence even while the source generator was working correctly.</p>
+        <p>This looked like an output-level failure because the signal became stronger over time. Raising the final gain reduced the apparent delay, but it also reduced headroom once the buffer filled and feedback states became active.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p>Procedural grains selected delay positions from the full circular buffer before the source generator had written that much material. The gain stage was compensating for grains reading zeros, not for a consistently quiet synthesiser.</p></div>
+        <p>The grain spawn path now derives its maximum delay from <code>sampleCounter</code>. During startup, a procedural grain can only read material that has already been written. A minimum delay of 20ms keeps the read head behind the writer without exposing unused memory. Once the buffer has filled, the same calculation expands naturally to the full eight-second history.</p>
+        <p>I then separated audibility from safety. The worklet retains its own soft-clipped ceiling at approximately <code>0.72</code>. Outside the worklet, a <code>1.75x</code> makeup stage restores useful level. A <code>DynamicsCompressorNode</code> follows with a <code>-7 dB</code> threshold, zero knee, <code>20:1</code> ratio, <code>3ms</code> attack, and <code>240ms</code> release. The user master gain sits last and starts at 50 percent.</p>
+        <p>That order matters. Feedback-heavy states encounter the safety compressor before the listener raises the master level. Recording branches from the final master, so the captured output matches what the browser sends to the destination rather than bypassing the safety path.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>Grain reads were restricted to written source history, then audibility and safety were split into explicit makeup, compression, and user-volume stages. Startup became immediate without sacrificing the feedback ceiling.</p></div>
+        <div class="callout warning"><div class="callout-label">Listening Level</div><p>The output path is bounded, but bounded is not the same as quiet on every device. Signal Garden starts at 50 percent and leaves the final listening level under user control.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="bounded-grain-and-feedback-engine">
+        <h2>Bounded Grain and Feedback Engine</h2>
+        <p>Signal Garden allocates all 48 grain objects during processor construction. There is no <code>new Grain()</code> inside normal render operation. A grain moves from <code>grainPool</code> into the active array when spawned, then returns to the pool when its envelope completes. The invariant is simple and testable:</p>
+        <pre><code class="language-text">active grains + pooled grains = 48</code></pre>
+        <p>Each grain stores age, duration, source position, starting ratio, starting and ending pan, pitch drift, orbit phase, orbit rate, gain, source-rate ratio, and the current values required by the visualisation. Grain length is derived from <code>grainSize</code> and density pressure. Pitch begins as a blend of raw dispersion and a weighted ecosystem ratio, then <code>tension</code> introduces microtonal deviation. Envelope shape morphs from percussive decay through a Hann-like smooth window toward a reverse shape.</p>
+        <p>Stereo rendering uses equal-power panning. Pan moves between a start and end value while a slow orbit adds local motion. Pitch can drift across the grain lifetime. When the pointer attractor is active, horizontal position pulls pan, vertical position pulls pitch ratio, and pointer velocity increases strength and density pressure. The canvas therefore displays and manipulates actual DSP state; it is not an animation responding to an unrelated analyser node.</p>
+        <p>The voice budget adapts without changing the object pool. If measured render load stays above <code>0.78</code>, the active limit falls by four voices at a time until it reaches 24. If load stays below <code>0.45</code>, it rises by two until it returns to 48. The decision runs every 64 render quanta rather than oscillating on every block. Browsers that expose a usable high-resolution timer receive measured load; the fallback estimate combines grain pressure and the cost of enabling spectral processing.</p>
+        <p>After the grain mix, a state-variable filter combines low and band outputs. <code>tone</code> moves the cutoff from roughly <code>220Hz</code> toward <code>11kHz</code>; <code>tension</code> changes the resonant balance. The optional spectral stage uses a 256-point FFT with a 128-sample hop:</p>
+        <ul><li>Freeze captures magnitudes while current phase continues to move;</li><li>Blur exponentially accumulates magnitudes into a persistent spectral memory;</li><li>Shimmer remaps energy upward by reading lower source bins.</li></ul>
+        <p>The spectral result feeds a four-line feedback network. Delay lengths of 1493, 1601, 1747, and 1867 samples are scaled for the active sample rate. Four independent low-frequency modulators move the read positions. A Hadamard-like sign pattern redistributes energy between lines, while feedback is clamped to <code>0.82</code> after the selected weather profile applies its scale.</p>
+        <p>Clear, Mist, Bloom, Storm, and Void change modulation depth, modulation rate, wet level, and feedback scaling. They do not bypass the feedback ceiling. This keeps Weather as a musical macro rather than a hidden route around the safety design.</p>
+        <div class="callout"><div class="callout-label">Bounded Expressivity</div><p>The interface can push the system toward dense grains, long feedback, spectral freezing, rapid pointer movement, and experimental event rates. Every one of those gestures still operates inside fixed object ownership and explicit feedback limits.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="phase-iii-shared-memory-without-isolation">
+        <h2>Phase III — Shared Memory Without Isolation</h2>
+        <div class="phase-marker"><span class="phase-num">Phase III</span><span class="phase-title">Shared Memory Without Isolation</span></div>
+        <p>The first playable particle field used <code>SharedArrayBuffer</code> to expose grain state to the canvas. The data layout was small, but the browser capability came with a large deployment consequence: shared memory requires cross-origin isolation headers. A visualisation path had become a prerequisite for starting the audio system.</p>
+        <p>That dependency was disproportionate to the problem. The main thread did not need to mutate live worklet memory. It needed an occasional snapshot of 48 grains, each represented by four values: active state, pan, ratio, and envelope phase.</p>
+        <div class="callout error"><div class="callout-label">Root Cause</div><p>The transport selected shared-memory semantics for a one-directional, low-rate snapshot. A non-essential display feature forced the entire page to satisfy a stronger browser security mode than the DSP required.</p></div>
+        <p>The replacement uses two reusable <code>Float32Array</code> buffers. Each buffer holds <code>48 × 4</code>, or 192, float values. The main thread primes the worklet with both buffers. At approximately 60Hz, the processor takes one available buffer, fills it, transfers its backing memory to the main thread, and continues rendering. After drawing, the main thread transfers that same buffer back for reuse.</p>
+        <p>No grain object crosses the thread boundary. No visual payload is allocated per animation frame. If both buffers are temporarily in flight, the worklet skips a visual update rather than blocking audio or allocating a third buffer. Sample-accurate motion remains private to the processor; the canvas receives a bounded representation suitable for human perception.</p>
+        <div class="callout success"><div class="callout-label">Resolution</div><p>A two-buffer transfer loop removed the cross-origin isolation dependency, retained allocation discipline, and made visual back-pressure harmless to the audio thread.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="deterministic-long-form-evolution">
+        <h2>Deterministic Long-Form Evolution</h2>
+        <p>A better source and grain engine solved the immediate sound problem, but an interesting 10-second texture is not automatically an interesting 10-minute instrument. I needed structure above individual grains without writing a fixed arrangement.</p>
+        <p>The processor uses separate deterministic random streams for grain behaviour, lifecycle evolution, and sparse events. All three derive from the same seed but use different initial states, so changing event timing does not automatically rewrite every grain trajectory. Reseeding returns active grains to the pool, resets the lifecycle, resets modulation phases, and reproduces the same starting conditions.</p>
+        <p>Four sinusoidal timescales influence different parts of the system:</p>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>Timescale</th><th>Frequency</th><th>Approximate period</th><th>Responsibility</th></tr></thead><tbody><tr><td>Micro</td><td><code>0.083Hz</code></td><td><code>12s</code></td><td>Grain-level variation and transient-layer movement</td></tr><tr><td>Phrase</td><td><code>0.021Hz</code></td><td><code>48s</code></td><td>Density, noise, harmonic drift, and event balance</td></tr><tr><td>Ecosystem</td><td><code>0.0043Hz</code></td><td><code>233s</code></td><td>Modal activity, sub balance, envelope shape, and lushness</td></tr><tr><td>Epoch</td><td><code>0.0011Hz</code></td><td><code>909s</code></td><td>FM colour, feedback movement, and very slow structural change</td></tr></tbody></table></div>
+        <p>Autonomous mode also moves through seven named lifecycle states. Each profile contains density, brightness, event rate, resonance, motion text, and seven layer multipliers.</p>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>State</th><th>Structural role</th></tr></thead><tbody><tr><td>Dormant</td><td>Holds energy in long grains and low event density</td></tr><tr><td>Germination</td><td>Introduces fresh excitation and partial activity</td></tr><tr><td>Bloom</td><td>Opens the harmonic field and stereo image</td></tr><tr><td>Migration</td><td>Moves pitch centres and grain trajectories</td></tr><tr><td>Storm</td><td>Raises event probability, noise, FM colour, and turbulence</td></tr><tr><td>Decay</td><td>Reduces density while feedback and resonators reveal memory</td></tr><tr><td>Regeneration</td><td>Rebuilds source material for the next cycle</td></tr></tbody></table></div>
+        <p>At an ambient Character setting, a lifecycle lasts approximately 20 to 62 seconds. At the experimental edge, the range contracts toward nine to 31 seconds, with a hard minimum of six seconds. State selection moves to the next lifecycle 76 percent of the time, skips ahead 16 percent of the time, and chooses a random state for the remaining eight percent. Migration and Regeneration may shift the 55Hz harmonic centre by <code>-5</code>, <code>-2</code>, <code>0</code>, <code>2</code>, <code>5</code>, or <code>7</code> semitones.</p>
+        <p>Character does not swap to a second engine. It biases the same system. Moving toward experimental increases FM, transient, and noise weighting; raises event rate and possible event frequency; shortens lifecycle durations; and adds harmonic tension. The instrument keeps its identity while its behaviour becomes less stable.</p>
+        <p>Perform mode suppresses most autonomous lifecycle influence without freezing the engine. The current lifecycle stops advancing, direct macro and pointer controls dominate, and slow evolution remains at a reduced scale. This creates a performance mode rather than an “off” state for generative behaviour.</p>
+        <div class="callout"><div class="callout-label">Deterministic Does Not Mean Repetitive</div><p>Determinism gives the system a reproducible path from a seed and topology. Long periods, weighted state transitions, mutation, cross-pollination, and direct gestures still produce variation without hiding the result behind uncontrolled randomness.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="performance-interface-and-local-tools">
+        <h2>Performance Interface and Local Tools</h2>
+        <p>The development interface originally exposed genome selectors, mutation, macro controls, weather, spectral modes, local source handling, recording, 12 detailed parameters, and telemetry at the same time. That was useful while debugging. It was a poor first encounter because every control appeared equally important.</p>
+        <p>The default performance surface now contains:</p>
+        <ul><li>Start and Stop;</li><li>master volume;</li><li>Autonomous or Perform mode;</li><li>ecosystem selection;</li><li>Character;</li><li>the interactive grain garden.</li></ul>
+        <p>Three disclosure panels hold the deeper layers: Shape the Ecosystem, Source and Capture, and Advanced DSP. The lifecycle panel explains the current state in plain language and shows the active source layers. Stage labels expose the lifecycle, harmonic field, and motion description. Engineers can still inspect render load, active grains, voice limit, over-budget blocks, source mode, spectral mode, and feedback weather.</p>
+        <p>The particle field is both visualisation and control surface. Pointer X maps toward stereo gravity. Pointer Y maps toward pitch gravity. Velocity determines attractor strength and adds dispersion pressure. Messages are coalesced through <code>requestAnimationFrame</code>, so high-frequency pointer events do not become an unbounded stream into the worklet.</p>
+        <p>The browser can record the final master stream with <code>MediaRecorder</code>. MIME selection prefers Opus in WebM, then Opus in Ogg, then plain WebM according to browser support. Chunks are collected every <code>500ms</code> and assembled into a local object URL when recording stops. Nothing is uploaded.</p>
+        <p>Shareable state and local audio support preserve the same privacy boundary. Ecosystem, seed, blend, mutation, macro position, weather, and spectral choices can be encoded into a deterministic state. Audio files stay inside the browser and are transferred directly to the worklet after decoding.</p>
+        <div class="callout success"><div class="callout-label">Result</div><p>The same page now supports three levels of use: listen to an autonomous ecology, perform through musical macro controls, or open the engineering drawers and inspect the processor in detail.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="validation">
+        <h2>Validation</h2>
+        <p>The implementation baseline is <a href="https://github.com/AtlasReaper311/atlas-systems/pull/33">PR #33</a>, building on the transport and interaction work introduced earlier. The automated harness executes the real worklet source inside a Node <code>vm</code> context with a mocked <code>AudioWorkletProcessor</code> port. It does not reimplement the DSP as a separate mathematical model.</p>
+        <p>The main render test processes 1,500 quanta of 128 samples at <code>48kHz</code>, which covers 192,000 stereo frames. For every sample it checks finite output. For every quantum it checks the voice limit and the fixed grain ownership invariant. Across the complete run it requires:</p>
+        <ul><li>RMS above <code>0.003</code>;</li><li>peak output above <code>0.02</code>;</li><li>peak output at or below the expected <code>0.721</code> worklet ceiling;</li><li>active voice limit between 24 and 48;</li><li>active and pooled grains summing to 48.</li></ul>
+        <p>Additional tests force a lifecycle transition and verify explanatory telemetry, confirm that Perform mode prevents lifecycle takeover, render 8192 procedural samples and check that multiple source layers become active, replace the source with a local <code>Float32Array</code>, restore procedural mode, and inspect the HTML and controller for the 50 percent volume default, <code>1.75x</code> makeup gain, compressor, and user master stage. The suite also asserts that the processor contains no <code>SharedArrayBuffer</code> reference.</p>
+        <p>The exact harness remains in <a href="https://github.com/AtlasReaper311/atlas-systems/blob/main/lab/tests/signal-garden-v2.test.mjs"><code>signal-garden-v2.test.mjs</code></a>. These tests establish numerical safety, bounded ownership, transport shape, and state-machine behaviour. They do not establish musical quality or prove performance across every browser implementation.</p>
+        <p>I separately tested the deployed page using Firefox, Chrome, and DuckDuckGo Browser across a macOS laptop, a Windows laptop, and an Android phone. The browser list and device list are intentionally independent; I did not test every browser on every device. Mobile audio started correctly after user interaction, the touch surface remained usable, and the richer source retained audible detail outside the development listening setup.</p>
+        <p>The most important manual result was not that the page made sound. It was that Glass Rain, Tidal Memory, Lichen Choir, Choral, Deep Drone, and Anxious Swarm no longer collapsed into the same low-frequency identity. That judgment remains subjective, so I report the devices and method rather than converting it into a false perceptual score.</p>
+        <div class="callout warning"><div class="callout-label">Validation Boundary</div><p>The automated suite covers a short deterministic render window and the manual checks cover selected browsers and devices. I have not completed a formal perceptual study, a full browser-device matrix, or a long-session CPU benchmark on low-end mobile hardware.</p></div>
+      </section>
+      <div class="section-break"></div>
+      <section id="outcomes">
+        <h2>Outcomes</h2>
+        <div class="outcomes-grid"><div class="outcome-cell"><div class="outcome-label">Audio architecture</div><div class="outcome-value">Eight-second source memory, fixed 48-grain pool, adaptive 24-to-48 voice limit, and bounded feedback path</div></div><div class="outcome-cell"><div class="outcome-label">Source design</div><div class="outcome-value">Seven interacting synthesis layers and six ecosystem profiles replaced the indistinct low-frequency drone</div></div><div class="outcome-cell"><div class="outcome-label">Long-form behaviour</div><div class="outcome-value">Four deterministic timescales and seven lifecycle states develop the instrument without a fixed arrangement</div></div><div class="outcome-cell"><div class="outcome-label">Browser validation</div><div class="outcome-value">Audio and touch interaction worked across selected desktop browsers, macOS, Windows, and Android</div></div></div>
+        <p>Signal Garden is now a public browser instrument rather than a granular demonstration. The finished system separates source composition, granular redistribution, spectral colour, feedback memory, lifecycle structure, interface intent, and final gain control. Each boundary has its own failure mode and its own validation method, which makes the instrument easier to reason about than one large block of generative code.</p>
+        <p>The broader principle is that technical correctness and perceptual success are different engineering targets. Automated tests can prove finite output, bounded allocation, deterministic state, and explicit safety limits; only listening can reveal that the material itself is too weak. The useful response is not to distrust testing, but to give each kind of evidence authority over the question it can actually answer.</p>
+      </section>
+    </article>
+  </div>
+
+  <div class="article-footer">
+    <a href="/writing/atlas-control-plane-waves-0-3/" class="footer-back">
+    <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    ← W-11 — Atlas Systems
+  </a>
+  <span class="footer-next">Latest article</span>
+  </div>
+
+</main>
+
+<nav class="mobile-nav atlas-mobile-nav atlas-bottom-nav" aria-label="Mobile navigation">
+  <div class="mobile-nav-inner atlas-mobile-nav__inner">
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/work/"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg><span>Work</span></a>
+    <a class="mobile-nav-item atlas-mobile-nav__item active" href="/writing/" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="16" y2="13"></line></svg><span>Writing</span></a>
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/lab/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V9"></path><path d="M14 3h7v7"></path></svg><span>Lab</span></a>
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/systems/"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg><span>Systems</span></a>
+    <a class="mobile-nav-item atlas-mobile-nav__item" href="/about/"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M20 21a8 8 0 10-16 0"></path></svg><span>About</span></a>
+  </div>
+</nav>
+
+<script>
+  const tocLinks = document.querySelectorAll('.toc-item a');
+  const sections = document.querySelectorAll('section[id]');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        tocLinks.forEach(a => a.classList.remove('active'));
+        const active = document.querySelector(`.toc-item a[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+<script src="/js/transitions.js?v=20260814-terminal-swipe"></script>
+<script type="module" src="/static/js/estate-shell.js?v=20260723-interface-v2"></script>
+<script type="module" src="/static/js/estate-search/global-search.js"></script>
+
+</body>
+</html>

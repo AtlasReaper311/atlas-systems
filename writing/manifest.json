@@ -1,5 +1,11 @@
 [
   {
+    "slug": "signal-garden-browser-dsp",
+    "title": "Building Signal Garden as a Real-Time Browser DSP Instrument",
+    "date": "2026-11-22",
+    "w_number": "W-12"
+  },
+  {
     "slug": "atlas-control-plane-waves-0-3",
     "title": "Building the Atlas Systems Control Plane",
     "date": "2026-10-25",
